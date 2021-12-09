@@ -1,14 +1,13 @@
 {
-  "extends": "../../module-build/tsconfig.es6.json",
+  "extends": "../../module-build/tsconfig.esm.es5.json",
   "compilerOptions": {
-    "outDir": "dist/es6",
+    "outDir": "dist/esm/es5",
     "baseUrl": ".",
     "paths": {
       "@ag-*": [
-        "node_modules/@ag-*/dist/es6/main"
+        "node_modules/@ag-*/dist/esm/es5/main"
       ]
     }
-
   },
   "include": [
     "src/**/*"
