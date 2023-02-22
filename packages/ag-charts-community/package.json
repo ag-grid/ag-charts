@@ -23,8 +23,9 @@
     "build": "npm run build-cjs && npm run build-esm && npx tsc -p tsconfig.typings.json && npm run hash",
     "build-prod": "npm run build-cjs-prod && npm run build-esm-prod && tsc -p tsconfig.typings.json && npm run hash",
     "watch": "npx tsc -p tsconfig.json --watch",
+    "watch-esm": "tsc -p tsconfig.esm.es5.json -w",
     "hash": "sh ../../scripts/hashDirectory.sh > .hash",
-    "install-hooks": "cd ../.. && husky install charts-packages/ag-charts-community/.husky",
+    "install-hooks": "cd ../.. && husky install charts-community-modules/ag-charts-community/.husky",
     "fix": "npx lerna run --scope @ag-grid-community/all-modules generate-doc-files && npx prettier -w .",
     "predocker:init": "docker build -t charts:latest .docker",
     "docker:init": ".docker/run.sh init",
@@ -103,7 +104,7 @@
     "access": "public"
   },
   "lint-staged": {
-    "*.{ts,js,md,json}": "charts-packages/ag-charts-community/.lint-staged/run.sh prettier",
-    "*.ts": "charts-packages/ag-charts-community/.lint-staged/run.sh autodocs"
+    "*.{ts,js,md,json}": "charts-community-modules/ag-charts-community/.lint-staged/run.sh prettier",
+    "*.ts": "charts-community-modules/ag-charts-community/.lint-staged/run.sh autodocs"
   }
 }

@@ -4,7 +4,7 @@ set -eu
 
 LOCAL_REPO_ROOT=$(git rev-parse --show-toplevel)
 BASE_PATH=/workspace/ag-grid
-CHARTS_PATH=${BASE_PATH}/charts-packages/ag-charts-community
+CHARTS_PATH=${BASE_PATH}/charts-community-modules/ag-charts-community
 NODE_MODULES_PATH=${CHARTS_PATH}/node_modules
 
 case $1 in
@@ -21,7 +21,7 @@ case $1 in
         shift 1
         docker run --rm -it \
             -v ${LOCAL_REPO_ROOT}:${BASE_PATH}:ro \
-            -v ${LOCAL_REPO_ROOT}/charts-packages/ag-charts-community:${CHARTS_PATH} \
+            -v ${LOCAL_REPO_ROOT}/charts-community-modules/ag-charts-community:${CHARTS_PATH} \
             -v charts-nm:${NODE_MODULES_PATH} \
             -w ${CHARTS_PATH} \
             -p 3000:3000 \
