@@ -24,5 +24,12 @@
   },
   "dependencies": {
     "tslib": "^2.3.0"
-  }
+  },
+  "main": "bundles/ag-charts-angular.umd.js",
+  "module": "fesm2015/ag-charts-angular.js",
+  "es2015": "fesm2015/ag-charts-angular.js",
+  "esm2015": "esm2015/ag-charts-angular.js",
+  "fesm2015": "fesm2015/ag-charts-angular.js",
+  "typings": "ag-charts-angular.d.ts",
+  "sideEffects": false
 }
