@@ -2,6 +2,11 @@
 
 set -eu
 
+if [[ -d .git ]] ; then
+    echo "Run this scipt outside the ag-charts repo."
+    exit 1
+fi
+
 git clone --no-local ./ag-grid-tertiary ag-charts-sync
 cd ag-charts-sync
 git filter-repo \
