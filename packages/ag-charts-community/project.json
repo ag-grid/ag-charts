@@ -35,7 +35,8 @@
           "ci": true,
           "codeCoverage": true
         }
-      }
+      },
+      "dependsOn": [{ "projects": ["ag-charts-community-examples"], "target": "build" }]
     }
   },
   "tags": []
