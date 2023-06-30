@@ -1,0 +1,102 @@
+@use "../../design-system" as *;
+
+.nav {
+    $top-bar-height: 58px;
+
+    --menu-width: min(30vw, 320px);
+    --font-size: var(--font-size-medium);
+
+    border-bottom: 1px solid var(--border-color);
+
+    @media screen and (max-width: $breakpoint-docs-nav-medium) {
+        @include page-horizontal-margins();
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        --menu-horizontal-margin: #{$size-2};
+        --right-margin: max(
+            #{$size-4},
+            calc(50vw - var(--max-page-width) / 2 - var(--menu-width))
+        );
+
+        flex-shrink: 0;
+        width: var(--menu-width);
+        margin-right: var(--right-margin);
+        padding-right: var(--menu-horizontal-margin);
+        padding-left: var(--horizontal-margin);
+        border-right: solid 1px var(--bright-blue-gray);
+
+        @supports (position: sticky) {
+            position: sticky;
+            top: $top-bar-height;
+            height: calc(100vh - #{$top-bar-height});
+            overflow: hidden;
+            overflow-y: auto;
+        }
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        padding-left: var(--menu-horizontal-margin);
+    }
+}
+
+.navInner {
+    padding-top: $size-3;
+    padding-bottom: $size-7;
+}
+
+.navGroup a {
+    position: relative;
+    display: block;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: $size-2;
+    margin-left: var(--first-indent-size);
+    outline: none;
+    border-radius: var(--border-radius);
+    border: 2px solid transparent;
+    color: var(--secondary-text-color);
+    font-weight: var(--font-weight-bold);
+    transition: color $default-transition-timing,
+        border-color $default-transition-timing;
+
+    &::before {
+        content: "";
+        position: absolute;
+        width: 0.375em;
+        height: 0.375em;
+        transform: translate(-0.625em, 0.45em);
+        border-radius: 50%;
+        background-color: var(--white);
+        transition: background-color $default-transition-timing;
+    }
+
+    &:focus-visible {
+        border-color: var(--input-focus-border-color);
+
+        &::before {
+            background-color: var(--input-focus-border-color);
+        }
+    }
+
+    &.activeItemParent {
+        color: var(--text-color);
+    }
+
+    &:hover {
+        color: var(--link-color);
+
+        &::before {
+            background-color: var(--link-color) !important;
+        }
+    }
+
+    &.activeMenuItem {
+        pointer-events: none;
+        color: var(--text-color);
+
+        &::before {
+            background-color: var(--text-color);
+        }
+    }
+}

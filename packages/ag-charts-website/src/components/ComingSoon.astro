@@ -1,0 +1,18 @@
+---
+const { name } = Astro.props;
+---
+
+<div class="page-margin container">
+    <h1>Coming soon: {name}</h1>
+
+    <slot />
+</div>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    .container {
+        margin-top: $size-6;
+        margin-bottom: calc($size-6 * 4);
+    }
+</style>

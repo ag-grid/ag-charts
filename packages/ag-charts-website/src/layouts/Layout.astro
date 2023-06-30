@@ -1,39 +1,106 @@
 ---
+import { getEntry } from "astro:content";
+import { getFavIconsData, getAppleTouchIconsData } from "../utils/favicons";
+import SiteHeader from "../components/site-header/SiteHeader.astro";
+import "../design-system/design-system.scss";
+import { Footer } from "../components/footer/Footer";
+
 export interface Props {
-    title: string;
+    title?: string;
+    description?: string;
+    showTopBar?: boolean;
 }
 
-const { title } = Astro.props;
+const metadata = await getEntry("metadata", "metadata");
+
+const {
+    title = metadata.data.title,
+    description = metadata.data.description,
+    showTopBar,
+} = Astro.props;
+const path = Astro.url.pathname;
 ---
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
+        <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        {
+            getFavIconsData().map(({ size, icon }: any) => (
+                <link
+                    rel="icon"
+                    type="image/png"
+                    sizes={`${size}x${size}`}
+                    href={icon}
+                />
+            ))
+        }
+        {
+            getAppleTouchIconsData().map(({ size, icon }: any) => (
+                <link
+                    rel="apple-touch-icon"
+                    sizes={`${size}x${size}`}
+                    href={icon}
+                />
+            ))
+        }
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
     </head>
-
     <body>
-        <slot />
+        <div class="mainContainer">
+            <SiteHeader />
+            {
+                showTopBar && (
+                    <div class="topBar">
+                        <div class="page-margin">TODO: Top bar</div>
+                    </div>
+                )
+            }
+
+            <div class="contentViewport">
+                <slot name="aside" />
+                <slot />
+            </div>
+        </div>
+        <Footer path={path} />
+
+        <style lang="scss">
+            @use "../design-system" as *;
+
+            html {
+                overflow-x: hidden;
+            }
+
+            main {
+                flex: 1 1 auto;
+                min-width: 0px;
+            }
+
+            .mainContainer {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                padding: 0;
+                width: 100%;
+            }
+
+            .contentViewport {
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+
+                @media (min-width: $breakpoint-docs-nav-medium) {
+                    flex-direction: row;
+                }
+            }
+
+            .topBar {
+                background-color: var(--toolbar-background);
+                padding: $size-2 0;
+            }
+        </style>
     </body>
 </html>
-
-<style is:global>
-    :root {
-        --accent: 124, 58, 237;
-        --accent-gradient: linear-gradient(45deg, rgb(var(--accent)), #da62c4 30%, white 60%);
-    }
-
-    html {
-        font-family: system-ui, sans-serif;
-        background-color: #f6f6f6;
-    }
-
-    code {
-        font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono,
-            Courier New, monospace;
-    }
-</style>

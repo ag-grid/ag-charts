@@ -21,6 +21,9 @@
     // Enable strict mode
     "strict": true,
     // Error when a value import is only used as a type
-    "importsNotUsedAsValues": "error"
+    "importsNotUsedAsValues": "error",
+
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   }
 }

@@ -1,0 +1,41 @@
+---
+import { parse } from "node-html-parser";
+export interface Props {
+    /**
+     * Name of svg file (excluding `.svg`) within `/src/images/inline-svgs` folder
+     */
+    name: string;
+}
+
+const INLINE_SVG_FOLDER = "/src/images/inline-svgs";
+
+function getSVG(name: string) {
+    const filepath = `${INLINE_SVG_FOLDER}/${name}.svg`;
+    // NOTE: Can't use variable in `import.meta.glob`
+    const files = import.meta.glob<string>(`/src/images/inline-svgs/**/*.svg`, {
+        as: "raw",
+        eager: true,
+    });
+
+    if (!(filepath in files)) {
+        throw new Error(`${filepath} not found`);
+    }
+
+    const root = parse(files[filepath]);
+
+    const svg = root.querySelector("svg");
+    const { attributes, innerHTML } = svg as any;
+
+    return {
+        attributes,
+        innerHTML,
+    };
+}
+
+const { name, ...attributes } = Astro.props as Props;
+const { attributes: baseAttributes, innerHTML } = getSVG(name);
+
+const svgAttributes = { ...baseAttributes, ...attributes };
+---
+
+<svg {...svgAttributes} set:html={innerHTML} />

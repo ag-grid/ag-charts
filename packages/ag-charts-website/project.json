@@ -11,7 +11,9 @@
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
-      "options": {}
+      "options": {
+        "port": 4600
+      }
     },
     "preview": {
       "dependsOn": [
