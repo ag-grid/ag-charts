@@ -71,7 +71,7 @@ export function loadExampleOptions(name: string, evalFn = 'options'): any {
     try {
         const exampleRunFn = new Function('agCharts', 'AgChart', 'time', 'Marker', evalExpr);
         return exampleRunFn(agCharts, AgChart, time, Marker);
-    } catch (error) {
+    } catch (error: any) {
         Logger.error(`unable to read example data for [${name}]; error: ${error.message}`);
         Logger.debug(evalExpr);
         return [];
