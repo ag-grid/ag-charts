@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "module": "commonjs",
+    "target": "es2016",
     "strict": true,
     "forceConsistentCasingInFileNames": false,
     "noImplicitOverride": false,

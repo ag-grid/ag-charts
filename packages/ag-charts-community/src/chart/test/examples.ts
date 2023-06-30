@@ -19,10 +19,11 @@ import {
 
 export function loadExampleOptions(name: string, evalFn = 'options'): any {
     const filters = [/.*AgChart\.(update|create)/, /.* container: .*/, /.*setInterval.*/, /.*setTimeout.*/];
-    const srcDataFile = `../../grid-packages/ag-grid-docs/documentation/doc-pages/charts-overview/examples/${name}/data.ts`;
-    const srcExampleFile = `../../grid-packages/ag-grid-docs/documentation/doc-pages/charts-overview/examples/${name}/main.ts`;
-    const dataFile = `../../grid-packages/ag-grid-docs/documentation/doc-pages/charts-overview/examples/${name}/_gen/packages/vanilla/data.js`;
-    const exampleFile = `../../grid-packages/ag-grid-docs/documentation/doc-pages/charts-overview/examples/${name}/_gen/packages/vanilla/main.js`;
+    const exampleRootDir = `${process.cwd()}/dist/packages/ag-charts-community-examples/src/`;
+    const srcDataFile = `${exampleRootDir}charts-overview/examples/${name}/data.ts`;
+    const srcExampleFile = `${exampleRootDir}charts-overview/examples/${name}/main.ts`;
+    const dataFile = `${exampleRootDir}charts-overview/examples/${name}/data.js`;
+    const exampleFile = `${exampleRootDir}charts-overview/examples/${name}/main.js`;
 
     const checkMtime = (srcFile: string, targetFile: string) => {
         if (!fs.existsSync(srcFile)) return;
@@ -54,10 +55,15 @@ export function loadExampleOptions(name: string, evalFn = 'options'): any {
     };
 
     const dataFileExists = fs.existsSync(dataFile);
-    const dataFileContent = dataFileExists ? cleanJs(fs.readFileSync(dataFile)) : [];
+    // const dataFileContent = dataFileExists ? cleanJs(fs.readFileSync(dataFile)) : [];
     const exampleFileLines = cleanJs(fs.readFileSync(exampleFile));
 
-    const evalExpr = `${dataFileContent.join('\n')} \n ${exampleFileLines.join('\n')}; return ${evalFn};`;
+    const evalExpr = [
+        dataFileExists ? `with (require('${dataFile}')) {` : '',
+        `${exampleFileLines.join('\n')}`,
+        `return ${evalFn};`,
+        dataFileExists ? `}` : '',
+    ].join('\n');
     // @ts-ignore - used in the eval() call.
     const agCharts = require('../../main');
     // @ts-ignore - used in the eval() call.
