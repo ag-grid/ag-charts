@@ -1,0 +1,7 @@
+{
+  "name": "@ag-charts/ag-charts-community-examples",
+  "version": "0.0.0",
+  "scripts": {
+    "test": "node index.js"
+  }
+}
