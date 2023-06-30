@@ -319,49 +319,49 @@ export const STACKED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
 export const GROUPED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
     ...GROUPED_AREA_EXAMPLE,
     series: [
-        ...GROUPED_AREA_EXAMPLE.series.slice(0, 3).map((s) => {
+        ...(GROUPED_AREA_EXAMPLE.series?.slice(0, 3).map((s) => {
             return {
                 ...s,
                 label: {
                     enabled: true,
                 },
             };
-        }),
+        }) ?? []),
     ],
 };
 
 export const LINE_SERIES_LABELS: AgCartesianChartOptions = {
     ...LINE_WITH_GAPS_EXAMPLE,
     series: [
-        ...LINE_WITH_GAPS_EXAMPLE.series.slice(0, 3).map((s) => {
+        ...(LINE_WITH_GAPS_EXAMPLE.series?.slice(0, 3).map((s) => {
             return {
                 ...s,
                 label: {
                     enabled: true,
                 },
             };
-        }),
+        }) ?? []),
     ],
 };
 
 export const HISTOGRAM_SERIES_LABELS: AgCartesianChartOptions = {
     ...HISTOGRAM_EXAMPLE,
     series: [
-        ...HISTOGRAM_EXAMPLE.series.map((s) => {
+        ...(HISTOGRAM_EXAMPLE.series?.map((s) => {
             return {
                 ...s,
                 label: {
                     enabled: true,
                 },
             };
-        }),
+        }) ?? []),
     ],
 };
 
 export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ...SCATTER_EXAMPLE,
     series: [
-        ...SCATTER_EXAMPLE.series.map((s) => {
+        ...(SCATTER_EXAMPLE.series?.map((s) => {
             return {
                 ...s,
                 labelKey: 'team',
@@ -369,14 +369,14 @@ export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
                     enabled: true,
                 },
             };
-        }),
+        }) ?? []),
     ],
 };
 
 export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ...GROUPED_LINE_EXAMPLE,
     series: [
-        ...GROUPED_LINE_EXAMPLE.series.map((s) => {
+        ...(GROUPED_LINE_EXAMPLE.series?.map((s) => {
             return {
                 ...s,
                 type: 'scatter' as const,
@@ -385,14 +385,14 @@ export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
                     enabled: true,
                 },
             };
-        }),
+        }) ?? []),
     ],
 };
 
 export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
     ...BUBBLE_EXAMPLE,
     series: [
-        ...BUBBLE_EXAMPLE.series.map((s) => {
+        ...(BUBBLE_EXAMPLE.series?.map((s) => {
             return {
                 ...s,
                 labelKey: 'city',
@@ -400,7 +400,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                     enabled: true,
                 },
             };
-        }),
+        }) ?? []),
     ],
     axes: [
         {
@@ -531,14 +531,14 @@ export const PIE_SERIES_LABELS: AgPolarChartOptions = {
 export const DOUGHNUT_SERIES_LABELS: AgPolarChartOptions = {
     ...DOUGHNUT_EXAMPLE,
     series: [
-        ...DOUGHNUT_EXAMPLE.series.map((s) => {
+        ...(DOUGHNUT_EXAMPLE.series?.map((s) => {
             return {
                 ...s,
                 calloutLabel: {
                     enabled: true,
                 },
             };
-        }),
+        }) ?? []),
     ],
 };
 

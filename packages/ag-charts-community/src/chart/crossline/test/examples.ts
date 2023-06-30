@@ -112,8 +112,8 @@ const crossLinesOptions: CrossLinesRangeConfig = {
         horizontal: [128, 134],
     },
     INVALID_RANGE: {
-        vertical: [new Date(Date.UTC(2019, 4, 1)), undefined],
-        horizontal: [128, undefined],
+        vertical: [new Date(Date.UTC(2019, 4, 1)), undefined!],
+        horizontal: [128, undefined!],
     },
     RANGE_OUTSIDE_DOMAIN_MAX: {
         vertical: [new Date(Date.UTC(2019, 4, 1)), new Date(Date.UTC(2022, 8, 1))],

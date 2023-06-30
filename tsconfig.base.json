@@ -15,8 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "ag-charts-community": ["packages/ag-charts-community/src/index.ts"],
-      "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/index.ts"]
+      "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],
+      "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

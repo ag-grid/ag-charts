@@ -1,6 +1,5 @@
 import {
     AgChartOptions,
-    AgCartesianChartOptions,
     AgLineSeriesOptions,
     AgBarSeriesOptions,
     AgAreaSeriesOptions,
@@ -515,7 +514,7 @@ function applySeries(chart: Chart, options: AgChartOptions) {
     chart.series = createSeries(chart, optSeries);
 }
 
-function applyAxes(chart: Chart, options: AgCartesianChartOptions) {
+function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
     const optAxes = options.axes;
     if (!optAxes) {
         return false;
