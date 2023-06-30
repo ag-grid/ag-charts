@@ -9,7 +9,7 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/packages/ag-charts-community",
-        "main": "packages/ag-charts-community/src/index.ts",
+        "main": "packages/ag-charts-community/src/main.ts",
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
         "assets": [],
         "project": "packages/ag-charts-community/package.json",
