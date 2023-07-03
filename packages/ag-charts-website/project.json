@@ -13,7 +13,13 @@
       "executor": "@nxtensions/astro:dev",
       "options": {
         "port": 4600
-      }
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "ag-charts-community"
+        }
+      ]
     },
     "preview": {
       "dependsOn": [

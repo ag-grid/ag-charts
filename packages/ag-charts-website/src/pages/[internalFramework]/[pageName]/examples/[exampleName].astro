@@ -1,0 +1,70 @@
+---
+import { getCollection } from 'astro:content';
+import { getDocExamplePages, getExampleUrl, getBoilerPlateUrl } from '../../../../utils/pages';
+import { InternalFramework } from '../../../../types/ag-grid';
+import TypescriptTemplate from '../../../../components/example-runner/framework-templates/TypescriptTemplate.astro';
+import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
+import { getIsDev } from '../../../../utils/env';
+
+const internalFramework = Astro.params.internalFramework! as InternalFramework;
+const pageName = Astro.params.pageName!;
+const exampleName = Astro.params.exampleName!;
+
+export async function getStaticPaths() {
+    const pages = await getCollection('docs');
+    return getDocExamplePages({
+        pages,
+    });
+}
+
+const isDev = getIsDev();
+
+const library = 'charts';
+
+const { files, scriptFiles, styleFiles, isEnterprise } =
+    (await getGeneratedContents({
+        internalFramework,
+        pageName,
+        exampleName,
+    })) || {};
+const indexFragment = files && files['index.html'];
+const appLocation = getExampleUrl({
+    internalFramework,
+    pageName,
+    exampleName,
+});
+
+const boilerPlateUrl = getBoilerPlateUrl({
+    library,
+    internalFramework,
+});
+---
+
+{
+    internalFramework === 'typescript' && (
+        <TypescriptTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={Date.now()}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            indexFragment={indexFragment!}
+            appLocation={appLocation}
+            library={library}
+            boilerplatePath={boilerPlateUrl + '/'}
+        />
+    )
+}
+
+{
+    internalFramework !== 'typescript' && (
+        <h1>
+            TODO: [{internalFramework}] {pageName} - {exampleName}
+        </h1>
+    )
+}

@@ -1,14 +1,14 @@
 ---
-import { getCollection } from "astro:content";
-import Layout from "../../layouts/Layout.astro";
-import { getDocPages, getDocPagesList } from "../../utils/pages";
-import { PagesNavigation } from "../../components/pages-navigation/PagesNavigation";
-import { Header } from "../../components/docs/Header";
-import { getFrameworkDisplayText } from "../../utils/framework";
-import type { Framework } from "../../types/ag-grid";
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { getDocPages, getDocPagesList } from '../../utils/pages';
+import { PagesNavigation } from '../../components/pages-navigation/PagesNavigation';
+import { Header } from '../../components/docs/Header';
+import { getFrameworkDisplayText } from '../../utils/framework';
+import type { Framework } from '../../types/ag-grid';
 
 export async function getStaticPaths() {
-    const pages = await getCollection("docs");
+    const pages = await getCollection('docs');
     return getDocPages(pages);
 }
 
@@ -18,42 +18,26 @@ const { title, enterprise, sideMenu = true } = page.data;
 
 const { Content } = await page.render();
 
-const allDocPages = await getCollection("docs");
+const allDocPages = await getCollection('docs');
 const pages = getDocPagesList(allDocPages);
 ---
 
-<Layout
-    title={`${getFrameworkDisplayText(
-        framework as Framework
-    )} Charts: AG Charts`}
-    showTopBar={true}
->
-    <PagesNavigation
-        client:load
-        slot="aside"
-        pages={pages}
-        framework={framework!}
-    />
+<Layout title={`${getFrameworkDisplayText(framework as Framework)} Charts: AG Charts`} showTopBar={true}>
+    <PagesNavigation client:load slot="aside" pages={pages} framework={framework!} />
 
     <div id="doc-page-wrapper" class="docPageWrapper">
         <div
             id="doc-content"
             class:list={[
-                "docPage",
+                'docPage',
                 {
                     noSideMenu: !sideMenu,
                 },
             ]}
         >
-            <Header
-                title={title}
-                framework={framework}
-                isEnterprise={enterprise}
-            />
+            <Header title={title} framework={framework} isEnterprise={enterprise} />
 
-            {
-                /* Wrapping div is a hack to target "intro" section of docs page */
-            }
+            {/* Wrapping div is a hack to target "intro" section of docs page */}
             <div class="pageSections">
                 <Content framework={framework} page={page} />
             </div>
@@ -64,7 +48,7 @@ const pages = getDocPagesList(allDocPages);
 </Layout>
 
 <style lang="scss">
-    @use "../../design-system" as *;
+    @use '../../design-system' as *;
 
     .docPageWrapper {
         --docs-page-max-width: 68em;
@@ -87,11 +71,11 @@ const pages = getDocPagesList(allDocPages);
 
     %enterprise-icon {
         display: inline-block;
-        background-image: url("../images/enterprise.svg");
+        background-image: url('../images/enterprise.svg');
         text-indent: -10000px;
         background-position-y: center;
         background-repeat: no-repeat;
-        content: "e";
+        content: 'e';
     }
 
     .docPage {
@@ -196,11 +180,7 @@ const pages = getDocPagesList(allDocPages);
     }
 
     // Hack to target markdown images and not images within components
-    .pageSections
-        > :global(article)
-        > :global(div)
-        *:not([class])
-        :global(img) {
+    .pageSections > :global(article) > :global(div) *:not([class]) :global(img) {
         max-width: 100%;
     }
 

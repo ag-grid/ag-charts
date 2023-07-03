@@ -12,5 +12,10 @@
 To work on the website
 
 ```
+nx run ag-charts-website:watch:dev
+
+# This runs a nx watcher to build `ag-charts-community`, and the website dev server
+# ie, it combines the following commands:
+nx run ag-charts-community:watch:build
 nx run ag-charts-website:dev
 ```

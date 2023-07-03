@@ -1,15 +1,38 @@
-import type { Framework } from "./types/ag-grid";
+import type { Framework, InternalFramework } from './types/ag-grid';
 
-export const FRAMEWORKS: Framework[] = [
-    "javascript",
-    "react",
-    "angular",
-    "vue",
+export const FRAMEWORKS: Framework[] = ['javascript', 'react', 'angular', 'vue'];
+
+export const INTERNAL_FRAMEWORKS: InternalFramework[] = [
+    'vanilla',
+    'typescript',
+    'react',
+    'reactFunctional',
+    'reactFunctionalTs',
+    'angular',
+    'vue',
+    'vue3',
 ];
 
 export const FRAMEWORK_DISPLAY_TEXT: Record<Framework, string> = {
-    javascript: "JavaScript",
-    react: "React",
-    angular: "Angular",
-    vue: "Vue",
+    javascript: 'JavaScript',
+    react: 'React',
+    angular: 'Angular',
+    vue: 'Vue',
 };
+
+export const agGridVersion = '30.0.0';
+export const agGridEnterpriseVersion = '30.0.0';
+export const agGridReactVersion = '30.0.0';
+export const agGridAngularVersion = '30.0.0';
+export const agGridVueVersion = '30.0.0';
+export const agGridVue3Version = '30.0.0';
+
+export const agChartsVersion = '8.0.0';
+export const agChartsReactVersion = '8.0.0';
+export const agChartsAngularVersion = '8.0.0';
+export const agChartsVueVersion = '8.0.0';
+
+/**
+ * URL prefix to serve files for dev server
+ */
+export const localPrefix = '/dev';
