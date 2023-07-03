@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import { getDocExamplePages, getExampleUrl } from '../../utils/pages';
+import Layout from '../../layouts/Layout.astro';
+
+const pages = await getCollection('docs');
+const examples = await getDocExamplePages({
+    pages,
+});
+---
+
+<Layout title={`Debug: Example Pages`}>
+    <main class="page-margin container">
+        <h1>Example pages ({examples.length})</h1>
+        <table>
+            <thead>
+                <th>No.</th>
+                <th>Url</th>
+                <th><code>params.internalFramework</code></th>
+                <th><code>params.pageName</code></th>
+                <th><code>params.exampleName</code></th>
+            </thead>
+            <tbody>
+                {
+                    examples.map((example, index) => {
+                        const { internalFramework, pageName, exampleName } = example.params;
+                        const url = getExampleUrl({
+                            internalFramework,
+                            pageName,
+                            exampleName,
+                        });
+                        return (
+                            <tr>
+                                <td>{index + 1}</td>
+                                <td>
+                                    <a href={url}>{url}</a>
+                                </td>
+                                <td>{internalFramework}</td>
+                                <td>{pageName}</td>
+                                <td>{exampleName}</td>
+                            </tr>
+                        );
+                    })
+                }
+            </tbody>
+        </table>
+    </main>
+</Layout>
+
+<style lang="scss">
+    @use '../../design-system' as *;
+
+    .container {
+        margin-top: $size-6;
+        margin-bottom: calc($size-6 * 4);
+    }
+</style>

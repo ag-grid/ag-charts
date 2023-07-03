@@ -22,6 +22,7 @@
     "build-prod": "npm run build-cjs-prod && npm run build-esm-prod && tsc -p tsconfig.typings.json && npx gulp mjs-processing && npm run hash",
     "watch": "npx tsc -p tsconfig.json -w --preserveWatchOutput",
     "watch-esm": "tsc -p tsconfig.esm.es5.json -w --preserveWatchOutput",
+    "watch:build": "nx watch --projects=ag-charts-community -- nx run ag-charts-community:build",
     "hash": "sh ../../scripts/hashDirectory.sh > .hash",
     "install-hooks": "cd ../.. && husky install charts-community-modules/ag-charts-community/.husky",
     "fix": "run-s fix:*",

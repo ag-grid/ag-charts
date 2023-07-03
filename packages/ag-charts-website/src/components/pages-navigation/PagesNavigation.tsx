@@ -1,18 +1,13 @@
-import classnames from "classnames";
-import styles from "./PagesNavigation.module.scss";
+import classnames from 'classnames';
+import styles from './PagesNavigation.module.scss';
+import type { DocsPage } from '../../utils/pages';
 
-export function PagesNavigation({
-    pages,
-    framework,
-}: {
-    pages: any;
-    framework: string;
-}) {
+export function PagesNavigation({ pages, framework }: { pages: DocsPage[]; framework: string }) {
     const urlPrefix = `/${framework}`;
 
     return (
         <aside className={styles.nav}>
-            <ul className={classnames("list-style-none", styles.navInner)}>
+            <ul className={classnames('list-style-none', styles.navInner)}>
                 {pages.map(({ slug, data }: any) => {
                     const url = `${urlPrefix}/${slug}`;
                     return (
