@@ -12,21 +12,15 @@ concurrency:
 
 jobs:
     main:
-        name: Nx Cloud - Main Job
-        uses: nrwl/ci/.github/workflows/nx-cloud-main.yml@v0.13.0
-        with:
-            # NOTE: Here we are using the special `nx-cloud record` command to ensure that any commands we run that do not go through the cloud task runner natively
-            # (i.e. anything that starts with `nx run`/`nx run-many`/`nx affected --target`), are still captured in the Nx Cloud UI and Github App comment for
-            # easier troubleshooting. See more here: https://nx.dev/nx-cloud/set-up/record-commands#recording-non-nx-commands
-            parallel-commands: |
-                npx nx-cloud record -- npx nx format:check
-            parallel-commands-on-agents: |
-                npx nx affected --target=build --parallel=3
-            # npx nx affected --target=test --parallel=3 --ci --code-coverage
-            # npx nx affected --target=lint --parallel=3
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - uses: nrwl/nx-set-shas@v3
+            - run: npm ci
 
-    agents:
-        name: Nx Cloud - Agents
-        uses: nrwl/ci/.github/workflows/nx-cloud-agents.yml@v0.13.0
-        with:
-            number-of-agents: 3
+            # - run: npx nx format:check
+            # - run: npx nx affected -t lint --parallel=3
+            # - run: npx nx affected -t test --parallel=3 --configuration=ci
+            - run: npx nx affected -t build --parallel=3
