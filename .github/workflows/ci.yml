@@ -2,9 +2,9 @@ name: CI
 
 on:
     push:
-        branches:
-            - latest
+        branches: [latest]
     pull_request:
+        branches: [latest]
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
@@ -17,8 +17,9 @@ jobs:
             - uses: actions/checkout@v2
               with:
                   fetch-depth: 0
-                  main-branch-name: 'latest'
             - uses: nrwl/nx-set-shas@v3
+              with:
+                  main-branch-name: 'latest'
             - run: npm ci
 
             # - run: npx nx format:check
