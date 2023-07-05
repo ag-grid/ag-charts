@@ -14,11 +14,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
+    "importsNotUsedAsValues": "error",
     "paths": {
-      "ag-charts-community-examples": [
-        "packages/ag-charts-community-examples/src/index.ts"
-      ],
       "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],
+      "ag-charts-community-examples": ["packages/ag-charts-community-examples/src/index.ts"],
       "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"]
     }
   },

@@ -1,0 +1,12 @@
+---
+import { HeaderNav } from "./HeaderNav";
+import styles from "./SiteHeader.module.scss";
+import { SiteLogo } from "./SiteLogo";
+---
+
+<header class={styles.header}>
+    <div class:list={[styles.headerInner, "page-margin"]}>
+        <SiteLogo client:load />
+        <HeaderNav path={Astro.url.pathname} client:only />
+    </div>
+</header>
