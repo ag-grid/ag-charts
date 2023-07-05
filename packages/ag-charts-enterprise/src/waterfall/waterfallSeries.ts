@@ -1,13 +1,14 @@
-import {
-    _ModuleSupport,
-    _Scale,
-    _Scene,
-    _Util,
+import type {
     AgCartesianSeriesLabelFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
-import { AgWaterfallSeriesFormat, AgWaterfallSeriesLabelPlacement, AgWaterfallSeriesFormatterParams } from './typings';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import type {
+    AgWaterfallSeriesFormat,
+    AgWaterfallSeriesLabelPlacement,
+    AgWaterfallSeriesFormatterParams,
+} from './typings';
 
 const {
     Validate,
@@ -184,14 +185,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
-            directionKeys: {
-                [ChartAxisDirection.X]: ['xKey'],
-                [ChartAxisDirection.Y]: ['yKey'],
-            },
-            directionNames: {
-                [ChartAxisDirection.X]: ['xName'],
-                [ChartAxisDirection.Y]: ['yName'],
-            },
         });
 
         this.label.enabled = false;

@@ -1,4 +1,4 @@
-import { AgBaseAxisOptions, AgAxisCaptionOptions, AgAxisNumberTickOptions } from 'ag-charts-community';
+import type { AgBaseAxisOptions, AgAxisCaptionOptions, AgAxisNumberTickOptions } from 'ag-charts-community';
 
 export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     type: 'radius-number';
@@ -10,7 +10,7 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     max?: number;
     /** Configuration for the axis ticks. */
     tick?: AgAxisNumberTickOptions;
-    /** Shape of grid lines. Default: `polygon` */
+    /** Shape of axes. Default: `polygon` */
     shape?: 'polygon' | 'circle';
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;

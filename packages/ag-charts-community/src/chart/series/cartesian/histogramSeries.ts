@@ -2,23 +2,13 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { DropShadow } from '../../../scene/dropShadow';
-import {
-    SeriesTooltip,
-    Series,
-    SeriesNodeDataContext,
-    SeriesNodePickMode,
-    valueProperty,
-    keyProperty,
-} from '../series';
+import type { SeriesNodeDataContext } from '../series';
+import { SeriesTooltip, Series, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
 import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
-import {
-    CartesianSeries,
-    CartesianSeriesNodeClickEvent,
-    CartesianSeriesNodeDatum,
-    CartesianSeriesNodeDoubleClickEvent,
-} from './cartesianSeries';
+import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { toTooltipHtml } from '../../tooltip/tooltip';
 import ticks, { tickStep } from '../../../util/ticks';
@@ -43,7 +33,8 @@ import type {
     FontWeight,
     AgHistogramSeriesTooltipRendererParams,
 } from '../../agChartOptions';
-import { AggregatePropertyDefinition, fixNumericExtent, GroupByFn, PropertyDefinition } from '../../data/dataModel';
+import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
+import { fixNumericExtent } from '../../data/dataModel';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import { SORT_DOMAIN_GROUPS, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
@@ -227,19 +218,19 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             if (aggregation === 'count') {
                 // Nothing to do.
             } else if (aggregation === 'sum') {
-                aggProp = groupSum(this, 'groupAgg', [yKey]);
+                aggProp = groupSum(this, 'groupAgg');
             } else if (aggregation === 'mean') {
-                aggProp = groupAverage(this, 'groupAgg', [yKey]);
+                aggProp = groupAverage(this, 'groupAgg');
             }
             if (areaPlot) {
-                aggProp = area(this, 'groupAgg', [yKey], aggProp);
+                aggProp = area(this, 'groupAgg', aggProp);
             }
             props.push(valueProperty(this, yKey, true, { invalidValue: undefined }), aggProp);
         } else {
             let aggProp = groupCount(this, 'groupAgg');
 
             if (areaPlot) {
-                aggProp = area(this, 'groupAgg', [], aggProp);
+                aggProp = area(this, 'groupAgg', aggProp);
             }
             props.push(aggProp);
         }
@@ -325,7 +316,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.seriesItemEnabled || !xAxis || !yAxis || !processedData || processedData.type !== 'grouped') {
+        if (!this.visible || !xAxis || !yAxis || !processedData || processedData.type !== 'grouped') {
             return [];
         }
 

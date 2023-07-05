@@ -7,16 +7,17 @@ import type {
     AgCrossLineOptions,
     AgTooltipPositionOptions,
 } from '../agChartOptions';
+import type { SeriesOptionsTypes } from './defaults';
 import {
-    SeriesOptionsTypes,
     DEFAULT_CARTESIAN_CHART_OVERRIDES,
     DEFAULT_BAR_CHART_OVERRIDES,
     DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES,
 } from './defaults';
-import { jsonMerge, DELETE, jsonWalk, JsonMergeOptions } from '../../util/json';
-import { applySeriesTransform } from './transforms';
+import type { JsonMergeOptions } from '../../util/json';
+import { jsonMerge, DELETE, jsonWalk } from '../../util/json';
 import { getChartTheme } from './themes';
-import { processSeriesOptions, SeriesOptions } from './prepareSeries';
+import type { SeriesOptions } from './prepareSeries';
+import { processSeriesOptions } from './prepareSeries';
 import { Logger } from '../../util/logger';
 import type { SeriesPaletteFactory } from '../../util/module';
 import { AXIS_TYPES } from '../factory/axisTypes';
@@ -296,18 +297,10 @@ function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext
 
     // Part of the options interface, but not directly consumed by the series implementations.
     const removeOptions = { stacked: DELETE } as T;
-    const mergedResult = jsonMerge([...defaults, paletteOptions, input, removeOptions], noDataCloneMergeOptions);
-
-    return applySeriesTransform(mergedResult);
+    return jsonMerge([...defaults, paletteOptions, input, removeOptions], noDataCloneMergeOptions);
 }
 
 addSeriesPaletteFactory('pie', ({ takeColors, colorsCount }) => takeColors(colorsCount));
-const multiSeriesPaletteFactory: SeriesPaletteFactory = ({ takeColors, seriesCount }) => {
-    return takeColors(seriesCount);
-};
-addSeriesPaletteFactory('area', multiSeriesPaletteFactory);
-addSeriesPaletteFactory('bar', multiSeriesPaletteFactory);
-addSeriesPaletteFactory('column', multiSeriesPaletteFactory);
 const singleSeriesPaletteFactory: SeriesPaletteFactory = ({ takeColors }) => {
     const {
         fills: [fill],
@@ -315,6 +308,9 @@ const singleSeriesPaletteFactory: SeriesPaletteFactory = ({ takeColors }) => {
     } = takeColors(1);
     return { fill, stroke };
 };
+addSeriesPaletteFactory('area', singleSeriesPaletteFactory);
+addSeriesPaletteFactory('bar', singleSeriesPaletteFactory);
+addSeriesPaletteFactory('column', singleSeriesPaletteFactory);
 addSeriesPaletteFactory('histogram', singleSeriesPaletteFactory);
 addSeriesPaletteFactory('scatter', (params) => {
     const { fill, stroke } = singleSeriesPaletteFactory(params);
