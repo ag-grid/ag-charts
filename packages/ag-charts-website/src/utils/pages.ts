@@ -6,6 +6,7 @@ import { FRAMEWORKS, INTERNAL_FRAMEWORKS, TYPESCRIPT_INTERNAL_FRAMEWORKS, localP
 import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
 import type { InternalFramework, Library } from '../types/ag-grid';
 import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
+import { getIsDev } from './env';
 
 export type DocsPage =
     | CollectionEntry<'docs'>
@@ -41,7 +42,12 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
  * The dist url where packages are generated
  */
 const getDistUrl = (): URL => {
-    return new URL('../../../../dist', import.meta.url);
+    const distRoot = getIsDev()
+        ? // Relative to the folder of this file
+          '../../../../dist'
+        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
+          '../../../../';
+    return new URL(distRoot, import.meta.url);
 };
 
 // TODO: Figure out published packages
