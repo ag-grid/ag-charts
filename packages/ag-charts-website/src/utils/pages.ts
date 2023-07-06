@@ -2,7 +2,7 @@ import type { CollectionEntry } from 'astro:content';
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { FRAMEWORKS, INTERNAL_FRAMEWORKS, localPrefix } from '../constants';
+import { FRAMEWORKS, INTERNAL_FRAMEWORKS, TYPESCRIPT_INTERNAL_FRAMEWORKS, localPrefix } from '../constants';
 import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
 import type { InternalFramework, Library } from '../types/ag-grid';
 import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
@@ -48,6 +48,10 @@ const getDistUrl = (): URL => {
 export const isUsingPublishedPackages = () => false;
 export const isPreProductionBuild = () => false;
 export const isBuildServerBuild = () => false;
+
+export const isTypescriptInternalFramework = (internalFramework: InternalFramework) => {
+    return TYPESCRIPT_INTERNAL_FRAMEWORKS.includes(internalFramework);
+};
 
 export const getCacheBustingUrl = (url: string, timestamp: number) => `${url}?t=${timestamp}`;
 

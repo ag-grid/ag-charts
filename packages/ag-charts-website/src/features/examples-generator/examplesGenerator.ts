@@ -11,6 +11,7 @@ import { getOtherScriptFiles, type FileContents } from './utils/getOtherScriptFi
 import { getStyleFiles } from './utils/getStyleFiles';
 import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
+import { isTypescriptInternalFramework } from '../../utils/pages';
 interface GeneratedContents {
     files: FileContents;
     entryFileName: string;
@@ -40,11 +41,13 @@ export const getGeneratedContentsFileList = async ({
         exampleName,
     });
     const sourceFileList = await fs.readdir(sourceFolderUrl);
+
     const scriptFiles = await getOtherScriptFiles({
         sourceEntryFileName: entryFileName,
         sourceFileList,
         pageName,
         exampleName,
+        transformTsFiles: !isTypescriptInternalFramework(internalFramework),
     });
     const styleFiles = await getStyleFiles({
         sourceFileList,
@@ -119,6 +122,7 @@ export const getGeneratedContents = async ({
         sourceFileList,
         pageName,
         exampleName,
+        transformTsFiles: !isTypescriptInternalFramework(internalFramework),
     });
     const styleFiles = await getStyleFiles({
         sourceFileList,
