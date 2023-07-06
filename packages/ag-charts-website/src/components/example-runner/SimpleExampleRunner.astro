@@ -2,6 +2,7 @@
 import path from 'node:path';
 import { getInternalFramework } from '../../utils/framework';
 import { getGeneratedContents } from '../../features/examples-generator/examplesGenerator';
+import { ExampleIFrame } from './ExampleIFrame';
 
 const { name } = Astro.props;
 
@@ -43,7 +44,7 @@ const entryFile = files && entryFileName && files[entryFileName];
                 </a>
             </div>
 
-            <iframe src={exampleUrl} />
+            <ExampleIFrame client:only url={exampleUrl} />
         </div>
     ) : (
         `No entryfile for ${exampleUrl}`
@@ -57,11 +58,5 @@ const entryFile = files && entryFileName && files[entryFileName];
     .controls {
         display: flex;
         gap: 1rem;
-    }
-    iframe {
-        display: block;
-        width: 100%;
-        height: 500px;
-        border: 0;
     }
 </style>
