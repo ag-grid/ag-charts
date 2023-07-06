@@ -1,5 +1,5 @@
-@use "../variables" as *;
-@use "../breakpoints" as breakpoints;
+@use '../variables' as *;
+@use '../breakpoints' as breakpoints;
 
 @mixin page-max-width() {
     width: 100%;

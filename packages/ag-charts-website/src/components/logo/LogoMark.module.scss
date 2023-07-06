@@ -1,4 +1,4 @@
-@use "sass:math";
+@use 'sass:math';
 
 :global(.logo-mark) {
     :global(.aqua) {
@@ -28,7 +28,7 @@
     }
 }
 
-.bounce rect[class*="right"] {
+.bounce rect[class*='right'] {
     $animation-duration: 1.15s;
 
     animation-name: logo-mark-bounce-right;
@@ -44,7 +44,7 @@
     }
 }
 
-.loading rect[class*="right"] {
+.loading rect[class*='right'] {
     $animation-duration: 1.25s;
 
     animation-name: logo-mark-bounce-right;
@@ -60,7 +60,7 @@
     }
 }
 
-.loading rect[class*="left"] {
+.loading rect[class*='left'] {
     $animation-duration: 1.25s;
 
     animation-name: logo-mark-bounce-left;

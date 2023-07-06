@@ -1,7 +1,7 @@
-import classNames from "classnames";
-import { Icon } from "../icon/Icon";
-import footerItems from "./footer-items.json";
-import styles from "./Footer.module.scss";
+import classNames from 'classnames';
+import { Icon } from '../icon/Icon';
+import footerItems from './footer-items.json';
+import styles from './Footer.module.scss';
 
 interface FooterProps {
     path: string;
@@ -14,12 +14,7 @@ const MenuColumns = () =>
             <ul className="list-style-none">
                 {links.map(({ name, url, newTab, iconName }: any) => (
                     <li key={`${title}_${name}`}>
-                        <a
-                            href={url}
-                            {...(newTab
-                                ? { target: "_blank", rel: "noreferrer" }
-                                : {})}
-                        >
+                        <a href={url} {...(newTab ? { target: '_blank', rel: 'noreferrer' } : {})}>
                             {iconName && <Icon name={iconName} />}
                             {name}
                         </a>
@@ -37,20 +32,16 @@ export const Footer = ({ path }: FooterProps) => (
             </div>
             <div className={styles.row}>
                 <p className="font-size-small thin-text">
-                    AG Grid Ltd registered in the United Kingdom.
-                    Company&nbsp;No.&nbsp;07318192.
+                    AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.
                 </p>
-                <p className="font-size-small thin-text">
-                    &copy; AG Grid Ltd. 2015-{new Date().getFullYear()}
-                </p>
+                <p className="font-size-small thin-text">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
             </div>
 
             {/* Only show customer logo trademark info on homepage */}
-            {(path === "/" || path === undefined) && (
+            {(path === '/' || path === undefined) && (
                 <div className={classNames(styles.row, styles.trademarks)}>
                     <p className="font-size-small thin-text">
-                        The Microsoft logo is a trademark of the Microsoft group
-                        of companies.
+                        The Microsoft logo is a trademark of the Microsoft group of companies.
                     </p>
                 </div>
             )}

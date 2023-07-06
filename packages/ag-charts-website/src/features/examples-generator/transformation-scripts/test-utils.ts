@@ -1,3 +1,3 @@
 export function standardiseWhitespace(value: string) {
-  return value.replace(/\s+/gm, " ");
+    return value.replace(/\s+/gm, ' ');
 }

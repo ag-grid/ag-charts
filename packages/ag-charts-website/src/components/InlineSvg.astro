@@ -1,5 +1,5 @@
 ---
-import { parse } from "node-html-parser";
+import { parse } from 'node-html-parser';
 export interface Props {
     /**
      * Name of svg file (excluding `.svg`) within `/src/images/inline-svgs` folder
@@ -7,13 +7,13 @@ export interface Props {
     name: string;
 }
 
-const INLINE_SVG_FOLDER = "/src/images/inline-svgs";
+const INLINE_SVG_FOLDER = '/src/images/inline-svgs';
 
 function getSVG(name: string) {
     const filepath = `${INLINE_SVG_FOLDER}/${name}.svg`;
     // NOTE: Can't use variable in `import.meta.glob`
     const files = import.meta.glob<string>(`/src/images/inline-svgs/**/*.svg`, {
-        as: "raw",
+        as: 'raw',
         eager: true,
     });
 
@@ -23,7 +23,7 @@ function getSVG(name: string) {
 
     const root = parse(files[filepath]);
 
-    const svg = root.querySelector("svg");
+    const svg = root.querySelector('svg');
     const { attributes, innerHTML } = svg as any;
 
     return {

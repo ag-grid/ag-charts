@@ -1,5 +1,5 @@
-import { FunctionComponent, ReactElement } from "react";
-import AnimateHeight from "react-animate-height";
+import { FunctionComponent, ReactElement } from 'react';
+import AnimateHeight from 'react-animate-height';
 
 interface Props {
     id: string;
@@ -20,7 +20,7 @@ export const Collapsible: FunctionComponent<Props> = ({
         return children;
     }
 
-    const height = isOpen ? "auto" : 0;
+    const height = isOpen ? 'auto' : 0;
     return (
         <AnimateHeight id={id} duration={animationDuration} height={height}>
             {children}
