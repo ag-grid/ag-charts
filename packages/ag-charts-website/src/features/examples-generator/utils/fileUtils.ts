@@ -7,8 +7,8 @@ export const getContentRootFileUrl = (): URL => {
     const contentRoot = getIsDev()
         ? // Relative to the folder of this file
           '../../../content'
-        : // Relative to `./dist/_astro` folder
-          '../../../src/content';
+        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
+          '../../../../../packages/ag-charts-website/src/content';
     return new URL(contentRoot, import.meta.url);
 };
 
