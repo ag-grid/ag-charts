@@ -1,9 +1,6 @@
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
 import { DevFileRoute, getDevFiles } from '../../utils/pages';
-import { getIsDev } from '../../utils/env';
-
-const isDev = getIsDev();
 
 export function getStaticPaths() {
     return getDevFiles();
