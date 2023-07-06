@@ -13,6 +13,8 @@ export const INTERNAL_FRAMEWORKS: InternalFramework[] = [
     'vue3',
 ];
 
+export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs'];
+
 export const FRAMEWORK_DISPLAY_TEXT: Record<Framework, string> = {
     javascript: 'JavaScript',
     react: 'React',

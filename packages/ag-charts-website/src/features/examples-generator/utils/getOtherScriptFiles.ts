@@ -8,11 +8,16 @@ const getOtherTsGeneratedFiles = async ({
     sourceFileList,
     pageName,
     exampleName,
+    transformTsFiles,
 }: {
     sourceEntryFileName: string;
     sourceFileList: string[];
     pageName: string;
     exampleName: string;
+    /**
+     * Whether .ts files get converted to `.js files
+     */
+    transformTsFiles: boolean;
 }) => {
     const otherTsFiles = sourceFileList
         .filter((fileName) => fileName.endsWith('.ts'))
@@ -28,8 +33,12 @@ const getOtherTsGeneratedFiles = async ({
     const generatedFiles = {} as FileContents;
     Object.keys(tsFileContents).forEach((tsFileName) => {
         const srcFile = tsFileContents[tsFileName];
-        const jsFileName = tsFileName.replace('.ts', '.js');
-        generatedFiles[jsFileName] = readAsJsFile(srcFile);
+        if (transformTsFiles) {
+            const jsFileName = tsFileName.replace('.ts', '.js');
+            generatedFiles[jsFileName] = readAsJsFile(srcFile);
+        } else {
+            generatedFiles[tsFileName] = srcFile;
+        }
     });
 
     return generatedFiles;
@@ -57,17 +66,20 @@ export const getOtherScriptFiles = async ({
     sourceFileList,
     pageName,
     exampleName,
+    transformTsFiles,
 }: {
     sourceEntryFileName: string;
     sourceFileList: string[];
     pageName: string;
     exampleName: string;
+    transformTsFiles: boolean;
 }) => {
     const otherTsGeneratedFileContents = await getOtherTsGeneratedFiles({
         sourceEntryFileName,
         sourceFileList,
         pageName,
         exampleName,
+        transformTsFiles,
     });
     const otherJsFileContents = await getOtherJsFiles({
         pageName,
