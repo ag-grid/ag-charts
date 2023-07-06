@@ -1,47 +1,47 @@
-import { useState } from "react";
-import classnames from "classnames";
-import { FRAMEWORKS } from "../../constants";
-import breakpoints from "../../design-system/breakpoint.module.scss";
-import { ReactComponent as MenuIcon } from "../../images/inline-svgs/menu-icon.svg";
-import { useWindowSize } from "../../utils/hooks/useWindowSize";
-import { Collapsible } from "../Collapsible";
-import { Icon } from "../icon/Icon";
-import styles from "./SiteHeader.module.scss";
+import { useState } from 'react';
+import classnames from 'classnames';
+import { FRAMEWORKS } from '../../constants';
+import breakpoints from '../../design-system/breakpoint.module.scss';
+import { ReactComponent as MenuIcon } from '../../images/inline-svgs/menu-icon.svg';
+import { useWindowSize } from '../../utils/hooks/useWindowSize';
+import { Collapsible } from '../Collapsible';
+import { Icon } from '../icon/Icon';
+import styles from './SiteHeader.module.scss';
 
-const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints["site-header-small"], 10);
+const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 
 const links = [
     {
-        name: "Demo",
-        url: "/example",
+        name: 'Demo',
+        url: '/example',
     },
     {
-        name: "Documentation",
-        url: "/documentation/",
+        name: 'Documentation',
+        url: '/documentation/',
     },
     {
-        name: "Pricing",
-        url: "/license-pricing",
+        name: 'Pricing',
+        url: '/license-pricing',
     },
     {
-        name: "Blog",
-        url: "https://blog.ag-grid.com/",
+        name: 'Blog',
+        url: 'https://blog.ag-grid.com/',
     },
     {
-        name: "Github",
-        url: "https://github.com/ag-grid/ag-grid",
+        name: 'Github',
+        url: 'https://github.com/ag-grid/ag-grid',
         icon: <Icon name="github" />,
-        cssClass: "github-item",
+        cssClass: 'github-item',
     },
 ];
 
 const getCurrentPageName = (path) => {
-    const rawPath = path.split("/")[1];
+    const rawPath = path.split('/')[1];
 
     const allLinks = [
         ...links,
         ...FRAMEWORKS.map((framework) => ({
-            name: "Documentation",
+            name: 'Documentation',
             url: `/${framework}-data-grid`,
         })),
     ];
@@ -55,19 +55,15 @@ const getCurrentPageName = (path) => {
 
 const HeaderLinks = ({ path, isOpen, toggleIsOpen }) => {
     return (
-        <ul className={classnames(styles.navItemList, "list-style-none")}>
+        <ul className={classnames(styles.navItemList, 'list-style-none')}>
             {links.map((link) => {
                 const linkClasses = classnames(styles.navItem, {
-                    [styles.navItemActive]:
-                        link.name === getCurrentPageName(path),
+                    [styles.navItemActive]: link.name === getCurrentPageName(path),
                     [styles[link.cssClass]]: link.cssClass,
                 });
 
                 return (
-                    <li
-                        key={link.name.toLocaleLowerCase()}
-                        className={linkClasses}
-                    >
+                    <li key={link.name.toLocaleLowerCase()} className={linkClasses}>
                         <a
                             className={styles.navLink}
                             href={link.url}
@@ -116,12 +112,8 @@ export const HeaderNav = ({ path }) => {
         <>
             <HeaderExpandButton isOpen={isOpen} toggleIsOpen={toggleIsOpen} />
             <Collapsible id="main-nav" isDisabled={isDesktop} isOpen={isOpen}>
-                <nav id={isDesktop ? "main-nav" : undefined}>
-                    <HeaderLinks
-                        path={path}
-                        isOpen={isOpen}
-                        toggleIsOpen={toggleIsOpen}
-                    />
+                <nav id={isDesktop ? 'main-nav' : undefined}>
+                    <HeaderLinks path={path} isOpen={isOpen} toggleIsOpen={toggleIsOpen} />
                 </nav>
             </Collapsible>
         </>

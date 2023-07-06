@@ -1,9 +1,9 @@
 ---
-import { getEntry } from "astro:content";
-import { getFavIconsData, getAppleTouchIconsData } from "../utils/favicons";
-import SiteHeader from "../components/site-header/SiteHeader.astro";
-import "../design-system/design-system.scss";
-import { Footer } from "../components/footer/Footer";
+import { getEntry } from 'astro:content';
+import { getFavIconsData, getAppleTouchIconsData } from '../utils/favicons';
+import SiteHeader from '../components/site-header/SiteHeader.astro';
+import '../design-system/design-system.scss';
+import { Footer } from '../components/footer/Footer';
 
 export interface Props {
     title?: string;
@@ -11,13 +11,9 @@ export interface Props {
     showTopBar?: boolean;
 }
 
-const metadata = await getEntry("metadata", "metadata");
+const metadata = await getEntry('metadata', 'metadata');
 
-const {
-    title = metadata.data.title,
-    description = metadata.data.description,
-    showTopBar,
-} = Astro.props;
+const { title = metadata.data.title, description = metadata.data.description, showTopBar } = Astro.props;
 const path = Astro.url.pathname;
 ---
 
@@ -29,21 +25,12 @@ const path = Astro.url.pathname;
         <meta name="viewport" content="width=device-width" />
         {
             getFavIconsData().map(({ size, icon }: any) => (
-                <link
-                    rel="icon"
-                    type="image/png"
-                    sizes={`${size}x${size}`}
-                    href={icon}
-                />
+                <link rel="icon" type="image/png" sizes={`${size}x${size}`} href={icon} />
             ))
         }
         {
             getAppleTouchIconsData().map(({ size, icon }: any) => (
-                <link
-                    rel="apple-touch-icon"
-                    sizes={`${size}x${size}`}
-                    href={icon}
-                />
+                <link rel="apple-touch-icon" sizes={`${size}x${size}`} href={icon} />
             ))
         }
         <meta name="generator" content={Astro.generator} />
@@ -68,7 +55,7 @@ const path = Astro.url.pathname;
         <Footer path={path} />
 
         <style lang="scss">
-            @use "../design-system" as *;
+            @use '../design-system' as *;
 
             html {
                 overflow-x: hidden;

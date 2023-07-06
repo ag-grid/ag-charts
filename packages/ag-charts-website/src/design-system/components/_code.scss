@@ -1,5 +1,5 @@
-@use "sass:map";
-@use "sass:math";
+@use 'sass:map';
+@use 'sass:math';
 @use '../core' as *;
 
 $vertical-padding: $size-1;
@@ -214,7 +214,7 @@ code[class*='language-css'] {
 }
 
 .language-css .token.property {
-    color: var(--tag-color)
+    color: var(--tag-color);
 }
 
 .line-numbers .line-numbers-rows {

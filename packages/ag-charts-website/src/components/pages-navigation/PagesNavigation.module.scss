@@ -1,4 +1,4 @@
-@use "../../design-system" as *;
+@use '../../design-system' as *;
 
 .nav {
     $top-bar-height: 58px;
@@ -14,10 +14,7 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         --menu-horizontal-margin: #{$size-2};
-        --right-margin: max(
-            #{$size-4},
-            calc(50vw - var(--max-page-width) / 2 - var(--menu-width))
-        );
+        --right-margin: max(#{$size-4}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
 
         flex-shrink: 0;
         width: var(--menu-width);
@@ -57,11 +54,10 @@
     border: 2px solid transparent;
     color: var(--secondary-text-color);
     font-weight: var(--font-weight-bold);
-    transition: color $default-transition-timing,
-        border-color $default-transition-timing;
+    transition: color $default-transition-timing, border-color $default-transition-timing;
 
     &::before {
-        content: "";
+        content: '';
         position: absolute;
         width: 0.375em;
         height: 0.375em;
