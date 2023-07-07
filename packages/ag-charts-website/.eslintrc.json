@@ -1,15 +1,10 @@
 {
   "extends": ["../../.eslintrc.json"],
-  "ignorePatterns": ["!**/*", ".astro"],
+  "ignorePatterns": ["!**/*", ".astro", "**/_examples"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
-      "rules": {
-        "@typescript-eslint/consistent-type-imports": 1,
-        "prefer-const": 1,
-        "no-console": 1,
-        "no-var": 1
-      }
+      "rules": {}
     },
     {
       "files": ["*.ts", "*.tsx"],
