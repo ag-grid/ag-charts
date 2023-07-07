@@ -18,25 +18,19 @@ import {
 } from './data';
 
 export function loadExampleOptions(name: string, evalFn = 'options'): any {
-    const filters = [/.*AgChart\.(update|create)/, /.* container: .*/, /.*setInterval.*/, /.*setTimeout.*/];
+    const filters = [
+        /.*AgChart\.(update|create)/,
+        /.* container: .*/,
+        /.*setInterval.*/,
+        /.*setTimeout.*/,
+        /^Object\.defineProperty/,
+        /^exports\./,
+        /^const ag_charts_community_1 =/,
+        /^const data_1 =/,
+    ];
     const exampleRootDir = `${process.cwd()}/dist/packages/ag-charts-community-examples/src/`;
-    const srcDataFile = `${exampleRootDir}charts-overview/examples/${name}/data.ts`;
-    const srcExampleFile = `${exampleRootDir}charts-overview/examples/${name}/main.ts`;
     const dataFile = `${exampleRootDir}charts-overview/examples/${name}/data.js`;
     const exampleFile = `${exampleRootDir}charts-overview/examples/${name}/main.js`;
-
-    const checkMtime = (srcFile: string, targetFile: string) => {
-        if (!fs.existsSync(srcFile)) return;
-
-        if (fs.lstatSync(srcFile).mtime > fs.lstatSync(targetFile).mtime) {
-            throw new Error(
-                `${targetFile} is stale; run 'npx lerna run generate-examples -- charts-overview' to regenerate.`
-            );
-        }
-    };
-
-    checkMtime(srcExampleFile, exampleFile);
-    checkMtime(srcDataFile, dataFile);
 
     const cleanJs = (content: Buffer) => {
         const inputLines = content.toString().split('\n');
@@ -59,7 +53,7 @@ export function loadExampleOptions(name: string, evalFn = 'options'): any {
     const exampleFileLines = cleanJs(fs.readFileSync(exampleFile));
 
     const evalExpr = [
-        dataFileExists ? `with (require('${dataFile}')) {` : '',
+        dataFileExists ? `with (data_1 = require('${dataFile}')) {` : '',
         `${exampleFileLines.join('\n')}`,
         `return ${evalFn};`,
         dataFileExists ? `}` : '',
@@ -68,9 +62,10 @@ export function loadExampleOptions(name: string, evalFn = 'options'): any {
     const agCharts = require('../../main');
     // @ts-ignore - used in the eval() call.
     const { AgChart, time, Marker } = agCharts;
+
     try {
-        const exampleRunFn = new Function('agCharts', 'AgChart', 'time', 'Marker', evalExpr);
-        return exampleRunFn(agCharts, AgChart, time, Marker);
+        const exampleRunFn = new Function('ag_charts_community_1', 'AgChart', 'time', 'Marker', 'require', evalExpr);
+        return exampleRunFn(agCharts, AgChart, time, Marker, require);
     } catch (error: any) {
         Logger.error(`unable to read example data for [${name}]; error: ${error.message}`);
         Logger.debug(evalExpr);
