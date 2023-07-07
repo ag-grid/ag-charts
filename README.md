@@ -19,6 +19,7 @@ Prerequisites:
 | `nx test`               | Run all tests                    |
 | `nx lint`               | Check all packages with ESLint   |
 | `nx format:check --all` | Check all packages with prettier |
+| `nx reset`              | Clear the NX cache               |
 
 ### AG Charts Website
 
