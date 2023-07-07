@@ -174,7 +174,7 @@ export function vanillaToReact(
             });
 
         componentAttributes.push('onGridReady={this.onGridReady}');
-        componentAttributes.push.apply(componentAttributes, componentEventAttributes);
+        componentAttributes.push(...componentEventAttributes);
 
         if (data && data.callback.indexOf('api.setRowData') >= 0) {
             if (stateProperties.filter((item) => item.indexOf('rowData') >= 0).length === 0) {

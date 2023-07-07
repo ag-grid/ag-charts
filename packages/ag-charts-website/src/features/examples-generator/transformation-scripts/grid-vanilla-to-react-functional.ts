@@ -284,7 +284,7 @@ export function vanillaToReactFunctional(
         if (additionalInReady.length > 0) {
             componentProps.push('onGridReady={onGridReady}');
         }
-        componentProps.push.apply(componentProps, componentEventAttributes);
+        componentProps.push(...componentEventAttributes);
 
         // convert this.xxx to just xxx
         // no real need for "this" in hooks
