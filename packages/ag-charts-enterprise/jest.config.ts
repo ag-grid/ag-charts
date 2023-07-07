@@ -34,7 +34,7 @@ const unitTests = tests.map(pathToGlob).filter((path) => !e2eTests.includes(path
 const commonConfig = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
     testEnvironment: 'jsdom',
-    setupFiles: ['jest-canvas-mock'],
+    setupFiles: ['jest-canvas-mock', './jest.setup.cjs'],
     preset: '../../jest.preset.js',
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
