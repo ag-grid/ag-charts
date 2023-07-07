@@ -1,3 +1,3 @@
 export function agChartsEnterprise(): string {
-  return 'ag-charts-enterprise';
+    return 'ag-charts-enterprise';
 }

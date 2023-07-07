@@ -1,4 +1,4 @@
-import type { ImportType} from './parser-utils';
+import type { ImportType } from './parser-utils';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
 import { convertTemplate, toAssignment, toConst, toInput, toMember } from './vue-utils';
 import { templatePlaceholder } from './grid-vanilla-src-parser';

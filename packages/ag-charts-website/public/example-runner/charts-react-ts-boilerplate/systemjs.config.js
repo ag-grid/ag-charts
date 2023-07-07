@@ -1,6 +1,6 @@
 (function (global) {
     var sjsPaths = {};
-    if (typeof systemJsPaths !== "undefined") {
+    if (typeof systemJsPaths !== 'undefined') {
         sjsPaths = systemJsPaths;
     }
 
@@ -18,10 +18,10 @@
         paths: {
             // paths serve as alias
             'npm:': 'https://cdn.jsdelivr.net/npm/',
-            ...sjsPaths
+            ...sjsPaths,
         },
         map: {
-            css: boilerplatePath + "css.js",
+            css: boilerplatePath + 'css.js',
 
             // react
             react: 'npm:react@18.2.0',
@@ -29,16 +29,15 @@
             'react-dom/client': 'npm:react-dom@18.2.0',
             'prop-types': 'npm:prop-types@15.8.1',
 
-            ts: "npm:plugin-typescript@8.0.0/lib/plugin.js",
-            typescript: "npm:typescript@4.3.5/lib/typescript.min.js",
+            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
+            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
             app: appLocation,
-            ...systemJsMap
+            ...systemJsMap,
         },
 
         packages: {
-            css: {
-            },
+            css: {},
             react: {
                 main: './umd/react.profiling.min.js',
             },
@@ -59,8 +58,8 @@
             },
             'ag-charts-react': {
                 main: './main.js',
-                defaultExtension: 'js'
-            }
+                defaultExtension: 'js',
+            },
         },
         meta: {
             typescript: {
@@ -71,6 +70,6 @@
     });
 })(this);
 
-window.addEventListener('error', e => {
-    console.error('ERROR', e.message, e.filename)
+window.addEventListener('error', (e) => {
+    console.error('ERROR', e.message, e.filename);
 });

@@ -9,7 +9,7 @@
     "noPropertyAccessFromIndexSignature": false,
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,
-    "noUnusedParameters": true,
+    "noUnusedParameters": true
     // "noUnusedLocals": true,
   },
   "files": [],

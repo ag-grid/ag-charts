@@ -1,58 +1,55 @@
-
 (function (global) {
-
     System.config({
         // DEMO ONLY! REAL CODE SHOULD NOT TRANSPILE IN THE BROWSER
-        transpiler: "ts",
+        transpiler: 'ts',
         typescriptOptions: {
             // Copy of compiler options in standard tsconfig.json
-            target: "es5",
-            module: "system", //gets rid of console warning
-            moduleResolution: "node",
+            target: 'es5',
+            module: 'system', //gets rid of console warning
+            moduleResolution: 'node',
             sourceMap: true,
             emitDecoratorMetadata: true,
             experimentalDecorators: true,
-            lib: ["es2015", "dom"],
+            lib: ['es2015', 'dom'],
             noImplicitAny: true,
-            suppressImplicitAnyIndexErrors: true
+            suppressImplicitAnyIndexErrors: true,
         },
         meta: {
             typescript: {
-                exports: "ts"
+                exports: 'ts',
             },
-            '*.css': { loader: 'css' }
+            '*.css': { loader: 'css' },
         },
         paths: {
             // paths serve as alias
-            "npm:": "https://cdn.jsdelivr.net/npm/"
+            'npm:': 'https://cdn.jsdelivr.net/npm/',
         },
         // map tells the System loader where to look for things
         map: {
-            css: boilerplatePath + "css.js",
+            css: boilerplatePath + 'css.js',
 
-            ts: "npm:plugin-typescript@8.0.0/lib/plugin.js",
-            tslib: "npm:tslib@2.3.1/tslib.js",
-            typescript: "npm:typescript@4.3.5/lib/typescript.min.js",
+            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
+            tslib: 'npm:tslib@2.3.1/tslib.js',
+            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
             // appLocation comes from index.html
             app: appLocation,
-            ...systemJsMap
+            ...systemJsMap,
         },
         // packages tells the System loader how to load when no filename and/or no extension
         packages: {
             app: {
-                main: "./main.ts",
-                defaultExtension: "ts",
+                main: './main.ts',
+                defaultExtension: 'ts',
             },
             'ag-charts-community': {
                 main: './dist/esm/es6/main.js',
-                defaultExtension: 'js'
+                defaultExtension: 'js',
             },
             'ag-charts-enterprise': {
                 main: './dist/esm/es6/main.js',
-                defaultExtension: 'js'
+                defaultExtension: 'js',
             },
-        }
+        },
     });
 })(this);
-
