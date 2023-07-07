@@ -13,6 +13,7 @@
     "build-cjs-prod": "npx tsc -p tsconfig.cjs.es5.json --sourceMap false && npx tsc -p tsconfig.cjs.es6.json --sourceMap false",
     "build-esm-prod": "npx tsc -p tsconfig.esm.es5.json --sourceMap false && npx tsc -p tsconfig.esm.es6.json --sourceMap false",
     "watch-esm": "tsc -p tsconfig.esm.es5.json -w --preserveWatchOutput",
+    "watch:build": "nx watch --projects=ag-charts-enterprise -- nx run ag-charts-enterprise:build",
     "package": "node ../../module-build/rollup/build.js --bundlePrefix ag-charts-enterprise --umdModuleName agChartsEnterprise",
     "build": "npx gulp copy-license-files && npm run build-cjs && npm run build-esm && npx gulp mjs-processing && npm run hash",
     "build-prod": "npx gulp copy-license-files && npm run build-cjs-prod && npm run build-esm-prod && npx gulp mjs-processing && npm run hash",

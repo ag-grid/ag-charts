@@ -36,6 +36,7 @@ export interface DevFileRoute {
  */
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-community/dist/ag-charts-community.cjs.js': 'packages/ag-charts-community/main.cjs',
+    'ag-charts-enterprise/dist/ag-charts-enterprise.cjs.js': 'packages/ag-charts-enterprise/main.cjs',
 };
 
 /**

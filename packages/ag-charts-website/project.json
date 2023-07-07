@@ -18,6 +18,10 @@
         {
           "target": "build",
           "projects": "ag-charts-community"
+        },
+        {
+          "target": "build",
+          "projects": "ag-charts-enterprise"
         }
       ]
     },
