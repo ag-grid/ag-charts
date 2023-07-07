@@ -25,7 +25,6 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';
 import type { ValidatePredicate } from '../../../util/validation';
 import {
-    BOOLEAN,
     NUMBER,
     OPT_FUNCTION,
     OPT_LINE_DASH,
@@ -136,9 +135,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     @Validate(OPT_STRING)
     xName?: string = undefined;
 
-    @Validate(BOOLEAN)
-    hideInLegend: boolean = false;
-
     @Validate(OPT_STRING)
     yKey?: string = undefined;
 
@@ -170,14 +166,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         return direction;
     }
 
-    @Validate(BOOLEAN)
-    grouped: boolean = false;
-
     @Validate(OPT_STRING)
     stackGroup?: string = undefined;
-
-    @Validate(OPT_STRING)
-    legendItemName?: string = undefined;
 
     @Validate(OPT_NUMBER())
     normalizedTo?: number;
@@ -189,7 +179,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
     async processData(dataController: DataController) {
-        const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = -1 } = {}, data = [] } = this;
+        const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
         const isContinuousX = this.getCategoryAxis()?.scale instanceof ContinuousScale;
@@ -203,7 +193,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
         }
 
-        if (!this.animationManager?.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
 
@@ -650,23 +640,19 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             yKey,
             yName,
             legendItemName,
-            hideInLegend,
             fill,
             stroke,
             fillOpacity,
             strokeOpacity,
             visible,
+            showInLegend,
         } = this;
 
-        if (!data?.length || !xKey || !yKey) {
+        if (!showInLegend || !data?.length || !xKey || !yKey) {
             return [];
         }
 
         const legendData: CategoryLegendDatum[] = [];
-
-        if (hideInLegend) {
-            return [];
-        }
 
         legendData.push({
             legendType: 'category',
@@ -677,6 +663,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             label: {
                 text: legendItemName ?? yName ?? yKey,
             },
+            legendItemName,
             marker: {
                 fill,
                 stroke,
@@ -696,7 +683,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         delay: number = 0,
         onComplete?: () => void
     ) {
-        this.animationManager?.animateMany(id, props, {
+        this.ctx.animationManager?.animateMany(id, props, {
             delay,
             duration,
             ease: easing.easeOut,
@@ -717,7 +704,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         datumSelections: Array<Selection<Rect, BarNodeDatum>>;
         labelSelections: Array<Selection<Text, BarNodeDatum>>;
     }) {
-        const duration = this.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
 
         let startingX = Infinity;
@@ -758,7 +745,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         labelSelections.forEach((labelSelection) => {
             labelSelection.each((label) => {
-                this.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+                this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay: duration,
@@ -776,7 +763,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     animateReadyResize({ datumSelections }: { datumSelections: Array<Selection<Rect, BarNodeDatum>> }) {
-        this.animationManager?.stop();
+        this.ctx.animationManager?.stop();
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });
@@ -799,7 +786,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return;
         }
 
-        const totalDuration = this.animationManager?.defaultOptions.duration ?? 1000;
+        const totalDuration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
 
         let sectionDuration = totalDuration;
@@ -888,7 +875,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             labelSelection.each((label) => {
                 label.opacity = 0;
 
-                this.animationManager?.animate(`${this.id}_waiting-update-ready_${label.id}`, {
+                this.ctx.animationManager?.animate(`${this.id}_waiting-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay: totalDuration,
