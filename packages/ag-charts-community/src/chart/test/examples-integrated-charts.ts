@@ -79,7 +79,7 @@ const BASE_THEME: AgChartTheme = {
     overrides: {},
 };
 
-function addToString({ value, ...others }) {
+function addToString({ value, ...others }: { id: any; value: any }) {
     return {
         toString() {
             return value;
