@@ -73,7 +73,7 @@ export function getDocPagesList(pages: DocsPage[]) {
 
 export function getDocPages(pages: DocsPage[]) {
     const frameworkPages = FRAMEWORKS.map((framework) => {
-        return getDocPagesList(pages).map((page: { slug: string }) => {
+        return getDocPagesList(pages).map((page) => {
             return {
                 framework,
                 pageName: page.slug,
@@ -169,7 +169,7 @@ export const getInternalFrameworkExamples = async ({
     pages: DocsPage[];
 }): Promise<InternalFrameworkExample[]> => {
     const internalFrameworkPageNames = INTERNAL_FRAMEWORKS.map((internalFramework) => {
-        return pages.map((page: { slug: string }) => {
+        return pages.map((page) => {
             return { internalFramework, pageName: page.slug };
         });
     }).flat();
