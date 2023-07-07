@@ -7,6 +7,7 @@ import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/f
 import type { InternalFramework, Library } from '../types/ag-grid';
 import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
 import { getIsDev } from './env';
+import { getFolders } from './fs';
 
 export type DocsPage =
     | CollectionEntry<'docs'>
@@ -180,8 +181,7 @@ export const getInternalFrameworkExamples = async ({
             pageName,
         });
 
-        const examples = fsOriginal.existsSync(sourceExamplesPathUrl) ? await fs.readdir(sourceExamplesPathUrl) : [];
-
+        const examples = await getFolders(sourceExamplesPathUrl.pathname);
         return examples.map((exampleName) => {
             return {
                 internalFramework,

@@ -2,6 +2,7 @@ import path from 'node:path';
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
 import { getIsDev } from '../../../utils/env';
+import { getFolders } from '../../../utils/fs';
 
 export const getContentRootFileUrl = (): URL => {
     const contentRoot = getIsDev()
@@ -19,7 +20,7 @@ export const getAllSourceExampleFileList = async () => {
 
     const examplesPromises = pages.map(async (pageName) => {
         const examplesFolder = path.join(pagesFolder, pageName, '_examples');
-        const examples = fsOriginal.existsSync(examplesFolder) ? await fs.readdir(examplesFolder) : [];
+        const examples = await getFolders(examplesFolder);
 
         return examples.map((file) => {
             return path.join(examplesFolder, file);
@@ -170,63 +171,3 @@ export const getContentsOfFileList = async ({
 
     return contentFiles;
 };
-
-export async function getFilesRecursively(dir: string, allFiles: string[] = []) {
-    allFiles = allFiles || [];
-    const files = await fs.readdir(dir);
-
-    await Promise.all(
-        files.map(async (file) => {
-            const name = path.join(dir, file);
-
-            const isDirectory = (await fs.stat(name)).isDirectory();
-
-            if (isDirectory) {
-                await getFilesRecursively(name, allFiles);
-            } else {
-                allFiles.push(name);
-            }
-        })
-    );
-
-    return allFiles;
-}
-
-export async function getFoldersRecursively({ dir, allFolders = [] }: { dir: string; allFolders?: string[] }) {
-    const files = await fs.readdir(dir);
-
-    await Promise.all(
-        files.map(async (file) => {
-            const name = path.join(dir, file);
-            const isDirectory = (await fs.stat(name)).isDirectory();
-
-            if (isDirectory) {
-                allFolders.push(name);
-                await getFoldersRecursively({ dir: name, allFolders });
-            }
-        })
-    );
-
-    return allFolders;
-}
-
-export async function getFilePathsRecursively(dir: string, allFiles: string[] = []) {
-    allFiles = allFiles || [];
-    const files = await fs.readdir(dir);
-
-    await Promise.all(
-        files.map(async (file) => {
-            const name = path.join(dir, file);
-
-            const isDirectory = (await fs.stat(name)).isDirectory();
-
-            allFiles.push(name);
-
-            if (isDirectory) {
-                await getFilePathsRecursively(name, allFiles);
-            }
-        })
-    );
-
-    return allFiles;
-}
