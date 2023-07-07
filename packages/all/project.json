@@ -1,0 +1,28 @@
+{
+  "name": "all",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/all/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:noop",
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "executor": "nx:noop",
+      "dependsOn": ["^lint"]
+    },
+    "test": {
+      "executor": "nx:noop",
+      "dependsOn": ["^test"]
+    }
+  },
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-community-examples",
+    "ag-charts-website",
+    "ag-charts-website-e2e"
+  ],
+  "tags": []
+}
