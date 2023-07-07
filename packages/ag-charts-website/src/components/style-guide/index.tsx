@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React, { type ReactElement } from 'react';
 import { Buttons } from './buttons';
 import { Color } from './color';
 import { Containers } from './containers';

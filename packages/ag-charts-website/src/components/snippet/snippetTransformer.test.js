@@ -1,47 +1,46 @@
-import supportedFrameworks from "../../utils/supported-frameworks";
-import React from "react";
+import supportedFrameworks from '../../utils/supported-frameworks';
+import React from 'react';
 import { transform } from './snippetTransformer';
 
 // Utility method to verify snippets match saved snapshots for all frameworks and options
-const runSnippetFrameworkTests = snippetToTest => {
+const runSnippetFrameworkTests = (snippetToTest) => {
     // no options supplied
-    it.each(supportedFrameworks)
-    (`it should create '%s' snippets`, framework => {
+    it.each(supportedFrameworks)(`it should create '%s' snippets`, (framework) => {
         const options = {};
         const generatedSnippet = transform(snippetToTest, framework, options);
         expect(generatedSnippet).toMatchSnapshot();
     });
 
     // (suppressFrameworkContext = true)
-    it.each(supportedFrameworks)
-    (`it should create '%s' snippets without framework context`, framework => {
+    it.each(supportedFrameworks)(`it should create '%s' snippets without framework context`, (framework) => {
         const options = { suppressFrameworkContext: true };
         const generatedSnippet = transform(snippetToTest, framework, options);
         expect(generatedSnippet).toMatchSnapshot();
     });
 
     // (spaceBetweenProperties = true)
-    it.each(supportedFrameworks)
-    (`it should create '%s' snippets with space between properties`, framework => {
+    it.each(supportedFrameworks)(`it should create '%s' snippets with space between properties`, (framework) => {
         const options = { spaceBetweenProperties: true };
         const generatedSnippet = transform(snippetToTest, framework, options);
         expect(generatedSnippet).toMatchSnapshot();
     });
 
     // (suppressFrameworkContext = true, spaceBetweenProperties = true)
-    it.each(supportedFrameworks)
-    (`it should create '%s' snippets without framework context and space between properties`, framework => {
-        const options = { suppressFrameworkContext: true, spaceBetweenProperties: true };
-        const generatedSnippet = transform(snippetToTest, framework, options);
-        expect(generatedSnippet).toMatchSnapshot();
-    });
-}
+    it.each(supportedFrameworks)(
+        `it should create '%s' snippets without framework context and space between properties`,
+        (framework) => {
+            const options = { suppressFrameworkContext: true, spaceBetweenProperties: true };
+            const generatedSnippet = transform(snippetToTest, framework, options);
+            expect(generatedSnippet).toMatchSnapshot();
+        }
+    );
+};
 
 // These tests are run for each framework!
 describe('Snippet Component', () => {
     describe('given simple column definitions', () => {
         runSnippetFrameworkTests(
-`const gridOptions = {
+            `const gridOptions = {
     // define 3 columns
     columnDefs: [
         { headerName: 'A', field: 'a' },
@@ -54,7 +53,7 @@ describe('Snippet Component', () => {
 
     describe('given column definitions with group columns', () => {
         runSnippetFrameworkTests(
-`const gridOptions = {
+            `const gridOptions = {
     // 2 levels of grouping
     columnDefs: [
         {
@@ -78,7 +77,7 @@ describe('Snippet Component', () => {
 
     describe('given col defs with arrow function properties', () => {
         runSnippetFrameworkTests(
-`const gridOptions = {
+            `const gridOptions = {
     columnDefs: [
         {
             field: 'country',
@@ -92,7 +91,7 @@ describe('Snippet Component', () => {
 
     describe('given a mix of grid options', () => {
         runSnippetFrameworkTests(
-`const gridOptions = {
+            `const gridOptions = {
     // columnDefs property (special)
     columnDefs: [
         { headerName: 'A', field: 'a' },
@@ -137,7 +136,7 @@ const myValueFormatter = params => {
 
     describe('given api statements', () => {
         runSnippetFrameworkTests(
-`// save the columns state
+            `// save the columns state
 const savedState = gridOptions.columnApi.getColumnState();
 
 // restore the column state
@@ -150,7 +149,7 @@ const rowNode = gridOptions.api.getRowNode('55');`
 
     describe('given column definitions with functions', () => {
         runSnippetFrameworkTests(
-`const gridOptions = {
+            `const gridOptions = {
     columnDefs: [
         {
             field: 'age',
@@ -172,7 +171,7 @@ const rowNode = gridOptions.api.getRowNode('55');`
 
     describe('given complex column definition with array property', () => {
         runSnippetFrameworkTests(
-`const gridOptions = {
+            `const gridOptions = {
     columnDefs: [
         {
             filterType: 'multi',
@@ -185,5 +184,4 @@ const rowNode = gridOptions.api.getRowNode('55');`
 }`
         );
     });
-
 });

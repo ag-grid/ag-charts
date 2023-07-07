@@ -69,6 +69,22 @@ function ignoreUnderscoreFiles(page: DocsPage) {
     return pageName && !pageName.startsWith('_');
 }
 
+export function getFrameworkFromPath(path: string) {
+    return path.split('/')[1];
+}
+
+export function getNewFrameworkPath({
+    path,
+    currentFramework,
+    newFramework,
+}: {
+    path: string;
+    currentFramework: string;
+    newFramework: string;
+}) {
+    return path.replace(`/${currentFramework}`, `/${newFramework}`);
+}
+
 export function getDocPagesList(pages: DocsPage[]) {
     return pages.filter(ignoreUnderscoreFiles);
 }

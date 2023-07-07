@@ -4,6 +4,9 @@ import { getFavIconsData, getAppleTouchIconsData } from '../utils/favicons';
 import SiteHeader from '../components/site-header/SiteHeader.astro';
 import '../design-system/design-system.scss';
 import { Footer } from '../components/footer/Footer';
+import { TopBar } from '../components/top-bar/TopBar';
+import { FRAMEWORKS } from '../constants';
+import { getFrameworkFromPath } from '../utils/pages';
 
 export interface Props {
     title?: string;
@@ -15,6 +18,9 @@ const metadata = await getEntry('metadata', 'metadata');
 
 const { title = metadata.data.title, description = metadata.data.description, showTopBar } = Astro.props;
 const path = Astro.url.pathname;
+
+const frameworks = FRAMEWORKS;
+const framework = getFrameworkFromPath(path);
 ---
 
 <!DOCTYPE html>
@@ -39,13 +45,7 @@ const path = Astro.url.pathname;
     <body>
         <div class="mainContainer">
             <SiteHeader />
-            {
-                showTopBar && (
-                    <div class="topBar">
-                        <div class="page-margin">TODO: Top bar</div>
-                    </div>
-                )
-            }
+            {showTopBar && <TopBar frameworks={frameworks} currentFramework={framework} path={path} />}
 
             <div class="contentViewport">
                 <slot name="aside" />
@@ -82,11 +82,6 @@ const path = Astro.url.pathname;
                 @media (min-width: $breakpoint-docs-nav-medium) {
                     flex-direction: row;
                 }
-            }
-
-            .topBar {
-                background-color: var(--toolbar-background);
-                padding: $size-2 0;
             }
         </style>
     </body>

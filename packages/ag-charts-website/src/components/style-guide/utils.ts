@@ -28,7 +28,7 @@ export function isLight(hex) {
         return;
     }
 
-    let [r, g, b] = hexToRGB(hex)!;
+    const [r, g, b] = hexToRGB(hex)!;
 
     return (r + g + b) / 3 > 150;
 }
@@ -46,12 +46,12 @@ export function hexToHSL(hex) {
     g /= 255;
     b /= 255;
 
-    let cmin = Math.min(r, g, b),
+    const cmin = Math.min(r, g, b),
         cmax = Math.max(r, g, b),
-        delta = cmax - cmin,
+        delta = cmax - cmin;
+    let l = 0,
         h = 0,
-        s = 0,
-        l = 0;
+        s = 0;
 
     if (delta == 0) {
         h = 0;

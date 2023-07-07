@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, IconName, ICON_MAP } from '../icon/Icon';
+import { Icon, type IconName, ICON_MAP } from '../icon/Icon';
 
 export const Icons = () => {
     return (
