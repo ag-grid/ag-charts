@@ -13,7 +13,7 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ url }) => {
     useIntersectionObserver({
         elementRef: iFrameRef,
         onChange: ({ isIntersecting }) => {
-            if (isIntersecting && iFrameRef.current) {
+            if (isIntersecting && iFrameRef.current && !iFrameRef.current.src) {
                 iFrameRef.current.src = url;
             }
         },
