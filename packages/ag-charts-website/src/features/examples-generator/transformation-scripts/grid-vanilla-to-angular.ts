@@ -1,11 +1,11 @@
 import { convertTemplate, getImport, toMemberWithValue, toConst, toInput, toOutput } from './angular-utils';
 import { templatePlaceholder } from './grid-vanilla-src-parser';
+import type { ImportType } from './parser-utils';
 import {
     addBindingImports,
     addGenericInterfaceImport,
     getPropertyInterfaces,
     handleRowGenericInterface,
-    ImportType,
     isInstanceMethod,
     removeFunctionKeyword,
 } from './parser-utils';
@@ -68,7 +68,7 @@ function addModuleImports(imports: string[], bindings: any, allStylesheets: stri
         allStylesheets.forEach((styleSheet) => imports.push(`import '../${path.basename(styleSheet)}';`));
     }
 
-    let propertyInterfaces = getPropertyInterfaces(properties);
+    const propertyInterfaces = getPropertyInterfaces(properties);
     const bImports = [...(bindingImports || [])];
     bImports.push({
         module: `'@ag-grid-community/core'`,
@@ -104,7 +104,7 @@ function addPackageImports(imports: string[], bindings: any, allStylesheets: str
         allStylesheets.forEach((styleSheet) => imports.push(`import '../${path.basename(styleSheet)}';`));
     }
 
-    let propertyInterfaces = getPropertyInterfaces(properties);
+    const propertyInterfaces = getPropertyInterfaces(properties);
     const bImports = [...(bindingImports || [])];
     bImports.push({
         module: `'ag-grid-community'`,
@@ -125,7 +125,7 @@ function getImports(
     importType: ImportType,
     allStylesheets: string[]
 ): string[] {
-    let imports = ["import { Component } from '@angular/core';"];
+    const imports = ["import { Component } from '@angular/core';"];
 
     if (bindings.data) {
         imports.push("import { HttpClient } from '@angular/common/http';");

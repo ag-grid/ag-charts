@@ -15,7 +15,7 @@ export const toComponent = (property) => `'${property.name}': ${property.name}`;
 
 export function toAssignment(property: any): string {
     // convert to arrow functions
-    const value = property.value.replace(/function\s*\(([^\)]+)\)/, '($1) =>');
+    const value = property.value.replace(/function\s*\(([^)]+)\)/, '($1) =>');
 
     return `this.${property.name} = ${value}`;
 }

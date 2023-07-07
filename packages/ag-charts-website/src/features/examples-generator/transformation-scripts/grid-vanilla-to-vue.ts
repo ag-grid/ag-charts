@@ -1,4 +1,5 @@
-import { getModuleRegistration, ImportType } from './parser-utils';
+import type { ImportType } from './parser-utils';
+import { getModuleRegistration } from './parser-utils';
 import { getImport, toOutput } from './vue-utils';
 import {
     convertDefaultColDef,

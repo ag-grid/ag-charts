@@ -1,10 +1,11 @@
-import { ImportType, addBindingImports } from './parser-utils';
+import type { ImportType } from './parser-utils';
+import { addBindingImports } from './parser-utils';
 const fs = require('fs-extra');
 
 export function vanillaToTypescript(bindings: any, mainFilePath: string): (importType: ImportType) => string {
     const { externalEventHandlers, imports } = bindings;
 
-    let importStrings = [];
+    const importStrings = [];
     if (bindings.chartSettings.enterprise) {
         importStrings.push("import 'ag-charts-enterprise';");
     }
@@ -12,7 +13,7 @@ export function vanillaToTypescript(bindings: any, mainFilePath: string): (impor
     // attach external handlers to window
     let toAttach = '';
     if (externalEventHandlers?.length > 0) {
-        let externalBindings = externalEventHandlers.map((e) => ` (<any>window).${e.name} = ${e.name};`);
+        const externalBindings = externalEventHandlers.map((e) => ` (<any>window).${e.name} = ${e.name};`);
         toAttach = [
             '\n',
             "if (typeof window !== 'undefined') {",

@@ -1,8 +1,8 @@
+import type { ImportType } from './parser-utils';
 import {
     convertFunctionToConstProperty,
     getFunctionName,
     getModuleRegistration,
-    ImportType,
     isInstanceMethod,
 } from './parser-utils';
 import { convertFunctionalTemplate, convertFunctionToConstCallback, getImport, getValueType } from './react-utils';

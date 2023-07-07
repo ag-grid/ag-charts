@@ -45,6 +45,7 @@ function tsNodeIsDocumentContentLoaded(node) {
             );
         }
     } catch (e) {
+        // eslint-disable-next-line no-console
         console.error('We found something which we do not understand', node);
     }
 }
@@ -183,11 +184,13 @@ function getTypeLookupFunc(includeTypes, fileName) {
                         typesToInclude: getTypes(pop.type),
                     };
                 } else {
+                    // eslint-disable-next-line no-console
                     console.warn(`Could not find GridOptions property ${propName} for example file ${fileName}`);
                 }
                 return undefined;
             };
         } else {
+            // eslint-disable-next-line no-console
             console.warn('Could not find GridOptions file for ', fileName);
         }
     }
@@ -268,7 +271,7 @@ function internalParser(
         apply: (bindings, node: ts.SignatureDeclaration) => {
             const body = (node as any).body;
 
-            let allVariables = new Set(body ? findAllVariables(body) : []);
+            const allVariables = new Set(body ? findAllVariables(body) : []);
             if (node.parameters && node.parameters.length > 0) {
                 node.parameters.forEach((p) => {
                     allVariables.add(p.name.getText());
@@ -411,7 +414,7 @@ function internalParser(
     });
 
     const tsExtractColDefsStr = (node: any): string => {
-        let copyOfColDefs = [];
+        const copyOfColDefs = [];
 
         // for each column def
         for (let columnDefIndex = 0; columnDefIndex < node.elements.length; columnDefIndex++) {
@@ -423,7 +426,7 @@ function internalParser(
             }
 
             // for each col def property
-            let props = [];
+            const props = [];
             for (
                 let colDefPropertyIndex = 0;
                 colDefPropertyIndex < columnDef.properties.length;
@@ -439,7 +442,7 @@ function internalParser(
                 }
             }
             if (props.length > 0) {
-                let propStr = props.length === 1 ? `{ ${props.join()} }` : `{\n        ${props.join(',\n    ')} }`;
+                const propStr = props.length === 1 ? `{ ${props.join()} }` : `{\n        ${props.join(',\n    ')} }`;
                 copyOfColDefs.push(propStr);
             }
         }
@@ -447,7 +450,7 @@ function internalParser(
     };
 
     const tsArrayStr = (node: any): string => {
-        let copyOfArray = [];
+        const copyOfArray = [];
 
         // for each item in the array
         for (let index = 0; index < node.elements.length; index++) {
@@ -457,13 +460,14 @@ function internalParser(
                 copyOfArray.push(tsGenerate(item, tsTree));
             } else {
                 // for each property
-                let props = [];
+                const props = [];
                 for (let colDefPropertyIndex = 0; colDefPropertyIndex < item.properties.length; colDefPropertyIndex++) {
                     const columnDefProperty: any = item.properties[colDefPropertyIndex];
                     props.push(`${tsConvertFunctionsIntoStringsStr(columnDefProperty)}`);
                 }
                 if (props.length > 0) {
-                    let propStr = props.length === 1 ? `{ ${props.join()} }` : `{\n        ${props.join(',\n    ')} }`;
+                    const propStr =
+                        props.length === 1 ? `{ ${props.join()} }` : `{\n        ${props.join(',\n    ')} }`;
                     copyOfArray.push(propStr);
                 }
             }
@@ -479,7 +483,7 @@ function internalParser(
             const escaped = func.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
             return `${property.name.text}: "AG_FUNCTION_${escaped}"`;
         } else if (ts.isObjectLiteralExpression(property.initializer)) {
-            let objProps = [];
+            const objProps = [];
             property.initializer.properties.forEach((p) => {
                 objProps.push(tsConvertFunctionsIntoStringsStr(p));
             });
@@ -526,6 +530,7 @@ function internalParser(
                         typings: gridOpsTypeLookup(propertyName),
                     });
                 } catch (e) {
+                    // eslint-disable-next-line no-console
                     console.error('We failed generating', node, node.declarations[0].id);
                     throw e;
                 }
@@ -610,6 +615,7 @@ function internalParser(
                     'params'
                 );
             } else {
+                // eslint-disable-next-line no-console
                 console.error(node.getText());
             }
         },

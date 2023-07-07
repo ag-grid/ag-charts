@@ -1,4 +1,5 @@
-import { addBindingImports, addGenericInterfaceImport, getModuleRegistration, ImportType } from './parser-utils';
+import type { ImportType } from './parser-utils';
+import { addBindingImports, addGenericInterfaceImport, getModuleRegistration } from './parser-utils';
 
 const path = require('path');
 const fs = require('fs-extra');
@@ -33,7 +34,7 @@ function getModuleImports(bindings: any, allStylesheets: string[]): string[] {
     const theme = gridSettings.theme ? gridSettings.theme.replace('-dark', '') : 'ag-theme-alpine';
     imports.push(`import "@ag-grid-community/styles/${theme}.css";`);
 
-    let propertyInterfaces = getPropertyInterfaces(properties);
+    const propertyInterfaces = getPropertyInterfaces(properties);
     const bImports = [...(bindingImports || [])];
     bImports.push({
         module: `'@ag-grid-community/core'`,
@@ -68,7 +69,7 @@ function getPackageImports(bindings: any, allStylesheets: string[]): string[] {
     const theme = gridSettings.theme ? gridSettings.theme.replace('-dark', '') : 'ag-theme-alpine';
     imports.push(`import "ag-grid-community/styles/${theme}.css";`);
 
-    let propertyInterfaces = getPropertyInterfaces(properties);
+    const propertyInterfaces = getPropertyInterfaces(properties);
     const bImports = [...(bindingImports || [])];
     bImports.push({
         module: `'ag-grid-community'`,
@@ -103,7 +104,7 @@ export function vanillaToTypescript(
     // attach external handlers to window
     let toAttach = '';
     if (externalEventHandlers?.length > 0) {
-        let externalBindings = externalEventHandlers.map((e) => ` (<any>window).${e.name} = ${e.name};`);
+        const externalBindings = externalEventHandlers.map((e) => ` (<any>window).${e.name} = ${e.name};`);
         toAttach = [
             '\n',
             "if (typeof window !== 'undefined') {",
@@ -123,6 +124,7 @@ export function vanillaToTypescript(
         .replace(/(.*DOMContentLoaded.*)\n((.|\n)*?)(\n}\))/g, '$2');
 
     if (unWrapped.includes('DOMContentLoaded')) {
+        // eslint-disable-next-line no-console
         console.error('DomContentLoaded replace failed for', mainFilePath);
         throw Error('DomContentLoaded replace failed for ' + mainFilePath);
     }

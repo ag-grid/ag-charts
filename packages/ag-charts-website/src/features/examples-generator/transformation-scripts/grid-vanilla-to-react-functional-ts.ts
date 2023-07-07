@@ -1,4 +1,5 @@
 import { templatePlaceholder } from './grid-vanilla-src-parser';
+import type { ImportType } from './parser-utils';
 import {
     addBindingImports,
     addGenericInterfaceImport,
@@ -7,7 +8,6 @@ import {
     getModuleRegistration,
     getPropertyInterfaces,
     handleRowGenericInterface,
-    ImportType,
     isInstanceMethod,
 } from './parser-utils';
 import { convertFunctionalTemplate, convertFunctionToConstCallbackTs, getImport, getValueType } from './react-utils';
@@ -36,7 +36,7 @@ function getModuleImports(
         allStylesheets.forEach((styleSheet) => imports.push(`import './${path.basename(styleSheet)}';`));
     }
 
-    let propertyInterfaces = getPropertyInterfaces(bindings.properties);
+    const propertyInterfaces = getPropertyInterfaces(bindings.properties);
     const bImports = [...(bindings.imports || [])];
     bImports.push({
         module: `'@ag-grid-community/core'`,
@@ -89,7 +89,7 @@ function getPackageImports(
         allStylesheets.forEach((styleSheet) => imports.push(`import './${path.basename(styleSheet)}';`));
     }
 
-    let propertyInterfaces = getPropertyInterfaces(bindings.properties);
+    const propertyInterfaces = getPropertyInterfaces(bindings.properties);
     const bImports = [...(bindings.imports || [])];
     bImports.push({
         module: `'ag-grid-community'`,

@@ -38,7 +38,7 @@ export function convertTemplate(template: string) {
         .replace(/<input (.*)value=/g, '<input $1defaultValue=')
         .replace(/ class=/g, ' className=')
         .replace(/ for=/g, ' htmlFor=')
-        .replace(/ \<option (.*)selected=\"\"/g, '<option $1selected={true}');
+        .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
 
     return convertStyles(template);
 }
@@ -81,7 +81,7 @@ export function convertFunctionalTemplate(template: string) {
         // when using fontawesome just use "class" instead - it's always the case that we're treating it as a raw value
         // I had some fancy regex here to exclude rows with <i class but I thought this was easier to grok and maintain
         .replace(/<i className=/g, '<i class=')
-        .replace(/ \<option (.*)selected=\"\"/g, '<option $1selected={true}');
+        .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
 
     return convertStyles(template);
 }
@@ -100,14 +100,13 @@ export const getValueType = (value: string) => {
 
 export const convertFunctionToConstCallback = (code: string, callbackDependencies: {}) => {
     const functionName = getFunctionName(code);
-    return `${code.replace(/function\s+([^\(\s]+)\s*\(([^\)]*)\)/, 'const $1 = useCallback(($2) =>')}, [${
+    return `${code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $1 = useCallback(($2) =>')}, [${
         callbackDependencies[functionName] || ''
     }])`;
 };
 export const convertFunctionToConstCallbackTs = (code: string, callbackDependencies: {}) => {
     const functionName = getFunctionName(code); //:(\s+[^\{]*)
-    return `${code.replace(
-        /function\s+([^\(\s]+)\s*\(([^\)]*)\)(:?\s+[^\{]*)/,
-        'const $1 = useCallback(($2) $3 =>'
-    )}, [${callbackDependencies[functionName] || ''}])`;
+    return `${code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)(:?\s+[^{]*)/, 'const $1 = useCallback(($2) $3 =>')}, [${
+        callbackDependencies[functionName] || ''
+    }])`;
 };
