@@ -39,7 +39,6 @@ const commonConfig = {
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
     },
-    coverageDirectory: '../../coverage/packages/ag-charts-community',
 };
 
 registerFont('packages/ag-charts-community/src/chart/test/Inter-Regular.otf', { family: 'Verdana' });
