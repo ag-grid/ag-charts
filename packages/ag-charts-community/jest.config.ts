@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { registerFont } from 'canvas';
 import { readFileSync } from 'fs';
 import * as glob from 'glob';
 
@@ -40,6 +41,8 @@ const commonConfig = {
     },
     coverageDirectory: '../../coverage/packages/ag-charts-community',
 };
+
+registerFont('packages/ag-charts-community/src/chart/test/Inter-Regular.otf', { family: 'Verdana' });
 
 export default {
     projects: [

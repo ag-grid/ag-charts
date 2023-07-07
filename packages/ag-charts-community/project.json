@@ -37,6 +37,9 @@
         },
         "watch": {
           "watch": true
+        },
+        "update": {
+          "updateSnapshot": true
         }
       },
       "dependsOn": [{ "projects": ["ag-charts-community-examples"], "target": "build" }]
