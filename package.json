@@ -17,6 +17,7 @@
     "@carbon/icons-react": "^11.21.0",
     "@nrwl/cypress": "15.9.4",
     "@nrwl/js": "15.9.4",
+    "@nrwl/linter": "^16.4.0",
     "@nx/eslint-plugin": "16.4.0",
     "@nx/jest": "16.4.0",
     "@nx/js": "16.4.0",
@@ -78,7 +79,8 @@
   },
   "overrides": {
     "@nxtensions/astro": {
-      "nx": "$nx"
+      "nx": "$nx",
+      "@nrwl/linter": "$@nrwl/linter"
     }
   }
 }

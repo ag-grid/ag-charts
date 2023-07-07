@@ -35,6 +35,14 @@
       "executor": "@nxtensions/astro:preview",
       "options": {}
     },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/ag-charts-website/**/*.ts"],
+        "eslintConfig": "packages/ag-charts-website/.eslintrc.json"
+      }
+    },
     "check": {
       "executor": "@nxtensions/astro:check"
     },

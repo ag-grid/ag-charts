@@ -5,10 +5,13 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
+        "no-useless-escape": 1,
         "@typescript-eslint/consistent-type-imports": 1,
         "prefer-const": 1,
+        "no-console": 1,
+        "prefer-spread": 1,
         "no-var": 1,
-        "no-console": 0
+        "no-mixed-spaces-and-tabs": 1
       }
     },
     {

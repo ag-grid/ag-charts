@@ -2,6 +2,19 @@
   "root": true,
   "ignorePatterns": ["**/*"],
   "plugins": ["@nx"],
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "allowImportExportEverywhere": true
+  },
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
@@ -23,8 +36,14 @@
     },
     {
       "files": ["*.ts", "*.tsx"],
-      "extends": ["plugin:@nx/typescript"],
-      "rules": {}
+      "extends": ["eslint:recommended", "plugin:@typescript-eslint/eslint-recommended"],
+      "rules": {
+        "no-console": 2,
+        "no-unused-vars": 0, // Handled by TS strict flag.
+        "no-case-declarations": 0,
+        "@typescript-eslint/no-explicit-any": 0,
+        "@typescript-eslint/consistent-type-imports": "error"
+      }
     },
     {
       "files": ["*.js", "*.jsx"],
@@ -32,11 +51,20 @@
       "rules": {}
     },
     {
-      "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx"],
+      "files": ["*.test.ts", "*.test.tsx", "*.test.js", "*.test.jsx"],
       "env": {
         "jest": true
       },
-      "rules": {}
+      "rules": {
+        "no-console": 0
+      }
+    },
+    {
+      "files": ["*.json"],
+      "parser": "jsonc-eslint-parser",
+      "rules": {
+        "@nx/dependency-checks": "error"
+      }
     }
   ]
 }

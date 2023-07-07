@@ -13,6 +13,13 @@
     {
       "files": ["*.js", "*.jsx"],
       "rules": {}
+    },
+    {
+      "files": ["packages/ag-charts-community/tools/*.ts"],
+      "rules": {
+        "@typescript-eslint/consistent-type-imports": 0,
+        "no-console": 0
+      }
     }
   ]
 }

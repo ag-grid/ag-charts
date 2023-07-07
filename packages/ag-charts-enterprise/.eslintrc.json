@@ -13,6 +13,12 @@
     {
       "files": ["*.js", "*.jsx"],
       "rules": {}
+    },
+    {
+      "files": ["packages/ag-charts-enterprise/src/license/*.ts"],
+      "rules": {
+        "no-console": 0
+      }
     }
   ]
 }

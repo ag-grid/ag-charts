@@ -18,7 +18,8 @@
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-community-examples/**/*.ts"]
+        "lintFilePatterns": ["packages/ag-charts-community-examples/**/*.ts"],
+        "eslintConfig": "packages/ag-charts-community-examples/.eslintrc.json"
       }
     },
     "test": {
