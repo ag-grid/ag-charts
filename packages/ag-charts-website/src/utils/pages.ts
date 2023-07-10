@@ -7,6 +7,7 @@ import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/f
 import type { InternalFramework, Library } from '../types/ag-grid';
 import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
 import { getIsDev } from './env';
+import { getFolders } from './fs';
 
 export type DocsPage =
     | CollectionEntry<'docs'>
@@ -36,6 +37,7 @@ export interface DevFileRoute {
  */
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-community/dist/ag-charts-community.cjs.js': 'packages/ag-charts-community/main.cjs',
+    'ag-charts-enterprise/dist/ag-charts-enterprise.cjs.js': 'packages/ag-charts-enterprise/main.cjs',
 };
 
 /**
@@ -65,6 +67,22 @@ function ignoreUnderscoreFiles(page: DocsPage) {
     const pageFolders = page.slug.split('/');
     const pageName = pageFolders[pageFolders.length - 1];
     return pageName && !pageName.startsWith('_');
+}
+
+export function getFrameworkFromPath(path: string) {
+    return path.split('/')[1];
+}
+
+export function getNewFrameworkPath({
+    path,
+    currentFramework,
+    newFramework,
+}: {
+    path: string;
+    currentFramework: string;
+    newFramework: string;
+}) {
+    return path.replace(`/${currentFramework}`, `/${newFramework}`);
 }
 
 export function getDocPagesList(pages: DocsPage[]) {
@@ -179,8 +197,7 @@ export const getInternalFrameworkExamples = async ({
             pageName,
         });
 
-        const examples = fsOriginal.existsSync(sourceExamplesPathUrl) ? await fs.readdir(sourceExamplesPathUrl) : [];
-
+        const examples = await getFolders(sourceExamplesPathUrl.pathname);
         return examples.map((exampleName) => {
             return {
                 internalFramework,

@@ -16,7 +16,8 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-website-e2e/**/*.{js,ts}"]
+        "lintFilePatterns": ["packages/ag-charts-website-e2e/**/*.{js,ts}"],
+        "eslintConfig": "packages/ag-charts-website-e2e/.eslintrc.json"
       }
     }
   },

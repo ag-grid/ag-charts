@@ -34,7 +34,7 @@ function setYNames() {
 }
 
 function resetYNames() {
-  options.series![0].yName = undefined;;
-  options.series![1].yName = undefined;;
+  options.series![0].yName = undefined;
+  options.series![1].yName = undefined;
   AgChart.update(chart, options)
 }

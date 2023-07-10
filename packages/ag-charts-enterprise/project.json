@@ -20,7 +20,8 @@
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-enterprise/**/*.ts"]
+        "lintFilePatterns": ["packages/ag-charts-enterprise/**/*.ts"],
+        "eslintConfig": "packages/ag-charts-enterprise/.eslintrc.json"
       }
     },
     "test": {
@@ -32,8 +33,10 @@
       },
       "configurations": {
         "ci": {
-          "ci": true,
-          "codeCoverage": true
+          "ci": true
+        },
+        "watch": {
+          "watch": true
         }
       }
     }

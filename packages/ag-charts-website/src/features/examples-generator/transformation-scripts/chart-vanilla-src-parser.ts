@@ -108,6 +108,7 @@ export function internalParser(js, html, exampleSettings) {
 
                     bindings.properties.push({ name: propertyName, value: code });
                 } catch (e) {
+                    // eslint-disable-next-line no-console
                     console.error('We failed generating', node, node.declarations[0].id);
                 }
             },
@@ -165,7 +166,7 @@ export function internalParser(js, html, exampleSettings) {
         apply: (bindings, node: SignatureDeclaration) => {
             const body = (node as any).body;
 
-            let allVariables = new Set(body ? findAllVariables(body) : []);
+            const allVariables = new Set(body ? findAllVariables(body) : []);
             if (node.parameters && node.parameters.length > 0) {
                 node.parameters.forEach((p) => {
                     allVariables.add(p.name.getText());

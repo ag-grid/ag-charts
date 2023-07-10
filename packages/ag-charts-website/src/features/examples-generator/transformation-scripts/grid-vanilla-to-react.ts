@@ -1,4 +1,5 @@
-import { ImportType, isInstanceMethod, convertFunctionToProperty, getModuleRegistration } from './parser-utils';
+import type { ImportType } from './parser-utils';
+import { isInstanceMethod, convertFunctionToProperty, getModuleRegistration } from './parser-utils';
 import { convertTemplate, getImport } from './react-utils';
 import { templatePlaceholder } from './grid-vanilla-src-parser';
 const path = require('path');
@@ -173,7 +174,7 @@ export function vanillaToReact(
             });
 
         componentAttributes.push('onGridReady={this.onGridReady}');
-        componentAttributes.push.apply(componentAttributes, componentEventAttributes);
+        componentAttributes.push(...componentEventAttributes);
 
         if (data && data.callback.indexOf('api.setRowData') >= 0) {
             if (stateProperties.filter((item) => item.indexOf('rowData') >= 0).length === 0) {

@@ -33,7 +33,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         );
         if (chartImports) {
             chartImports.imports.forEach((i: any) => {
-                const toReplace = `(?<!\\.)${i}([\\s\/.])`;
+                const toReplace = `(?<!\\.)${i}([\\s/.])`;
                 const reg = new RegExp(toReplace, 'g');
                 mainJs = mainJs.replace(reg, `${isEnterprise ? 'agChartsEnterprise' : 'agCharts'}.${i}$1`);
             });

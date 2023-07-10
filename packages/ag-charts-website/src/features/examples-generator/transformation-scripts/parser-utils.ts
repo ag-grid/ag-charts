@@ -19,7 +19,7 @@ export function readAsJsFile(srcFile, options: { includeImports: boolean } = und
         // Remove export statement
         .replace(/export /g, '');
 
-    let jsFile = sucrase.transform(tsFile, { transforms: ['typescript'] }).code;
+    const jsFile = sucrase.transform(tsFile, { transforms: ['typescript'] }).code;
 
     return jsFile;
 }
@@ -46,6 +46,7 @@ export function tsGenerate(node, srcFile) {
         }
         return printer.printNode(ts.EmitHint.Unspecified, node, srcFile);
     } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(error);
     }
     return 'ERROR - Printing';
@@ -57,7 +58,8 @@ export function modulesProcessor(modules: string[]) {
 
     const requiredModules = [];
     modules.forEach((module) => {
-        let found = false;
+        // let found = false;
+        // eslint-disable-next-line no-console
         console.warn(`TODO: module mapping for ${module}`);
         // moduleMapping.forEach((moduleConfig) => {
         //   if (moduleConfig.shortname && moduleConfig.shortname == module) {
@@ -83,17 +85,17 @@ export function removeFunctionKeyword(code: string): string {
 }
 
 export function getFunctionName(code: string): string {
-    let matches = /function\s+([^\(\s]+)\(/.exec(code);
+    const matches = /function\s+([^(\s]+)\(/.exec(code);
     return matches && matches.length === 2 ? matches[1].trim() : null;
 }
 
 export const convertFunctionToProperty = (code: string) =>
-    code.replace(/function\s+([^\(\s]+)\s*\(([^\)]*)\)/, '$1 = ($2) =>');
+    code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, '$1 = ($2) =>');
 
 export const convertFunctionToConstProperty = (code: string) =>
-    code.replace(/function\s+([^\(\s]+)\s*\(([^\)]*)\)/, 'const $1 = ($2) =>');
+    code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $1 = ($2) =>');
 export const convertFunctionToConstPropertyTs = (code: string) => {
-    return code.replace(/function\s+([^\(\s]+)\s*\(([^\)]*)\):(\s+[^\{]*)/, 'const $1: ($2) => $3 = ($2) =>');
+    return code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\):(\s+[^{]*)/, 'const $1: ($2) => $3 = ($2) =>');
 };
 
 export function isInstanceMethod(methods: string[], property: any): boolean {
@@ -122,6 +124,7 @@ export function tsCollect(tsTree, tsBindings, collectors, recurse = true) {
                 try {
                     c.apply(tsBindings, node);
                 } catch (error) {
+                    // eslint-disable-next-line no-console
                     console.error(error);
                 }
             });
@@ -331,7 +334,7 @@ export function usesChartApi(node: ts.Node) {
 }
 
 export function extractImportStatements(srcFile: ts.SourceFile): BindingImport[] {
-    let allImports = [];
+    const allImports = [];
     srcFile.statements.forEach((node) => {
         if (ts.isImportDeclaration(node)) {
             const module = node.moduleSpecifier.getText();
@@ -492,7 +495,7 @@ export function findAllAccessedProperties(node) {
         // get lowest identifier as this is the first in the statement
         // i.e var nextHeader = params.nextHeaderPosition
         // we need to recurse down the initializer tree to extract params and not nextHeaderPosition
-        let init = node.initializer as any;
+        const init = node.initializer as any;
         if (init) {
             const exp = getLowestExpression(init);
             properties = [...properties, ...findAllAccessedProperties(exp)];
@@ -594,8 +597,8 @@ export function addBindingImports(
     convertToPackage: boolean,
     ignoreTsImports: boolean
 ) {
-    let workingImports = {};
-    let namespacedImports = [];
+    const workingImports = {};
+    const namespacedImports = [];
 
     const chartsEnterprise = bindingImports.some((i) => i.module.includes('ag-charts-enterprise'));
 
@@ -666,11 +669,10 @@ export function getModuleRegistration({ gridSettings, enterprise, exampleName })
         );
     }
 
-    let gridSuppliedModules;
-    let exampleModules = Array.isArray(modules) ? modules : ['clientside'];
+    const exampleModules = Array.isArray(modules) ? modules : ['clientside'];
     const { moduleImports, suppliedModules } = modulesProcessor(exampleModules);
     moduleRegistration.push(...moduleImports);
-    gridSuppliedModules = `[${suppliedModules.join(', ')}]`;
+    const gridSuppliedModules = `[${suppliedModules.join(', ')}]`;
 
     moduleRegistration.push(`\n// Register the required feature modules with the Grid`);
     moduleRegistration.push(`ModuleRegistry.registerModules(${gridSuppliedModules})`);

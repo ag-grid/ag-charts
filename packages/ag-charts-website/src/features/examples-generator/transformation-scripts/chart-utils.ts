@@ -1,4 +1,4 @@
-import { BindingImport } from './parser-utils';
+import type { BindingImport } from './parser-utils';
 
 export function wrapOptionsUpdateCode(
     code: string,

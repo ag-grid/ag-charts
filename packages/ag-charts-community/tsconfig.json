@@ -9,8 +9,8 @@
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,
     "noUnusedParameters": true,
-    "noUnusedLocals": true,
-},
+    "noUnusedLocals": true
+  },
   "files": [],
   "include": [],
   "references": [
