@@ -33,8 +33,10 @@
       },
       "configurations": {
         "ci": {
-          "ci": true,
-          "codeCoverage": true
+          "ci": true
+        },
+        "watch": {
+          "watch": true
         }
       }
     }
