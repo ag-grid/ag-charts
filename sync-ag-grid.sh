@@ -7,18 +7,18 @@ START_CWD=$(pwd)
 IMAGE_SNAPSHOT_TMPDIR=$(mktemp -d)
 
 function checkout {
-    if [[ ! -d ../ag-charts-sync${1} && ! -d .git ]] ; then
+    if [[ ! -d ../ag-charts-sync${1:-} && ! -d .git ]] ; then
         echo "Run this scipt from the root of the ag-charts repo."
         exit 1
     fi
 
-    if [[ -d ../ag-charts-sync${1} ]] ; then
-        rm -rf ../ag-charts-sync${1}
+    if [[ -d ../ag-charts-sync${1:-} ]] ; then
+        rm -rf ../ag-charts-sync${1:-}
     fi
 
 
-    git clone --no-local ../ag-grid-tertiary ../ag-charts-sync${1} -b latest
-    cd ../ag-charts-sync${1}
+    git clone --no-local ../ag-grid-tertiary ../ag-charts-sync${1:-} -b latest
+    cd ../ag-charts-sync${1:-}
 }
 
 checkout
@@ -31,9 +31,9 @@ find . -name "__image_snapshots__" | ( while read DIR ; do
 done )
 
 git filter-repo \
-    --path charts-community-modules/ \
-    --path charts-enterprise-modules/ \
-    --path charts-packages/ \
+    --path charts-community-modules/ag-charts-community \
+    --path charts-enterprise-modules/ag-charts-enterprise \
+    --path charts-packages/ag-charts-community \
     --path grid-packages/grid-charts \
     --path grid-packages/charts \
     --path-glob 'grid-packages/ag-grid-docs/documentation/doc-pages/charts-**' \
