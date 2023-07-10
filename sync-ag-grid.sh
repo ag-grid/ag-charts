@@ -63,11 +63,14 @@ git filter-repo \
     --path-rename charts-community-modules/:packages/
 git filter-repo \
     --invert-paths \
-    --path-glob '**/lib/**' \
-    --path-glob '**/umd/**' \
-    --path-glob '**/dist/**' \
-    --path-glob '**/typings/**' \
-    --path-glob '**/__image_snapshots__/**'
+    --path-glob 'charts-community-modules/*/lib/**' \
+    --path-glob 'charts-community-modules/*/dist/**' \
+    --path-glob 'charts-community-modules/*/umd/**' \
+    --path-glob 'charts-community-modules/*/typings/**' \
+    --path-glob 'charts-packages/*/lib/**' \
+    --path-glob 'charts-packages/*/dist/**' \
+    --path-glob 'charts-packages/*/umd/**' \
+    --path-glob 'charts-packages/*/typings/**'
 
 cd ${START_CWD}
 git checkout track-ag-grid
