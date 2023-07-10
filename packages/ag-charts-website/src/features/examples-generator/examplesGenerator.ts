@@ -12,14 +12,7 @@ import { getStyleFiles } from './utils/getStyleFiles';
 import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { isTypescriptInternalFramework } from '../../utils/pages';
-interface GeneratedContents {
-    files: FileContents;
-    entryFileName: string;
-    scriptFiles: string[];
-    styleFiles: string[];
-    isEnterprise: boolean;
-    sourceFileList: string[];
-}
+import type { GeneratedContents } from './types.d';
 
 /**
  * Get the file list of the generated contents

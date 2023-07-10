@@ -35,6 +35,6 @@ export const getInternalFramework = ({
         case 'react':
             return useFunctionalReact ? (useTypescript ? 'reactFunctionalTs' : 'reactFunctional') : 'react';
         default:
-            return framework;
+            return framework as InternalFramework;
     }
 };

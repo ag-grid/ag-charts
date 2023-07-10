@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import { getDocExamplePages, getExampleUrl, getBoilerPlateUrl } from '../../../../utils/pages';
-import { InternalFramework } from '../../../../types/ag-grid';
-import TypescriptTemplate from '../../../../components/example-runner/framework-templates/TypescriptTemplate.astro';
+import type { InternalFramework } from '../../../../types/ag-grid';
+import TypescriptTemplate from '../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
 import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
 import { getIsDev } from '../../../../utils/env';
 

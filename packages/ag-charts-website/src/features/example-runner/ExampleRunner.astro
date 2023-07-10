@@ -1,0 +1,50 @@
+---
+import path from 'node:path';
+import { getInternalFramework } from '../../utils/framework';
+import { ExampleRunner } from './components/ExampleRunner';
+import { getGeneratedContents } from '../examples-generator/examplesGenerator';
+import { getExampleOptionsFromString } from './utils/getExampleOptionsFromString';
+
+const { title, name, type, options } = Astro.props;
+
+// TODO: Get this from framework selector
+const [_, framework, pageName] = Astro.url.pathname.split('/');
+// TODO: Create framework selector
+const useFunctionalReact = false;
+const useVue3 = false;
+const useTypescript = true; // TODO: Only showing typescript for javascript framework for now
+
+const internalFramework = getInternalFramework({
+    framework,
+    useFunctionalReact,
+    useVue3,
+    useTypescript,
+});
+
+const exampleUrl = path.join('/', internalFramework, pageName, 'examples', name);
+const generatedContents = await getGeneratedContents({
+    internalFramework,
+    pageName,
+    exampleName: name,
+});
+const files = generatedContents?.files;
+const entryFile = generatedContents?.entryFileName;
+
+let exampleOptions;
+try {
+    exampleOptions = getExampleOptionsFromString(options);
+} catch (error) {
+    throw new Error(`${error} - options: ${options}\n${JSON.stringify({ name, title, pageName, framework }, null, 2)}`);
+}
+---
+
+<ExampleRunner
+    client:only
+    title={title}
+    name={name}
+    exampleType={type}
+    options={exampleOptions}
+    exampleUrl={exampleUrl}
+    files={files}
+    initialSelectedFile={entryFile}
+/>
