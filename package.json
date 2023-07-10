@@ -84,5 +84,8 @@
       "nx": "$nx",
       "@nrwl/linter": "$@nrwl/linter"
     }
-  }
+  },
+  "workspaces": [
+    "packages/ag-charts-angular"
+  ]
 }
