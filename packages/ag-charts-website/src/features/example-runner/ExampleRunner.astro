@@ -1,5 +1,6 @@
 ---
 import { ExampleRunner } from './components/ExampleRunner';
+import { ReactComponent as LoadingLogo } from '../../images/inline-svgs/ag-grid-logomark-loading.svg';
 import { getExampleOptionsFromString } from './utils/getExampleOptionsFromString';
 import { FRAMEWORK_PATH_INDEX, PAGE_NAME_PATH_INDEX } from '../../constants';
 
@@ -17,12 +18,28 @@ try {
 }
 ---
 
-<ExampleRunner
-    client:load
-    title={title}
-    name={name}
-    exampleType={type}
-    options={exampleOptions}
-    framework={framework}
-    pageName={pageName}
-/>
+<div class="container">
+    <LoadingLogo class="loading-spinner" />
+    <ExampleRunner
+        client:load
+        title={title}
+        name={name}
+        exampleType={type}
+        options={exampleOptions}
+        framework={framework}
+        pageName={pageName}
+    />
+</div>
+
+<style lang="scss">
+    .container {
+        position: relative;
+
+        :global(.logomark) {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(2);
+        }
+    }
+</style>
