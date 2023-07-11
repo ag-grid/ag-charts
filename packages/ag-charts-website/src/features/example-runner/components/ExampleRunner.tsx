@@ -1,4 +1,5 @@
-import { useState, type FunctionComponent } from 'react';
+import { useState, useEffect, type FunctionComponent } from 'react';
+import { useStore } from '@nanostores/react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import classnames from 'classnames';
 import type { InternalFramework } from '../../../types/ag-grid';
@@ -9,6 +10,7 @@ import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import type { ExampleOptions } from '../types';
 import { CodeViewer } from './CodeViewer';
 import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
+import { $internalFramework } from '../../../stores/frameworkStore';
 
 interface Props {
     name: string;
@@ -26,22 +28,14 @@ const queryClient = new QueryClient();
 
 const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType, options, framework, pageName }) => {
     const [showCode, setShowCode] = useState(!!options?.showCode);
-
-    const internalFramework = 'typescript'; // TODO: Get this from framework selection
+    const internalFramework = useStore($internalFramework);
+    const [initialSelectedFile, setInitialSelectedFile] = useState();
+    const [exampleUrl, setExampleUrl] = useState();
 
     const exampleId = `example-${name}`;
     const exampleHeight = options?.exampleHeight || DEFAULT_HEIGHT;
     const exampleName = name;
-    const exampleUrl = getExampleUrl({
-        internalFramework,
-        pageName,
-        exampleName,
-    });
-    const exampleFilesUrl = getExampleFilesUrl({
-        internalFramework,
-        pageName,
-        exampleName,
-    });
+
     const id = `example-${name}`;
     const minHeight = `${exampleHeight + FRAME_WRAPPER_HEIGHT}px`;
 
@@ -49,12 +43,33 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
         isLoading: exampleFilesIsLoading,
         isError: exampleFilesIsError,
         data,
-    } = useQuery('exampleFiles', () => fetch(exampleFilesUrl).then((res) => res.json()));
+    } = useQuery(['exampleFiles', internalFramework, pageName, exampleName], () =>
+        fetch(
+            getExampleFilesUrl({
+                internalFramework,
+                pageName,
+                exampleName,
+            })
+        ).then((res) => res.json())
+    );
     const files = data?.files || [];
-    const initialSelectedFile = data?.entryFileName;
-    const setInternalFramework = (internalFramework) => {
-        console.log('TODO: Set', internalFramework);
-    };
+
+    useEffect(() => {
+        setExampleUrl(
+            getExampleUrl({
+                internalFramework,
+                pageName,
+                exampleName,
+            })
+        );
+    }, [internalFramework, pageName, exampleName]);
+
+    useEffect(() => {
+        if (!data || exampleFilesIsLoading || exampleFilesIsError) {
+            return;
+        }
+        setInitialSelectedFile(data?.entryFileName);
+    }, [data, exampleFilesIsLoading]);
 
     return (
         <div id={id} style={{ minHeight }}>
@@ -119,7 +134,6 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
                             initialSelectedFile={initialSelectedFile}
                             exampleType={exampleType}
                             internalFramework={internalFramework}
-                            setInternalFramework={setInternalFramework}
                         />
                     )}
                 </div>

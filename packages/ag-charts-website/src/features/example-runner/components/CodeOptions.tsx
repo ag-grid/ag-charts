@@ -3,6 +3,7 @@ import React from 'react';
 import styles from './CodeOptions.module.scss';
 import { isGeneratedExample } from '../../examples-generator/utils/isGeneratedExample';
 import { isReactInternalFramework, isVueInternalFramework } from '../../../utils/framework';
+import { $internalFramework } from '../../../stores/frameworkStore';
 
 type SelectorType = 'typescript' | 'react' | 'vue';
 interface SelectorConfig {
@@ -39,13 +40,11 @@ function CodeOptionSelector({
     id,
     type,
     internalFramework,
-    setInternalFramework,
     tracking,
 }: {
     id: string;
     type: SelectorType;
     internalFramework: InternalFramework;
-    setInternalFramework: (internalFramework: InternalFramework) => void;
     tracking?: (value: string) => void;
 }) {
     const formId = `${id}-${type}-style-selector`;
@@ -55,7 +54,7 @@ function CodeOptionSelector({
         if (value === internalFramework) {
             return;
         }
-        setInternalFramework(value);
+        $internalFramework.set(value);
     };
 
     return (
@@ -85,7 +84,7 @@ function CodeOptionSelector({
     );
 }
 
-export const CodeOptions = ({ id, internalFramework, setInternalFramework, exampleType }) => {
+export const CodeOptions = ({ id, internalFramework, exampleType }) => {
     const isGenerated = isGeneratedExample(exampleType);
 
     const showTypescriptSelector =
@@ -98,30 +97,11 @@ export const CodeOptions = ({ id, internalFramework, setInternalFramework, examp
     return nothingToShow ? null : (
         <div className={styles.outer}>
             {showTypescriptSelector && (
-                <CodeOptionSelector
-                    id={id}
-                    type="typescript"
-                    internalFramework={internalFramework}
-                    setInternalFramework={setInternalFramework}
-                />
+                <CodeOptionSelector id={id} type="typescript" internalFramework={internalFramework} />
             )}
-            {showReactSelector && (
-                <CodeOptionSelector
-                    id={id}
-                    type="react"
-                    internalFramework={internalFramework}
-                    setInternalFramework={setInternalFramework}
-                />
-            )}
+            {showReactSelector && <CodeOptionSelector id={id} type="react" internalFramework={internalFramework} />}
 
-            {showVueSelector && (
-                <CodeOptionSelector
-                    id={id}
-                    type="vue"
-                    internalFramework={internalFramework}
-                    setInternalFramework={setInternalFramework}
-                />
-            )}
+            {showVueSelector && <CodeOptionSelector id={id} type="vue" internalFramework={internalFramework} />}
         </div>
     );
 };

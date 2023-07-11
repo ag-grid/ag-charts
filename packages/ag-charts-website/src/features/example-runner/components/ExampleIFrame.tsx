@@ -1,4 +1,4 @@
-import { useRef, type FunctionComponent } from 'react';
+import { useRef, useState, useEffect, type FunctionComponent } from 'react';
 import classnames from 'classnames';
 import styles from './ExampleIFrame.module.scss';
 import { useIntersectionObserver } from '../../../utils/hooks/useIntersectionObserver';
@@ -9,17 +9,28 @@ interface Props {
 }
 
 export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url }) => {
+    const [isIntersecting, setIsIntersecting] = useState(false);
     const iFrameRef = useRef<HTMLIFrameElement>(null);
 
     // Only show example iFrame if it is visible on the screen
     useIntersectionObserver({
         elementRef: iFrameRef,
-        onChange: ({ isIntersecting }) => {
-            if (isIntersecting && iFrameRef.current && !iFrameRef.current.src) {
+        onChange: ({ isIntersecting: newIsIntersecting }) => {
+            if (newIsIntersecting && iFrameRef.current && !iFrameRef.current.src) {
                 iFrameRef.current.src = url;
             }
+            setIsIntersecting(newIsIntersecting);
         },
     });
+
+    useEffect(() => {
+        const currentSrc = iFrameRef.current?.src && new URL(iFrameRef.current.src);
+        if (!isIntersecting || !url || !iFrameRef.current || currentSrc.pathname === url) {
+            return;
+        }
+
+        iFrameRef.current.src = url;
+    }, [isIntersecting, url]);
 
     return (
         <div

@@ -9,19 +9,15 @@ import styles from './CodeViewer.module.scss';
 /**
  * This renders the code viewer in the example runner.
  */
-export const CodeViewer = ({
-    id,
-    isActive,
-    files,
-    initialSelectedFile,
-    exampleType,
-    internalFramework,
-    setInternalFramework,
-}) => {
+export const CodeViewer = ({ id, isActive, files, initialSelectedFile, exampleType, internalFramework }) => {
     const [activeFile, setActiveFile] = useState(initialSelectedFile);
     const [showFiles, setShowFiles] = useState(true);
 
     const exampleFiles = Object.keys(files);
+
+    useEffect(() => {
+        setActiveFile(initialSelectedFile);
+    }, [initialSelectedFile]);
 
     return (
         <div className={classnames(styles.codeViewer, { [styles.hidden]: !isActive, [styles.hideFiles]: !showFiles })}>
@@ -63,12 +59,7 @@ export const CodeViewer = ({
                             />
                         ))}
                     </ul>
-                    <CodeOptions
-                        id={id}
-                        internalFramework={internalFramework}
-                        setInternalFramework={setInternalFramework}
-                        exampleType={exampleType}
-                    />
+                    <CodeOptions id={id} internalFramework={internalFramework} exampleType={exampleType} />
                 </div>
                 <div className={styles.code}>
                     {!files && <FileView path={'loading.js'} code={'// Loading...'} />}

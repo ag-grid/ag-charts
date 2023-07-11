@@ -2934,6 +2934,11 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
+"@nanostores/persistent@^0.9.0":
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/@nanostores/persistent/-/persistent-0.9.1.tgz#e668c64431dee2c9d7a1b8f7ffc1e9c0806ac227"
+  integrity sha512-ow57Hxm5VMaI5GHET/cVk8hX/iKMmbhcGrB9owfN8p8OHiiJgUlYxe1giacwlAALJXAh2t8bxXh42hHb64BCEA==
+
 "@nanostores/react@^0.7.1":
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/@nanostores/react/-/react-0.7.1.tgz#e0446f5cacc9fa53448c454f5d00ddb0f906a37a"
