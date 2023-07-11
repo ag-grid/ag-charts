@@ -95,10 +95,18 @@
       "uglify-js": "3.17.4"
     }
   },
-  "workspaces": [
-    "packages/ag-charts-angular",
-    "packages/ag-charts-react",
-    "packages/ag-charts-vue",
-    "packages/ag-charts-vue3"
-  ]
+  "workspaces": {
+    "packages": [
+      "packages/ag-charts-angular",
+      "packages/ag-charts-react",
+      "packages/ag-charts-vue",
+      "packages/ag-charts-vue3"
+    ],
+    "nohoist": [
+      "**/@vue/**",
+      "**/vue",
+      "**/vue-template-compiler",
+      "**/vue-class-component"
+    ]
+  }
 }
