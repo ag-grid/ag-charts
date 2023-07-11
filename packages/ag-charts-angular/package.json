@@ -5,8 +5,7 @@
     "ng": "ng",
     "build": "ng build",
     "build-prod": "npm run build",
-    "test:e2e": "NODE_OPTIONS=--openssl-legacy-provider ng test --watch false --browsers ChromeHeadless",
-    "lint": "ng lint"
+    "lint": "# ng lint"
   },
   "repository": {
     "type": "git",

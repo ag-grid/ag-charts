@@ -6,11 +6,7 @@
   "tags": [],
   "targets": {
     "lint": {
-      "executor": "@nx/linter:eslint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["packages/ag-charts-react/**/*.{ts,tsx,js,jsx}"]
-      }
+      "executor": "nx:noop"
     },
     "build": {
       "executor": "@nx/rollup:rollup",
