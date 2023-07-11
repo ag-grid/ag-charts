@@ -7,6 +7,7 @@
   "types": "./dist/esm/es6/main.d.ts",
   "scripts": {
     "clean": "rimraf dist typings",
+    "lint:circular": "npx madge --circular --extensions ts src/",
     "lint:prune": "npx ts-prune -p tsconfig.cjs.es5.json",
     "generate-chart-gallery": "npx ts-node -T tools/gallery-thumbnail-generator.ts"
   },
