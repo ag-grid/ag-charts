@@ -24,20 +24,16 @@
   ],
   "scripts": {
     "clean": "rimraf dist lib",
-    "bundle": "NODE_OPTIONS=--openssl-legacy-provider npx vue-cli-service build --target lib src/AgChartsVue.ts",
-    "npm": "npx tsc -p tsconfig-lib.json",
-    "build": "npm run npm && npm run bundle",
-    "build-prod": "npm run build",
+    "build": "tsc -p tsconfig-lib.json && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib src/AgChartsVue.ts",
     "lint": "npx vue-cli-service lint"
   },
   "devDependencies": {
     "@types/node": "12.20.20",
     "@vue/cli-plugin-typescript": "3.12.1",
-    "@vue/cli-plugin-unit-jest": "3.12.1",
     "@vue/cli-service": "3.12.1",
     "ag-charts-community": "~8.0.0",
     "rimraf": "3.0.2",
-    "typescript": "~4.3.5",
+    "typescript": "^5.1.6",
     "vue": "2.6.10",
     "vue-class-component": "7.0.0",
     "vue-property-decorator": "9.1.2",
