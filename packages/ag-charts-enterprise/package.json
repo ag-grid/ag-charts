@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf dist",
+    "watch:build": "nx watch --projects=ag-charts-enterprise -- nx run ag-charts-enterprise:build",
     "lint:circular": "npx madge --circular --extensions ts src/",
     "lint:prune": "npx ts-prune -p tsconfig.cjs.es5.json"
   },

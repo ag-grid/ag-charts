@@ -5808,7 +5808,7 @@ adjust-sourcemap-loader@^4.0.0:
     loader-utils "^2.0.0"
     regex-parser "^2.2.11"
 
-ag-charts-community@*, ag-charts-community@~8.0.0:
+ag-charts-community@*:
   version "8.0.3"
   resolved "https://registry.yarnpkg.com/ag-charts-community/-/ag-charts-community-8.0.3.tgz#4904dec440d297de08b315aa7bb1bb10a7e61128"
   integrity sha512-saho5TKEB2aLvPI+lH8uNNGzAYj5ZkgKp6aS0jFrhMY+1ikNwURkyoqflPRITU0TD0xjxHzXAtVM9kSpuxRexA==
