@@ -22,7 +22,11 @@
     "ag-charts-enterprise",
     "ag-charts-community-examples",
     "ag-charts-website",
-    "ag-charts-website-e2e"
+    "ag-charts-website-e2e",
+    "ag-charts-angular",
+    "ag-charts-react",
+    "ag-charts-vue",
+    "ag-charts-vue3"
   ],
   "tags": []
 }
