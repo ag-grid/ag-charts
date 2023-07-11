@@ -1,4 +1,5 @@
 import { useState, type FunctionComponent } from 'react';
+import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import classnames from 'classnames';
 import type { InternalFramework } from '../../../types/ag-grid';
 import { ExampleIFrame } from './ExampleIFrame';
@@ -7,39 +8,50 @@ import { Icon } from '../../../components/icon/Icon';
 import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import type { ExampleOptions } from '../types';
 import { CodeViewer } from './CodeViewer';
+import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
 
 interface Props {
     name: string;
     title: string;
     exampleType?: string;
     options?: ExampleOptions;
-    exampleUrl: string;
-    internalFramework: InternalFramework;
-    files: Record<string, string>;
-    initialSelectedFile: string;
-    // setInternalFramework: (internalFramework: InternalFramework) => void;
 }
 
 const FRAME_WRAPPER_HEIGHT = 48;
 const DEFAULT_HEIGHT = 500;
 
-export const ExampleRunner: FunctionComponent<Props> = ({
-    name,
-    title,
-    exampleType,
-    options,
-    exampleUrl,
-    internalFramework,
-    files,
-    initialSelectedFile,
-}) => {
+// NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
+// loaded on the client side
+const queryClient = new QueryClient();
+
+const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType, options, framework, pageName }) => {
     const [showCode, setShowCode] = useState(!!options?.showCode);
+
+    const internalFramework = 'typescript'; // TODO: Get this from framework selection
 
     const exampleId = `example-${name}`;
     const exampleHeight = options?.exampleHeight || DEFAULT_HEIGHT;
+    const exampleName = name;
+    const exampleUrl = getExampleUrl({
+        internalFramework,
+        pageName,
+        exampleName,
+    });
+    const exampleFilesUrl = getExampleFilesUrl({
+        internalFramework,
+        pageName,
+        exampleName,
+    });
     const id = `example-${name}`;
     const minHeight = `${exampleHeight + FRAME_WRAPPER_HEIGHT}px`;
 
+    const {
+        isLoading: exampleFilesIsLoading,
+        isError: exampleFilesIsError,
+        data,
+    } = useQuery('exampleFiles', () => fetch(exampleFilesUrl).then((res) => res.json()));
+    const files = data?.files || [];
+    const initialSelectedFile = data?.entryFileName;
     const setInternalFramework = (internalFramework) => {
         console.log('TODO: Set', internalFramework);
     };
@@ -99,17 +111,27 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     style={{ height: exampleHeight, width: '100%' }}
                 >
                     <ExampleIFrame isHidden={showCode} url={exampleUrl} />
-                    <CodeViewer
-                        id={exampleId}
-                        isActive={showCode}
-                        files={files}
-                        initialSelectedFile={initialSelectedFile}
-                        exampleType={exampleType}
-                        internalFramework={internalFramework}
-                        setInternalFramework={setInternalFramework}
-                    />
+                    {!exampleFilesIsLoading && !exampleFilesIsError && (
+                        <CodeViewer
+                            id={exampleId}
+                            isActive={showCode}
+                            files={files}
+                            initialSelectedFile={initialSelectedFile}
+                            exampleType={exampleType}
+                            internalFramework={internalFramework}
+                            setInternalFramework={setInternalFramework}
+                        />
+                    )}
                 </div>
             </div>
         </div>
+    );
+};
+
+export const ExampleRunner = (props) => {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <ExampleRunnerInner {...props} />
+        </QueryClientProvider>
     );
 };

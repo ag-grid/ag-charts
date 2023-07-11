@@ -145,6 +145,28 @@ export const getExampleUrl = ({
 };
 
 /**
+ * Get endpoint for all example files
+ */
+export const getExampleFilesUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        'files'
+    );
+};
+
+/**
  * Dynamic path where example files are
  */
 export const getExampleFileUrl = ({
@@ -158,7 +180,14 @@ export const getExampleFileUrl = ({
     exampleName: string;
     fileName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, fileName);
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        fileName
+    );
 };
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {

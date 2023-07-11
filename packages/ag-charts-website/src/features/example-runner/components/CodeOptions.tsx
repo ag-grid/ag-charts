@@ -74,7 +74,11 @@ function CodeOptionSelector({
                 onBlur={onChange}
             >
                 {Object.keys(config.labelValues).map((label) => {
-                    return <option value={config.labelValues[label]}>{label}</option>;
+                    return (
+                        <option key={label} value={config.labelValues[label]}>
+                            {label}
+                        </option>
+                    );
                 })}
             </select>
         </div>
