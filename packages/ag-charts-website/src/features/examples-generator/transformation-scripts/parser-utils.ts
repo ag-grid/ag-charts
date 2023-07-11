@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import sucrase from 'sucrase';
+import { transform } from 'sucrase';
 
 export type ImportType = 'packages' | 'modules';
 
@@ -19,7 +19,7 @@ export function readAsJsFile(srcFile, options: { includeImports: boolean } = und
         // Remove export statement
         .replace(/export /g, '');
 
-    const jsFile = sucrase.transform(tsFile, { transforms: ['typescript'] }).code;
+    const jsFile = transform(tsFile, { transforms: ['typescript'] }).code;
 
     return jsFile;
 }
