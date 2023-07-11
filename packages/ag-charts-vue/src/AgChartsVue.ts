@@ -29,8 +29,7 @@ export class AgChartsVue extends Vue {
 
         this.isCreated = true;
 
-        (this.chart as any).chart.waitForUpdate()
-            .then(() => this.$emit('onChartReady', this.chart));
+        (this.chart as any).chart.waitForUpdate().then(() => this.$emit('onChartReady', this.chart));
     }
 
     public destroyed() {

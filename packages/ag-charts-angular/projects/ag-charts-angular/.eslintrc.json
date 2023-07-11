@@ -1,18 +1,11 @@
 {
   //"extends": "../../.eslintrc.json",
-  "ignorePatterns": [
-    "!**/*"
-  ],
+  "ignorePatterns": ["!**/*"],
   "overrides": [
     {
-      "files": [
-        "*.ts"
-      ],
+      "files": ["*.ts"],
       "parserOptions": {
-        "project": [
-          "projects/ag-charts-angular/tsconfig.lib.json",
-          "projects/ag-charts-angular/tsconfig.spec.json"
-        ],
+        "project": ["projects/ag-charts-angular/tsconfig.lib.json", "projects/ag-charts-angular/tsconfig.spec.json"],
         "createDefaultProgram": true
       },
       "extends": [
@@ -37,31 +30,21 @@
           "error",
           {
             "type": "element",
-            "prefix": [
-              "ag",
-              "host"
-            ],
+            "prefix": ["ag", "host"],
             "style": "kebab-case"
           }
         ],
         "@angular-eslint/component-class-suffix": [
           "error",
           {
-            "suffixes": [
-              "Angular",
-              "Component"
-            ]
+            "suffixes": ["Angular", "Component"]
           }
         ]
       }
     },
     {
-      "files": [
-        "*.html"
-      ],
-      "extends": [
-        "plugin:@angular-eslint/template/recommended"
-      ],
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended"],
       "rules": {
         /**
          * Any template/HTML related rules you wish to use/reconfigure over and above the

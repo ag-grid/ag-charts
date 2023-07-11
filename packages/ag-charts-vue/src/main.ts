@@ -1,5 +1,5 @@
-import {AgChartsVue} from './AgChartsVue';
-import {Vue} from 'vue-property-decorator';
+import { AgChartsVue } from './AgChartsVue';
+import { Vue } from 'vue-property-decorator';
 
 Vue.config.productionTip = false;
 
@@ -8,6 +8,5 @@ Vue.config.productionTip = false;
  * Not deployed/built for downstream consumption
  */
 new Vue({
-  render: (h) => h(AgChartsVue),
+    render: (h) => h(AgChartsVue),
 }).$mount('#app');
-

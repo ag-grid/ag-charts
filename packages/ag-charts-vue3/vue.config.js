@@ -1,7 +1,7 @@
 module.exports = {
-    chainWebpack: config => {
+    chainWebpack: (config) => {
         config.externals({
-            'ag-charts-community': 'agCharts'
-        })
-    }
+            'ag-charts-community': 'agCharts',
+        });
+    },
 };

@@ -9,19 +9,19 @@ AG Charts is a fully-featured and highly customizable JavaScript charting librar
 
 Here are some of the features that make AG Charts stand out:
 
-* modern, lightweight and performant
-* thin, easy-to-use wrappers for all popular frameworks: React, Angular, Vue
-* framework agnostic, easy to use from plain JavaScript or TypeScript
-* zero dependencies
-* support for all common chart types:
-    * Line Charts
-    * Bar/Column Charts
-    * Area Charts
-    * Scatter/Bubble Charts
-    * Pie/Doughnut Charts
-* reactive - property changes are automatically batched to take effect on next frame
-* simple, clean API
-* interactive documentation
+-   modern, lightweight and performant
+-   thin, easy-to-use wrappers for all popular frameworks: React, Angular, Vue
+-   framework agnostic, easy to use from plain JavaScript or TypeScript
+-   zero dependencies
+-   support for all common chart types:
+    -   Line Charts
+    -   Bar/Column Charts
+    -   Area Charts
+    -   Scatter/Bubble Charts
+    -   Pie/Doughnut Charts
+-   reactive - property changes are automatically batched to take effect on next frame
+-   simple, clean API
+-   interactive documentation
 
 Visit [our official docs](https://www.ag-grid.com/react-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) for full documentation.
 

@@ -1,6 +1,6 @@
-import { Component, createElement, createRef, RefObject } from "react";
-import * as PropTypes from "prop-types";
-import { AgChartInstance, AgChart, AgChartOptions } from "ag-charts-community";
+import { Component, createElement, createRef, RefObject } from 'react';
+import * as PropTypes from 'prop-types';
+import { AgChartInstance, AgChart, AgChartOptions } from 'ag-charts-community';
 
 export interface AgChartProps {
     options: AgChartOptions;
@@ -8,8 +8,7 @@ export interface AgChartProps {
     containerStyle?: any;
 }
 
-interface AgChartState {
-}
+interface AgChartState {}
 
 export class AgChartsReact extends Component<AgChartProps, AgChartState> {
     static propTypes: any;
@@ -24,16 +23,16 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
     }
 
     render() {
-        return createElement("div", {
+        return createElement('div', {
             style: this.createStyleForDiv(),
-            ref: this.chartRef
+            ref: this.chartRef,
         });
     }
 
     createStyleForDiv() {
         return {
-            height: "100%",
-            ...(this.props.containerStyle ?? {})
+            height: '100%',
+            ...(this.props.containerStyle ?? {}),
         };
     }
 
@@ -43,8 +42,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
         const chart = AgChart.create(options);
         this.chart = chart;
 
-        (chart as any).chart.waitForUpdate()
-            .then(() => this.props.onChartReady?.(chart));
+        (chart as any).chart.waitForUpdate().then(() => this.props.onChartReady?.(chart));
     }
 
     private applyContainerIfNotSet(propsOptions: any) {
@@ -52,7 +50,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
             return propsOptions;
         }
 
-        return {...propsOptions, container: this.chartRef.current};
+        return { ...propsOptions, container: this.chartRef.current };
     }
 
     shouldComponentUpdate(nextProps: any) {
@@ -79,6 +77,5 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
 }
 
 AgChartsReact.propTypes = {
-    options: PropTypes.object
+    options: PropTypes.object,
 };
-
