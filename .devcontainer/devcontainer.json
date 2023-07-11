@@ -14,9 +14,9 @@
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],
 
-    "mounts": ["source=ag-charts-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"],
+    // "mounts": ["source=ag-charts-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"],
 
-    "postCreateCommand": "sudo chown vscode node_modules && npm install"
+    // "postCreateCommand": "sudo chown vscode node_modules && npm install"
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": "yarn install",
 
