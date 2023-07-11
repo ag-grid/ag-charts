@@ -1,2 +1,1 @@
-export {AgChartsVue} from './lib/AgChartsVue';
-
+export { AgChartsVue } from './lib/AgChartsVue';

@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, EventEmitter, ElementRef, Input, Output, OnChanges, OnDestroy, ViewEncapsulation } from "@angular/core";
+import {
+    AfterViewInit,
+    Component,
+    EventEmitter,
+    ElementRef,
+    Input,
+    Output,
+    OnChanges,
+    OnDestroy,
+    ViewEncapsulation,
+} from '@angular/core';
 
 import { AgChartInstance, AgChart, AgChartOptions } from 'ag-charts-community';
 
@@ -6,10 +16,9 @@ import { AgChartInstance, AgChart, AgChartOptions } from 'ag-charts-community';
 @Component({
     selector: 'ag-charts-angular',
     template: '',
-    encapsulation: ViewEncapsulation.None
+    encapsulation: ViewEncapsulation.None,
 })
 export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
-
     private _nativeElement: any;
     private _initialised = false;
 
@@ -31,10 +40,9 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
         this.chart = AgChart.create(options);
         this._initialised = true;
 
-        (this.chart as any).chart.waitForUpdate()
-            .then(() => {
-                this.onChartReady.emit(this.chart);
-            });
+        (this.chart as any).chart.waitForUpdate().then(() => {
+            this.onChartReady.emit(this.chart);
+        });
     }
 
     // noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols
@@ -59,6 +67,6 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
             return propsOptions;
         }
 
-        return {...propsOptions, container: this._nativeElement};
+        return { ...propsOptions, container: this._nativeElement };
     }
 }

@@ -20,9 +20,9 @@ jobs:
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
-            - run: npm ci
+            - run: yarn install --ci
 
-            - run: npx nx format:check
-            - run: npx nx affected -t build --parallel=3
-            - run: npx nx affected -t lint --parallel=3
-            - run: npx nx affected -t test --parallel=3 --configuration=ci
+            - run: yarn nx format:check
+            - run: yarn nx affected -t build --parallel=3
+            - run: yarn nx affected -t lint --parallel=3
+            - run: yarn nx affected -t test --parallel=3 --configuration=ci
