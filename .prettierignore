@@ -4,4 +4,9 @@
 /packages/ag-charts-community-examples/src
 /packages/ag-charts-website/src/content/docs/**/_examples/
 /packages/ag-charts-website/.astro
-/packages/ag-charts-{angular,react,vue,vue3}/{dist,lib}
+/packages/ag-charts-angular/dist
+/packages/ag-charts-react/dist
+/packages/ag-charts-vue/dist
+/packages/ag-charts-vue/lib
+/packages/ag-charts-vue3/dist
+/packages/ag-charts-vue3/lib
