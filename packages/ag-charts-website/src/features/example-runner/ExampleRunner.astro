@@ -9,11 +9,13 @@ const { title, name, type, options } = Astro.props;
 
 // TODO: Get this from framework selector
 const [_, framework, pageName] = Astro.url.pathname.split('/');
-// TODO: Create framework selector
+
+// TODO: Get this from client side
 const useFunctionalReact = false;
 const useVue3 = false;
 const useTypescript = true; // TODO: Only showing typescript for javascript framework for now
 
+// !! Not possible to get internal framework at build time?
 const internalFramework = getInternalFramework({
     framework,
     useFunctionalReact,
@@ -45,6 +47,7 @@ try {
     exampleType={type}
     options={exampleOptions}
     exampleUrl={exampleUrl}
+    internalFramework={internalFramework}
     files={files}
     initialSelectedFile={entryFile}
 />

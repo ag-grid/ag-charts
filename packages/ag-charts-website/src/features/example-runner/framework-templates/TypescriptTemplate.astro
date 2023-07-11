@@ -14,8 +14,12 @@ interface Props {
     modifiedTimeMs: number;
     isExecuting: boolean;
     options: any;
-    styleFiles?: string[];
+    entryFileName: string;
+    /**
+     * All script file names
+     */
     scriptFiles?: string[];
+    styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
     library: string;
@@ -30,12 +34,17 @@ const {
     isExecuting,
     options,
     appLocation,
+    entryFileName,
     scriptFiles,
     styleFiles,
     indexFragment,
     library,
     boilerplatePath,
 } = Astro.props as Props;
+
+const startFile = appLocation + '/' + entryFileName;
+// The entry file is loaded through SystemJS, but other scripts need to be included directly on the page
+const extraScriptFiles = scriptFiles?.filter((scriptFile) => scriptFile !== entryFileName);
 ---
 
 <html lang="en">
@@ -68,13 +77,14 @@ const {
         >
             window.__basePath = appLocation;
         </script>
-        <Scripts baseUrl={appLocation} files={scriptFiles} />
+
+        <Scripts baseUrl={appLocation} files={extraScriptFiles} />
         <SystemJs
             isDev={isDev}
             library={library}
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
-            startFile={appLocation + '/main.ts'}
+            startFile={startFile}
             framework={'typescript'}
             options={options}
         />

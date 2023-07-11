@@ -38,3 +38,21 @@ export const getInternalFramework = ({
             return framework as InternalFramework;
     }
 };
+
+export const isReactInternalFramework = (internalFramework: InternalFramework) => {
+    const reactInternalFrameworks: InternalFramework[] = ['react', 'reactFunctional', 'reactFunctionalTs'];
+    if (!internalFramework) {
+        return false;
+    }
+
+    return reactInternalFrameworks.includes(internalFramework);
+};
+
+export const isVueInternalFramework = (internalFramework: InternalFramework) => {
+    const reactInternalFrameworks: InternalFramework[] = ['vue', 'vue3'];
+    if (!internalFramework) {
+        return false;
+    }
+
+    return reactInternalFrameworks.includes(internalFramework);
+};

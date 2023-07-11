@@ -21,7 +21,7 @@ const isDev = getIsDev();
 
 const library = 'charts';
 
-const { files, scriptFiles, styleFiles, isEnterprise } =
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } =
     (await getGeneratedContents({
         internalFramework,
         pageName,
@@ -51,6 +51,7 @@ const boilerPlateUrl = getBoilerPlateUrl({
             options={{
                 enterprise: isEnterprise,
             }}
+            entryFileName={entryFileName!}
             scriptFiles={scriptFiles}
             styleFiles={styleFiles}
             indexFragment={indexFragment!}

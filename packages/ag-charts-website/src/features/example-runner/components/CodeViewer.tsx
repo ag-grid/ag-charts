@@ -3,12 +3,21 @@ import { useEffect, useState } from 'react';
 import Code from '../../../components/Code';
 import { doOnEnter } from '../../../utils/doOnEnter';
 import { Icon } from '../../../components/icon/Icon';
+import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
 
 /**
  * This renders the code viewer in the example runner.
  */
-export const CodeViewer = ({ isActive, files, initialSelectedFile }) => {
+export const CodeViewer = ({
+    id,
+    isActive,
+    files,
+    initialSelectedFile,
+    exampleType,
+    internalFramework,
+    setInternalFramework,
+}) => {
     const [activeFile, setActiveFile] = useState(initialSelectedFile);
     const [showFiles, setShowFiles] = useState(true);
 
@@ -54,7 +63,12 @@ export const CodeViewer = ({ isActive, files, initialSelectedFile }) => {
                             />
                         ))}
                     </ul>
-                    TODO: CodeOptions
+                    <CodeOptions
+                        id={id}
+                        internalFramework={internalFramework}
+                        setInternalFramework={setInternalFramework}
+                        exampleType={exampleType}
+                    />
                 </div>
                 <div className={styles.code}>
                     {!files && <FileView path={'loading.js'} code={'// Loading...'} />}
