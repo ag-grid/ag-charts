@@ -44,7 +44,8 @@ export function prepareTestOptions<T extends AgChartOptions<any, any>>(options: 
 }
 
 export function deproxy(chartOrProxy: Chart | AgChartInstance): Chart {
-    return chartOrProxy instanceof Chart ? (chartOrProxy as any) : (chartOrProxy as any).chart;
+    const isChartInstance = chartOrProxy instanceof Chart || (chartOrProxy as any)?.className != null;
+    return isChartInstance ? (chartOrProxy as any) : (chartOrProxy as any).chart;
 }
 
 export function repeat<T>(value: T, count: number): T[] {

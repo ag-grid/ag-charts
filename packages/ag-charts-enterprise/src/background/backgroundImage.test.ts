@@ -188,7 +188,7 @@ describe('backgroundImage', () => {
             };
             prepareTestOptions(options);
 
-            chart = deproxy(AgChart.create(options));
+            chart = AgChart.create(options);
 
             await compare(chart);
         });
@@ -210,7 +210,7 @@ describe('backgroundImage', () => {
             };
             prepareTestOptions(options);
 
-            chart = deproxy(AgChart.create(options));
+            chart = AgChart.create(options);
 
             await compare(chart);
         });

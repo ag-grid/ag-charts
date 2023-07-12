@@ -94,10 +94,7 @@
   },
   "workspaces": {
     "packages": [
-      "packages/ag-charts-angular",
-      "packages/ag-charts-react",
-      "packages/ag-charts-vue",
-      "packages/ag-charts-vue3"
+      "packages/*"
     ],
     "nohoist": [
       "**/@vue/**",
