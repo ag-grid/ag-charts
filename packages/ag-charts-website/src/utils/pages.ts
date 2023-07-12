@@ -33,7 +33,7 @@ export interface DevFileRoute {
 /**
  * Mapping for dev files, from route to file path
  *
- * NOTE: File path is after `getDistUrl()`
+ * NOTE: File path is after `getRootUrl()`
  */
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-community/dist/ag-charts-community.cjs.js': 'packages/ag-charts-community/dist/main.cjs',
@@ -43,12 +43,12 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 /**
  * The dist url where packages are generated
  */
-const getDistUrl = (): URL => {
+const getRootUrl = (): URL => {
     const distRoot = getIsDev()
         ? // Relative to the folder of this file
           '../../../../'
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../';
+          '../../../../../';
     return new URL(distRoot, import.meta.url);
 };
 
@@ -150,7 +150,7 @@ export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
 };
 
 export const getDevFileList = () => {
-    const distFolder = getDistUrl();
+    const distFolder = getRootUrl();
     return Object.values(DEV_FILE_PATH_MAP).map((file) => {
         return path.join(distFolder.pathname, file);
     });
@@ -216,7 +216,7 @@ export const getInternalFrameworkExamples = async ({
 export function getDevFiles(): DevFileRoute[] {
     const files = Object.keys(DEV_FILE_PATH_MAP).map((filePath) => {
         const sourceFilePath = DEV_FILE_PATH_MAP[filePath];
-        const fullFilePath = path.join(getDistUrl().pathname, sourceFilePath);
+        const fullFilePath = path.join(getRootUrl().pathname, sourceFilePath);
 
         return {
             filePath,
