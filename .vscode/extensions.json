@@ -1,9 +1,11 @@
 {
   "recommendations": [
-    "nrwl.angular-console",
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
-    "firsttris.vscode-jest-runner",
-    "astro-build.astro-vscode"
+    "astro-build.astro-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "ms-vscode-remote.remote-containers",
+    "github.vscode-github-actions",
+    "eamodio.gitlens"
   ]
 }

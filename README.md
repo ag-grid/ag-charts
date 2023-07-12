@@ -4,13 +4,9 @@
 
 Prerequisites:
 
-0. Install Yarn: `npm i -g yarn`
+0. Install Yarn and Nx: `npm i -g yarn nx`
 1. Install all dependencies: `yarn install`
-2. [Optional] Install `nx` globally: `yarn install --g nx`
-
-    Or alternatively use `npx nx`
-
-3. [Optional] Install the [Nx Console VS Code extension](https://marketplace.visualstudio.com/items?itemName=nrwl.angular-console) to run Nx commands within VS Code
+2. [Optional] Install the [Nx Console VS Code extension](https://marketplace.visualstudio.com/items?itemName=nrwl.angular-console) to run Nx commands within VS Code
 
 ## Development in a VSCode Devcontainer (includes all test dependencies)
 
