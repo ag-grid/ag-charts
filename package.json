@@ -1,5 +1,5 @@
 {
-  "name": "@ag-charts/source",
+  "name": "ag-charts",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
@@ -88,19 +88,21 @@
     "rollup-plugin-typescript": {
       "typescript": "$typescript"
     },
-    "gulp-typescript": {
-      "typescript": "$typescript"
-    },
     "rollup-plugin-uglify": {
       "uglify-js": "3.17.4"
     }
   },
   "workspaces": {
     "packages": [
+      "packages/ag-charts-community",
+      "packages/ag-charts-community-examples",
+      "packages/ag-charts-enterprise",
       "packages/ag-charts-angular",
       "packages/ag-charts-react",
       "packages/ag-charts-vue",
-      "packages/ag-charts-vue3"
+      "packages/ag-charts-vue3",
+      "packages/ag-charts-website",
+      "packages/ag-charts-website-e2e"
     ],
     "nohoist": [
       "**/@vue/**",

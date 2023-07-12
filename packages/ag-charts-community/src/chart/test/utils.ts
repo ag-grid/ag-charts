@@ -32,11 +32,6 @@ const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0.05)
 export const IMAGE_SNAPSHOT_DEFAULTS = { failureThreshold: FAILURE_THRESHOLD, failureThresholdType: 'percent' };
 export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: (Canvas as any).PNG_NO_FILTERS };
 
-// process.env.FC_DEBUG = String(0xffff);
-process.env.PANGOCAIRO_BACKEND = 'fontconfig';
-process.env.FONTCONFIG_PATH = __dirname;
-process.env.FONTCONFIG_NAME = `${__dirname}/fonts.conf`;
-
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
@@ -49,7 +44,8 @@ export function prepareTestOptions<T extends AgChartOptions<any, any>>(options: 
 }
 
 export function deproxy(chartOrProxy: Chart | AgChartInstance): Chart {
-    return chartOrProxy instanceof Chart ? (chartOrProxy as any) : (chartOrProxy as any).chart;
+    const isChartInstance = chartOrProxy instanceof Chart || (chartOrProxy as any)?.className != null;
+    return isChartInstance ? (chartOrProxy as any) : (chartOrProxy as any).chart;
 }
 
 export function repeat<T>(value: T, count: number): T[] {

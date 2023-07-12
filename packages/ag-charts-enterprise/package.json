@@ -8,35 +8,9 @@
   "private": true,
   "scripts": {
     "clean": "rimraf dist",
-    "build-cjs": "rimraf dist/tsconfig.cjs.es5.docs.tsbuildinfo && npx tsc -p tsconfig.cjs.es5.json && npx tsc -p tsconfig.cjs.es6.json",
-    "build-esm": "npx tsc -p tsconfig.esm.es5.json && npx tsc -p tsconfig.esm.es6.json",
-    "build-cjs-prod": "npx tsc -p tsconfig.cjs.es5.json --sourceMap false && npx tsc -p tsconfig.cjs.es6.json --sourceMap false",
-    "build-esm-prod": "npx tsc -p tsconfig.esm.es5.json --sourceMap false && npx tsc -p tsconfig.esm.es6.json --sourceMap false",
-    "watch-esm": "tsc -p tsconfig.esm.es5.json -w --preserveWatchOutput",
     "watch:build": "nx watch --projects=ag-charts-enterprise -- nx run ag-charts-enterprise:build",
-    "package": "node ../../module-build/rollup/build.js --bundlePrefix ag-charts-enterprise --umdModuleName agChartsEnterprise",
-    "build": "npx gulp copy-license-files && npm run build-cjs && npm run build-esm && npx gulp mjs-processing",
-    "build-prod": "npx gulp copy-license-files && npm run build-cjs-prod && npm run build-esm-prod && npx gulp mjs-processing",
-    "install-hooks": "cd ../.. && husky install charts-enterprise-modules/ag-charts-enterprise/.husky",
-    "lint": "run-s lint:*",
-    "lint:prettier": "npx prettier -c .",
-    "lint:eslint": "npx eslint src/ --ext .js,.ts",
-    "fix": "run-s fix:*",
-    "fix:prettier": "npx prettier -w .",
-    "fix:eslint": "npx eslint --fix src/ --ext .js,.ts",
-    "test": "./node_modules/ag-charts-community/test.sh",
-    "test:lint": "npm run test-circular-deps",
-    "test-watch": "./node_modules/ag-charts-community/test.sh watch",
-    "test-update": "./node_modules/ag-charts-community/test.sh update",
-    "test-circular-deps": "npx madge --circular --extensions ts src/",
-    "predocker:init": "docker build -t charts:latest node_modules/ag-charts-community/.docker",
-    "docker:init": "node_modules/ag-charts-community/.docker/run.sh init",
-    "docker:run": "node_modules/ag-charts-community/.docker/run.sh run",
-    "docker:test-watch": "node_modules/ag-charts-community/.docker/run.sh run npm run test-watch",
-    "docker:test-coverage": "node_modules/ag-charts-community/.docker/run.sh run npm run test-coverage",
-    "docker:test-debug": "node_modules/ag-charts-community/.docker/run.sh run npm run test-debug",
-    "docker:test-update": "node_modules/ag-charts-community/.docker/run.sh run npm run test-update",
-    "docker:clean": "node_modules/ag-charts-community/.docker/run.sh clean"
+    "lint:circular": "npx madge --circular --extensions ts src/",
+    "lint:prune": "npx ts-prune -p tsconfig.cjs.es5.json"
   },
   "repository": {
     "type": "git",
@@ -77,7 +51,7 @@
     "@types/pngjs": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-community": "~8.0.0",
+    "ag-charts-community": "*",
     "canvas": "^2.10.2",
     "eslint": "^6.8.0",
     "glob": "8.0.3",
@@ -101,8 +75,8 @@
     "gulp-rename": "^2.0.0",
     "del": "^6.0.0"
   },
-  "peerDependencies": {
-    "ag-charts-community": "~8.0.0"
+  "dependencies": {
+    "ag-charts-community": "*"
   },
   "publishConfig": {
     "access": "private"

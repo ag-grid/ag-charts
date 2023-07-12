@@ -8,12 +8,19 @@
       "executor": "@nx/rollup:rollup",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/packages/ag-charts-enterprise",
+        "outputPath": "packages/ag-charts-enterprise/dist",
         "main": "packages/ag-charts-enterprise/src/main.ts",
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
         "assets": [],
         "project": "packages/ag-charts-enterprise/package.json",
-        "compiler": "tsc"
+        "compiler": "tsc",
+        "updateBuildableProjectDepsInPackageJson": true,
+        "buildableProjectDepsInPackageJsonType": "dependencies"
+      },
+      "configurations": {
+        "watch": {
+          "watch": true
+        }
       }
     },
     "lint": {
