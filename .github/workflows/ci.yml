@@ -11,18 +11,64 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    main:
+    cache_checkout:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
+            - run: yarn install --ci
+            - uses: actions/upload-artifact@v3
               with:
-                  fetch-depth: 0
+                  name: ag-charts-checkout-${{ github.run_id }}
+                  path: ${{ github.workspace }}/**/*
+
+    format:
+        needs: cache_checkout
+        runs-on: ubuntu-latest
+        steps:
+            - name: Get Cached Checkout
+              uses: actions/download-artifact@v3
+              with:
+                  name: ag-charts-checkout-${{ github.run_id }}
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
-            - run: yarn install --ci
-
             - run: yarn nx format:check
-            - run: yarn nx affected -t build --parallel=3
+
+    lint:
+        needs: cache_checkout
+        runs-on: ubuntu-latest
+        steps:
+            - name: Get Cached Checkout
+              uses: actions/download-artifact@v3
+              with:
+                  name: ag-charts-checkout-${{ github.run_id }}
+            - uses: nrwl/nx-set-shas@v3
+              with:
+                  main-branch-name: 'latest'
             - run: yarn nx affected -t lint --parallel=3
+
+    build:
+        needs: cache_checkout
+        runs-on: ubuntu-latest
+        steps:
+            - name: Get Cached Checkout
+              uses: actions/download-artifact@v3
+              with:
+                  name: ag-charts-checkout-${{ github.run_id }}
+            - uses: nrwl/nx-set-shas@v3
+              with:
+                  main-branch-name: 'latest'
+            - run: yarn nx affected -t build --parallel=3
+
+    test:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Get Cached Checkout
+              uses: actions/download-artifact@v3
+              with:
+                  name: ag-charts-checkout-${{ github.run_id }}
+            - uses: nrwl/nx-set-shas@v3
+              with:
+                  main-branch-name: 'latest'
             - run: yarn nx affected -t test --parallel=3 --configuration=ci
