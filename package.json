@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "init": "yarn install",
+    "clean": "rimraf dist/ packages/*/dist packages/*/lib",
     "postinstall": "node ./tools/scripts/patch-nx-cli.js"
   },
   "private": true,
