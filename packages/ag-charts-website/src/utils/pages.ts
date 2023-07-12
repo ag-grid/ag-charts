@@ -36,8 +36,8 @@ export interface DevFileRoute {
  * NOTE: File path is after `getDistUrl()`
  */
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
-    'ag-charts-community/dist/ag-charts-community.cjs.js': 'packages/ag-charts-community/main.cjs',
-    'ag-charts-enterprise/dist/ag-charts-enterprise.cjs.js': 'packages/ag-charts-enterprise/main.cjs',
+    'ag-charts-community/dist/ag-charts-community.cjs.js': 'packages/ag-charts-community/dist/main.cjs',
+    'ag-charts-enterprise/dist/ag-charts-enterprise.cjs.js': 'packages/ag-charts-enterprise/dist/main.cjs',
 };
 
 /**
@@ -46,7 +46,7 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 const getDistUrl = (): URL => {
     const distRoot = getIsDev()
         ? // Relative to the folder of this file
-          '../../../../dist'
+          '../../../../'
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
           '../../../../';
     return new URL(distRoot, import.meta.url);
