@@ -4,8 +4,9 @@
 
 Prerequisites:
 
-1. Install all dependencies: `npm install`
-2. [Optional] Install `nx` globally: `npm install --g nx`
+0. Install Yarn: `npm i -g yarn`
+1. Install all dependencies: `yarn install`
+2. [Optional] Install `nx` globally: `yarn install --g nx`
 
     Or alternatively use `npx nx`
 
@@ -13,16 +14,16 @@ Prerequisites:
 
 ## Development in a VSCode Devcontainer (includes all test dependencies)
 
-- Install [Docker Desktop](https://www.docker.com/products/docker-desktop).
-- Install [VSCode](https://code.visualstudio.com/).
-  - Install the [Remote-Containers extension](vscode:extension/ms-vscode-remote.remote-containers).
-- Launch the container:
-  - Open VSCode.
-  - Open the command-palette (`CMD`+`SHIFT`+`P`).
-  - Choose `Remote-Containers: Clone Repository in Container Volume...`.
-  - Choose `Clone a repository from GitHub in a Container Volume`.
-  - Enter `ag-grid/ag-charts-test`.
-  - Choose `latest` branch.
+-   Install [Docker Desktop](https://www.docker.com/products/docker-desktop).
+-   Install [VSCode](https://code.visualstudio.com/).
+    -   Install the [Remote-Containers extension](vscode:extension/ms-vscode-remote.remote-containers).
+-   Launch the container:
+    -   Open VSCode.
+    -   Open the command-palette (`CMD`+`SHIFT`+`P`).
+    -   Choose `Remote-Containers: Clone Repository in Container Volume...`.
+    -   Choose `Clone a repository from GitHub in a Container Volume`.
+    -   Enter `ag-grid/ag-charts-test`.
+    -   Choose `latest` branch.
 
 ### Common commands
 

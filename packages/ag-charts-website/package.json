@@ -2,6 +2,6 @@
   "name": "ag-charts-website",
   "version": "1.0.0",
   "scripts": {
-    "watch:dev": "(trap 'kill 0' SIGINT; nx run ag-charts-community:watch:build & nx run ag-charts-enterprise:watch:build & nx run ag-charts-website:dev)"
+    "watch:dev": "(trap 'kill 0' SIGINT; nx run ag-charts-community:build:watch & nx run ag-charts-enterprise:build:watch & nx run ag-charts-website:dev)"
   }
 }
