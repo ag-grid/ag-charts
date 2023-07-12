@@ -1,5 +1,5 @@
 {
-  "name": "@ag-charts/source",
+  "name": "ag-charts",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
@@ -86,9 +86,6 @@
       "@nrwl/linter": "$@nrwl/linter"
     },
     "rollup-plugin-typescript": {
-      "typescript": "$typescript"
-    },
-    "gulp-typescript": {
       "typescript": "$typescript"
     },
     "rollup-plugin-uglify": {
