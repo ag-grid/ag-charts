@@ -11,50 +11,34 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    cache_checkout:
+    install:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
             - run: yarn install --ci
-            - uses: actions/upload-artifact@v3
-              with:
-                  name: ag-charts-checkout-${{ github.run_id }}
-                  path: ${{ github.workspace }}/**/*
 
     format:
-        needs: cache_checkout
+        needs: install
         runs-on: ubuntu-latest
         steps:
-            - name: Get Cached Checkout
-              uses: actions/download-artifact@v3
-              with:
-                  name: ag-charts-checkout-${{ github.run_id }}
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
             - run: yarn nx format:check
 
     lint:
-        needs: cache_checkout
+        needs: install
         runs-on: ubuntu-latest
         steps:
-            - name: Get Cached Checkout
-              uses: actions/download-artifact@v3
-              with:
-                  name: ag-charts-checkout-${{ github.run_id }}
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
             - run: yarn nx affected -t lint --parallel=3
 
     build:
-        needs: cache_checkout
+        needs: install
         runs-on: ubuntu-latest
         steps:
-            - name: Get Cached Checkout
-              uses: actions/download-artifact@v3
-              with:
-                  name: ag-charts-checkout-${{ github.run_id }}
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
