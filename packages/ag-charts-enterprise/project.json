@@ -13,7 +13,9 @@
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
         "assets": [],
         "project": "packages/ag-charts-enterprise/package.json",
-        "compiler": "tsc"
+        "compiler": "tsc",
+        "updateBuildableProjectDepsInPackageJson": true,
+        "buildableProjectDepsInPackageJsonType": "dependencies"
       }
     },
     "lint": {
