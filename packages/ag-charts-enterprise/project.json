@@ -19,7 +19,8 @@
       },
       "configurations": {
         "watch": {
-          "watch": true
+          "watch": true,
+          "compiler": "swc"
         }
       }
     },
