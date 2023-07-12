@@ -11,34 +11,43 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    install:
+    format:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
             - run: yarn install --ci
-
-    format:
-        needs: install
-        runs-on: ubuntu-latest
-        steps:
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
             - run: yarn nx format:check
 
     lint:
-        needs: install
         runs-on: ubuntu-latest
         steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - run: yarn install --ci
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
             - run: yarn nx affected -t lint --parallel=3
 
     build:
-        needs: install
         runs-on: ubuntu-latest
         steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - run: yarn install --ci
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
@@ -48,10 +57,12 @@ jobs:
         needs: build
         runs-on: ubuntu-latest
         steps:
-            - name: Get Cached Checkout
-              uses: actions/download-artifact@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
-                  name: ag-charts-checkout-${{ github.run_id }}
+                  node-version: '18'
+                  cache: 'yarn'
+            - run: yarn install --ci
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
