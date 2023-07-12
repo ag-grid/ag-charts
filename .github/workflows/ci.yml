@@ -17,61 +17,61 @@ jobs:
             - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
+            - uses: nrwl/nx-set-shas@v3
+              with:
+                  main-branch-name: 'latest'
             - uses: actions/setup-node@v3
               with:
                   node-version: '18'
                   cache: 'yarn'
             - run: yarn install --ci
+            - run: yarn nx format:check
+
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
             - uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
-            - run: yarn nx format:check
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - run: yarn install --ci
+            - run: yarn nx affected -t lint --parallel=3
 
-    # lint:
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - uses: actions/checkout@v3
-    #           with:
-    #               fetch-depth: 0
-    #         - uses: actions/setup-node@v3
-    #           with:
-    #               node-version: '18'
-    #               cache: 'yarn'
-    #         - run: yarn install --ci
-    #         - uses: nrwl/nx-set-shas@v3
-    #           with:
-    #               main-branch-name: 'latest'
-    #         - run: yarn nx affected -t lint --parallel=3
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - uses: nrwl/nx-set-shas@v3
+              with:
+                  main-branch-name: 'latest'
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - run: yarn install --ci
+            - run: yarn nx affected -t build --parallel=3
 
-    # build:
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - uses: actions/checkout@v3
-    #           with:
-    #               fetch-depth: 0
-    #         - uses: actions/setup-node@v3
-    #           with:
-    #               node-version: '18'
-    #               cache: 'yarn'
-    #         - run: yarn install --ci
-    #         - uses: nrwl/nx-set-shas@v3
-    #           with:
-    #               main-branch-name: 'latest'
-    #         - run: yarn nx affected -t build --parallel=3
-
-    # test:
-    #     needs: build
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - uses: actions/checkout@v3
-    #           with:
-    #               fetch-depth: 0
-    #         - uses: actions/setup-node@v3
-    #           with:
-    #               node-version: '18'
-    #               cache: 'yarn'
-    #         - run: yarn install --ci
-    #         - uses: nrwl/nx-set-shas@v3
-    #           with:
-    #               main-branch-name: 'latest'
-    #         - run: yarn nx affected -t test --parallel=3 --configuration=ci
+    test:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - uses: nrwl/nx-set-shas@v3
+              with:
+                  main-branch-name: 'latest'
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - run: yarn install --ci
+            - run: yarn nx affected -t test --parallel=3 --configuration=ci
