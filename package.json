@@ -94,7 +94,15 @@
   },
   "workspaces": {
     "packages": [
-      "packages/*"
+      "packages/ag-charts-community",
+      "packages/ag-charts-community-examples",
+      "packages/ag-charts-enterprise",
+      "packages/ag-charts-angular",
+      "packages/ag-charts-react",
+      "packages/ag-charts-vue",
+      "packages/ag-charts-vue3",
+      "packages/ag-charts-website",
+      "packages/ag-charts-website-e2e"
     ],
     "nohoist": [
       "**/@vue/**",
