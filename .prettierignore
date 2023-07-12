@@ -1,6 +1,8 @@
 # Add files here to ignore them from prettier formatting
 /dist
 /coverage
+/packages/ag-charts-community/dist
+/packages/ag-charts-enterprise/dist
 /packages/ag-charts-community-examples/src
 /packages/ag-charts-website/src/content/docs/**/_examples/
 /packages/ag-charts-website/.astro
