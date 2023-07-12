@@ -36,7 +36,7 @@ Prerequisites:
 To run the local dev server:
 
 ```
-nx run ag-charts-website:watch:dev
+nx dev
 ```
 
 To run the website build:
