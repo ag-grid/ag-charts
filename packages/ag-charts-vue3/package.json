@@ -8,12 +8,12 @@
   "typings": "lib/AgChartsVue.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ag-grid/ag-grid.git"
+    "url": "https://github.com/ag-grid/ag-charts.git"
   },
   "bugs": {
-    "url": "https://github.com/ag-grid/ag-grid/issues"
+    "url": "https://github.com/ag-grid/ag-charts/issues"
   },
-  "homepage": "https://www.ag-grid.com/",
+  "homepage": "https://charts.ag-grid.com/",
   "keywords": [
     "chart",
     "data",
