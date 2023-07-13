@@ -45,6 +45,9 @@
         },
         "watch": {
           "watch": true
+        },
+        "update": {
+          "updateSnapshot": true
         }
       }
     }
