@@ -68,10 +68,6 @@
     "del": "^6.0.0"
   },
   "publishConfig": {
-    "access": "public"
-  },
-  "lint-staged": {
-    "*.{ts,js,md,json}": ".lint-staged/run.sh prettier",
-    "*.{ts,js}": ".lint-staged/run.sh eslint"
+    "access": "restricted"
   }
 }

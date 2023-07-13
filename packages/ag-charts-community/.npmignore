@@ -5,8 +5,6 @@ coverage
 .docker
 .eslint*
 .npmignore
-.lint-staged
-.husky
 .prettierignore
 gulpfile.js
 jest.*.js
