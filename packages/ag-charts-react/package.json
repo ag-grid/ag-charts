@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-react",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "AG Charts React Component",
   "main": "main.js",
   "typings": "./src/main.d.ts",
@@ -99,6 +99,6 @@
     ]
   },
   "publishConfig": {
-    "access": "public"
+    "access": "restricted"
   }
 }
