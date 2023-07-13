@@ -11,7 +11,7 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    format:
+    execute_blt:
         runs-on: ubuntu-latest
         steps:
             - id: checkout
@@ -50,8 +50,9 @@ jobs:
                   echo ${{ steps.test.outcome }} > test.status
             - uses: actions/upload-artifact@v3
               with:
-                name: statuses
-                path: *.status
+                  name: statuses
+                  path: |
+                      *.status
 
     format:
         runs-on: ubuntu-latest
