@@ -1,5 +1,6 @@
 import type { Canvas } from 'canvas';
 import { createCanvas, Image } from 'canvas';
+import './mock-canvas-text';
 
 export class MockContext {
     realCreateElement: typeof document.createElement;
