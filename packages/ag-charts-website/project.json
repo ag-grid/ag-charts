@@ -7,7 +7,10 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@nxtensions/astro:build",
-      "options": {}
+      "options": {},
+      "configurations": {
+        "staging": {}
+      }
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
@@ -33,7 +36,10 @@
         }
       ],
       "executor": "@nxtensions/astro:preview",
-      "options": {}
+      "options": {},
+      "configurations": {
+        "staging": {}
+      }
     },
     "lint": {
       "executor": "@nx/linter:eslint",

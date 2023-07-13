@@ -1,13 +1,17 @@
 ---
-import path from 'node:path';
 import { getInternalFramework } from '../../utils/framework';
+import { getExampleUrl } from '../../utils/pages';
 import { getGeneratedContents } from '../../features/examples-generator/examplesGenerator';
 import { ExampleIFrame } from './ExampleIFrame';
+import { FRAMEWORK_PATH_INDEX, PAGE_NAME_PATH_INDEX } from '../../constants';
 
 const { name } = Astro.props;
 
 // TODO: Get this from framework selector
-const [_, framework, pageName] = Astro.url.pathname.split('/');
+const pathSegments = Astro.url.pathname.split('/');
+const framework = pathSegments[FRAMEWORK_PATH_INDEX];
+const pageName = pathSegments[PAGE_NAME_PATH_INDEX];
+
 // TODO: Create framework selector
 const useFunctionalReact = false;
 const useVue3 = false;
@@ -20,13 +24,10 @@ const internalFramework = getInternalFramework({
     useTypescript,
 });
 
-const exampleUrl = path.join('/', internalFramework, pageName, 'examples', name);
-
-const importType = 'packages';
+const exampleUrl = getExampleUrl({ internalFramework, pageName, exampleName: name });
 
 const generatedContents = await getGeneratedContents({
     internalFramework,
-    importType,
     pageName,
     exampleName: name,
 });

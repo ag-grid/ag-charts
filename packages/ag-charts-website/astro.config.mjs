@@ -6,9 +6,17 @@ import agFileWatcher from './src/astro/integrations/agFileWatcher';
 import agHotModuleReload from './src/astro/plugins/agHotModuleReload';
 import { getDevFileList } from './src/utils/pages';
 
+const DEFAULT_SITE_BASE_URL = '/';
+const SITE_BASE_URL = process?.env?.SITE_BASE_URL || DEFAULT_SITE_BASE_URL;
+
+const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
+
+console.log('Astro configuration', JSON.stringify({ SITE_BASE_URL, OUTPUT_DIR }, null, 2));
+
 // https://astro.build/config
 export default defineConfig({
-    outDir: '../../dist/packages/ag-charts-website',
+    base: SITE_BASE_URL,
+    outDir: OUTPUT_DIR,
     vite: {
         plugins: [svgr(), agHotModuleReload()],
         server: {

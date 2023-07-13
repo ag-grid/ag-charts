@@ -32,6 +32,8 @@ Prerequisites:
 | `nx format` | Reformat all packages with prettier |
 | `nx reset`  | Clear the NX cache                  |
 
+To skip the `nx` cache use `--skip-nx-cache`.
+
 ### Advanced Test Commands
 
 | Command                                                    | Description                                     |
@@ -45,7 +47,9 @@ Prerequisites:
 
 ### Advanced Website Commands
 
-| Command                            | Description                      |
-| ---------------------------------- | -------------------------------- |
-| `nx run ag-charts-website:build`   | Run the website build            |
-| `nx run ag-charts-website:preview` | Preview the static website build |
+| Command                                    | Description                                      |
+| ------------------------------------------ | ------------------------------------------------ |
+| `nx run ag-charts-website:build`           | Run the website build                            |
+| `nx run ag-charts-website:preview`         | Preview the static website build                 |
+| `nx run ag-charts-website:build:staging`   | Run the website build for staging env            |
+| `nx run ag-charts-website:preview:staging` | Preview the static website build for staging env |
