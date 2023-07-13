@@ -14,7 +14,10 @@
     },
     "test": {
       "executor": "nx:noop",
-      "dependsOn": ["^test"]
+      "dependsOn": ["^test"],
+      "configurations": {
+        "update": {}
+      }
     },
     "dev": {
       "executor": "nx:run-commands",
