@@ -11,7 +11,7 @@
         "outputPath": "packages/ag-charts-enterprise/dist",
         "main": "packages/ag-charts-enterprise/src/main.ts",
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
-        "rollupConfig": "packages/ag-charts-community/rollup.config.js",
+        "rollupConfig": "packages/ag-charts-enterprise/rollup.config.js",
         "assets": [],
         "project": "packages/ag-charts-enterprise/package.json",
         "compiler": "tsc",
