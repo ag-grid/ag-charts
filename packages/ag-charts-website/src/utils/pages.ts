@@ -2,7 +2,13 @@ import type { CollectionEntry } from 'astro:content';
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { FRAMEWORKS, INTERNAL_FRAMEWORKS, TYPESCRIPT_INTERNAL_FRAMEWORKS, localPrefix } from '../constants';
+import {
+    FRAMEWORKS,
+    INTERNAL_FRAMEWORKS,
+    TYPESCRIPT_INTERNAL_FRAMEWORKS,
+    SITE_BASE_URL,
+    localPrefix,
+} from '../constants';
 import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
 import type { InternalFramework, Library } from '../types/ag-grid';
 import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
@@ -50,6 +56,13 @@ const getRootUrl = (): URL => {
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
           '../../../../../';
     return new URL(distRoot, import.meta.url);
+};
+
+export const urlWithBaseUrl = (url: string = '') => {
+    const regex = /^\/(.*)/gm;
+    const substitution = `${SITE_BASE_URL}$1`;
+
+    return url.match(regex) ? url.replace(regex, substitution) : url;
 };
 
 // TODO: Figure out published packages
@@ -125,7 +138,7 @@ export const getExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return path.join('/', internalFramework, pageName, 'examples', exampleName);
+    return path.join(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName);
 };
 
 /**
@@ -142,7 +155,7 @@ export const getExampleFileUrl = ({
     exampleName: string;
     fileName: string;
 }) => {
-    return path.join('/', internalFramework, pageName, 'examples', exampleName, fileName);
+    return path.join(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, fileName);
 };
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
@@ -176,7 +189,11 @@ export const getBoilerPlateUrl = ({
             break;
     }
 
-    const boilerplatePath = path.join('/example-runner', `${library}-${boilerPlateFramework}-boilerplate`);
+    const boilerplatePath = path.join(
+        SITE_BASE_URL,
+        '/example-runner',
+        `${library}-${boilerPlateFramework}-boilerplate`
+    );
 
     return boilerplatePath;
 };

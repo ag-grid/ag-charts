@@ -7,7 +7,10 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@nxtensions/astro:build",
-      "options": {}
+      "options": {},
+      "configurations": {
+        "staging": {}
+      }
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",

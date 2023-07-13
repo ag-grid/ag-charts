@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import classnames from 'classnames';
-import { FRAMEWORKS } from '../../constants';
+import { FRAMEWORKS, SITE_BASE_URL } from '../../constants';
 import breakpoints from '../../design-system/breakpoint.module.scss';
 import { ReactComponent as MenuIcon } from '../../images/inline-svgs/menu-icon.svg';
 import { useWindowSize } from '../../utils/hooks/useWindowSize';
@@ -13,15 +13,15 @@ const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 const links = [
     {
         name: 'Demo',
-        url: '/example',
+        url: `${SITE_BASE_URL}example`,
     },
     {
         name: 'Documentation',
-        url: '/documentation/',
+        url: `${SITE_BASE_URL}documentation/`,
     },
     {
         name: 'Pricing',
-        url: '/license-pricing',
+        url: `${SITE_BASE_URL}license-pricing`,
     },
     {
         name: 'Blog',
@@ -42,7 +42,7 @@ const getCurrentPageName = (path) => {
         ...links,
         ...FRAMEWORKS.map((framework) => ({
             name: 'Documentation',
-            url: `/${framework}-data-grid`,
+            url: `${SITE_BASE_URL}${framework}-data-grid`,
         })),
     ];
 

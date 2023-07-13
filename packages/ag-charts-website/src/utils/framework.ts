@@ -1,5 +1,5 @@
 import { FRAMEWORK_DISPLAY_TEXT } from '../constants';
-import type { Framework } from '../types/ag-grid';
+import type { Framework, InternalFramework } from '../types/ag-grid';
 
 export const getFrameworkDisplayText = (framework: Framework): string => {
     return FRAMEWORK_DISPLAY_TEXT[framework];
@@ -26,7 +26,7 @@ export const getInternalFramework = ({
     useFunctionalReact?: boolean;
     useVue3?: boolean;
     useTypescript?: boolean;
-}) => {
+}): InternalFramework => {
     switch (framework) {
         case 'vue':
             return useVue3 ? 'vue3' : 'vue';

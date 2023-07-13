@@ -1,9 +1,10 @@
 import classnames from 'classnames';
 import styles from './PagesNavigation.module.scss';
 import type { DocsPage } from '../../utils/pages';
+import { SITE_BASE_URL } from '../../constants';
 
 export function PagesNavigation({ pages, framework }: { pages: DocsPage[]; framework: string }) {
-    const urlPrefix = `/${framework}`;
+    const urlPrefix = `${SITE_BASE_URL}${framework}`;
 
     return (
         <aside className={styles.nav}>
