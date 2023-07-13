@@ -32,6 +32,8 @@ Prerequisites:
 | `nx format` | Reformat all packages with prettier |
 | `nx reset`  | Clear the NX cache                  |
 
+To skip the `nx` cache use `--skip-nx-cache`.
+
 ### Advanced Test Commands
 
 | Command                                                    | Description                                     |
