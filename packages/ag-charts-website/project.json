@@ -36,7 +36,10 @@
         }
       ],
       "executor": "@nxtensions/astro:preview",
-      "options": {}
+      "options": {},
+      "configurations": {
+        "staging": {}
+      }
     },
     "lint": {
       "executor": "@nx/linter:eslint",

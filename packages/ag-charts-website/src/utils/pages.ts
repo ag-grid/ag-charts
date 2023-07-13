@@ -1,12 +1,12 @@
 import type { CollectionEntry } from 'astro:content';
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import {
     FRAMEWORKS,
     INTERNAL_FRAMEWORKS,
     TYPESCRIPT_INTERNAL_FRAMEWORKS,
     SITE_BASE_URL,
+    FRAMEWORK_PATH_INDEX,
     localPrefix,
 } from '../constants';
 import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
@@ -14,6 +14,7 @@ import type { InternalFramework, Library } from '../types/ag-grid';
 import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
 import { getIsDev } from './env';
 import { getFolders } from './fs';
+import { pathJoin } from './pathJoin';
 
 export type DocsPage =
     | CollectionEntry<'docs'>
@@ -83,7 +84,7 @@ function ignoreUnderscoreFiles(page: DocsPage) {
 }
 
 export function getFrameworkFromPath(path: string) {
-    return path.split('/')[1];
+    return path.split('/')[FRAMEWORK_PATH_INDEX];
 }
 
 export function getNewFrameworkPath({
@@ -138,7 +139,7 @@ export const getExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return path.join(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName);
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName);
 };
 
 /**
@@ -155,17 +156,17 @@ export const getExampleFileUrl = ({
     exampleName: string;
     fileName: string;
 }) => {
-    return path.join(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, fileName);
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, fileName);
 };
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
-    return path.join(localPrefix, filePath);
+    return pathJoin(localPrefix, filePath);
 };
 
 export const getDevFileList = () => {
     const distFolder = getRootUrl();
     return Object.values(DEV_FILE_PATH_MAP).map((file) => {
-        return path.join(distFolder.pathname, file);
+        return pathJoin(distFolder.pathname, file);
     });
 };
 
@@ -189,7 +190,7 @@ export const getBoilerPlateUrl = ({
             break;
     }
 
-    const boilerplatePath = path.join(
+    const boilerplatePath = pathJoin(
         SITE_BASE_URL,
         '/example-runner',
         `${library}-${boilerPlateFramework}-boilerplate`
@@ -233,7 +234,7 @@ export const getInternalFrameworkExamples = async ({
 export function getDevFiles(): DevFileRoute[] {
     const files = Object.keys(DEV_FILE_PATH_MAP).map((filePath) => {
         const sourceFilePath = DEV_FILE_PATH_MAP[filePath];
-        const fullFilePath = path.join(getRootUrl().pathname, sourceFilePath);
+        const fullFilePath = pathJoin(getRootUrl().pathname, sourceFilePath);
 
         return {
             filePath,
