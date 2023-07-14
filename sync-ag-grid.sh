@@ -4,7 +4,7 @@ set -eu
 
 git checkout track-ag-grid
 START_CWD=$(pwd)
-IMAGE_SNAPSHOT_TMPDIR=$(mktemp -d)
+# IMAGE_SNAPSHOT_TMPDIR=$(mktemp -d)
 
 function checkout {
     if [[ ! -d ../ag-charts-sync${1:-} && ! -d .git ]] ; then
@@ -23,12 +23,12 @@ function checkout {
 
 checkout
 
-find . -name "__image_snapshots__" | ( while read DIR ; do
-  TARGET_DIR=${DIR/.\/charts-community-modules\//packages\/}
-  TARGET_DIR=${TARGET_DIR/.\/charts-enterprise-modules\//packages\/}
-  mkdir -p ${IMAGE_SNAPSHOT_TMPDIR}/${TARGET_DIR}
-  cp -P $DIR/* ${IMAGE_SNAPSHOT_TMPDIR}/${TARGET_DIR}/
-done )
+# find . -name "__image_snapshots__" | ( while read DIR ; do
+#   TARGET_DIR=${DIR/.\/charts-community-modules\//packages\/}
+#   TARGET_DIR=${TARGET_DIR/.\/charts-enterprise-modules\//packages\/}
+#   mkdir -p ${IMAGE_SNAPSHOT_TMPDIR}/${TARGET_DIR}
+#   cp -P $DIR/* ${IMAGE_SNAPSHOT_TMPDIR}/${TARGET_DIR}/
+# done )
 
 git filter-repo \
     --path charts-community-modules/ag-charts-community \
@@ -47,7 +47,7 @@ git filter-repo \
 
 cd ${START_CWD}
 git fetch local-sync latest
-cp -PR ${IMAGE_SNAPSHOT_TMPDIR}/* ./
+# cp -PR ${IMAGE_SNAPSHOT_TMPDIR}/* ./
 
 checkout 2
 
