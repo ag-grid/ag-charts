@@ -1,11 +1,4 @@
 ---
-import { getCacheBustingUrl } from '../../../utils/pages';
-import { MetaData } from './lib/MetaData';
-import { ExampleStyle } from './lib/ExampleStyle';
-import { Styles } from './lib/Styles';
-import { Scripts } from './lib/Scripts';
-import { SystemJs } from './lib/SystemJs';
-
 interface Props {
     isDev: boolean;
     pageName: string;
@@ -14,35 +7,45 @@ interface Props {
     modifiedTimeMs: number;
     isExecuting: boolean;
     options: any;
-    styleFiles?: string[];
+
+    /**
+     * All script file names
+     */
     scriptFiles?: string[];
+    styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
-    library: string;
-    boilerplatePath: string;
 }
 
 const {
+    isDev,
     pageName,
     exampleName,
-    isDev,
     modifiedTimeMs,
     isExecuting,
     options,
-    appLocation,
-    scriptFiles,
     styleFiles,
+    scriptFiles,
     indexFragment,
-    library,
-    boilerplatePath,
+    appLocation,
 } = Astro.props as Props;
+
+import { MetaData } from './lib/MetaData';
+import { ExampleStyle } from './lib/ExampleStyle';
+import { Styles } from './lib/Styles';
+import { Scripts } from './lib/Scripts';
+import { getCacheBustingUrl, getChartScriptPath, getChartEnterpriseScriptPath } from '../../../utils/pages';
+
+const isEnterprise = options.enterprise;
+const chartScriptPath = getChartScriptPath();
+const chartScriptEnterprisePath = getChartEnterpriseScriptPath();
 ---
 
 <html lang="en">
     <head>
         <MetaData
             isDev={isDev}
-            title={`Typescript ${pageName} - ${exampleName}`}
+            title={`${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
             isExecuting={isExecuting}
             options={options}
@@ -68,15 +71,9 @@ const {
         >
             window.__basePath = appLocation;
         </script>
+        <script src={chartScriptPath}></script>
+        {isEnterprise && <script src={chartScriptEnterprisePath} />}
         <Scripts baseUrl={appLocation} files={scriptFiles} />
-        <SystemJs
-            library={library}
-            boilerplatePath={boilerplatePath}
-            appLocation={appLocation}
-            startFile={appLocation + '/main.ts'}
-            framework={'typescript'}
-            options={options}
-        />
         <Styles
             baseUrl={appLocation}
             files={styleFiles

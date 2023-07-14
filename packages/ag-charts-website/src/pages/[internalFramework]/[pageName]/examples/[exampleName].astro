@@ -1,8 +1,9 @@
 ---
 import { getCollection } from 'astro:content';
 import { getDocExamplePages, getExampleUrl, getBoilerPlateUrl } from '../../../../utils/pages';
-import { InternalFramework } from '../../../../types/ag-grid';
-import TypescriptTemplate from '../../../../components/example-runner/framework-templates/TypescriptTemplate.astro';
+import type { InternalFramework } from '../../../../types/ag-grid';
+import JavascriptTemplate from '../../../../features/example-runner/framework-templates/JavascriptTemplate.astro';
+import TypescriptTemplate from '../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
 import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
 import { getIsDev } from '../../../../utils/env';
 
@@ -21,7 +22,7 @@ const isDev = getIsDev();
 
 const library = 'charts';
 
-const { files, scriptFiles, styleFiles, isEnterprise } =
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } =
     (await getGeneratedContents({
         internalFramework,
         pageName,
@@ -38,11 +39,14 @@ const boilerPlateUrl = getBoilerPlateUrl({
     library,
     internalFramework,
 });
+
+// TODO: Can remove, once we support all frameworks
+const supportedInternalFrameworks: InternalFramework[] = ['vanilla', 'typescript'];
 ---
 
 {
-    internalFramework === 'typescript' && (
-        <TypescriptTemplate
+    internalFramework === 'vanilla' && (
+        <JavascriptTemplate
             isDev={isDev}
             pageName={pageName}
             exampleName={exampleName}
@@ -55,6 +59,26 @@ const boilerPlateUrl = getBoilerPlateUrl({
             styleFiles={styleFiles}
             indexFragment={indexFragment!}
             appLocation={appLocation}
+        />
+    )
+}
+
+{
+    internalFramework === 'typescript' && (
+        <TypescriptTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={Date.now()}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            entryFileName={entryFileName!}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            indexFragment={indexFragment!}
+            appLocation={appLocation}
             library={library}
             boilerplatePath={boilerPlateUrl + '/'}
         />
@@ -62,7 +86,7 @@ const boilerPlateUrl = getBoilerPlateUrl({
 }
 
 {
-    internalFramework !== 'typescript' && (
+    !supportedInternalFrameworks.includes(internalFramework) && (
         <h1>
             TODO: [{internalFramework}] {pageName} - {exampleName}
         </h1>

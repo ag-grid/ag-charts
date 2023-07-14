@@ -49,6 +49,14 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-enterprise/dist/ag-charts-enterprise.umd.js': 'packages/ag-charts-enterprise/dist/main.umd.cjs',
 };
 
+export const getChartScriptPath = () => {
+    return `https://testing.ag-grid.com/ag-charts/dev/ag-charts-community/dist/ag-charts-community.umd.js`;
+};
+
+export const getChartEnterpriseScriptPath = () => {
+    return `https://testing.ag-grid.com/ag-charts/dev/ag-charts-enterprise/dist/ag-charts-enterprise.umd.js`;
+};
+
 /**
  * The dist url where packages are generated
  */
@@ -145,6 +153,50 @@ export const getExampleUrl = ({
 };
 
 /**
+ * Dynamic path where plunkr examples index.html is
+ */
+export const getPlunkrExampleUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        'plunkr'
+    );
+};
+
+/**
+ * Get endpoint for all example files
+ */
+export const getExampleFilesUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        'files'
+    );
+};
+
+/**
  * Dynamic path where example files are
  */
 export const getExampleFileUrl = ({
@@ -158,7 +210,14 @@ export const getExampleFileUrl = ({
     exampleName: string;
     fileName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, fileName);
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        fileName
+    );
 };
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {

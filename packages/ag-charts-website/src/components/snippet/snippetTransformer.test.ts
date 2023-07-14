@@ -1,5 +1,4 @@
 import supportedFrameworks from '../../utils/supported-frameworks';
-import React from 'react';
 import { transform } from './snippetTransformer';
 
 // Utility method to verify snippets match saved snapshots for all frameworks and options
