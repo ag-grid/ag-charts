@@ -6,5 +6,9 @@ export default {
         '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
     },
     moduleFileExtensions: ['ts', 'js', 'html'],
-    testPathIgnorePatterns: ['examples-generator/transformation-scripts', 'snippet/snippetTransformer'],
+    testPathIgnorePatterns: [
+        'examples-generator/transformation-scripts',
+        'snippet/snippetTransformer',
+        'utils/framework',
+    ],
 };
