@@ -236,7 +236,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         };
 
         const propertyDefinition = {
-            missingValue: 0,
+            missingValue: undefined,
             invalidValue: undefined,
         };
 
@@ -260,7 +260,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 trailingAccumulatedValueProperty(this, yKey, true, {
                     ...propertyDefinition,
                     id: `yPrevious`,
-                    missingValue: 0,
                 }),
                 valueProperty(this, yKey, true, { id: `yRaw` }), // Raw value pass-through.
                 ...(typeKey ? [valueProperty(this, typeKey, false, { id: `typeValue`, missingValue: undefined })] : []),
