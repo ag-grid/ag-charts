@@ -1,5 +1,5 @@
 import { persistentAtom, persistentMap } from '@nanostores/persistent';
-import { Framework, InternalFramework } from '../types/ag-grid.d';
+import type { Framework, InternalFramework } from '../types/ag-grid.d';
 import { getInternalFramework } from '../utils/framework';
 
 export type FrameworkContext = {
