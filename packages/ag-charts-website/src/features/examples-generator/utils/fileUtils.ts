@@ -142,7 +142,7 @@ export const getIsEnterprise = ({
     const entryFileName = getEntryFileName({ framework, internalFramework });
 
     return entryFileName === 'main.js'
-        ? entryFile?.includes('agChartsEnterprise')
+        ? entryFile?.includes('AgEnterpriseCharts')
         : entryFile?.includes('ag-charts-enterprise');
 };
 

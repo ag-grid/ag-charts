@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { getDocExamplePages, getExampleUrl, getBoilerPlateUrl } from '../../../../utils/pages';
 import type { InternalFramework } from '../../../../types/ag-grid';
+import JavascriptTemplate from '../../../../features/example-runner/framework-templates/JavascriptTemplate.astro';
 import TypescriptTemplate from '../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
 import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
 import { getIsDev } from '../../../../utils/env';
@@ -38,7 +39,29 @@ const boilerPlateUrl = getBoilerPlateUrl({
     library,
     internalFramework,
 });
+
+// TODO: Can remove, once we support all frameworks
+const supportedInternalFrameworks: InternalFramework[] = ['vanilla', 'typescript'];
 ---
+
+{
+    internalFramework === 'vanilla' && (
+        <JavascriptTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={Date.now()}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            indexFragment={indexFragment!}
+            appLocation={appLocation}
+        />
+    )
+}
 
 {
     internalFramework === 'typescript' && (
@@ -63,7 +86,7 @@ const boilerPlateUrl = getBoilerPlateUrl({
 }
 
 {
-    internalFramework !== 'typescript' && (
+    !supportedInternalFrameworks.includes(internalFramework) && (
         <h1>
             TODO: [{internalFramework}] {pageName} - {exampleName}
         </h1>

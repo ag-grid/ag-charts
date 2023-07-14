@@ -9,9 +9,10 @@ import { Icon } from '../../../components/icon/Icon';
 import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import type { ExampleOptions } from '../types';
 import { CodeViewer } from './CodeViewer';
-import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
+import { getExampleUrl, getExampleFilesUrl, getPlunkrExampleUrl } from '../../../utils/pages';
 import { getFrameworkFromInternalFramework } from '../../../utils/framework';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
+import { openPlunker } from '../../../utils/plunkr';
 
 interface Props {
     name: string;
@@ -56,6 +57,9 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     const id = `example-${name}`;
     const minHeight = `${exampleHeight + FRAME_WRAPPER_HEIGHT}px`;
 
+    // NOTE: Plunkr only works for vanilla examples for now
+    const supportsPlunkr = internalFramework === 'vanilla';
+
     const {
         isLoading: exampleFilesIsLoading,
         isError: exampleFilesIsError,
@@ -70,6 +74,17 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
         ).then((res) => res.json())
     );
     const files = data?.files || [];
+
+    // NOTE: Temporary way to get generated HTML
+    const { data: exampleFileHtml } = useQuery(['exampleFileHtml', internalFramework, pageName, exampleName], () =>
+        fetch(
+            getPlunkrExampleUrl({
+                internalFramework,
+                pageName,
+                exampleName,
+            })
+        ).then((res) => res.text())
+    );
 
     useEffect(() => {
         setExampleUrl(
@@ -135,7 +150,25 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
                         <li>
                             <OpenInCTA type="newTab" href={exampleUrl} />
                         </li>
-                        {!options?.noPlunker && <li>TODO: Open in Plunkr</li>}
+                        {!options?.noPlunker && supportsPlunkr && (
+                            <li>
+                                <OpenInCTA
+                                    type="plunker"
+                                    onClick={() => {
+                                        // Replace index.html with generated example file
+                                        const plunkrFiles = {
+                                            ...files,
+                                            'index.html': exampleFileHtml,
+                                        };
+                                        openPlunker({
+                                            title,
+                                            files: plunkrFiles,
+                                            fileToOpen: initialSelectedFile,
+                                        });
+                                    }}
+                                />
+                            </li>
+                        )}
                     </ul>
                 </header>
                 <div
