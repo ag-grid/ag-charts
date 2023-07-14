@@ -1,11 +1,11 @@
 import { CanvasRenderingContext2D } from 'canvas';
 
-CanvasRenderingContext2D.prototype.measureText = function(text: string) {
+CanvasRenderingContext2D.prototype.measureText = function (text: string) {
     return measureText(this, text);
 };
 
-CanvasRenderingContext2D.prototype.fillText = function(text: string, x: number, y: number) {
-    fillText(this, text, x, y)
+CanvasRenderingContext2D.prototype.fillText = function (text: string, x: number, y: number) {
+    fillText(this, text, x, y);
 };
 
 function fillText(context: CanvasRenderingContext2D, text: string, x: number, y: number) {
@@ -49,7 +49,8 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
         const char = text[i];
         const pixels = font[char] ?? font.undefined;
 
-        const charAscent = MOCK_ASCENT - Math.max(0, pixels.findIndex((line) => line.includes('#')));
+        const emptyAscent = pixels.findIndex((line) => line.includes('#'));
+        const charAscent = MOCK_ASCENT - Math.max(0, emptyAscent);
         const charDescent = pixels.length - MOCK_ASCENT;
         if (charAscent > ascent) ascent = charAscent;
         if (charDescent > descent) descent = charDescent;
@@ -58,11 +59,13 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
         width += charWidth;
     }
 
-    const actualBoundingBoxLeft = textAlign === 'right' || textAlign === 'end' ? -width : textAlign === 'center' ? -width / 2 : 0;
-    const actualBoundingBoxRight = textAlign === 'right' || textAlign === 'end' ? 0 : textAlign === 'center' ? width / 2 : width;
+    const alignRight = textAlign === 'right' || textAlign === 'end';
+    const alignCenter = textAlign === 'center';
+    const actualBoundingBoxLeft = -width * (alignRight ? 1 : alignCenter ? 0.5 : 0);
+    const actualBoundingBoxRight = width * (alignRight ? 0 : alignCenter ? 0.5 : 1);
 
-    const fontBoundingBoxAscent = (textBaseline === 'top' || textBaseline === 'hanging' ? 0 : textBaseline === 'bottom' || textBaseline === 'ideographic' ? MOCK_FONT_SIZE : textBaseline === 'middle' ? MOCK_FONT_SIZE / 2 : MOCK_ASCENT) * pixelSize;
-    const fontBoundingBoxDescent = (textBaseline === 'top' || textBaseline === 'hanging' ? MOCK_FONT_SIZE : textBaseline === 'bottom' || textBaseline === 'ideographic' ? 0 : textBaseline === 'middle' ? MOCK_FONT_SIZE / 2 : MOCK_DESCENT) * pixelSize;
+    const fontBoundingBoxAscent = MOCK_ASCENTS_BY_BASELINE[textBaseline] * pixelSize;
+    const fontBoundingBoxDescent = MOCK_DESCENTS_BY_BASELINE[textBaseline] * pixelSize;
     const actualBoundingBoxAscent = fontBoundingBoxAscent - (MOCK_ASCENT - ascent) * pixelSize;
     const actualBoundingBoxDescent = fontBoundingBoxDescent - (MOCK_DESCENT - descent) * pixelSize;
 
@@ -105,7 +108,24 @@ function singleLineText(text: string) {
 const MOCK_ASCENT = 7;
 const MOCK_DESCENT = 2;
 const MOCK_FONT_SIZE = MOCK_ASCENT + MOCK_DESCENT;
+const MOCK_ASCENTS_BY_BASELINE: Record<CanvasTextBaseline, number> = {
+    alphabetic: MOCK_ASCENT,
+    bottom: MOCK_FONT_SIZE,
+    hanging: 0,
+    ideographic: MOCK_FONT_SIZE,
+    middle: MOCK_FONT_SIZE / 2,
+    top: 0,
+};
+const MOCK_DESCENTS_BY_BASELINE: Record<CanvasTextBaseline, number> = {
+    alphabetic: MOCK_DESCENT,
+    bottom: 0,
+    hanging: MOCK_FONT_SIZE,
+    ideographic: 0,
+    middle: MOCK_FONT_SIZE / 2,
+    top: MOCK_FONT_SIZE,
+};
 
+// prettier-ignore
 const MOCK_FONT_NORMAL: Record<string, string[]> = {
     undefined: [
         '#####',
@@ -886,6 +906,7 @@ const MOCK_FONT_NORMAL: Record<string, string[]> = {
     ],
 };
 
+// prettier-ignore
 const MOCK_FONT_BOLD: Record<string, string[]> = {
     undefined: [
         '#######',
