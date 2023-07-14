@@ -15,7 +15,7 @@ function fillText(context: CanvasRenderingContext2D, text: string, x: number, y:
     const metrics = measureText(context, text);
     const font = isFontBold(context) ? MOCK_FONT_BOLD : MOCK_FONT_NORMAL;
 
-    let cx = x + metrics.actualBoundingBoxLeft + pixelSize / 2;
+    let cx = x - metrics.actualBoundingBoxLeft + pixelSize / 2;
     const cy = y - metrics.fontBoundingBoxAscent;
 
     for (let i = 0; i < text.length; i++) {
@@ -61,7 +61,7 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
 
     const alignRight = textAlign === 'right' || textAlign === 'end';
     const alignCenter = textAlign === 'center';
-    const actualBoundingBoxLeft = -width * (alignRight ? 1 : alignCenter ? 0.5 : 0);
+    const actualBoundingBoxLeft = width * (alignRight ? 1 : alignCenter ? 0.5 : 0);
     const actualBoundingBoxRight = width * (alignRight ? 0 : alignCenter ? 0.5 : 1);
 
     const fontBoundingBoxAscent = MOCK_ASCENTS_BY_BASELINE[textBaseline] * pixelSize;
@@ -662,9 +662,9 @@ const MOCK_FONT_NORMAL: Record<string, string[]> = {
         '    ',
         '#  #',
         '#  #',
-        ' # #',
-        '  ##',
-        '   #',
+        '# # ',
+        '##  ',
+        '#   ',
     ],
     w: [
         '     ',
@@ -1443,9 +1443,9 @@ const MOCK_FONT_BOLD: Record<string, string[]> = {
         '      ',
         '##  ##',
         '##  ##',
-        ' ## ##',
-        '  ####',
-        '   ###',
+        '## ## ',
+        '####  ',
+        '###   ',
     ],
     w: [
         '        ',
