@@ -167,7 +167,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     readonly positiveItem = new WaterfallSeriesItem();
     readonly negativeItem = new WaterfallSeriesItem();
     readonly totalItem = new WaterfallSeriesItem();
-    readonly subtotalItem = new WaterfallSeriesItem();
 
     readonly line = new WaterfallSeriesConnectorLine();
 
