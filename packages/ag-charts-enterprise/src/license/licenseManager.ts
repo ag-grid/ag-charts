@@ -26,7 +26,7 @@ export class LicenseManager {
 
     public validateLicense(): void {
         if (missingOrEmpty(LicenseManager.licenseKey)) {
-            if (!this.isWebsiteUrl() || this.isForceWatermark() || process?.env?.CI != null) {
+            if (!this.isWebsiteUrl() || this.isForceWatermark()) {
                 this.outputMissingLicenseKey();
             }
         } else if (LicenseManager.licenseKey.length > 32) {
