@@ -53,6 +53,7 @@ jobs:
                   name: statuses
                   path: |
                       *.status
+                      reports/*
 
     format:
         runs-on: ubuntu-latest
@@ -86,5 +87,5 @@ jobs:
               if: success() || failure() # run this step even if previous step failed
               with:
                   name: Tests Results
-                  path: reports/*.xml
+                  path: statuses/reports/*.xml
                   reporter: jest-junit
