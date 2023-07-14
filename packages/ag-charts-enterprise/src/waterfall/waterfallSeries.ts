@@ -405,7 +405,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             const currY = yScale.convert(cumulativeValue, { strict: false });
             const trailY = yScale.convert(trailingValue, { strict: false });
 
-            const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue)
+            const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
             const isPositive = (value ?? 0) >= 0;
 
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
