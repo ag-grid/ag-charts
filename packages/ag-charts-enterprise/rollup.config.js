@@ -16,6 +16,9 @@ module.exports = ({ output, ...config }) => {
                 entryFileNames: entryFileNames.replace('[name]', '[name].umd'),
                 chunkFileNames: chunkFileNames.replace('[name]', '[name].umd'),
                 format: 'umd',
+                globals: {
+                    'ag-charts-community': 'agCharts',
+                },
             })),
         ],
     };
