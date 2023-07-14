@@ -27,12 +27,19 @@ interface AnimationManyOptions<T> extends Omit<AnimationOptions<T>, 'from' | 'to
 }
 
 interface AnimationThrottleOptions {
+    // Animations that share this throttleId will cause each other to be throttled if triggered within the duration of
+    // a previous animation.
     throttleId?: string;
+
+    // Animations within a throttleGroup will not cause each other to be throttled. Used in combination with a
+    // throttleId this allows batches of animations to run normally but throttle later batches.
+    throttleGroup?: string;
 }
 
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent<AnimationEventType>> {
     private readonly controllers: Record<AnimationId, AnimationControls> = {};
-    private throttles: Record<AnimationId, number> = {};
+    private throttles: Record<string, number> = {};
+    private throttleGroups: Set<string> = new Set();
 
     private updaters: Array<[AnimationId, FrameRequestCallback]> = [];
 
@@ -115,10 +122,13 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
     }
 
-    public animate<T>(
-        id: AnimationId,
-        { disableInteractions = true, ...opts }: AnimationOptions<T>
-    ): AnimationControls {
+    public animate<T>(id: AnimationId, { disableInteractions = true, ...opts }: AnimationOptions<T>) {
+        if (this.skipAnimations) {
+            // Initialise the animation with the final values immediately and then stop the animation
+            opts.onUpdate?.(opts.to);
+            return;
+        }
+
         const optsExtra = {
             ...opts,
             autoplay: this.isPlaying ? opts.autoplay : false,
@@ -132,14 +142,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         const controller = baseAnimate(optsExtra);
         this.controllers[id] = controller;
 
-        if (this.skipAnimations) {
-            // Initialise the animation with the final values immediately and then stop the animation
-            opts.onUpdate?.(opts.to);
-            controller.stop();
-        } else {
-            // Initialise the animation immediately without requesting a frame to prevent flashes
-            opts.onUpdate?.(opts.from);
-        }
+        // Initialise the animation immediately without requesting a frame to prevent flashes
+        opts.onUpdate?.(opts.from);
 
         return controller;
     }
@@ -148,7 +152,14 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         id: AnimationId,
         props: Array<Pick<AnimationOptions<T>, 'from' | 'to'>>,
         opts: AnimationManyOptions<T>
-    ): AnimationControls {
+    ) {
+        if (this.skipAnimations) {
+            const state = props.map((prop) => prop.to);
+            opts.onUpdate(state);
+            opts.onComplete?.();
+            return;
+        }
+
         const state = props.map((prop) => prop.from);
 
         let playBatch = 0;
@@ -182,9 +193,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             }
         };
 
-        const drivers = props.map((prop, index) => {
+        let index = 0;
+        for (const prop of props) {
             const inner_id = `${id}-${index}`;
-            return this.animate(inner_id, {
+            this.animate(inner_id, {
                 ...opts,
                 ...prop,
                 onUpdate: onUpdate(index),
@@ -192,37 +204,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 onStop,
                 onComplete,
             });
-        });
-
-        const controls = {
-            get isPlaying() {
-                return drivers.some((driver) => driver.isPlaying);
-            },
-            play() {
-                drivers.forEach((driver) => driver.play());
-                return controls;
-            },
-            pause() {
-                drivers.forEach((driver) => driver.pause());
-                return controls;
-            },
-            stop() {
-                drivers.forEach((driver) => driver.stop());
-                return controls;
-            },
-            reset() {
-                drivers.forEach((driver) => driver.reset());
-                return controls;
-            },
-        };
-
-        return controls;
+            index++;
+        }
     }
 
-    public animateWithThrottle<T>(
-        id: AnimationId,
-        opts: AnimationOptions<T> & AnimationThrottleOptions
-    ): AnimationControls {
+    public animateWithThrottle<T>(id: AnimationId, opts: AnimationOptions<T> & AnimationThrottleOptions) {
         const throttleId = opts.throttleId ?? id;
 
         if (this.throttles[throttleId] && opts.duration && Date.now() - this.throttles[throttleId] < opts.duration) {
@@ -231,23 +217,42 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
 
         this.throttles[id] = Date.now();
-        return this.animate(id, { ...opts });
+        this.animate(id, { ...opts });
     }
 
     public animateManyWithThrottle<T>(
         id: AnimationId,
         props: Array<Pick<AnimationOptions<T>, 'from' | 'to'>>,
         opts: AnimationManyOptions<T> & AnimationThrottleOptions
-    ): AnimationControls {
+    ) {
+        const { throttleGroup } = opts;
         const throttleId = opts.throttleId ?? id;
 
-        if (this.throttles[throttleId] && opts.duration && Date.now() - this.throttles[throttleId] < opts.duration) {
+        const now = Date.now();
+
+        const isThrottled =
+            this.throttles[throttleId] && opts.duration && now - this.throttles[throttleId] < opts.duration;
+        const inGroup = throttleGroup && this.throttleGroups.has(throttleGroup);
+
+        if (isThrottled && !inGroup) {
             opts.delay = 0;
             opts.duration = 1;
         }
 
-        this.throttles[throttleId] = Date.now();
-        return this.animateMany(id, props, { ...opts });
+        if (!isThrottled && throttleGroup) {
+            this.throttleGroups.add(throttleGroup);
+        }
+
+        const onStop = () => {
+            if (throttleGroup) {
+                this.throttleGroups.delete(throttleGroup);
+            }
+            opts.onStop?.();
+        };
+
+        this.throttles[throttleId] = now;
+
+        return this.animateMany(id, props, { ...opts, onStop });
     }
 
     public tween<T>(opts: TweenOptions<T>): TweenControls<T> {
