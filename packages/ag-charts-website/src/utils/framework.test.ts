@@ -1,4 +1,22 @@
-import { isReactInternalFramework, isVueInternalFramework } from './framework';
+import { getFrameworkFromInternalFramework, isReactInternalFramework, isVueInternalFramework } from './framework';
+
+describe('getFrameworkFromInternalFramework', () => {
+    test.each`
+        internalFramework      | expected
+        ${undefined}           | ${undefined}
+        ${'other'}             | ${'other'}
+        ${'vanilla'}           | ${'javascript'}
+        ${'typescript'}        | ${'javascript'}
+        ${'react'}             | ${'react'}
+        ${'reactFunctional'}   | ${'react'}
+        ${'reactFunctionalTs'} | ${'react'}
+        ${'angular'}           | ${'angular'}
+        ${'vue'}               | ${'vue'}
+        ${'vue3'}              | ${'vue'}
+    `('$internalFramework is $expected', ({ internalFramework, expected }) => {
+        expect(getFrameworkFromInternalFramework(internalFramework)).toEqual(expected);
+    });
+});
 
 describe('isReactInternalFramework', () => {
     test.each`

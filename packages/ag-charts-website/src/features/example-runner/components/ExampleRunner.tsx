@@ -10,7 +10,8 @@ import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import type { ExampleOptions } from '../types';
 import { CodeViewer } from './CodeViewer';
 import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
-import { $internalFramework } from '../../../stores/frameworkStore';
+import { getFrameworkFromInternalFramework } from '../../../utils/framework';
+import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
 
 interface Props {
     name: string;
@@ -25,6 +26,22 @@ const DEFAULT_HEIGHT = 500;
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
 // loaded on the client side
 const queryClient = new QueryClient();
+
+/**
+ * Update the internal framework if it is different to the framework in the URL
+ *
+ * @param framework Framework from the URL
+ */
+function useUpdateInternalFrameworkFromFramework(framework) {
+    const internalFramework = useStore($internalFramework);
+
+    useEffect(() => {
+        const frameworkFromInternalFramework = getFrameworkFromInternalFramework(internalFramework);
+        if (frameworkFromInternalFramework !== framework) {
+            updateInternalFrameworkBasedOnFramework(framework);
+        }
+    }, [internalFramework, framework]);
+}
 
 const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType, options, framework, pageName }) => {
     const [showCode, setShowCode] = useState(!!options?.showCode);
@@ -70,6 +87,8 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
         }
         setInitialSelectedFile(data?.entryFileName);
     }, [data, exampleFilesIsLoading]);
+
+    useUpdateInternalFrameworkFromFramework(framework);
 
     return (
         <div id={id} style={{ minHeight }}>

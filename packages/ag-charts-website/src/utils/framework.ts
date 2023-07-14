@@ -5,6 +5,23 @@ export const getFrameworkDisplayText = (framework: Framework): string => {
     return FRAMEWORK_DISPLAY_TEXT[framework];
 };
 
+export const getFrameworkFromInternalFramework = (internalFramework: InternalFramework): Framework => {
+    switch (internalFramework) {
+        case 'typescript':
+        case 'vanilla':
+            return 'javascript';
+        case 'react':
+        case 'reactFunctionalTs':
+        case 'reactFunctional':
+            return 'react';
+        case 'vue':
+        case 'vue3':
+            return 'vue';
+        default:
+            return internalFramework;
+    }
+};
+
 /**
  * The "internalFramework" is the framework name we use inside the example runner depending on which options the
  * user has selected. It can be one of the following:

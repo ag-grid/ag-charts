@@ -3,7 +3,7 @@ import React from 'react';
 import styles from './CodeOptions.module.scss';
 import { isGeneratedExample } from '../../examples-generator/utils/isGeneratedExample';
 import { isReactInternalFramework, isVueInternalFramework } from '../../../utils/framework';
-import { $internalFramework } from '../../../stores/frameworkStore';
+import { setInternalFramework } from '../../../stores/frameworkStore';
 
 type SelectorType = 'typescript' | 'react' | 'vue';
 interface SelectorConfig {
@@ -54,7 +54,7 @@ function CodeOptionSelector({
         if (value === internalFramework) {
             return;
         }
-        $internalFramework.set(value);
+        setInternalFramework(value);
     };
 
     return (
