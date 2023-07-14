@@ -35,10 +35,14 @@ import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { Scripts } from './lib/Scripts';
 import { getCacheBustingUrl, getChartScriptPath, getChartEnterpriseScriptPath } from '../../../utils/pages';
+import { SITE_BASE_URL } from '../../../constants';
+import { pathJoin } from '../../../utils/pathJoin';
+
+const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 
 const isEnterprise = options.enterprise;
-const chartScriptPath = getChartScriptPath();
-const chartScriptEnterprisePath = getChartEnterpriseScriptPath();
+const chartScriptPath = getChartScriptPath(siteUrl);
+const chartScriptEnterprisePath = getChartEnterpriseScriptPath(siteUrl);
 ---
 
 <html lang="en">

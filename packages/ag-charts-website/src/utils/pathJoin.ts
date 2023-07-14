@@ -12,6 +12,8 @@ export function pathJoin(...segments: string[]): string {
 
     const removedSlashes = segments
         .filter(Boolean)
+        // Convert segments to string, in case it's a URL
+        .map((segment) => segment.toString())
         // Remove initial /
         .map((segment) => {
             return segment !== '/' && segment[0] === '/' ? segment.slice(1) : segment;
