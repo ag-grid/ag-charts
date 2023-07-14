@@ -50,7 +50,6 @@ type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
 type WaterfallNodePointDatum = _ModuleSupport.SeriesNodeDatum['point'] & {
     readonly x2: number;
     readonly y2: number;
-    readonly skip: boolean;
 };
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_Scene.Point> {
@@ -369,7 +368,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             };
         }
 
-        function getLabelValue(
+        function getValue(
             isTotal: boolean,
             isSubtotal: boolean,
             rawValue?: number,
@@ -407,7 +406,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             const currY = yScale.convert(cumulativeValue, { strict: false });
             const trailY = yScale.convert(trailingValue, { strict: false });
 
-            const isPositive = (isTotalOrSubtotal ? cumulativeValue : rawValue) >= 0;
+            const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue)
+            const isPositive = (value ?? 0) >= 0;
 
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
             const { fill, stroke, strokeWidth } = this.getItemConfig(seriesItemType);
@@ -441,8 +441,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y + rect.height / 2,
             };
 
-            const skipTotal = isTotal || isSubtotal;
-            const skip = isTotalOrSubtotal && skipTotal;
             const pointY = isTotalOrSubtotal ? currY : trailY;
 
             const pathPoint = {
@@ -453,7 +451,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 x2: Math.round(barAlongX ? currY : rect.x + rect.width),
                 y2: Math.round(barAlongX ? rect.y + rect.height : currY),
                 size: 0,
-                skip,
             };
 
             pointData.push(pathPoint);
@@ -479,7 +476,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 stroke: stroke,
                 strokeWidth,
                 label: createLabelData({
-                    value: getLabelValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue),
+                    value,
                     rect,
                     placement,
                     seriesId: this.id,
@@ -872,9 +869,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 linePath.clear({ trackChanges: true });
 
                 pointData.forEach((point, index) => {
-                    if (point.skip) {
-                        return;
-                    }
                     if (index !== 0) {
                         linePath.lineTo(point.x, point.y);
                     }
@@ -963,9 +957,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             return;
         }
         pointData.forEach((point, index) => {
-            if (point.skip) {
-                return;
-            }
             if (index !== 0) {
                 linePath.lineTo(point.x, point.y);
             }
