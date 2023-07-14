@@ -81,7 +81,11 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
 }
 
 function getFontSize(context: CanvasRenderingContext2D) {
-    return parseFloat(context.font);
+    const match = context.font.match(/([^\s]+)px/);
+    if (!match) {
+        throw new Error(`Unable to parse font size: "${context.font}".`);
+    }
+    return parseFloat(match[1]);
 }
 
 function getPixelSize(context: CanvasRenderingContext2D) {
@@ -107,22 +111,22 @@ const MOCK_FONT: Record<string, string[]> = {
         '  #  ',
     ],
     0: [
-        ' ## ',
-        '#  #',
-        '#  #',
-        '#  #',
-        '#  #',
-        '#  #',
-        ' ## ',
+        ' ### ',
+        '#   #',
+        '#  ##',
+        '# # #',
+        '##  #',
+        '#   #',
+        ' ### ',
     ],
     1: [
-        '  #',
-        ' ##',
-        '# #',
-        '  #',
-        '  #',
-        '  #',
-        '  #',
+        '   #',
+        '  ##',
+        ' # #',
+        '#  #',
+        '   #',
+        '   #',
+        '   #',
     ],
     2: [
         ' ### ',
@@ -157,8 +161,8 @@ const MOCK_FONT: Record<string, string[]> = {
         '#    ',
         '#### ',
         '    #',
-        '#   #',
-        ' ### ',
+        '    #',
+        '#### ',
     ],
     6: [
         ' ### ',
@@ -775,12 +779,12 @@ const MOCK_FONT: Record<string, string[]> = {
         '  #  ',
     ],
     '\u2026': [
-        '    ',
-        '    ',
-        '    ',
-        '    ',
-        '    ',
-        '    ',
+        '     ',
+        '     ',
+        '     ',
+        '     ',
+        '     ',
+        '     ',
         '# # #',
     ],
 };
