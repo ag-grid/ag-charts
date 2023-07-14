@@ -81,3 +81,10 @@ jobs:
         steps:
             - uses: actions/download-artifact@v3
             - run: if [[ $(cat statuses/test.status) != 'success' ]] ; then exit 1 ; fi
+            - name: Test Report
+              uses: dorny/test-reporter@v1
+              if: success() || failure() # run this step even if previous step failed
+              with:
+                  name: Tests Results
+                  path: reports/*.xml
+                  reporter: jest-junit

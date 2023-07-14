@@ -43,7 +43,13 @@ const commonConfig = {
 
 registerFont('packages/ag-charts-community/src/chart/test/Inter-Regular.otf', { family: 'Verdana' });
 
+const reporters: any[] = ['default'];
+if (process.env.CI != null || process.env.NX_TASK_TARGET_CONFIGURATION === 'ci') {
+    reporters.push(['jest-junit', { outputDirectory: 'reports', outputName: 'ag-charts-enterprise.xml' }]);
+}
+
 export default {
+    reporters,
     projects: [
         {
             displayName: 'ag-charts-community - unit',
