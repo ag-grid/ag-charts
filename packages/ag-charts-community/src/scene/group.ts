@@ -112,7 +112,7 @@ export class Group extends Node {
 
         // Downgrade dirty-ness percolated to parent in special cases.
         let parentType = type;
-        if (type <= RedrawType.MINOR) {
+        if (type < RedrawType.MINOR) {
             parentType = RedrawType.TRIVIAL;
         } else if (this.layer != null) {
             parentType = RedrawType.TRIVIAL;
@@ -141,7 +141,7 @@ export class Group extends Node {
     render(renderCtx: RenderContext) {
         const { opts: { name = undefined } = {} } = this;
         const { _debug: { consoleLog = false } = {} } = this;
-        const { dirty, dirtyZIndex, layer, children, clipRect } = this;
+        const { dirty, dirtyZIndex, layer, children, clipRect, dirtyTransform } = this;
         let { ctx, forceRender, clipBBox } = renderCtx;
         const { resized, stats } = renderCtx;
 
@@ -159,21 +159,17 @@ export class Group extends Node {
         }
 
         if (name && consoleLog) {
-            Logger.debug({ name, group: this, isDirty, isChildDirty, renderCtx, forceRender });
+            Logger.debug({ name, group: this, isDirty, isChildDirty, dirtyTransform, renderCtx, forceRender });
         }
 
-        if (layer) {
+        if (dirtyTransform) {
+            forceRender = 'dirtyTransform';
+        } else if (layer) {
             // If bounding-box of a layer changes, force re-render.
             const currentBBox = this.computeBBox();
             if (this.lastBBox === undefined || !this.lastBBox.equals(currentBBox)) {
-                forceRender = true;
+                forceRender = 'dirtyTransform';
                 this.lastBBox = currentBBox;
-            } else if (!currentBBox.isInfinite()) {
-                // bbox for path2D is currently (Infinity) not calculated
-                // If it's not a path2D, turn off forceRender
-                // By default there is no need to force redraw a group which has it's own canvas layer
-                // as the layer is independent of any other layer
-                forceRender = false;
             }
         }
 
@@ -201,7 +197,9 @@ export class Group extends Node {
             ctx.save();
             ctx.resetTransform();
 
-            forceRender = isChildDirty || dirtyZIndex;
+            if (forceRender !== 'dirtyTransform') {
+                forceRender = isChildDirty || dirtyZIndex;
+            }
             if (forceRender) layer.clear();
 
             if (clipBBox) {
@@ -246,7 +244,7 @@ export class Group extends Node {
         const hasVirtualChildren = this.hasVirtualChildren();
         if (dirtyZIndex) {
             this.sortChildren(children);
-            forceRender = true;
+            if (forceRender !== 'dirtyTransform') forceRender = true;
         } else if (hasVirtualChildren) {
             this.sortChildren(children);
         }
