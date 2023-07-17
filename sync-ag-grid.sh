@@ -2,23 +2,31 @@
 
 set -eu
 
+REPO_CLONE_SOURCE=../ag-grid
+REPO_CLONE_TARGET=../ag-charts-sync
+
 git checkout track-ag-grid
 START_CWD=$(pwd)
 # IMAGE_SNAPSHOT_TMPDIR=$(mktemp -d)
 
 function checkout {
-    if [[ ! -d ../ag-charts-sync${1:-} && ! -d .git ]] ; then
+    if [[ ! -d .git ]] ; then
         echo "Run this scipt from the root of the ag-charts repo."
         exit 1
     fi
 
-    if [[ -d ../ag-charts-sync${1:-} ]] ; then
-        rm -rf ../ag-charts-sync${1:-}
+    if [[ ! -d ${REPO_CLONE_SOURCE} ]] ; then
+        echo "Source repo checkout not found: ${REPO_CLONE_SOURCE}"
+        exit 1
+    fi
+
+    if [[ -d ${REPO_CLONE_TARGET}${1:-} ]] ; then
+        rm -rf ${REPO_CLONE_TARGET}${1:-}
     fi
 
 
-    git clone --no-local ../ag-grid-tertiary ../ag-charts-sync${1:-} -b latest
-    cd ../ag-charts-sync${1:-}
+    git clone --no-local ${REPO_CLONE_SOURCE} ${REPO_CLONE_TARGET}${1:-} -b latest
+    cd ${REPO_CLONE_TARGET}${1:-}
 }
 
 checkout
