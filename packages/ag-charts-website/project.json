@@ -9,7 +9,8 @@
       "executor": "@nxtensions/astro:build",
       "options": {},
       "configurations": {
-        "staging": {}
+        "staging": {},
+        "production": {}
       }
     },
     "dev": {
@@ -36,9 +37,12 @@
         }
       ],
       "executor": "@nxtensions/astro:preview",
-      "options": {},
+      "options": {
+        "port": 4601
+      },
       "configurations": {
-        "staging": {}
+        "staging": {},
+        "production": {}
       }
     },
     "test": {

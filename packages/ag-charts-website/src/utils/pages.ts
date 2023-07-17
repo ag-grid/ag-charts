@@ -1,6 +1,4 @@
 import type { CollectionEntry } from 'astro:content';
-import fsOriginal from 'node:fs';
-import fs from 'node:fs/promises';
 import {
     FRAMEWORKS,
     INTERNAL_FRAMEWORKS,
