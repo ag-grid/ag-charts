@@ -3,7 +3,7 @@
  *
  * Works on server and client side
  */
-export function pathJoin(...segments: string[]): string {
+export function pathJoin(...segments: (string | URL)[]): string {
     if (!segments || !segments.length) {
         return '';
     } else if (segments[0] === '/' && segments.length === 1) {

@@ -6,6 +6,7 @@ import JavascriptTemplate from '../../../../../features/example-runner/framework
 import TypescriptTemplate from '../../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
 import { getGeneratedContents } from '../../../../../features/examples-generator/examplesGenerator';
 import { getIsDev } from '../../../../../utils/env';
+import { pathJoin } from '../../../../../utils/pathJoin';
 
 const internalFramework = Astro.params.internalFramework! as InternalFramework;
 const pageName = Astro.params.pageName!;
@@ -29,11 +30,12 @@ const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } =
         exampleName,
     })) || {};
 const indexFragment = files && files['index.html'];
-const appLocation = getExampleUrl({
+const exampleUrl = getExampleUrl({
     internalFramework,
     pageName,
     exampleName,
 });
+const appLocation = pathJoin(Astro.site, exampleUrl);
 
 const boilerPlateUrl = getBoilerPlateUrl({
     library,

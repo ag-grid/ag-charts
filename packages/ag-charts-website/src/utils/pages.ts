@@ -153,28 +153,6 @@ export const getExampleUrl = ({
 };
 
 /**
- * Dynamic path where plunkr examples index.html is
- */
-export const getPlunkrExampleUrl = ({
-    internalFramework,
-    pageName,
-    exampleName,
-}: {
-    internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
-}) => {
-    return pathJoin(
-        getExampleUrl({
-            internalFramework,
-            pageName,
-            exampleName,
-        }),
-        'plunkr'
-    );
-};
-
-/**
  * Get endpoint for all example files
  */
 export const getExampleFilesUrl = ({

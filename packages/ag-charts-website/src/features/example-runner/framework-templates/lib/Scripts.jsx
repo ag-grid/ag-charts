@@ -1,5 +1,5 @@
 import React from 'react';
-import path from 'node:path';
+import { pathJoin } from '../../../../utils/pathJoin';
 
 export const Scripts = ({ baseUrl, files = [] }) => {
     if (!baseUrl) {
@@ -7,7 +7,7 @@ export const Scripts = ({ baseUrl, files = [] }) => {
     }
 
     return files.map((file) => {
-        const srcFile = path.join(baseUrl, file);
+        const srcFile = pathJoin(baseUrl, file);
         return <script key={file} src={srcFile} />;
     });
 };

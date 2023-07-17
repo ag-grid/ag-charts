@@ -2,14 +2,13 @@ import { useState, useEffect, type FunctionComponent } from 'react';
 import { useStore } from '@nanostores/react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import classnames from 'classnames';
-import type { InternalFramework } from '../../../types/ag-grid';
 import { ExampleIFrame } from './ExampleIFrame';
 import styles from './ExampleRunner.module.scss';
 import { Icon } from '../../../components/icon/Icon';
 import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import type { ExampleOptions } from '../types';
 import { CodeViewer } from './CodeViewer';
-import { getExampleUrl, getExampleFilesUrl, getPlunkrExampleUrl } from '../../../utils/pages';
+import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
 import { getFrameworkFromInternalFramework } from '../../../utils/framework';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
 import { openPlunker } from '../../../utils/plunkr';
@@ -76,9 +75,9 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     const files = data?.files || [];
 
     // NOTE: Temporary way to get generated HTML
-    const { data: exampleFileHtml } = useQuery(['exampleFileHtml', internalFramework, pageName, exampleName], () =>
+    const { data: exampleFileHtml } = useQuery(['exampleHtml', internalFramework, pageName, exampleName], () =>
         fetch(
-            getPlunkrExampleUrl({
+            getExampleUrl({
                 internalFramework,
                 pageName,
                 exampleName,
