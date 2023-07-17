@@ -53,6 +53,13 @@ jobs:
                   name: statuses
                   path: |
                       *.status
+            - name: Test Report
+              uses: dorny/test-reporter@v1
+              if: success() || failure() # run this step even if previous step failed
+              with:
+                  name: Tests Results
+                  path: reports/*.xml
+                  reporter: jest-junit
 
     format:
         runs-on: ubuntu-latest
