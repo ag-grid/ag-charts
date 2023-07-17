@@ -6,6 +6,7 @@ REPO_CLONE_SOURCE=../ag-grid
 REPO_CLONE_TARGET=../ag-charts-sync
 
 git checkout track-ag-grid
+git merge latest
 START_CWD=$(pwd)
 
 function checkout {
