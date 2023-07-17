@@ -7,9 +7,10 @@ REPO_CLONE_TARGET=../ag-charts-sync
 
 git checkout track-ag-grid
 START_CWD=$(pwd)
-# IMAGE_SNAPSHOT_TMPDIR=$(mktemp -d)
 
 function checkout {
+    cd ${START_CWD}
+
     if [[ ! -d .git ]] ; then
         echo "Run this scipt from the root of the ag-charts repo."
         exit 1
@@ -24,19 +25,15 @@ function checkout {
         rm -rf ${REPO_CLONE_TARGET}${1:-}
     fi
 
+    if (git remote | grep local-sync${1:-}$$ >/dev/null) ; then
+        git remote add local-sync${1:-} ${REPO_CLONE_TARGET}${1:-}
+    fi
 
     git clone --no-local ${REPO_CLONE_SOURCE} ${REPO_CLONE_TARGET}${1:-} -b latest
     cd ${REPO_CLONE_TARGET}${1:-}
 }
 
 checkout
-
-# find . -name "__image_snapshots__" | ( while read DIR ; do
-#   TARGET_DIR=${DIR/.\/charts-community-modules\//packages\/}
-#   TARGET_DIR=${TARGET_DIR/.\/charts-enterprise-modules\//packages\/}
-#   mkdir -p ${IMAGE_SNAPSHOT_TMPDIR}/${TARGET_DIR}
-#   cp -P $DIR/* ${IMAGE_SNAPSHOT_TMPDIR}/${TARGET_DIR}/
-# done )
 
 git filter-repo \
     --path charts-community-modules/ag-charts-community \
@@ -82,6 +79,7 @@ git filter-repo \
 
 cd ${START_CWD}
 git checkout track-ag-grid
+git fetch local-sync latest
 git fetch local-sync2 latest
 
 git merge local-sync/latest --allow-unrelated-histories
