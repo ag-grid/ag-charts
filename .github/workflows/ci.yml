@@ -11,18 +11,80 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    main:
+    execute_blt:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
+            - id: checkout
+              uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - uses: nrwl/nx-set-shas@v3
+            - id: nx_affected_setup
+              uses: nrwl/nx-set-shas@v3
               with:
                   main-branch-name: 'latest'
-            - run: yarn install --ci
+            - id: setup_node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - id: yarn_install
+              run: yarn install --ci
+            - id: format
+              run: yarn nx format:check
+              continue-on-error: true
+            - id: lint
+              run: yarn nx affected -t lint --parallel=3
+              continue-on-error: true
+            - id: build
+              run: yarn nx affected -t build --parallel=3
+              continue-on-error: true
+            - id: test
+              if: steps.build.outcome == 'success'
+              run: yarn nx affected -t test --configuration=ci
+              continue-on-error: true
+            - id: results
+              run: |
+                  echo ${{ steps.format.outcome }} > format.status
+                  echo ${{ steps.lint.outcome }} > lint.status
+                  echo ${{ steps.build.outcome }} > build.status
+                  echo ${{ steps.test.outcome }} > test.status
+            - uses: actions/upload-artifact@v3
+              with:
+                  name: statuses
+                  path: |
+                      *.status
+            - name: Test Report
+              uses: dorny/test-reporter@v1
+              if: success() || failure() # run this step even if previous step failed
+              with:
+                  name: Tests Results
+                  path: reports/*.xml
+                  reporter: jest-junit
 
-            - run: yarn nx format:check
-            - run: yarn nx affected -t build --parallel=3
-            - run: yarn nx affected -t lint --parallel=3
-            - run: yarn nx affected -t test --parallel=3 --configuration=ci
+    format:
+        runs-on: ubuntu-latest
+        needs: execute_blt
+        steps:
+            - uses: actions/download-artifact@v3
+            - run: if [[ $(cat statuses/format.status) != 'success' ]] ; then exit 1 ; fi
+
+    lint:
+        runs-on: ubuntu-latest
+        needs: execute_blt
+        steps:
+            - uses: actions/download-artifact@v3
+            - run: if [[ $(cat statuses/lint.status) != 'success' ]] ; then exit 1 ; fi
+
+    build:
+        runs-on: ubuntu-latest
+        needs: execute_blt
+        steps:
+            - uses: actions/download-artifact@v3
+            - run: if [[ $(cat statuses/build.status) != 'success' ]] ; then exit 1 ; fi
+
+    test:
+        runs-on: ubuntu-latest
+        needs: execute_blt
+        steps:
+            - uses: actions/download-artifact@v3
+            - run: if [[ $(cat statuses/test.status) != 'success' ]] ; then exit 1 ; fi

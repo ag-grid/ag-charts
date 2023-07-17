@@ -14,7 +14,27 @@
     },
     "test": {
       "executor": "nx:noop",
-      "dependsOn": ["^test"]
+      "dependsOn": ["^test"],
+      "configurations": {
+        "update": {}
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          {
+            "command": "nx run ag-charts-community:build:watch"
+          },
+          {
+            "command": "nx run ag-charts-enterprise:build:watch"
+          },
+          {
+            "command": "nx run ag-charts-website:dev"
+          }
+        ]
+      }
     }
   },
   "implicitDependencies": [

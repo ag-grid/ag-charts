@@ -1,12 +1,12 @@
 {
   "name": "ag-charts-react",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "AG Charts React Component",
   "main": "main.js",
   "typings": "./src/main.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ag-grid/ag-grid.git"
+    "url": "https://github.com/ag-grid/ag-charts.git"
   },
   "keywords": [
     "react-component",
@@ -18,9 +18,9 @@
   "author": "Sean Landsman <sean@thelandsmans.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ag-grid/ag-grid/issues"
+    "url": "https://github.com/ag-grid/ag-charts/issues"
   },
-  "homepage": "https://www.ag-grid.com/",
+  "homepage": "https://charts.ag-grid.com/",
   "dependencies": {
     "prop-types": "^15.6.2"
   },
@@ -99,6 +99,6 @@
     ]
   },
   "publishConfig": {
-    "access": "public"
+    "access": "restricted"
   }
 }

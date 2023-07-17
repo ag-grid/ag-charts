@@ -1,13 +1,20 @@
 import type { CollectionEntry } from 'astro:content';
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
-import path from 'node:path';
-import { FRAMEWORKS, INTERNAL_FRAMEWORKS, TYPESCRIPT_INTERNAL_FRAMEWORKS, localPrefix } from '../constants';
+import {
+    FRAMEWORKS,
+    INTERNAL_FRAMEWORKS,
+    TYPESCRIPT_INTERNAL_FRAMEWORKS,
+    SITE_BASE_URL,
+    FRAMEWORK_PATH_INDEX,
+    localPrefix,
+} from '../constants';
 import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
 import type { InternalFramework, Library } from '../types/ag-grid';
 import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
 import { getIsDev } from './env';
 import { getFolders } from './fs';
+import { pathJoin } from './pathJoin';
 
 export type DocsPage =
     | CollectionEntry<'docs'>
@@ -33,23 +40,40 @@ export interface DevFileRoute {
 /**
  * Mapping for dev files, from route to file path
  *
- * NOTE: File path is after `getDistUrl()`
+ * NOTE: File path is after `getRootUrl()`
  */
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-community/dist/ag-charts-community.cjs.js': 'packages/ag-charts-community/dist/main.cjs',
     'ag-charts-enterprise/dist/ag-charts-enterprise.cjs.js': 'packages/ag-charts-enterprise/dist/main.cjs',
+    'ag-charts-community/dist/ag-charts-community.umd.js': 'packages/ag-charts-community/dist/main.umd.cjs',
+    'ag-charts-enterprise/dist/ag-charts-enterprise.umd.js': 'packages/ag-charts-enterprise/dist/main.umd.cjs',
+};
+
+export const getChartScriptPath = () => {
+    return `https://testing.ag-grid.com/ag-charts/dev/ag-charts-community/dist/ag-charts-community.umd.js`;
+};
+
+export const getChartEnterpriseScriptPath = () => {
+    return `https://testing.ag-grid.com/ag-charts/dev/ag-charts-enterprise/dist/ag-charts-enterprise.umd.js`;
 };
 
 /**
  * The dist url where packages are generated
  */
-const getDistUrl = (): URL => {
+const getRootUrl = (): URL => {
     const distRoot = getIsDev()
         ? // Relative to the folder of this file
           '../../../../'
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../';
+          '../../../../../';
     return new URL(distRoot, import.meta.url);
+};
+
+export const urlWithBaseUrl = (url: string = '') => {
+    const regex = /^\/(.*)/gm;
+    const substitution = `${SITE_BASE_URL}$1`;
+
+    return url.match(regex) ? url.replace(regex, substitution) : url;
 };
 
 // TODO: Figure out published packages
@@ -70,7 +94,7 @@ function ignoreUnderscoreFiles(page: DocsPage) {
 }
 
 export function getFrameworkFromPath(path: string) {
-    return path.split('/')[1];
+    return path.split('/')[FRAMEWORK_PATH_INDEX];
 }
 
 export function getNewFrameworkPath({
@@ -125,7 +149,51 @@ export const getExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return path.join('/', internalFramework, pageName, 'examples', exampleName);
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName);
+};
+
+/**
+ * Dynamic path where plunkr examples index.html is
+ */
+export const getPlunkrExampleUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        'plunkr'
+    );
+};
+
+/**
+ * Get endpoint for all example files
+ */
+export const getExampleFilesUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        'files'
+    );
 };
 
 /**
@@ -142,17 +210,24 @@ export const getExampleFileUrl = ({
     exampleName: string;
     fileName: string;
 }) => {
-    return path.join('/', internalFramework, pageName, 'examples', exampleName, fileName);
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        fileName
+    );
 };
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
-    return path.join(localPrefix, filePath);
+    return pathJoin(localPrefix, filePath);
 };
 
 export const getDevFileList = () => {
-    const distFolder = getDistUrl();
+    const distFolder = getRootUrl();
     return Object.values(DEV_FILE_PATH_MAP).map((file) => {
-        return path.join(distFolder.pathname, file);
+        return pathJoin(distFolder.pathname, file);
     });
 };
 
@@ -176,7 +251,11 @@ export const getBoilerPlateUrl = ({
             break;
     }
 
-    const boilerplatePath = path.join('/example-runner', `${library}-${boilerPlateFramework}-boilerplate`);
+    const boilerplatePath = pathJoin(
+        SITE_BASE_URL,
+        '/example-runner',
+        `${library}-${boilerPlateFramework}-boilerplate`
+    );
 
     return boilerplatePath;
 };
@@ -216,7 +295,7 @@ export const getInternalFrameworkExamples = async ({
 export function getDevFiles(): DevFileRoute[] {
     const files = Object.keys(DEV_FILE_PATH_MAP).map((filePath) => {
         const sourceFilePath = DEV_FILE_PATH_MAP[filePath];
-        const fullFilePath = path.join(getDistUrl().pathname, sourceFilePath);
+        const fullFilePath = pathJoin(getRootUrl().pathname, sourceFilePath);
 
         return {
             filePath,

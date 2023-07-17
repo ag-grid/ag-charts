@@ -7,7 +7,10 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@nxtensions/astro:build",
-      "options": {}
+      "options": {},
+      "configurations": {
+        "staging": {}
+      }
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
@@ -33,7 +36,28 @@
         }
       ],
       "executor": "@nxtensions/astro:preview",
-      "options": {}
+      "options": {},
+      "configurations": {
+        "staging": {}
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/ag-charts-website/jest.config.ts"
+      },
+      "configurations": {
+        "ci": {
+          "ci": true
+        },
+        "watch": {
+          "watch": true
+        },
+        "update": {
+          "updateSnapshot": true
+        }
+      }
     },
     "lint": {
       "executor": "@nx/linter:eslint",

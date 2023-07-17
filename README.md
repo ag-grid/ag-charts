@@ -18,35 +18,38 @@ Prerequisites:
     -   Open the command-palette (`CMD`+`SHIFT`+`P`).
     -   Choose `Remote-Containers: Clone Repository in Container Volume...`.
     -   Choose `Clone a repository from GitHub in a Container Volume`.
-    -   Enter `ag-grid/ag-charts-test`.
+    -   Enter `ag-grid/ag-charts`.
     -   Choose `latest` branch.
 
 ### Common commands
 
-| Command                 | Description                      |
-| ----------------------- | -------------------------------- |
-| `nx build`              | Build all the packages           |
-| `nx test`               | Run all tests                    |
-| `nx lint`               | Check all packages with ESLint   |
-| `nx format:check --all` | Check all packages with prettier |
-| `nx reset`              | Clear the NX cache               |
+| Command     | Description                         |
+| ----------- | ----------------------------------- |
+| `nx dev`    | Run Astro dev server                |
+| `nx build`  | Build all the packages              |
+| `nx lint`   | Check all packages with ESLint      |
+| `nx test`   | Run all tests                       |
+| `nx format` | Reformat all packages with prettier |
+| `nx reset`  | Clear the NX cache                  |
 
-### AG Charts Website
+To skip the `nx` cache use `--skip-nx-cache`.
 
-To run the local dev server:
+### Advanced Test Commands
 
-```
-nx run ag-charts-website:watch:dev
-```
+| Command                                                    | Description                                     |
+| ---------------------------------------------------------- | ----------------------------------------------- |
+| `nx run-many -t test`                                      | Run all tests                                   |
+| `nx run-many -t test --output-style stream`                | Run all tests and stream output                 |
+| `nx run-many -t test -c update`                            | Update test snapshots                           |
+| `nx test ag-charts-community -u`                           | Update test snapshots for `ag-charts-community` |
+| `nx test ag-charts-community --watch`                      | Run Jest watch for `ag-charts-community`        |
+| `nx test ag-charts-community --testFile dataModel.test.ts` | Run Jest for a specific file                    |
 
-To run the website build:
+### Advanced Website Commands
 
-```
-nx run ag-charts-website:build
-```
-
-To preview the built website:
-
-```
-nx run ag-charts-website:preview
-```
+| Command                                    | Description                                      |
+| ------------------------------------------ | ------------------------------------------------ |
+| `nx run ag-charts-website:build`           | Run the website build                            |
+| `nx run ag-charts-website:preview`         | Preview the static website build                 |
+| `nx run ag-charts-website:build:staging`   | Run the website build for staging env            |
+| `nx run ag-charts-website:preview:staging` | Preview the static website build for staging env |

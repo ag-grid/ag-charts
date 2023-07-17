@@ -2,6 +2,8 @@ import classNames from 'classnames';
 import { Icon } from '../icon/Icon';
 import footerItems from './footer-items.json';
 import styles from './Footer.module.scss';
+import { SITE_BASE_URL } from '../../constants';
+import { urlWithBaseUrl } from '../../utils/pages';
 
 interface FooterProps {
     path: string;
@@ -14,7 +16,7 @@ const MenuColumns = () =>
             <ul className="list-style-none">
                 {links.map(({ name, url, newTab, iconName }: any) => (
                     <li key={`${title}_${name}`}>
-                        <a href={url} {...(newTab ? { target: '_blank', rel: 'noreferrer' } : {})}>
+                        <a href={urlWithBaseUrl(url)} {...(newTab ? { target: '_blank', rel: 'noreferrer' } : {})}>
                             {iconName && <Icon name={iconName} />}
                             {name}
                         </a>
@@ -38,7 +40,7 @@ export const Footer = ({ path }: FooterProps) => (
             </div>
 
             {/* Only show customer logo trademark info on homepage */}
-            {(path === '/' || path === undefined) && (
+            {(path === SITE_BASE_URL || path === undefined) && (
                 <div className={classNames(styles.row, styles.trademarks)}>
                     <p className="font-size-small thin-text">
                         The Microsoft logo is a trademark of the Microsoft group of companies.

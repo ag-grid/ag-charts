@@ -1,0 +1,12 @@
+export type ExampleType = 'generated' | 'mixed' | 'typescript' | 'multi';
+
+export type FileContents = Record<string, string>;
+
+export interface GeneratedContents {
+    files: FileContents;
+    entryFileName: string;
+    scriptFiles: string[];
+    styleFiles: string[];
+    isEnterprise: boolean;
+    sourceFileList: string[];
+}

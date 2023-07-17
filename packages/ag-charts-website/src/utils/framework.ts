@@ -1,8 +1,25 @@
 import { FRAMEWORK_DISPLAY_TEXT } from '../constants';
-import type { Framework } from '../types/ag-grid';
+import type { Framework, InternalFramework } from '../types/ag-grid';
 
 export const getFrameworkDisplayText = (framework: Framework): string => {
     return FRAMEWORK_DISPLAY_TEXT[framework];
+};
+
+export const getFrameworkFromInternalFramework = (internalFramework: InternalFramework): Framework => {
+    switch (internalFramework) {
+        case 'typescript':
+        case 'vanilla':
+            return 'javascript';
+        case 'react':
+        case 'reactFunctionalTs':
+        case 'reactFunctional':
+            return 'react';
+        case 'vue':
+        case 'vue3':
+            return 'vue';
+        default:
+            return internalFramework;
+    }
 };
 
 /**
@@ -26,7 +43,7 @@ export const getInternalFramework = ({
     useFunctionalReact?: boolean;
     useVue3?: boolean;
     useTypescript?: boolean;
-}) => {
+}): InternalFramework => {
     switch (framework) {
         case 'vue':
             return useVue3 ? 'vue3' : 'vue';
@@ -35,6 +52,24 @@ export const getInternalFramework = ({
         case 'react':
             return useFunctionalReact ? (useTypescript ? 'reactFunctionalTs' : 'reactFunctional') : 'react';
         default:
-            return framework;
+            return framework as InternalFramework;
     }
+};
+
+export const isReactInternalFramework = (internalFramework: InternalFramework) => {
+    const reactInternalFrameworks: InternalFramework[] = ['react', 'reactFunctional', 'reactFunctionalTs'];
+    if (!internalFramework) {
+        return false;
+    }
+
+    return reactInternalFrameworks.includes(internalFramework);
+};
+
+export const isVueInternalFramework = (internalFramework: InternalFramework) => {
+    const reactInternalFrameworks: InternalFramework[] = ['vue', 'vue3'];
+    if (!internalFramework) {
+        return false;
+    }
+
+    return reactInternalFrameworks.includes(internalFramework);
 };

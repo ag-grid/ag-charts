@@ -1,7 +1,7 @@
 {
   "root": true,
   "ignorePatterns": ["**/*"],
-  "plugins": ["@nx"],
+  "plugins": ["@nx", "sonarjs"],
   "env": {
     "browser": true,
     "es6": true

@@ -16,7 +16,7 @@
 
     // "mounts": ["source=ag-charts-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"],
 
-    "postCreateCommand": "sudo chown vscode node_modules && yarn install"
+    "postCreateCommand": "yarn install"
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": "yarn install",
 

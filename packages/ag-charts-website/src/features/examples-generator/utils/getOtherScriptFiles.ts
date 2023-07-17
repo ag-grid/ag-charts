@@ -1,7 +1,6 @@
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import { getContentsOfFileList } from './fileUtils';
-
-export type FileContents = Record<string, string>;
+import type { FileContents } from '../types.d';
 
 const getOtherTsGeneratedFiles = async ({
     sourceEntryFileName,

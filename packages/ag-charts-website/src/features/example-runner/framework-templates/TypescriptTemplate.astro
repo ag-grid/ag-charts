@@ -1,0 +1,98 @@
+---
+import { getCacheBustingUrl } from '../../../utils/pages';
+import { MetaData } from './lib/MetaData';
+import { ExampleStyle } from './lib/ExampleStyle';
+import { Styles } from './lib/Styles';
+import { Scripts } from './lib/Scripts';
+import { SystemJs } from './lib/SystemJs';
+
+interface Props {
+    isDev: boolean;
+    pageName: string;
+    exampleName: string;
+
+    modifiedTimeMs: number;
+    isExecuting: boolean;
+    options: any;
+    entryFileName: string;
+    /**
+     * All script file names
+     */
+    scriptFiles?: string[];
+    styleFiles?: string[];
+    indexFragment: string;
+    appLocation: string;
+    library: string;
+    boilerplatePath: string;
+}
+
+const {
+    pageName,
+    exampleName,
+    isDev,
+    modifiedTimeMs,
+    isExecuting,
+    options,
+    appLocation,
+    entryFileName,
+    scriptFiles,
+    styleFiles,
+    indexFragment,
+    library,
+    boilerplatePath,
+} = Astro.props as Props;
+
+const startFile = appLocation + '/' + entryFileName;
+// The entry file is loaded through SystemJS, but other scripts need to be included directly on the page
+const extraScriptFiles = scriptFiles?.filter((scriptFile) => scriptFile !== entryFileName);
+---
+
+<html lang="en">
+    <head>
+        <MetaData
+            isDev={isDev}
+            title={`Typescript ${pageName} - ${exampleName}`}
+            modifiedTimeMs={modifiedTimeMs}
+            isExecuting={isExecuting}
+            options={options}
+        />
+        <ExampleStyle />
+        <Styles
+            baseUrl={appLocation}
+            files={isDev && styleFiles
+                ? styleFiles
+                      .filter((file: string) => !file.includes('style.css') && !file.includes('styles.css'))
+                      .map((file: string) => getCacheBustingUrl(file, modifiedTimeMs))
+                : []}
+        />
+    </head>
+    <body>
+        <Fragment set:html={indexFragment} />
+
+        <script
+            is:inline
+            define:vars={{
+                appLocation,
+            }}
+        >
+            window.__basePath = appLocation;
+        </script>
+
+        <Scripts baseUrl={appLocation} files={extraScriptFiles} />
+        <SystemJs
+            isDev={isDev}
+            library={library}
+            boilerplatePath={boilerplatePath}
+            appLocation={appLocation}
+            startFile={startFile}
+            framework={'typescript'}
+            options={options}
+        />
+        <Styles
+            baseUrl={appLocation}
+            files={styleFiles
+                ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
+                : []}
+        />
+    </body>
+</html>
