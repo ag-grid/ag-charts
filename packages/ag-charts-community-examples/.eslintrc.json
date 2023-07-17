@@ -5,9 +5,9 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        "@typescript-eslint/consistent-type-imports": 1,
-        "prefer-const": 1,
-        "no-var": 1,
+        "@typescript-eslint/consistent-type-imports": 0,
+        "prefer-const": 0,
+        "no-var": 0,
         "no-console": 0
       }
     },
