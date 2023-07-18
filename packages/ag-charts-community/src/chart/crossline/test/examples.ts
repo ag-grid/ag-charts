@@ -1,4 +1,4 @@
-import type { AgCartesianChartOptions, AgCrossLineOptions } from '../../agChartOptions';
+import type { AgCartesianChartOptions, AgCartesianCrossLineOptions } from '../../agChartOptions';
 import { DATA_MEAN_SEA_LEVEL } from '../../test/data';
 import { loadExampleOptions } from '../../test/examples';
 import { DATA_OIL_PETROLEUM } from './data';
@@ -78,7 +78,7 @@ const baseChartOptions: AgCartesianChartOptions = {
     ],
 };
 
-const baseCrossLineOptions: AgCrossLineOptions = {
+const baseCrossLineOptions: AgCartesianCrossLineOptions = {
     type: 'range',
     fill: '#dbddf0',
     stroke: '#5157b7',

@@ -3,8 +3,8 @@ import type {
     AgHierarchyChartOptions,
     AgPolarChartOptions,
     AgCartesianChartOptions,
+    AgCartesianCrossLineOptions,
     AgChartThemePalette,
-    AgCrossLineOptions,
     AgTooltipPositionOptions,
 } from '../agChartOptions';
 import type { SeriesOptionsTypes } from './defaults';
@@ -354,7 +354,7 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
 
 function prepareAxis<T extends AxesOptionsTypes>(
     axis: T,
-    axisTheme: Omit<T, 'crossLines'> & { crossLines: AgCrossLineOptions }
+    axisTheme: Omit<T, 'crossLines'> & { crossLines: AgCartesianCrossLineOptions }
 ): T {
     // Remove redundant theme overload keys.
     const removeOptions = { top: DELETE, bottom: DELETE, left: DELETE, right: DELETE } as any;

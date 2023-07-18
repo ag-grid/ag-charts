@@ -90,6 +90,9 @@ class PolarCrossLineLabel implements _ModuleSupport.CrossLineLabel {
     @Validate(OPT_NUMBER(-360, 360))
     rotation?: number = undefined;
 
+    @Validate(OPT_NUMBER(-360, 360))
+    positionAngle?: number = undefined;
+
     @Validate(OPT_BOOLEAN)
     parallel?: boolean = undefined;
 }
