@@ -3,7 +3,6 @@ import { getCacheBustingUrl } from '../../../utils/pages';
 import { MetaData } from './lib/MetaData';
 import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
-import { Scripts } from './lib/Scripts';
 import { SystemJs } from './lib/SystemJs';
 
 interface Props {
@@ -15,10 +14,7 @@ interface Props {
     isExecuting: boolean;
     options: any;
     entryFileName: string;
-    /**
-     * All script file names
-     */
-    scriptFiles?: string[];
+
     styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
@@ -35,7 +31,6 @@ const {
     options,
     appLocation,
     entryFileName,
-    scriptFiles,
     styleFiles,
     indexFragment,
     library,
@@ -43,8 +38,6 @@ const {
 } = Astro.props as Props;
 
 const startFile = appLocation + '/' + entryFileName;
-// The entry file is loaded through SystemJS, but other scripts need to be included directly on the page
-const extraScriptFiles = scriptFiles?.filter((scriptFile) => scriptFile !== entryFileName);
 ---
 
 <html lang="en">
@@ -78,7 +71,6 @@ const extraScriptFiles = scriptFiles?.filter((scriptFile) => scriptFile !== entr
             window.__basePath = appLocation;
         </script>
 
-        <Scripts baseUrl={appLocation} files={extraScriptFiles} />
         <SystemJs
             isDev={isDev}
             library={library}
