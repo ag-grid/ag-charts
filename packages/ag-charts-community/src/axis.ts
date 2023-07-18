@@ -1045,6 +1045,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
+    protected getAxisTransform() {
+        const { translation } = this;
+        const rotation = toRadians(this.rotation);
+        return {
+            translationX: translation.x,
+            translationY: translation.y,
+            rotation,
+            rotationCenterX: 0,
+            rotationCenterY: 0,
+        };
+    }
+
     updatePosition({ rotation, sideFlag }: { rotation: number; sideFlag: Flag }) {
         const { crossLineGroup, axisGroup, gridGroup, translation, gridLineGroupSelection, gridPadding, gridLength } =
             this;
@@ -1055,9 +1067,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         crossLineGroup.translationY = translationY;
         crossLineGroup.rotation = rotation;
 
-        axisGroup.translationX = translationX;
-        axisGroup.translationY = translationY;
-        axisGroup.rotation = rotation;
+        const axisTransform = this.getAxisTransform();
+        axisGroup.translationX = axisTransform.translationX;
+        axisGroup.translationY = axisTransform.translationY;
+        axisGroup.rotation = axisTransform.rotation;
+        axisGroup.rotationCenterX = axisTransform.rotationCenterX;
+        axisGroup.rotationCenterY = axisTransform.rotationCenterY;
 
         gridGroup.translationX = translationX;
         gridGroup.translationY = translationY;

@@ -14,6 +14,8 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     min?: number;
     /** User override for the automatically determined max value (based on series data). */
     max?: number;
+    /** The rotation angle of axis line and labels in degrees. */
+    position?: number;
     /** Configuration for the axis ticks. */
     tick?: AgAxisNumberTickOptions;
     /** Shape of axis. Default: `polygon` */
