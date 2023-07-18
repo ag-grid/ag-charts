@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import { getDocExamplePages } from '../../../../../utils/pages';
+import ExamplePage from '../[exampleName].astro';
+
+/**
+ * This page is the same as `[exampleName].astro`, but using relative paths for script files
+ *
+ * This is useful for situations where the script files are self contained eg, plunkr
+ *
+ * NOTE: This can't be called `index.astro` because it would clash with the generated
+ * `index.html` fragment file from examples
+ */
+export async function getStaticPaths() {
+    const pages = await getCollection('docs');
+    return getDocExamplePages({
+        pages,
+    });
+}
+---
+
+<ExamplePage relativePath={true} />

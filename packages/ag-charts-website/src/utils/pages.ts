@@ -157,6 +157,21 @@ export const getExampleUrl = ({
 };
 
 /**
+ * Dynamic path where examples are with relative path for script files
+ */
+export const getExampleUrlWithRelativePath = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'relative-path');
+};
+
+/**
  * Get endpoint for all example files
  */
 export const getExampleFilesUrl = ({

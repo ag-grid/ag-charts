@@ -6,11 +6,18 @@ import JavascriptTemplate from '../../../../features/example-runner/framework-te
 import TypescriptTemplate from '../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
 import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
 import { getIsDev } from '../../../../utils/env';
-import { pathJoin } from '../../../../utils/pathJoin';
+
+interface Props {
+    /**
+     * Whether to use relative paths for script files references
+     */
+    relativePath?: boolean;
+}
 
 const internalFramework = Astro.params.internalFramework! as InternalFramework;
 const pageName = Astro.params.pageName!;
 const exampleName = Astro.params.exampleName!;
+const { relativePath } = Astro.props as Props;
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -35,7 +42,7 @@ const exampleUrl = getExampleUrl({
     pageName,
     exampleName,
 });
-const appLocation = pathJoin(Astro.site, exampleUrl);
+const appLocation = relativePath ? './' : exampleUrl;
 
 const boilerPlateUrl = getBoilerPlateUrl({
     library,

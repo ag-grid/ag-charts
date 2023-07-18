@@ -11,8 +11,8 @@ import { CodeViewer } from './CodeViewer';
 import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
 import { getFrameworkFromInternalFramework } from '../../../utils/framework';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
-import { openPlunker } from '../../../utils/plunkr';
 import type { Framework } from '../../../types/ag-grid';
+import { OpenInPlunkr } from '../../plunkr/components/OpenInPlunkr';
 
 interface Props {
     name: string;
@@ -165,20 +165,16 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
                         <li>
                             <OpenInCTA type="newTab" href={exampleUrl!} />
                         </li>
-                        {!options?.noPlunker && supportsPlunkr && (
+                        {!options?.noPlunker && supportsPlunkr && exampleFiles && (
                             <li>
-                                {exampleFiles && (
-                                    <OpenInCTA
-                                        type="plunker"
-                                        onClick={() => {
-                                            openPlunker({
-                                                title,
-                                                files: exampleFiles,
-                                                fileToOpen: initialSelectedFile!,
-                                            });
-                                        }}
-                                    />
-                                )}
+                                <OpenInPlunkr
+                                    title={title}
+                                    files={exampleFiles}
+                                    fileToOpen={initialSelectedFile!}
+                                    internalFramework={internalFramework}
+                                    pageName={pageName}
+                                    exampleName={exampleName}
+                                />
                             </li>
                         )}
                     </ul>
