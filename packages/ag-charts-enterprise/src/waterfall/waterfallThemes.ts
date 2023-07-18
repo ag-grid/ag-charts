@@ -22,10 +22,6 @@ export const WATERFALL_SERIES_THEME = {
         fill: '#79706E',
         stroke: '#79706E',
     },
-    subtotalItem: {
-        fill: '#FC8452',
-        stroke: '#FC8452',
-    },
     line: {
         stroke: 'black',
         strokeOpacity: 1,
