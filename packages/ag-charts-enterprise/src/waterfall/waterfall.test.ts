@@ -47,6 +47,22 @@ describe('Chart', () => {
         { year: '2032', dataType: 'total' },
     ];
 
+    const DATA_WITH_MISSING_INVALID_VALUES = [
+        { year: '2020', spending: 10 },
+        { year: '2021' },
+        { year: '2022', spending: 30 },
+        { year: '2023', dataType: 'subtotal' },
+        { year: '2024', spending: -80 },
+        { year: '2025', spending: '-30' },
+        { year: '2026', spending: 40 },
+        { year: '2027', dataType: 'subtotal' },
+        { year: '2028', spending: -30 },
+        { year: '2029', spending: 40 },
+        { year: '2030', dataType: 'subtotal' },
+        { year: '2031', spending: [50] },
+        { year: '2032', dataType: 'total' },
+    ];
+
     const WATERFALL_COLUMN_OPTIONS: AgChartOptions = {
         data: [
             { year: '2020', spending: 10 },
@@ -131,6 +147,25 @@ describe('Chart', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'waterfall-bar'),
             data: DATA_WITH_TOTAL_SUBTOTAL,
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a waterfall-column chart with missing and invalid values`, async () => {
+        const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS, data: DATA_WITH_MISSING_INVALID_VALUES };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a waterfall-bar chart with missing and invalid values`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'waterfall-bar'),
+            data: DATA_WITH_MISSING_INVALID_VALUES,
         };
         prepareTestOptions(options as any);
 
