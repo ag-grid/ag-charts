@@ -25,10 +25,7 @@
         "parallel": true,
         "commands": [
           {
-            "command": "nx run ag-charts-community:build:watch"
-          },
-          {
-            "command": "nx run ag-charts-enterprise:build:watch"
+            "command": "nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build"
           },
           {
             "command": "nx run ag-charts-website:dev"
