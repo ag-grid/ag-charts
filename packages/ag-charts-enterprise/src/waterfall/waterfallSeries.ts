@@ -249,6 +249,11 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 }),
                 accumulativeValueProperty(this, yKey, true, {
                     ...propertyDefinition,
+                    missingValue: 0,
+                    id: `yCurrentTotal`,
+                }),
+                accumulativeValueProperty(this, yKey, true, {
+                    ...propertyDefinition,
                     id: `yCurrentPositive`,
                     validation: positiveNumber,
                 }),
@@ -348,6 +353,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
         const yPrevIndex = dataModel.resolveProcessedDataIndexById(this, 'yPrevious').index;
+        const yCurrTotalIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentTotal').index;
 
         function getValues(
             isTotal: boolean,
@@ -356,7 +362,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
             if (isTotal || isSubtotal) {
                 return {
-                    cumulativeValue: values[yCurrIndex],
+                    cumulativeValue: values[yCurrTotalIndex],
                     trailingValue: isSubtotal ? trailingSubtotal : 0,
                 };
             }
