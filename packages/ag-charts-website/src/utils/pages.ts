@@ -1,6 +1,4 @@
 import type { CollectionEntry } from 'astro:content';
-import fsOriginal from 'node:fs';
-import fs from 'node:fs/promises';
 import {
     FRAMEWORKS,
     INTERNAL_FRAMEWORKS,
@@ -49,12 +47,14 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-enterprise/dist/ag-charts-enterprise.umd.js': 'packages/ag-charts-enterprise/dist/main.umd.cjs',
 };
 
-export const getChartScriptPath = () => {
-    return `https://testing.ag-grid.com/ag-charts/dev/ag-charts-community/dist/ag-charts-community.umd.js`;
+export const getChartScriptPath = (sitePrefix?: string) => {
+    const sitePrefixUrl = sitePrefix ? sitePrefix : '';
+    return pathJoin(sitePrefixUrl, '/dev/ag-charts-community/dist/ag-charts-community.umd.js');
 };
 
-export const getChartEnterpriseScriptPath = () => {
-    return `https://testing.ag-grid.com/ag-charts/dev/ag-charts-enterprise/dist/ag-charts-enterprise.umd.js`;
+export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
+    const sitePrefixUrl = sitePrefix ? sitePrefix : '';
+    return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/ag-charts-enterprise.umd.js');
 };
 
 /**

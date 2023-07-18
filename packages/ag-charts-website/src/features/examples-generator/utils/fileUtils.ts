@@ -1,5 +1,4 @@
 import path from 'node:path';
-import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
 import { getIsDev } from '../../../utils/env';
 import { getFolders } from '../../../utils/fs';
