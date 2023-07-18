@@ -2,23 +2,25 @@ import { useState, useEffect, type FunctionComponent } from 'react';
 import { useStore } from '@nanostores/react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import classnames from 'classnames';
-import type { InternalFramework } from '../../../types/ag-grid';
 import { ExampleIFrame } from './ExampleIFrame';
 import styles from './ExampleRunner.module.scss';
 import { Icon } from '../../../components/icon/Icon';
 import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import type { ExampleOptions } from '../types';
 import { CodeViewer } from './CodeViewer';
-import { getExampleUrl, getExampleFilesUrl, getPlunkrExampleUrl } from '../../../utils/pages';
+import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
 import { getFrameworkFromInternalFramework } from '../../../utils/framework';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
 import { openPlunker } from '../../../utils/plunkr';
+import type { Framework } from '../../../types/ag-grid';
 
 interface Props {
     name: string;
     title: string;
     exampleType?: string;
     options?: ExampleOptions;
+    framework: Framework;
+    pageName: string;
 }
 
 const FRAME_WRAPPER_HEIGHT = 48;
@@ -33,7 +35,7 @@ const queryClient = new QueryClient();
  *
  * @param framework Framework from the URL
  */
-function useUpdateInternalFrameworkFromFramework(framework) {
+function useUpdateInternalFrameworkFromFramework(framework: Framework) {
     const internalFramework = useStore($internalFramework);
 
     useEffect(() => {
@@ -48,7 +50,8 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     const [showCode, setShowCode] = useState(!!options?.showCode);
     const internalFramework = useStore($internalFramework);
     const [initialSelectedFile, setInitialSelectedFile] = useState();
-    const [exampleUrl, setExampleUrl] = useState();
+    const [exampleUrl, setExampleUrl] = useState<string>();
+    const [exampleFiles, setExampleFiles] = useState();
 
     const exampleId = `example-${name}`;
     const exampleHeight = options?.exampleHeight || DEFAULT_HEIGHT;
@@ -73,12 +76,10 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
             })
         ).then((res) => res.json())
     );
-    const files = data?.files || [];
 
-    // NOTE: Temporary way to get generated HTML
-    const { data: exampleFileHtml } = useQuery(['exampleFileHtml', internalFramework, pageName, exampleName], () =>
+    const { data: exampleFileHtml } = useQuery(['exampleHtml', internalFramework, pageName, exampleName], () =>
         fetch(
-            getPlunkrExampleUrl({
+            getExampleUrl({
                 internalFramework,
                 pageName,
                 exampleName,
@@ -101,7 +102,21 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
             return;
         }
         setInitialSelectedFile(data?.entryFileName);
-    }, [data, exampleFilesIsLoading]);
+    }, [data, exampleFilesIsLoading, exampleFilesIsError]);
+
+    // Override `index.html` with generated file as
+    // exampleFiles endpoint only gets the index html fragment
+    useEffect(() => {
+        if (!data || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
+            return;
+        }
+        const files = {
+            ...data.files,
+            'index.html': exampleFileHtml,
+        };
+
+        setExampleFiles(files);
+    }, [data, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
     useUpdateInternalFrameworkFromFramework(framework);
 
@@ -148,25 +163,22 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
 
                     <ul className={classnames('list-style-none', styles.externalLinks)}>
                         <li>
-                            <OpenInCTA type="newTab" href={exampleUrl} />
+                            <OpenInCTA type="newTab" href={exampleUrl!} />
                         </li>
                         {!options?.noPlunker && supportsPlunkr && (
                             <li>
-                                <OpenInCTA
-                                    type="plunker"
-                                    onClick={() => {
-                                        // Replace index.html with generated example file
-                                        const plunkrFiles = {
-                                            ...files,
-                                            'index.html': exampleFileHtml,
-                                        };
-                                        openPlunker({
-                                            title,
-                                            files: plunkrFiles,
-                                            fileToOpen: initialSelectedFile,
-                                        });
-                                    }}
-                                />
+                                {exampleFiles && (
+                                    <OpenInCTA
+                                        type="plunker"
+                                        onClick={() => {
+                                            openPlunker({
+                                                title,
+                                                files: exampleFiles,
+                                                fileToOpen: initialSelectedFile!,
+                                            });
+                                        }}
+                                    />
+                                )}
                             </li>
                         )}
                     </ul>
@@ -177,12 +189,12 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: exampleHeight, width: '100%' }}
                 >
-                    <ExampleIFrame isHidden={showCode} url={exampleUrl} />
-                    {!exampleFilesIsLoading && !exampleFilesIsError && (
+                    <ExampleIFrame isHidden={showCode} url={exampleUrl!} />
+                    {!exampleFilesIsLoading && !exampleFilesIsError && exampleFiles && (
                         <CodeViewer
                             id={exampleId}
                             isActive={showCode}
-                            files={files}
+                            files={exampleFiles}
                             initialSelectedFile={initialSelectedFile}
                             exampleType={exampleType}
                             internalFramework={internalFramework}
@@ -194,7 +206,7 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     );
 };
 
-export const ExampleRunner = (props) => {
+export const ExampleRunner = (props: any) => {
     return (
         <QueryClientProvider client={queryClient}>
             <ExampleRunnerInner {...props} />

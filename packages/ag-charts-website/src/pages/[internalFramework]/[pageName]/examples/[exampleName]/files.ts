@@ -1,6 +1,5 @@
 import { getCollection } from 'astro:content';
 import { getDocExamplePages } from '../../../../../utils/pages';
-import { getIsDev } from '../../../../../utils/env';
 import { getGeneratedContents } from '../../../../../features/examples-generator/examplesGenerator';
 import type { InternalFramework } from '../../../../../types/ag-grid';
 
