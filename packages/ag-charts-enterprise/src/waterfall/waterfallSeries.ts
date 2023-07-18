@@ -482,7 +482,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 datum,
                 cumulativeValue: cumulativeValue ?? 0,
                 xValue: xDatum,
-                yValue: rawValue,
+                yValue: value,
                 yKey,
                 xKey,
                 x: rect.x,
@@ -678,9 +678,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { formatter, tooltip, xName, yName, id: seriesId } = this;
-        const { datum, itemId, xValue, label } = nodeDatum;
-
-        const yValue = label.text;
+        const { datum, itemId, xValue, yValue } = nodeDatum;
 
         let format: any | undefined = undefined;
 
