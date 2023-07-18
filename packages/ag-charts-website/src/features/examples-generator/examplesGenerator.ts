@@ -7,7 +7,7 @@ import {
 } from './utils/fileUtils';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import fs from 'node:fs/promises';
-import { getOtherScriptFiles, type FileContents } from './utils/getOtherScriptFiles';
+import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getStyleFiles } from './utils/getStyleFiles';
 import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
