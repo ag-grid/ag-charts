@@ -62,6 +62,7 @@ export class AngleCrossLine extends PolarCrossLine {
         area.stroke = this.stroke;
         area.strokeOpacity = this.strokeOpacity ?? 1;
         area.strokeWidth = this.strokeWidth ?? 1;
+        area.lineDash = this.lineDash;
     }
 
     private updatePolygonNode(visible: boolean) {
