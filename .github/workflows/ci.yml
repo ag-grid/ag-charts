@@ -57,6 +57,7 @@ jobs:
             - name: Test Report
               uses: dorny/test-reporter@v1
               if: steps.test.outcome == 'success' || steps.test.outcome == 'failure'
+              continue-on-error: true
               with:
                   name: Tests Results
                   path: reports/*.xml
@@ -84,6 +85,11 @@ jobs:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
                   SLACK_USERNAME: GitHub Actions CI
+                  SLACK_MESSAGE: |
+                      Build: ${{ steps.build.outcome }}
+                      Lint: ${{ steps.lint.outcome }}
+                      Format: ${{ steps.format.outcome }}
+                      Test: ${{ steps.test.outcome }}
 
     format:
         runs-on: ubuntu-latest
