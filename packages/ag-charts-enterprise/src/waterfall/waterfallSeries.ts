@@ -741,14 +741,19 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
+<<<<<<< HEAD
         const { id, seriesItemTypes } = this;
+=======
+        const { id, seriesItemTypes, seriesItemEnabled } = this;
+>>>>>>> db3f037d (AG-8614 - Render legend items for positive, negative and total values)
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
-        function getLegendItemText(item: SeriesItemType, index: number, name?: string): string | undefined {
+        function getLegendItemText(item: SeriesItemType, name?: string): string | undefined {
             if (name !== undefined) {
                 return name;
             }
+<<<<<<< HEAD
 <<<<<<< HEAD
             return `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
 =======
@@ -760,12 +765,14 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             }
             return `${yName ?? yKey}-${index}`;
 >>>>>>> 3e2ea7c2 (AG-4337 - Fix highlight label zIndex and legend data)
+=======
+            return `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
+>>>>>>> db3f037d (AG-8614 - Render legend items for positive, negative and total values)
         }
 
-        let index = 0;
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, name } = this.getItemConfig(item);
-            const legendItemText = getLegendItemText(item, index, name);
+            const legendItemText = getLegendItemText(item, name);
             legendData.push({
                 legendType: 'category',
                 id,
@@ -782,7 +789,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     strokeOpacity: strokeOpacity,
                 },
             });
-            index++;
         });
 
         return legendData;
