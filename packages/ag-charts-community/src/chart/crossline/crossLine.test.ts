@@ -10,7 +10,7 @@ import {
     setupMockCanvas,
     waitForChartStability,
 } from '../test/utils';
-import type { AgCartesianChartOptions, AgCrossLineOptions, AgCrossLineLabelPosition } from '../agChartOptions';
+import type { AgCartesianChartOptions, AgCartesianCrossLineOptions, AgCrossLineLabelPosition } from '../agChartOptions';
 import { AgChart } from '../agChartV2';
 import * as examples from './test/examples';
 import type { Chart } from '../chart';
@@ -37,7 +37,7 @@ const labelPositions: AgCrossLineLabelPosition[] = [
     'insideBottomRight',
 ];
 
-const flipCrossLinesRange = (crossLineOptions: AgCrossLineOptions): AgCrossLineOptions => {
+const flipCrossLinesRange = (crossLineOptions: AgCartesianCrossLineOptions): AgCartesianCrossLineOptions => {
     const flippedRange: [any, any] = [crossLineOptions.range?.[1], crossLineOptions.range?.[0]];
     return {
         ...crossLineOptions,
@@ -46,9 +46,9 @@ const flipCrossLinesRange = (crossLineOptions: AgCrossLineOptions): AgCrossLineO
 };
 
 const applyCrossLinesLabelPosition = (
-    crossLineOptions: AgCrossLineOptions,
+    crossLineOptions: AgCartesianCrossLineOptions,
     position: AgCrossLineLabelPosition
-): AgCrossLineOptions => {
+): AgCartesianCrossLineOptions => {
     return {
         ...crossLineOptions,
         label: {

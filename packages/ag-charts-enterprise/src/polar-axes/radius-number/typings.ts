@@ -2,7 +2,8 @@ import type {
     AgBaseAxisOptions,
     AgAxisCaptionOptions,
     AgAxisNumberTickOptions,
-    AgCrossLineOptions,
+    AgBaseCrossLineOptions,
+    AgBaseCrossLineLabelOptions,
 } from 'ag-charts-community';
 
 export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
@@ -20,5 +21,11 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgCrossLineOptions[];
+    crossLines?: AgRadiusCrossLineOptions[];
+}
+
+export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}
+
+export interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
+    positionAngle?: number;
 }

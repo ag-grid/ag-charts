@@ -146,7 +146,7 @@ export interface AgHierarchyThemeOptions<S = AgHierarchySeriesTheme> extends AgB
     legend?: AgHierarchyChartLegendOptions;
 }
 
-export interface AgCrossLineThemeOptions extends Omit<AgCrossLineOptions, 'type'> {}
+export interface AgCrossLineThemeOptions extends Omit<AgBaseCrossLineOptions, 'type'> {}
 
 export interface AgCartesianAxesCrossLineThemeOptions {
     crossLines?: AgCrossLineThemeOptions;
@@ -788,14 +788,14 @@ export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions {
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgCrossLineOptions[];
+    crossLines?: AgCartesianCrossLineOptions[];
     /** If set to a non-zero value, the axis will have the specified thickness regardless of label size. */
     thickness?: PixelSize;
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
 }
 
-export interface AgCrossLineOptions {
+export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
     /** Whether or not to show the cross line. */
     enabled?: boolean;
     /** Type of cross line to render. */
@@ -817,10 +817,12 @@ export interface AgCrossLineOptions {
     /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
     lineDash?: PixelSize[];
     /** Configuration for the crossLine label. */
-    label?: AgCrossLineLabelOptions;
+    label?: LabelType;
 }
 
-export interface AgCrossLineLabelOptions {
+export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}
+
+export interface AgBaseCrossLineLabelOptions {
     /** Whether or not to show the cross line label. */
     enabled?: boolean;
     /** The text to show in the label. */
@@ -837,6 +839,9 @@ export interface AgCrossLineLabelOptions {
     padding?: PixelSize;
     /** The colour to use for the label. */
     color?: CssColor;
+}
+
+export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     /** The position of the crossLine label. */
     position?: AgCrossLineLabelPosition;
     /** The rotation of the crossLine label in degrees. */

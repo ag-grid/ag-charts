@@ -121,7 +121,7 @@ export class RadiusCrossLine extends PolarCrossLine {
         const fullRadius = scale?.range[0] ?? 0;
         const radius = fullRadius - scale!.convert(type === 'line' ? this.value : Math.max(...range!));
 
-        const angle = normalizeAngle360(toRadians((label.rotation ?? 0) - 90));
+        const angle = normalizeAngle360(toRadians((label.positionAngle ?? 0) - 90));
         const isBottomSide = (isNumberEqual(angle, 0) || angle > 0) && angle < Math.PI;
         const rotation = isBottomSide ? angle - Math.PI / 2 : angle + Math.PI / 2;
 

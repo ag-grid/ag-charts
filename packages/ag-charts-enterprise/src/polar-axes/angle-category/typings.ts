@@ -1,4 +1,4 @@
-import type { AgBaseAxisOptions, AgAxisCategoryTickOptions, AgCrossLineOptions } from 'ag-charts-community';
+import type { AgBaseAxisOptions, AgAxisCategoryTickOptions, AgBaseCrossLineOptions } from 'ag-charts-community';
 
 export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions {
     type: 'angle-category';
@@ -9,5 +9,7 @@ export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions {
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: number;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgCrossLineOptions[];
+    crossLines?: AgAngleCrossLineOptions[];
 }
+
+export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}

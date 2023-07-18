@@ -223,7 +223,7 @@ describe('Polar Axes', () => {
                             label: {
                                 text: 'Minimal\nRequirement',
                                 color: 'rgb(0, 64, 144)',
-                                rotation: 180,
+                                positionAngle: 180,
                                 fontWeight: 'bold',
                             },
                         },
@@ -254,7 +254,7 @@ describe('Polar Axes', () => {
                             label: {
                                 text: 'Minimal\nRequirement',
                                 color: 'rgb(0, 64, 144)',
-                                rotation: 180,
+                                positionAngle: 180,
                                 fontWeight: 'bold',
                             },
                         },
@@ -286,7 +286,7 @@ describe('Polar Axes', () => {
                             label: {
                                 text: 'Needs\nImprovement',
                                 color: 'rgb(144, 0, 64)',
-                                rotation: 210,
+                                positionAngle: 210,
                                 fontWeight: 'bold',
                             },
                         },
@@ -299,7 +299,7 @@ describe('Polar Axes', () => {
                             label: {
                                 text: 'Excellent',
                                 color: 'rgb(32, 128, 192)',
-                                rotation: 150,
+                                positionAngle: 150,
                                 fontWeight: 'bold',
                             },
                         },
@@ -332,7 +332,7 @@ describe('Polar Axes', () => {
                             label: {
                                 text: 'Needs\nImprovement',
                                 color: 'rgb(144, 0, 64)',
-                                rotation: 210,
+                                positionAngle: 210,
                                 fontWeight: 'bold',
                             },
                         },
@@ -345,7 +345,7 @@ describe('Polar Axes', () => {
                             label: {
                                 text: 'Excellent',
                                 color: 'rgb(32, 128, 192)',
-                                rotation: 150,
+                                positionAngle: 150,
                                 fontWeight: 'bold',
                             },
                         },
