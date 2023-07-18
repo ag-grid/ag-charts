@@ -15,7 +15,7 @@ export const openPlunker = ({
     form.action = `//plnkr.co/edit/?preview&open=${fileToOpen}`;
     form.target = '_blank';
 
-    const addHiddenInput = (name, value) => {
+    const addHiddenInput = (name: string, value: any) => {
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = name;
