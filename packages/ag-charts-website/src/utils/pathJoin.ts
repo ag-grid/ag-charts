@@ -28,6 +28,7 @@ export function pathJoin(...segments: (string | URL)[]): string {
             return segment !== '/';
         });
 
-    const firstSegmentHasSlash = segments[0]?.[0] === '/';
+    const [firstSegment] = segments as string[];
+    const firstSegmentHasSlash = firstSegment?.[0] === '/';
     return firstSegmentHasSlash ? `/${removedSlashes.join('/')}` : removedSlashes.join('/');
 }
