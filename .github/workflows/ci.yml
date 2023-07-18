@@ -78,6 +78,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
+              if: always()
               # if: always() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
