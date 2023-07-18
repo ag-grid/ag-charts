@@ -27,7 +27,6 @@ export class RadiusCrossLine extends PolarCrossLine {
         this.updatePolygonNode(visible);
         this.updateSectorNode(visible);
         this.updateLabelNode(visible);
-        this.group.translationY = this.getRadius();
         this.group.zIndex =
             this.type === 'line' ? RadiusCrossLine.LINE_LAYER_ZINDEX : RadiusCrossLine.RANGE_LAYER_ZINDEX;
     }

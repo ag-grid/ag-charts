@@ -10,12 +10,13 @@ const {
     GREATER_THAN,
     Layers,
     LESS_THAN,
+    NUMBER,
     NUMBER_OR_NAN,
     Validate,
 } = _ModuleSupport;
 const { LinearScale } = _Scale;
 const { Arc, Caption, Group, Path, Selection } = _Scene;
-const { normalisedExtent } = _Util;
+const { normalisedExtent, toRadians } = _Util;
 
 class RadiusNumberAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
@@ -36,6 +37,10 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
     @Validate(AND(NUMBER_OR_NAN(), GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
+
+    @Validate(NUMBER(-360, 360))
+    @Default(0)
+    positionAngle: number = 0;
 
     protected readonly gridArcGroup = this.gridGroup.appendChild(
         new Group({
@@ -71,17 +76,27 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
         return primaryTickCount;
     }
 
+    protected getAxisTransform() {
+        const maxRadius = this.scale.range[0];
+        const { translation, positionAngle } = this;
+        const rotation = toRadians(positionAngle);
+        return {
+            translationX: translation.x,
+            translationY: translation.y - maxRadius,
+            rotation,
+            rotationCenterX: 0,
+            rotationCenterY: maxRadius,
+        };
+    }
+
     private updateGridArcs() {
         const { scale, gridStyle, tick, shape } = this;
         if (!gridStyle) {
             return;
         }
 
-        const maxRadius = scale.range[0];
         const ticks = scale.ticks?.() || [];
         ticks.sort((a, b) => b - a); // Apply grid styles starting from the largest arc
-        this.gridArcGroup.translationY = maxRadius;
-        this.gridPolygonGroup.translationY = maxRadius;
 
         const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
             const style = gridStyle[index % gridStyle.length];

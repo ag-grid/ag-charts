@@ -47,13 +47,11 @@ export class PolarChart extends Chart {
                 const rotation = toRadians(axis.rotation ?? 0);
                 axis.range = [-Math.PI / 2 + rotation, (3 * Math.PI) / 2 + rotation];
                 axis.gridLength = radius;
-                axis.translation.x = cx;
-                axis.translation.y = cy;
             } else if (axis.direction === ChartAxisDirection.Y) {
                 axis.range = [radius, 0];
-                axis.translation.x = cx;
-                axis.translation.y = cy - radius;
             }
+            axis.translation.x = cx;
+            axis.translation.y = cy;
             axis.updateScale();
         });
 
