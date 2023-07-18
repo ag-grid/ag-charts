@@ -30,25 +30,26 @@ jobs:
             - id: yarn_install
               run: yarn install --ci
             - id: format
+              if: always()
               run: yarn nx format:check
-              continue-on-error: true
             - id: lint
+              if: always()
               run: yarn nx affected -t lint --parallel=3
-              continue-on-error: true
             - id: build
+              if: always()
               run: yarn nx affected -t build --parallel=3
-              continue-on-error: true
             - id: test
               if: steps.build.outcome == 'success'
               run: yarn nx affected -t test --configuration=ci
-              continue-on-error: true
             - id: results
+              if: always()
               run: |
                   echo ${{ steps.format.outcome }} > format.status
                   echo ${{ steps.lint.outcome }} > lint.status
                   echo ${{ steps.build.outcome }} > build.status
                   echo ${{ steps.test.outcome }} > test.status
             - uses: actions/upload-artifact@v3
+              if: always()
               with:
                   name: statuses
                   path: |
@@ -60,6 +61,28 @@ jobs:
                   name: Tests Results
                   path: reports/*.xml
                   reporter: jest-junit
+            - name: Check last job status
+              id: lastJobStatus
+              if: always() && github.ref == 'refs/heads/latest'
+              run: |
+                  LAST_JOB_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | head -1 | awk '{print $2}')
+                  THIS_JOB_STATUS="${{ job.status }}"
+                  if [ "$LAST_JOB_STATUS" != "$THIS_JOB_STATUS" ]; then
+                    echo "status changed from $LAST_JOB_STATUS to $THIS_JOB_STATUS"
+                    echo "::set-output name=changedState::true"
+                  else
+                    echo "status is still $THIS_JOB_STATUS"
+                    echo "::set-output name=changedState::false"
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Slack Notification
+              uses: rtCamp/action-slack-notify@v2
+              if: always() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+                  SLACK_USERNAME: GitHub Actions CI
 
     format:
         runs-on: ubuntu-latest
