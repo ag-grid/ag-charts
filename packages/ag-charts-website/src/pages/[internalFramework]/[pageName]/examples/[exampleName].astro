@@ -1,12 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
-import { getDocExamplePages, getExampleUrl, getBoilerPlateUrl } from '../../../../../utils/pages';
-import type { InternalFramework } from '../../../../../types/ag-grid';
-import JavascriptTemplate from '../../../../../features/example-runner/framework-templates/JavascriptTemplate.astro';
-import TypescriptTemplate from '../../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
-import { getGeneratedContents } from '../../../../../features/examples-generator/examplesGenerator';
-import { getIsDev } from '../../../../../utils/env';
-import { pathJoin } from '../../../../../utils/pathJoin';
+import { getDocExamplePages, getExampleUrl, getBoilerPlateUrl } from '../../../../utils/pages';
+import type { InternalFramework } from '../../../../types/ag-grid';
+import JavascriptTemplate from '../../../../features/example-runner/framework-templates/JavascriptTemplate.astro';
+import TypescriptTemplate from '../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
+import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
+import { getIsDev } from '../../../../utils/env';
+import { pathJoin } from '../../../../utils/pathJoin';
 
 const internalFramework = Astro.params.internalFramework! as InternalFramework;
 const pageName = Astro.params.pageName!;
