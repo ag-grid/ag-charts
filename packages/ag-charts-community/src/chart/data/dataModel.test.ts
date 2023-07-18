@@ -204,7 +204,7 @@ describe('DataModel', () => {
                 it('should extract the configured keys', () => {
                     const result = dataModel.processData(data);
 
-                    expect(result?.type).toEqual('ungrouped');
+                    expect(result?.type).toEqual('grouped');
                     expect(result?.data.length).toEqual(3);
                     expect(result?.data[0].keys).toEqual([2]);
                     expect(result?.data[1].keys).toEqual([3]);
