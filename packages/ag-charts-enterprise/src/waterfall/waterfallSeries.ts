@@ -740,7 +740,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, seriesItemTypes, yKey, yName } = this;
+        const { id, seriesItemTypes } = this;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
@@ -748,17 +748,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             if (name !== undefined) {
                 return name;
             }
-            switch (item) {
-                case 'positive':
-                    return 'Positive';
-                case 'negative':
-                    return 'Negative';
-                case 'subtotal':
-                case 'total':
-                    return 'Total';
-                default:
-                    return yName ?? yKey;
-            }
+            return `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
         }
 
         seriesItemTypes.forEach((item) => {
