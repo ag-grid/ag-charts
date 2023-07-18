@@ -18,10 +18,13 @@ jobs:
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - id: nx_affected_setup
-              uses: nrwl/nx-set-shas@v3
-              with:
-                  main-branch-name: 'latest'
+            - id: nx_config
+              run: |
+                  if [[ $(git branch --show-current) == 'latest' ]] ; then
+                    echo "::set-output name=base::latest-success"
+                  else
+                    echo "::set-output name=base::latest"
+                  fi
             - id: setup_node
               uses: actions/setup-node@v3
               with:
@@ -29,18 +32,24 @@ jobs:
                   cache: 'yarn'
             - id: yarn_install
               run: yarn install --ci
+
             - id: format
-              if: always()
+              name: nx format:check
+              if: steps.yarn_install.outcome == 'success'
               run: yarn nx format:check
             - id: lint
-              if: always()
-              run: yarn nx affected -t lint --parallel=3
+              name: nx lint
+              if: steps.yarn_install.outcome == 'success'
+              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
             - id: build
-              if: always()
-              run: yarn nx affected -t build --parallel=3
+              name: nx build
+              if: steps.yarn_install.outcome == 'success'
+              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
             - id: test
+              name: nx test
               if: steps.build.outcome == 'success'
-              run: yarn nx affected -t test --configuration=ci
+              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t test --configuration=ci
+
             - id: results
               if: always()
               run: |
