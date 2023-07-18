@@ -236,7 +236,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         };
 
         const typeKeyValue = (v: any) => {
-            return (v === 'total' || v === 'subtotal');
+            return v === 'total' || v === 'subtotal';
         };
 
         const propertyDefinition = {
