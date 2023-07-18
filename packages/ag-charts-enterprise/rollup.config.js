@@ -1,25 +1,11 @@
-module.exports = ({ output, ...config }) => {
-    if (!Array.isArray(output)) {
-        output = [output];
-    }
+const base = require('../../rollup.base');
 
-    return {
-        ...config,
-        output: [
-            ...output.map((o) => ({
-                ...o,
-                name: 'agChartsEnterprise',
-            })),
-            ...output.map(({ entryFileNames, chunkFileNames, ...opts }) => ({
-                ...opts,
-                name: 'agChartsEnterprise',
-                entryFileNames: entryFileNames.replace('[name]', '[name].umd'),
-                chunkFileNames: chunkFileNames.replace('[name]', '[name].umd'),
-                format: 'umd',
-                globals: {
-                    'ag-charts-community': 'agCharts',
-                },
-            })),
-        ],
-    };
+module.exports = (config) => {
+    return base('agChartsEnterprise', config, {
+        umd: {
+            globals: {
+                'ag-charts-community': 'agCharts',
+            },
+        },
+    });
 };
