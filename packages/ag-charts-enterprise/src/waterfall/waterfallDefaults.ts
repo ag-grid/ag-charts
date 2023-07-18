@@ -12,6 +12,7 @@ export const WATERFALL_COLUMN_DEFAULTS: AgCartesianChartOptions = {
         },
     ],
     legend: {
+        enabled: true,
         item: {
             toggleSeriesVisible: false,
         },
@@ -30,6 +31,7 @@ export const WATERFALL_BAR_DEFAULTS: AgCartesianChartOptions = {
         },
     ],
     legend: {
+        enabled: true,
         item: {
             toggleSeriesVisible: false,
         },
