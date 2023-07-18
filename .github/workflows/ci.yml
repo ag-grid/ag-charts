@@ -20,8 +20,14 @@ jobs:
                   fetch-depth: 0
             - id: nx_affected_setup
               uses: nrwl/nx-set-shas@v3
+              if: github.ref != 'refs/heads/latest'
               with:
                   main-branch-name: 'latest'
+            - id: nx_affected_setup_latest
+              uses: nrwl/nx-set-shas@v3
+              if: github.ref == 'refs/heads/latest'
+              with:
+                  workflow-id: .github/workflows/ci.yml
             - id: setup_node
               uses: actions/setup-node@v3
               with:
