@@ -186,6 +186,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
+            hasHighlightedLabels: true,
         });
 
         this.label.enabled = false;
@@ -744,7 +745,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
-        function getLegendItemText(item: SeriesItemType, name?: string): string | undefined {
+        function getLegendItemText(item: SeriesItemType, index: number, name?: string): string | undefined {
             if (name !== undefined) {
                 return name;
             }
@@ -757,13 +758,14 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 case 'total':
                     return 'Total';
                 default:
-                    return yName ?? yKey;
+                    return `${yName ?? yKey}-${index}`;
             }
         }
 
+        let index = 0;
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, name } = this.getItemConfig(item);
-            const legendItemText = getLegendItemText(item, name);
+            const legendItemText = getLegendItemText(item, index, name);
             legendData.push({
                 legendType: 'category',
                 id,
@@ -780,6 +782,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     strokeOpacity: strokeOpacity,
                 },
             });
+            index++;
         });
 
         return legendData;
