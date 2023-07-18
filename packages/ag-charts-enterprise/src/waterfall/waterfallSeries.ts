@@ -235,6 +235,10 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             return isContinuous(v) && v < 0;
         };
 
+        const typeKeyValue = (v: any) => {
+            return (v === 'total' || v === 'subtotal');
+        };
+
         const propertyDefinition = {
             missingValue: undefined,
             invalidValue: undefined,
@@ -267,7 +271,15 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     id: `yPrevious`,
                 }),
                 valueProperty(this, yKey, true, { id: `yRaw` }), // Raw value pass-through.
-                ...(typeKey ? [valueProperty(this, typeKey, false, { id: `typeValue`, missingValue: undefined })] : []),
+                ...(typeKey
+                    ? [
+                          valueProperty(this, typeKey, false, {
+                              id: `typeValue`,
+                              missingValue: undefined,
+                              validation: typeKeyValue,
+                          }),
+                      ]
+                    : []),
             ],
             dataVisible: this.visible,
         });
