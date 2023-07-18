@@ -62,6 +62,12 @@ jobs:
                   name: Tests Results
                   path: reports/*.xml
                   reporter: jest-junit
+            - name: Tag Latest Successful Commit
+              if: success() && github.ref == 'refs/heads/latest'
+              uses: EndBug/latest-tag@latest
+              with:
+                  ref: latest-success
+                  description: Latest commit to pass GitHub Actions workflow on latest branch.
             - name: Check last job status
               id: lastJobStatus
               if: always() && github.ref == 'refs/heads/latest'
