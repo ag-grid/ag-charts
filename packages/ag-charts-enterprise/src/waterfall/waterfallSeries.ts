@@ -741,31 +741,20 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, seriesItemTypes, yKey, yName } = this;
+        const { id, seriesItemTypes } = this;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
-        function getLegendItemText(item: SeriesItemType, index: number, name?: string): string | undefined {
+        function getLegendItemText(item: SeriesItemType, name?: string): string | undefined {
             if (name !== undefined) {
                 return name;
             }
-            switch (item) {
-                case 'positive':
-                    return 'Positive';
-                case 'negative':
-                    return 'Negative';
-                case 'subtotal':
-                case 'total':
-                    return 'Total';
-                default:
-                    return `${yName ?? yKey}-${index}`;
-            }
+            return `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
         }
 
-        let index = 0;
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, name } = this.getItemConfig(item);
-            const legendItemText = getLegendItemText(item, index, name);
+            const legendItemText = getLegendItemText(item, name);
             legendData.push({
                 legendType: 'category',
                 id,
@@ -782,7 +771,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     strokeOpacity: strokeOpacity,
                 },
             });
-            index++;
         });
 
         return legendData;
