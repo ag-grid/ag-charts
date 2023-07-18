@@ -186,6 +186,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
+            hasHighlightedLabels: true,
         });
 
         this.label.enabled = false;
