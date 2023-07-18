@@ -27,7 +27,7 @@ jobs:
               uses: nrwl/nx-set-shas@v3
               if: github.ref == 'refs/heads/latest'
               with:
-                  workflow-id: .github/workflows/ci.yml
+                  main-branch-name: 'latest-success'
             - id: setup_node
               uses: actions/setup-node@v3
               with:
