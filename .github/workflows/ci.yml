@@ -56,7 +56,7 @@ jobs:
                       *.status
             - name: Test Report
               uses: dorny/test-reporter@v1
-              if: success() || failure() # run this step even if previous step failed
+              if: steps.test.outcome == 'success' || steps.test.outcome == 'failure'
               with:
                   name: Tests Results
                   path: reports/*.xml
