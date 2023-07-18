@@ -8,19 +8,6 @@ Prerequisites:
 1. Install all dependencies: `yarn install`
 2. [Optional] Install the [Nx Console VS Code extension](https://marketplace.visualstudio.com/items?itemName=nrwl.angular-console) to run Nx commands within VS Code
 
-## Development in a VSCode Devcontainer (includes all test dependencies)
-
--   Install [Docker Desktop](https://www.docker.com/products/docker-desktop).
--   Install [VSCode](https://code.visualstudio.com/).
-    -   Install the [Remote-Containers extension](vscode:extension/ms-vscode-remote.remote-containers).
--   Launch the container:
-    -   Open VSCode.
-    -   Open the command-palette (`CMD`+`SHIFT`+`P`).
-    -   Choose `Remote-Containers: Clone Repository in Container Volume...`.
-    -   Choose `Clone a repository from GitHub in a Container Volume`.
-    -   Enter `ag-grid/ag-charts`.
-    -   Choose `latest` branch.
-
 ### Common commands
 
 | Command     | Description                         |
