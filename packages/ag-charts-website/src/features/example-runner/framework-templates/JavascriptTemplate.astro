@@ -41,8 +41,8 @@ import { pathJoin } from '../../../utils/pathJoin';
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 
 const isEnterprise = options.enterprise;
-const chartScriptPath = getChartScriptPath(siteUrl);
-const chartScriptEnterprisePath = getChartEnterpriseScriptPath(siteUrl);
+const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
+const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
 ---
 
 <html lang="en">
