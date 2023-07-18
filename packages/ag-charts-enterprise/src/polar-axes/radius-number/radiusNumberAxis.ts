@@ -40,7 +40,7 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
 
     @Validate(NUMBER(-360, 360))
     @Default(0)
-    position: number = 0;
+    positionAngle: number = 0;
 
     protected readonly gridArcGroup = this.gridGroup.appendChild(
         new Group({
@@ -78,8 +78,8 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
 
     protected getAxisTransform() {
         const maxRadius = this.scale.range[0];
-        const { translation, position } = this;
-        const rotation = toRadians(position);
+        const { translation, positionAngle } = this;
+        const rotation = toRadians(positionAngle);
         return {
             translationX: translation.x,
             translationY: translation.y - maxRadius,
