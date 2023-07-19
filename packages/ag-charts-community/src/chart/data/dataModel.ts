@@ -487,10 +487,7 @@ export class DataModel<
                 if (matchIds && (def.id == null || !matchIds.includes(def.id))) {
                     return false;
                 }
-                if (matchScopes && (def.scopes == null || !matchScopes.some((s) => def.scopes?.includes(s)))) {
-                    return false;
-                }
-                return true;
+                return !(matchScopes && (def.scopes == null || !matchScopes.some((s) => def.scopes?.includes(s))));
             })
             .map(({ index }) => index);
     }

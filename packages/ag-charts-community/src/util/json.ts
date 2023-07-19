@@ -36,6 +36,8 @@ type DeepPartial<T> = {
           };
 };
 
+const CLASS_INSTANCE_TYPE = 'class-instance';
+
 /**
  * Performs a JSON-diff between a source and target JSON structure.
  *
@@ -119,7 +121,7 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
             continue;
         }
 
-        if (rhsType === 'class-instance') {
+        if (rhsType === CLASS_INSTANCE_TYPE) {
             // Don't try to do anything tricky with array diffs!
             take(rhs[prop]);
             continue;
@@ -302,7 +304,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             const newValueType = classify(newValue);
 
             if (
-                targetType === 'class-instance' &&
+                targetType === CLASS_INSTANCE_TYPE &&
                 !(property in target || Object.prototype.hasOwnProperty.call(targetAny, property))
             ) {
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
@@ -310,7 +312,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             }
 
             const allowableTypes = allowedTypes[propertyMatcherPath] ?? [currentValueType];
-            if (currentValueType === 'class-instance' && newValueType === 'object') {
+            if (currentValueType === CLASS_INSTANCE_TYPE && newValueType === 'object') {
                 // Allowed, this is the common case! - do not error.
             } else if (currentValueType != null && newValueType != null && !allowableTypes.includes(newValueType)) {
                 Logger.warn(
@@ -334,7 +336,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 } else {
                     targetAny[property] = newValue;
                 }
-            } else if (newValueType === 'class-instance') {
+            } else if (newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
             } else if (newValueType === 'object') {
                 if (currentValue != null) {
@@ -432,7 +434,7 @@ function classify(value: any): 'array' | 'object' | 'function' | 'primitive' | '
     } else if (typeof value === 'function') {
         return 'function';
     } else if (typeof value === 'object' && value.constructor != null) {
-        return 'class-instance';
+        return CLASS_INSTANCE_TYPE;
     }
 
     return 'primitive';

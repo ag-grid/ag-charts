@@ -68,10 +68,8 @@ export class BackgroundImage {
             } else if (right != null) {
                 width = this.containerWidth - left - right;
             }
-        } else if (right != null) {
-            if (width != null) {
-                left = this.containerWidth - right - width;
-            }
+        } else if (right != null && width != null) {
+            left = this.containerWidth - right - width;
         }
         if (top != null) {
             if (height != null) {
@@ -79,10 +77,8 @@ export class BackgroundImage {
             } else if (bottom != null) {
                 height = this.containerHeight - bottom - top;
             }
-        } else if (bottom != null) {
-            if (height != null) {
-                top = this.containerHeight - bottom - height;
-            }
+        } else if (bottom != null && height != null) {
+            top = this.containerHeight - bottom - height;
         }
 
         // If width and height still undetermined, derive them from natural size.

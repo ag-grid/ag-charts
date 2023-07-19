@@ -261,10 +261,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { axisCtx } = this;
         const { datum, xKey = '', yKey = '', aggregatedValue, series, cumulativeValue, nodeMidPoint } = activeHighlight;
         const halfBandwidth = axisCtx.scaleBandwidth() / 2;
-        if (aggregatedValue !== undefined) {
-            if (series.yAxis.id === axisCtx.axisId) {
-                return { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth };
-            }
+        if (aggregatedValue !== undefined && series.yAxis.id === axisCtx.axisId) {
+            return { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth };
         }
 
         const isYValue = axisCtx.keys().indexOf(yKey) >= 0;
@@ -290,9 +288,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
                 value,
                 fractionDigits,
             };
-            if (labelRenderer) {
-                return label.toLabelHtml(labelRenderer(params), defaults);
-            }
+            return label.toLabelHtml(labelRenderer(params), defaults);
         }
 
         return label.toLabelHtml(defaults);

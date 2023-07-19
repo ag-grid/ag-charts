@@ -28,9 +28,7 @@ function isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum) {
     if (a === b) return true;
     if (a?.series !== b?.series) return false;
     if (a?.itemId !== b?.itemId) return false;
-    if (a?.datum !== b?.datum) return false;
-
-    return true;
+    return !(a?.datum !== b?.datum);
 }
 
 /**

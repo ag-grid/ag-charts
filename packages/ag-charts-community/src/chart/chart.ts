@@ -290,6 +290,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this._lastAutoSize = [width, height];
             this.resize();
         });
+        // eslint-disable-next-line sonarjs/no-duplicate-string
         this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect));
         this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect));
 

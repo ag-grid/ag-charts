@@ -105,6 +105,8 @@ type DeepPartial<T, N extends DeepPartialDepth[number] = 5> = [N] extends [never
  * @docsInterface
  */
 export abstract class AgChart {
+    private static readonly INVALID_CHART_REF_MESSAGE = 'AG Charts - invalid chart reference passed';
+
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
@@ -123,7 +125,7 @@ export abstract class AgChart {
      */
     public static update(chart: AgChartInstance, options: AgChartOptions) {
         if (!AgChartInstanceProxy.isInstance(chart)) {
-            throw new Error('AG Charts - invalid chart reference passed');
+            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
         AgChartInternal.createOrUpdate(options as any, chart);
     }
@@ -139,7 +141,7 @@ export abstract class AgChart {
      */
     public static updateDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>) {
         if (!AgChartInstanceProxy.isInstance(chart)) {
-            throw new Error('AG Charts - invalid chart reference passed');
+            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
         return AgChartInternal.updateUserDelta(chart, deltaOptions as any);
     }
@@ -149,7 +151,7 @@ export abstract class AgChart {
      */
     public static download(chart: AgChartInstance, options?: DownloadOptions) {
         if (!(chart instanceof AgChartInstanceProxy)) {
-            throw new Error('AG Charts - invalid chart reference passed');
+            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
         return AgChartInternal.download(chart, options);
     }
@@ -159,7 +161,7 @@ export abstract class AgChart {
      */
     public static getImageDataURL(chart: AgChartInstance, options?: ImageDataUrlOptions): Promise<string> {
         if (!(chart instanceof AgChartInstanceProxy)) {
-            throw new Error('AG Charts - invalid chart reference passed');
+            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
         return AgChartInternal.getImageDataURL(chart, options);
     }
@@ -187,12 +189,7 @@ class AgChartInstanceProxy implements AgChartInstance {
         const heuristicTypeCheck = Object.keys(AgChartInstanceProxy.prototype).every((prop) =>
             signatureProps.includes(prop)
         );
-        if (heuristicTypeCheck && x.chart != null) {
-            // minimised code case - the constructor name is mangled but prototype names are not :P
-            return true;
-        }
-
-        return false;
+        return !!(heuristicTypeCheck && x.chart != null);
     }
 
     constructor(chart: Chart) {

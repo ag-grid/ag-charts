@@ -112,9 +112,7 @@ export class Group extends Node {
 
         // Downgrade dirty-ness percolated to parent in special cases.
         let parentType = type;
-        if (type < RedrawType.MINOR) {
-            parentType = RedrawType.TRIVIAL;
-        } else if (this.layer != null) {
+        if (type < RedrawType.MINOR || this.layer != null) {
             parentType = RedrawType.TRIVIAL;
         }
 

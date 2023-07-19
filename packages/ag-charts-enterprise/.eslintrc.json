@@ -2,15 +2,7 @@
   "extends": ["../../.eslintrc.json", "plugin:sonarjs/recommended"],
   "ignorePatterns": ["!**/*"],
   "rules": {
-    "sonarjs/cognitive-complexity": 0,
-    "sonarjs/no-duplicate-string": 1,
-    "sonarjs/no-collapsible-if": 1,
-    "sonarjs/prefer-immediate-return": 1,
-    "sonarjs/prefer-single-boolean-return": 1,
-    "sonarjs/no-duplicated-branches": 1,
-    "sonarjs/no-small-switch": 1,
-    "sonarjs/no-nested-template-literals": 1,
-    "sonarjs/no-gratuitous-expressions": 1
+    "sonarjs/cognitive-complexity": 0
   },
   "overrides": [
     {
@@ -18,16 +10,19 @@
       "rules": {}
     },
     {
-      "files": ["*.ts", "*.tsx"],
-      "rules": {}
+      "files": ["*.test.ts", "*.test.tsx", "**/test/*.ts"],
+      "rules": {
+        "sonarjs/no-duplicate-string": 0
+      }
     },
     {
       "files": ["*.js", "*.jsx"],
       "rules": {}
     },
     {
-      "files": ["packages/ag-charts-enterprise/src/license/*.ts"],
+      "files": ["packages/ag-charts-community/tools/*.ts"],
       "rules": {
+        "@typescript-eslint/consistent-type-imports": 0,
         "no-console": 0
       }
     }

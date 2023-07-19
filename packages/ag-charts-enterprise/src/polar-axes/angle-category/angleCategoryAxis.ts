@@ -35,9 +35,7 @@ function loopSymmetrically<T>(items: T[], step: number, iterator: (prev: T, next
     const midIndex = Math.floor(items.length / 2);
 
     if (loop(step, midIndex, step, iterator)) return true;
-    if (loop(items.length - step, midIndex, -step, iterator)) return true;
-
-    return false;
+    return loop(items.length - step, midIndex, -step, iterator);
 }
 
 export class AngleCategoryAxis extends _ModuleSupport.PolarAxis {

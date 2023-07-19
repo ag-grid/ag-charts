@@ -49,11 +49,11 @@ export class SizeMonitor {
     }
 
     private static checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
-        if (entry) {
-            if (!entry.size || width !== entry.size.width || height !== entry.size.height) {
-                entry.size = { width, height };
-                entry.cb(entry.size, element);
-            }
+        if (!entry) return;
+
+        if (!entry.size || width !== entry.size.width || height !== entry.size.height) {
+            entry.size = { width, height };
+            entry.cb(entry.size, element);
         }
     }
 

@@ -40,12 +40,13 @@ type LayoutProcessor = (ctx: LayoutContext) => LayoutResult;
 
 type Handler<T extends EventTypes> = T extends LayoutStage ? LayoutProcessor : LayoutListener;
 
+const layoutComplete = 'layout-complete';
 function isLayoutStage(t: EventTypes): t is LayoutStage {
-    return t !== 'layout-complete';
+    return t !== layoutComplete;
 }
 
 function isLayoutComplete(t: EventTypes): t is 'layout-complete' {
-    return t === 'layout-complete';
+    return t === layoutComplete;
 }
 
 export class LayoutService {
@@ -78,6 +79,6 @@ export class LayoutService {
     }
 
     public dispatchLayoutComplete(event: LayoutCompleteEvent) {
-        this.listeners.dispatch('layout-complete', event);
+        this.listeners.dispatch(layoutComplete, event);
     }
 }
