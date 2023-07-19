@@ -20,6 +20,11 @@
       "options": {
         "lintFilePatterns": ["packages/ag-charts-community-examples/**/*.ts"],
         "eslintConfig": "packages/ag-charts-community-examples/.eslintrc.json"
+      },
+      "configurations": {
+        "fix": {
+          "fix": true
+        }
       }
     },
     "test": {

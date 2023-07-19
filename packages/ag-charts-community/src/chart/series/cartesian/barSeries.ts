@@ -302,9 +302,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         const maxBands = Math.floor(range); // A minimum of 1px per bar/column means the maximum number of bands will equal the available range
         const bands = Math.min(intervals, maxBands);
 
-        const step = range / Math.max(1, bands);
-
-        return step;
+        return range / Math.max(1, bands);
     }
 
     async createNodeData() {

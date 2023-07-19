@@ -132,8 +132,7 @@ export function axisLabelsOverlap(data: readonly PointLabelDatum[], padding?: nu
         height += padding ?? 0;
 
         const overlapLabels = result.some((l: PlacedLabel) => {
-            const overlap = rectRectOverlap(l, x, y, width, height);
-            return overlap;
+            return rectRectOverlap(l, x, y, width, height);
         });
 
         if (overlapLabels) {
