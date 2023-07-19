@@ -49,7 +49,7 @@ jobs:
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success'
-              run: yarn nx format:check
+              run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
             - name: nx lint
               id: lint
               if: steps.yarn_install.outcome == 'success'
