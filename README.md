@@ -10,19 +10,32 @@
 # AG Charts
 
 AG Charts is a fully-featured and highly customizable JavaScript charting library.
-It delivers [outstanding performance](https://www.ag-grid.com/example?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github), has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://www.ag-grid.com/javascript-data-grid/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
 
 ## Features
 
-TBC
+Here are some of the features that make AG Charts stand out:
 
-\* The features marked with an asterisk are available in the [Enterprise version](https://www.ag-grid.com/license-pricing?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
+-   modern, lightweight and performant
+-   thin, easy-to-use wrappers for all popular frameworks: React, Angular, Vue
+-   framework agnostic, easy to use from plain JavaScript or TypeScript
+-   zero dependencies
+-   support for all common chart types:
+    -   Line Charts
+    -   Bar/Column Charts
+    -   Area Charts
+    -   Scatter/Bubble Charts
+    -   Pie/Doughnut Charts
+-   reactive - property changes are automatically batched to take effect on next frame
+-   simple, clean API
+-   interactive documentation
 
-Check out the [developer documentation](https://www.ag-grid.com/documentation/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features, tutorials and demos.
+Visit [our official docs](https://www.ag-grid.com/javascript-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) for full documentation.
 
 ## Looking for a framework specific solution?
 
-TBC
+-   [Get Started with Angular](https://www.ag-grid.com/angular-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
+-   [Get Started with React](https://www.ag-grid.com/react-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
+-   [Get Started with Vue](https://www.ag-grid.com/vue-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
 
 ## Getting started
 
@@ -32,7 +45,9 @@ TBC
 $ npm install --save ag-charts-community
 ```
 
-TBC
+### Usage
+
+Please refer to our [Getting Started](https://www.ag-grid.com/javascript-charts/getting-started/) Tutorial.
 
 ## Issue Reporting
 
