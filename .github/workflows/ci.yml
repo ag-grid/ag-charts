@@ -15,25 +15,21 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
                   status: queued
             - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: lint
                   status: queued
             - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
                   status: queued
             - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: test
@@ -73,6 +69,11 @@ jobs:
               id: yarn_install
               run: yarn install --ci --prefer-offline
 
+            - uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: format
+                  status: in_progress
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -83,9 +84,12 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
                   conclusion: ${{ steps.format.outcome }}
-                  output: |
-                      {"summary":"${{ steps.format.outputs.summary }}"}
 
+            - uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: lint
+                  status: in_progress
             - name: nx lint
               id: lint
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -96,9 +100,12 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: lint
                   conclusion: ${{ steps.lint.outcome }}
-                  output: |
-                      {"summary":"${{ steps.lint.outputs.summary }}"}
 
+            - uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: build
+                  status: in_progress
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -109,9 +116,12 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
                   conclusion: ${{ steps.build.outcome }}
-                  output: |
-                      {"summary":"${{ steps.build.outputs.summary }}"}
 
+            - uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: test
+                  status: in_progress
             - name: nx test
               id: test
               if: steps.build.outcome == 'success'
@@ -122,8 +132,6 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: test
                   conclusion: ${{ steps.test.outcome }}
-                  output: |
-                      {"summary":"${{ steps.test.outputs.summary }}"}
 
             - name: Generate Test Report
               uses: dorny/test-reporter@v1
