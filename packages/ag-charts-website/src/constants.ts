@@ -44,7 +44,7 @@ export const SITE_BASE_URL = import.meta.env.BASE_URL;
 /**
  * URL prefix to serve files for dev server
  */
-export const localPrefix = `${SITE_BASE_URL}dev`;
+export const DEV_FILE_BASE_PATH = '/dev';
 
 const siteBaseUrlSegments = SITE_BASE_URL.split('/').filter(Boolean).length;
 export const FRAMEWORK_PATH_INDEX = 1 + siteBaseUrlSegments;

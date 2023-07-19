@@ -1,6 +1,7 @@
 import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import { useCallback, type FunctionComponent } from 'react';
 import { openPlunker } from '../utils/plunkr';
+import { fetchTextFile } from '../utils/fetchTextFile';
 import type { FileContents } from '../../examples-generator/types';
 import { getExampleUrlWithRelativePath } from '../../../utils/pages';
 import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-grid';
@@ -8,6 +9,7 @@ import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-
 interface Props {
     title: string;
     files: FileContents;
+    boilerPlateFiles?: FileContents;
     fileToOpen: string;
     internalFramework: InternalFramework;
     pageName: string;
@@ -17,6 +19,7 @@ interface Props {
 export const OpenInPlunkr: FunctionComponent<Props> = ({
     title,
     files,
+    boilerPlateFiles,
     fileToOpen,
     internalFramework,
     pageName,
@@ -26,13 +29,13 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({
      * Get Plunkr HTML files, which requires relative paths
      */
     const getPlunkrHtml = useCallback(async () => {
-        const plunkrHtml = await fetch(
+        const plunkrHtml = await fetchTextFile(
             getExampleUrlWithRelativePath({
                 internalFramework,
                 pageName,
                 exampleName,
             })
-        ).then((res) => res.text());
+        );
 
         return plunkrHtml;
     }, [internalFramework, pageName, exampleName]);
@@ -44,6 +47,7 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({
                 const plunkrHtml = await getPlunkrHtml();
                 const plunkrExampleFiles = {
                     ...files,
+                    ...boilerPlateFiles,
                     'index.html': plunkrHtml,
                 };
                 openPlunker({

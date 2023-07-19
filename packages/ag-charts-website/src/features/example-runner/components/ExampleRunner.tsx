@@ -52,6 +52,7 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
+    const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
 
     const exampleId = `example-${name}`;
     const exampleHeight = options?.exampleHeight || DEFAULT_HEIGHT;
@@ -60,8 +61,8 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     const id = `example-${name}`;
     const minHeight = `${exampleHeight + FRAME_WRAPPER_HEIGHT}px`;
 
-    // NOTE: Plunkr only works for vanilla examples for now
-    const supportsPlunkr = internalFramework === 'vanilla';
+    // NOTE: Plunkr only works for these internal frameworks for now
+    const supportsPlunkr = ['vanilla', 'typescript'].includes(internalFramework);
 
     const {
         isLoading: exampleFilesIsLoading,
@@ -116,6 +117,7 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
         };
 
         setExampleFiles(files);
+        setExampleBoilerPlateFiles(data.boilerPlateFiles);
     }, [data, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
     useUpdateInternalFrameworkFromFramework(framework);
@@ -170,6 +172,7 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
                                 <OpenInPlunkr
                                     title={title}
                                     files={exampleFiles}
+                                    boilerPlateFiles={exampleBoilerPlateFiles}
                                     fileToOpen={initialSelectedFile!}
                                     internalFramework={internalFramework}
                                     pageName={pageName}

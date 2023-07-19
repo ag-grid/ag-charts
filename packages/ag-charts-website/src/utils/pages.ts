@@ -5,7 +5,7 @@ import {
     TYPESCRIPT_INTERNAL_FRAMEWORKS,
     SITE_BASE_URL,
     FRAMEWORK_PATH_INDEX,
-    localPrefix,
+    DEV_FILE_BASE_PATH,
 } from '../constants';
 import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
 import type { InternalFramework, Library } from '../types/ag-grid';
@@ -62,15 +62,15 @@ export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
 };
 
 /**
- * The dist url where packages are generated
+ * The root url where the monorepo exists
  */
 const getRootUrl = (): URL => {
-    const distRoot = getIsDev()
+    const root = getIsDev()
         ? // Relative to the folder of this file
           '../../../../'
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
           '../../../../../';
-    return new URL(distRoot, import.meta.url);
+    return new URL(root, import.meta.url);
 };
 
 export const urlWithBaseUrl = (url: string = '') => {
@@ -218,7 +218,7 @@ export const getExampleFileUrl = ({
 };
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
-    return pathJoin(localPrefix, filePath);
+    return pathJoin(DEV_FILE_BASE_PATH, filePath);
 };
 
 export const getDevFileList = () => {
@@ -228,6 +228,9 @@ export const getDevFileList = () => {
     });
 };
 
+/**
+ * Get url of example boiler plate files
+ */
 export const getBoilerPlateUrl = ({
     library,
     internalFramework,
