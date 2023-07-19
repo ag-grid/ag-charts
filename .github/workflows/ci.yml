@@ -15,24 +15,28 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - id: init_format
+              name: Update Status
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
                   status: queued
             - id: init_lint
+              name: Update Status
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: lint
                   status: queued
             - id: init_build
+              name: Update Status
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
                   status: queued
             - id: init_test
+              name: Update Status
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -73,7 +77,8 @@ jobs:
               id: yarn_install
               run: yarn install --ci --prefer-offline
 
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_format.outputs.check_id }}
@@ -82,14 +87,16 @@ jobs:
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_format.outputs.check_id }}
                   conclusion: ${{ steps.format.outcome }}
 
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_lint.outputs.check_id }}
@@ -98,14 +105,16 @@ jobs:
               id: lint
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_lint.outputs.check_id }}
                   conclusion: ${{ steps.lint.outcome }}
 
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_build.outputs.check_id }}
@@ -114,14 +123,16 @@ jobs:
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
 
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_test.outputs.check_id }}
@@ -130,7 +141,8 @@ jobs:
               id: test
               if: steps.build.outcome == 'success'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t test --configuration=ci
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
