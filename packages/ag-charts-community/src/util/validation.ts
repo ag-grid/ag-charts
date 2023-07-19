@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { Color } from './color';
 import { addTransformToInstanceProperty, BREAK_TRANSFORM_CHAIN } from './decorator';
 import { Logger } from './logger';
@@ -145,11 +146,10 @@ export const OPT_COLOR_STRING_ARRAY = predicateWithMessage(
     `expecting an optional Array of color strings. ${colorMessage}`
 );
 
-const NUMBER_LESS_THAN_STR = ', more than or equal to ';
-const NUMBER_MORE_THAN_STR = ', less than or equal to ';
 export function NUMBER(min?: number, max?: number) {
     const message = `expecting a finite Number${
-        (min !== undefined ? NUMBER_LESS_THAN_STR + min : '') + (max !== undefined ? NUMBER_MORE_THAN_STR + max : '')
+        (min !== undefined ? ', more than or equal to ' + min : '') +
+        (max !== undefined ? ', less than or equal to ' + max : '')
     }`;
     return predicateWithMessage(
         (v: any) =>
@@ -162,7 +162,8 @@ export function NUMBER(min?: number, max?: number) {
 }
 export function OPT_NUMBER(min?: number, max?: number) {
     const message = `expecting an optional finite Number${
-        (min !== undefined ? NUMBER_LESS_THAN_STR + min : '') + (max !== undefined ? NUMBER_MORE_THAN_STR + max : '')
+        (min !== undefined ? ', more than or equal to ' + min : '') +
+        (max !== undefined ? ', less than or equal to ' + max : '')
     }`;
     return predicateWithMessage((v: any, ctx) => OPTIONAL(v, ctx, NUMBER(min, max)), message);
 }
@@ -170,7 +171,8 @@ export function OPT_NUMBER(min?: number, max?: number) {
 export function NUMBER_OR_NAN(min?: number, max?: number) {
     // Can be NaN or finite number
     const message = `expecting a finite Number${
-        (min !== undefined ? NUMBER_LESS_THAN_STR + min : '') + (max !== undefined ? NUMBER_MORE_THAN_STR + max : '')
+        (min !== undefined ? ', more than or equal to ' + min : '') +
+        (max !== undefined ? ', less than or equal to ' + max : '')
     }`;
 
     return predicateWithMessage(
