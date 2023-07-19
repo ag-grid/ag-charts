@@ -21,9 +21,9 @@ jobs:
             - id: nx_config
               run: |
                   if [[ $(git branch --show-current) == 'latest' ]] ; then
-                    echo "::set-output name=base::latest-success"
+                    echo "base=latest-success" >> $GITHUB_OUTPUT
                   else
-                    echo "::set-output name=base::latest"
+                    echo "base=latest" >> $GITHUB_OUTPUT
                   fi
             - id: setup_node
               uses: actions/setup-node@v3
