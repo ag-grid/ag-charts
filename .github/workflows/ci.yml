@@ -27,13 +27,8 @@ jobs:
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
                   fi
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v3
-              with:
-                  node-version: '18'
-                  cache: 'yarn'
             - name: Cache node modules
+              id: cache
               uses: actions/cache@v3
               with:
                   path: |
@@ -41,10 +36,25 @@ jobs:
                       packages/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+            - name: Setup Node.js (Cached)
+              if: steps.cache.outputs.cache-hit != 'true'
+              id: setup_node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - name: Setup Node.js (No Cache)
+              if: steps.cache.outputs.cache-hit == 'true'
+              id: setup_node_no_cache
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
 
             - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: yarn install --ci
+              run: yarn install --ci --prefer-offline
 
             - name: nx format:check
               id: format
