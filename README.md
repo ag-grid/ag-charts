@@ -1,4 +1,4 @@
-> ** Note **
+> **Note**
 > We are currently getting everything setup here for our next major release - the [`ag-grid` repository](https://github.com/ag-grid/ag-grid) hosts current and historic releases of `ag-charts-community`, please follow support procedures in that repository for now.
 
 ![AG Charts canvas-based charting trusted by the community, built for enterprise](./.github/github-banner.png 'AG Charts')
