@@ -27,13 +27,8 @@ jobs:
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
                   fi
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v3
-              with:
-                  node-version: '18'
-                  cache: 'yarn'
             - name: Cache node modules
+              id: cache
               uses: actions/cache@v3
               with:
                   path: |
@@ -41,22 +36,30 @@ jobs:
                       packages/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+            - name: Setup Node.js
+              if: steps.cache.outputs.cache-hit != 'true'
+              id: setup_node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
 
             - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: yarn install --ci
+              run: yarn install --ci --prefer-offline
 
             - name: nx format:check
               id: format
-              if: steps.yarn_install.outcome == 'success'
+              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
             - name: nx lint
               id: lint
-              if: steps.yarn_install.outcome == 'success'
+              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
             - name: nx build
               id: build
-              if: steps.yarn_install.outcome == 'success'
+              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
             - name: nx test
               id: test
