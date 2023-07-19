@@ -582,7 +582,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 continue;
             }
 
-            const distance = Math.sqrt((hitPoint.x - datumX) ** 2 + (hitPoint.y - datumY) ** 2);
+            const distance = Math.sqrt((hitPoint.x - datumX - cx) ** 2 + (hitPoint.y - datumY - cy) ** 2);
             if (distance < minDistance) {
                 minDistance = distance;
                 closestDatum = datum;
