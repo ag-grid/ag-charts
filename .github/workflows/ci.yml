@@ -14,22 +14,26 @@ jobs:
     execute_blt:
         runs-on: ubuntu-latest
         steps:
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - id: init_format
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
                   status: queued
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - id: init_lint
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: lint
                   status: queued
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - id: init_build
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
                   status: queued
-            - uses: LouisBrunner/checks-action@v1.6.1
+            - id: init_test
+              uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: test
@@ -72,7 +76,7 @@ jobs:
             - uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: format
+                  check_id: ${{ steps.init_format.outputs.check_id }}
                   status: in_progress
             - name: nx format:check
               id: format
@@ -82,13 +86,13 @@ jobs:
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: format
+                  check_id: ${{ steps.init_format.outputs.check_id }}
                   conclusion: ${{ steps.format.outcome }}
 
             - uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: lint
+                  check_id: ${{ steps.init_lint.outputs.check_id }}
                   status: in_progress
             - name: nx lint
               id: lint
@@ -98,13 +102,13 @@ jobs:
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: lint
+                  check_id: ${{ steps.init_lint.outputs.check_id }}
                   conclusion: ${{ steps.lint.outcome }}
 
             - uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: build
+                  check_id: ${{ steps.init_build.outputs.check_id }}
                   status: in_progress
             - name: nx build
               id: build
@@ -114,13 +118,13 @@ jobs:
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: build
+                  check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
 
             - uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: test
+                  check_id: ${{ steps.init_test.outputs.check_id }}
                   status: in_progress
             - name: nx test
               id: test
@@ -130,7 +134,7 @@ jobs:
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: test
+                  check_id: ${{ steps.init_test.outputs.check_id }}
                   conclusion: ${{ steps.test.outcome }}
 
             - name: Generate Test Report
