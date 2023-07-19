@@ -24,6 +24,7 @@
     "importsNotUsedAsValues": "error",
 
     "jsx": "react-jsx",
-    "jsxImportSource": "react"
+    "jsxImportSource": "react",
+    "types": ["vitest/globals"]
   }
 }

@@ -1,33 +1,42 @@
-import supportedFrameworks from '../../utils/supported-frameworks';
+import { FRAMEWORKS } from '../../constants';
+import type { Framework } from '../../types/ag-grid';
 import { transform } from './snippetTransformer';
 
+const supportedFrameworks = FRAMEWORKS;
+
 // Utility method to verify snippets match saved snapshots for all frameworks and options
-const runSnippetFrameworkTests = (snippetToTest) => {
+const runSnippetFrameworkTests = (snippetToTest: string) => {
     // no options supplied
-    it.each(supportedFrameworks)(`it should create '%s' snippets`, (framework) => {
+    test.each(supportedFrameworks)(`it should create '%s' snippets`, (framework: Framework) => {
         const options = {};
         const generatedSnippet = transform(snippetToTest, framework, options);
         expect(generatedSnippet).toMatchSnapshot();
     });
 
     // (suppressFrameworkContext = true)
-    it.each(supportedFrameworks)(`it should create '%s' snippets without framework context`, (framework) => {
-        const options = { suppressFrameworkContext: true };
-        const generatedSnippet = transform(snippetToTest, framework, options);
-        expect(generatedSnippet).toMatchSnapshot();
-    });
+    test.each(supportedFrameworks)(
+        `it should create '%s' snippets without framework context`,
+        (framework: Framework) => {
+            const options = { suppressFrameworkContext: true };
+            const generatedSnippet = transform(snippetToTest, framework, options);
+            expect(generatedSnippet).toMatchSnapshot();
+        }
+    );
 
     // (spaceBetweenProperties = true)
-    it.each(supportedFrameworks)(`it should create '%s' snippets with space between properties`, (framework) => {
-        const options = { spaceBetweenProperties: true };
-        const generatedSnippet = transform(snippetToTest, framework, options);
-        expect(generatedSnippet).toMatchSnapshot();
-    });
+    test.each(supportedFrameworks)(
+        `it should create '%s' snippets with space between properties`,
+        (framework: Framework) => {
+            const options = { spaceBetweenProperties: true };
+            const generatedSnippet = transform(snippetToTest, framework, options);
+            expect(generatedSnippet).toMatchSnapshot();
+        }
+    );
 
     // (suppressFrameworkContext = true, spaceBetweenProperties = true)
-    it.each(supportedFrameworks)(
+    test.each(supportedFrameworks)(
         `it should create '%s' snippets without framework context and space between properties`,
-        (framework) => {
+        (framework: Framework) => {
             const options = { suppressFrameworkContext: true, spaceBetweenProperties: true };
             const generatedSnippet = transform(snippetToTest, framework, options);
             expect(generatedSnippet).toMatchSnapshot();
