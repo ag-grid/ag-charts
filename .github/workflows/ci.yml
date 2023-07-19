@@ -36,19 +36,13 @@ jobs:
                       packages/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
-            - name: Setup Node.js (Cached)
+            - name: Setup Node.js
               if: steps.cache.outputs.cache-hit != 'true'
               id: setup_node
               uses: actions/setup-node@v3
               with:
                   node-version: '18'
-                  cache: 'yarn'
-            - name: Setup Node.js (No Cache)
-              if: steps.cache.outputs.cache-hit == 'true'
-              id: setup_node_no_cache
-              uses: actions/setup-node@v3
-              with:
-                  node-version: '18'
+                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
 
             - name: yarn install
               if: steps.cache.outputs.cache-hit != 'true'
@@ -57,15 +51,15 @@ jobs:
 
             - name: nx format:check
               id: format
-              if: steps.yarn_install.outcome == 'success'
+              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
             - name: nx lint
               id: lint
-              if: steps.yarn_install.outcome == 'success'
+              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
             - name: nx build
               id: build
-              if: steps.yarn_install.outcome == 'success'
+              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
             - name: nx test
               id: test
