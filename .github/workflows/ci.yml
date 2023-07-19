@@ -14,56 +14,71 @@ jobs:
     execute_blt:
         runs-on: ubuntu-latest
         steps:
-            - id: checkout
+            - name: Checkout
+              id: checkout
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - id: nx_config
+            - name: Nx Affected SHA Setup
+              id: nx_config
               run: |
                   if [[ $(git branch --show-current) == 'latest' ]] ; then
-                    echo "::set-output name=base::latest-success"
+                    echo "base=latest-success" >> $GITHUB_OUTPUT
                   else
-                    echo "::set-output name=base::latest"
+                    echo "base=origin/latest" >> $GITHUB_OUTPUT
                   fi
-            - id: setup_node
+            - name: Setup Node.js
+              id: setup_node
               uses: actions/setup-node@v3
               with:
                   node-version: '18'
                   cache: 'yarn'
-            - id: yarn_install
+            - name: Cache node modules
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      node_modules/
+                      packages/*/node_modules/
+                  key: node_modules-${{hashFiles('yarn.lock')}}
+                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+
+            - name: yarn install
+              id: yarn_install
               run: yarn install --ci
 
-            - id: format
-              name: nx format:check
+            - name: nx format:check
+              id: format
               if: steps.yarn_install.outcome == 'success'
               run: yarn nx format:check
-            - id: lint
-              name: nx lint
+            - name: nx lint
+              id: lint
               if: steps.yarn_install.outcome == 'success'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
-            - id: build
-              name: nx build
+            - name: nx build
+              id: build
               if: steps.yarn_install.outcome == 'success'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
-            - id: test
-              name: nx test
+            - name: nx test
+              id: test
               if: steps.build.outcome == 'success'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t test --configuration=ci
 
-            - id: results
+            - name: Save BLT Results
+              id: results
               if: always()
               run: |
                   echo ${{ steps.format.outcome }} > format.status
                   echo ${{ steps.lint.outcome }} > lint.status
                   echo ${{ steps.build.outcome }} > build.status
                   echo ${{ steps.test.outcome }} > test.status
-            - uses: actions/upload-artifact@v3
+            - name: Upload BLT Results
+              uses: actions/upload-artifact@v3
               if: always()
               with:
                   name: statuses
                   path: |
                       *.status
-            - name: Test Report
+            - name: Generate Test Report
               uses: dorny/test-reporter@v1
               if: steps.test.outcome == 'success' || steps.test.outcome == 'failure'
               continue-on-error: true
