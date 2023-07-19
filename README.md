@@ -1,3 +1,6 @@
+> ** Note **
+> We are currently getting everything setup here for our next major release - the [`ag-grid` repository](https://github.com/ag-grid/ag-grid) hosts current and historic releases of `ag-charts-community`, please follow support procedures in that repository for now.
+
 ![AG Charts canvas-based charting trusted by the community, built for enterprise](./.github/github-banner.png 'AG Charts')
 
 [![Github Stars](https://img.shields.io/github/stars/ag-grid/ag-charts?style=social)](https://github.com/ag-grid/ag-charts) [![Twitter](https://img.shields.io/twitter/follow/ag_grid?style=social)](https://twitter.com/ag_grid)
@@ -51,7 +54,7 @@ Please refer to our [Getting Started](https://www.ag-grid.com/javascript-charts/
 
 ## Issue Reporting
 
-If you have found a bug, please report it in this repository's [issues](https://github.com/ag-grid/ag-charts/issues) section. If you're using the Enterprise version, please use the [private ticketing](https://ag-grid.zendesk.com/) system to do that.
+If you have found a bug, please report it to the `ag-grid` repository's [issues](https://github.com/ag-grid/ag-grid/issues) section. If you're using the Enterprise version, please use the [private ticketing](https://ag-grid.zendesk.com/) system to do that.
 
 ## Asking Questions
 
@@ -59,7 +62,7 @@ Look for similar problems on [StackOverflow](https://stackoverflow.com/questions
 
 ## Contributing
 
-AG Grid is developed by a team of co-located developers in London. If you want to join the team send your application to info@ag-grid.com.
+AG Charts is developed by a team of co-located developers in London. If you want to join the team send your application to info@ag-grid.com.
 
 ## License
 
