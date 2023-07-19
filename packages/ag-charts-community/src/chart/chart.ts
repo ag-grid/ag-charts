@@ -496,7 +496,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
     public update(
         type = ChartUpdateType.FULL,
-        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<Series> }
+        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<Series>; backOffMs?: number }
     ) {
         const { forceNodeDataRefresh = false, seriesToUpdate = this.series } = opts ?? {};
 
@@ -510,11 +510,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (type < this._performUpdateType) {
             this._performUpdateType = type;
-            this.performUpdateTrigger.schedule();
+            this.performUpdateTrigger.schedule(opts?.backOffMs);
         }
     }
     private async performUpdate(count: number) {
         const { _performUpdateType: performUpdateType, extraDebugStats } = this;
+        const seriesToUpdate = [...this.seriesToUpdate];
+
+        // Clear state immediately so that side-effects can be detected prior to SCENE_RENDER.
+        this._performUpdateType = ChartUpdateType.NONE;
+        this.seriesToUpdate.clear();
+
         this.log('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
         const splits = [performance.now()];
 
@@ -526,7 +532,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 splits.push(performance.now());
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.PERFORM_LAYOUT:
-                if (!this.checkFirstAutoSize()) break;
+                if (!this.checkFirstAutoSize(seriesToUpdate)) break;
 
                 await this.performLayout();
                 this.handleOverlays();
@@ -536,8 +542,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SERIES_UPDATE:
                 const { seriesRect } = this;
-                const seriesUpdates = [...this.seriesToUpdate].map((series) => series.update({ seriesRect }));
-                this.seriesToUpdate.clear();
+                const seriesUpdates = [...seriesToUpdate].map((series) => series.update({ seriesRect }));
                 await Promise.all(seriesUpdates);
 
                 splits.push(performance.now());
@@ -550,6 +555,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SCENE_RENDER:
+                if (
+                    this.performUpdateType > ChartUpdateType.NONE &&
+                    this.performUpdateType < ChartUpdateType.SCENE_RENDER
+                ) {
+                    // A previous step modified series state, and we need to re-run SERIES_UPDATE
+                    // before rendering.
+                    break;
+                }
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
             // eslint-disable-next-line no-fallthrough
@@ -567,15 +580,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private checkFirstAutoSize() {
+    private checkFirstAutoSize(seriesToUpdate: Series[]) {
         if (this.autoSize && !this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
             const backOffMs = (count ^ 2) * 10;
 
             if (count < 5) {
                 // Reschedule if canvas size hasn't been set yet to avoid a race.
-                this._performUpdateType = ChartUpdateType.PERFORM_LAYOUT;
-                this.performUpdateTrigger.schedule(backOffMs);
+                this.update(ChartUpdateType.PERFORM_LAYOUT, { seriesToUpdate, backOffMs });
 
                 this.log('Chart.checkFirstAutoSize() - backing off until first size update', backOffMs);
                 return false;
