@@ -112,3 +112,36 @@ jobs:
                       Lint: ${{ steps.lint.outcome }}
                       Format: ${{ steps.format.outcome }}
                       Test: ${{ steps.test.outcome }}
+
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: format
+                  conclusion: ${{ steps.format.outcome }}
+                  output: |
+                      {"summary":"${{ steps.format.outputs.summary }}"}
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: lint
+                  conclusion: ${{ steps.lint.outcome }}
+                  output: |
+                      {"summary":"${{ steps.lint.outputs.summary }}"}
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: build
+                  conclusion: ${{ steps.build.outcome }}
+                  output: |
+                      {"summary":"${{ steps.build.outputs.summary }}"}
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: test
+                  conclusion: ${{ steps.test.outcome }}
+                  output: |
+                      {"summary":"${{ steps.test.outputs.summary }}"}
