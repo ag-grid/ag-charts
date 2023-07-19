@@ -1,7 +1,8 @@
-import {
-  AgChart,
+import type {
   AgPolarChartOptions,
-  AgPolarSeriesOptions,
+  AgPolarSeriesOptions} from "ag-charts-community";
+import {
+  AgChart
 } from "ag-charts-community"
 import { getData2020, getData2022 } from "./data"
 

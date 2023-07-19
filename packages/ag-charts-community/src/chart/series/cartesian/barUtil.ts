@@ -212,8 +212,7 @@ export function getRectConfig<
 export function checkCrisp(visibleRange: number[] = []): boolean {
     const [visibleMin, visibleMax] = visibleRange;
     const isZoomed = visibleMin !== 0 || visibleMax !== 1;
-    const crisp = !isZoomed;
-    return crisp;
+    return !isZoomed;
 }
 
 export function updateLabel<LabelDatumType extends LabelDatum>({

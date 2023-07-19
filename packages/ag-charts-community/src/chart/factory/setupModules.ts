@@ -11,11 +11,9 @@ export function setupModules() {
             Object.assign(JSON_APPLY_PLUGINS.constructors, m.optionConstructors);
         }
 
-        if (m.type === 'root') {
-            if (m.themeTemplate) {
-                for (const chartType of m.chartTypes) {
-                    registerChartDefaults(chartType, m.themeTemplate);
-                }
+        if (m.type === 'root' && m.themeTemplate) {
+            for (const chartType of m.chartTypes) {
+                registerChartDefaults(chartType, m.themeTemplate);
             }
         }
 
@@ -32,11 +30,9 @@ export function setupModules() {
             );
         }
 
-        if (m.type === 'axis-option') {
-            if (m.themeTemplate) {
-                for (const axisType of m.axisTypes) {
-                    registerAxisThemeTemplate(axisType, m.themeTemplate);
-                }
+        if (m.type === 'axis-option' && m.themeTemplate) {
+            for (const axisType of m.axisTypes) {
+                registerAxisThemeTemplate(axisType, m.themeTemplate);
             }
         }
 

@@ -95,12 +95,10 @@ export function calculateLabelTranslation({
     const xTranslation = xTranslationDirection * (padding + w / 2);
     const yTranslation = yTranslationDirection * (padding + h / 2);
 
-    const result = {
+    return {
         xTranslation,
         yTranslation,
     };
-
-    return result;
 }
 
 export function calculateLabelChartPadding({

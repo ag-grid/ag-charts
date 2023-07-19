@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { Color } from './color';
 import { addTransformToInstanceProperty, BREAK_TRANSFORM_CHAIN } from './decorator';
 import { Logger } from './logger';

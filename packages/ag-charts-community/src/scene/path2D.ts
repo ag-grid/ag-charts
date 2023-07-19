@@ -192,10 +192,8 @@ export class Path2D {
         for (let ci = 0, pi = 0; ci < cn; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
-                    if (!isNaN(sx)) {
-                        if (segmentIntersection(sx, sy, px, py, ox, oy, x, y)) {
-                            intersectionCount++;
-                        }
+                    if (!isNaN(sx) && segmentIntersection(sx, sy, px, py, ox, oy, x, y)) {
+                        intersectionCount++;
                     }
                     px = params[pi++];
                     sx = px;
@@ -244,10 +242,8 @@ export class Path2D {
                     py = params[pi - 1];
                     break;
                 case Command.ClosePath:
-                    if (!isNaN(sx)) {
-                        if (segmentIntersection(sx, sy, px, py, ox, oy, x, y)) {
-                            intersectionCount++;
-                        }
+                    if (!isNaN(sx) && segmentIntersection(sx, sy, px, py, ox, oy, x, y)) {
+                        intersectionCount++;
                     }
                     break;
             }

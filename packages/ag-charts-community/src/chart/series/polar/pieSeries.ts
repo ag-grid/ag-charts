@@ -1491,7 +1491,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         } = nodeDatum;
         const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
         const title = this.title?.text;
-        const content = `${label ? `${label}: ` : ''}${formattedAngleValue}`;
+        const labelPrefix = label ? `${label}: ` : '';
+        const content = `${labelPrefix}${formattedAngleValue}`;
         const defaults: AgTooltipRendererResult = {
             title,
             backgroundColor: color,

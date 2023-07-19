@@ -165,6 +165,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes[] {
+        const dragStart = 'drag-start';
+
         switch (event.type) {
             case 'click':
                 return ['click'];
@@ -178,11 +180,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             case 'mousedown':
                 this.mouseDown = true;
                 this.dragStartElement = event.target as HTMLElement;
-                return ['drag-start'];
+                return [dragStart];
             case 'touchstart':
                 this.touchDown = true;
                 this.dragStartElement = event.target as HTMLElement;
-                return ['drag-start'];
+                return [dragStart];
 
             case 'touchmove':
             case 'mousemove':
@@ -220,7 +222,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 const mouseButtonDown = event instanceof MouseEvent && (event.buttons & 1) === 1;
                 if (this.mouseDown !== mouseButtonDown) {
                     this.mouseDown = mouseButtonDown;
-                    return [mouseButtonDown ? 'drag-start' : 'drag-end'];
+                    return [mouseButtonDown ? dragStart : 'drag-end'];
                 }
                 return [];
 

@@ -107,13 +107,11 @@ export class Color {
                 break;
         }
 
-        if (parts?.length >= 3) {
-            if (parts.every((p: number) => p >= 0)) {
-                if (parts.length === 3) {
-                    parts.push(255);
-                }
-                return parts;
+        if (parts?.length >= 3 && parts.every((p: number) => p >= 0)) {
+            if (parts.length === 3) {
+                parts.push(255);
             }
+            return parts;
         }
     }
 

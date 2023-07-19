@@ -1,4 +1,5 @@
-import { AgChartOptions, AgTreemapSeriesTooltipRendererParams, AgChart } from 'ag-charts-community'
+import type { AgChartOptions, AgTreemapSeriesTooltipRendererParams} from 'ag-charts-community';
+import { AgChart } from 'ag-charts-community'
 import { data } from './data'
 
 const options: AgChartOptions = {

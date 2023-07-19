@@ -255,14 +255,13 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
         [{ ...globalTooltipPositionOptions }, series.tooltip?.position],
         noDataCloneMergeOptions
     );
-    const mergedSeries = jsonMerge(
+    return jsonMerge(
         [
             seriesThemes[type] ?? {},
             { ...series, type, tooltip: { ...series.tooltip, position: mergedTooltipPosition } },
         ],
         noDataCloneMergeOptions
     );
-    return mergedSeries;
 }
 
 function prepareMainOptions<T extends AgChartOptions>(

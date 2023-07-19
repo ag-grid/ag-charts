@@ -119,8 +119,6 @@ export class CountableTimeInterval extends TimeInterval {
             return this._decode(encoded * step + offset);
         };
 
-        const interval = new TimeInterval(encode, decode, rangeCallback);
-
-        return interval;
+        return new TimeInterval(encode, decode, rangeCallback);
     }
 }

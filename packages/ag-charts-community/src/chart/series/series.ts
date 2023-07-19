@@ -244,6 +244,10 @@ export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     labelData: L[];
 };
 
+const NO_HIGHLIGHT = 'no-highlight';
+const PEER_HIGHLIGHTED = 'peer-highlighted';
+const OTHER_HIGHLIGHTED = 'other-highlighted';
+
 export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext> extends Observable {
     protected static readonly highlightedZIndex = 1000000000000;
 
@@ -536,11 +540,12 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
 
         switch (this.isItemIdHighlighted(datum)) {
-            case 'no-highlight':
+            case NO_HIGHLIGHT:
             case 'highlighted':
                 return defaultOpacity;
-            case 'peer-highlighted':
-            case 'other-highlighted':
+            case PEER_HIGHLIGHTED:
+            case OTHER_HIGHLIGHTED:
+            default:
                 return dimOpacity;
         }
     }
@@ -560,9 +565,9 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         switch (this.isItemIdHighlighted(datum)) {
             case 'highlighted':
                 return strokeWidth;
-            case 'no-highlight':
-            case 'other-highlighted':
-            case 'peer-highlighted':
+            case NO_HIGHLIGHT:
+            case OTHER_HIGHLIGHTED:
+            case PEER_HIGHLIGHTED:
                 return defaultStrokeWidth;
         }
     }
@@ -576,12 +581,12 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
 
         if (!highlighting) {
             // Highlighting not active.
-            return 'no-highlight';
+            return NO_HIGHLIGHT;
         }
 
         if (series !== this) {
             // Highlighting active, this series not highlighted.
-            return 'other-highlighted';
+            return OTHER_HIGHLIGHTED;
         }
 
         if (itemId === undefined) {
@@ -592,7 +597,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         if (datum && highlightedDatum !== datum && itemId !== datum.itemId) {
             // A peer (in same Series instance) sub-series has highlight active, but this sub-series
             // does not.
-            return 'peer-highlighted';
+            return PEER_HIGHLIGHTED;
         }
 
         return 'highlighted';

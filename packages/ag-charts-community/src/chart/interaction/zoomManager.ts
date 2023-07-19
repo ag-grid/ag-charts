@@ -151,8 +151,6 @@ class AxisZoomManager {
 
         this.currentZoom = { ...this.states[last] };
 
-        const changed = prevZoom?.min !== this.currentZoom?.min || prevZoom?.max !== this.currentZoom?.max;
-
-        return changed;
+        return prevZoom?.min !== this.currentZoom?.min || prevZoom?.max !== this.currentZoom?.max;
     }
 }

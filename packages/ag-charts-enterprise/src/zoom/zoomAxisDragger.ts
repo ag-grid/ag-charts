@@ -29,9 +29,7 @@ export class ZoomAxisDragger {
         }
 
         this.updateCoords(event.offsetX, event.offsetY);
-        const newZoom = this.updateZoom(direction, bbox);
-
-        return newZoom;
+        return this.updateZoom(direction, bbox);
     }
 
     stop() {

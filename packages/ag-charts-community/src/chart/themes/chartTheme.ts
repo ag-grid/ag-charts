@@ -55,6 +55,8 @@ export class ChartTheme {
     readonly config: any;
 
     static fontFamily = 'Verdana, sans-serif';
+    static shadowColour = 'rgba(0, 0, 0, 0.5)';
+    static labelColour = 'rgb(70, 70, 70)';
 
     private static getAxisDefaults() {
         return {
@@ -69,7 +71,7 @@ export class ChartTheme {
                 fontWeight: BOLD,
                 fontSize: 12,
                 fontFamily: this.fontFamily,
-                color: 'rgb(70, 70, 70)',
+                color: ChartTheme.labelColour,
             },
             label: {
                 fontStyle: undefined,
@@ -156,13 +158,13 @@ export class ChartTheme {
                 fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: this.fontFamily,
-                color: 'rgb(70, 70, 70)',
+                color: ChartTheme.labelColour,
                 formatter: undefined,
                 placement: INSIDE,
             },
             shadow: {
                 enabled: false,
-                color: 'rgba(0, 0, 0, 0.5)',
+                color: ChartTheme.shadowColour,
                 xOffset: 3,
                 yOffset: 3,
                 blur: 5,
@@ -245,7 +247,7 @@ export class ChartTheme {
                 fontWeight: BOLD,
                 fontSize: 16,
                 fontFamily: this.fontFamily,
-                color: 'rgb(70, 70, 70)',
+                color: ChartTheme.labelColour,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             subtitle: {
@@ -297,16 +299,16 @@ export class ChartTheme {
                         size: 12,
                     },
                     activeStyle: {
-                        fill: 'rgb(70, 70, 70)',
+                        fill: ChartTheme.labelColour,
                     },
                     inactiveStyle: {
                         fill: 'rgb(219, 219, 219)',
                     },
                     highlightStyle: {
-                        fill: 'rgb(70, 70, 70)',
+                        fill: ChartTheme.labelColour,
                     },
                     label: {
-                        color: 'rgb(70, 70, 70)',
+                        color: ChartTheme.labelColour,
                     },
                 },
             },
@@ -369,7 +371,7 @@ export class ChartTheme {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                     formatter: undefined,
                 },
             },
@@ -386,7 +388,7 @@ export class ChartTheme {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                 },
             },
             area: {
@@ -399,7 +401,7 @@ export class ChartTheme {
                 lineDashOffset: 0,
                 shadow: {
                     enabled: false,
-                    color: 'rgba(0, 0, 0, 0.5)',
+                    color: ChartTheme.shadowColour,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -416,7 +418,7 @@ export class ChartTheme {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                     formatter: undefined,
                 },
             },
@@ -436,12 +438,12 @@ export class ChartTheme {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                     formatter: undefined,
                 },
                 shadow: {
                     enabled: true,
-                    color: 'rgba(0, 0, 0, 0.5)',
+                    color: ChartTheme.shadowColour,
                     xOffset: 0,
                     yOffset: 0,
                     blur: 5,
@@ -461,7 +463,7 @@ export class ChartTheme {
                     fontWeight: 'bold',
                     fontSize: 14,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                     spacing: 0,
                 },
                 radiusKey: undefined,
@@ -476,7 +478,7 @@ export class ChartTheme {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                     offset: 3,
                     minAngle: 0,
                 },
@@ -486,7 +488,7 @@ export class ChartTheme {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                     positionOffset: 0,
                     positionRatio: 0.5,
                 },
@@ -504,7 +506,7 @@ export class ChartTheme {
                 innerRadiusOffset: 0,
                 shadow: {
                     enabled: false,
-                    color: 'rgba(0, 0, 0, 0.5)',
+                    color: ChartTheme.shadowColour,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -514,7 +516,7 @@ export class ChartTheme {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
-                    color: 'rgb(70, 70, 70)',
+                    color: ChartTheme.labelColour,
                     margin: 2,
                 },
             },
@@ -540,7 +542,7 @@ export class ChartTheme {
                 gradient: true,
                 tileShadow: {
                     enabled: false,
-                    color: 'rgba(0, 0, 0, 0.5)',
+                    color: ChartTheme.shadowColour,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -561,7 +563,7 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: 'bold',
                     fontSize: 12,
-                    fontFamily: 'Verdana, sans-serif',
+                    fontFamily: ChartTheme.fontFamily,
                     padding: 2,
                 },
                 subtitle: {
@@ -570,7 +572,7 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 9,
-                    fontFamily: 'Verdana, sans-serif',
+                    fontFamily: ChartTheme.fontFamily,
                     padding: 2,
                 },
                 labels: {
@@ -579,7 +581,7 @@ export class ChartTheme {
                         fontStyle: undefined,
                         fontWeight: 'bold',
                         fontSize: 18,
-                        fontFamily: 'Verdana, sans-serif',
+                        fontFamily: ChartTheme.fontFamily,
                         color: 'white',
                         wrapping: 'on-space',
                     },
@@ -588,7 +590,7 @@ export class ChartTheme {
                         fontStyle: undefined,
                         fontWeight: 'bold',
                         fontSize: 14,
-                        fontFamily: 'Verdana, sans-serif',
+                        fontFamily: ChartTheme.fontFamily,
                         color: 'white',
                         wrapping: 'on-space',
                     },
@@ -597,7 +599,7 @@ export class ChartTheme {
                         fontStyle: undefined,
                         fontWeight: 'bold',
                         fontSize: 10,
-                        fontFamily: 'Verdana, sans-serif',
+                        fontFamily: ChartTheme.fontFamily,
                         color: 'white',
                         wrapping: 'on-space',
                     },
@@ -607,7 +609,7 @@ export class ChartTheme {
                             fontStyle: undefined,
                             fontWeight: undefined,
                             fontSize: 12,
-                            fontFamily: 'Verdana, sans-serif',
+                            fontFamily: ChartTheme.fontFamily,
                             color: 'white',
                         },
                     },

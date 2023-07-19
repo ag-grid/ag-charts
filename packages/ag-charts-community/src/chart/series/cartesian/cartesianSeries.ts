@@ -667,9 +667,7 @@ export abstract class CartesianSeries<
         const { enabled, itemId, series, legendItemName } = event;
 
         const matchedLegendItemName = this.legendItemName != null && this.legendItemName === legendItemName;
-        if (series.id === this.id) {
-            this.toggleSeriesItem(itemId, enabled);
-        } else if (matchedLegendItemName) {
+        if (series.id === this.id || matchedLegendItemName) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }

@@ -40,11 +40,7 @@ export class Rect extends Path {
             return true;
         }
 
-        if (this.path.isDirty() || this.borderPath.isDirty() || this.clipPath?.isDirty()) {
-            return true;
-        }
-
-        return false;
+        return !!(this.path.isDirty() || this.borderPath.isDirty() || this.clipPath?.isDirty());
     }
 
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;

@@ -45,6 +45,9 @@ function buildSceneNodeHighlight() {
     return result;
 }
 
+const advancedCompositeIdentifier = 'adv-composite';
+const domCompositeIdentifier = 'dom-composite';
+
 export class Scene {
     static className = 'Scene';
 
@@ -64,7 +67,7 @@ export class Scene {
     ) {
         const {
             document = window.document,
-            mode = (windowValue('agChartsSceneRenderModel') as SceneOptions['mode']) ?? 'adv-composite',
+            mode = (windowValue('agChartsSceneRenderModel') as SceneOptions['mode']) ?? advancedCompositeIdentifier,
             width,
             height,
             overrideDevicePixelRatio = undefined,
@@ -137,15 +140,15 @@ export class Scene {
         getVisibility: () => boolean;
     }): HdpiCanvas | HdpiOffscreenCanvas | undefined {
         const { mode } = this.opts;
-        const layeredModes = ['composite', 'dom-composite', 'adv-composite'];
+        const layeredModes = ['composite', domCompositeIdentifier, advancedCompositeIdentifier];
         if (!layeredModes.includes(mode)) {
             return undefined;
         }
 
         const { zIndex = this._nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
         const { width, height, overrideDevicePixelRatio } = this;
-        const domLayer = mode === 'dom-composite';
-        const advLayer = mode === 'adv-composite';
+        const domLayer = mode === domCompositeIdentifier;
+        const advLayer = mode === advancedCompositeIdentifier;
         const canvas =
             !advLayer || !HdpiOffscreenCanvas.isSupported()
                 ? new HdpiCanvas({
@@ -383,7 +386,7 @@ export class Scene {
             }
         }
 
-        if (mode !== 'dom-composite' && layers.length > 0 && canvasCleared) {
+        if (mode !== domCompositeIdentifier && layers.length > 0 && canvasCleared) {
             this.sortLayers();
             ctx.save();
             ctx.setTransform(1 / canvas.pixelRatio, 0, 0, 1 / canvas.pixelRatio, 0, 0);
