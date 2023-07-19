@@ -1,5 +1,8 @@
 {
   "plugins": ["@nxtensions/astro"],
+  "affected": {
+    "defaultBase": "latest"
+  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
