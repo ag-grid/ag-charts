@@ -13,12 +13,32 @@ concurrency:
 jobs:
     execute_blt:
         runs-on: ubuntu-latest
-        outputs:
-            format: ${{ steps.format.outcome }}
-            lint: ${{ steps.lint.outcome }}
-            build: ${{ steps.build.outcome }}
-            test: ${{ steps.test.outcome }}
         steps:
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: format
+                  status: queued
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: lint
+                  status: queued
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: build
+                  status: queued
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: test
+                  status: queued
+
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
@@ -57,18 +77,53 @@ jobs:
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: format
+                  conclusion: ${{ steps.format.outcome }}
+                  output: |
+                      {"summary":"${{ steps.format.outputs.summary }}"}
+
             - name: nx lint
               id: lint
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: lint
+                  conclusion: ${{ steps.lint.outcome }}
+                  output: |
+                      {"summary":"${{ steps.lint.outputs.summary }}"}
+
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: build
+                  conclusion: ${{ steps.build.outcome }}
+                  output: |
+                      {"summary":"${{ steps.build.outputs.summary }}"}
+
             - name: nx test
               id: test
               if: steps.build.outcome == 'success'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t test --configuration=ci
+            - uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: test
+                  conclusion: ${{ steps.test.outcome }}
+                  output: |
+                      {"summary":"${{ steps.test.outputs.summary }}"}
 
             - name: Generate Test Report
               uses: dorny/test-reporter@v1
@@ -112,36 +167,3 @@ jobs:
                       Lint: ${{ steps.lint.outcome }}
                       Format: ${{ steps.format.outcome }}
                       Test: ${{ steps.test.outcome }}
-
-            - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: format
-                  conclusion: ${{ steps.format.outcome }}
-                  output: |
-                      {"summary":"${{ steps.format.outputs.summary }}"}
-            - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: lint
-                  conclusion: ${{ steps.lint.outcome }}
-                  output: |
-                      {"summary":"${{ steps.lint.outputs.summary }}"}
-            - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: build
-                  conclusion: ${{ steps.build.outcome }}
-                  output: |
-                      {"summary":"${{ steps.build.outputs.summary }}"}
-            - uses: LouisBrunner/checks-action@v1.6.1
-              if: always()
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: test
-                  conclusion: ${{ steps.test.outcome }}
-                  output: |
-                      {"summary":"${{ steps.test.outputs.summary }}"}
