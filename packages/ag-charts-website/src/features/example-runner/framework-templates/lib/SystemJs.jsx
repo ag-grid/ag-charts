@@ -10,10 +10,14 @@ import {
     agGridVue3Version,
     agGridVueVersion,
     agGridEnterpriseVersion,
-    localPrefix,
+    SITE_BASE_URL,
+    DEV_FILE_BASE_PATH,
 } from '../../../../constants';
+import { pathJoin } from '../../../../utils/pathJoin';
 
 import { isUsingPublishedPackages, isBuildServerBuild, isPreProductionBuild } from '../../../../utils/pages';
+
+const localPrefix = pathJoin(import.meta.env.SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
 
 const localConfiguration = {
     gridMap: {
@@ -268,7 +272,7 @@ function getRelevantConfig(configuration, framework) {
  */
 export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, options, framework, isDev }) => {
     const { enterprise: isEnterprise } = options;
-    const systemJsPath = `${boilerplatePath}systemjs.config${isDev ? '.dev' : ''}.js`;
+    const systemJsPath = pathJoin(boilerplatePath, `systemjs.config${isDev ? '.dev' : ''}.js`);
     let configuration = isUsingPublishedPackages()
         ? publishedConfiguration
         : isBuildServerBuild() || isPreProductionBuild()

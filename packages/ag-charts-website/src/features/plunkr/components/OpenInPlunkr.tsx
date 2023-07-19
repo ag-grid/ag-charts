@@ -9,6 +9,7 @@ import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-
 interface Props {
     title: string;
     files: FileContents;
+    boilerPlateFiles?: FileContents;
     fileToOpen: string;
     internalFramework: InternalFramework;
     pageName: string;
@@ -18,6 +19,7 @@ interface Props {
 export const OpenInPlunkr: FunctionComponent<Props> = ({
     title,
     files,
+    boilerPlateFiles,
     fileToOpen,
     internalFramework,
     pageName,
@@ -45,6 +47,7 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({
                 const plunkrHtml = await getPlunkrHtml();
                 const plunkrExampleFiles = {
                     ...files,
+                    ...boilerPlateFiles,
                     'index.html': plunkrHtml,
                 };
                 openPlunker({

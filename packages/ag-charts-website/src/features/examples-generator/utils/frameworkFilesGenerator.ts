@@ -1,8 +1,10 @@
 import type { InternalFramework } from '../../../types/ag-grid';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
+import { getBoilerPlateFiles } from './fileUtils';
 
 interface FrameworkFiles {
     files: Record<string, string>;
+    boilerPlateFiles?: Record<string, string>;
     scriptFiles: string[];
     entryFileName: string;
 }
@@ -19,7 +21,8 @@ type ConfigGenerator = ({
     isEnterprise: boolean;
     bindings: any;
     typedBindings: any;
-}) => FrameworkFiles;
+}) => FrameworkFiles | Promise<FrameworkFiles>;
+
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
     vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise }) => {
         let mainJs = readAsJsFile(entryFile);
@@ -48,12 +51,14 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             entryFileName: 'main.js',
         };
     },
-    typescript: ({ entryFile, indexHtml }) => {
+    typescript: async ({ entryFile, indexHtml }) => {
+        const boilerPlateFiles = await getBoilerPlateFiles('typescript');
         return {
             files: {
                 'main.ts': entryFile,
                 'index.html': indexHtml,
             },
+            boilerPlateFiles,
             scriptFiles: ['main.ts'],
             entryFileName: 'main.ts',
         };

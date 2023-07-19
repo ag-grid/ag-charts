@@ -6,6 +6,7 @@ import JavascriptTemplate from '../../../../features/example-runner/framework-te
 import TypescriptTemplate from '../../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
 import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
 import { getIsDev } from '../../../../utils/env';
+import { pathJoin } from '../../../../utils/pathJoin';
 
 interface Props {
     /**
@@ -42,12 +43,13 @@ const exampleUrl = getExampleUrl({
     pageName,
     exampleName,
 });
-const appLocation = relativePath ? './' : exampleUrl;
-
-const boilerPlateUrl = getBoilerPlateUrl({
-    library,
-    internalFramework,
-});
+const appLocation = relativePath ? '' : exampleUrl;
+const boilerPlateUrl = relativePath
+    ? ''
+    : getBoilerPlateUrl({
+          library,
+          internalFramework,
+      });
 
 // TODO: Can remove, once we support all frameworks
 const supportedInternalFrameworks: InternalFramework[] = ['vanilla', 'typescript'];
@@ -88,7 +90,7 @@ const supportedInternalFrameworks: InternalFramework[] = ['vanilla', 'typescript
             indexFragment={indexFragment!}
             appLocation={appLocation}
             library={library}
-            boilerplatePath={boilerPlateUrl + '/'}
+            boilerplatePath={boilerPlateUrl}
         />
     )
 }

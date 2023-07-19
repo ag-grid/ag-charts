@@ -4,6 +4,7 @@ import {
     getFrameworkFromInternalFramework,
     getIsEnterprise,
     getSourceFolderUrl,
+    getBoilerPlateFiles,
 } from './utils/fileUtils';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import fs from 'node:fs/promises';
@@ -128,7 +129,7 @@ export const getGeneratedContents = async ({
         throw new Error(`No entry file config generator for '${internalFramework}'`);
     }
 
-    const { files, scriptFiles, entryFileName } = getFrameworkFiles({
+    const { files, boilerPlateFiles, scriptFiles, entryFileName } = await getFrameworkFiles({
         entryFile,
         indexHtml,
         isEnterprise,
@@ -141,6 +142,7 @@ export const getGeneratedContents = async ({
         styleFiles: Object.keys(styleFiles),
         sourceFileList,
         files: Object.assign(otherScriptFiles, styleFiles, files),
+        boilerPlateFiles,
         entryFileName,
     } as GeneratedContents;
 

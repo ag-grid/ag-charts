@@ -8,7 +8,9 @@ describe('pathJoin', () => {
     test.each`
         segments                                              | expected
         ${[]}                                                 | ${''}
+        ${[undefined]}                                        | ${''}
         ${['/']}                                              | ${'/'}
+        ${['/', undefined]}                                   | ${'/'}
         ${['/ag-charts']}                                     | ${'/ag-charts'}
         ${['/', 'ag-charts']}                                 | ${'/ag-charts'}
         ${['/', 'ag-charts', 'page']}                         | ${'/ag-charts/page'}

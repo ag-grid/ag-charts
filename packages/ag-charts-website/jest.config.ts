@@ -10,5 +10,6 @@ export default {
         'examples-generator/transformation-scripts',
         'snippet/snippetTransformer',
         'utils/framework',
+        'examples-generator/utils/fileUtils',
     ],
 };

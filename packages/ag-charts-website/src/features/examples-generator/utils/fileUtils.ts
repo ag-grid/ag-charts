@@ -2,6 +2,8 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { getIsDev } from '../../../utils/env';
 import { getFolders } from '../../../utils/fs';
+import type { InternalFramework } from '../../../types/ag-grid.d';
+import { pathJoin } from '../../../utils/pathJoin';
 
 export const getContentRootFileUrl = (): URL => {
     const contentRoot = getIsDev()
@@ -10,6 +12,63 @@ export const getContentRootFileUrl = (): URL => {
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
           '../../../../../packages/ag-charts-website/src/content';
     return new URL(contentRoot, import.meta.url);
+};
+
+/**
+ * The root of the `ag-charts-website` package
+ */
+const getBoilerPlateFilesUrl = () => {
+    const packagePath = getIsDev()
+        ? // Relative to the folder of this file
+          '../../../../public/example-runner'
+        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
+          '../../example-runner'; // NOTE: No `public` folder
+    return new URL(packagePath, import.meta.url);
+};
+
+export const getBoilerPlateName = (internalFramework: InternalFramework) => {
+    const boilerPlateTemplate = (boilerPlateKey: string) => `charts-${boilerPlateKey}-boilerplate`;
+
+    switch (internalFramework) {
+        case 'react':
+        case 'reactFunctional':
+            return boilerPlateTemplate('react');
+        case 'reactFunctionalTs':
+            return boilerPlateTemplate('react-ts');
+        case 'typescript':
+        case 'angular':
+        case 'vue':
+        case 'vue3':
+            return boilerPlateTemplate(internalFramework);
+        default:
+            return undefined;
+    }
+};
+
+export const getBoilerPlateFiles = async (internalFramework: InternalFramework) => {
+    const boilerPlateFilesPath = getBoilerPlateFilesUrl();
+    const boilerplateName = getBoilerPlateName(internalFramework);
+
+    if (!boilerplateName) {
+        return {};
+    }
+    const boilerPlatePath = pathJoin(boilerPlateFilesPath.pathname, boilerplateName);
+
+    const fileNames = await fs.readdir(boilerPlatePath);
+
+    const files: Record<string, string> = {};
+    const fileContentPromises = fileNames.map(async (fileName) => {
+        const filePath = pathJoin(boilerPlatePath, fileName);
+        const contents = await fs.readFile(filePath, 'utf-8').catch(() => {
+            return undefined;
+        });
+        if (contents) {
+            files[fileName] = contents;
+        }
+    });
+    await Promise.all(fileContentPromises);
+
+    return files;
 };
 
 export const getAllSourceExampleFileList = async () => {

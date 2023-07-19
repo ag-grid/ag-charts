@@ -4,6 +4,7 @@ import { MetaData } from './lib/MetaData';
 import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
+import { pathJoin } from '../../../utils/pathJoin';
 
 interface Props {
     isDev: boolean;
@@ -37,7 +38,7 @@ const {
     boilerplatePath,
 } = Astro.props as Props;
 
-const startFile = appLocation + '/' + entryFileName;
+const startFile = pathJoin(appLocation, entryFileName);
 ---
 
 <html lang="en">

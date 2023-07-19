@@ -6,7 +6,7 @@ import path from 'node:path';
  * Get folders on a root path (1 level deep)
  */
 export const getFolders = async (rootPath: string) => {
-    const folders = [];
+    const folders: string[] = [];
     const exists = fsOriginal.existsSync(rootPath);
     if (exists) {
         const files = await fs.readdir(rootPath);
