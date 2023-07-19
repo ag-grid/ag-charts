@@ -23,7 +23,7 @@ jobs:
                   if [[ $(git branch --show-current) == 'latest' ]] ; then
                     echo "base=latest-success" >> $GITHUB_OUTPUT
                   else
-                    echo "base=latest" >> $GITHUB_OUTPUT
+                    echo "base=origin/latest" >> $GITHUB_OUTPUT
                   fi
             - id: setup_node
               uses: actions/setup-node@v3
