@@ -37,7 +37,6 @@ jobs:
                   key: node_modules-${{hashFiles('yarn.lock')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Setup Node.js
-              if: steps.cache.outputs.cache-hit != 'true'
               id: setup_node
               uses: actions/setup-node@v3
               with:
