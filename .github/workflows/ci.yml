@@ -100,10 +100,10 @@ jobs:
                   THIS_JOB_STATUS="${{ job.status }}"
                   if [ "$LAST_JOB_STATUS" != "$THIS_JOB_STATUS" ]; then
                     echo "status changed from $LAST_JOB_STATUS to $THIS_JOB_STATUS"
-                    echo "::set-output name=changedState::true"
+                    echo "changedState=true" >> $GITHUB_OUTPUT
                   else
                     echo "status is still $THIS_JOB_STATUS"
-                    echo "::set-output name=changedState::false"
+                    echo "changedState=false" >> $GITHUB_OUTPUT
                   fi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
