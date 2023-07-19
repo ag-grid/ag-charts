@@ -1,4 +1,5 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
+import { AgChart } from 'ag-charts-community';
 import { getData } from "./data";
 
 const options: AgChartOptions = {
@@ -31,8 +32,8 @@ const options: AgChartOptions = {
       areaPlot: true,
       tooltip: {
         renderer: (params) => {
-          var paramsMax = params.datum.domain[1]
-          var sizeName =
+          const paramsMax = params.datum.domain[1]
+          const sizeName =
             paramsMax === 2000
               ? 'small'
               : paramsMax === 3000
@@ -76,4 +77,4 @@ const options: AgChartOptions = {
   ],
 }
 
-var chart = AgChart.create(options)
+const chart = AgChart.create(options)

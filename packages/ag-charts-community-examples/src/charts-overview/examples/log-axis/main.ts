@@ -1,4 +1,5 @@
-import { AgCartesianChartOptions, AgChart } from "ag-charts-community"
+import type { AgCartesianChartOptions} from "ag-charts-community";
+import { AgChart } from "ag-charts-community"
 import { getData } from "./data"
 
 const formatter = new Intl.NumberFormat()
@@ -53,7 +54,7 @@ const options: AgCartesianChartOptions = {
   ],
 }
 
-var chart = AgChart.create(options)
+const chart = AgChart.create(options)
 
 function useNumberAxis() {
   options.subtitle = {

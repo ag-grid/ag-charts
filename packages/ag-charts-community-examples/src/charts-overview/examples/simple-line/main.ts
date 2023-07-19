@@ -1,8 +1,9 @@
-import {
+import type {
   AgCartesianSeriesTooltipRendererParams,
-  AgChart,
   AgChartOptions,
-  AgTooltipRendererResult,
+  AgTooltipRendererResult} from "ag-charts-community";
+import {
+  AgChart,
   time,
 } from "ag-charts-community"
 import { getData } from "./data"
@@ -96,4 +97,4 @@ const options: AgChartOptions = {
   ],
 }
 
-var chart = AgChart.create(options)
+const chart = AgChart.create(options)

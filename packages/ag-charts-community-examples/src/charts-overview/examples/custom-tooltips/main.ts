@@ -1,12 +1,13 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChart, AgChartOptions } from "ag-charts-community"
+import type { AgCartesianSeriesTooltipRendererParams, AgChartOptions } from "ag-charts-community";
+import { AgChart } from "ag-charts-community"
 import { getData } from "./data"
 
 function tooltipRenderer(params: AgCartesianSeriesTooltipRendererParams) {
-  var formatThousands = function (value: number) {
+  const formatThousands = function (value: number) {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
   }
 
-  var tooltipHtml = [
+  const tooltipHtml = [
     '<div class="my-tooltip">',
     '<span class="my-tooltip__title" style="color: ' +
       params.color +
@@ -128,4 +129,4 @@ const options: AgChartOptions = {
   ],
 }
 
-var chart = AgChart.create(options)
+const chart = AgChart.create(options)
