@@ -100,10 +100,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         sourceGenerator: vanillaToReactFunctional,
         internalFramework: 'reactFunctional',
     }),
-    reactFunctionalTs: async ({ entryFile, bindings, indexHtml }) => {
+    reactFunctionalTs: async ({ entryFile, typedBindings, indexHtml }) => {
         const boilerPlateFiles = await getBoilerPlateFiles('reactFunctionalTs');
 
-        const getSource = vanillaToReactFunctionalTs(deepCloneObject(bindings), []);
+        const getSource = vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
         const indexJsx = getSource();
 
         return {
