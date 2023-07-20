@@ -47,12 +47,12 @@
     },
     "test": {
       "executor": "@nx/vite:test",
-      "reportsDirectory": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
         "config": "packages/ag-charts-website/vitest.config.mjs"
       },
       "configurations": {
         "ci": {
+          "outputFile": "../../reports/ag-charts-website.xml",
           "reporters": ["junit"]
         },
         "watch": {
