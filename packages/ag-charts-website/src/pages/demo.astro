@@ -1,8 +1,47 @@
 ---
+import { getEntry } from 'astro:content';
+
 import ComingSoon from '../components/ComingSoon.astro';
 import Layout from '../layouts/Layout.astro';
+
+const demosData = await getEntry('demo', 'demos');
+
+const { chartTypes = demosData.data.chartTypes } = Astro.props;
 ---
 
 <Layout>
-    <ComingSoon name="Demo" />
+    <div class="demo-menu">
+        <ul>
+            {
+                chartTypes.map((chartType) => (
+                    <li>
+                        <a href={`/#${chartType.docsUrl}`}>
+                            <span>{chartType.name}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+
+    <div class="demo-content">
+        {
+            chartTypes.map((chartType) => (
+                <>
+                    <h3 id={chartType.docsUrl}>
+                        <span>{chartType.name}</span>
+                        <a href={chartType.docsUrl}>View {chartType.name} documentation</a>
+                    </h3>
+                    <div>
+                        {chartType.demos.map((demo) => (
+                            <div>
+                                <div><span>DEMO</span></div>
+                                <a href={`/demo/${demo.example}`}>{demo.name}</a>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            ))
+        }
+    </div>
 </Layout>

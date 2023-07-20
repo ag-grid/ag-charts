@@ -1,0 +1,70 @@
+{
+    "chartTypes": [
+        {
+            "name": "Bar",
+            "docsUrl": "bar",
+            "icon": "bar",
+            "enterprise": false,
+            "demos": [
+                {
+                    "name": "Simple Bar",
+                    "description": "Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
+                    "example": "simple-bar"
+                },
+                {
+                    "name": "Grouped Bar",
+                    "description": "Grouped bar charts (also known as clustered bar charts) show multiple series with the <a href='../simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                    "example": "grouped-bar"
+                },
+                {
+                    "name": "Stacked Bar",
+                    "description": "Stacked bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='../simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
+                    "example": "stacked-bar"
+                },
+                {
+                    "name": "100% Stacked Bar",
+                    "description": "100% stacked bar charts show the relative percentage of multiple series in <a href='../stacked-bar/'>stacked bars</a>, where each stacked bar always totals to 100%.",
+                    "example": "100--stacked-bar"
+                },
+                {
+                    "name": "Bar With Labels",
+                    "description": "Using labels in a <a href='../simple-bar/'>bar chart</a> can be useful to highlight the values of each bar.",
+                    "example": "bar-with-labels"
+                }
+            ]
+        },
+        {
+            "name": "Column",
+            "docsUrl": "column",
+            "icon": "column",
+            "enterprise": false,
+            "demos": [
+                {
+                    "name": "Simple Column",
+                    "description": "Column charts (also known as vertical <a href='../simple-bar/'>bar charts</a>) represent data using vertical columns, with the height of each column proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
+                    "example": "simple-column"
+                },
+                {
+                    "name": "Grouped Column",
+                    "description": "Grouped column charts (also known as clustered column charts) present multiple series with the <a href='../simple-column/'>columns</a> grouped by category, to allow for easier comparisons across different series.",
+                    "example": "grouped-column"
+                },
+                {
+                    "name": "Stacked Column",
+                    "description": "Stacked column charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='../simple-column/'>columns</a>.",
+                    "example": "stacked-column"
+                },
+                {
+                    "name": "100% Stacked Column",
+                    "description": "100% stacked column charts show the relative percentage of multiple series in <a href='../stacked-column/'>stacked columns</a>, where each stacked column always totals to 100%.",
+                    "example": "100--stacked-column"
+                },
+                {
+                    "name": "Column With Negative Values",
+                    "description": "Column and bar charts can also be used to represent negative values alongside positive ones.",
+                    "example": "column-with-negative-values"
+                }
+            ]
+        }
+    ]
+}
