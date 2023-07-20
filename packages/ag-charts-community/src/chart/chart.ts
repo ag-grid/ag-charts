@@ -548,7 +548,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 splits.push(performance.now());
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.TOOLTIP_RECALCULATION:
-                const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
+                   const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
                 if (performUpdateType < ChartUpdateType.SERIES_UPDATE && tooltipMeta?.event?.type === 'hover') {
                     this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
                 }
