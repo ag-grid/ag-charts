@@ -567,8 +567,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.extraDebugStats = {};
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.NONE:
-                // Do nothing.
-                this._performUpdateType = ChartUpdateType.NONE;
+            // Do nothing.
         }
 
         const end = performance.now();
