@@ -15,28 +15,28 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - id: init_format
-              name: Update Status
+              name: Update Status (format)
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
                   status: queued
             - id: init_lint
-              name: Update Status
+              name: Update Status (lint)
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: lint
                   status: queued
             - id: init_build
-              name: Update Status
+              name: Update Status (build)
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
                   status: queued
             - id: init_test
-              name: Update Status
+              name: Update Status (test)
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -56,7 +56,7 @@ jobs:
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
                   fi
-            - name: Cache node modules
+            - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
               with:
@@ -65,6 +65,13 @@ jobs:
                       packages/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+            - name: Cache Nx
+              uses: actions/cache@v3
+              with:
+                  path: node_modules/.cache/nx
+                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  restore-keys: |
+                      cache-nx-${{ hashFiles('yarn.lock') }}-
             - name: Setup Node.js
               id: setup_node
               uses: actions/setup-node@v3
@@ -77,17 +84,11 @@ jobs:
               id: yarn_install
               run: yarn install --ci --prefer-offline
 
-            - name: Update Status
-              uses: LouisBrunner/checks-action@v1.6.1
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_format.outputs.check_id }}
-                  status: in_progress
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
-            - name: Update Status
+            - name: Update Status (format)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
@@ -95,17 +96,11 @@ jobs:
                   check_id: ${{ steps.init_format.outputs.check_id }}
                   conclusion: ${{ steps.format.outcome }}
 
-            - name: Update Status
-              uses: LouisBrunner/checks-action@v1.6.1
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_lint.outputs.check_id }}
-                  status: in_progress
             - name: nx lint
               id: lint
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
-            - name: Update Status
+            - name: Update Status (lint)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
@@ -113,17 +108,11 @@ jobs:
                   check_id: ${{ steps.init_lint.outputs.check_id }}
                   conclusion: ${{ steps.lint.outcome }}
 
-            - name: Update Status
-              uses: LouisBrunner/checks-action@v1.6.1
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_build.outputs.check_id }}
-                  status: in_progress
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
-            - name: Update Status
+            - name: Update Status (build)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
@@ -131,7 +120,7 @@ jobs:
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
 
-            - name: Update Status
+            - name: Update Status - In Progress (test)
               uses: LouisBrunner/checks-action@v1.6.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -141,7 +130,7 @@ jobs:
               id: test
               if: steps.build.outcome == 'success'
               run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t test --configuration=ci
-            - name: Update Status
+            - name: Update Status (test)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
@@ -149,7 +138,7 @@ jobs:
                   check_id: ${{ steps.init_test.outputs.check_id }}
                   conclusion: ${{ steps.test.outcome }}
 
-            - name: Generate Test Report
+            - name: Test Report
               uses: dorny/test-reporter@v1
               if: steps.test.outcome == 'success' || steps.test.outcome == 'failure'
               continue-on-error: true

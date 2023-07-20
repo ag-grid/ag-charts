@@ -59,7 +59,7 @@ export default {
         {
             displayName: 'ag-charts-community - e2e',
             testMatch: e2eTests.map((v) => v.replace('packages/ag-charts-community/', '**/')),
-            runner: 'jest-serial-runner',
+            // runner: 'jest-serial-runner',
             // WIP discussion: https://github.com/facebook/jest/issues/10936
             // maxWorkers: 1,
             // WIP discussion: https://github.com/facebook/jest/pull/10912
