@@ -28,8 +28,7 @@ export const getGeneratedContentsFileList = async ({
     pageName: string;
     exampleName: string;
 }): Promise<string[]> => {
-    const framework = getFrameworkFromInternalFramework(internalFramework);
-    const entryFileName = getEntryFileName({ framework, internalFramework });
+    const entryFileName = getEntryFileName(internalFramework);
     const sourceFolderUrl = getSourceFolderUrl({
         pageName,
         exampleName,
@@ -54,8 +53,10 @@ export const getGeneratedContentsFileList = async ({
         generatedFileList = generatedFileList.concat(['index.html']);
     } else if (internalFramework === 'typescript') {
         generatedFileList = generatedFileList.concat(['main.ts', 'index.html']);
-    } else if (internalFramework === 'react') {
+    } else if (internalFramework === 'react' || internalFramework === 'reactFunctional') {
         generatedFileList = generatedFileList.concat('index.jsx');
+    } else if (internalFramework === 'reactFunctionalTs') {
+        generatedFileList = generatedFileList.concat('index.tsx');
     } else {
         // HACK: Use react for the rest of the other frameworks for now
         generatedFileList = generatedFileList.concat('index.jsx');

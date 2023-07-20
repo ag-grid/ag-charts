@@ -1,9 +1,9 @@
 ---
-import { getCacheBustingUrl } from '../../../utils/pages';
 import { MetaData } from './lib/MetaData';
 import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
+import { getCacheBustingUrl } from '../../../utils/pages';
 import { pathJoin } from '../../../utils/pathJoin';
 
 interface Props {
@@ -17,7 +17,6 @@ interface Props {
     entryFileName: string;
 
     styleFiles?: string[];
-    indexFragment: string;
     appLocation: string;
     library: string;
     boilerplatePath: string;
@@ -33,7 +32,6 @@ const {
     appLocation,
     entryFileName,
     styleFiles,
-    indexFragment,
     library,
     boilerplatePath,
 } = Astro.props as Props;
@@ -45,12 +43,12 @@ const startFile = pathJoin(appLocation, entryFileName);
     <head>
         <MetaData
             isDev={isDev}
-            title={`Typescript - ${pageName} - ${exampleName}`}
+            title={`React example - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
             isExecuting={isExecuting}
             options={options}
         />
-        <ExampleStyle />
+        <ExampleStyle rootId="root" />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles
@@ -61,31 +59,15 @@ const startFile = pathJoin(appLocation, entryFileName);
         />
     </head>
     <body>
-        <Fragment set:html={indexFragment} />
-
-        <script
-            is:inline
-            define:vars={{
-                appLocation,
-            }}
-        >
-            window.__basePath = appLocation;
-        </script>
-
+        <div id="root"></div>
         <SystemJs
             isDev={isDev}
             library={library}
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
-            framework={'typescript'}
+            framework={'react'}
             options={options}
-        />
-        <Styles
-            baseUrl={appLocation}
-            files={styleFiles
-                ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
-                : []}
         />
     </body>
 </html>

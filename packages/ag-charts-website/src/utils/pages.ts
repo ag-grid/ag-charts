@@ -49,6 +49,7 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-enterprise/dist/main.cjs.map': 'packages/ag-charts-enterprise/dist/main.cjs.map',
     'ag-charts-community/dist/main.umd.cjs.map': 'packages/ag-charts-community/dist/main.umd.cjs.map',
     'ag-charts-enterprise/dist/main.umd.cjs.map': 'packages/ag-charts-enterprise/dist/main.umd.cjs.map',
+    'ag-charts-react/main.js': 'packages/ag-charts-react/dist/index.js',
 };
 
 export const getChartScriptPath = (sitePrefix?: string) => {
