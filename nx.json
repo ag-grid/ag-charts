@@ -12,6 +12,13 @@
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s"
     ],
+    "tsDeclarations": [{ "dependentTasksOutputFiles": "**/*.d.ts" }],
+    "tsDefaults": [
+      "{projectRoot}/src/**/*",
+      "{projectRoot}/(tsconfig*.json|rollup*.js)",
+      "tsDeclarations",
+      "sharedGlobals"
+    ],
     "sharedGlobals": []
   },
   "targetDefaults": {

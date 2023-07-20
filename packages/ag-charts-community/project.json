@@ -6,6 +6,7 @@
   "targets": {
     "build": {
       "executor": "@nx/rollup:rollup",
+      "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-community/dist",
