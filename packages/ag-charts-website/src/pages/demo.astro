@@ -8,38 +8,100 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 ---
 
 <Layout>
-    <div class="demo-menu">
-        <ul>
+    <div class="page-margin">
+        <div class="menu">
+            <ul class="list-style-none">
+                {
+                    chartTypes.map((chartType) => (
+                        <li>
+                            <a href={`#${chartType.docsUrl}`}>
+                                <span>{chartType.name}</span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+
+        <div class="content">
             {
                 chartTypes.map((chartType) => (
-                    <li>
-                        <a href={`/#${chartType.docsUrl}`}>
-                            <span>{chartType.name}</span>
-                        </a>
-                    </li>
+                    <div class="chart-type">
+                        <h2 id={chartType.docsUrl}>
+                            <span>{chartType.name} Charts</span>
+                            <a class="font-size-medium" href={chartType.docsUrl}>
+                                View {chartType.name.toLowerCase()} charts documentation
+                            </a>
+                        </h2>
+                        <div class="demo-list">
+                            {chartType.demos.map((demo) => (
+                              <a class="demo-item" href={`/demo/${demo.example}`}>
+                                    <div class="dummy-image" /></div>
+                                    <p>{demo.name}</p>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
                 ))
             }
-        </ul>
-    </div>
-
-    <div class="demo-content">
-        {
-            chartTypes.map((chartType) => (
-                <>
-                    <h3 id={chartType.docsUrl}>
-                        <span>{chartType.name}</span>
-                        <a href={chartType.docsUrl}>View {chartType.name} documentation</a>
-                    </h3>
-                    <div>
-                        {chartType.demos.map((demo) => (
-                            <div>
-                                <div><span>DEMO</span></div>
-                                <a href={`/demo/${demo.example}`}>{demo.name}</a>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            ))
-        }
+        </div>
     </div>
 </Layout>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    $list-gap: $size-2;
+
+    .page-margin {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .menu,
+    .content {
+        padding-top: $size-5;
+    }
+
+    .menu {
+        min-width: 10rem;
+    }
+
+    .content {
+        flex-grow: 1;
+    }
+
+    .chart-type {
+        margin-bottom: $size-8;
+    }
+
+    .chart-type h2 {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        align-items: flex-end;
+        justify-content: space-between;
+    }
+
+    .chart-type h2 a {
+        align-self: flex-end;
+    }
+
+    .demo-list {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: $list-gap;
+    }
+
+    .demo-item {
+        width: calc(50% - $list-gap / 2);
+    }
+
+    .dummy-image {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        background-color: #ddd;
+        border-radius: var(--border-radius);
+    }
+</style>
