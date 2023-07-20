@@ -1,0 +1,30 @@
+---
+import { getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+    const demosData = await getEntry('demo', 'demos');
+
+    const demos = demosData.data.chartTypes.map((chartType) => chartType.demos).flat();
+
+    const pages = demos.map((demo) => {
+        return {
+            params: {
+                pageName: demo.example,
+            },
+            props: {
+                page: demo,
+            },
+        };
+    });
+
+    return pages;
+}
+
+const { page } = Astro.props;
+---
+
+<Layout>
+    <h1>{page.name}</h1>
+    <p set:html={page.description}></p>
+</Layout>
