@@ -57,10 +57,10 @@ jobs:
             matrix:
                 target: ['format', 'lint', 'build', 'test']
         outputs:
-            format: ${{ steps.format.outcome || '' }}
-            lint: ${{ steps.lint.outcome || '' }}
-            build: ${{ steps.build.outcome || '' }}
-            test: ${{ steps.test.outcome || '' }}
+            format: ${{ matrix.target == 'format' && steps.format.outcome || '' }}
+            lint: ${{ matrix.target == 'lint' && steps.lint.outcome || '' }}
+            build: ${{ matrix.target == 'build' && steps.build.outcome || '' }}
+            test: ${{ matrix.target == 'test' && steps.test.outcome || '' }}
         steps:
             - name: Checkout
               uses: actions/checkout@v3
