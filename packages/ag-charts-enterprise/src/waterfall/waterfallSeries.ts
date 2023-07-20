@@ -698,6 +698,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { formatter: seriesFormatter, xName, yName, id: seriesId } = this;
+
         const { datum, itemId, xValue, yValue } = nodeDatum;
 
         const { fill, strokeWidth, name, formatter: itemFormatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
@@ -705,9 +706,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         const tooltipConfig = itemTooltip ?? this.tooltip;
 
         let format: any | undefined = undefined;
-
-        const color = format?.fill ?? fill ?? 'gray';
-
         const formatter = itemFormatter ?? seriesFormatter;
 
         if (formatter) {
@@ -723,6 +721,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 itemId: nodeDatum.itemId,
             });
         }
+
+        const color = format?.fill ?? fill ?? 'gray';
 
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
