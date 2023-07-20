@@ -41,6 +41,7 @@ export class RadiusCrossLine extends PolarCrossLine {
         node.stroke = this.stroke;
         node.strokeOpacity = this.strokeOpacity ?? 1;
         node.strokeWidth = this.strokeWidth ?? 1;
+        node.lineDash = this.lineDash;
     }
 
     private getRadius() {
