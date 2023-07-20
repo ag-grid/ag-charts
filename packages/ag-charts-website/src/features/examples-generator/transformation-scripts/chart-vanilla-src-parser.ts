@@ -42,7 +42,7 @@ export function parser({ srcFile, html, exampleSettings }) {
 }
 
 export function internalParser(js, html, exampleSettings) {
-    const domTree = cheerio.load(`<div>${html}</div>`);
+    const domTree = cheerio.load(html, null, false);
     domTree('style').remove();
 
     const domEventHandlers = extractEventHandlers(domTree, recognizedDomEvents);
