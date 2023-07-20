@@ -14,7 +14,7 @@ jobs:
     setup: # Loads GitHub action cache with correct entries for all of the 'run' jobs.
         runs-on: ubuntu-latest
         outputs:
-            nx_base: ${{ steps.outputs.base }}
+            nx_base: ${{ steps.nx_config.outputs.base }}
         steps:
             - name: Checkout
               id: checkout
@@ -37,7 +37,7 @@ jobs:
                       node_modules/
                       packages/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock')}}
-                restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Setup Node.js
               id: setup_node
               uses: actions/setup-node@v3
@@ -73,14 +73,14 @@ jobs:
                       node_modules/
                       packages/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock')}}
-                restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+                  restore-keys: node_modules-
             - name: Cache Nx
               uses: actions/cache@v3
               with:
-                path: node_modules/.cache/nx
-                key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ matrix.target }}-${{ github.sha }}
-                restore-keys: |
-                  cache-nx-${{ hashFiles('yarn.lock') }}-
+                  path: node_modules/.cache/nx
+                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ matrix.target }}-${{ github.sha }}
+                  restore-keys: |
+                      cache-nx-${{ hashFiles('yarn.lock') }}-
 
             - name: nx format:check
               id: format
@@ -112,10 +112,10 @@ jobs:
                   reporter: jest-junit
 
     report:
-      runs-on: ubuntu-latest
-      needs: ['setup', 'run']
-      # if: github.ref == 'refs/heads/latest'
-      steps:
+        runs-on: ubuntu-latest
+        needs: ['setup', 'run']
+        # if: github.ref == 'refs/heads/latest'
+        steps:
             - name: Checkout
               uses: actions/checkout@v3
               with:
