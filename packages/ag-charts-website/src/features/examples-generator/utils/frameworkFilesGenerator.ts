@@ -104,11 +104,11 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const boilerPlateFiles = await getBoilerPlateFiles('reactFunctionalTs');
 
         const getSource = vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
-        const indexJsx = getSource();
+        const indexTsx = getSource();
 
         return {
             files: {
-                'index.tsx': indexJsx,
+                'index.tsx': indexTsx,
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
