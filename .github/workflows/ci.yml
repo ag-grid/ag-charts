@@ -78,7 +78,7 @@ jobs:
               uses: actions/cache@v3
               with:
                 path: node_modules/.cache/nx
-                key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ matrix.target }}-${{ github.sha }}
                 restore-keys: |
                   cache-nx-${{ hashFiles('yarn.lock') }}-
 
