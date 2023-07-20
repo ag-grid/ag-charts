@@ -46,20 +46,20 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "@nx/vite:test",
       "options": {
-        "jestConfig": "packages/ag-charts-website/jest.config.ts"
+        "config": "packages/ag-charts-website/vitest.config.mjs"
       },
       "configurations": {
         "ci": {
-          "ci": true
+          "outputFile": "../../reports/ag-charts-website.xml",
+          "reporters": ["junit"]
         },
         "watch": {
           "watch": true
         },
         "update": {
-          "updateSnapshot": true
+          "update": true
         }
       }
     },
