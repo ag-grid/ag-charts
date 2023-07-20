@@ -47,6 +47,7 @@
     },
     "test": {
       "executor": "@nx/vite:test",
+      "dependsOn": [],
       "options": {
         "config": "packages/ag-charts-website/vitest.config.mjs"
       },
