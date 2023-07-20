@@ -1,4 +1,22 @@
-import { getBoilerPlateName } from './fileUtils';
+import { getBoilerPlateName, getEntryFileName } from './fileUtils';
+
+describe('getEntryFileName', () => {
+    test.each`
+        internalFramework      | expected
+        ${undefined}           | ${undefined}
+        ${'other'}             | ${undefined}
+        ${'vanilla'}           | ${'main.js'}
+        ${'typescript'}        | ${'main.ts'}
+        ${'react'}             | ${'index.jsx'}
+        ${'reactFunctional'}   | ${'index.jsx'}
+        ${'reactFunctionalTs'} | ${'index.tsx'}
+        ${'angular'}           | ${'main.js'}
+        ${'vue'}               | ${'main.js'}
+        ${'vue3'}              | ${'main.js'}
+    `('$internalFramework is $expected', ({ internalFramework, expected }) => {
+        expect(getEntryFileName(internalFramework)).toEqual(expected);
+    });
+});
 
 describe('getBoilerPlateName', () => {
     test.each`

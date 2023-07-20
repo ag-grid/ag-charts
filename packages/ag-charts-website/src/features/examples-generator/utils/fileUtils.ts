@@ -121,24 +121,23 @@ export const getFrameworkFromInternalFramework = (internalFramework: string) => 
     }
 };
 
-export const getEntryFileName = ({
-    framework,
-    internalFramework,
-}: {
-    framework: string;
-    internalFramework: string;
-}) => {
-    const entryFile = {
-        react: internalFramework === 'reactFunctionalTs' ? 'index.tsx' : 'index.jsx',
-        // HACK: Using react template for now
-        // angular: "app/app.component.ts",
-        angular: 'index.jsx',
-        vue: 'index.jsx',
-
-        javascript: internalFramework === 'typescript' ? 'main.ts' : 'main.js',
-    };
-
-    return entryFile[framework as keyof typeof entryFile] || 'main.js';
+export const getEntryFileName = (internalFramework: string) => {
+    switch (internalFramework) {
+        case 'typescript':
+            return 'main.ts';
+        case 'react':
+        case 'reactFunctional':
+            return 'index.jsx';
+        case 'reactFunctionalTs':
+            return 'index.tsx';
+        case 'vanilla':
+        case 'angular':
+        case 'vue':
+        case 'vue3':
+            return 'main.js';
+        default:
+            return;
+    }
 };
 
 export const getSourceFolderUrl = ({ pageName, exampleName }: { pageName: string; exampleName: string }) => {

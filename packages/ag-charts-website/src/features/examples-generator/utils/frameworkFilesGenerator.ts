@@ -1,6 +1,10 @@
 import type { InternalFramework } from '../../../types/ag-grid';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
+import { vanillaToReact } from '../transformation-scripts/chart-vanilla-to-react';
+import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
+import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
 import { getBoilerPlateFiles } from './fileUtils';
+import { deepCloneObject } from './deepCloneObject';
 
 interface FrameworkFiles {
     files: Record<string, string>;
@@ -22,6 +26,31 @@ type ConfigGenerator = ({
     bindings: any;
     typedBindings: any;
 }) => FrameworkFiles | Promise<FrameworkFiles>;
+
+const createReactFilesGenerator =
+    ({
+        sourceGenerator,
+        internalFramework,
+    }: {
+        sourceGenerator: (bindings: any, componentFilenames: string[]) => () => string;
+        internalFramework: InternalFramework;
+    }): ConfigGenerator =>
+    async ({ entryFile, bindings, indexHtml }) => {
+        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+
+        const getSource = sourceGenerator(deepCloneObject(bindings), []);
+        const indexJsx = getSource();
+
+        return {
+            files: {
+                'index.jsx': indexJsx,
+                'index.html': indexHtml,
+            },
+            boilerPlateFiles,
+            scriptFiles: ['index.jsx'],
+            entryFileName: 'index.jsx',
+        };
+    };
 
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
     vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise }) => {
@@ -63,9 +92,30 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             entryFileName: 'main.ts',
         };
     },
-    react: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
-    reactFunctional: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
-    reactFunctionalTs: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
+    react: createReactFilesGenerator({
+        sourceGenerator: vanillaToReact,
+        internalFramework: 'react',
+    }),
+    reactFunctional: createReactFilesGenerator({
+        sourceGenerator: vanillaToReactFunctional,
+        internalFramework: 'reactFunctional',
+    }),
+    reactFunctionalTs: async ({ entryFile, bindings, indexHtml }) => {
+        const boilerPlateFiles = await getBoilerPlateFiles('reactFunctionalTs');
+
+        const getSource = vanillaToReactFunctionalTs(deepCloneObject(bindings), []);
+        const indexJsx = getSource();
+
+        return {
+            files: {
+                'index.tsx': indexJsx,
+                'index.html': indexHtml,
+            },
+            boilerPlateFiles,
+            scriptFiles: ['index.tsx'],
+            entryFileName: 'index.tsx',
+        };
+    },
     angular: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
     vue: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
     vue3: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
