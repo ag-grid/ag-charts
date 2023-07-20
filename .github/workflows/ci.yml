@@ -19,6 +19,7 @@ jobs:
             build: ${{ steps.build.outcome || '' }}
             lint: ${{ steps.lint.outcome || '' }}
             format: ${{ steps.format.outcome || '' }}
+            test_count: ${{ steps.test_count.outputs.test_count }}
         steps:
             - id: init_format
               name: Update Status (format)
@@ -140,9 +141,15 @@ jobs:
                   check_id: ${{ steps.init_test.outputs.check_id }}
                   status: in_progress
 
+            - name: Count test targets to run
+              id: test_count
+              run: |
+                  echo "test_count=$(yarn nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+
     test:
         runs-on: ubuntu-latest
         needs: execute_blt
+        if: ${{ needs.execute_blt.outputs.test_count }} > 0
         strategy:
             matrix:
                 shard: [1/4, 2/4, 3/4, 4/4]
@@ -165,7 +172,7 @@ jobs:
               uses: actions/cache@v3
               with:
                   path: node_modules/.cache/nx
-                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{matrix.shard}}-${{ github.sha }}
                   restore-keys: |
                       cache-nx-${{ hashFiles('yarn.lock') }}-
             - name: nx test
@@ -175,7 +182,6 @@ jobs:
     report:
         runs-on: ubuntu-latest
         needs: [execute_blt, test]
-        if: github.ref == 'refs/heads/latest'
         steps:
             - name: Checkout
               id: checkout
@@ -199,14 +205,14 @@ jobs:
                   path: reports/*.xml
                   reporter: jest-junit
             - name: Tag Latest Successful Commit
-              if: success()
+              if: success() && github.ref == 'refs/heads/latest'
               uses: EndBug/latest-tag@latest
               with:
                   ref: latest-success
                   description: Latest commit to pass GitHub Actions workflow on latest branch.
             - name: Check last job status
               id: lastJobStatus
-              if: always()
+              if: always() && github.ref == 'refs/heads/latest'
               run: |
                   LAST_JOB_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
                   THIS_JOB_STATUS="${{ job.status }}"
@@ -221,7 +227,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Commit History
               id: commits
-              if: job.status != 'cancelled' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
                   GIT_LOG=$(git log HEAD ^${{ needs.execute_blt.outputs.nx_base }} --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
@@ -229,7 +235,7 @@ jobs:
                   echo "EOF" >> $GITHUB_ENV
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
-              if: job.status != 'cancelled' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: ${{ job.status }}
