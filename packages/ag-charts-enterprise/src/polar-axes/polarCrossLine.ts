@@ -1,4 +1,4 @@
-import type { _Scale, FontStyle, FontWeight } from 'ag-charts-community';
+import type { _Scale, FontStyle, FontWeight, AgBaseCrossLineLabelOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
@@ -23,37 +23,12 @@ const { Group } = _Scene;
 
 const { createId } = _Util;
 
-const CROSSLINE_LABEL_POSITIONS = [
-    'top',
-    'left',
-    'right',
-    'bottom',
-    'topLeft',
-    'topRight',
-    'bottomLeft',
-    'bottomRight',
-    'inside',
-    'insideLeft',
-    'insideRight',
-    'insideTop',
-    'insideBottom',
-    'insideTopLeft',
-    'insideBottomLeft',
-    'insideTopRight',
-    'insideBottomRight',
-];
-
-const OPT_CROSSLINE_LABEL_POSITION = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, (v: any) => CROSSLINE_LABEL_POSITIONS.includes(v)),
-    `expecting an optional crossLine label position keyword such as 'topLeft', 'topRight' or 'inside'`
-);
-
 const OPT_CROSSLINE_TYPE = predicateWithMessage(
     (v: any, ctx) => OPTIONAL(v, ctx, (v: any) => v === 'range' || v === 'line'),
     `expecting a crossLine type keyword such as 'range' or 'line'`
 );
 
-class PolarCrossLineLabel implements _ModuleSupport.CrossLineLabel {
+class PolarCrossLineLabel implements AgBaseCrossLineLabelOptions {
     @Validate(OPT_BOOLEAN)
     enabled?: boolean = undefined;
 
@@ -83,12 +58,6 @@ class PolarCrossLineLabel implements _ModuleSupport.CrossLineLabel {
      */
     @Validate(OPT_COLOR_STRING)
     color?: string = 'rgba(87, 87, 87, 1)';
-
-    @Validate(OPT_CROSSLINE_LABEL_POSITION)
-    position?: _ModuleSupport.CrossLineLabel['position'] = undefined;
-
-    @Validate(OPT_NUMBER(-360, 360))
-    rotation?: number = undefined;
 
     @Validate(OPT_NUMBER(-360, 360))
     positionAngle?: number = undefined;

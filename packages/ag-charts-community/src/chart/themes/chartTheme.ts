@@ -113,7 +113,6 @@ export class ChartTheme {
                     fontFamily: this.fontFamily,
                     padding: 5,
                     color: 'rgb(87, 87, 87)',
-                    rotation: undefined,
                 },
             },
         };

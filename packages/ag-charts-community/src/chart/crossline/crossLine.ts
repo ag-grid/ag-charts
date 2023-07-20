@@ -1,25 +1,11 @@
 import type { Group } from '../../scene/group';
 import type { Scale } from '../../scale/scale';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { FontStyle, FontWeight, AgCrossLineLabelPosition } from '../agChartOptions';
-
-export interface CrossLineLabel {
-    enabled?: boolean;
-    text?: string;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
-    fontSize: number;
-    fontFamily: string;
-    padding: number;
-    color?: string;
-    position?: AgCrossLineLabelPosition;
-    rotation?: number;
-    parallel?: boolean;
-}
+import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../agChartOptions';
 
 export type CrossLineType = 'line' | 'range';
 
-export interface CrossLine {
+export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     clippedRange: [number, number];
     direction: ChartAxisDirection;
@@ -29,7 +15,7 @@ export interface CrossLine {
     gridLength: number;
     group: Group;
     id: string;
-    label: CrossLineLabel;
+    label: LabelType;
     lineDash?: number[];
     parallelFlipRotation: number;
     range?: [any, any];

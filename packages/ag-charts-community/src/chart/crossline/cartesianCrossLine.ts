@@ -32,9 +32,14 @@ import {
     OPTIONAL,
     predicateWithMessage,
 } from '../../util/validation';
-import type { FontStyle, FontWeight, AgCrossLineLabelPosition } from '../agChartOptions';
+import type {
+    FontStyle,
+    FontWeight,
+    AgCartesianCrossLineLabelOptions,
+    AgCrossLineLabelPosition,
+} from '../agChartOptions';
 import { calculateLabelRotation } from '../label';
-import type { CrossLine, CrossLineLabel, CrossLineType } from './crossLine';
+import type { CrossLine, CrossLineType } from './crossLine';
 
 const CROSSLINE_LABEL_POSITIONS = [
     'top',
@@ -66,7 +71,7 @@ const OPT_CROSSLINE_TYPE = predicateWithMessage(
     `expecting a crossLine type keyword such as 'range' or 'line'`
 );
 
-class CartesianCrossLineLabel implements CrossLineLabel {
+class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
     @Validate(OPT_BOOLEAN)
     enabled?: boolean = undefined;
 
@@ -109,7 +114,7 @@ class CartesianCrossLineLabel implements CrossLineLabel {
 
 type NodeData = number[];
 
-export class CartesianCrossLine implements CrossLine {
+export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
     protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
 
