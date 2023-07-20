@@ -52,7 +52,7 @@ export class PolarChart extends Chart {
             }
             axis.translation.x = cx;
             axis.translation.y = cy;
-            axis.updateScale();
+            axis.update();
         });
 
         const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);

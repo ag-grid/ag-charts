@@ -254,7 +254,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     maybeRefreshNodeData() {
-        if (!this.didCircleChange() && !this.nodeDataRefresh) return;
+        const didCircleChange = this.didCircleChange();
+        if (!didCircleChange && !this.nodeDataRefresh) return;
         const [{ nodeData = [] } = {}] = this._createNodeData();
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
