@@ -98,6 +98,8 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     tooltip?: AgWaterfallSeriesTooltip;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
+    /** Configuration for the waterfall series items when they are hovered over. */
+    highlightStyle?: AgSeriesHighlightStyle;
 }
 
 export interface AgWaterfallSeriesItemOptions {

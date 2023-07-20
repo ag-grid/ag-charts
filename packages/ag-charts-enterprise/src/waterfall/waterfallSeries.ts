@@ -108,6 +108,15 @@ class WaterfallSeriesLabel extends _Scene.Label {
 }
 
 class WaterfallSeriesItem {
+    readonly label = new WaterfallSeriesLabel();
+
+    tooltip: WaterfallSeriesTooltip = new WaterfallSeriesTooltip();
+
+    @Validate(OPT_FUNCTION)
+    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat = undefined;
+
+    shadow?: _Scene.DropShadow = undefined;
+
     @Validate(OPT_STRING)
     name?: string = undefined;
 
@@ -188,8 +197,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
         });
-
-        this.label.enabled = false;
     }
 
     protected resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
@@ -428,7 +435,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             const isPositive = (value ?? 0) >= 0;
 
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { fill, stroke, strokeWidth } = this.getItemConfig(seriesItemType);
+            const { fill, stroke, strokeWidth, label: itemLabel } = this.getItemConfig(seriesItemType);
 
             const y = (isPositive ? currY : trailY) - offset;
             const bottomY = (isPositive ? trailY : currY) + offset;
@@ -473,7 +480,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
             pointData.push(pathPoint);
 
-            const { formatter, placement, padding } = this.label;
+            const label = itemLabel ?? this.label;
+            const { formatter, placement, padding } = label;
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,
@@ -490,8 +498,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 width: rect.width,
                 height: rect.height,
                 nodeMidPoint,
-                fill: fill,
-                stroke: stroke,
+                fill,
+                stroke,
                 strokeWidth,
                 label: createLabelData({
                     value,
@@ -599,8 +607,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            shadow,
-            formatter,
+            shadow: seriesShadow,
+            formatter: seriesFormatter,
             highlightStyle: { item: itemHighlightStyle },
             id: seriesId,
             ctx,
@@ -613,7 +621,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         datumSelection.each((rect, datum) => {
             const seriesItemType = datum.itemId;
-            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, formatter, shadow } =
                 this.getItemConfig(seriesItemType);
             const style: _ModuleSupport.RectConfig = {
                 fill: datum.fill,
@@ -622,7 +630,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
-                fillShadow: shadow,
+                fillShadow: shadow ?? seriesShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth, datum),
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
@@ -632,10 +640,11 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                formatter,
+                formatter: formatter ?? seriesFormatter,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
+                value: datum.yValue,
             });
             config.crisp = crisp;
             config.visible = visible;
@@ -648,7 +657,16 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>;
     }) {
         const { labelData, labelSelection } = opts;
-        const { enabled } = this.label;
+
+        if (labelData.length === 0) {
+            return labelSelection.update([]);
+        }
+
+        const itemId = labelData[0].itemId;
+        const {
+            label: { enabled: itemLabelEnabled },
+        } = this.getItemConfig(itemId);
+        const enabled = itemLabelEnabled ?? this.label.enabled;
         const data = enabled ? labelData : [];
 
         return labelSelection.update(data);
@@ -658,7 +676,9 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         const { labelSelection } = opts;
         labelSelection.each((text, datum) => {
             const labelDatum = datum.label;
-            updateLabel({ labelNode: text, labelDatum, config: this.label, visible: true });
+            const { label: itemLabel } = this.getItemConfig(datum.itemId);
+            const config = itemLabel ?? this.label;
+            updateLabel({ labelNode: text, labelDatum, config, visible: true });
         });
     }
 
@@ -677,18 +697,23 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             return '';
         }
 
-        const { formatter, tooltip, xName, yName, id: seriesId } = this;
+        const { formatter: seriesFormatter, xName, yName, id: seriesId } = this;
         const { datum, itemId, xValue, yValue } = nodeDatum;
+
+        const { fill, strokeWidth, name, formatter: itemFormatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
+
+        const tooltipConfig = itemTooltip ?? this.tooltip;
 
         let format: any | undefined = undefined;
 
-        const { fill, strokeWidth, name } = this.getItemConfig(itemId);
-
         const color = format?.fill ?? fill ?? 'gray';
+
+        const formatter = itemFormatter ?? seriesFormatter;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum,
+                value: yValue,
                 xKey,
                 yKey,
                 fill,
@@ -716,7 +741,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             backgroundColor: color,
         };
 
-        const { renderer: tooltipRenderer } = tooltip;
+        const { renderer: tooltipRenderer } = tooltipConfig;
 
         if (tooltipRenderer) {
             return toTooltipHtml(
@@ -765,8 +790,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 marker: {
                     fill,
                     stroke,
-                    fillOpacity: fillOpacity,
-                    strokeOpacity: strokeOpacity,
+                    fillOpacity,
+                    strokeOpacity,
                 },
             });
         });
@@ -973,7 +998,12 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return (
+            this.positiveItem.label.enabled ||
+            this.negativeItem.label.enabled ||
+            this.totalItem.label.enabled ||
+            this.label.enabled
+        );
     }
 
     protected getBarDirection() {
