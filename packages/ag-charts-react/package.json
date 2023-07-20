@@ -3,7 +3,9 @@
   "version": "9.0.0",
   "description": "AG Charts React Component",
   "main": "main.js",
-  "typings": "./src/main.d.ts",
+  "module": "./dist/index.js",
+  "type": "module",
+  "types": "./dist/src/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"

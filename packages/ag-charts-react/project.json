@@ -10,12 +10,14 @@
     },
     "build": {
       "executor": "@nx/rollup:rollup",
+      "inputs": ["tsDefaults", "{projectRoot}/package.json"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-react/dist",
+        "generateExportsField": false,
         "tsConfig": "packages/ag-charts-react/tsconfig.lib.json",
         "project": "packages/ag-charts-react/package.json",
-        "entryFile": "packages/ag-charts-react/src/main.ts",
+        "entryFile": "packages/ag-charts-react/src/index.ts",
         "external": ["react", "react-dom", "react/jsx-runtime"],
         "rollupConfig": "@nx/react/plugins/bundle-rollup",
         "compiler": "babel",
