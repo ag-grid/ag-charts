@@ -4,6 +4,12 @@
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/main.cjs",
   "types": "./dist/src/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/main.d.ts",
+      "require": "./dist/main.cjs"
+    }
+  },
   "scripts": {
     "lint:circular": "npx madge --circular --extensions ts src/",
     "lint:prune": "npx ts-prune -p tsconfig.cjs.es5.json",

@@ -14,12 +14,13 @@
     ],
     "tsDeclarations": [{ "dependentTasksOutputFiles": "**/*.d.ts" }],
     "tsDefaults": [
+      "{projectRoot}/package.json",
       "{projectRoot}/src/**/*",
-      "{projectRoot}/(tsconfig*.json|rollup*.js)",
+      "{projectRoot}/(tsconfig.*.json|rollup.*.js)",
       "tsDeclarations",
       "sharedGlobals"
     ],
-    "sharedGlobals": []
+    "sharedGlobals": ["{workspaceRoot}/rollup.*.js", "{workspaceRoot}/tsconfig.*.json"]
   },
   "targetDefaults": {
     "build": {
