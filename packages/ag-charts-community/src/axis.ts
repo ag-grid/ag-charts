@@ -12,6 +12,7 @@ import { createId } from './util/id';
 import { normalizeAngle360, toRadians } from './util/angle';
 import { areArrayNumbersEqual } from './util/equal';
 import type { CrossLine } from './chart/crossline/crossLine';
+import { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
 import { Validate, BOOLEAN, ARRAY, STRING_ARRAY, predicateWithMessage } from './util/validation';
 import { Layers } from './chart/layers';
 import type { PointLabelDatum } from './util/labelPlacement';
@@ -1000,7 +1001,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.crossLines?.forEach((crossLine) => {
             crossLine.sideFlag = -sideFlag as Flag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
-            crossLine.label.parallel = crossLine.label.parallel ?? this.label.parallel;
+            if (crossLine instanceof CartesianCrossLine) {
+                crossLine.label.parallel = crossLine.label.parallel ?? this.label.parallel;
+            }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
             crossLine.update(anySeriesActive);

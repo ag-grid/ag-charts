@@ -28,7 +28,7 @@ const OPT_CROSSLINE_TYPE = predicateWithMessage(
     `expecting a crossLine type keyword such as 'range' or 'line'`
 );
 
-class PolarCrossLineLabel implements AgBaseCrossLineLabelOptions {
+export class PolarCrossLineLabel implements AgBaseCrossLineLabelOptions {
     @Validate(OPT_BOOLEAN)
     enabled?: boolean = undefined;
 
@@ -58,9 +58,6 @@ class PolarCrossLineLabel implements AgBaseCrossLineLabelOptions {
      */
     @Validate(OPT_COLOR_STRING)
     color?: string = 'rgba(87, 87, 87, 1)';
-
-    @Validate(OPT_NUMBER(-360, 360))
-    positionAngle?: number = undefined;
 
     @Validate(OPT_BOOLEAN)
     parallel?: boolean = undefined;

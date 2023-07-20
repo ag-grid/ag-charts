@@ -1,15 +1,22 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import { PolarCrossLine } from '../polarCrossLine';
+import { PolarCrossLine, PolarCrossLineLabel } from '../polarCrossLine';
 
-const { ChartAxisDirection } = _ModuleSupport;
+const { ChartAxisDirection, Validate, OPT_NUMBER } = _ModuleSupport;
 const { Path, Sector, Text } = _Scene;
 const { normalizeAngle360, toRadians, isNumberEqual } = _Util;
+
+class RadiusCrossLineLabel extends PolarCrossLineLabel {
+    @Validate(OPT_NUMBER(-360, 360))
+    positionAngle?: number = undefined;
+}
 
 export class RadiusCrossLine extends PolarCrossLine {
     static className = 'RadiusCrossLine';
 
     direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.Y;
     gridAngles?: number[];
+
+    label = new RadiusCrossLineLabel();
 
     private polygonNode = new Path();
     private sectorNode = new Sector();
