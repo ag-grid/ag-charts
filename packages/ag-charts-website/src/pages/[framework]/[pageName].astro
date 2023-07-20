@@ -47,6 +47,20 @@ const pages = getDocPagesList(allDocPages);
     </div>
 </Layout>
 
+<style lang="scss" is:global>
+    @use '../../design-system' as *;
+
+    .contentViewport {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+
+        @media (min-width: $breakpoint-docs-nav-medium) {
+            flex-direction: row;
+        }
+    }
+</style>
+
 <style lang="scss">
     @use '../../design-system' as *;
 
