@@ -39,6 +39,7 @@ import type {
     AgRadarSeriesTooltip,
     AgRadarSeriesTooltipRendererParams,
 } from './polar-series/radar/typings';
+import { NightingaleModule } from './polar-series/nightingale/nightingaleModule';
 import { RadarLineModule, AgRadarLineSeriesOptions } from './polar-series/radar-line/main';
 import { RadarAreaModule, AgRadarAreaSeriesOptions } from './polar-series/radar-area/main';
 import { AgZoomAxes, AgZoomOptions, AgZoomPanKey, AgZoomScrollingPivot, ZoomModule } from './zoom/main';
@@ -61,6 +62,7 @@ _ModuleSupport.registerModule(ContextMenuModule);
 _ModuleSupport.registerModule(CrosshairModule);
 _ModuleSupport.registerModule(GradientLegendModule);
 _ModuleSupport.registerModule(HeatmapModule);
+_ModuleSupport.registerModule(NightingaleModule);
 _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
 _ModuleSupport.registerModule(RadiusNumberAxisModule);
