@@ -329,7 +329,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         return this.axes[this.getCategoryDirection()];
     }
 
-    private getValueAxis(): _ModuleSupport.ChartAxis | undefined {
+    protected getValueAxis(): _ModuleSupport.ChartAxis | undefined {
         return this.axes[this.getBarDirection()];
     }
 
@@ -789,7 +789,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         paths: Array<Array<_Scene.Path>>;
         seriesRect?: _Scene.BBox;
     }) {
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 2000;
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
             this.animateRects(datumSelections[contextDataIndex], duration);
@@ -805,17 +805,17 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
-        datumSelection.each((rect, datum, index) => {
+        const yAxis = this.getValueAxis();
+        datumSelection.each((rect, datum) => {
             this.ctx.animationManager?.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
                 [
-                    { from: datum.itemId === 'positive' ? datum.x : datum.x + datum.width, to: datum.x },
+                    { from: yAxis?.scale.convert(0) ?? 0, to: datum.x },
                     { from: 0, to: datum.width },
                 ],
                 {
                     disableInteractions: true,
                     duration,
-                    delay: 200 * index,
                     onUpdate([x, width]) {
                         rect.x = x;
                         rect.width = width;
@@ -1002,17 +1002,18 @@ export class WaterfallColumnSeries extends WaterfallBarSeries {
     }
 
     protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
-        datumSelection.each((rect, datum, index) => {
+        const yAxis = this.getValueAxis();
+        datumSelection.each((rect, datum) => {
             this.ctx.animationManager?.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
                 [
-                    { from: datum.itemId === 'positive' ? datum.y + datum.height : datum.y, to: datum.y },
+                    { from: yAxis?.scale.convert(0) ?? 0, to: datum.y },
                     { from: 0, to: datum.height },
                 ],
                 {
                     disableInteractions: true,
                     duration,
-                    delay: 200 * index,
+                    ease: _ModuleSupport.Motion.easeInOut,
                     onUpdate([y, height]) {
                         rect.y = y;
                         rect.height = height;
