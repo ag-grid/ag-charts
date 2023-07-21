@@ -219,7 +219,7 @@ export const getExampleFileUrl = ({
 };
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
-    return pathJoin(DEV_FILE_BASE_PATH, filePath);
+    return pathJoin(SITE_BASE_URL, DEV_FILE_BASE_PATH, filePath);
 };
 
 export const getDevFileList = () => {
