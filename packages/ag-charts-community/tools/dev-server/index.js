@@ -21,9 +21,9 @@ const ES_VERSION_MAP = {
 const ES_VERSION = ES_VERSION_MAP[arg('es')] ?? null;
 
 const ROOT_DIR = '../../..';
-const SRC_ENTRY_COMMUNITY = '../../charts-community-modules/ag-charts-community/src/main.ts';
-const SRC_ENTRY_ENTERPRISE = '../../charts-enterprise-modules/ag-charts-enterprise/src/main.ts';
-const DOC_PAGES_DIR = '../../grid-packages/ag-grid-docs/documentation/doc-pages';
+const SRC_ENTRY_COMMUNITY = '../../packages/ag-charts-community/src/main.ts';
+const SRC_ENTRY_ENTERPRISE = '../../packages/ag-charts-enterprise/src/main.ts';
+const DOC_PAGES_DIR = '../../packages/ag-charts-website/src/content/docs';
 const LOCAL_EXAMPLES_DIR = 'tools/dev-server/my-examples';
 const TEMPLATES_DIR = `tools/dev-server/templates`;
 
@@ -44,7 +44,7 @@ async function getDocExamples() {
         }
         return examples;
     };
-    const docExamples = await loadExamples(`${DOC_PAGES_DIR}/charts-*/examples/*/index.html`, (dir) => {
+    const docExamples = await loadExamples(`${DOC_PAGES_DIR}/charts-*/_examples/*/index.html`, (dir) => {
         const id = dir.substring(dir.lastIndexOf('/') + 1);
         // @ts-ignore
         const category = dir.split('/').at(-3);
