@@ -1,12 +1,12 @@
-import type {
-    AgPieSeriesFormatterParams,
-    AgPieSeriesTooltipRendererParams,
-    AgPieSeriesFormat,
-    AgTooltipRendererResult,
-} from 'ag-charts-community';
+import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import type { AgNightingaleSeriesLabelFormatterParams } from './typings';
+import type {
+    AgNightingaleSeriesLabelFormatterParams,
+    AgNightingaleSeriesFormat,
+    AgNightingaleSeriesFormatterParams,
+    AgNightingaleSeriesTooltipRendererParams,
+} from './typings';
 
 const {
     ChartAxisDirection,
@@ -23,7 +23,8 @@ const {
     valueProperty,
 } = _ModuleSupport;
 
-const { Group, Sector, Selection, Text } = _Scene;
+const { Group, Sector, Selection, Text, toTooltipHtml } = _Scene;
+const { interpolateString, isNumber, sanitizeHtml } = _Util;
 
 class NightingaleSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -64,6 +65,7 @@ interface NightingaleNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly outerRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
+    readonly index: number;
 }
 
 class NightingaleSeriesLabel extends _Scene.Label {
@@ -73,7 +75,7 @@ class NightingaleSeriesLabel extends _Scene.Label {
 
 class NightingaleSeriesTooltip extends _ModuleSupport.SeriesTooltip {
     @Validate(OPT_FUNCTION)
-    renderer?: (params: AgPieSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
+    renderer?: (params: AgNightingaleSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
     @Validate(OPT_STRING)
     format?: string = undefined;
 }
@@ -140,7 +142,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
     lineDashOffset: number = 0;
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat = undefined;
+    formatter?: (params: AgNightingaleSeriesFormatterParams<any>) => AgNightingaleSeriesFormat = undefined;
 
     /**
      * The series rotation in degrees.
@@ -316,7 +318,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const anglesCount = angleScale.domain.length ?? 0;
         const angleStep = (2 * Math.PI) / anglesCount;
 
-        const nodeData = processedData.data.map((group): NightingaleNodeDatum => {
+        const nodeData = processedData.data.map((group, index): NightingaleNodeDatum => {
             const { datum, keys, values } = group;
 
             const angleDatum = keys[dataIndex];
@@ -370,6 +372,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 outerRadius,
                 startAngle: angle - angleStep / 2,
                 endAngle: angle + angleStep / 2,
+                index,
             };
         });
 
@@ -446,8 +449,59 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         return new NightingaleSeriesNodeDoubleClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 
-    getTooltipHtml(_nodeDatum: NightingaleNodeDatum): string {
-        return '';
+    getTooltipHtml(nodeDatum: NightingaleNodeDatum): string {
+        const { id: seriesId, axes, angleKey, angleName, radiusKey, radiusName, fill, tooltip, dataModel } = this;
+        const { angleValue, radiusValue, datum } = nodeDatum;
+
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!(angleKey && radiusKey) || !(xAxis && yAxis && isNumber(radiusValue)) || !dataModel) {
+            return '';
+        }
+        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, 'radiusValue-raw').index;
+
+        const angleString = xAxis.formatDatum(angleValue);
+        const radiusString = yAxis.formatDatum(radiusValue);
+        const processedYValue = this.processedData?.data[nodeDatum.index]?.values[0][yRawIndex];
+        const title = sanitizeHtml(radiusName);
+        const content = sanitizeHtml(`${angleString}: ${radiusString}`);
+
+        const defaults: AgTooltipRendererResult = {
+            title,
+            backgroundColor: fill,
+            content,
+        };
+        const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
+
+        if (tooltipFormat || tooltipRenderer) {
+            const params = {
+                datum,
+                angleKey,
+                angleName,
+                angleValue,
+                radiusKey,
+                radiusName,
+                radiusValue,
+                processedYValue,
+                color: fill,
+                title,
+                seriesId,
+            };
+            if (tooltipFormat) {
+                return toTooltipHtml(
+                    {
+                        content: interpolateString(tooltipFormat, params),
+                    },
+                    defaults
+                );
+            }
+            if (tooltipRenderer) {
+                return toTooltipHtml(tooltipRenderer(params), defaults);
+            }
+        }
+
+        return toTooltipHtml(defaults);
     }
 
     getLegendData(): _ModuleSupport.ChartLegendDatum[] {

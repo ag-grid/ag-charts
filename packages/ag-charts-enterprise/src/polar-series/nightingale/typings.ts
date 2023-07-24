@@ -37,6 +37,8 @@ export interface AgNightingaleSeriesOptions<DatumType = any> extends AgBaseSerie
     tooltip?: AgNightingaleSeriesTooltip;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
+    /** A formatter function for adjusting the styling of the nightingale sectors. */
+    formatter?: (params: AgNightingaleSeriesFormatterParams<DatumType>) => AgNightingaleSeriesFormat;
 }
 
 export interface AgNightingaleSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
@@ -71,6 +73,25 @@ export interface AgNightingaleSeriesTooltip extends AgSeriesTooltip {
     /** Function used to create the content for tooltips. */
     renderer?: (params: AgNightingaleSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
     format?: string;
+}
+
+export interface AgNightingaleSeriesFormatterParams<DatumType> {
+    readonly datum: DatumType;
+    readonly fill?: CssColor;
+    readonly stroke?: CssColor;
+    readonly strokeWidth: PixelSize;
+    readonly highlighted: boolean;
+    readonly angleKey: string;
+    readonly radiusKey?: string;
+    readonly sectorLabelKey?: string;
+    readonly seriesId: string;
+}
+
+export interface AgNightingaleSeriesFormat {
+    fill?: CssColor;
+    fillOpacity?: Opacity;
+    stroke?: CssColor;
+    strokeWidth?: PixelSize;
 }
 
 /**
