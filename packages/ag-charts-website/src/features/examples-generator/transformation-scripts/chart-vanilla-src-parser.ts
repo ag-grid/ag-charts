@@ -24,7 +24,7 @@ import {
     tsNodeIsUnusedFunction,
     usesChartApi,
 } from './parser-utils';
-import { ExampleSettings } from '../types.d';
+import type { ExampleSettings } from '../types.d';
 
 export const templatePlaceholder = '$$CHART$$';
 
