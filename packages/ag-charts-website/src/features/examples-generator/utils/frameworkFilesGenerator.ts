@@ -85,12 +85,29 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             entryFileName: 'main.js',
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles }) => {
+    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings }) => {
+        const { externalEventHandlers } = bindings;
         const boilerPlateFiles = await getBoilerPlateFiles('typescript');
+
+        // Attach external event handlers
+        let externalEventHandlersCode;
+        if (externalEventHandlers?.length > 0) {
+            const externalBindings = externalEventHandlers.map((e) => ` (<any>window).${e.name} = ${e.name};`);
+            externalEventHandlersCode = [
+                '\n',
+                "if (typeof window !== 'undefined') {",
+                '// Attach external event handlers to window so they can be called from index.html',
+                ...externalBindings,
+                '}',
+            ].join('\n');
+        }
+
+        const mainTsx = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
+
         return {
             files: {
                 ...otherScriptFiles,
-                'main.ts': entryFile,
+                'main.ts': mainTsx,
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
