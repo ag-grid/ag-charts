@@ -252,9 +252,15 @@ export function extractEventHandlers(domTree: any, eventNames: string[]) {
         });
     };
 
-    return flatMap(eventNames, (event: string) =>
-        getHandlerAttributes(event).map((index, el) => extractEventHandlerBody(el))
-    );
+    return flatMap(eventNames, (event: string) => {
+        const result = getHandlerAttributes(event)
+            .map((index, el) => {
+                return [extractEventHandlerBody(el)];
+            })
+            .toArray();
+
+        return result;
+    });
 }
 
 export function removeInScopeJsDoc(method: string): string {
