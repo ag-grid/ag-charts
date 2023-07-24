@@ -19,12 +19,14 @@ type ConfigGenerator = ({
     isEnterprise,
     bindings,
     typedBindings,
+    otherScriptFiles,
 }: {
     entryFile: string;
     indexHtml: string;
     isEnterprise: boolean;
     bindings: any;
     typedBindings: any;
+    otherScriptFiles: Record<string, string>;
 }) => FrameworkFiles | Promise<FrameworkFiles>;
 
 const createReactFilesGenerator =
@@ -35,7 +37,7 @@ const createReactFilesGenerator =
         sourceGenerator: (bindings: any, componentFilenames: string[]) => () => string;
         internalFramework: InternalFramework;
     }): ConfigGenerator =>
-    async ({ entryFile, bindings, indexHtml }) => {
+    async ({ entryFile, bindings, indexHtml, otherScriptFiles }) => {
         const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
 
         const getSource = sourceGenerator(deepCloneObject(bindings), []);
@@ -43,17 +45,19 @@ const createReactFilesGenerator =
 
         return {
             files: {
+                ...otherScriptFiles,
                 'index.jsx': indexJsx,
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
-            scriptFiles: ['index.jsx'],
+            // Other files, not including entry file
+            scriptFiles: Object.keys(otherScriptFiles),
             entryFileName: 'index.jsx',
         };
     };
 
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise }) => {
+    vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise, otherScriptFiles }) => {
         let mainJs = readAsJsFile(entryFile);
 
         // replace Typescript new Grid( with Javascript new agGrid.Grid(
@@ -73,22 +77,24 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         return {
             files: {
+                ...otherScriptFiles,
                 'main.js': mainJs,
                 'index.html': indexHtml,
             },
-            scriptFiles: ['main.js'],
+            scriptFiles: Object.keys(otherScriptFiles).concat('main.js'),
             entryFileName: 'main.js',
         };
     },
-    typescript: async ({ entryFile, indexHtml }) => {
+    typescript: async ({ entryFile, indexHtml, otherScriptFiles }) => {
         const boilerPlateFiles = await getBoilerPlateFiles('typescript');
         return {
             files: {
+                ...otherScriptFiles,
                 'main.ts': entryFile,
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
-            scriptFiles: ['main.ts'],
+            // NOTE: `scriptFiles` not required, as system js handles import
             entryFileName: 'main.ts',
         };
     },
@@ -100,7 +106,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         sourceGenerator: vanillaToReactFunctional,
         internalFramework: 'reactFunctional',
     }),
-    reactFunctionalTs: async ({ entryFile, typedBindings, indexHtml }) => {
+    reactFunctionalTs: async ({ entryFile, typedBindings, indexHtml, otherScriptFiles }) => {
         const boilerPlateFiles = await getBoilerPlateFiles('reactFunctionalTs');
 
         const getSource = vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
@@ -108,11 +114,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         return {
             files: {
+                ...otherScriptFiles,
                 'index.tsx': indexTsx,
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
-            scriptFiles: ['index.tsx'],
+            // NOTE: `scriptFiles` not required, as system js handles import
             entryFileName: 'index.tsx',
         };
     },

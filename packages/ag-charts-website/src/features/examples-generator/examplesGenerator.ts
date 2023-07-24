@@ -5,6 +5,7 @@ import {
     getIsEnterprise,
     getSourceFolderUrl,
     getBoilerPlateFiles,
+    getTransformTsFileExt,
 } from './utils/fileUtils';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import fs from 'node:fs/promises';
@@ -40,7 +41,7 @@ export const getGeneratedContentsFileList = async ({
         sourceFileList,
         pageName,
         exampleName,
-        transformTsFiles: !isTypescriptInternalFramework(internalFramework),
+        transformTsFileExt: getTransformTsFileExt(internalFramework),
     });
     const styleFiles = await getStyleFiles({
         sourceFileList,
@@ -100,24 +101,26 @@ export const getGeneratedContents = async ({
         return;
     }
 
-    const { bindings, typedBindings } = chartVanillaSrcParser({
-        srcFile: entryFile,
-        html: indexHtml,
-        exampleSettings: {},
-    });
-
     const isEnterprise = getIsEnterprise({
         framework,
         internalFramework,
         entryFile,
     });
 
-    const otherScriptFiles = await getOtherScriptFiles({
+    const { bindings, typedBindings } = chartVanillaSrcParser({
+        srcFile: entryFile,
+        html: indexHtml,
+        exampleSettings: {
+            enterprise: isEnterprise,
+        },
+    });
+
+    const rawOtherScriptFiles = await getOtherScriptFiles({
         sourceEntryFileName,
         sourceFileList,
         pageName,
         exampleName,
-        transformTsFiles: !isTypescriptInternalFramework(internalFramework),
+        transformTsFileExt: getTransformTsFileExt(internalFramework),
     });
     const styleFiles = await getStyleFiles({
         sourceFileList,
@@ -130,19 +133,20 @@ export const getGeneratedContents = async ({
         throw new Error(`No entry file config generator for '${internalFramework}'`);
     }
 
-    const { files, boilerPlateFiles, scriptFiles, entryFileName } = await getFrameworkFiles({
+    const { files, boilerPlateFiles, scriptFiles, entryFileName, otherScriptFiles } = await getFrameworkFiles({
         entryFile,
         indexHtml,
         isEnterprise,
         bindings,
         typedBindings,
+        otherScriptFiles: rawOtherScriptFiles,
     });
     const contents: GeneratedContents = {
         isEnterprise,
-        scriptFiles: Object.keys(otherScriptFiles).concat(scriptFiles),
+        scriptFiles,
         styleFiles: Object.keys(styleFiles),
         sourceFileList,
-        files: Object.assign(otherScriptFiles, styleFiles, files),
+        files: Object.assign(styleFiles, files),
         boilerPlateFiles,
         entryFileName,
     } as GeneratedContents;

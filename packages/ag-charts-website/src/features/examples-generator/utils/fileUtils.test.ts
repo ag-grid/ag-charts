@@ -1,4 +1,4 @@
-import { getBoilerPlateName, getEntryFileName } from './fileUtils';
+import { getBoilerPlateName, getEntryFileName, getTransformTsFileExt } from './fileUtils';
 
 describe('getEntryFileName', () => {
     test.each`
@@ -33,5 +33,23 @@ describe('getBoilerPlateName', () => {
         ${'vue3'}              | ${'charts-vue3-boilerplate'}
     `('$internalFramework is $expected', ({ internalFramework, expected }) => {
         expect(getBoilerPlateName(internalFramework)).toEqual(expected);
+    });
+});
+
+describe('getTransformTsFileExt', () => {
+    test.each`
+        internalFramework      | expected
+        ${undefined}           | ${'.js'}
+        ${'other'}             | ${'.js'}
+        ${'vanilla'}           | ${'.js'}
+        ${'typescript'}        | ${undefined}
+        ${'react'}             | ${'.js'}
+        ${'reactFunctional'}   | ${'.js'}
+        ${'reactFunctionalTs'} | ${'.tsx'}
+        ${'angular'}           | ${undefined}
+        ${'vue'}               | ${'.js'}
+        ${'vue3'}              | ${'.js'}
+    `('$internalFramework is $expected', ({ internalFramework, expected }) => {
+        expect(getTransformTsFileExt(internalFramework)).toEqual(expected);
     });
 });

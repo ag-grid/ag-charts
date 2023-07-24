@@ -4,6 +4,7 @@ import { getIsDev } from '../../../utils/env';
 import { getFolders } from '../../../utils/fs';
 import type { InternalFramework } from '../../../types/ag-grid.d';
 import { pathJoin } from '../../../utils/pathJoin';
+import { isTypescriptInternalFramework } from '../../../utils/pages';
 
 export const getContentRootFileUrl = (): URL => {
     const contentRoot = getIsDev()
@@ -43,6 +44,17 @@ export const getBoilerPlateName = (internalFramework: InternalFramework) => {
         default:
             return undefined;
     }
+};
+
+export const getTransformTsFileExt = (internalFramework: InternalFramework) => {
+    let transformTsFileExt;
+    if (internalFramework === 'reactFunctionalTs') {
+        transformTsFileExt = '.tsx';
+    } else if (!isTypescriptInternalFramework(internalFramework)) {
+        transformTsFileExt = '.js';
+    }
+
+    return transformTsFileExt;
 };
 
 export const getBoilerPlateFiles = async (internalFramework: InternalFramework) => {

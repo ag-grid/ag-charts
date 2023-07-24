@@ -3,6 +3,7 @@ import { MetaData } from './lib/MetaData';
 import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
+import { Scripts } from './lib/Scripts';
 import { getCacheBustingUrl } from '../../../utils/pages';
 import { pathJoin } from '../../../utils/pathJoin';
 
@@ -15,7 +16,10 @@ interface Props {
     isExecuting: boolean;
     options: any;
     entryFileName: string;
-
+    /**
+     * Extra script file names (not including entry file)
+     */
+    scriptFiles?: string[];
     styleFiles?: string[];
     appLocation: string;
     library: string;
@@ -31,6 +35,7 @@ const {
     options,
     appLocation,
     entryFileName,
+    scriptFiles,
     styleFiles,
     library,
     boilerplatePath,
@@ -60,6 +65,7 @@ const startFile = pathJoin(appLocation, entryFileName);
     </head>
     <body>
         <div id="root"></div>
+        {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
         <SystemJs
             isDev={isDev}
             library={library}

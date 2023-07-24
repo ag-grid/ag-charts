@@ -24,6 +24,7 @@ import {
     tsNodeIsUnusedFunction,
     usesChartApi,
 } from './parser-utils';
+import { ExampleSettings } from '../types.d';
 
 export const templatePlaceholder = '$$CHART$$';
 
@@ -35,7 +36,15 @@ function tsGenerateWithOptionReferences(node, srcFile) {
     return tsGenerate(node, srcFile).replace(new RegExp(`AgChart\\.update\\(chart, options\\);?`, 'g'), '');
 }
 
-export function parser({ srcFile, html, exampleSettings }) {
+export function parser({
+    srcFile,
+    html,
+    exampleSettings,
+}: {
+    srcFile: string;
+    html: string;
+    exampleSettings: ExampleSettings;
+}) {
     const bindings = internalParser(readAsJsFile(srcFile, { includeImports: true }), html, exampleSettings);
     const typedBindings = internalParser(srcFile, html, exampleSettings);
     return { bindings, typedBindings };

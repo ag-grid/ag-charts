@@ -247,14 +247,14 @@ export function extractEventHandlers(domTree: any, eventNames: string[]) {
     const getHandlerAttributes = (event: string) => {
         const handlerName = `on${event}`;
 
-        // TODO: Fix `getAttribute`
-        // return Array.prototype.map.call(domTree(`[${handlerName}]`), (el) => {
-        //   return el.getAttribute(handlerName);
-        // });
-        return [];
+        return domTree(`[${handlerName}]`).map((index, el) => {
+            return domTree(el).attr(handlerName);
+        });
     };
 
-    return flatMap(eventNames, (event: string) => getHandlerAttributes(event).map(extractEventHandlerBody));
+    return flatMap(eventNames, (event: string) =>
+        getHandlerAttributes(event).map((index, el) => extractEventHandlerBody(el))
+    );
 }
 
 export function removeInScopeJsDoc(method: string): string {

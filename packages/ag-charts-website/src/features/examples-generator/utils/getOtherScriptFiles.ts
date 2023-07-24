@@ -2,21 +2,23 @@ import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import { getContentsOfFileList } from './fileUtils';
 import type { FileContents } from '../types.d';
 
+type TransformTsFileExt = undefined | '.js' | '.tsx';
+
 const getOtherTsGeneratedFiles = async ({
     sourceEntryFileName,
     sourceFileList,
     pageName,
     exampleName,
-    transformTsFiles,
+    transformTsFileExt,
 }: {
     sourceEntryFileName: string;
     sourceFileList: string[];
     pageName: string;
     exampleName: string;
     /**
-     * Whether .ts files get converted to `.js files
+     * File extension for .ts files to be converted to
      */
-    transformTsFiles: boolean;
+    transformTsFileExt?: TransformTsFileExt;
 }) => {
     const otherTsFiles = sourceFileList
         .filter((fileName) => fileName.endsWith('.ts'))
@@ -32,11 +34,14 @@ const getOtherTsGeneratedFiles = async ({
     const generatedFiles = {} as FileContents;
     Object.keys(tsFileContents).forEach((tsFileName) => {
         const srcFile = tsFileContents[tsFileName];
-        if (transformTsFiles) {
-            const jsFileName = tsFileName.replace('.ts', '.js');
-            generatedFiles[jsFileName] = readAsJsFile(srcFile);
-        } else {
+        if (transformTsFileExt === '.tsx') {
+            const tsxFileName = tsFileName.replace('.ts', '.tsx');
+            generatedFiles[tsxFileName] = srcFile;
+        } else if (transformTsFileExt === undefined) {
             generatedFiles[tsFileName] = srcFile;
+        } else {
+            const jsFileName = tsFileName.replace('.ts', transformTsFileExt);
+            generatedFiles[jsFileName] = readAsJsFile(srcFile);
         }
     });
 
@@ -65,20 +70,20 @@ export const getOtherScriptFiles = async ({
     sourceFileList,
     pageName,
     exampleName,
-    transformTsFiles,
+    transformTsFileExt,
 }: {
     sourceEntryFileName: string;
     sourceFileList: string[];
     pageName: string;
     exampleName: string;
-    transformTsFiles: boolean;
+    transformTsFileExt: TransformTsFileExt;
 }) => {
     const otherTsGeneratedFileContents = await getOtherTsGeneratedFiles({
         sourceEntryFileName,
         sourceFileList,
         pageName,
         exampleName,
-        transformTsFiles,
+        transformTsFileExt,
     });
     const otherJsFileContents = await getOtherJsFiles({
         pageName,
