@@ -6,12 +6,10 @@ import type {
     AgChartOptions,
 } from '../agChartOptions';
 import type { SeriesGrouping } from '../series/seriesStateManager';
-import { isStackableSeries } from '../factory/seriesTypes';
+import { isStackableSeries, isGroupableSeries } from '../factory/seriesTypes';
 import { windowValue } from '../../util/window';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
-
-const GROUPABLE_SERIES_TYPES = ['bar', 'column'];
 
 /**
  * Groups the series options objects if they are of type `column` or `bar` and places them in an array at the index where the first instance of this series type was found.
@@ -28,7 +26,7 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
         const type = s.type ?? 'line';
 
         const stackable = isStackableSeries(type);
-        const groupable = GROUPABLE_SERIES_TYPES.includes(type);
+        const groupable = isGroupableSeries(type);
         if (!stackable && !groupable) {
             // No need to use index for these cases.
             result.push({ type: 'ungrouped' as const, opts: [s] });

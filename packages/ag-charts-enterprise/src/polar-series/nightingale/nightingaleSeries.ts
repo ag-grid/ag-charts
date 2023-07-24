@@ -23,6 +23,7 @@ const {
     valueProperty,
 } = _ModuleSupport;
 
+const { BandScale } = _Scale;
 const { Group, Sector, Selection, Text, toTooltipHtml } = _Scene;
 const { interpolateString, isNumber, sanitizeHtml } = _Util;
 
@@ -155,6 +156,11 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
 
     readonly highlightStyle = new HighlightStyle();
 
+    /**
+     * Used to get the position of bars within each group.
+     */
+    private groupScale = new BandScale<string>();
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -222,13 +228,8 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         if (!angleKey || !radiusKey) return;
 
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
-        const ids = [
-            `nightingale-stack-${groupIndex}-yValues`,
-            `nightingale-stack-${groupIndex}-yValues-trailing`,
-            `nightingale-stack-${groupIndex}-yValues-prev`,
-            `nightingale-stack-${groupIndex}-yValues-trailing-prev`,
-            `nightingale-stack-${groupIndex}-yValues-marker`,
-        ];
+        const stackGroupId = `nightingale-stack-${groupIndex}-yValues`;
+        const stackGroupTrailingId = `nightingale-stack-${groupIndex}-yValues-trailing`;
 
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
@@ -237,27 +238,12 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 ...groupAccumulativeValueProperty(this, radiusKey, true, 'window', 'current', {
                     id: `radiusValue-end`,
                     invalidValue: null,
-                    groupId: ids[0],
+                    groupId: stackGroupId,
                 }),
                 ...groupAccumulativeValueProperty(this, radiusKey, true, 'window-trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
-                    groupId: ids[1],
-                }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window', 'last', {
-                    id: `radiusValue-previous-end`,
-                    invalidValue: null,
-                    groupId: ids[2],
-                }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window-trailing', 'last', {
-                    id: `radiusValue-previous-start`,
-                    invalidValue: null,
-                    groupId: ids[3],
-                }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'normal', 'current', {
-                    id: `radiusValue-cumulative`,
-                    invalidValue: null,
-                    groupId: ids[4],
+                    groupId: stackGroupTrailingId,
                 }),
             ],
             groupByKeys: true,
@@ -316,7 +302,18 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const { label, id: seriesId } = this;
 
         const anglesCount = angleScale.domain.length ?? 0;
-        const angleStep = (2 * Math.PI) / anglesCount;
+        const groupAngleStep = (2 * Math.PI) / anglesCount;
+
+        const { groupScale } = this;
+        const domain = [];
+        const { index: groupIndex, visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
+            domain.push(String(groupIdx));
+        }
+        groupScale.domain = domain;
+        groupScale.range = [0, groupAngleStep ?? 0];
+
+        const itemAngleStep = groupAngleStep / domain.length;
 
         const nodeData = processedData.data.map((group, index): NightingaleNodeDatum => {
             const { datum, keys, values } = group;
@@ -326,7 +323,12 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             const innerRadiusDatum = values[dataIndex][radiusStartIndex];
             const outerRadiusDatum = values[dataIndex][radiusEndIndex];
 
-            const angle = angleScale.convert(angleDatum);
+            const itemAngleOffset = groupScale.convert(String(groupIndex));
+
+            const groupAngle = angleScale.convert(angleDatum);
+            const startAngle = groupAngle - groupAngleStep / 2 + itemAngleOffset;
+            const endAngle = startAngle + itemAngleStep;
+            const angle = startAngle + itemAngleStep / 2;
             const innerRadius = this.radius - radiusScale.convert(innerRadiusDatum);
             const outerRadius = this.radius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
@@ -370,8 +372,8 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 radiusValue: radiusDatum,
                 innerRadius,
                 outerRadius,
-                startAngle: angle - angleStep / 2,
-                endAngle: angle + angleStep / 2,
+                startAngle,
+                endAngle,
                 index,
             };
         });

@@ -23,4 +23,5 @@ export const NightingaleModule: _ModuleSupport.SeriesModule = {
         };
     },
     stackable: true,
+    groupable: true,
 };

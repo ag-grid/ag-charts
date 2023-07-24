@@ -27,7 +27,8 @@ export function setupModules() {
                 m.seriesDefaults,
                 m.themeTemplate,
                 m.paletteFactory,
-                m.stackable
+                m.stackable,
+                m.groupable
             );
         }
 
