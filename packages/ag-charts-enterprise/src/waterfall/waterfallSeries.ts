@@ -229,8 +229,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     typeKey?: string = undefined;
 
-    shadow?: _Scene.DropShadow = undefined;
-
     private seriesItemTypes: Set<SeriesItemType> = new Set(['positive', 'negative', 'total']);
 
     async processData(dataController: _ModuleSupport.DataController) {
@@ -612,7 +610,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            shadow: seriesShadow,
             formatter: seriesFormatter,
             highlightStyle: { item: itemHighlightStyle },
             id: seriesId,
@@ -626,8 +623,15 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         datumSelection.each((rect, datum) => {
             const seriesItemType = datum.itemId;
-            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, formatter, shadow } =
-                this.getItemConfig(seriesItemType);
+            const {
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+                formatter,
+                shadow: fillShadow,
+            } = this.getItemConfig(seriesItemType);
             const style: _ModuleSupport.RectConfig = {
                 fill: datum.fill,
                 stroke: datum.stroke,
@@ -635,7 +639,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
-                fillShadow: shadow ?? seriesShadow,
+                fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth, datum),
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
