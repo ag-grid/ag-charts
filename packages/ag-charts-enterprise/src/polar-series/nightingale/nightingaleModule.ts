@@ -22,4 +22,5 @@ export const NightingaleModule: _ModuleSupport.SeriesModule = {
             stroke,
         };
     },
+    stackable: true,
 };

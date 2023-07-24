@@ -6,11 +6,11 @@ import type {
     AgChartOptions,
 } from '../agChartOptions';
 import type { SeriesGrouping } from '../series/seriesStateManager';
+import { isStackableSeries } from '../factory/seriesTypes';
 import { windowValue } from '../../util/window';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
 
-const STACKABLE_SERIES_TYPES = ['bar', 'column', 'area'];
 const GROUPABLE_SERIES_TYPES = ['bar', 'column'];
 
 /**
@@ -27,7 +27,7 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
     for (const s of seriesOptions) {
         const type = s.type ?? 'line';
 
-        const stackable = STACKABLE_SERIES_TYPES.includes(type);
+        const stackable = isStackableSeries(type);
         const groupable = GROUPABLE_SERIES_TYPES.includes(type);
         if (!stackable && !groupable) {
             // No need to use index for these cases.
@@ -144,19 +144,14 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
     }
 
     for (const group of grouped) {
-        switch (group.opts[0].type) {
-            case 'column':
-            case 'bar':
-            case 'area':
-                result.push(...addSeriesGroupingMeta(group));
-                break;
-            case 'line':
-            default:
-                if (group.opts.length > 1) {
-                    Logger.warn('unexpected grouping of series type: ' + group.opts[0].type);
-                }
-                result.push(...group.opts);
-                break;
+        const seriesType = String(group.opts[0].type);
+        if (isStackableSeries(seriesType)) {
+            result.push(...addSeriesGroupingMeta(group));
+        } else {
+            if (group.opts.length > 1) {
+                Logger.warn(`unexpected grouping of series type: ${seriesType}`);
+            }
+            result.push(...group.opts);
         }
     }
 

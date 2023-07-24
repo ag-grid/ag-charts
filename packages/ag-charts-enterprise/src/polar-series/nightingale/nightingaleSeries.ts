@@ -6,9 +6,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import type {
-    AgNightingaleSeriesLabelFormatterParams,
-} from './typings';
+import type { AgNightingaleSeriesLabelFormatterParams } from './typings';
 
 const {
     ChartAxisDirection,
@@ -19,13 +17,13 @@ const {
     OPT_LINE_DASH,
     OPT_STRING,
     STRING,
-    SeriesNodePickMode,
     Validate,
+    groupAccumulativeValueProperty,
+    keyProperty,
     valueProperty,
 } = _ModuleSupport;
 
 const { Group, Sector, Selection, Text } = _Scene;
-const { extent, isNumberEqual } = _Util;
 
 class NightingaleSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -82,7 +80,10 @@ class NightingaleSeriesTooltip extends _ModuleSupport.SeriesTooltip {
 
 type NightingaleAnimationState = 'empty' | 'ready';
 type NightingaleAnimationEvent = 'update' | 'resize';
-class NightingaleStateMachine extends _ModuleSupport.StateMachine<NightingaleAnimationState, NightingaleAnimationEvent> {}
+class NightingaleStateMachine extends _ModuleSupport.StateMachine<
+    NightingaleAnimationState,
+    NightingaleAnimationEvent
+> {}
 
 export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNodeDatum> {
     static className = 'NightingaleSeries';
@@ -156,7 +157,6 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         super({
             moduleCtx,
             useLabelLayer: true,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
 
         const sectorGroup = new Group();
@@ -200,30 +200,68 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
     }
 
     getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { dataModel, processedData } = this;
+        const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
         if (direction === ChartAxisDirection.X) {
-            return dataModel.getDomain(this, `angleValue`, 'value', processedData);
+            return dataModel.getDomain(this, `angleValue`, 'key', processedData);
         } else {
-            const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
-            const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
-            return this.fixNumericExtent(ext);
+            const radiusAxis = axes[ChartAxisDirection.Y];
+            const yExtent = dataModel.getDomain(this, /radiusValue-(previous-)?end/, 'value', processedData);
+            const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
+            return this.fixNumericExtent(fixedYExtent as any, radiusAxis);
         }
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
-        const { data = [] } = this;
+        const { data = [], visible } = this;
         const { angleKey, radiusKey } = this;
 
         if (!angleKey || !radiusKey) return;
 
+        const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
+        const ids = [
+            `nightingale-stack-${groupIndex}-yValues`,
+            `nightingale-stack-${groupIndex}-yValues-trailing`,
+            `nightingale-stack-${groupIndex}-yValues-prev`,
+            `nightingale-stack-${groupIndex}-yValues-trailing-prev`,
+            `nightingale-stack-${groupIndex}-yValues-marker`,
+        ];
+
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
-                valueProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
+                keyProperty(this, angleKey, false, { id: 'angleValue' }),
+                valueProperty(this, radiusKey, true, { id: 'radiusValue-raw', invalidValue: undefined }),
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window', 'current', {
+                    id: `radiusValue-end`,
+                    invalidValue: null,
+                    groupId: ids[0],
+                }),
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window-trailing', 'current', {
+                    id: `radiusValue-start`,
+                    invalidValue: null,
+                    groupId: ids[1],
+                }),
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window', 'last', {
+                    id: `radiusValue-previous-end`,
+                    invalidValue: null,
+                    groupId: ids[2],
+                }),
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window-trailing', 'last', {
+                    id: `radiusValue-previous-start`,
+                    invalidValue: null,
+                    groupId: ids[3],
+                }),
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'normal', 'current', {
+                    id: `radiusValue-cumulative`,
+                    invalidValue: null,
+                    groupId: ids[4],
+                }),
             ],
+            groupByKeys: true,
+            dataVisible: visible,
         });
+
         this.dataModel = dataModel;
         this.processedData = processedData;
     }
@@ -268,28 +306,34 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             return [];
         }
 
-        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`, 'value').index;
-        const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`, 'value').index;
+        const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`).index;
+        const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`).index;
+        const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`).index;
+        const dataIndex = 0;
 
         const { label, id: seriesId } = this;
 
         const anglesCount = angleScale.domain.length ?? 0;
-        const angleStep = 2 * Math.PI / anglesCount;
+        const angleStep = (2 * Math.PI) / anglesCount;
 
         const nodeData = processedData.data.map((group): NightingaleNodeDatum => {
-            const { datum, values } = group;
+            const { datum, keys, values } = group;
 
-            const angleDatum = values[angleIdx];
-            const radiusDatum = values[radiusIdx];
+            const angleDatum = keys[dataIndex];
+            const radiusDatum = values[dataIndex][radiusRawIndex];
+            const innerRadiusDatum = values[dataIndex][radiusStartIndex];
+            const outerRadiusDatum = values[dataIndex][radiusEndIndex];
 
             const angle = angleScale.convert(angleDatum);
-            const radius = this.radius - radiusScale.convert(radiusDatum);
+            const innerRadius = this.radius - radiusScale.convert(innerRadiusDatum);
+            const outerRadius = this.radius - radiusScale.convert(outerRadiusDatum);
+            const midRadius = (innerRadius + outerRadius) / 2;
 
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
 
-            const x = cos * radius;
-            const y = sin * radius;
+            const x = cos * midRadius;
+            const y = sin * midRadius;
 
             let labelNodeDatum: NightingaleNodeDatum['label'];
             if (label.enabled) {
@@ -308,8 +352,8 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                         text: labelText,
                         x: labelX,
                         y: labelY,
-                        textAlign: isNumberEqual(cos, 0) ? 'center' : cos > 0 ? 'left' : 'right',
-                        textBaseline: isNumberEqual(sin, 0) ? 'middle' : sin > 0 ? 'top' : 'bottom',
+                        textAlign: 'center',
+                        textBaseline: 'middle',
                     };
                 }
             }
@@ -322,8 +366,8 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
-                innerRadius: 0,
-                outerRadius: radius,
+                innerRadius,
+                outerRadius,
                 startAngle: angle - angleStep / 2,
                 endAngle: angle + angleStep / 2,
             };
@@ -395,7 +439,10 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         return new NightingaleSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(event: MouseEvent, datum: NightingaleNodeDatum): NightingaleSeriesNodeDoubleClickEvent {
+    protected getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: NightingaleNodeDatum
+    ): NightingaleSeriesNodeDoubleClickEvent {
         return new NightingaleSeriesNodeDoubleClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 
@@ -448,39 +495,6 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const newEnabled = wasClicked || (enabled && totalVisibleItems === 1);
 
         this.toggleSeriesItem(itemId, newEnabled);
-    }
-
-    protected pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const { x, y } = point;
-        const { rootGroup, nodeData, centerX: cx, centerY: cy } = this;
-        const hitPoint = rootGroup.transformPoint(x, y);
-        const radius = this.radius;
-
-        const distanceFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-        if (distanceFromCenter > radius) {
-            return;
-        }
-
-        let minDistance = Infinity;
-        let closestDatum: NightingaleNodeDatum | undefined;
-
-        for (const datum of nodeData) {
-            const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
-            if (isNaN(datumX) || isNaN(datumY)) {
-                continue;
-            }
-
-            const distance = Math.sqrt((hitPoint.x - datumX - cx) ** 2 + (hitPoint.y - datumY - cy) ** 2);
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestDatum = datum;
-            }
-        }
-
-        if (closestDatum) {
-            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0), 0);
-            return { datum: closestDatum, distance };
-        }
     }
 
     computeLabelsBBox() {

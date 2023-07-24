@@ -78,6 +78,7 @@ export interface SeriesModule extends BaseModule {
     seriesDefaults: {};
     themeTemplate: {};
     paletteFactory?: SeriesPaletteFactory;
+    stackable?: boolean;
 }
 
 export type Module<M extends ModuleInstance = ModuleInstance> =
