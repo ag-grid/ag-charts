@@ -46,6 +46,13 @@ function useUpdateInternalFrameworkFromFramework(framework: Framework) {
     }, [internalFramework, framework]);
 }
 
+const queryOptions = {
+    retry: 3,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+};
+
 const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType, options, framework, pageName }) => {
     const [showCode, setShowCode] = useState(!!options?.showCode);
     const internalFramework = useStore($internalFramework);
@@ -70,24 +77,30 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
         isLoading: exampleFilesIsLoading,
         isError: exampleFilesIsError,
         data,
-    } = useQuery(['exampleFiles', internalFramework, pageName, exampleName], () =>
-        fetch(
-            getExampleFilesUrl({
-                internalFramework,
-                pageName,
-                exampleName,
-            })
-        ).then((res) => res.json())
+    } = useQuery(
+        ['exampleFiles', internalFramework, pageName, exampleName],
+        () =>
+            fetch(
+                getExampleFilesUrl({
+                    internalFramework,
+                    pageName,
+                    exampleName,
+                })
+            ).then((res) => res.json()),
+        queryOptions
     );
 
-    const { data: exampleFileHtml } = useQuery(['exampleHtml', internalFramework, pageName, exampleName], () =>
-        fetch(
-            getExampleUrl({
-                internalFramework,
-                pageName,
-                exampleName,
-            })
-        ).then((res) => res.text())
+    const { data: exampleFileHtml } = useQuery(
+        ['exampleHtml', internalFramework, pageName, exampleName],
+        () =>
+            fetch(
+                getExampleUrl({
+                    internalFramework,
+                    pageName,
+                    exampleName,
+                })
+            ).then((res) => res.text()),
+        queryOptions
     );
 
     useEffect(() => {
