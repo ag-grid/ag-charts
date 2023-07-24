@@ -96,6 +96,11 @@ class WaterfallSeriesTooltip extends _ModuleSupport.SeriesTooltip {
     renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
 }
 
+class WaterfallSeriesItemTooltip {
+    @Validate(OPT_FUNCTION)
+    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
+}
+
 class WaterfallSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
@@ -110,7 +115,7 @@ class WaterfallSeriesLabel extends _Scene.Label {
 class WaterfallSeriesItem {
     readonly label = new WaterfallSeriesLabel();
 
-    tooltip: WaterfallSeriesTooltip = new WaterfallSeriesTooltip();
+    tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat = undefined;
