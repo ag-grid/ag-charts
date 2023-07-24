@@ -411,7 +411,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
             const xDatum = keys[xIndex];
-            const x = xScale.convert(xDatum);
+            const x = Math.round(xScale.convert(xDatum));
 
             const rawValue = values[yRawIndex];
 
@@ -421,8 +421,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 trailingSubtotal = cumulativeValue ?? 0;
             }
 
-            const currY = yScale.convert(cumulativeValue, { strict: false });
-            const trailY = yScale.convert(trailingValue, { strict: false });
+            const currY = Math.round(yScale.convert(cumulativeValue, { strict: false }));
+            const trailY = Math.round(yScale.convert(trailingValue, { strict: false }));
 
             const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
             const isPositive = (value ?? 0) >= 0;
@@ -460,14 +460,15 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             };
 
             const pointY = isTotalOrSubtotal ? currY : trailY;
+            const pixelAlignmentOffset = (Math.floor(line.strokeWidth) % 2) / 2;
 
             const pathPoint = {
                 // lineTo
-                x: Math.round(barAlongX ? pointY : rect.x),
-                y: Math.round(barAlongX ? rect.y : pointY),
+                x: barAlongX ? pointY + pixelAlignmentOffset : rect.x,
+                y: barAlongX ? rect.y : pointY + pixelAlignmentOffset,
                 // moveTo
-                x2: Math.round(barAlongX ? currY : rect.x + rect.width),
-                y2: Math.round(barAlongX ? rect.y + rect.height : currY),
+                x2: barAlongX ? currY + pixelAlignmentOffset : rect.x + rect.width,
+                y2: barAlongX ? rect.y + rect.height : currY + pixelAlignmentOffset,
                 size: 0,
             };
 
