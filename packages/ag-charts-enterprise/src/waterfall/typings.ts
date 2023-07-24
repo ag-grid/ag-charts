@@ -1,6 +1,7 @@
 import type {
     AgBaseSeriesOptions,
     AgSeriesListeners,
+    AgSeriesHighlightStyle,
     AgSeriesTooltip,
     AgCartesianSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -13,6 +14,7 @@ import type {
 
 export interface AgWaterfallSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;
+    readonly value: number;
     readonly fill?: CssColor;
     readonly stroke?: CssColor;
     readonly strokeWidth: PixelSize;
@@ -82,6 +84,8 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     tooltip?: AgWaterfallSeriesTooltip;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
+    /** Configuration for the waterfall series items when they are hovered over. */
+    highlightStyle?: AgSeriesHighlightStyle;
 }
 
 export interface AgWaterfallSeriesItemOptions {
