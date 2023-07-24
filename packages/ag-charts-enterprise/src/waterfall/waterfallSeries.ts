@@ -845,47 +845,36 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     protected animateConnectorLines(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[], duration: number) {
         const { path: linePath } = lineNode;
 
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.line;
+        this.updateLineNode(lineNode);
 
-        lineNode.stroke = stroke;
-        lineNode.strokeWidth = this.getStrokeWidth(strokeWidth);
-        lineNode.strokeOpacity = strokeOpacity;
-        lineNode.lineDash = lineDash;
-        lineNode.lineDashOffset = lineDashOffset;
-
-        lineNode.fill = undefined;
-        lineNode.lineJoin = 'round';
-        lineNode.pointerEvents = _Scene.PointerEvents.None;
-
-        const yAxis = this.getValueAxis();
-
-        const endY = pointData.reduce((end, point) => {
-            if (point.y < end) {
-                end = point.y;
+        const valueAxis = this.getValueAxis();
+        const startX = valueAxis?.scale.convert(0);
+        const endX = pointData.reduce((end, point) => {
+            if (point.x > end) {
+                end = point.x;
             }
             return end;
-        }, Infinity);
+        }, 0);
 
         const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
             return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
         };
 
-        const startY = yAxis?.scale.convert(0);
         this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
-            from: startY,
-            to: endY,
+            from: startX,
+            to: endX,
             duration,
             ease: _ModuleSupport.Motion.easeOut,
-            onUpdate(pointY) {
+            onUpdate(pointX) {
                 linePath.clear({ trackChanges: true });
 
                 pointData.forEach((point, index) => {
-                    const y = scale(pointY, startY, endY, startY, point.y);
-                    const y2 = scale(pointY, startY, endY, startY, point.y2);
+                    const x = scale(pointX, startX, endX, startX, point.x);
+                    const x2 = scale(pointX, startX, endX, startX, point.x2);
                     if (index !== 0) {
-                        linePath.lineTo(point.x, y);
+                        linePath.lineTo(x, point.y);
                     }
-                    linePath.moveTo(point.x2, y2);
+                    linePath.moveTo(x2, point.y2);
                 });
 
                 lineNode.checkPathDirty();
@@ -950,17 +939,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         const [lineNode] = paths[0];
 
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.line;
-
-        lineNode.stroke = stroke;
-        lineNode.strokeWidth = this.getStrokeWidth(strokeWidth);
-        lineNode.strokeOpacity = strokeOpacity;
-        lineNode.lineDash = lineDash;
-        lineNode.lineDashOffset = lineDashOffset;
-
-        lineNode.fill = undefined;
-        lineNode.lineJoin = 'round';
-        lineNode.pointerEvents = _Scene.PointerEvents.None;
+        this.updateLineNode(lineNode);
 
         const { path: linePath } = lineNode;
         linePath.clear({ trackChanges: true });
@@ -977,6 +956,20 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         });
 
         lineNode.checkPathDirty();
+    }
+
+    protected updateLineNode(lineNode: _Scene.Path) {
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.line;
+
+        lineNode.stroke = stroke;
+        lineNode.strokeWidth = this.getStrokeWidth(strokeWidth);
+        lineNode.strokeOpacity = strokeOpacity;
+        lineNode.lineDash = lineDash;
+        lineNode.lineDashOffset = lineDashOffset;
+
+        lineNode.fill = undefined;
+        lineNode.lineJoin = 'round';
+        lineNode.pointerEvents = _Scene.PointerEvents.None;
     }
 
     protected isLabelEnabled() {
@@ -1006,6 +999,46 @@ export class WaterfallColumnSeries extends WaterfallBarSeries {
 
     protected getCategoryDirection() {
         return ChartAxisDirection.X;
+    }
+
+    protected animateConnectorLines(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[], duration: number) {
+        const { path: linePath } = lineNode;
+
+        this.updateLineNode(lineNode);
+
+        const valueAxis = this.getValueAxis();
+        const startY = valueAxis?.scale.convert(0);
+        const endY = pointData.reduce((end, point) => {
+            if (point.y < end) {
+                end = point.y;
+            }
+            return end;
+        }, Infinity);
+
+        const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
+            return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
+        };
+
+        this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
+            from: startY,
+            to: endY,
+            duration,
+            ease: _ModuleSupport.Motion.easeOut,
+            onUpdate(pointY) {
+                linePath.clear({ trackChanges: true });
+
+                pointData.forEach((point, index) => {
+                    const y = scale(pointY, startY, endY, startY, point.y);
+                    const y2 = scale(pointY, startY, endY, startY, point.y2);
+                    if (index !== 0) {
+                        linePath.lineTo(point.x, y);
+                    }
+                    linePath.moveTo(point.x2, y2);
+                });
+
+                lineNode.checkPathDirty();
+            },
+        });
     }
 
     protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
