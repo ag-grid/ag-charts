@@ -102,27 +102,6 @@ const supportedInternalFrameworks: InternalFramework[] = [
 }
 
 {
-    internalFramework === 'typescript' && (
-        <TypescriptTemplate
-            isDev={isDev}
-            pageName={pageName}
-            exampleName={exampleName}
-            modifiedTimeMs={Date.now()}
-            isExecuting={true}
-            options={{
-                enterprise: isEnterprise,
-            }}
-            entryFileName={entryFileName!}
-            styleFiles={styleFiles}
-            indexFragment={indexFragment!}
-            appLocation={appLocation}
-            library={library}
-            boilerplatePath={boilerPlateUrl}
-        />
-    )
-}
-
-{
     ['react', 'reactFunctional', 'reactFunctionalTs'].includes(internalFramework) && (
         <ReactTemplate
             isDev={isDev}
