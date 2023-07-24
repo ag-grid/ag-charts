@@ -668,10 +668,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const itemId = labelData[0].itemId;
-        const {
-            label: { enabled: itemLabelEnabled },
-        } = this.getItemConfig(itemId);
-        const enabled = itemLabelEnabled ?? this.label.enabled;
+        const { label } = this.getItemConfig(itemId);
+        const enabled = (label ?? this.label).enabled;
         const data = enabled ? labelData : [];
 
         return labelSelection.update(data);
