@@ -37,6 +37,11 @@ export interface AgWaterfallSeriesTooltip extends AgSeriesTooltip {
     renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
+export interface AgWaterfallSeriesItemTooltip {
+    /** Function used to create the content for tooltips. */
+    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
+}
+
 export interface AgWaterfallSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
     /** Where to render series labels relative to the segments. */
     placement?: AgWaterfallSeriesLabelPlacement;
@@ -67,11 +72,11 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
     /** Configuration for the negative series items. */
-    negativeItem?: AgWaterfallSeriesItemOptions;
+    negativeItem?: AgWaterfallSeriesItemOptions<DatumType>;
     /** Configuration for the positive series items. */
-    positiveItem?: AgWaterfallSeriesItemOptions;
+    positiveItem?: AgWaterfallSeriesItemOptions<DatumType>;
     /** Configuration for the total and subtotal series items. */
-    totalItem?: AgWaterfallSeriesItemOptions;
+    totalItem?: AgWaterfallSeriesItemOptions<DatumType>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Configuration for the shadow used behind the chart series. */
@@ -88,9 +93,11 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     highlightStyle?: AgSeriesHighlightStyle;
 }
 
-export interface AgWaterfallSeriesItemOptions {
+export interface AgWaterfallSeriesItemOptions<DatumType> {
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
+    /** Configuration for the labels shown on top of data points. */
+    label?: AgWaterfallSeriesLabelOptions;
     /** The fill colour to use for the bars. */
     fill?: CssColor;
     /** Opacity of the bars. */
@@ -105,6 +112,12 @@ export interface AgWaterfallSeriesItemOptions {
     lineDash?: PixelSize[];
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
+    /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    formatter?: (params: AgWaterfallSeriesFormatterParams<DatumType>) => AgWaterfallSeriesFormat;
+    /** Series item specific tooltip configuration. */
+    tooltip?: AgWaterfallSeriesItemTooltip;
 }
 
 export interface AgWaterfallSeriesLineOptions {
