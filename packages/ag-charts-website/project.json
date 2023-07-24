@@ -6,6 +6,20 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "ag-charts-community"
+        },
+        {
+          "target": "build",
+          "projects": "ag-charts-enterprise"
+        },
+        {
+          "target": "build",
+          "projects": "ag-charts-react"
+        }
+      ],
       "executor": "@nxtensions/astro:build",
       "options": {},
       "configurations": {
