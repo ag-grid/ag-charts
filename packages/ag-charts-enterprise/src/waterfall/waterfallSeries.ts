@@ -830,12 +830,12 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>, duration: number) {
-        labelSelection.each((label, _, index) => {
+        labelSelection.each((label) => {
             this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
                 from: 0,
                 to: 1,
-                delay: duration - duration / 10 + 200 * index,
-                duration: duration / 10,
+                delay: duration,
+                duration: duration / 5,
                 onUpdate: (opacity) => {
                     label.opacity = opacity;
                 },
