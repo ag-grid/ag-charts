@@ -513,7 +513,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     formatter,
                     barAlongX,
                     ctx,
-                    itemId
+                    itemId,
                 }),
             };
 
@@ -710,7 +710,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         const { fill, strokeWidth, name, formatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
 
-        const tooltipConfig = itemTooltip ?? this.tooltip;
+        const tooltipRenderer = itemTooltip.renderer ?? this.tooltip.renderer;
 
         let format: any | undefined = undefined;
 
@@ -746,8 +746,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             content,
             backgroundColor: color,
         };
-
-        const { renderer: tooltipRenderer } = tooltipConfig;
 
         if (tooltipRenderer) {
             return toTooltipHtml(
@@ -1004,11 +1002,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected isLabelEnabled() {
-        return (
-            this.positiveItem.label.enabled ||
-            this.negativeItem.label.enabled ||
-            this.totalItem.label.enabled
-        );
+        return this.positiveItem.label.enabled || this.negativeItem.label.enabled || this.totalItem.label.enabled;
     }
 
     protected getBarDirection() {
