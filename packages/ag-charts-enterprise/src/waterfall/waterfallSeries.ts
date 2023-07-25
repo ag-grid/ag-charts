@@ -177,7 +177,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     static className = 'WaterfallBarSeries';
     static type: 'waterfall-bar' | 'waterfall-column' = 'waterfall-bar' as const;
 
-    readonly label = new WaterfallSeriesLabel();
     readonly positiveItem = new WaterfallSeriesItem();
     readonly negativeItem = new WaterfallSeriesItem();
     readonly totalItem = new WaterfallSeriesItem();
@@ -192,9 +191,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     get data() {
         return this._data;
     }
-
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat = undefined;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
