@@ -226,6 +226,14 @@ export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
     return pathJoin(SITE_BASE_URL, DEV_FILE_BASE_PATH, filePath);
 };
 
+export const getDemoExampleUrl = (demoExampleName: string) => {
+    return pathJoin(SITE_BASE_URL, 'demo', demoExampleName);
+};
+
+export const getDemoPageHashUrl = (categoryId: string) => {
+    return pathJoin(SITE_BASE_URL, 'demo', `#${categoryId}`);
+};
+
 export const getDevFileList = () => {
     const distFolder = getRootUrl();
     return Object.values(DEV_FILE_PATH_MAP).map((file) => {

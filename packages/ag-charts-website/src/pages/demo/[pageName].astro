@@ -2,6 +2,7 @@
 import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Icon } from '../../components/icon/Icon';
+import { getDemoExampleUrl, getDemoPageHashUrl } from '../../utils/pages';
 
 export async function getStaticPaths() {
     const demosData = await getEntry('demo', 'demos');
@@ -12,7 +13,7 @@ export async function getStaticPaths() {
                 return {
                     ...demo,
                     chartType: chartType.name,
-                    docsUrl: chartType.docsUrl,
+                    docsUrl: getDemoPageHashUrl(chartType.docsUrl),
                     icon: chartType.icon,
                     enterprise: chartType.enterprise,
                 };
@@ -59,10 +60,14 @@ const nextDemo = (() => {
     <div class="page-margin">
         <h1>
             <span>
-              {page.name}
-              {
-                page.enterprise && <span class="enterpriseIcon"><Icon client:only name="enterprise"/></span>
-              }
+                {page.name}
+                {
+                    page.enterprise && (
+                        <span class="enterpriseIcon">
+                            <Icon client:only name="enterprise" />
+                        </span>
+                    )
+                }
             </span>
 
             <a class="font-size-medium" href={page.docsUrl}>
@@ -75,13 +80,13 @@ const nextDemo = (() => {
         <p set:html={page.description} />
 
         <div class="moreDemos">
-            <a class="prevDemo" href={`/demo/${prevDemo.example}`}>
+            <a class="prevDemo" href={getDemoExampleUrl(prevDemo.example)}>
                 <div class="dummyImage"></div>
                 <span>Previous:</span>
                 <b>{prevDemo.name}</b>
             </a>
 
-            <a class="nextDemo" href={`/demo/${nextDemo.example}`}>
+            <a class="nextDemo" href={getDemoExampleUrl(nextDemo.example)}>
                 <div class="dummyImage"></div>
                 <span>Next:</span>
                 <b>{nextDemo.name}</b>
@@ -105,8 +110,8 @@ const nextDemo = (() => {
     }
 
     .enterpriseIcon {
-      --text-color: red;
-      --icon-size: 28px;
+        --text-color: red;
+        --icon-size: 28px;
     }
 
     .chart-example {

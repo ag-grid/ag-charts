@@ -2,6 +2,7 @@
 import { getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { Icon } from '../components/icon/Icon';
+import { getDemoExampleUrl, getDemoPageHashUrl } from '../utils/pages';
 
 const demosData = await getEntry('demo', 'demos');
 
@@ -35,13 +36,13 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                     <div class="chart-type">
                         <h2 id={chartType.docsUrl}>
                             <span>{chartType.name} Charts</span>
-                            <a class="font-size-medium" href={chartType.docsUrl}>
+                            <a class="font-size-medium" href={getDemoPageHashUrl(chartType.docsUrl)}>
                                 View {chartType.name.toLowerCase()} charts documentation
                             </a>
                         </h2>
                         <div class="demo-list">
                             {chartType.demos.map((demo) => (
-                              <a class="demo-item" href={`/demo/${demo.example}`}>
+                              <a class="demo-item" href={getDemoExampleUrl(demo.example)}>
                                     <div class="dummy-image" />      </div>
                                     <p>{demo.name}</p>
                                 </a>
