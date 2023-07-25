@@ -349,7 +349,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         groupScale.range = [0, xBandWidth ?? 0];
 
         if (xAxis instanceof CategoryAxis) {
-            groupScale.padding = xAxis.groupPaddingInner;
+            groupScale.paddingInner = xAxis.groupPaddingInner;
         } else if (xAxis instanceof GroupedCategoryAxis) {
             groupScale.padding = 0.1;
         } else {
