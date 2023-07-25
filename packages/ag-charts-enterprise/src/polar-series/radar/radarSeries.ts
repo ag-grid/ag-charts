@@ -630,6 +630,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         lineNode.fill = undefined;
         lineNode.lineJoin = 'round';
+        lineNode.lineCap = 'round';
         lineNode.pointerEvents = PointerEvents.None;
 
         lineNode.stroke = this.stroke;
@@ -640,38 +641,23 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
-    protected updatePathAnimation(points: Array<{ x: number; y: number }>, nodeLengths: number[], length: number) {
+    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalLength: number, length: number) {
         const lineNode = this.getLineNode();
         const { path: linePath } = lineNode;
 
         linePath.clear({ trackChanges: true });
 
         points.forEach((point, index) => {
-            if (nodeLengths[index] <= length) {
-                // Draw/move the full segment if past the end of this segment
-                const { x, y } = point;
-                if (index === 0) {
-                    linePath.moveTo(x, y);
-                } else {
-                    linePath.lineTo(x, y);
-                }
-            } else if (index > 0 && nodeLengths[index - 1] < length) {
-                // Draw/move partial line if in between the start and end of this segment
-                const start = points[index - 1];
-                const end = point;
+            const { x: x0, y: y0 } = point;
+            const angle = Math.atan2(y0, x0);
+            const distance = Math.sqrt(x0 ** 2 + y0 ** 2) * length / totalLength;
+            const x = distance * Math.cos(angle);
+            const y = distance * Math.sin(angle);
 
-                const segmentLength = nodeLengths[index] - nodeLengths[index - 1];
-                const remainingLength = nodeLengths[index] - length;
-                const ratio = (segmentLength - remainingLength) / segmentLength;
-
-                const x = (1 - ratio) * start.x + ratio * end.x;
-                const y = (1 - ratio) * start.y + ratio * end.y;
-
-                if (index === 0) {
-                    linePath.moveTo(x, y);
-                } else {
-                    linePath.lineTo(x, y);
-                }
+            if (index === 0) {
+                linePath.moveTo(x, y);
+            } else {
+                linePath.lineTo(x, y);
             }
         });
 
@@ -685,7 +671,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const { markerSelection, labelSelection, nodeData } = this;
 
-        const nodeLengths: number[] = [0];
         const points = nodeData.map((datum) => datum.point!);
         if (points.length > 0) {
             const first = points[0];
@@ -699,16 +684,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const { x: prevX, y: prevY } = prev;
             const { x, y } = point;
             if (isNaN(x) || isNaN(y) || isNaN(prevX) || isNaN(prevY)) {
-                nodeLengths.push(lineLength);
                 return;
             }
             lineLength += Math.sqrt((x - prevX) ** 2 + (y - prevY) ** 2);
-            nodeLengths.push(lineLength);
-            return lineLength;
-        }, 0);
+        });
 
         const duration = 1000;
         const markerDuration = 200;
+        const markerDelay = duration;
 
         const animationOptions = {
             from: 0,
@@ -720,18 +703,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
             ...animationOptions,
             duration,
-            onUpdate: (length) => this.updatePathAnimation(points, nodeLengths, length),
+            onUpdate: (length) => this.updatePathAnimation(points, lineLength, length),
         });
 
-        markerSelection.each((marker, datum, index) => {
-            const delay = lineLength > 0 ? (nodeLengths[index] / lineLength) * duration : 0;
+        markerSelection.each((marker, datum) => {
             const format = this.animateFormatter(datum);
             const size = datum.point?.size ?? 0;
 
             this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready_${marker.id}`, {
                 ...animationOptions,
                 to: format?.size ?? size,
-                delay,
+                delay: markerDelay,
                 duration: markerDuration,
                 onUpdate(size) {
                     marker.size = size;
@@ -739,12 +721,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             });
         });
 
-        labelSelection.each((label, _, index) => {
-            const delay = (nodeLengths[index] / lineLength) * duration;
+        labelSelection.each((label) => {
             this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
                 from: 0,
                 to: 1,
-                delay,
+                delay: markerDelay,
                 duration: markerDuration,
                 onUpdate: (opacity) => {
                     label.opacity = opacity;

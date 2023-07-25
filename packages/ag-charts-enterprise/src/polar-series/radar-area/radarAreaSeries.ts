@@ -49,45 +49,29 @@ export class RadarAreaSeries extends RadarSeries {
         areaNode.stroke = undefined;
     }
 
-    protected updatePathAnimation(points: Array<{ x: number; y: number }>, nodeLengths: number[], length: number) {
-        super.updatePathAnimation(points, nodeLengths, length);
+    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalLength: number, length: number) {
+        super.updatePathAnimation(points, totalLength, length);
 
         const areaNode = this.getAreaNode();
         const { path: areaPath } = areaNode;
 
         areaPath.clear({ trackChanges: true });
 
-        const startFromCenter = length < nodeLengths[nodeLengths.length - 1];
+        const startFromCenter = length < totalLength;
         if (startFromCenter) {
             areaPath.moveTo(0, 0);
         }
-
         points.forEach((point, index) => {
-            if (nodeLengths[index] <= length) {
-                // Draw/move the full segment if past the end of this segment
-                const { x, y } = point;
-                if (startFromCenter || index > 0) {
-                    areaPath.lineTo(x, y);
-                } else {
-                    areaPath.moveTo(x, y);
-                }
-            } else if (index > 0 && nodeLengths[index - 1] < length) {
-                // Draw/move partial line if in between the start and end of this segment
-                const start = points[index - 1];
-                const end = point;
+            const { x: x0, y: y0 } = point;
+            const angle = Math.atan2(y0, x0);
+            const distance = Math.sqrt(x0 ** 2 + y0 ** 2) * length / totalLength;
+            const x = distance * Math.cos(angle);
+            const y = distance * Math.sin(angle);
 
-                const segmentLength = nodeLengths[index] - nodeLengths[index - 1];
-                const remainingLength = nodeLengths[index] - length;
-                const ratio = (segmentLength - remainingLength) / segmentLength;
-
-                const x = (1 - ratio) * start.x + ratio * end.x;
-                const y = (1 - ratio) * start.y + ratio * end.y;
-
-                if (startFromCenter || index > 0) {
-                    areaPath.lineTo(x, y);
-                } else {
-                    areaPath.moveTo(x, y);
-                }
+            if (index === 0) {
+                areaPath.moveTo(x, y);
+            } else {
+                areaPath.lineTo(x, y);
             }
         });
 
@@ -111,6 +95,7 @@ export class RadarAreaSeries extends RadarSeries {
 
             areaNode.lineDash = this.lineDash;
             areaNode.lineDashOffset = this.lineDashOffset;
+            areaNode.lineJoin = areaNode.lineCap = 'round';
 
             areaPath.clear({ trackChanges: true });
 
