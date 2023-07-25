@@ -7,6 +7,7 @@ import TypescriptTemplate from '../../../../features/example-runner/framework-te
 import { getGeneratedContents } from '../../../../features/examples-generator/examplesGenerator';
 import { getIsDev } from '../../../../utils/env';
 import ReactTemplate from '../../../../features/example-runner/framework-templates/ReactTemplate.astro';
+import VueTemplate from '../../../../features/example-runner/framework-templates/VueTemplate.astro';
 
 interface Props {
     /**
@@ -58,7 +59,11 @@ const supportedInternalFrameworks: InternalFramework[] = [
     'react',
     'reactFunctional',
     'reactFunctionalTs',
+    'vue',
+    'vue3',
 ];
+
+const timeNow = Date.now();
 ---
 
 {
@@ -67,7 +72,7 @@ const supportedInternalFrameworks: InternalFramework[] = [
             isDev={isDev}
             pageName={pageName}
             exampleName={exampleName}
-            modifiedTimeMs={Date.now()}
+            modifiedTimeMs={timeNow}
             isExecuting={true}
             options={{
                 enterprise: isEnterprise,
@@ -86,7 +91,7 @@ const supportedInternalFrameworks: InternalFramework[] = [
             isDev={isDev}
             pageName={pageName}
             exampleName={exampleName}
-            modifiedTimeMs={Date.now()}
+            modifiedTimeMs={timeNow}
             isExecuting={true}
             options={{
                 enterprise: isEnterprise,
@@ -107,7 +112,7 @@ const supportedInternalFrameworks: InternalFramework[] = [
             isDev={isDev}
             pageName={pageName}
             exampleName={exampleName}
-            modifiedTimeMs={Date.now()}
+            modifiedTimeMs={timeNow}
             isExecuting={true}
             options={{
                 enterprise: isEnterprise,
@@ -118,6 +123,28 @@ const supportedInternalFrameworks: InternalFramework[] = [
             appLocation={appLocation}
             library={library}
             boilerplatePath={boilerPlateUrl}
+        />
+    )
+}
+
+{
+    (internalFramework === 'vue' || internalFramework === 'vue3') && (
+        <VueTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={timeNow}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            entryFileName={entryFileName!}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            appLocation={appLocation}
+            library={library}
+            boilerplatePath={boilerPlateUrl}
+            vueFramework={internalFramework}
         />
     )
 }

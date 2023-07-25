@@ -3,6 +3,8 @@ import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import { vanillaToReact } from '../transformation-scripts/chart-vanilla-to-react';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
 import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
+import { vanillaToVue } from '../transformation-scripts/chart-vanilla-to-vue';
+import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
 import { getBoilerPlateFiles, getEntryFileName } from './fileUtils';
 import { deepCloneObject } from './deepCloneObject';
 
@@ -48,6 +50,34 @@ const createReactFilesGenerator =
             files: {
                 ...otherScriptFiles,
                 [entryFileName]: indexJsx,
+                'index.html': indexHtml,
+            },
+            boilerPlateFiles,
+            // Other files, not including entry file
+            scriptFiles: Object.keys(otherScriptFiles),
+            entryFileName,
+        };
+    };
+
+const createVueFilesGenerator =
+    ({
+        sourceGenerator,
+        internalFramework,
+    }: {
+        sourceGenerator: (bindings: any, componentFilenames: string[]) => () => string;
+        internalFramework: InternalFramework;
+    }): ConfigGenerator =>
+    async ({ bindings, indexHtml, otherScriptFiles }) => {
+        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+
+        const getSource = sourceGenerator(deepCloneObject(bindings), []);
+        const entryFileName = getEntryFileName(internalFramework)!;
+        const mainJs = getSource();
+
+        return {
+            files: {
+                ...otherScriptFiles,
+                [entryFileName]: mainJs,
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
@@ -148,6 +178,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         };
     },
     angular: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
-    vue: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
-    vue3: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
+    vue: createVueFilesGenerator({
+        sourceGenerator: vanillaToVue,
+        internalFramework: 'vue',
+    }),
+    vue3: createVueFilesGenerator({
+        sourceGenerator: vanillaToVue3,
+        internalFramework: 'vue3',
+    }),
 };
