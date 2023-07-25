@@ -69,8 +69,6 @@ export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     /** Configuration for the Waterfall series. */
     type?: 'waterfall-bar' | 'waterfall-column';
-    /** Configuration for the labels shown on top of data points. */
-    label?: AgWaterfallSeriesLabelOptions;
     /** The key to use to retrieve x-values from the data. */
     xKey?: string;
     /** The key to use to retrieve y-values from the data. */
@@ -93,12 +91,8 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     totalItem?: AgWaterfallSeriesItemOptions<DatumType>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
-    /** Configuration for the shadow used behind the chart series. */
-    shadow?: AgDropShadowOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
-    /** Function used to return formatting for individual Waterfall cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgWaterfallSeriesFormatterParams<DatumType>) => AgWaterfallSeriesFormat;
     /** Series-specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesTooltip;
     /** A map of event names to event listeners. */
