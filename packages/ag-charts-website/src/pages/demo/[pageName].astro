@@ -1,11 +1,26 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import { Icon } from '../../components/icon/Icon';
 
 export async function getStaticPaths() {
     const demosData = await getEntry('demo', 'demos');
 
-    const demos = demosData.data.chartTypes.map((chartType) => chartType.demos).flat();
+    const demos = demosData.data.chartTypes
+        .map((chartType) => {
+            const demosWithChartTypeMeta = chartType.demos.map((demo) => {
+                return {
+                    ...demo,
+                    chartType: chartType.name,
+                    docsUrl: chartType.docsUrl,
+                    icon: chartType.icon,
+                    enterprise: chartType.enterprise,
+                };
+            });
+
+            return demosWithChartTypeMeta;
+        })
+        .flat();
 
     const pages = demos.map((demo) => {
         return {
@@ -21,10 +36,103 @@ export async function getStaticPaths() {
     return pages;
 }
 
+const demosData = await getEntry('demo', 'demos');
+
+const flatDemosData = demosData.data.chartTypes.map((chartType) => chartType.demos).flat();
+
 const { page } = Astro.props;
+
+const prevDemo = (() => {
+    const currentIndex = flatDemosData.findIndex((demo) => demo.name === page.name);
+
+    return currentIndex - 1 > 0 ? flatDemosData[currentIndex - 1] : flatDemosData[flatDemosData.length - 1];
+})();
+
+const nextDemo = (() => {
+    const currentIndex = flatDemosData.findIndex((demo) => demo.name === page.name);
+
+    return flatDemosData.length > currentIndex + 1 ? flatDemosData[currentIndex + 1] : flatDemosData[0];
+})();
 ---
 
 <Layout>
-    <h1>{page.name}</h1>
-    <p set:html={page.description}></p>
+    <div class="page-margin">
+        <h1>
+            <span>
+              {page.name}
+              {
+                page.enterprise && <span class="enterpriseIcon"><Icon client:only name="enterprise"/></span>
+              }
+            </span>
+
+            <a class="font-size-medium" href={page.docsUrl}>
+                View {page.chartType.toLowerCase()} charts documentation
+            </a>
+        </h1>
+
+        <div class="chart-example"></div>
+
+        <p set:html={page.description} />
+
+        <div class="moreDemos">
+            <a class="prevDemo" href={`/demo/${prevDemo.example}`}>
+                <div class="dummyImage"></div>
+                <span>Previous:</span>
+                <b>{prevDemo.name}</b>
+            </a>
+
+            <a class="nextDemo" href={`/demo/${nextDemo.example}`}>
+                <div class="dummyImage"></div>
+                <span>Next:</span>
+                <b>{nextDemo.name}</b>
+            </a>
+        </div>
+    </div>
 </Layout>
+
+<style lang="scss">
+    @use '../../design-system' as *;
+
+    .page-margin {
+        padding-top: $size-5;
+        padding-bottom: $size-9;
+    }
+
+    h1 {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+    }
+
+    .enterpriseIcon {
+      --text-color: red;
+      --icon-size: 28px;
+    }
+
+    .chart-example {
+        width: 100%;
+        aspect-ratio: 21 / 9;
+        margin-bottom: $size-2;
+        border-radius: var(--border-radius);
+        background-color: #ddd;
+    }
+
+    .moreDemos {
+        display: flex;
+        gap: $size-2;
+        justify-content: space-between;
+        margin-top: $size-9;
+    }
+
+    .prevDemo,
+    .nextDemo {
+        width: min(28rem, 50%);
+    }
+
+    .dummyImage {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        background-color: #ddd;
+        border-radius: var(--border-radius);
+    }
+</style>
