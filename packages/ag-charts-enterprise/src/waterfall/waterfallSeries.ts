@@ -789,7 +789,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         paths: Array<Array<_Scene.Path>>;
         seriesRect?: _Scene.BBox;
     }) {
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 2000;
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
             this.animateRects(datumSelections[contextDataIndex], duration);
@@ -805,12 +805,11 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
-        const yAxis = this.getValueAxis();
         datumSelection.each((rect, datum) => {
             this.ctx.animationManager?.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
                 [
-                    { from: yAxis?.scale.convert(0) ?? 0, to: datum.x },
+                    { from: datum.itemId === 'positive' ? datum.x : datum.x + datum.width, to: datum.x },
                     { from: 0, to: datum.width },
                 ],
                 {
@@ -848,37 +847,24 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         this.updateLineNode(lineNode);
 
-        const valueAxis = this.getValueAxis();
-        const startX = valueAxis?.scale.convert(0);
-        const endX = pointData.reduce((end, point) => {
-            if (point.x > end) {
-                end = point.x;
-            }
-            return end;
-        }, 0);
-
-        const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
-            return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
-        };
-
         this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
-            from: startX,
-            to: endX,
-            duration,
-            ease: _ModuleSupport.Motion.easeOut,
-            onUpdate(pointX) {
+            from: 0,
+            to: 1,
+            delay: duration,
+            duration: duration / 5,
+            onUpdate(opacity) {
                 linePath.clear({ trackChanges: true });
 
                 pointData.forEach((point, index) => {
-                    const x = scale(pointX, startX, endX, startX, point.x);
-                    const x2 = scale(pointX, startX, endX, startX, point.x2);
                     if (index !== 0) {
-                        linePath.lineTo(x, point.y);
+                        linePath.lineTo(point.x, point.y);
                     }
-                    linePath.moveTo(x2, point.y2);
+                    linePath.moveTo(point.x2, point.y2);
                 });
 
                 lineNode.checkPathDirty();
+
+                lineNode.opacity = opacity;
             },
         });
     }
@@ -1002,53 +988,12 @@ export class WaterfallColumnSeries extends WaterfallBarSeries {
         return ChartAxisDirection.X;
     }
 
-    protected animateConnectorLines(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[], duration: number) {
-        const { path: linePath } = lineNode;
-
-        this.updateLineNode(lineNode);
-
-        const valueAxis = this.getValueAxis();
-        const startY = valueAxis?.scale.convert(0);
-        const endY = pointData.reduce((end, point) => {
-            if (point.y < end) {
-                end = point.y;
-            }
-            return end;
-        }, Infinity);
-
-        const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
-            return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
-        };
-
-        this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
-            from: startY,
-            to: endY,
-            duration,
-            ease: _ModuleSupport.Motion.easeOut,
-            onUpdate(pointY) {
-                linePath.clear({ trackChanges: true });
-
-                pointData.forEach((point, index) => {
-                    const y = scale(pointY, startY, endY, startY, point.y);
-                    const y2 = scale(pointY, startY, endY, startY, point.y2);
-                    if (index !== 0) {
-                        linePath.lineTo(point.x, y);
-                    }
-                    linePath.moveTo(point.x2, y2);
-                });
-
-                lineNode.checkPathDirty();
-            },
-        });
-    }
-
     protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
-        const yAxis = this.getValueAxis();
         datumSelection.each((rect, datum) => {
             this.ctx.animationManager?.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
                 [
-                    { from: yAxis?.scale.convert(0) ?? 0, to: datum.y },
+                    { from: datum.itemId === 'positive' ? datum.y + datum.height : datum.y, to: datum.y },
                     { from: 0, to: datum.height },
                 ],
                 {
