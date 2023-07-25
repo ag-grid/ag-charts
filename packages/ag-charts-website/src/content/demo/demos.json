@@ -119,105 +119,105 @@
           "name": "Histogram",
           "docsUrl": "histogram",
           "icon": "chartsHistogram",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Heatmap",
           "docsUrl": "heatmap",
           "icon": "chartsHeatmap",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Range",
           "docsUrl": "range",
           "icon": "chartsRange",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Box Plot",
           "docsUrl": "box-plot",
           "icon": "chartsBoxPlot",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Error Bar",
           "docsUrl": "error-bar",
           "icon": "chartsErrorBar",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Waterfall",
           "docsUrl": "waterfall",
           "icon": "chartsWaterfall",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Radar",
           "docsUrl": "radar",
           "icon": "chartsRadar",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Nightingale",
           "docsUrl": "nightingale",
           "icon": "chartsNightingale",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Radial Column",
           "docsUrl": "radial-column",
           "icon": "chartsRadialColumn",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Radial Bar",
           "docsUrl": "radial-bar",
           "icon": "chartsRadialBar",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Treemap",
           "docsUrl": "treemap",
           "icon": "chartsTreemap",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Sunburst",
           "docsUrl": "sunburst",
           "icon": "chartsSunburst",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Icicle",
           "docsUrl": "icicle",
           "icon": "chartsIcicle",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Funnel",
           "docsUrl": "funnel",
           "icon": "chartsFunnel",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         },
         {
           "name": "Pyramid",
           "docsUrl": "pyramid",
           "icon": "chartsPyramid",
-          "enterprise": false,
+          "enterprise": true,
           "demos": []
         }
     ]

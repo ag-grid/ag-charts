@@ -17,7 +17,10 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                         <li>
                             <a href={`#${chartType.docsUrl}`}>
                                 <Icon client:only name={chartType.icon}/>
-                                <span>{chartType.name}</span>
+                                <span class="name">{chartType.name}</span>
+                                {
+                                  chartType.enterprise && <span class="enterpriseIcon"><Icon client:only name="enterprise"/></span>
+                                }
                             </a>
                         </li>
                     ))
@@ -93,11 +96,20 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 
       display: flex;
       align-items: center;
-      gap: $size-1;
 
       &:hover {
         --text-color: var(--link-hover-color);
       }
+    }
+
+    .menu .name {
+      margin-left: $size-1;
+      margin-right: $size-half;
+    }
+
+    .enterpriseIcon {
+      --text-color: red;
+      --icon-size: 18px;
     }
 
     .content {
