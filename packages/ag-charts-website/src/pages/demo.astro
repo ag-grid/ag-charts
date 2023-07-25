@@ -26,6 +26,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                     ))
                 }
             </ul>
+            <div class="menu-scroll-indicator"></div>
         </div>
 
         <div class="content">
@@ -41,7 +42,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                         <div class="demo-list">
                             {chartType.demos.map((demo) => (
                               <a class="demo-item" href={`/demo/${demo.example}`}>
-                                    <div class="dummy-image" /></div>
+                                    <div class="dummy-image" />      </div>
                                     <p>{demo.name}</p>
                                 </a>
                             ))}
@@ -76,15 +77,20 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
     .page-margin {
         display: flex;
         flex-direction: row;
+        position: relative;
     }
 
     .menu {
-        position: fixed;
+        position: sticky;
         width: $menu-width;
+        max-height: calc(100vh - #{$site-header-height});
+        top: $site-header-height;
         padding-top: calc($size-7 + $size-2);
-        padding-bottom: $size-7;
-        max-height: calc(100vh - $site-header-height);
         overflow-y: scroll;
+    }
+
+    .menu ul {
+      // margin-bottom: $size-7;
     }
 
     .menu li {
@@ -112,9 +118,17 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
       --icon-size: 18px;
     }
 
+    .menu-scroll-indicator {
+        position: sticky;
+        width: $menu-width;
+        height: $size-8;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(transparent, white);
+    }
+
     .content {
         flex-grow: 1;
-        padding-left: $menu-width;
     }
 
     .chart-type {
@@ -161,6 +175,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
   .site-header {
     position: fixed !important;
     width: 100%;
+    z-index: 1;
   }
 
   .contentViewport {
