@@ -24,7 +24,6 @@ const {
     NUMBER,
     OPT_NUMBER,
     BOOLEAN,
-    OPT_BOOLEAN,
     OPT_STRING,
     OPT_FUNCTION,
     OPT_COLOR_STRING,
@@ -114,15 +113,8 @@ class WaterfallSeriesLabel extends _Scene.Label {
     padding: number = 6;
 }
 
-const LabelClass: new () => Omit<WaterfallSeriesLabel, 'enabled'> = WaterfallSeriesLabel;
-
-class WaterfallSeriesItemLabel extends LabelClass {
-    @Validate(OPT_BOOLEAN)
-    enabled: boolean | undefined = undefined;
-}
-
 class WaterfallSeriesItem {
-    readonly label = new WaterfallSeriesItemLabel();
+    readonly label = new WaterfallSeriesLabel();
 
     tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
 
