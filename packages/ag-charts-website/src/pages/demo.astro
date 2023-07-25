@@ -42,7 +42,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                         </h2>
                         <div class="demo-list">
                             {chartType.demos.map((demo) => (
-                              <a class="demo-item" href={getDemoExampleUrl(demo.example)}>
+                                <a class="demo-item" href={getDemoExampleUrl(demo.example)}>
                                     <div class="dummy-image" />      </div>
                                     <p>{demo.name}</p>
                                 </a>
@@ -56,16 +56,16 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 </Layout>
 
 <script>
-  // Add smooth scrolling for menu anchor links 
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
+    // Add smooth scrolling for menu anchor links 
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
 
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
         });
     });
-});
 </script>
 
 <style lang="scss">
@@ -90,33 +90,29 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
         overflow-y: scroll;
     }
 
-    .menu ul {
-      // margin-bottom: $size-7;
-    }
-
     .menu li {
-      margin-bottom: $size-2 !important;
+        margin-bottom: $size-2 !important;
     } 
 
     .menu a {
-      --text-color: var(--link-color);
+        --text-color: var(--link-color);
 
-      display: flex;
-      align-items: center;
+        display: flex;
+        align-items: center;
 
-      &:hover {
-        --text-color: var(--link-hover-color);
-      }
+        &:hover {
+            --text-color: var(--link-hover-color);
+        }
     }
 
     .menu .name {
-      margin-left: $size-1;
-      margin-right: $size-half;
+        margin-left: $size-1;
+        margin-right: $size-half;
     }
 
     .enterpriseIcon {
-      --text-color: red;
-      --icon-size: 18px;
+        --text-color: red;
+        --icon-size: 18px;
     }
 
     .menu-scroll-indicator {
@@ -169,21 +165,21 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 </style>
 
 <style lang="scss" is:global>
-  @use '../design-system' as *;
+    @use '../design-system' as *;
 
-  $site-header-height: 64px;
+    $site-header-height: 64px;
 
-  .site-header {
-    position: fixed !important;
-    width: 100%;
-    z-index: 1;
-  }
+    .site-header {
+        position: fixed !important;
+        width: 100%;
+        z-index: 1;
+    }
 
-  .contentViewport {
-    padding-top: $site-header-height;
-  }
+    .contentViewport {
+        padding-top: $site-header-height;
+    }
 
-  .menu svg {
-    transition: fill $default-transition-timing;
-  }
+    .menu svg {
+        transition: fill $default-transition-timing;
+    }
 </style>

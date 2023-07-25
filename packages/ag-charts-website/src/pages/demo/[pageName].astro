@@ -23,13 +23,15 @@ export async function getStaticPaths() {
         })
         .flat();
 
-    const pages = demos.map((demo) => {
+    const pages = demos.map((demo, i) => {
         return {
             params: {
                 pageName: demo.example,
             },
             props: {
                 page: demo,
+                prevDemo: demos.length > i + 1 ? demos[i + 1] : demos[0],
+                nextDemo: i - 1 > 0 ? demos[i - 1] : demos[demos.length - 1],
             },
         };
     });
@@ -37,23 +39,7 @@ export async function getStaticPaths() {
     return pages;
 }
 
-const demosData = await getEntry('demo', 'demos');
-
-const flatDemosData = demosData.data.chartTypes.map((chartType) => chartType.demos).flat();
-
-const { page } = Astro.props;
-
-const prevDemo = (() => {
-    const currentIndex = flatDemosData.findIndex((demo) => demo.name === page.name);
-
-    return currentIndex - 1 > 0 ? flatDemosData[currentIndex - 1] : flatDemosData[flatDemosData.length - 1];
-})();
-
-const nextDemo = (() => {
-    const currentIndex = flatDemosData.findIndex((demo) => demo.name === page.name);
-
-    return flatDemosData.length > currentIndex + 1 ? flatDemosData[currentIndex + 1] : flatDemosData[0];
-})();
+const { page, prevDemo, nextDemo } = Astro.props;
 ---
 
 <Layout>
@@ -75,7 +61,7 @@ const nextDemo = (() => {
             </a>
         </h1>
 
-        <div class="chart-example"></div>
+        <div class="chartExample"></div>
 
         <p set:html={page.description} />
 
@@ -114,7 +100,7 @@ const nextDemo = (() => {
         --icon-size: 28px;
     }
 
-    .chart-example {
+    .chartExample {
         width: 100%;
         aspect-ratio: 21 / 9;
         margin-bottom: $size-2;
