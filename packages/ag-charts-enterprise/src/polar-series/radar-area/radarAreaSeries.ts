@@ -64,7 +64,7 @@ export class RadarAreaSeries extends RadarSeries {
         points.forEach((point, index) => {
             const { x: x0, y: y0 } = point;
             const angle = Math.atan2(y0, x0);
-            const distance = Math.sqrt(x0 ** 2 + y0 ** 2) * timePassed / totalDuration;
+            const distance = (Math.sqrt(x0 ** 2 + y0 ** 2) * timePassed) / totalDuration;
             const x = distance * Math.cos(angle);
             const y = distance * Math.sin(angle);
 
