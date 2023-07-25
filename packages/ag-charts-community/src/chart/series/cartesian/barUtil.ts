@@ -2,7 +2,6 @@ import { isNumber } from '../../../util/value';
 import type { Point } from '../../../scene/point';
 import type {
     AgBarSeriesFormat,
-    AgCartesianSeriesLabelFormatterParams,
     FontFamily,
     FontWeight,
     FontStyle,
@@ -52,7 +51,10 @@ export type LabelConfig = {
     color?: string;
 };
 
-export function createLabelData({
+export function createLabelData<
+    FormatterParams,
+    ExtraParams extends {}
+>({
     value,
     rect,
     placement,
@@ -61,21 +63,23 @@ export function createLabelData({
     formatter,
     barAlongX,
     ctx: { callbackCache },
+    ...opts
 }: {
     value: any;
     rect: Bounds;
     placement: LabelPlacement;
     seriesId: string;
     padding?: number;
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string;
+    formatter?: (params: FormatterParams) => string;
     ctx: ModuleContext;
     barAlongX: boolean;
-}): LabelDatum {
+} & ExtraParams): LabelDatum {
     let labelText;
     if (formatter) {
-        labelText = callbackCache.call(formatter, {
+        labelText = callbackCache.call(formatter as any, {
             value: isNumber(value) ? value : undefined,
             seriesId,
+            ...opts,
         });
     }
     if (labelText === undefined) {
