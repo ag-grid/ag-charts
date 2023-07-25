@@ -81,20 +81,6 @@
           "demos": []
         },
         {
-          "name": "Column",
-          "docsUrl": "column",
-          "icon": "chartsColumn",
-          "enterprise": false,
-          "demos": []
-        },
-        {
-          "name": "Bar",
-          "docsUrl": "bar",
-          "icon": "chartsBar",
-          "enterprise": false,
-          "demos": []
-        },
-        {
           "name": "Scatter",
           "docsUrl": "scatter",
           "icon": "chartsScatter",

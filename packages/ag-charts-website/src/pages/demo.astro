@@ -53,6 +53,8 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 <style lang="scss">
     @use '../design-system' as *;
 
+    $site-header-height: 64px;
+    $menu-width: 14rem;
     $list-gap: $size-2;
 
     .page-margin {
@@ -60,29 +62,47 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
         flex-direction: row;
     }
 
-    .menu,
-    .content {
-        padding-top: $size-5;
+    .menu {
+        position: fixed;
+        width: $menu-width;
+        padding-top: calc($size-7 + $size-2);
+        padding-bottom: $size-7;
+        max-height: calc(100vh - $site-header-height);
+        overflow-y: scroll;
     }
 
-    .menu {
-        min-width: 10rem;
+    .menu li {
+      margin-bottom: $size-2 !important;
+    } 
+
+    .menu a {
+      --text-color: var(--link-color);
+
+      display: flex;
+      align-items: center;
+      gap: $size-1;
+
+      &:hover {
+        --text-color: var(--link-hover-color);
+      }
     }
 
     .content {
         flex-grow: 1;
+        padding-left: $menu-width;
     }
 
     .chart-type {
-        margin-bottom: $size-8;
+        margin-bottom: $size-5;
     }
 
     .chart-type h2 {
         display: flex;
         flex-direction: row;
-        width: 100%;
         align-items: flex-end;
         justify-content: space-between;
+        width: 100%;
+        padding-top: $size-5;
     }
 
     .chart-type h2 a {
@@ -106,4 +126,23 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
         background-color: #ddd;
         border-radius: var(--border-radius);
     }
+</style>
+
+<style lang="scss" is:global>
+  @use '../design-system' as *;
+
+  $site-header-height: 64px;
+
+  .site-header {
+    position: fixed !important;
+    width: 100%;
+  }
+
+  .contentViewport {
+    padding-top: $site-header-height;
+  }
+
+  .menu svg {
+    transition: fill $default-transition-timing;
+  }
 </style>
