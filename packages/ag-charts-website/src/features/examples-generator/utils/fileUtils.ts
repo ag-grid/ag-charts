@@ -2,9 +2,10 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { getIsDev } from '../../../utils/env';
 import { getFolders } from '../../../utils/fs';
-import type { InternalFramework } from '../../../types/ag-grid.d';
+import type { Framework, InternalFramework } from '../../../types/ag-grid.d';
 import { pathJoin } from '../../../utils/pathJoin';
 import { isTypescriptInternalFramework } from '../../../utils/pages';
+import type { TransformTsFileExt } from '../types';
 
 export const getContentRootFileUrl = (): URL => {
     const contentRoot = getIsDev()
@@ -46,7 +47,7 @@ export const getBoilerPlateName = (internalFramework: InternalFramework) => {
     }
 };
 
-export const getTransformTsFileExt = (internalFramework: InternalFramework) => {
+export const getTransformTsFileExt = (internalFramework: InternalFramework): TransformTsFileExt => {
     let transformTsFileExt;
     if (internalFramework === 'reactFunctionalTs') {
         transformTsFileExt = '.tsx';
@@ -121,7 +122,7 @@ export const getSourceExamplesPathUrl = ({ pageName }: { pageName: string }) => 
     return new URL(sourceExamplesPath, import.meta.url);
 };
 
-export const getFrameworkFromInternalFramework = (internalFramework: string) => {
+export const getFrameworkFromInternalFramework = (internalFramework: InternalFramework) => {
     switch (internalFramework) {
         case 'typescript':
         case 'vanilla':
@@ -138,7 +139,7 @@ export const getFrameworkFromInternalFramework = (internalFramework: string) => 
     }
 };
 
-export const getEntryFileName = (internalFramework: string) => {
+export const getEntryFileName = (internalFramework: InternalFramework) => {
     switch (internalFramework) {
         case 'typescript':
             return 'main.ts';
@@ -205,15 +206,13 @@ export const getSourceFileContents = ({
 
 // TODO: Find a better way to determine if an example is enterprise or not
 export const getIsEnterprise = ({
-    framework,
     internalFramework,
     entryFile,
 }: {
-    framework: string;
-    internalFramework: string;
+    internalFramework: InternalFramework;
     entryFile: string;
 }) => {
-    const entryFileName = getEntryFileName({ framework, internalFramework });
+    const entryFileName = getEntryFileName(internalFramework);
 
     return entryFileName === 'main.js'
         ? entryFile?.includes('AgEnterpriseCharts')

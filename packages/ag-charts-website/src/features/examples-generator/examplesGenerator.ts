@@ -4,7 +4,6 @@ import {
     getFrameworkFromInternalFramework,
     getIsEnterprise,
     getSourceFolderUrl,
-    getBoilerPlateFiles,
     getTransformTsFileExt,
 } from './utils/fileUtils';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
@@ -13,7 +12,6 @@ import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getStyleFiles } from './utils/getStyleFiles';
 import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
-import { isTypescriptInternalFramework } from '../../utils/pages';
 import type { GeneratedContents } from './types.d';
 
 /**
@@ -102,7 +100,6 @@ export const getGeneratedContents = async ({
     }
 
     const isEnterprise = getIsEnterprise({
-        framework,
         internalFramework,
         entryFile,
     });
@@ -115,7 +112,7 @@ export const getGeneratedContents = async ({
         },
     });
 
-    const rawOtherScriptFiles = await getOtherScriptFiles({
+    const otherScriptFiles = await getOtherScriptFiles({
         sourceEntryFileName,
         sourceFileList,
         pageName,
@@ -133,13 +130,13 @@ export const getGeneratedContents = async ({
         throw new Error(`No entry file config generator for '${internalFramework}'`);
     }
 
-    const { files, boilerPlateFiles, scriptFiles, entryFileName, otherScriptFiles } = await getFrameworkFiles({
+    const { files, boilerPlateFiles, scriptFiles, entryFileName } = await getFrameworkFiles({
         entryFile,
         indexHtml,
         isEnterprise,
         bindings,
         typedBindings,
-        otherScriptFiles: rawOtherScriptFiles,
+        otherScriptFiles,
     });
     const contents: GeneratedContents = {
         isEnterprise,

@@ -1,8 +1,6 @@
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import { getContentsOfFileList } from './fileUtils';
-import type { FileContents } from '../types.d';
-
-type TransformTsFileExt = undefined | '.js' | '.tsx';
+import type { FileContents, TransformTsFileExt } from '../types.d';
 
 const getOtherTsGeneratedFiles = async ({
     sourceEntryFileName,
@@ -76,7 +74,7 @@ export const getOtherScriptFiles = async ({
     sourceFileList: string[];
     pageName: string;
     exampleName: string;
-    transformTsFileExt: TransformTsFileExt;
+    transformTsFileExt?: TransformTsFileExt;
 }) => {
     const otherTsGeneratedFileContents = await getOtherTsGeneratedFiles({
         sourceEntryFileName,
