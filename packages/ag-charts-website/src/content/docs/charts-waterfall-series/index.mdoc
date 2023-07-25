@@ -69,8 +69,6 @@ export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     /** Configuration for the Waterfall series. */
     type?: 'waterfall-bar' | 'waterfall-column';
-    /** Configuration for the labels shown on top of data points. */
-    label?: AgWaterfallSeriesLabelOptions;
     /** The key to use to retrieve x-values from the data. */
     xKey?: string;
     /** The key to use to retrieve y-values from the data. */
