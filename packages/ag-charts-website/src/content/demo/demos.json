@@ -65,6 +65,174 @@
                     "example": "column-with-negative-values"
                 }
             ]
+        },
+        {
+          "name": "Line",
+          "docsUrl": "line",
+          "icon": "line",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Area",
+          "docsUrl": "area",
+          "icon": "area",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Column",
+          "docsUrl": "column",
+          "icon": "column",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Bar",
+          "docsUrl": "bar",
+          "icon": "bar",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Scatter",
+          "docsUrl": "scatter",
+          "icon": "scatter",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Bubble",
+          "docsUrl": "bubble",
+          "icon": "bubble",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Pie",
+          "docsUrl": "pie",
+          "icon": "pie",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Donut",
+          "docsUrl": "donut",
+          "icon": "donut",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Combination",
+          "docsUrl": "combination",
+          "icon": "combination",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Histogram",
+          "docsUrl": "histogram",
+          "icon": "histogram",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Heatmap",
+          "docsUrl": "heatmap",
+          "icon": "heatmap",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Range",
+          "docsUrl": "range",
+          "icon": "range",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Box Plot",
+          "docsUrl": "box-plot",
+          "icon": "boxPlot",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Error Bar",
+          "docsUrl": "error-bar",
+          "icon": "errorBar",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Waterfall",
+          "docsUrl": "waterfall",
+          "icon": "waterfall",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Radar",
+          "docsUrl": "radar",
+          "icon": "radar",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Nightingale",
+          "docsUrl": "nightingale",
+          "icon": "nightingale",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Radial Column",
+          "docsUrl": "radial-column",
+          "icon": "radialColumn",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Radial Bar",
+          "docsUrl": "radial-bar",
+          "icon": "radialBar",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Treemap",
+          "docsUrl": "treemap",
+          "icon": "treemap",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Sunburst",
+          "docsUrl": "sunburst",
+          "icon": "sunburst",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Icicle",
+          "docsUrl": "icicle",
+          "icon": "icicle",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Funnel",
+          "docsUrl": "funnel",
+          "icon": "funnel",
+          "enterprise": false,
+          "demos": []
+        },
+        {
+          "name": "Pyramid",
+          "docsUrl": "pyramid",
+          "icon": "pyramid",
+          "enterprise": false,
+          "demos": []
         }
     ]
 }
