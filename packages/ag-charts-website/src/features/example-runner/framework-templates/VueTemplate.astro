@@ -1,0 +1,76 @@
+---
+import { ExampleStyle } from './lib/ExampleStyle';
+import { MetaData } from './lib/MetaData';
+import { Scripts } from './lib/Scripts';
+import { Styles } from './lib/Styles';
+import { SystemJs } from './lib/SystemJs';
+import { pathJoin } from '../../../utils/pathJoin';
+
+interface Props {
+    isDev: boolean;
+    pageName: string;
+    exampleName: string;
+
+    modifiedTimeMs: number;
+    isExecuting: boolean;
+    options: any;
+    entryFileName: string;
+    /**
+     * Extra script file names (not including entry file)
+     */
+    scriptFiles?: string[];
+    styleFiles?: string[];
+    appLocation: string;
+    library: string;
+    boilerplatePath: string;
+
+    vueFramework: 'vue' | 'vue3';
+}
+
+const {
+    isDev,
+    pageName,
+    exampleName,
+    isExecuting,
+    modifiedTimeMs,
+    library,
+    boilerplatePath,
+    appLocation,
+    options,
+    entryFileName,
+    scriptFiles,
+    styleFiles,
+    vueFramework,
+} = Astro.props as Props;
+
+const startFile = pathJoin(appLocation, entryFileName);
+const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
+---
+
+<html lang="en">
+    <head>
+        <MetaData
+            isDev={isDev}
+            title={`${vueFrameworkTitle} example - ${pageName} - ${exampleName}`}
+            modifiedTimeMs={modifiedTimeMs}
+            isExecuting={isExecuting}
+            options={options}
+        />
+        <ExampleStyle rootId="app" />
+        <Styles baseUrl={appLocation} files={styleFiles} />
+    </head>
+    <body>
+        <div id="app"><my-component></my-component></div>
+
+        <Scripts baseUrl={appLocation} files={scriptFiles} />
+        <SystemJs
+            isDev={isDev}
+            library={library}
+            boilerplatePath={boilerplatePath}
+            appLocation={appLocation}
+            startFile={startFile}
+            framework={vueFramework}
+            options={options}
+        />
+    </body>
+</html>

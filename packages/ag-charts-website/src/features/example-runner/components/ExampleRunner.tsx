@@ -69,9 +69,15 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     const minHeight = `${exampleHeight + FRAME_WRAPPER_HEIGHT}px`;
 
     // NOTE: Plunkr only works for these internal frameworks for now
-    const supportsPlunkr = ['vanilla', 'typescript', 'react', 'reactFunctional', 'reactFunctionalTs'].includes(
-        internalFramework
-    );
+    const supportsPlunkr = [
+        'vanilla',
+        'typescript',
+        'react',
+        'reactFunctional',
+        'reactFunctionalTs',
+        'vue',
+        'vue3',
+    ].includes(internalFramework);
 
     const {
         isLoading: exampleFilesIsLoading,

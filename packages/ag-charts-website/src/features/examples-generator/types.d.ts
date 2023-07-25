@@ -1,5 +1,7 @@
 export type ExampleType = 'generated' | 'mixed' | 'typescript' | 'multi';
 
+export type TransformTsFileExt = undefined | '.js' | '.tsx';
+
 export interface ExampleSettings {
     enterprise?: boolean;
 }
