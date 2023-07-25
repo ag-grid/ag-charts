@@ -4,7 +4,6 @@ import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { Scripts } from './lib/Scripts';
-import { getCacheBustingUrl } from '../../../utils/pages';
 import { pathJoin } from '../../../utils/pathJoin';
 
 interface Props {
@@ -54,14 +53,7 @@ const startFile = pathJoin(appLocation, entryFileName);
             options={options}
         />
         <ExampleStyle rootId="root" />
-        <Styles
-            baseUrl={appLocation}
-            files={isDev && styleFiles
-                ? styleFiles
-                      .filter((file: string) => !file.includes('style.css') && !file.includes('styles.css'))
-                      .map((file: string) => getCacheBustingUrl(file, modifiedTimeMs))
-                : []}
-        />
+        <Styles baseUrl={appLocation} files={styleFiles} />
     </head>
     <body>
         <div id="root"></div>
