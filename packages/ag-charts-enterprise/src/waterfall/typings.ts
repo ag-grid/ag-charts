@@ -79,8 +79,6 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     line?: AgWaterfallSeriesLineOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
-    /** Function used to return formatting for individual Waterfall cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgWaterfallSeriesFormatterParams<DatumType>) => AgWaterfallSeriesFormat;
     /** Series-specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesTooltip;
     /** A map of event names to event listeners. */

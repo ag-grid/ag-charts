@@ -611,7 +611,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            formatter: seriesFormatter,
             highlightStyle: { item: itemHighlightStyle },
             id: seriesId,
             ctx,
@@ -650,7 +649,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                formatter: formatter ?? seriesFormatter,
+                formatter,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
@@ -705,16 +704,15 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             return '';
         }
 
-        const { formatter: seriesFormatter, xName, yName, id: seriesId } = this;
+        const { xName, yName, id: seriesId } = this;
 
         const { datum, itemId, xValue, yValue } = nodeDatum;
 
-        const { fill, strokeWidth, name, formatter: itemFormatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
+        const { fill, strokeWidth, name, formatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
 
         const tooltipConfig = itemTooltip ?? this.tooltip;
 
         let format: any | undefined = undefined;
-        const formatter = itemFormatter ?? seriesFormatter;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
