@@ -5,11 +5,27 @@ import { doOnEnter } from '../../../utils/doOnEnter';
 import { Icon } from '../../../components/icon/Icon';
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
+import type { InternalFramework } from '../../../types/ag-grid';
+import type { ExampleType, FileContents } from '../../examples-generator/types';
 
 /**
  * This renders the code viewer in the example runner.
  */
-export const CodeViewer = ({ id, isActive, files, initialSelectedFile, exampleType, internalFramework }) => {
+export const CodeViewer = ({
+    id,
+    isActive,
+    files,
+    initialSelectedFile,
+    exampleType,
+    internalFramework,
+}: {
+    id: string;
+    isActive: boolean;
+    files: FileContents;
+    initialSelectedFile: string;
+    internalFramework: InternalFramework;
+    exampleType: ExampleType;
+}) => {
     const [activeFile, setActiveFile] = useState(initialSelectedFile);
     const [showFiles, setShowFiles] = useState(true);
 

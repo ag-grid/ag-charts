@@ -13,11 +13,12 @@ import { getFrameworkFromInternalFramework } from '../../../utils/framework';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
 import type { Framework } from '../../../types/ag-grid';
 import { OpenInPlunkr } from '../../plunkr/components/OpenInPlunkr';
+import type { ExampleType } from '../../examples-generator/types';
 
 interface Props {
     name: string;
     title: string;
-    exampleType?: string;
+    exampleType?: ExampleType;
     options?: ExampleOptions;
     framework: Framework;
     pageName: string;
@@ -215,8 +216,8 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
                             id={exampleId}
                             isActive={showCode}
                             files={exampleFiles}
-                            initialSelectedFile={initialSelectedFile}
-                            exampleType={exampleType}
+                            initialSelectedFile={initialSelectedFile!}
+                            exampleType={exampleType!}
                             internalFramework={internalFramework}
                         />
                     )}
@@ -226,7 +227,7 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
     );
 };
 
-export const ExampleRunner = (props: any) => {
+export const ExampleRunner = (props: Props) => {
     return (
         <QueryClientProvider client={queryClient}>
             <ExampleRunnerInner {...props} />

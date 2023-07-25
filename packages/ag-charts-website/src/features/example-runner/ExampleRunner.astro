@@ -3,8 +3,16 @@ import { ExampleRunner } from './components/ExampleRunner';
 import { ReactComponent as LoadingLogo } from '../../images/inline-svgs/ag-grid-logomark-loading.svg';
 import { getExampleOptionsFromString } from './utils/getExampleOptionsFromString';
 import { FRAMEWORK_PATH_INDEX, PAGE_NAME_PATH_INDEX } from '../../constants';
+import type { ExampleType } from '../examples-generator/types';
 
-const { title, name, type, options } = Astro.props;
+interface Props {
+    title: string;
+    name: string;
+    type: ExampleType;
+    options: string;
+}
+
+const { title, name, type, options } = Astro.props as Props;
 
 const pathSegments = Astro.url.pathname.split('/');
 const framework = pathSegments[FRAMEWORK_PATH_INDEX];
