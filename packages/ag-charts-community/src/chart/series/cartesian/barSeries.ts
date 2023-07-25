@@ -775,14 +775,17 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         const datumIdKey = this.processedData?.defs.keys?.[0];
 
-        const addedIds: { [key: string]: boolean } = {};
-        diff.added.forEach((d: string[]) => {
-            addedIds[d[0]] = true;
-        });
-        const removedIds: { [key: string]: boolean } = {};
-        diff.removed.forEach((d: string[]) => {
-            removedIds[d[0]] = true;
-        });
+        // Zip an array into an object of keys with a given value
+        const zipObject = (props: Array<any>, value = true) => {
+            const zipped: { [key: string]: boolean } = {};
+            for (let i = 0; i < props.length; i++) {
+                zipped[`${props[i]}`] = value;
+            }
+            return zipped;
+        };
+
+        const addedIds = zipObject(diff.added);
+        const removedIds = zipObject(diff.removed);
 
         const rectThrottleGroup = `${this.id}_${Math.random()}`;
         const labelThrottleGroup = `${this.id}_${Math.random()}`;
