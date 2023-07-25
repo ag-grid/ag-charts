@@ -18,6 +18,14 @@
         {
           "target": "build",
           "projects": "ag-charts-react"
+        },
+        {
+          "target": "build",
+          "projects": "ag-charts-vue"
+        },
+        {
+          "target": "build",
+          "projects": "ag-charts-vue3"
         }
       ],
       "executor": "@nxtensions/astro:build",
@@ -44,6 +52,14 @@
         {
           "target": "build",
           "projects": "ag-charts-react"
+        },
+        {
+          "target": "build",
+          "projects": "ag-charts-vue"
+        },
+        {
+          "target": "build",
+          "projects": "ag-charts-vue3"
         }
       ]
     },
