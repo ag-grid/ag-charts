@@ -641,7 +641,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
-    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalLength: number, length: number) {
+    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
         const lineNode = this.getLineNode();
         const { path: linePath } = lineNode;
 
@@ -650,7 +650,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         points.forEach((point, index) => {
             const { x: x0, y: y0 } = point;
             const angle = Math.atan2(y0, x0);
-            const distance = Math.sqrt(x0 ** 2 + y0 ** 2) * length / totalLength;
+            const distance = Math.sqrt(x0 ** 2 + y0 ** 2) * timePassed / totalDuration;
             const x = distance * Math.cos(angle);
             const y = distance * Math.sin(angle);
 
@@ -661,6 +661,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             }
         });
 
+        linePath.closePath();
         lineNode.checkPathDirty();
     }
 
@@ -672,22 +673,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const { markerSelection, labelSelection, nodeData } = this;
 
         const points = nodeData.map((datum) => datum.point!);
-        if (points.length > 0) {
-            const first = points[0];
-            points.push(first); // connect the last point with the first
-        }
-
-        let lineLength = 0;
-        points.forEach((point, index) => {
-            if (index === 0) return;
-            const prev = points[index - 1];
-            const { x: prevX, y: prevY } = prev;
-            const { x, y } = point;
-            if (isNaN(x) || isNaN(y) || isNaN(prevX) || isNaN(prevY)) {
-                return;
-            }
-            lineLength += Math.sqrt((x - prevX) ** 2 + (y - prevY) ** 2);
-        });
 
         const duration = 1000;
         const markerDuration = 200;
@@ -695,7 +680,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const animationOptions = {
             from: 0,
-            to: lineLength,
+            to: duration,
         };
 
         this.beforePathAnimation();
@@ -703,7 +688,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
             ...animationOptions,
             duration,
-            onUpdate: (length) => this.updatePathAnimation(points, lineLength, length),
+            onUpdate: (timePassed) => this.updatePathAnimation(points, duration, timePassed),
         });
 
         markerSelection.each((marker, datum) => {

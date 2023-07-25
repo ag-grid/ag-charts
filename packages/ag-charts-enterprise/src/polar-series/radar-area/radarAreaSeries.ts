@@ -49,22 +49,22 @@ export class RadarAreaSeries extends RadarSeries {
         areaNode.stroke = undefined;
     }
 
-    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalLength: number, length: number) {
-        super.updatePathAnimation(points, totalLength, length);
+    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
+        super.updatePathAnimation(points, totalDuration, timePassed);
 
         const areaNode = this.getAreaNode();
         const { path: areaPath } = areaNode;
 
         areaPath.clear({ trackChanges: true });
 
-        const startFromCenter = length < totalLength;
+        const startFromCenter = timePassed < totalDuration;
         if (startFromCenter) {
             areaPath.moveTo(0, 0);
         }
         points.forEach((point, index) => {
             const { x: x0, y: y0 } = point;
             const angle = Math.atan2(y0, x0);
-            const distance = Math.sqrt(x0 ** 2 + y0 ** 2) * length / totalLength;
+            const distance = Math.sqrt(x0 ** 2 + y0 ** 2) * timePassed / totalDuration;
             const x = distance * Math.cos(angle);
             const y = distance * Math.sin(angle);
 
