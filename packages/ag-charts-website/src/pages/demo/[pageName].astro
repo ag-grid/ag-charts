@@ -13,7 +13,8 @@ export async function getStaticPaths() {
                 return {
                     ...demo,
                     chartType: chartType.name,
-                    docsUrl: getDemoPageHashUrl(chartType.docsUrl),
+                    slug: chartType.slug,
+                    docsUrl: getDemoPageHashUrl(chartType.slug),
                     icon: chartType.icon,
                     enterprise: chartType.enterprise,
                 };

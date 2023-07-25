@@ -16,7 +16,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                 {
                     chartTypes.map((chartType) => (
                         <li>
-                            <a href={`#${chartType.docsUrl}`}>
+                            <a href={getDemoPageHashUrl(chartType.slug)}>
                                 <Icon client:only name={chartType.icon}/>
                                 <span class="name">{chartType.name}</span>
                                 {
@@ -34,9 +34,9 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
             {
                 chartTypes.map((chartType) => (
                     <div class="chart-type">
-                        <h2 id={chartType.docsUrl}>
+                        <h2 id={chartType.slug}>
                             <span>{chartType.name} Charts</span>
-                            <a class="font-size-medium" href={getDemoPageHashUrl(chartType.docsUrl)}>
+                            <a class="font-size-medium" href={getDemoPageHashUrl(chartType.slug)}>
                                 View {chartType.name.toLowerCase()} charts documentation
                             </a>
                         </h2>

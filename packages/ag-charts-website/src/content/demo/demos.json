@@ -2,7 +2,7 @@
     "chartTypes": [
         {
             "name": "Bar",
-            "docsUrl": "bar",
+            "slug": "bar",
             "icon": "chartsBar",
             "enterprise": false,
             "demos": [
@@ -35,7 +35,7 @@
         },
         {
             "name": "Column",
-            "docsUrl": "column",
+            "slug": "column",
             "icon": "chartsColumn",
             "enterprise": false,
             "demos": [
@@ -68,154 +68,154 @@
         },
         {
             "name": "Line",
-            "docsUrl": "line",
+            "slug": "line",
             "icon": "chartsLine",
             "enterprise": false,
             "demos": []
         },
         {
             "name": "Area",
-            "docsUrl": "area",
+            "slug": "area",
             "icon": "chartsArea",
             "enterprise": false,
             "demos": []
         },
         {
             "name": "Scatter",
-            "docsUrl": "scatter",
+            "slug": "scatter",
             "icon": "chartsScatter",
             "enterprise": false,
             "demos": []
         },
         {
             "name": "Bubble",
-            "docsUrl": "bubble",
+            "slug": "bubble",
             "icon": "chartsBubble",
             "enterprise": false,
             "demos": []
         },
         {
             "name": "Pie",
-            "docsUrl": "pie",
+            "slug": "pie",
             "icon": "chartsPie",
             "enterprise": false,
             "demos": []
         },
         {
             "name": "Donut",
-            "docsUrl": "donut",
+            "slug": "donut",
             "icon": "chartsDonut",
             "enterprise": false,
             "demos": []
         },
         {
             "name": "Combination",
-            "docsUrl": "combination",
+            "slug": "combination",
             "icon": "chartsCombination",
             "enterprise": false,
             "demos": []
         },
         {
             "name": "Histogram",
-            "docsUrl": "histogram",
+            "slug": "histogram",
             "icon": "chartsHistogram",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Heatmap",
-            "docsUrl": "heatmap",
+            "slug": "heatmap",
             "icon": "chartsHeatmap",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Range",
-            "docsUrl": "range",
+            "slug": "range",
             "icon": "chartsRange",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Box Plot",
-            "docsUrl": "box-plot",
+            "slug": "box-plot",
             "icon": "chartsBoxPlot",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Error Bar",
-            "docsUrl": "error-bar",
+            "slug": "error-bar",
             "icon": "chartsErrorBar",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Waterfall",
-            "docsUrl": "waterfall",
+            "slug": "waterfall",
             "icon": "chartsWaterfall",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Radar",
-            "docsUrl": "radar",
+            "slug": "radar",
             "icon": "chartsRadar",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Nightingale",
-            "docsUrl": "nightingale",
+            "slug": "nightingale",
             "icon": "chartsNightingale",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Radial Column",
-            "docsUrl": "radial-column",
+            "slug": "radial-column",
             "icon": "chartsRadialColumn",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Radial Bar",
-            "docsUrl": "radial-bar",
+            "slug": "radial-bar",
             "icon": "chartsRadialBar",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Treemap",
-            "docsUrl": "treemap",
+            "slug": "treemap",
             "icon": "chartsTreemap",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Sunburst",
-            "docsUrl": "sunburst",
+            "slug": "sunburst",
             "icon": "chartsSunburst",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Icicle",
-            "docsUrl": "icicle",
+            "slug": "icicle",
             "icon": "chartsIcicle",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Funnel",
-            "docsUrl": "funnel",
+            "slug": "funnel",
             "icon": "chartsFunnel",
             "enterprise": true,
             "demos": []
         },
         {
             "name": "Pyramid",
-            "docsUrl": "pyramid",
+            "slug": "pyramid",
             "icon": "chartsPyramid",
             "enterprise": true,
             "demos": []
