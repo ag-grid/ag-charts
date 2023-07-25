@@ -813,7 +813,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     { from: 0, to: datum.width },
                 ],
                 {
-                    disableInteractions: true,
                     duration,
                     ease: _ModuleSupport.Motion.easeOut,
                     onUpdate([x, width]) {
@@ -997,7 +996,6 @@ export class WaterfallColumnSeries extends WaterfallBarSeries {
                     { from: 0, to: datum.height },
                 ],
                 {
-                    disableInteractions: true,
                     duration,
                     ease: _ModuleSupport.Motion.easeOut,
                     onUpdate([y, height]) {
