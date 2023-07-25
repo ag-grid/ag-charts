@@ -69,7 +69,12 @@ export const getBoilerPlateFiles = async (internalFramework: InternalFramework) 
     const fileNames = await fs.readdir(boilerPlatePath);
 
     const files: Record<string, string> = {};
+    const isDev = getIsDev();
     const fileContentPromises = fileNames.map(async (fileName) => {
+        if (!isDev && fileName === 'systemjs.config.dev.js') {
+            // Ignore systemjs dev file if on production
+            return;
+        }
         const filePath = pathJoin(boilerPlatePath, fileName);
         const contents = await fs.readFile(filePath, 'utf-8').catch(() => {
             return undefined;
