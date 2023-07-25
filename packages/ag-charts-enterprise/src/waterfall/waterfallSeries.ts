@@ -24,6 +24,7 @@ const {
     NUMBER,
     OPT_NUMBER,
     BOOLEAN,
+    OPT_BOOLEAN,
     OPT_STRING,
     OPT_FUNCTION,
     OPT_COLOR_STRING,
@@ -54,6 +55,7 @@ type WaterfallNodePointDatum = _ModuleSupport.SeriesNodeDatum['point'] & {
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_Scene.Point> {
     readonly index: number;
+    readonly itemId: SeriesItemType;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -103,7 +105,7 @@ class WaterfallSeriesItemTooltip {
 
 class WaterfallSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
+    formatter?: (params: AgCartesianSeriesLabelFormatterParams & { itemId: SeriesItemType }) => string = undefined;
 
     @Validate(OPT_WATERFALL_LABEL_PLACEMENT)
     placement: AgWaterfallSeriesLabelPlacement = 'end';
@@ -112,8 +114,15 @@ class WaterfallSeriesLabel extends _Scene.Label {
     padding: number = 6;
 }
 
+const LabelClass: new () => Omit<WaterfallSeriesLabel, 'enabled'> = WaterfallSeriesLabel;
+
+class WaterfallSeriesItemLabel extends LabelClass {
+    @Validate(OPT_BOOLEAN)
+    enabled: boolean | undefined = undefined;
+}
+
 class WaterfallSeriesItem {
-    readonly label = new WaterfallSeriesLabel();
+    readonly label = new WaterfallSeriesItemLabel();
 
     tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
 
@@ -438,7 +447,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             const isPositive = (value ?? 0) >= 0;
 
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { fill, stroke, strokeWidth, label: itemLabel } = this.getItemConfig(seriesItemType);
+            const { fill, stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
 
             const y = (isPositive ? currY : trailY) - offset;
             const bottomY = (isPositive ? trailY : currY) + offset;
@@ -483,7 +492,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
             pointData.push(pathPoint);
 
-            const label = itemLabel ?? this.label;
             const { formatter, placement, padding } = label;
 
             const nodeDatum: WaterfallNodeDatum = {
@@ -513,6 +521,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     formatter,
                     barAlongX,
                     ctx,
+                    itemId
                 }),
             };
 
@@ -564,11 +573,11 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    private isSubtotal(datumType?: 'total' | 'subtotal') {
+    private isSubtotal(datumType: SeriesItemType) {
         return datumType === 'subtotal';
     }
 
-    private isTotal(datumType?: 'total' | 'subtotal') {
+    private isTotal(datumType: SeriesItemType) {
         return datumType === 'total';
     }
 
@@ -672,8 +681,9 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const itemId = labelData[0].itemId;
-        const { label } = this.getItemConfig(itemId);
-        const enabled = (label ?? this.label).enabled;
+        const {
+            label: { enabled },
+        } = this.getItemConfig(itemId);
         const data = enabled ? labelData : [];
 
         return labelSelection.update(data);
@@ -683,9 +693,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         const { labelSelection } = opts;
         labelSelection.each((text, datum) => {
             const labelDatum = datum.label;
-            const { label: itemLabel } = this.getItemConfig(datum.itemId);
-            const config = itemLabel ?? this.label;
-            updateLabel({ labelNode: text, labelDatum, config, visible: true });
+            const { label } = this.getItemConfig(datum.itemId);
+            updateLabel({ labelNode: text, labelDatum, config: label, visible: true });
         });
     }
 
@@ -1008,8 +1017,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         return (
             this.positiveItem.label.enabled ||
             this.negativeItem.label.enabled ||
-            this.totalItem.label.enabled ||
-            this.label.enabled
+            this.totalItem.label.enabled
         );
     }
 
