@@ -1,6 +1,7 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
+import { Icon } from '../components/icon/Icon';
 
 const demosData = await getEntry('demo', 'demos');
 
@@ -15,6 +16,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                     chartTypes.map((chartType) => (
                         <li>
                             <a href={`#${chartType.docsUrl}`}>
+                                <Icon client:only name={chartType.icon}/>
                                 <span>{chartType.name}</span>
                             </a>
                         </li>
