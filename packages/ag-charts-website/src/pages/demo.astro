@@ -10,7 +10,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 ---
 
 <Layout>
-    <div class="page-margin">
+    <div class="page-margin font-size-responsive font-size-medium">
         <div class="menu">
             <ul class="list-style-none">
                 {
@@ -73,7 +73,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 
     $site-header-height: 64px;
     $menu-width: 14rem;
-    $list-gap: $size-2;
+    $list-gap: $size-3;
 
     .page-margin {
         display: flex;
@@ -149,7 +149,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: $list-gap;
+        gap: $size-2 $list-gap;
     }
 
     .demo-item {
