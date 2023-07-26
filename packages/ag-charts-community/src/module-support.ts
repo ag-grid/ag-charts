@@ -9,6 +9,7 @@ export * from './chart/chartAxisDirection';
 export { assignJsonApplyConstructedArray } from './chart/chartOptions';
 export * from './chart/data/dataModel';
 export * from './chart/data/dataController';
+export * from './chart/data/processors';
 export * from './chart/updateService';
 export * from './chart/layout/layoutService';
 export * from './chart/interaction/animationManager';

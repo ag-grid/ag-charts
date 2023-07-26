@@ -16,11 +16,13 @@ const {
     OPT_COLOR_STRING,
     OPT_FUNCTION,
     OPT_LINE_DASH,
+    OPT_NUMBER,
     OPT_STRING,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
     keyProperty,
+    normaliseGroupTo,
     valueProperty,
 } = _ModuleSupport;
 
@@ -155,6 +157,12 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
     @Validate(NUMBER(0))
     strokeWidth = 1;
 
+    @Validate(OPT_STRING)
+    stackGroup?: string = undefined;
+
+    @Validate(OPT_NUMBER())
+    normalizedTo?: number;
+
     readonly highlightStyle = new HighlightStyle();
 
     /**
@@ -232,6 +240,13 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const stackGroupId = `nightingale-stack-${groupIndex}-yValues`;
         const stackGroupTrailingId = `nightingale-stack-${groupIndex}-yValues-trailing`;
 
+        const normalizedToAbs = Math.abs(this.normalizedTo ?? NaN);
+        const normaliseTo = normalizedToAbs && isFinite(normalizedToAbs) ? normalizedToAbs : undefined;
+        const extraProps = [];
+        if (normaliseTo) {
+            extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
+        }
+
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
                 keyProperty(this, angleKey, false, { id: 'angleValue' }),
@@ -246,6 +261,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
                 }),
+                ...extraProps,
             ],
             groupByKeys: true,
             dataVisible: visible,
