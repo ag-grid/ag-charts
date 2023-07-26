@@ -1,7 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import { getDocExamplePages } from '../../../../../utils/pages';
-import ExamplePage from '../[exampleName].astro';
+import FrameworkTemplateExampleRunner from '../../../../../features/example-runner/components/FrameworkTemplateExampleRunner.astro';
+import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-grid';
 
 /**
  * This page is the same as `[exampleName].astro`, but using relative paths for script files
@@ -17,6 +18,13 @@ export async function getStaticPaths() {
         pages,
     });
 }
+
+const { internalFramework, pageName, exampleName } = Astro.params;
 ---
 
-<ExamplePage relativePath={true} />
+<FrameworkTemplateExampleRunner
+    internalFramework={internalFramework as InternalFramework}
+    pageName={pageName!}
+    exampleName={exampleName!}
+    relativePath={true}
+/>
