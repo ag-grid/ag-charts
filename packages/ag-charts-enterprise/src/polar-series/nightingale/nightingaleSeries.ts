@@ -1,5 +1,6 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { AngleCategoryAxis } from '../../polar-axes/angle-category/angleCategoryAxis';
 
 import type {
     AgNightingaleSeriesLabelFormatterParams,
@@ -287,7 +288,8 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             return [];
         }
 
-        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        const angleScale = angleAxis?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Y]?.scale;
 
         if (!angleScale || !radiusScale) {
@@ -301,19 +303,21 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
 
         const { label, id: seriesId } = this;
 
-        const anglesCount = angleScale.domain.length ?? 0;
-        const groupAngleStep = (2 * Math.PI) / anglesCount;
+        let groupPaddingInner = 0;
+        let groupPaddingOuter = 0;
+        if (angleAxis instanceof AngleCategoryAxis) {
+            groupPaddingInner = angleAxis.groupPaddingInner;
+            groupPaddingOuter = angleAxis.groupPaddingOuter;
+        }
+
+        const groupAngleStep = angleScale.bandwidth ?? 0;
+        const paddedGroupAngleStep = groupAngleStep * (1 - groupPaddingOuter);
 
         const { groupScale } = this;
-        const domain = [];
         const { index: groupIndex, visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-        groupScale.domain = domain;
-        groupScale.range = [0, groupAngleStep ?? 0];
-
-        const itemAngleStep = groupAngleStep / domain.length;
+        groupScale.domain = Array.from({ length: visibleGroupCount }).map((_, i) => String(i));
+        groupScale.range = [-paddedGroupAngleStep / 2, paddedGroupAngleStep / 2];
+        groupScale.paddingInner = groupPaddingInner;
 
         const nodeData = processedData.data.map((group, index): NightingaleNodeDatum => {
             const { datum, keys, values } = group;
@@ -323,12 +327,11 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             const innerRadiusDatum = values[dataIndex][radiusStartIndex];
             const outerRadiusDatum = values[dataIndex][radiusEndIndex];
 
-            const itemAngleOffset = groupScale.convert(String(groupIndex));
-
             const groupAngle = angleScale.convert(angleDatum);
-            const startAngle = groupAngle - groupAngleStep / 2 + itemAngleOffset;
-            const endAngle = startAngle + itemAngleStep;
-            const angle = startAngle + itemAngleStep / 2;
+            const startAngle = groupAngle + groupScale.convert(String(groupIndex));
+            const endAngle = startAngle + groupScale.bandwidth;
+            const angle = startAngle + groupScale.bandwidth / 2;
+
             const innerRadius = this.radius - radiusScale.convert(innerRadiusDatum);
             const outerRadius = this.radius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
