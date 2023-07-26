@@ -396,25 +396,44 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             this.labelGroup.translationY = this.centerY;
         }
 
-        this.updateSectorSelection();
+        this.updateSectorSelection(this.sectorSelection, false);
+        this.updateSectorSelection(this.highlightSelection, true);
         this.updateLabels();
 
         this.animationState.transition('update');
     }
 
-    protected updateSectorSelection() {
-        const { sectorSelection, nodeData } = this;
-        sectorSelection.update(nodeData).each((node, datum) => {
+    protected updateSectorSelection(
+        selection: _Scene.Selection<_Scene.Sector, NightingaleNodeDatum>,
+        highlight: boolean
+    ) {
+        let selectionData: NightingaleNodeDatum[] = [];
+        if (highlight) {
+            const highlighted = this.ctx.highlightManager?.getActiveHighlight();
+            if (highlighted?.datum) {
+                selectionData = [highlighted as NightingaleNodeDatum];
+            }
+        } else {
+            selectionData = this.nodeData;
+        }
+
+        const highlightedStyle = highlight ? this.highlightStyle.item : undefined;
+        const fill = highlightedStyle?.fill ?? this.fill;
+        const fillOpacity = highlightedStyle?.fillOpacity ?? this.fillOpacity;
+        const stroke = highlightedStyle?.stroke ?? this.stroke;
+        const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
+
+        selection.update(selectionData).each((node, datum) => {
             node.centerX = 0;
             node.centerY = 0;
             node.innerRadius = datum.innerRadius;
             node.outerRadius = datum.outerRadius;
             node.startAngle = datum.startAngle;
             node.endAngle = datum.endAngle;
-            node.fill = this.fill;
-            node.fillOpacity = this.fillOpacity;
-            node.stroke = this.stroke;
-            node.strokeWidth = this.strokeWidth;
+            node.fill = fill;
+            node.fillOpacity = fillOpacity;
+            node.stroke = stroke;
+            node.strokeWidth = strokeWidth;
             node.lineDash = this.lineDash;
         });
     }
