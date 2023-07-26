@@ -1,5 +1,5 @@
 import type { BBox } from '../scene/bbox';
-import type { AgChartOrientation } from './agChartOptions';
+import type { AgChartLegendOrientation } from './agChartOptions';
 
 export type Page = { columns: Column[]; pageWidth: number; pageHeight: number; startIndex: number; endIndex: number };
 
@@ -19,7 +19,7 @@ export function gridLayout({
     itemPaddingX = 0,
     forceResult = false,
 }: {
-    orientation: AgChartOrientation;
+    orientation: AgChartLegendOrientation;
     bboxes: BBox[];
     maxHeight: number;
     maxWidth: number;
@@ -172,7 +172,7 @@ function calculatePage(
 
 function buildPages(
     rawPages: number[][][],
-    orientation: AgChartOrientation,
+    orientation: AgChartLegendOrientation,
     bboxes: BBox[],
     itemPaddingY: number,
     itemPaddingX: number

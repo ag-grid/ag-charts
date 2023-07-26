@@ -19,7 +19,7 @@ import {
     STRING,
     Validate,
 } from '../../util/validation';
-import type { AgChartOrientation, FontStyle, FontWeight } from '../agChartOptions';
+import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../agChartOptions';
 
 class PaginationLabel {
     @Validate(COLOR_STRING)
@@ -150,8 +150,8 @@ export class Pagination {
         this.group.visible = this.enabled && this.visible;
     }
 
-    private _orientation: AgChartOrientation = 'vertical';
-    set orientation(value: AgChartOrientation) {
+    private _orientation: AgChartLegendOrientation = 'vertical';
+    set orientation(value: AgChartLegendOrientation) {
         this._orientation = value;
 
         switch (value) {

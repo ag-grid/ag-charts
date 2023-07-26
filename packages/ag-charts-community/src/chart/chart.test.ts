@@ -8,7 +8,7 @@ import { Sector } from '../scene/shape/sector';
 import type {
     AgAreaSeriesOptions,
     AgCartesianChartOptions,
-    AgChartInteractionRange,
+    InteractionRange,
     AgColumnSeriesOptions,
     AgLineSeriesOptions,
     AgPieSeriesOptions,
@@ -93,7 +93,7 @@ describe('Chart', () => {
         const createChart = async (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
-            nodeClickRange?: AgChartInteractionRange;
+            nodeClickRange?: InteractionRange;
         }): Promise<Chart> => {
             const tooltip = params.hasTooltip
                 ? {

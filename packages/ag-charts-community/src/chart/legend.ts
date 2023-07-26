@@ -14,7 +14,7 @@ import type {
     AgChartLegendPosition,
     FontStyle,
     FontWeight,
-    AgChartOrientation,
+    AgChartLegendOrientation,
 } from './agChartOptions';
 import { getMarker } from './marker/util';
 import { createId } from '../util/id';
@@ -176,7 +176,7 @@ export class Legend {
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
-    private getOrientation(): AgChartOrientation {
+    private getOrientation(): AgChartLegendOrientation {
         if (this.orientation !== undefined) {
             return this.orientation;
         }
@@ -203,7 +203,7 @@ export class Legend {
     reverseOrder?: boolean = undefined;
 
     @Validate(OPT_ORIENTATION)
-    orientation?: AgChartOrientation;
+    orientation?: AgChartLegendOrientation;
 
     private destroyFns: Function[] = [];
 

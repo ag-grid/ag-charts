@@ -13,7 +13,7 @@ import type {
     AgHierarchyThemeOptions,
     AgCartesianSeriesTheme,
     AgHierarchySeriesTheme,
-    AgChartInteractionRange,
+    InteractionRange,
     AgTooltipPositionType,
 } from '../agChartOptions';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
@@ -138,7 +138,7 @@ export class ChartTheme {
                     color: 'black',
                 },
             },
-            nodeClickRange: 'exact' as AgChartInteractionRange,
+            nodeClickRange: 'exact' as InteractionRange,
         };
     }
 
@@ -189,7 +189,7 @@ export class ChartTheme {
         const seriesDefaults = this.getSeriesDefaults();
         return {
             ...seriesDefaults,
-            nodeClickRange: 'nearest' as AgChartInteractionRange,
+            nodeClickRange: 'nearest' as InteractionRange,
             tooltip: {
                 ...seriesDefaults.tooltip,
                 position: {
@@ -313,7 +313,7 @@ export class ChartTheme {
             },
             tooltip: {
                 enabled: true,
-                range: 'nearest' as AgChartInteractionRange,
+                range: 'nearest' as InteractionRange,
                 delay: 0,
             },
             listeners: {},
