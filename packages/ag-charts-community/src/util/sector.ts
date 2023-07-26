@@ -21,19 +21,29 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
     }
     // Start and End angles are expected to be [-90, 270]
     // while Math.atan2 returns [-180, 180]
+    const pi_2 = Math.PI / 2;
     let angle = Math.atan2(y, x);
-    if (angle < -Math.PI / 2) {
+    if (angle < -pi_2) {
         angle += 2 * Math.PI;
     }
     // Start is actually bigger than End clock-wise
-    const { startAngle, endAngle } = sector;
-    if (endAngle === -Math.PI / 2) {
+    let { startAngle, endAngle } = sector;
+    if (startAngle < -pi_2) {
+        startAngle += 2 * Math.PI;
+    }
+    if (endAngle < -pi_2) {
+        endAngle += 2 * Math.PI;
+    }
+    if (endAngle === -pi_2) {
         return angle < startAngle;
     }
-    if (startAngle === (3 * Math.PI) / 2) {
+    if (startAngle === 3 * pi_2) {
         return angle > endAngle;
     }
-    return angle <= endAngle && angle >= startAngle;
+    // Sector can cross axis start
+    return startAngle < endAngle
+        ? angle <= endAngle && angle >= startAngle
+        : (angle <= endAngle && angle >= -pi_2) || (angle >= startAngle && angle <= 3 * pi_2);
 }
 
 function lineCollidesSector(line: LineCoordinates, sector: SectorBoundaries) {
