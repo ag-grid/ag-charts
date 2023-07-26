@@ -1,6 +1,6 @@
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
-import path from 'node:path';
+import { pathJoin } from './pathJoin';
 
 /**
  * Get folders on a root path (1 level deep)
@@ -12,7 +12,7 @@ export const getFolders = async (rootPath: string) => {
         const files = await fs.readdir(rootPath);
         await Promise.all(
             files.map(async (name) => {
-                const filePath = path.join(rootPath, name);
+                const filePath = pathJoin(rootPath, name);
                 const isDirectory = (await fs.stat(filePath)).isDirectory();
                 if (isDirectory) {
                     folders.push(name);
@@ -30,7 +30,7 @@ export async function getFilesRecursively(dir: string, allFiles: string[] = []) 
 
     await Promise.all(
         files.map(async (file) => {
-            const name = path.join(dir, file);
+            const name = pathJoin(dir, file);
 
             const isDirectory = (await fs.stat(name)).isDirectory();
 
@@ -50,7 +50,7 @@ export async function getFoldersRecursively({ dir, allFolders = [] }: { dir: str
 
     await Promise.all(
         files.map(async (file) => {
-            const name = path.join(dir, file);
+            const name = pathJoin(dir, file);
             const isDirectory = (await fs.stat(name)).isDirectory();
 
             if (isDirectory) {
@@ -69,7 +69,7 @@ export async function getFilePathsRecursively(dir: string, allFiles: string[] = 
 
     await Promise.all(
         files.map(async (file) => {
-            const name = path.join(dir, file);
+            const name = pathJoin(dir, file);
 
             const isDirectory = (await fs.stat(name)).isDirectory();
 

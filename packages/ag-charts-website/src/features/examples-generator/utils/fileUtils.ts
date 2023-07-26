@@ -1,4 +1,3 @@
-import path from 'node:path';
 import fs from 'node:fs/promises';
 import { getIsDev } from '../../../utils/env';
 import { getFolders } from '../../../utils/fs';
@@ -91,15 +90,15 @@ export const getBoilerPlateFiles = async (internalFramework: InternalFramework) 
 
 export const getAllSourceExampleFileList = async () => {
     const contentRoot = getContentRootFileUrl();
-    const pagesFolder = path.join(contentRoot.pathname, 'docs');
+    const pagesFolder = pathJoin(contentRoot.pathname, 'docs');
     const pages = await fs.readdir(pagesFolder);
 
     const examplesPromises = pages.map(async (pageName) => {
-        const examplesFolder = path.join(pagesFolder, pageName, '_examples');
+        const examplesFolder = pathJoin(pagesFolder, pageName, '_examples');
         const examples = await getFolders(examplesFolder);
 
         return examples.map((file) => {
-            return path.join(examplesFolder, file);
+            return pathJoin(examplesFolder, file);
         });
     });
     const exampleFolders = (await Promise.all(examplesPromises)).flat();
@@ -107,7 +106,7 @@ export const getAllSourceExampleFileList = async () => {
     const exampleFilesPromises = exampleFolders.map(async (exampleFolder) => {
         const exampleFiles = await fs.readdir(exampleFolder);
         return exampleFiles.map((exampleFile) => {
-            return path.join(exampleFolder, exampleFile);
+            return pathJoin(exampleFolder, exampleFile);
         });
     });
     const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();
@@ -117,8 +116,8 @@ export const getAllSourceExampleFileList = async () => {
 
 export const getSourceExamplesPathUrl = ({ pageName }: { pageName: string }) => {
     const contentRoot = getContentRootFileUrl();
-    const examplesFolderPath = path.join('docs', pageName, '_examples');
-    const sourceExamplesPath = path.join(contentRoot.pathname, examplesFolderPath);
+    const examplesFolderPath = pathJoin('docs', pageName, '_examples');
+    const sourceExamplesPath = pathJoin(contentRoot.pathname, examplesFolderPath);
     return new URL(sourceExamplesPath, import.meta.url);
 };
 
@@ -162,7 +161,7 @@ export const getSourceFolderUrl = ({ pageName, exampleName }: { pageName: string
     const examplesFolderPath = getSourceExamplesPathUrl({
         pageName,
     }).pathname;
-    const exampleFolderPath = path.join(examplesFolderPath, exampleName);
+    const exampleFolderPath = pathJoin(examplesFolderPath, exampleName);
 
     return new URL(exampleFolderPath, import.meta.url);
 };
@@ -180,7 +179,7 @@ export const getSourceFileUrl = ({
         pageName,
         exampleName,
     }).pathname;
-    const entryFilePath = path.join(exampleFolderPath, fileName);
+    const entryFilePath = pathJoin(exampleFolderPath, fileName);
 
     return new URL(entryFilePath, import.meta.url);
 };
