@@ -1,13 +1,10 @@
-import type {
-    AgCartesianSeriesLabelFormatterParams,
-    AgCartesianSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-} from 'ag-charts-community';
+import type { AgCartesianSeriesLabelFormatterParams, AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import type {
     AgWaterfallSeriesFormat,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesFormatterParams,
+    AgWaterfallSeriesTooltipRendererParams,
 } from './typings';
 
 const {
@@ -94,12 +91,12 @@ export class WaterfallSeriesNodeDoubleClickEvent extends WaterfallSeriesNodeBase
 
 class WaterfallSeriesTooltip extends _ModuleSupport.SeriesTooltip {
     @Validate(OPT_FUNCTION)
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
 }
 
 class WaterfallSeriesItemTooltip {
     @Validate(OPT_FUNCTION)
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
 }
 
 class WaterfallSeriesLabel extends _Scene.Label {
@@ -756,6 +753,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     yName,
                     color,
                     seriesId,
+                    itemId,
                 }),
                 defaults
             );

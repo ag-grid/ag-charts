@@ -19,6 +19,7 @@ series: [{
 
 {% chartExampleRunner title="Basic Waterfall Column" name="basic-waterfall-column" type="generated" options="{ \"enterprise\": true }" /%}
 
+
 ## Waterfall Bar
 
 To create a basic waterfall bar chart, use the `waterfall-bar` series type and specify the `xKey` and `yKey` properties:
@@ -40,10 +41,8 @@ series: [{
 ```ts
 /** Configuration for waterfall series. */
 export interface AgWaterfallSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
-    /** labelKey as specified on series options. */
-    readonly labelKey?: string;
-    /** labelName as specified on series options. */
-    readonly labelName?: string;
+    /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
+    itemId: string;
 }
 
 export interface AgWaterfallSeriesTooltip extends AgSeriesTooltip {
@@ -53,7 +52,7 @@ export interface AgWaterfallSeriesTooltip extends AgSeriesTooltip {
 
 export interface AgWaterfallSeriesItemTooltip {
     /** Function used to create the content for tooltips. */
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgWaterfallSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
