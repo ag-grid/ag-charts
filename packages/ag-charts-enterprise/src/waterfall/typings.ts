@@ -32,14 +32,19 @@ export interface AgWaterfallSeriesFormat {
     strokeWidth?: PixelSize;
 }
 
+export interface AgWaterfallSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
+    /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
+    itemId: string;
+}
+
 export interface AgWaterfallSeriesTooltip extends AgSeriesTooltip {
     /** Function used to create the content for tooltips. */
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgWaterfallSeriesItemTooltip {
     /** Function used to create the content for tooltips. */
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgWaterfallSeriesLabelOptions extends AgCartesianSeriesLabelOptions {

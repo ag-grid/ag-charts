@@ -50,6 +50,7 @@ import {
     AgWaterfallSeriesLabelOptions,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesItemOptions,
+    AgWaterfallSeriesTooltipRendererParams,
 } from './waterfall/main';
 
 export * from 'ag-charts-community';
@@ -98,6 +99,7 @@ export {
     AgWaterfallSeriesLabelOptions,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesItemOptions,
+    AgWaterfallSeriesTooltipRendererParams,
 };
 
 declare module 'ag-charts-community' {
