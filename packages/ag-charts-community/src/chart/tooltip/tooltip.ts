@@ -9,7 +9,7 @@ import {
     predicateWithMessage,
     OPT_BOOLEAN,
 } from '../../util/validation';
-import type { AgChartInteractionRange, AgTooltipRendererResult } from '../agChartOptions';
+import type { InteractionRange, AgTooltipRendererResult } from '../agChartOptions';
 import type { InteractionEvent } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
@@ -201,7 +201,7 @@ export class Tooltip {
     tracking?: boolean;
 
     @Validate(INTERACTION_RANGE)
-    range: AgChartInteractionRange = 'nearest';
+    range: InteractionRange = 'nearest';
 
     readonly position: TooltipPosition = new TooltipPosition();
 

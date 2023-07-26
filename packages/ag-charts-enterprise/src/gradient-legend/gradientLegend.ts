@@ -1,7 +1,7 @@
 import type {
     AgChartLegendPosition,
     AgChartLegendLabelFormatterParams,
-    AgChartOrientation,
+    AgChartLegendOrientation,
     FontStyle,
     FontWeight,
 } from 'ag-charts-community';
@@ -88,7 +88,7 @@ export class GradientLegend {
     // Placeholder
     pagination?: any = undefined;
 
-    private getOrientation(): AgChartOrientation {
+    private getOrientation(): AgChartLegendOrientation {
         switch (this.position) {
             case 'right':
             case 'left':

@@ -19,7 +19,7 @@ import { Layers } from '../layers';
 import type { SizedPoint, Point } from '../../scene/point';
 import type { BBox } from '../../scene/bbox';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import type { AgChartInteractionRange } from '../agChartOptions';
+import type { InteractionRange } from '../agChartOptions';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
 import { TooltipPosition } from '../tooltip/tooltip';
@@ -329,7 +329,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     cursor = 'default';
 
     @Validate(INTERACTION_RANGE)
-    nodeClickRange: AgChartInteractionRange = 'exact';
+    nodeClickRange: InteractionRange = 'exact';
 
     @ActionOnSet<Series>({
         changeValue: function (newVal, oldVal) {
