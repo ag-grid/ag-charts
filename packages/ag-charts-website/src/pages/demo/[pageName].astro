@@ -30,8 +30,8 @@ export async function getStaticPaths() {
             },
             props: {
                 page: demo,
-                prevDemo: demos.length > i + 1 ? demos[i + 1] : demos[0],
-                nextDemo: i - 1 > 0 ? demos[i - 1] : demos[demos.length - 1],
+                prevDemo: i > 0 ? demos[i - 1] : demos[demos.length - 1],
+                nextDemo: demos.length > i + 1 ? demos[i + 1] : demos[0],
             },
         };
     });
