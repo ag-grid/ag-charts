@@ -19,6 +19,72 @@ series: [{
 
 {% chartExampleRunner title="Basic Waterfall Column" name="basic-waterfall-column" type="generated" options="{ \"enterprise\": true }" /%}
 
+<note>
+| Waterfall series are designed for only a single series in a given chart. For Waterfall Column series, the Y-Axis is a [Number](../charts-axes-types/number) axis and the X-Axis is a [Category](../charts-axes-types/category) axis.
+</note>
+
+## Total / Subtotal Values
+
+Total shows the cumulative value from `0` to the current data position, while subtotal shows the cumulative value from the previous subtotal value to the current position.
+Total and subtotal values are calculated automatically based on previous items in the data array and help to break down the cumulative effect of multiple changes at any point in the data.
+
+To differentiate regular positive or negative data points from total and subtotal data points, you can use a `typeKey` in the `series` options.
+
+```js
+series: [{
+    type: 'waterfall-column',
+    xKey: 'date',
+    yKey: 'amount',
+    typeKey: 'datumType'
+}]
+```
+This `typeKey` should be included in the data objects that represent total or subtotal values. The value of the `typeKey` in the data can be `total` or `subtotal`.
+
+```js
+data: [
+    {
+        xKey: 'date',
+        datumType: 'total',
+    },
+    {
+        xKey: 'date',
+        datumType: 'subtotal',
+    },
+]
+```
+
+{% chartExampleRunner title="Waterfall Column Total and Subtotal" name="waterfall-column-total-subtotal" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Customisation
+
+The positive and negative data values can be customised using `series.positiveItem` and `series.negativeItem` options, respectively.
+Total and subtotal data values can be customised using the `series.total` options object.
+
+```js
+series: [{
+    type: 'waterfall-column',
+    xKey: 'date',
+    yKey: 'amount',
+    typeKey: 'datumType',
+    totalItem: {
+        label: {
+            enabled: true,
+            formatter: ({ value }) => `${value.toFixed(0)}`
+        },
+        tooltip: {
+            renderer: ({ yValue, itemId }: any) =>  ({
+                content: `${itemId === 'subtotal' ? 'Subtotal' : 'Total'}: ${yValue}`
+            })
+        }
+    },
+}]
+```
+
+{% chartExampleRunner title="Waterfall Column Customisation" name="waterfall-column-customisation" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Legend
+
+The legend shows items for positive, negative, and total/subtotal values. However, these items are not toggleable.
 
 ## Waterfall Bar
 
