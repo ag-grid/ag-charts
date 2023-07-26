@@ -1,9 +1,9 @@
 ---
 import { ExampleRunner } from './components/ExampleRunner';
-import { ReactComponent as LoadingLogo } from '../../images/inline-svgs/ag-grid-logomark-loading.svg';
 import { getExampleOptionsFromString } from './utils/getExampleOptionsFromString';
 import { FRAMEWORK_PATH_INDEX, PAGE_NAME_PATH_INDEX } from '../../constants';
 import type { ExampleType } from '../examples-generator/types';
+import ExampleRunnerContainer from './components/ExampleRunnerContainer.astro';
 
 interface Props {
     title: string;
@@ -26,8 +26,7 @@ try {
 }
 ---
 
-<div class="container">
-    <LoadingLogo />
+<ExampleRunnerContainer>
     <ExampleRunner
         client:load
         title={title}
@@ -37,17 +36,4 @@ try {
         framework={framework}
         pageName={pageName}
     />
-</div>
-
-<style lang="scss">
-    .container {
-        position: relative;
-
-        :global(.logomark) {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(2);
-        }
-    }
-</style>
+</ExampleRunnerContainer>
