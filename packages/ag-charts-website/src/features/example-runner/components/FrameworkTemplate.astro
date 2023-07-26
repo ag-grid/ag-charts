@@ -1,41 +1,33 @@
 ---
-import { getExampleUrl, getBoilerPlateUrl } from '../../../utils/pages';
+import { getBoilerPlateUrl } from '../../../utils/pages';
 import type { InternalFramework } from '../../../types/ag-grid';
-import JavascriptTemplate from '../../../features/example-runner/framework-templates/JavascriptTemplate.astro';
-import TypescriptTemplate from '../../../features/example-runner/framework-templates/TypescriptTemplate.astro';
-import { getGeneratedContents } from '../../../features/examples-generator/examplesGenerator';
+import JavascriptTemplate from '../framework-templates/JavascriptTemplate.astro';
+import TypescriptTemplate from '../framework-templates/TypescriptTemplate.astro';
 import { getIsDev } from '../../../utils/env';
-import ReactTemplate from '../../../features/example-runner/framework-templates/ReactTemplate.astro';
-import VueTemplate from '../../../features/example-runner/framework-templates/VueTemplate.astro';
+import ReactTemplate from '../framework-templates/ReactTemplate.astro';
+import VueTemplate from '../framework-templates/VueTemplate.astro';
+import type { GeneratedContents } from '../../examples-generator/types';
 
 interface Props {
     internalFramework: InternalFramework;
     pageName: string;
     exampleName: string;
+    exampleUrl: string;
+    generatedContents: GeneratedContents;
     /**
      * Whether to use relative paths for script files references
      */
     relativePath?: boolean;
 }
 
-const { internalFramework, pageName, exampleName, relativePath } = Astro.props as Props;
+const { internalFramework, pageName, exampleName, exampleUrl, generatedContents, relativePath } = Astro.props as Props;
 
 const isDev = getIsDev();
 
 const library = 'charts';
 
-const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } =
-    (await getGeneratedContents({
-        internalFramework,
-        pageName,
-        exampleName,
-    })) || {};
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } = generatedContents;
 const indexFragment = files && files['index.html'];
-const exampleUrl = getExampleUrl({
-    internalFramework,
-    pageName,
-    exampleName,
-});
 const appLocation = relativePath ? '' : exampleUrl;
 const boilerPlateUrl = relativePath
     ? ''

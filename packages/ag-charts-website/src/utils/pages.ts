@@ -4,7 +4,7 @@ import {
     INTERNAL_FRAMEWORKS,
     TYPESCRIPT_INTERNAL_FRAMEWORKS,
     SITE_BASE_URL,
-    FRAMEWORK_PATH_INDEX,
+    DOCS_FRAMEWORK_PATH_INDEX,
     DEV_FILE_BASE_PATH,
 } from '../constants';
 import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
@@ -103,7 +103,7 @@ function ignoreUnderscoreFiles(page: DocsPage) {
 }
 
 export function getFrameworkFromPath(path: string) {
-    return path.split('/')[FRAMEWORK_PATH_INDEX];
+    return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX];
 }
 
 export function getNewFrameworkPath({

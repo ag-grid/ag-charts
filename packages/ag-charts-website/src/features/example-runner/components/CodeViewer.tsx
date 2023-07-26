@@ -18,13 +18,15 @@ export const CodeViewer = ({
     initialSelectedFile,
     exampleType,
     internalFramework,
+    hideInternalFrameworkSelection,
 }: {
     id: string;
-    isActive: boolean;
+    isActive?: boolean;
     files: FileContents;
     initialSelectedFile: string;
     internalFramework: InternalFramework;
     exampleType: ExampleType;
+    hideInternalFrameworkSelection?: boolean;
 }) => {
     const [activeFile, setActiveFile] = useState(initialSelectedFile);
     const [showFiles, setShowFiles] = useState(true);
@@ -75,7 +77,9 @@ export const CodeViewer = ({
                             />
                         ))}
                     </ul>
-                    <CodeOptions id={id} internalFramework={internalFramework} exampleType={exampleType} />
+                    {!hideInternalFrameworkSelection && (
+                        <CodeOptions id={id} internalFramework={internalFramework} exampleType={exampleType} />
+                    )}
                 </div>
                 <div className={styles.code}>
                     {!files && <FileView path={'loading.js'} code={'// Loading...'} />}

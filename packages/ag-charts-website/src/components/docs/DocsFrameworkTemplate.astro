@@ -1,0 +1,38 @@
+---
+import { getExampleUrl } from '../../utils/pages';
+import type { InternalFramework } from '../../types/ag-grid';
+import { getGeneratedContents } from '../../features/examples-generator/examplesGenerator';
+import FrameworkTemplate from '../../features/example-runner/components/FrameworkTemplate.astro';
+
+interface Props {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+    /**
+     * Whether to use relative paths for script files references
+     */
+    relativePath?: boolean;
+}
+
+const { internalFramework, pageName, exampleName, relativePath } = Astro.props as Props;
+
+const generatedContents = await getGeneratedContents({
+    internalFramework,
+    pageName,
+    exampleName,
+});
+const exampleUrl = getExampleUrl({
+    internalFramework,
+    pageName,
+    exampleName,
+});
+---
+
+<FrameworkTemplate
+    internalFramework={internalFramework}
+    pageName={pageName}
+    exampleName={exampleName}
+    exampleUrl={exampleUrl}
+    generatedContents={generatedContents!}
+    relativePath={relativePath}
+/>

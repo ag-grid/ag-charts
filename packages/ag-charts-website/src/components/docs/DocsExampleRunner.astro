@@ -1,9 +1,9 @@
 ---
-import { ExampleRunner } from './components/ExampleRunner';
-import { getExampleOptionsFromString } from './utils/getExampleOptionsFromString';
-import { FRAMEWORK_PATH_INDEX, PAGE_NAME_PATH_INDEX } from '../../constants';
-import type { ExampleType } from '../examples-generator/types';
-import ExampleRunnerContainer from './components/ExampleRunnerContainer.astro';
+import { DocsExampleRunner } from './DocsExampleRunner';
+import { getExampleOptionsFromString } from '../../features/example-runner/utils/getExampleOptionsFromString';
+import { DOCS_FRAMEWORK_PATH_INDEX, DOCS_PAGE_NAME_PATH_INDEX } from '../../constants';
+import type { ExampleType } from '../../features/examples-generator/types';
+import ExampleRunnerContainer from '../../features/example-runner/components/ExampleRunnerContainer.astro';
 
 interface Props {
     title: string;
@@ -15,8 +15,8 @@ interface Props {
 const { title, name, type, options } = Astro.props as Props;
 
 const pathSegments = Astro.url.pathname.split('/');
-const framework = pathSegments[FRAMEWORK_PATH_INDEX];
-const pageName = pathSegments[PAGE_NAME_PATH_INDEX];
+const framework = pathSegments[DOCS_FRAMEWORK_PATH_INDEX];
+const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
 
 let exampleOptions;
 try {
@@ -27,7 +27,7 @@ try {
 ---
 
 <ExampleRunnerContainer>
-    <ExampleRunner
+    <DocsExampleRunner
         client:load
         title={title}
         name={name}

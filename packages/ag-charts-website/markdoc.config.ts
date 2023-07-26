@@ -3,7 +3,7 @@ import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
 export default defineMarkdocConfig({
     tags: {
         chartExampleRunner: {
-            render: component('./src/features/example-runner/ExampleRunner.astro'),
+            render: component('./src/components/docs/DocsExampleRunner.astro'),
             attributes: {
                 title: { type: String, required: true },
                 name: { type: String, required: true },

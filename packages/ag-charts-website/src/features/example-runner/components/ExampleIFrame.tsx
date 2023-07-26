@@ -4,7 +4,7 @@ import styles from './ExampleIFrame.module.scss';
 import { useIntersectionObserver } from '../../../utils/hooks/useIntersectionObserver';
 
 interface Props {
-    isHidden: boolean;
+    isHidden?: boolean;
     url: string;
 }
 
