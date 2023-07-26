@@ -1,7 +1,6 @@
 import {
     getEntryFileName,
     getSourceFileContents,
-    getFrameworkFromInternalFramework,
     getIsEnterprise,
     getSourceFolderUrl,
     getTransformTsFileExt,
@@ -13,6 +12,7 @@ import { getStyleFiles } from './utils/getStyleFiles';
 import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import type { GeneratedContents } from './types.d';
+import { SOURCE_ENTRY_FILE_NAME } from './constants';
 
 /**
  * Get the file list of the generated contents
@@ -27,7 +27,7 @@ export const getGeneratedContentsFileList = async ({
     pageName: string;
     exampleName: string;
 }): Promise<string[]> => {
-    const entryFileName = getEntryFileName(internalFramework);
+    const entryFileName = getEntryFileName(internalFramework)!;
     const sourceFolderUrl = getSourceFolderUrl({
         pageName,
         exampleName,
@@ -35,7 +35,6 @@ export const getGeneratedContentsFileList = async ({
     const sourceFileList = await fs.readdir(sourceFolderUrl);
 
     const scriptFiles = await getOtherScriptFiles({
-        sourceEntryFileName: entryFileName,
         sourceFileList,
         pageName,
         exampleName,
@@ -47,19 +46,9 @@ export const getGeneratedContentsFileList = async ({
         exampleName,
     });
 
-    let generatedFileList = Object.keys(scriptFiles).concat(Object.keys(styleFiles));
-    if (internalFramework === 'vanilla') {
-        generatedFileList = generatedFileList.concat(['index.html']);
-    } else if (internalFramework === 'typescript') {
-        generatedFileList = generatedFileList.concat(['main.ts', 'index.html']);
-    } else if (internalFramework === 'react' || internalFramework === 'reactFunctional') {
-        generatedFileList = generatedFileList.concat('index.jsx');
-    } else if (internalFramework === 'reactFunctionalTs') {
-        generatedFileList = generatedFileList.concat('index.tsx');
-    } else {
-        // HACK: Use react for the rest of the other frameworks for now
-        generatedFileList = generatedFileList.concat('index.jsx');
-    }
+    const generatedFileList = ['index.html', entryFileName]
+        .concat(Object.keys(scriptFiles))
+        .concat(Object.keys(styleFiles));
 
     return generatedFileList;
 };
@@ -76,14 +65,13 @@ export const getGeneratedContents = async ({
     pageName: string;
     exampleName: string;
 }): Promise<GeneratedContents | undefined> => {
-    const framework = getFrameworkFromInternalFramework(internalFramework);
     const sourceFolderUrl = getSourceFolderUrl({
         pageName,
         exampleName,
     });
     const sourceFileList = await fs.readdir(sourceFolderUrl);
 
-    const sourceEntryFileName = 'main.ts';
+    const sourceEntryFileName = SOURCE_ENTRY_FILE_NAME;
     const entryFile = await getSourceFileContents({
         pageName,
         exampleName,
@@ -113,7 +101,6 @@ export const getGeneratedContents = async ({
     });
 
     const otherScriptFiles = await getOtherScriptFiles({
-        sourceEntryFileName,
         sourceFileList,
         pageName,
         exampleName,

@@ -1,15 +1,14 @@
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import { getContentsOfFileList } from './fileUtils';
 import type { FileContents, TransformTsFileExt } from '../types.d';
+import { SOURCE_ENTRY_FILE_NAME } from '../constants';
 
 const getOtherTsGeneratedFiles = async ({
-    sourceEntryFileName,
     sourceFileList,
     pageName,
     exampleName,
     transformTsFileExt,
 }: {
-    sourceEntryFileName: string;
     sourceFileList: string[];
     pageName: string;
     exampleName: string;
@@ -20,8 +19,8 @@ const getOtherTsGeneratedFiles = async ({
 }) => {
     const otherTsFiles = sourceFileList
         .filter((fileName) => fileName.endsWith('.ts'))
-        // Exclude entry file
-        .filter((fileName) => fileName !== sourceEntryFileName);
+        // Exclude source entry file, as it is used to generate framework entry file
+        .filter((fileName) => fileName !== SOURCE_ENTRY_FILE_NAME);
 
     const tsFileContents = await getContentsOfFileList({
         pageName,
@@ -64,20 +63,17 @@ const getOtherJsFiles = ({
 };
 
 export const getOtherScriptFiles = async ({
-    sourceEntryFileName,
     sourceFileList,
     pageName,
     exampleName,
     transformTsFileExt,
 }: {
-    sourceEntryFileName: string;
     sourceFileList: string[];
     pageName: string;
     exampleName: string;
     transformTsFileExt?: TransformTsFileExt;
 }) => {
     const otherTsGeneratedFileContents = await getOtherTsGeneratedFiles({
-        sourceEntryFileName,
         sourceFileList,
         pageName,
         exampleName,
