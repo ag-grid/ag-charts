@@ -605,6 +605,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
+            yKey = '',
             highlightStyle: { item: itemHighlightStyle },
             id: seriesId,
             ctx,
@@ -648,6 +649,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 itemId: datum.itemId,
                 ctx,
                 value: datum.yValue,
+                yKey,
             });
             config.crisp = crisp;
             config.visible = visible;
