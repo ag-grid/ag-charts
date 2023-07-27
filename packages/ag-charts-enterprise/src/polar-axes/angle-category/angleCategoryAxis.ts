@@ -38,13 +38,19 @@ function loopSymmetrically<T>(items: T[], step: number, iterator: (prev: T, next
     return loop(items.length - step, midIndex, -step, iterator);
 }
 
-export class AngleCategoryAxis extends _ModuleSupport.PolarAxis {
+export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale<any>> {
     static className = 'AngleCategoryAxis';
     static type = 'angle-category' as const;
 
     @ProxyOnWrite('rotation')
     @Validate(NUMBER())
     startAngle: number = 0;
+
+    @Validate(NUMBER(0, 1))
+    groupPaddingInner: number = 0;
+
+    @Validate(NUMBER(0, 1))
+    groupPaddingOuter: number = 0;
 
     protected labelData: AngleCategoryAxisLabelDatum[] = [];
     protected tickData: AngleCategoryAxisTickDatum[] = [];

@@ -6,12 +6,10 @@ import type {
     AgChartOptions,
 } from '../agChartOptions';
 import type { SeriesGrouping } from '../series/seriesStateManager';
+import { isStackableSeries, isGroupableSeries } from '../factory/seriesTypes';
 import { windowValue } from '../../util/window';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
-
-const STACKABLE_SERIES_TYPES = ['bar', 'column', 'area'];
-const GROUPABLE_SERIES_TYPES = ['bar', 'column'];
 
 /**
  * Groups the series options objects if they are of type `column` or `bar` and places them in an array at the index where the first instance of this series type was found.
@@ -27,8 +25,8 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
     for (const s of seriesOptions) {
         const type = s.type ?? 'line';
 
-        const stackable = STACKABLE_SERIES_TYPES.includes(type);
-        const groupable = GROUPABLE_SERIES_TYPES.includes(type);
+        const stackable = isStackableSeries(type);
+        const groupable = isGroupableSeries(type);
         if (!stackable && !groupable) {
             // No need to use index for these cases.
             result.push({ type: 'ungrouped' as const, opts: [s] });
@@ -85,9 +83,9 @@ const DEBUG = () => [true, 'opts'].includes(windowValue('agChartsDebug') as any)
 export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: SeriesOptions[]) {
     const result: SeriesOptions[] = [];
 
-    const preprocessed = seriesOptions.map((series) => {
+    const preprocessed = seriesOptions.map((series: SeriesOptions & { stacked?: boolean; grouped?: boolean }) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
-        if ((series.type === 'bar' || series.type === 'column') && series.yKey != null && !series.stacked) {
+        if (isGroupableSeries(series.type ?? '') && !series.stacked) {
             return { ...series, grouped: series.grouped ?? true };
         }
 
@@ -144,19 +142,14 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
     }
 
     for (const group of grouped) {
-        switch (group.opts[0].type) {
-            case 'column':
-            case 'bar':
-            case 'area':
-                result.push(...addSeriesGroupingMeta(group));
-                break;
-            case 'line':
-            default:
-                if (group.opts.length > 1) {
-                    Logger.warn('unexpected grouping of series type: ' + group.opts[0].type);
-                }
-                result.push(...group.opts);
-                break;
+        const seriesType = String(group.opts[0].type);
+        if (isStackableSeries(seriesType)) {
+            result.push(...addSeriesGroupingMeta(group));
+        } else {
+            if (group.opts.length > 1) {
+                Logger.warn(`unexpected grouping of series type: ${seriesType}`);
+            }
+            result.push(...group.opts);
         }
     }
 

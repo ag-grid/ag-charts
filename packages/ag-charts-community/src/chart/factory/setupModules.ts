@@ -26,7 +26,9 @@ export function setupModules() {
                 m.instanceConstructor,
                 m.seriesDefaults,
                 m.themeTemplate,
-                m.paletteFactory
+                m.paletteFactory,
+                m.stackable,
+                m.groupable
             );
         }
 

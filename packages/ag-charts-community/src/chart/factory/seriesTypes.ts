@@ -26,6 +26,8 @@ const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
 const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
+const STACKABLE_SERIES_TYPES = new Set(['bar', 'column', 'area']);
+const GROUPABLE_SERIES_TYPES = new Set(['bar', 'column']);
 
 export function registerSeries(
     seriesType: string,
@@ -33,13 +35,21 @@ export function registerSeries(
     cstr: SeriesConstructor,
     defaults: {},
     theme: {},
-    paletteFactory: SeriesPaletteFactory | undefined
+    paletteFactory: SeriesPaletteFactory | undefined,
+    stackable: boolean | undefined,
+    groupable: boolean | undefined
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
     SERIES_THEME_TEMPLATES[seriesType] = theme;
     if (paletteFactory) {
         addSeriesPaletteFactory(seriesType, paletteFactory);
+    }
+    if (stackable) {
+        STACKABLE_SERIES_TYPES.add(seriesType);
+    }
+    if (groupable) {
+        GROUPABLE_SERIES_TYPES.add(seriesType);
     }
 
     registerChartSeriesType(seriesType, chartType);
@@ -68,4 +78,12 @@ export function addSeriesPaletteFactory(seriesType: string, factory: SeriesPalet
 
 export function getSeriesPaletteFactory(seriesType: string) {
     return SERIES_PALETTE_FACTORIES[seriesType];
+}
+
+export function isStackableSeries(seriesType: string) {
+    return STACKABLE_SERIES_TYPES.has(seriesType);
+}
+
+export function isGroupableSeries(seriesType: string) {
+    return GROUPABLE_SERIES_TYPES.has(seriesType);
 }
