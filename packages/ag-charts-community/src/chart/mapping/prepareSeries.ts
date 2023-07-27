@@ -83,9 +83,9 @@ const DEBUG = () => [true, 'opts'].includes(windowValue('agChartsDebug') as any)
 export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: SeriesOptions[]) {
     const result: SeriesOptions[] = [];
 
-    const preprocessed = seriesOptions.map((series) => {
+    const preprocessed = seriesOptions.map((series: SeriesOptions & { stacked?: boolean; grouped?: boolean }) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
-        if ((series.type === 'bar' || series.type === 'column') && series.yKey != null && !series.stacked) {
+        if (isGroupableSeries(series.type ?? '') && !series.stacked) {
             return { ...series, grouped: series.grouped ?? true };
         }
 
