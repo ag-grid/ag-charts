@@ -1,29 +1,32 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { getDemoExamplePages } from '../../features/demo/utils/pageData';
-import { getExampleUrl } from '../../features/demo/utils/urlPaths';
+import { getDemoExampleFiles } from '../../features/demo/utils/pageData';
+import { getExampleFileUrl } from '../../features/demo/utils/urlPaths';
 
 const demosEntry = await getEntry('demo', 'demos');
-
-const examples = getDemoExamplePages({ demos: demosEntry.data });
+const exampleFiles = await getDemoExampleFiles({
+    demos: demosEntry.data,
+});
 ---
 
-<Layout title={`Debug: Demo Examples`}>
+<Layout title={`Debug: Demo Example Files`}>
     <main class="page-margin container">
-        <h1>Demo Example Pages ({examples.length})</h1>
+        <h1>Example files ({exampleFiles.length})</h1>
         <table>
             <thead>
                 <th>No.</th>
                 <th>Url</th>
                 <th><code>params.exampleName</code></th>
+                <th><code>params.fileName</code></th>
             </thead>
             <tbody>
                 {
-                    examples.map((example, index) => {
-                        const { exampleName } = example.params;
-                        const url = getExampleUrl({
+                    exampleFiles.map((example, index) => {
+                        const { exampleName, fileName } = example.params;
+                        const url = getExampleFileUrl({
                             exampleName,
+                            fileName,
                         });
                         return (
                             <tr>
@@ -32,6 +35,7 @@ const examples = getDemoExamplePages({ demos: demosEntry.data });
                                     <a href={url}>{url}</a>
                                 </td>
                                 <td>{exampleName}</td>
+                                <td>{fileName}</td>
                             </tr>
                         );
                     })

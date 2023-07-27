@@ -2,11 +2,11 @@
 import { getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { Icon } from '../components/icon/Icon';
-import { getDemoExampleUrl, getDemoPageHashUrl } from '../utils/pages';
+import { getPageHashUrl, getPageUrl } from '../features/demo/utils/urlPaths';
 
-const demosData = await getEntry('demo', 'demos');
+const demosEntry = await getEntry('demo', 'demos');
 
-const { chartTypes = demosData.data.chartTypes } = Astro.props;
+const { chartTypes = demosEntry.data.chartTypes } = Astro.props;
 ---
 
 <Layout>
@@ -16,12 +16,14 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                 {
                     chartTypes.map((chartType) => (
                         <li>
-                            <a href={getDemoPageHashUrl(chartType.slug)}>
-                                <Icon client:only name={chartType.icon}/>
+                            <a href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}>
+                                <Icon client:only name={chartType.icon} />
                                 <span class="name">{chartType.name}</span>
-                                {
-                                  chartType.enterprise && <span class="enterpriseIcon"><Icon client:only name="enterprise"/></span>
-                                }
+                                {chartType.enterprise && (
+                                    <span class="enterpriseIcon">
+                                        <Icon client:only name="enterprise" />
+                                    </span>
+                                )}
                             </a>
                         </li>
                     ))
@@ -36,14 +38,17 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
                     <div class="chart-type">
                         <h2 id={chartType.slug}>
                             <span>{chartType.name} Charts</span>
-                            <a class="font-size-medium" href={getDemoPageHashUrl(chartType.slug)}>
+                            <a
+                                class="font-size-medium"
+                                href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}
+                            >
                                 View {chartType.name.toLowerCase()} charts documentation
                             </a>
                         </h2>
                         <div class="demo-list">
                             {chartType.demos.map((demo) => (
-                                <a class="demo-item" href={getDemoExampleUrl(demo.example)}>
-                                    <div class="dummy-image" />      </div>
+                                <a class="demo-item" href={getPageUrl(demo.example)}>
+                                    <div class="dummy-image" />
                                     <p>{demo.name}</p>
                                 </a>
                             ))}
@@ -56,13 +61,13 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 </Layout>
 
 <script>
-    // Add smooth scrolling for menu anchor links 
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    // Add smooth scrolling for menu anchor links
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
 
             document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
         });
     });
@@ -93,7 +98,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
 
     .menu li {
         margin-bottom: $size-2 !important;
-    } 
+    }
 
     .menu a {
         --text-color: var(--link-color);

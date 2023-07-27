@@ -1,0 +1,46 @@
+---
+import { getEntry } from 'astro:content';
+import { getGeneratedDemoContents } from '../utils/examplesGenerator';
+import { getExampleUrl } from '../utils/urlPaths';
+import FrameworkTemplate from '../../example-runner/components/FrameworkTemplate.astro';
+import { DEMO_INTERNAL_FRAMEWORK } from '../constants';
+import { getChartTypeName, getExampleName } from '../utils/filesData';
+
+interface Props {
+    exampleName: string;
+    /**
+     * Whether to use relative paths for script files references
+     */
+    relativePath?: boolean;
+}
+
+const { exampleName, relativePath } = Astro.props as Props;
+
+const internalFramework = DEMO_INTERNAL_FRAMEWORK;
+const generatedContents = await getGeneratedDemoContents({
+    exampleName,
+});
+const exampleUrl = getExampleUrl({
+    exampleName,
+});
+
+const demosEntry = await getEntry('demo', 'demos');
+const chartTypeName = getChartTypeName({
+    demos: demosEntry.data,
+    exampleName,
+});
+const pageName = `${chartTypeName} Chart`;
+const displayExampleName = getExampleName({
+    demos: demosEntry.data,
+    exampleName,
+});
+---
+
+<FrameworkTemplate
+    internalFramework={internalFramework}
+    pageName={pageName!}
+    exampleName={displayExampleName}
+    exampleUrl={exampleUrl}
+    generatedContents={generatedContents!}
+    relativePath={relativePath}
+/>

@@ -2,19 +2,20 @@
 import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Icon } from '../../components/icon/Icon';
-import { getDemoExampleUrl, getDemoPageHashUrl } from '../../utils/pages';
+import DemoExampleRunner from '../../features/demo/components/DemoExampleRunner.astro';
+import { getExampleUrl, getPageHashUrl } from '../../features/demo/utils/urlPaths';
 
 export async function getStaticPaths() {
-    const demosData = await getEntry('demo', 'demos');
+    const demosEntry = await getEntry('demo', 'demos');
 
-    const demos = demosData.data.chartTypes
+    const demos = demosEntry.data.chartTypes
         .map((chartType) => {
             const demosWithChartTypeMeta = chartType.demos.map((demo) => {
                 return {
                     ...demo,
                     chartType: chartType.name,
                     slug: chartType.slug,
-                    docsUrl: getDemoPageHashUrl(chartType.slug),
+                    docsUrl: getPageHashUrl(chartType.slug),
                     icon: chartType.icon,
                     enterprise: chartType.enterprise,
                 };
@@ -62,18 +63,28 @@ const { page, prevDemo, nextDemo } = Astro.props;
             </a>
         </h1>
 
-        <div class="chartExample"></div>
+        <DemoExampleRunner title={page.name} name={page.slug} />
 
         <p set:html={page.description} />
 
         <div class="moreDemos">
-            <a class="prevDemo" href={getDemoExampleUrl(prevDemo.example)}>
+            <a
+                class="prevDemo"
+                href={getExampleUrl({
+                    exampleName: prevDemo.example,
+                })}
+            >
                 <div class="dummyImage"></div>
                 <span>Previous:</span>
                 <b>{prevDemo.name}</b>
             </a>
 
-            <a class="nextDemo" href={getDemoExampleUrl(nextDemo.example)}>
+            <a
+                class="nextDemo"
+                href={getExampleUrl({
+                    exampleName: nextDemo.example,
+                })}
+            >
                 <div class="dummyImage"></div>
                 <span>Next:</span>
                 <b>{nextDemo.name}</b>
@@ -99,14 +110,6 @@ const { page, prevDemo, nextDemo } = Astro.props;
     .enterpriseIcon {
         --text-color: red;
         --icon-size: 28px;
-    }
-
-    .chartExample {
-        width: 100%;
-        aspect-ratio: 21 / 9;
-        margin-bottom: $size-2;
-        border-radius: var(--border-radius);
-        background-color: #ddd;
     }
 
     .moreDemos {
