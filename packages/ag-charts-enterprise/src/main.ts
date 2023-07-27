@@ -39,7 +39,16 @@ import type {
     AgRadarSeriesTooltip,
     AgRadarSeriesTooltipRendererParams,
 } from './polar-series/radar/typings';
-import { NightingaleModule } from './polar-series/nightingale/nightingaleModule';
+import {
+    NightingaleModule,
+    AgNightingaleSeriesOptions,
+    AgNightingaleSeriesFormat,
+    AgNightingaleSeriesFormatterParams,
+    AgNightingaleSeriesLabelFormatterParams,
+    AgNightingaleSeriesLabelOptions,
+    AgNightingaleSeriesTooltip,
+    AgNightingaleSeriesTooltipRendererParams,
+} from './polar-series/nightingale/main';
 import { RadarLineModule, AgRadarLineSeriesOptions } from './polar-series/radar-line/main';
 import { RadarAreaModule, AgRadarAreaSeriesOptions } from './polar-series/radar-area/main';
 import { AgZoomAxes, AgZoomOptions, AgZoomPanKey, AgZoomScrollingPivot, ZoomModule } from './zoom/main';
@@ -93,6 +102,15 @@ export {
     AgRadarSeriesTooltip,
     AgRadarSeriesTooltipRendererParams,
 };
+export {
+    AgNightingaleSeriesOptions,
+    AgNightingaleSeriesFormat,
+    AgNightingaleSeriesFormatterParams,
+    AgNightingaleSeriesLabelFormatterParams,
+    AgNightingaleSeriesLabelOptions,
+    AgNightingaleSeriesTooltip,
+    AgNightingaleSeriesTooltipRendererParams,
+};
 export { AgZoomAxes, AgZoomOptions, AgZoomPanKey, AgZoomScrollingPivot };
 export {
     AgWaterfallSeriesOptions,
@@ -141,8 +159,8 @@ import { LicenseManager } from './license/licenseManager';
 type CartesianAddonType = 'heatmap' | 'waterfall-bar' | 'waterfall-column';
 type CartesianAddonSeries = AgHeatmapSeriesOptions | AgWaterfallSeriesOptions;
 
-type PolarAddonType = 'radar-line' | 'radar-area';
-type PolarAddonSeries = AgRadarLineSeriesOptions | AgRadarAreaSeriesOptions;
+type PolarAddonType = 'radar-line' | 'radar-area' | 'nightingale';
+type PolarAddonSeries = AgRadarLineSeriesOptions | AgRadarAreaSeriesOptions | AgNightingaleSeriesOptions;
 
 export type AgChartOptions = AgCommunityChartOptions<
     CartesianAddonType,

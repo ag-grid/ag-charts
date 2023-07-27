@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
 import { RadarAreaSeries } from './radarAreaSeries';
-import { RADAR_DEFAULTS } from '../radar/radarDefaults';
+import { POLAR_DEFAULTS } from '../polarDefaults';
 import { RADAR_AREA_SERIES_THEME } from './radarAreaThemes';
 
 export const RadarAreaModule: _ModuleSupport.SeriesModule = {
@@ -12,7 +12,7 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule = {
 
     identifier: 'radar-area',
     instanceConstructor: RadarAreaSeries,
-    seriesDefaults: RADAR_DEFAULTS,
+    seriesDefaults: POLAR_DEFAULTS,
     themeTemplate: RADAR_AREA_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {
