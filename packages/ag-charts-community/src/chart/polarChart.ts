@@ -27,14 +27,12 @@ export class PolarChart extends Chart {
         this.computeCircle(shrinkRect);
         this.axes.forEach((axis) => axis.update());
 
-        const hoverRectPadding = 20;
-        const hoverRect = shrinkRect.clone().grow(hoverRectPadding);
-        this.hoverRect = hoverRect;
+        this.hoverRect = shrinkRect;
 
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
-            series: { rect: fullSeriesRect, paddedRect: shrinkRect, hoverRect, visible: true },
+            series: { rect: fullSeriesRect, paddedRect: shrinkRect, visible: true },
             axes: [],
         });
 

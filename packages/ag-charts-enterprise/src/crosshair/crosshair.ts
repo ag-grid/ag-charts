@@ -71,7 +71,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.destroyFns.push(() => this.label.destroy());
     }
 
-    private layout({ series: { rect, hoverRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
+    private layout({ series: { rect, paddedRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
         this.hideCrosshair();
 
         if (!(visible && axes && this.enabled)) {
@@ -81,7 +81,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.visible = true;
         this.seriesRect = rect;
-        this.hoverRect = hoverRect;
+        this.hoverRect = paddedRect;
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
