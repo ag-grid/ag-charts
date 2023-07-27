@@ -42,15 +42,12 @@ export class CartesianChart extends Chart {
             left: seriesAreaPadding.left,
         });
 
-        const hoverRectPadding = 20;
-        const hoverRect = seriesPaddedRect.clone().grow(hoverRectPadding);
-
-        this.hoverRect = hoverRect;
+        this.hoverRect = seriesPaddedRect;
 
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
-            series: { rect: seriesRect, paddedRect: seriesPaddedRect, hoverRect, visible: visibility.series },
+            series: { rect: seriesRect, paddedRect: seriesPaddedRect, visible: visibility.series },
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });
 
