@@ -1,8 +1,8 @@
 ---
-import { getDocsExampleUrl } from '../../utils/pages';
-import type { InternalFramework } from '../../types/ag-grid';
-import { getGeneratedDocsContents } from '../../features/examples-generator/examplesGenerator';
-import FrameworkTemplate from '../../features/example-runner/components/FrameworkTemplate.astro';
+import type { InternalFramework } from '../../../types/ag-grid';
+import { getGeneratedDocsContents } from '../../docs/utils/examplesGenerator';
+import FrameworkTemplate from '../../example-runner/components/FrameworkTemplate.astro';
+import { getExampleUrl } from '../utils/urlPaths';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -21,7 +21,7 @@ const generatedContents = await getGeneratedDocsContents({
     pageName,
     exampleName,
 });
-const exampleUrl = getDocsExampleUrl({
+const exampleUrl = getExampleUrl({
     internalFramework,
     pageName,
     exampleName,

@@ -3,12 +3,12 @@ import { useCallback, type FunctionComponent } from 'react';
 import { openPlunker } from '../utils/plunkr';
 import { fetchTextFile } from '../utils/fetchTextFile';
 import type { FileContents } from '../../examples-generator/types';
-import { getDocsExampleUrlWithRelativePath } from '../../../utils/pages';
-import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-grid';
+import type { InternalFramework } from '../../../types/ag-grid';
 
 interface Props {
     title: string;
     files: FileContents;
+    plunkrHtmlUrl: string;
     boilerPlateFiles?: FileContents;
     fileToOpen: string;
     internalFramework: InternalFramework;
@@ -19,6 +19,7 @@ interface Props {
 export const OpenInPlunkr: FunctionComponent<Props> = ({
     title,
     files,
+    plunkrHtmlUrl,
     boilerPlateFiles,
     fileToOpen,
     internalFramework,
@@ -29,13 +30,7 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({
      * Get Plunkr HTML files, which requires relative paths
      */
     const getPlunkrHtml = useCallback(async () => {
-        const plunkrHtml = await fetchTextFile(
-            getDocsExampleUrlWithRelativePath({
-                internalFramework,
-                pageName,
-                exampleName,
-            })
-        );
+        const plunkrHtml = await fetchTextFile(plunkrHtmlUrl);
 
         return plunkrHtml;
     }, [internalFramework, pageName, exampleName]);

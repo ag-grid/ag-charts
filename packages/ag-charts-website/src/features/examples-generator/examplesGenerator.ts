@@ -7,13 +7,12 @@ import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import type { GeneratedContents } from './types.d';
 import { SOURCE_ENTRY_FILE_NAME } from './constants';
-import { getDocsFolderUrl } from '../../utils/pages';
 
 /**
  * Get the file list of the generated contents
  * (without generating the contents)
  */
-const getGeneratedContentsFileList = async ({
+export const getGeneratedContentsFileList = async ({
     internalFramework,
     folderUrl,
 }: {
@@ -43,7 +42,7 @@ const getGeneratedContentsFileList = async ({
 /**
  * Get generated contents for an example
  */
-const getGeneratedContents = async ({
+export const getGeneratedContents = async ({
     internalFramework,
     folderUrl,
 }: {
@@ -114,44 +113,4 @@ const getGeneratedContents = async ({
     };
 
     return contents;
-};
-
-export const getGeneratedDocsContentsFileList = async ({
-    internalFramework,
-    pageName,
-    exampleName,
-}: {
-    internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
-}): Promise<string[]> => {
-    const folderUrl = getDocsFolderUrl({
-        pageName,
-        exampleName,
-    });
-
-    return getGeneratedContentsFileList({
-        internalFramework,
-        folderUrl,
-    });
-};
-
-export const getGeneratedDocsContents = async ({
-    internalFramework,
-    pageName,
-    exampleName,
-}: {
-    internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
-}): Promise<GeneratedContents | undefined> => {
-    const folderUrl = getDocsFolderUrl({
-        pageName,
-        exampleName,
-    });
-
-    return getGeneratedContents({
-        internalFramework,
-        folderUrl,
-    });
 };

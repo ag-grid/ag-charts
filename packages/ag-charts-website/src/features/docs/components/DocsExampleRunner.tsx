@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
-import type { ExampleOptions } from '../../features/example-runner/types';
-import { getDocsExampleUrl, getDocsExampleContentsUrl } from '../../utils/pages';
-import { getFrameworkFromInternalFramework } from '../../utils/framework';
-import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../stores/frameworkStore';
-import type { Framework } from '../../types/ag-grid';
-import { OpenInPlunkr } from '../../features/plunkr/components/OpenInPlunkr';
-import type { ExampleType } from '../../features/examples-generator/types';
-import { ExampleRunner } from '../../features/example-runner/components/ExampleRunner';
+import type { ExampleOptions } from '../../example-runner/types';
+import { getFrameworkFromInternalFramework } from '../../../utils/framework';
+import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
+import type { Framework } from '../../../types/ag-grid';
+import { OpenInPlunkr } from '../../plunkr/components/OpenInPlunkr';
+import type { ExampleType } from '../../examples-generator/types';
+import { ExampleRunner } from '../../example-runner/components/ExampleRunner';
+import { getExampleContentsUrl, getExampleUrl, getExampleWithRelativePathUrl } from '../utils/urlPaths';
 
 interface Props {
     name: string;
@@ -50,6 +50,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     const internalFramework = useStore($internalFramework);
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
+    const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
 
@@ -72,10 +73,10 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         isError: exampleFilesIsError,
         data,
     } = useQuery(
-        ['exampleFiles', internalFramework, pageName, exampleName],
+        ['docsExampleFiles', internalFramework, pageName, exampleName],
         () =>
             fetch(
-                getDocsExampleContentsUrl({
+                getExampleContentsUrl({
                     internalFramework,
                     pageName,
                     exampleName,
@@ -85,10 +86,10 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     );
 
     const { data: exampleFileHtml } = useQuery(
-        ['exampleHtml', internalFramework, pageName, exampleName],
+        ['docsExampleHtml', internalFramework, pageName, exampleName],
         () =>
             fetch(
-                getDocsExampleUrl({
+                getExampleUrl({
                     internalFramework,
                     pageName,
                     exampleName,
@@ -99,7 +100,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
 
     useEffect(() => {
         setExampleUrl(
-            getDocsExampleUrl({
+            getExampleUrl({
                 internalFramework,
                 pageName,
                 exampleName,
@@ -113,6 +114,16 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         }
         setInitialSelectedFile(data?.entryFileName);
     }, [data, exampleFilesIsLoading, exampleFilesIsError]);
+
+    useEffect(() => {
+        setPlunkrHtmlUrl(
+            getExampleWithRelativePathUrl({
+                internalFramework,
+                pageName,
+                exampleName,
+            })
+        );
+    }, [internalFramework, pageName, exampleName]);
 
     // Override `index.html` with generated file as
     // exampleFiles endpoint only gets the index html fragment
@@ -132,10 +143,11 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     useUpdateInternalFrameworkFromFramework(framework);
 
     const externalLinkButton =
-        !options?.noPlunker && supportsPlunkr && exampleFiles ? (
+        !options?.noPlunker && supportsPlunkr && plunkrHtmlUrl && exampleFiles ? (
             <OpenInPlunkr
                 title={title}
                 files={exampleFiles}
+                plunkrHtmlUrl={plunkrHtmlUrl}
                 boilerPlateFiles={exampleBoilerPlateFiles}
                 fileToOpen={initialSelectedFile!}
                 internalFramework={internalFramework}

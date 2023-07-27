@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
-import { getDocExamplePages } from '../../../../../utils/pages';
 import type { InternalFramework } from '../../../../../types/ag-grid';
-import DocsFrameworkTemplate from '../../../../../components/docs/DocsFrameworkTemplate.astro';
+import DocsFrameworkTemplate from '../../../../../features/docs/components/DocsFrameworkTemplate.astro';
+import { getDocsExamplePages } from '../../../../../features/docs/utils/pageData';
 
 /**
  * This page is the same as `[exampleName].astro`, but using relative paths for script files
@@ -14,7 +14,7 @@ import DocsFrameworkTemplate from '../../../../../components/docs/DocsFrameworkT
  */
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
-    return getDocExamplePages({
+    return getDocsExamplePages({
         pages,
     });
 }

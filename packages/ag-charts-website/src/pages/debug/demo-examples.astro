@@ -1,35 +1,31 @@
 ---
-import { getCollection } from 'astro:content';
-import { getDocExampleFiles, getDocsExampleFileUrl } from '../../utils/pages';
+import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import { getDemoExamplePages } from '../../features/demo/utils/pageData';
+import { getDemoExampleUrl } from '../../features/demo/utils/urlPaths';
 
-const pages = await getCollection('docs');
-const exampleFiles = await getDocExampleFiles({
-    pages,
-});
+const demos = await getEntry('demo', 'demos');
+
+const examples = getDemoExamplePages({ demos: demos.data });
 ---
 
-<Layout title={`Debug: Example Files`}>
+<Layout title={`Debug: Demo Examples`}>
     <main class="page-margin container">
-        <h1>Example files ({exampleFiles.length})</h1>
+        <h1>Demo Example Pages ({examples.length})</h1>
         <table>
             <thead>
                 <th>No.</th>
                 <th>Url</th>
-                <th><code>params.internalFramework</code></th>
-                <th><code>params.pageName</code></th>
+                <th><code>params.chartType</code></th>
                 <th><code>params.exampleName</code></th>
-                <th><code>params.fileName</code></th>
             </thead>
             <tbody>
                 {
-                    exampleFiles.map((example, index) => {
-                        const { internalFramework, pageName, exampleName, fileName } = example.params;
-                        const url = getDocsExampleFileUrl({
-                            internalFramework,
-                            pageName,
+                    examples.map((example, index) => {
+                        const { chartType, exampleName } = example.params;
+                        const url = getDemoExampleUrl({
+                            chartType,
                             exampleName,
-                            fileName,
                         });
                         return (
                             <tr>
@@ -37,10 +33,8 @@ const exampleFiles = await getDocExampleFiles({
                                 <td>
                                     <a href={url}>{url}</a>
                                 </td>
-                                <td>{internalFramework}</td>
-                                <td>{pageName}</td>
+                                <td>{chartType}</td>
                                 <td>{exampleName}</td>
-                                <td>{fileName}</td>
                             </tr>
                         );
                     })

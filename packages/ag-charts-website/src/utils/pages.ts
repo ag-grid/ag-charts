@@ -1,17 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
-import {
-    FRAMEWORKS,
-    INTERNAL_FRAMEWORKS,
-    TYPESCRIPT_INTERNAL_FRAMEWORKS,
-    SITE_BASE_URL,
-    DOCS_FRAMEWORK_PATH_INDEX,
-    DEV_FILE_BASE_PATH,
-} from '../constants';
+import { TYPESCRIPT_INTERNAL_FRAMEWORKS, SITE_BASE_URL, DEV_FILE_BASE_PATH } from '../constants';
 import type { InternalFramework, Library } from '../types/ag-grid';
-import { getGeneratedDocsContentsFileList } from '../features/examples-generator/examplesGenerator';
 import { getIsDev } from './env';
-import { getFolders } from './fs';
-import fs from 'fs/promises';
 import { pathJoin } from './pathJoin';
 
 export type DocsPage =
@@ -105,16 +95,6 @@ export const isTypescriptInternalFramework = (internalFramework: InternalFramewo
 
 export const getCacheBustingUrl = (url: string, timestamp: number) => `${url}?t=${timestamp}`;
 
-function ignoreUnderscoreFiles(page: DocsPage) {
-    const pageFolders = page.slug.split('/');
-    const pageName = pageFolders[pageFolders.length - 1];
-    return pageName && !pageName.startsWith('_');
-}
-
-export function getFrameworkFromPath(path: string) {
-    return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX];
-}
-
 export function getNewFrameworkPath({
     path,
     currentFramework,
@@ -126,153 +106,6 @@ export function getNewFrameworkPath({
 }) {
     return path.replace(`/${currentFramework}`, `/${newFramework}`);
 }
-
-export const getDocsExamplesPathUrl = ({ pageName }: { pageName: string }) => {
-    const contentRoot = getContentRootFileUrl();
-    const examplesFolderPath = pathJoin('docs', pageName, '_examples');
-    const sourceExamplesPath = pathJoin(contentRoot.pathname, examplesFolderPath);
-
-    return new URL(sourceExamplesPath, import.meta.url);
-};
-
-export const getDocsFolderUrl = ({ pageName, exampleName }: { pageName: string; exampleName: string }) => {
-    const examplesFolderPath = getDocsExamplesPathUrl({
-        pageName,
-    }).pathname;
-    const exampleFolderPath = pathJoin(examplesFolderPath, exampleName);
-
-    return new URL(exampleFolderPath, import.meta.url);
-};
-
-export function getDocsPagesList(pages: DocsPage[]) {
-    return pages.filter(ignoreUnderscoreFiles);
-}
-
-export const getAllDocsExampleFileList = async () => {
-    const contentRoot = getContentRootFileUrl();
-    const pagesFolder = pathJoin(contentRoot.pathname, 'docs');
-    const pages = await fs.readdir(pagesFolder);
-
-    const examplesPromises = pages.map(async (pageName) => {
-        const examplesFolder = pathJoin(pagesFolder, pageName, '_examples');
-        const examples = await getFolders(examplesFolder);
-
-        return examples.map((file) => {
-            return pathJoin(examplesFolder, file);
-        });
-    });
-    const exampleFolders = (await Promise.all(examplesPromises)).flat();
-
-    const exampleFilesPromises = exampleFolders.map(async (exampleFolder) => {
-        const exampleFiles = await fs.readdir(exampleFolder);
-        return exampleFiles.map((exampleFile) => {
-            return pathJoin(exampleFolder, exampleFile);
-        });
-    });
-    const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();
-
-    return exampleFiles;
-};
-
-export function getDocsPages(pages: DocsPage[]) {
-    const frameworkPages = FRAMEWORKS.map((framework) => {
-        return getDocsPagesList(pages).map((page) => {
-            return {
-                framework,
-                pageName: page.slug,
-                page,
-            };
-        });
-    }).flat();
-
-    return frameworkPages.map(({ framework, pageName, page }) => {
-        return {
-            params: {
-                framework,
-                pageName,
-            },
-            props: {
-                page,
-            },
-        };
-    });
-}
-
-/**
- * Dynamic path where examples are
- */
-export const getDocsExampleUrl = ({
-    internalFramework,
-    pageName,
-    exampleName,
-}: {
-    internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
-}) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName);
-};
-
-/**
- * Dynamic path where examples are with relative path for script files
- */
-export const getDocsExampleUrlWithRelativePath = ({
-    internalFramework,
-    pageName,
-    exampleName,
-}: {
-    internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
-}) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'relative-path');
-};
-
-/**
- * Get endpoint for all example files
- */
-export const getDocsExampleContentsUrl = ({
-    internalFramework,
-    pageName,
-    exampleName,
-}: {
-    internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
-}) => {
-    return pathJoin(
-        getDocsExampleUrl({
-            internalFramework,
-            pageName,
-            exampleName,
-        }),
-        'contents'
-    );
-};
-
-/**
- * Dynamic path where example files are
- */
-export const getDocsExampleFileUrl = ({
-    internalFramework,
-    pageName,
-    exampleName,
-    fileName,
-}: {
-    internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
-    fileName: string;
-}) => {
-    return pathJoin(
-        getDocsExampleUrl({
-            internalFramework,
-            pageName,
-            exampleName,
-        }),
-        fileName
-    );
-};
 
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
     return pathJoin(SITE_BASE_URL, DEV_FILE_BASE_PATH, filePath);
@@ -325,35 +158,6 @@ export const getBoilerPlateUrl = ({
     return boilerplatePath;
 };
 
-export const getInternalFrameworkExamples = async ({
-    pages,
-}: {
-    pages: DocsPage[];
-}): Promise<InternalFrameworkExample[]> => {
-    const internalFrameworkPageNames = INTERNAL_FRAMEWORKS.map((internalFramework) => {
-        return pages.map((page) => {
-            return { internalFramework, pageName: page.slug };
-        });
-    }).flat();
-
-    const examplePromises = internalFrameworkPageNames.map(async ({ internalFramework, pageName }) => {
-        const docsExamplesPathUrl = getDocsExamplesPathUrl({
-            pageName,
-        });
-
-        const examples = await getFolders(docsExamplesPathUrl.pathname);
-        return examples.map((exampleName) => {
-            return {
-                internalFramework,
-                pageName,
-                exampleName,
-            };
-        });
-    });
-    const examples = (await Promise.all(examplePromises)).flat();
-    return examples;
-};
-
 /**
  * Get dev files for local development
  */
@@ -375,52 +179,6 @@ export function getDevFiles(): DevFileRoute[] {
             },
             props: {
                 fullFilePath,
-            },
-        };
-    });
-}
-
-export async function getDocExamplePages({ pages }: { pages: DocsPage[] }) {
-    const examples = await getInternalFrameworkExamples({ pages });
-
-    return examples.map(({ internalFramework, pageName, exampleName }) => {
-        return {
-            params: {
-                internalFramework,
-                pageName,
-                exampleName,
-            },
-        };
-    });
-}
-
-export async function getDocExampleFiles({ pages }: { pages: DocsPage[] }) {
-    const examples = await getInternalFrameworkExamples({ pages });
-    const exampleFilesPromises = examples.map(async ({ internalFramework, pageName, exampleName }) => {
-        const exampleFileList = await getGeneratedDocsContentsFileList({
-            internalFramework,
-            pageName,
-            exampleName,
-        });
-
-        return exampleFileList.map((fileName) => {
-            return {
-                internalFramework,
-                pageName,
-                exampleName,
-                fileName,
-            };
-        });
-    });
-    const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();
-
-    return exampleFiles.map(({ internalFramework, pageName, exampleName, fileName }) => {
-        return {
-            params: {
-                internalFramework,
-                pageName,
-                exampleName,
-                fileName,
             },
         };
     });

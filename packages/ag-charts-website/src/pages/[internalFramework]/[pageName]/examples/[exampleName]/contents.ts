@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
-import { getDocExamplePages } from '../../../../../utils/pages';
-import { getGeneratedDocsContents } from '../../../../../features/examples-generator/examplesGenerator';
+import { getGeneratedDocsContents } from '../../../../../features/docs/utils/examplesGenerator';
 import type { InternalFramework } from '../../../../../types/ag-grid';
+import { getDocsExamplePages } from '../../../../../features/docs/utils/pageData';
 
 interface Params {
     internalFramework: InternalFramework;
@@ -11,7 +11,7 @@ interface Params {
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
-    const examples = await getDocExamplePages({
+    const examples = await getDocsExamplePages({
         pages,
     });
     return examples;

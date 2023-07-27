@@ -50,6 +50,3 @@ export const SITE_BASE_URL_SEGMENTS = SITE_BASE_URL.split('/').filter(Boolean).l
  * URL prefix to serve files for dev server
  */
 export const DEV_FILE_BASE_PATH = '/dev';
-
-export const DOCS_FRAMEWORK_PATH_INDEX = SITE_BASE_URL_SEGMENTS + 1;
-export const DOCS_PAGE_NAME_PATH_INDEX = SITE_BASE_URL_SEGMENTS + 2;
