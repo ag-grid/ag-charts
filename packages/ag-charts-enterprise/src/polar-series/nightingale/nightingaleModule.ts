@@ -2,6 +2,7 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
 import { NIGHTINGALE_DEFAULTS } from './nightingaleDefaults';
 import { NightingaleSeries } from './nightingaleSeries';
+import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
 export const NightingaleModule: _ModuleSupport.SeriesModule = {
     type: 'series',
@@ -12,7 +13,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule = {
     identifier: 'nightingale',
     instanceConstructor: NightingaleSeries,
     seriesDefaults: NIGHTINGALE_DEFAULTS,
-    themeTemplate: {},
+    themeTemplate: NIGHTINGALE_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {
             fills: [fill],
