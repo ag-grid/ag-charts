@@ -1,10 +1,4 @@
-import {
-    getEntryFileName,
-    getSourceFileContents,
-    getIsEnterprise,
-    getSourceFolderUrl,
-    getTransformTsFileExt,
-} from './utils/fileUtils';
+import { getEntryFileName, getIsEnterprise, getTransformTsFileExt, getFileContents } from './utils/fileUtils';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import fs from 'node:fs/promises';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
@@ -13,37 +7,30 @@ import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import type { GeneratedContents } from './types.d';
 import { SOURCE_ENTRY_FILE_NAME } from './constants';
+import { getDocsFolderUrl } from '../../utils/pages';
 
 /**
  * Get the file list of the generated contents
  * (without generating the contents)
  */
-export const getGeneratedContentsFileList = async ({
+const getGeneratedContentsFileList = async ({
     internalFramework,
-    pageName,
-    exampleName,
+    folderUrl,
 }: {
     internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
+    folderUrl: URL;
 }): Promise<string[]> => {
     const entryFileName = getEntryFileName(internalFramework)!;
-    const sourceFolderUrl = getSourceFolderUrl({
-        pageName,
-        exampleName,
-    });
-    const sourceFileList = await fs.readdir(sourceFolderUrl);
+    const sourceFileList = await fs.readdir(folderUrl);
 
     const scriptFiles = await getOtherScriptFiles({
+        folderUrl,
         sourceFileList,
-        pageName,
-        exampleName,
         transformTsFileExt: getTransformTsFileExt(internalFramework),
     });
     const styleFiles = await getStyleFiles({
+        folderUrl,
         sourceFileList,
-        pageName,
-        exampleName,
     });
 
     const generatedFileList = ['index.html', entryFileName]
@@ -56,36 +43,39 @@ export const getGeneratedContentsFileList = async ({
 /**
  * Get generated contents for an example
  */
-export const getGeneratedContents = async ({
+const getGeneratedContents = async ({
     internalFramework,
-    pageName,
-    exampleName,
+    folderUrl,
 }: {
     internalFramework: InternalFramework;
-    pageName: string;
-    exampleName: string;
+    folderUrl: URL;
 }): Promise<GeneratedContents | undefined> => {
-    const sourceFolderUrl = getSourceFolderUrl({
-        pageName,
-        exampleName,
-    });
-    const sourceFileList = await fs.readdir(sourceFolderUrl);
+    const sourceFileList = await fs.readdir(folderUrl);
 
     const sourceEntryFileName = SOURCE_ENTRY_FILE_NAME;
-    const entryFile = await getSourceFileContents({
-        pageName,
-        exampleName,
+    const entryFile = await getFileContents({
+        folderUrl,
         fileName: sourceEntryFileName,
     });
-    const indexHtml = (await getSourceFileContents({
-        pageName,
-        exampleName,
-        fileName: 'index.html',
-    })) as string;
 
     if (!entryFile) {
         return;
     }
+
+    const indexHtml = await getFileContents({
+        folderUrl,
+        fileName: 'index.html',
+    });
+
+    const otherScriptFiles = await getOtherScriptFiles({
+        folderUrl,
+        sourceFileList,
+        transformTsFileExt: getTransformTsFileExt(internalFramework),
+    });
+    const styleFiles = await getStyleFiles({
+        folderUrl,
+        sourceFileList,
+    });
 
     const isEnterprise = getIsEnterprise({
         internalFramework,
@@ -98,18 +88,6 @@ export const getGeneratedContents = async ({
         exampleSettings: {
             enterprise: isEnterprise,
         },
-    });
-
-    const otherScriptFiles = await getOtherScriptFiles({
-        sourceFileList,
-        pageName,
-        exampleName,
-        transformTsFileExt: getTransformTsFileExt(internalFramework),
-    });
-    const styleFiles = await getStyleFiles({
-        sourceFileList,
-        pageName,
-        exampleName,
     });
 
     const getFrameworkFiles = frameworkFilesGenerator[internalFramework];
@@ -127,13 +105,53 @@ export const getGeneratedContents = async ({
     });
     const contents: GeneratedContents = {
         isEnterprise,
-        scriptFiles,
+        scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
         sourceFileList,
         files: Object.assign(styleFiles, files),
-        boilerPlateFiles,
+        boilerPlateFiles: boilerPlateFiles!,
         entryFileName,
-    } as GeneratedContents;
+    };
 
     return contents;
+};
+
+export const getGeneratedDocsContentsFileList = async ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}): Promise<string[]> => {
+    const folderUrl = getDocsFolderUrl({
+        pageName,
+        exampleName,
+    });
+
+    return getGeneratedContentsFileList({
+        internalFramework,
+        folderUrl,
+    });
+};
+
+export const getGeneratedDocsContents = async ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}): Promise<GeneratedContents | undefined> => {
+    const folderUrl = getDocsFolderUrl({
+        pageName,
+        exampleName,
+    });
+
+    return getGeneratedContents({
+        internalFramework,
+        folderUrl,
+    });
 };

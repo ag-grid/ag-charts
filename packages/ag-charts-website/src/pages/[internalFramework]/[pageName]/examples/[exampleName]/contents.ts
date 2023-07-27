@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
 import { getDocExamplePages } from '../../../../../utils/pages';
-import { getGeneratedContents } from '../../../../../features/examples-generator/examplesGenerator';
+import { getGeneratedDocsContents } from '../../../../../features/examples-generator/examplesGenerator';
 import type { InternalFramework } from '../../../../../types/ag-grid';
 
 interface Params {
@@ -21,7 +21,7 @@ export async function get({ params }: { params: Params }) {
     const { internalFramework, pageName, exampleName } = params;
 
     const generatedContents =
-        (await getGeneratedContents({
+        (await getGeneratedDocsContents({
             internalFramework,
             pageName,
             exampleName,

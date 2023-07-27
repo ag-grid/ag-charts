@@ -1,8 +1,7 @@
 import { getCollection } from 'astro:content';
-import { getDocExampleFiles } from '../../../../../utils/pages';
+import { getDocExampleFiles, getContentRootFileUrl } from '../../../../../utils/pages';
 import { getIsDev } from '../../../../../utils/env';
-import { getContentRootFileUrl } from '../../../../../features/examples-generator/utils/fileUtils';
-import { getGeneratedContents } from '../../../../../features/examples-generator/examplesGenerator';
+import { getGeneratedDocsContents } from '../../../../../features/examples-generator/examplesGenerator';
 import type { InternalFramework } from '../../../../../types/ag-grid';
 
 interface Params {
@@ -39,7 +38,7 @@ export async function get({ params }: { params: Params }) {
     };
 
     const { files } =
-        (await getGeneratedContents({
+        (await getGeneratedDocsContents({
             internalFramework,
             pageName,
             exampleName,

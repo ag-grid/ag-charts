@@ -3,7 +3,7 @@ import { useCallback, type FunctionComponent } from 'react';
 import { openPlunker } from '../utils/plunkr';
 import { fetchTextFile } from '../utils/fetchTextFile';
 import type { FileContents } from '../../examples-generator/types';
-import { getExampleUrlWithRelativePath } from '../../../utils/pages';
+import { getDocsExampleUrlWithRelativePath } from '../../../utils/pages';
 import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-grid';
 
 interface Props {
@@ -30,7 +30,7 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({
      */
     const getPlunkrHtml = useCallback(async () => {
         const plunkrHtml = await fetchTextFile(
-            getExampleUrlWithRelativePath({
+            getDocsExampleUrlWithRelativePath({
                 internalFramework,
                 pageName,
                 exampleName,

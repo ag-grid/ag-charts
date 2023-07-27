@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import type { ExampleOptions } from '../../features/example-runner/types';
-import { getExampleUrl, getExampleContentsUrl } from '../../utils/pages';
+import { getDocsExampleUrl, getDocsExampleContentsUrl } from '../../utils/pages';
 import { getFrameworkFromInternalFramework } from '../../utils/framework';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../stores/frameworkStore';
 import type { Framework } from '../../types/ag-grid';
@@ -75,7 +75,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         ['exampleFiles', internalFramework, pageName, exampleName],
         () =>
             fetch(
-                getExampleContentsUrl({
+                getDocsExampleContentsUrl({
                     internalFramework,
                     pageName,
                     exampleName,
@@ -88,7 +88,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         ['exampleHtml', internalFramework, pageName, exampleName],
         () =>
             fetch(
-                getExampleUrl({
+                getDocsExampleUrl({
                     internalFramework,
                     pageName,
                     exampleName,
@@ -99,7 +99,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
 
     useEffect(() => {
         setExampleUrl(
-            getExampleUrl({
+            getDocsExampleUrl({
                 internalFramework,
                 pageName,
                 exampleName,

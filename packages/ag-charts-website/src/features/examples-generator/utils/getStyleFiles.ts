@@ -1,19 +1,10 @@
-import { getContentsOfFileList } from './fileUtils';
+import { getFileList } from './fileUtils';
 
-export const getStyleFiles = async ({
-    sourceFileList,
-    pageName,
-    exampleName,
-}: {
-    sourceFileList: string[];
-    pageName: string;
-    exampleName: string;
-}) => {
+export const getStyleFiles = async ({ folderUrl, sourceFileList }: { folderUrl: URL; sourceFileList: string[] }) => {
     const styleFiles = sourceFileList.filter((fileName) => fileName.endsWith('.css'));
 
-    const styleContents = await getContentsOfFileList({
-        pageName,
-        exampleName,
+    const styleContents = await getFileList({
+        folderUrl,
         fileList: styleFiles,
     });
 

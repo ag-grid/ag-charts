@@ -1,19 +1,9 @@
 import fs from 'node:fs/promises';
 import { getIsDev } from '../../../utils/env';
-import { getFolders } from '../../../utils/fs';
 import type { InternalFramework } from '../../../types/ag-grid.d';
 import { pathJoin } from '../../../utils/pathJoin';
 import { isTypescriptInternalFramework } from '../../../utils/pages';
 import type { TransformTsFileExt } from '../types';
-
-export const getContentRootFileUrl = (): URL => {
-    const contentRoot = getIsDev()
-        ? // Relative to the folder of this file
-          '../../../content'
-        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../../packages/ag-charts-website/src/content';
-    return new URL(contentRoot, import.meta.url);
-};
 
 /**
  * The root of the `ag-charts-website` package
@@ -88,39 +78,6 @@ export const getBoilerPlateFiles = async (internalFramework: InternalFramework) 
     return files;
 };
 
-export const getAllSourceExampleFileList = async () => {
-    const contentRoot = getContentRootFileUrl();
-    const pagesFolder = pathJoin(contentRoot.pathname, 'docs');
-    const pages = await fs.readdir(pagesFolder);
-
-    const examplesPromises = pages.map(async (pageName) => {
-        const examplesFolder = pathJoin(pagesFolder, pageName, '_examples');
-        const examples = await getFolders(examplesFolder);
-
-        return examples.map((file) => {
-            return pathJoin(examplesFolder, file);
-        });
-    });
-    const exampleFolders = (await Promise.all(examplesPromises)).flat();
-
-    const exampleFilesPromises = exampleFolders.map(async (exampleFolder) => {
-        const exampleFiles = await fs.readdir(exampleFolder);
-        return exampleFiles.map((exampleFile) => {
-            return pathJoin(exampleFolder, exampleFile);
-        });
-    });
-    const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();
-
-    return exampleFiles;
-};
-
-export const getSourceExamplesPathUrl = ({ pageName }: { pageName: string }) => {
-    const contentRoot = getContentRootFileUrl();
-    const examplesFolderPath = pathJoin('docs', pageName, '_examples');
-    const sourceExamplesPath = pathJoin(contentRoot.pathname, examplesFolderPath);
-    return new URL(sourceExamplesPath, import.meta.url);
-};
-
 export const getFrameworkFromInternalFramework = (internalFramework: InternalFramework) => {
     switch (internalFramework) {
         case 'typescript':
@@ -157,50 +114,27 @@ export const getEntryFileName = (internalFramework: InternalFramework) => {
     }
 };
 
-export const getSourceFolderUrl = ({ pageName, exampleName }: { pageName: string; exampleName: string }) => {
-    const examplesFolderPath = getSourceExamplesPathUrl({
-        pageName,
-    }).pathname;
-    const exampleFolderPath = pathJoin(examplesFolderPath, exampleName);
+export const getFileContents = ({ folderUrl, fileName }: { folderUrl: URL; fileName: string }) => {
+    const filePath = pathJoin(folderUrl.pathname, fileName);
 
-    return new URL(exampleFolderPath, import.meta.url);
+    return fs.readFile(filePath, 'utf-8');
 };
 
-export const getSourceFileUrl = ({
-    pageName,
-    exampleName,
-    fileName,
-}: {
-    pageName: string;
-    exampleName: string;
-    fileName: string;
-}) => {
-    const exampleFolderPath = getSourceFolderUrl({
-        pageName,
-        exampleName,
-    }).pathname;
-    const entryFilePath = pathJoin(exampleFolderPath, fileName);
+export const getFileList = async ({ folderUrl, fileList }: { folderUrl: URL; fileList: string[] }) => {
+    const contentFiles = {} as Record<string, string>;
+    await Promise.all(
+        fileList.map(async (fileName) => {
+            const file = await getFileContents({
+                folderUrl,
+                fileName,
+            });
+            if (file) {
+                contentFiles[fileName] = file;
+            }
+        })
+    );
 
-    return new URL(entryFilePath, import.meta.url);
-};
-
-export const getSourceFileContents = ({
-    pageName,
-    exampleName,
-    fileName,
-}: {
-    pageName: string;
-    exampleName: string;
-    fileName: string;
-}): Promise<string | undefined> => {
-    const entryFileUrl = getSourceFileUrl({
-        pageName,
-        exampleName,
-        fileName,
-    });
-    return fs.readFile(entryFileUrl, 'utf-8').catch(() => {
-        return undefined;
-    });
+    return contentFiles;
 };
 
 // TODO: Find a better way to determine if an example is enterprise or not
@@ -216,30 +150,4 @@ export const getIsEnterprise = ({
     return entryFileName === 'main.js'
         ? entryFile?.includes('AgEnterpriseCharts')
         : entryFile?.includes('ag-charts-enterprise');
-};
-
-export const getContentsOfFileList = async ({
-    pageName,
-    exampleName,
-    fileList,
-}: {
-    pageName: string;
-    exampleName: string;
-    fileList: string[];
-}) => {
-    const contentFiles = {} as Record<string, string>;
-    await Promise.all(
-        fileList.map(async (fileName) => {
-            const file = (await getSourceFileContents({
-                pageName,
-                exampleName,
-                fileName,
-            })) as string;
-            if (file) {
-                contentFiles[fileName] = file;
-            }
-        })
-    );
-
-    return contentFiles;
 };

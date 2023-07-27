@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { getDocPages, getDocPagesList } from '../../utils/pages';
+import { getDocsPages, getDocsPagesList } from '../../utils/pages';
 import { PagesNavigation } from '../../components/pages-navigation/PagesNavigation';
 import { Header } from '../../components/docs/Header';
 import { getFrameworkDisplayText } from '../../utils/framework';
@@ -9,7 +9,7 @@ import type { Framework } from '../../types/ag-grid';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
-    return getDocPages(pages);
+    return getDocsPages(pages);
 }
 
 const { page } = Astro.props;
@@ -19,7 +19,7 @@ const { title, enterprise, sideMenu = true } = page.data;
 const { Content } = await page.render();
 
 const allDocPages = await getCollection('docs');
-const pages = getDocPagesList(allDocPages);
+const pages = getDocsPagesList(allDocPages);
 ---
 
 <Layout title={`${getFrameworkDisplayText(framework as Framework)} Charts: AG Charts`} showTopBar={true}>

@@ -7,11 +7,11 @@ import {
     DOCS_FRAMEWORK_PATH_INDEX,
     DEV_FILE_BASE_PATH,
 } from '../constants';
-import { getSourceExamplesPathUrl } from '../features/examples-generator/utils/fileUtils';
 import type { InternalFramework, Library } from '../types/ag-grid';
-import { getGeneratedContentsFileList } from '../features/examples-generator/examplesGenerator';
+import { getGeneratedDocsContentsFileList } from '../features/examples-generator/examplesGenerator';
 import { getIsDev } from './env';
 import { getFolders } from './fs';
+import fs from 'fs/promises';
 import { pathJoin } from './pathJoin';
 
 export type DocsPage =
@@ -66,6 +66,15 @@ export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
     return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/ag-charts-enterprise.umd.js');
 };
 
+export const getContentRootFileUrl = (): URL => {
+    const contentRoot = getIsDev()
+        ? // Relative to the folder of this file
+          '../content'
+        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
+          '../../../../../packages/ag-charts-website/src/content';
+    return new URL(contentRoot, import.meta.url);
+};
+
 /**
  * The root url where the monorepo exists
  */
@@ -118,13 +127,56 @@ export function getNewFrameworkPath({
     return path.replace(`/${currentFramework}`, `/${newFramework}`);
 }
 
-export function getDocPagesList(pages: DocsPage[]) {
+export const getDocsExamplesPathUrl = ({ pageName }: { pageName: string }) => {
+    const contentRoot = getContentRootFileUrl();
+    const examplesFolderPath = pathJoin('docs', pageName, '_examples');
+    const sourceExamplesPath = pathJoin(contentRoot.pathname, examplesFolderPath);
+
+    return new URL(sourceExamplesPath, import.meta.url);
+};
+
+export const getDocsFolderUrl = ({ pageName, exampleName }: { pageName: string; exampleName: string }) => {
+    const examplesFolderPath = getDocsExamplesPathUrl({
+        pageName,
+    }).pathname;
+    const exampleFolderPath = pathJoin(examplesFolderPath, exampleName);
+
+    return new URL(exampleFolderPath, import.meta.url);
+};
+
+export function getDocsPagesList(pages: DocsPage[]) {
     return pages.filter(ignoreUnderscoreFiles);
 }
 
-export function getDocPages(pages: DocsPage[]) {
+export const getAllDocsExampleFileList = async () => {
+    const contentRoot = getContentRootFileUrl();
+    const pagesFolder = pathJoin(contentRoot.pathname, 'docs');
+    const pages = await fs.readdir(pagesFolder);
+
+    const examplesPromises = pages.map(async (pageName) => {
+        const examplesFolder = pathJoin(pagesFolder, pageName, '_examples');
+        const examples = await getFolders(examplesFolder);
+
+        return examples.map((file) => {
+            return pathJoin(examplesFolder, file);
+        });
+    });
+    const exampleFolders = (await Promise.all(examplesPromises)).flat();
+
+    const exampleFilesPromises = exampleFolders.map(async (exampleFolder) => {
+        const exampleFiles = await fs.readdir(exampleFolder);
+        return exampleFiles.map((exampleFile) => {
+            return pathJoin(exampleFolder, exampleFile);
+        });
+    });
+    const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();
+
+    return exampleFiles;
+};
+
+export function getDocsPages(pages: DocsPage[]) {
     const frameworkPages = FRAMEWORKS.map((framework) => {
-        return getDocPagesList(pages).map((page) => {
+        return getDocsPagesList(pages).map((page) => {
             return {
                 framework,
                 pageName: page.slug,
@@ -149,7 +201,7 @@ export function getDocPages(pages: DocsPage[]) {
 /**
  * Dynamic path where examples are
  */
-export const getExampleUrl = ({
+export const getDocsExampleUrl = ({
     internalFramework,
     pageName,
     exampleName,
@@ -164,7 +216,7 @@ export const getExampleUrl = ({
 /**
  * Dynamic path where examples are with relative path for script files
  */
-export const getExampleUrlWithRelativePath = ({
+export const getDocsExampleUrlWithRelativePath = ({
     internalFramework,
     pageName,
     exampleName,
@@ -179,7 +231,7 @@ export const getExampleUrlWithRelativePath = ({
 /**
  * Get endpoint for all example files
  */
-export const getExampleContentsUrl = ({
+export const getDocsExampleContentsUrl = ({
     internalFramework,
     pageName,
     exampleName,
@@ -189,7 +241,7 @@ export const getExampleContentsUrl = ({
     exampleName: string;
 }) => {
     return pathJoin(
-        getExampleUrl({
+        getDocsExampleUrl({
             internalFramework,
             pageName,
             exampleName,
@@ -201,7 +253,7 @@ export const getExampleContentsUrl = ({
 /**
  * Dynamic path where example files are
  */
-export const getExampleFileUrl = ({
+export const getDocsExampleFileUrl = ({
     internalFramework,
     pageName,
     exampleName,
@@ -213,7 +265,7 @@ export const getExampleFileUrl = ({
     fileName: string;
 }) => {
     return pathJoin(
-        getExampleUrl({
+        getDocsExampleUrl({
             internalFramework,
             pageName,
             exampleName,
@@ -285,11 +337,11 @@ export const getInternalFrameworkExamples = async ({
     }).flat();
 
     const examplePromises = internalFrameworkPageNames.map(async ({ internalFramework, pageName }) => {
-        const sourceExamplesPathUrl = getSourceExamplesPathUrl({
+        const docsExamplesPathUrl = getDocsExamplesPathUrl({
             pageName,
         });
 
-        const examples = await getFolders(sourceExamplesPathUrl.pathname);
+        const examples = await getFolders(docsExamplesPathUrl.pathname);
         return examples.map((exampleName) => {
             return {
                 internalFramework,
@@ -345,7 +397,7 @@ export async function getDocExamplePages({ pages }: { pages: DocsPage[] }) {
 export async function getDocExampleFiles({ pages }: { pages: DocsPage[] }) {
     const examples = await getInternalFrameworkExamples({ pages });
     const exampleFilesPromises = examples.map(async ({ internalFramework, pageName, exampleName }) => {
-        const exampleFileList = await getGeneratedContentsFileList({
+        const exampleFileList = await getGeneratedDocsContentsFileList({
             internalFramework,
             pageName,
             exampleName,

@@ -15,4 +15,5 @@ export interface GeneratedContents {
     styleFiles: string[];
     isEnterprise: boolean;
     sourceFileList: string[];
+    boilerPlateFiles: FileContents;
 }

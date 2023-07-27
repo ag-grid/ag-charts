@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import { getDocExamplePages, getExampleUrl } from '../../utils/pages';
+import { getDocExamplePages, getDocsExampleUrl } from '../../utils/pages';
 import Layout from '../../layouts/Layout.astro';
 
 const pages = await getCollection('docs');
@@ -24,7 +24,7 @@ const examples = await getDocExamplePages({
                 {
                     examples.map((example, index) => {
                         const { internalFramework, pageName, exampleName } = example.params;
-                        const url = getExampleUrl({
+                        const url = getDocsExampleUrl({
                             internalFramework,
                             pageName,
                             exampleName,
