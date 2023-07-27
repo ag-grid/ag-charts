@@ -480,9 +480,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this._lastPerformUpdateError;
     }
 
+    private forceNodeDataRefresh: boolean = false;
     private seriesToUpdate: Set<Series> = new Set();
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this._destroyed) return;
+
+        if (this.forceNodeDataRefresh) {
+            this.series.forEach((series) => series.markNodeDataDirty());
+        }
 
         try {
             await this.performUpdate(count);
@@ -500,9 +505,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     ) {
         const { forceNodeDataRefresh = false, seriesToUpdate = this.series } = opts ?? {};
 
-        if (forceNodeDataRefresh) {
-            this.series.forEach((series) => series.markNodeDataDirty());
-        }
+        this.forceNodeDataRefresh = forceNodeDataRefresh;
 
         for (const series of seriesToUpdate) {
             this.seriesToUpdate.add(series);
