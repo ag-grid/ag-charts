@@ -500,7 +500,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
 
         const { sectorSelection, labelSelection } = this;
 
-        const duration = 1000;
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
         const labelDelay = duration;
 
