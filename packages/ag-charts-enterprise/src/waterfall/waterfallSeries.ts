@@ -61,6 +61,12 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly strokeWidth: number;
 }
 
+interface WaterfallSeriesItems {
+    readonly positive: WaterfallSeriesItem;
+    readonly negative: WaterfallSeriesItem;
+    readonly total: WaterfallSeriesItem;
+}
+
 type WaterfallContext = _ModuleSupport.SeriesNodeDataContext<WaterfallNodeDatum> & {
     pointData?: WaterfallNodePointDatum[];
 };
@@ -174,9 +180,11 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     static className = 'WaterfallBarSeries';
     static type: 'waterfall-bar' | 'waterfall-column' = 'waterfall-bar' as const;
 
-    readonly positiveItem = new WaterfallSeriesItem();
-    readonly negativeItem = new WaterfallSeriesItem();
-    readonly totalItem = new WaterfallSeriesItem();
+    readonly item: WaterfallSeriesItems = {
+        positive: new WaterfallSeriesItem(),
+        negative: new WaterfallSeriesItem(),
+        total: new WaterfallSeriesItem(),
+    };
 
     readonly line = new WaterfallSeriesConnectorLine();
 
@@ -578,14 +586,14 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     private getItemConfig(seriesItemType: SeriesItemType): WaterfallSeriesItem {
         switch (seriesItemType) {
             case 'positive': {
-                return this.positiveItem;
+                return this.item.positive;
             }
             case 'negative': {
-                return this.negativeItem;
+                return this.item.negative;
             }
             case 'subtotal':
             case 'total': {
-                return this.totalItem;
+                return this.item.total;
             }
         }
     }
@@ -996,7 +1004,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected isLabelEnabled() {
-        return this.positiveItem.label.enabled || this.negativeItem.label.enabled || this.totalItem.label.enabled;
+        return this.item.positive.label.enabled || this.item.negative.label.enabled || this.item.total.label.enabled;
     }
 
     protected getBarDirection() {

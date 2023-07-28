@@ -81,23 +81,25 @@ describe('Chart', () => {
                 xKey: 'year',
                 yKey: 'spending',
                 typeKey: 'dataType',
-                positiveItem: {
-                    label: {
-                        enabled: true,
-                        placement: 'inside',
+                item: {
+                    positive: {
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                        },
+                        fill: '#91CC75',
+                        stroke: '#91CC75',
+                        name: 'Revenue',
                     },
-                    fill: '#91CC75',
-                    stroke: '#91CC75',
-                    name: 'Revenue',
-                },
-                negativeItem: {
-                    label: {
-                        enabled: true,
-                        placement: 'inside',
+                    negative: {
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                        },
+                        fill: '#D21E75',
+                        stroke: '#D21E75',
+                        name: 'Product Cost',
                     },
-                    fill: '#D21E75',
-                    stroke: '#D21E75',
-                    name: 'Product Cost',
                 },
             },
         ],
