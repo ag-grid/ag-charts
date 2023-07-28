@@ -2,26 +2,28 @@ import { _Theme } from 'ag-charts-community';
 
 export const WATERFALL_SERIES_THEME = {
     __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
-    positiveItem: {
-        label: {
-            enabled: false,
+    item: {
+        positive: {
+            label: {
+                enabled: false,
+            },
+            fill: '#233e6f',
+            stroke: '#233e6f',
         },
-        fill: '#233e6f',
-        stroke: '#233e6f',
-    },
-    negativeItem: {
-        label: {
-            enabled: false,
+        negative: {
+            label: {
+                enabled: false,
+            },
+            fill: '#9FB7E1',
+            stroke: '#9FB7E1',
         },
-        fill: '#9FB7E1',
-        stroke: '#9FB7E1',
-    },
-    totalItem: {
-        label: {
-            enabled: false,
+        total: {
+            label: {
+                enabled: false,
+            },
+            fill: '#79706E',
+            stroke: '#79706E',
         },
-        fill: '#79706E',
-        stroke: '#79706E',
     },
     line: {
         stroke: 'black',

@@ -74,12 +74,15 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     labelKey?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
-    /** Configuration for the negative series items. */
-    negativeItem?: AgWaterfallSeriesItemOptions<DatumType>;
-    /** Configuration for the positive series items. */
-    positiveItem?: AgWaterfallSeriesItemOptions<DatumType>;
-    /** Configuration for the total and subtotal series items. */
-    totalItem?: AgWaterfallSeriesItemOptions<DatumType>;
+    /** Configuration used for the waterfall series item types. */
+    item: {
+        /** Configuration for the negative series items. */
+        negative?: AgWaterfallSeriesItemOptions<DatumType>;
+        /** Configuration for the positive series items. */
+        positive?: AgWaterfallSeriesItemOptions<DatumType>;
+        /** Configuration for the total and subtotal series items. */
+        total?: AgWaterfallSeriesItemOptions<DatumType>;
+    };
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
