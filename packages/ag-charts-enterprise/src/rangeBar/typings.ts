@@ -72,7 +72,7 @@ export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOp
     xKey?: string;
     /** The key to use to retrieve y-min-values from the data. */
     yMinKey?: string;
-    /** The key to use to retrieve y-max-min-values from the data. */
+    /** The key to use to retrieve y-max-values from the data. */
     yMaxKey?: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
