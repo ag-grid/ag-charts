@@ -6,7 +6,7 @@ $list-gap: $size-3;
     width: calc(50% - $list-gap / 2);
     aspect-ratio: 16 / 10;
 
-    iframe {
-        pointer-events: none;
+    img {
+        width: 100%;
     }
 }

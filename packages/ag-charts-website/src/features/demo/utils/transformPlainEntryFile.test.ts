@@ -1,0 +1,317 @@
+import { transformPlainEntryFile } from './transformPlainEntryFile';
+import util from 'node:util';
+
+const getEntryFile = (chartOptions: object) => {
+    // NOTE: Use `util.inspect` instead of `JSON.stringify` so that there aren't quotes around
+    // object keys, just like actual source code
+    const chartOptionsStr = util.inspect(chartOptions, { depth: 10 });
+    const entryFile = `const options = ${chartOptionsStr};\nvar chart = agCharts.AgChart.create(options);`;
+
+    return entryFile;
+};
+
+const getChartsOptionsPlainEntryFile = (chartsOptions: object) => {
+    const sourceStr = getEntryFile(chartsOptions);
+    const output = transformPlainEntryFile(sourceStr);
+
+    return output;
+};
+
+describe('transformPlainEntryFile', () => {
+    test('object key as literal with strings ');
+
+    test('default entry file', () => {
+        expect(getChartsOptionsPlainEntryFile({})).toMatchInlineSnapshot(`
+          "const options = {
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('remove title', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                title: {
+                    enabled: true,
+                    text: 'Test title',
+                },
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('remove footnote', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                footnote: {
+                    enabled: true,
+                    text: 'Test footnote',
+                },
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('disable legend', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                legend: {
+                    enabled: true,
+                    text: 'Test legend',
+                },
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('disable axes labels', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                axes: [
+                    {
+                        type: 'category',
+                        position: 'bottom',
+                        label: {
+                            enabled: true,
+                        },
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        label: {
+                            enabled: true,
+                        },
+                    },
+                ],
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            axes: [
+              {
+                type: 'category',
+                position: 'bottom',
+
+                label: {
+                  enabled: false
+                },
+
+                tick: {
+                  enabled: false
+                }
+              },
+              {
+                type: 'number',
+                position: 'left',
+
+                label: {
+                  enabled: false
+                },
+
+                tick: {
+                  enabled: false
+                }
+              }
+            ],
+
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('do not disable series labels', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'job',
+                        yKey: 'change',
+                        highlightStyle: {
+                            item: {
+                                fill: '#0ab9ff',
+                            },
+                        },
+                        label: {
+                            fontWeight: 'bold',
+                            color: 'white',
+                        },
+                    },
+                ],
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            series: [
+              {
+                type: 'bar',
+                xKey: 'job',
+                yKey: 'change',
+                highlightStyle: { item: { fill: '#0ab9ff' } },
+                label: { fontWeight: 'bold', color: 'white' }
+              }
+            ],
+
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('disable axes ticks', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                axes: [
+                    {
+                        type: 'category',
+                        position: 'bottom',
+                        tick: {
+                            enabled: true,
+                        },
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        tick: {
+                            enabled: true,
+                        },
+                    },
+                ],
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            axes: [
+              {
+                type: 'category',
+                position: 'bottom',
+
+                label: {
+                  enabled: false
+                },
+
+                tick: {
+                  enabled: false
+                }
+              },
+              {
+                type: 'number',
+                position: 'left',
+
+                label: {
+                  enabled: false
+                },
+
+                tick: {
+                  enabled: false
+                }
+              }
+            ],
+
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('remove padding', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                padding: {
+                    top: 10,
+                    right: 20,
+                    bottom: 30,
+                    left: 40,
+                },
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+});

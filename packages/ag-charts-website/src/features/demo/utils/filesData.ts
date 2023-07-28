@@ -1,7 +1,26 @@
+import { readFileSync } from 'fs';
 import type { DemoExamples } from '../../../types/ag-grid';
-import { getContentRootFileUrl } from '../../../utils/pages';
+import { getContentRootFileUrl, getPublicFileUrl } from '../../../utils/pages';
 import { pathJoin } from '../../../utils/pathJoin';
 import { getPageHashUrl } from './urlPaths';
+
+export const getDemoData = ({ isDev }: { isDev?: boolean } = {}): DemoExamples => {
+    const contentPath = getContentRootFileUrl({ isDev });
+    const demoDataFilePath = pathJoin(contentPath, 'demo', 'demos.json');
+    const demoDataFilePathUrl = new URL(demoDataFilePath, import.meta.url);
+
+    const demoDataFile = readFileSync(demoDataFilePathUrl).toString();
+    const demoData = JSON.parse(demoDataFile);
+
+    return demoData;
+};
+
+export const getThumbnailFileUrl = ({ exampleName, isDev }: { exampleName: string; isDev?: boolean }) => {
+    const publicPath = getPublicFileUrl({ isDev });
+    const thumbnailFilePath = pathJoin(publicPath.pathname, 'demo', 'thumbnails', `${exampleName}.png`);
+
+    return new URL(thumbnailFilePath, import.meta.url);
+};
 
 export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
     const contentRoot = getContentRootFileUrl();

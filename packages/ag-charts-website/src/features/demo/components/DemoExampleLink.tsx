@@ -1,6 +1,5 @@
 import type { FunctionComponent } from 'react';
-import { getExampleUrl, getPageUrl } from '../utils/urlPaths';
-import { ExampleIFrame } from '../../example-runner/components/ExampleIFrame';
+import { getExampleImageUrl, getPageUrl } from '../utils/urlPaths';
 import styles from './DemoExampleLink.module.scss';
 
 interface Props {
@@ -9,13 +8,13 @@ interface Props {
 }
 
 export const DemoExampleLink: FunctionComponent<Props> = ({ label, exampleName }) => {
-    const exampleUrl = getExampleUrl({
+    const imageUrl = getExampleImageUrl({
         exampleName,
     });
 
     return (
         <a className={styles.link} href={getPageUrl(exampleName)}>
-            <ExampleIFrame url={exampleUrl} />
+            <img src={imageUrl} alt={label} />
             <span>{label}</span>
         </a>
     );

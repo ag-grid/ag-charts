@@ -39,7 +39,7 @@ export const agChartsVueVersion = '8.0.0';
  *
  * NOTE: Includes trailing slash (`/`)
  */
-export const SITE_BASE_URL = import.meta.env?.BASE_URL;
+export const SITE_BASE_URL = import.meta.env?.BASE_URL || process.env.SITE_BASE_URL;
 
 /**
  * Number of URL segments in `SITE_BASE_URL`

@@ -56,8 +56,17 @@ export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
     return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/ag-charts-enterprise.umd.js');
 };
 
-export const getContentRootFileUrl = (): URL => {
-    const contentRoot = getIsDev()
+export const getPublicFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
+    const contentRoot = isDev
+        ? // Relative to the folder of this file
+          '../../public'
+        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
+          '../../../../../packages/ag-charts-website/public';
+    return new URL(contentRoot, import.meta.url);
+};
+
+export const getContentRootFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
+    const contentRoot = isDev
         ? // Relative to the folder of this file
           '../content'
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)

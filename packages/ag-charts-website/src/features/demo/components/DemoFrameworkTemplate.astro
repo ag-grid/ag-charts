@@ -5,6 +5,7 @@ import { getExampleUrl } from '../utils/urlPaths';
 import FrameworkTemplate from '../../example-runner/components/FrameworkTemplate.astro';
 import { DEMO_INTERNAL_FRAMEWORK } from '../constants';
 import { getChartTypeName, getExampleName } from '../utils/filesData';
+import type { GeneratedContents } from '../../examples-generator/types';
 
 interface Props {
     exampleName: string;
@@ -12,14 +13,21 @@ interface Props {
      * Whether to use relative paths for script files references
      */
     relativePath?: boolean;
+    /**
+     * Override to be used for generated contents
+     */
+    generatedContents?: GeneratedContents;
 }
 
-const { exampleName, relativePath } = Astro.props as Props;
+const { exampleName, relativePath, generatedContents: generatedContentsOverride } = Astro.props as Props;
 
 const internalFramework = DEMO_INTERNAL_FRAMEWORK;
-const generatedContents = await getGeneratedDemoContents({
-    exampleName,
-});
+const generatedContents = generatedContentsOverride
+    ? generatedContentsOverride
+    : await getGeneratedDemoContents({
+          exampleName,
+      });
+
 const exampleUrl = getExampleUrl({
     exampleName,
 });
@@ -39,7 +47,7 @@ const displayExampleName = getExampleName({
 <FrameworkTemplate
     internalFramework={internalFramework}
     pageName={pageName!}
-    exampleName={displayExampleName}
+    exampleName={displayExampleName!}
     exampleUrl={exampleUrl}
     generatedContents={generatedContents!}
     relativePath={relativePath}
