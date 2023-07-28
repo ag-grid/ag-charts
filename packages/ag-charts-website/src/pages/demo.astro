@@ -1,12 +1,13 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import { Icon } from '../components/icon/Icon';
+import { Icon, IconName } from '../components/icon/Icon';
 import { getPageHashUrl, getPageUrl } from '../features/demo/utils/urlPaths';
+import type { DemoExamples } from '../types/ag-grid';
 
 const demosEntry = await getEntry('demo', 'demos');
-
-const { chartTypes = demosEntry.data.chartTypes } = Astro.props;
+const demos: DemoExamples = demosEntry.data;
+const { chartTypes } = demos;
 ---
 
 <Layout>
@@ -17,7 +18,7 @@ const { chartTypes = demosEntry.data.chartTypes } = Astro.props;
                     chartTypes.map((chartType) => (
                         <li>
                             <a href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}>
-                                <Icon client:only name={chartType.icon} />
+                                <Icon client:only name={chartType.icon as IconName} />
                                 <span class="name">{chartType.name}</span>
                                 {chartType.enterprise && (
                                     <span class="enterpriseIcon">
