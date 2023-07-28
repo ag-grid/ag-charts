@@ -1,6 +1,7 @@
 import type { DemoExamples } from '../../../types/ag-grid';
 import { getContentRootFileUrl } from '../../../utils/pages';
 import { pathJoin } from '../../../utils/pathJoin';
+import { getPageHashUrl } from './urlPaths';
 
 export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
     const contentRoot = getContentRootFileUrl();
@@ -56,10 +57,22 @@ export const getChartExampleTitle = ({ demos, exampleName }: { demos: DemoExampl
 export const getDemoExamples = ({ demos }: { demos: DemoExamples }) => {
     const { chartTypes } = demos;
     const demoExamples = chartTypes
-        .map(({ demos }) => {
-            return demos.map(({ example }) => {
+        .map((chartType) => {
+            const { demos } = chartType;
+            return demos.map((demo, i) => {
+                const { example } = demo;
                 return {
                     exampleName: example,
+                    page: {
+                        ...demo,
+                        chartType: chartType.name,
+                        slug: chartType.slug,
+                        docsUrl: getPageHashUrl(chartType.slug),
+                        icon: chartType.icon,
+                        enterprise: chartType.enterprise,
+                    },
+                    prevDemo: i > 0 ? demos[i - 1] : demos[demos.length - 1],
+                    nextDemo: demos.length > i + 1 ? demos[i + 1] : demos[0],
                 };
             });
         })

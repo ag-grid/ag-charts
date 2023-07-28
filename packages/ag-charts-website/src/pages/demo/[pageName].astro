@@ -3,41 +3,13 @@ import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Icon } from '../../components/icon/Icon';
 import DemoExampleRunner from '../../features/demo/components/DemoExampleRunner.astro';
-import { getExampleUrl, getPageHashUrl } from '../../features/demo/utils/urlPaths';
+import { getExampleUrl } from '../../features/demo/utils/urlPaths';
+import { getDemoPages } from '../../features/demo/utils/pageData';
 
 export async function getStaticPaths() {
     const demosEntry = await getEntry('demo', 'demos');
 
-    const demos = demosEntry.data.chartTypes
-        .map((chartType) => {
-            const demosWithChartTypeMeta = chartType.demos.map((demo) => {
-                return {
-                    ...demo,
-                    chartType: chartType.name,
-                    slug: chartType.slug,
-                    docsUrl: getPageHashUrl(chartType.slug),
-                    icon: chartType.icon,
-                    enterprise: chartType.enterprise,
-                };
-            });
-
-            return demosWithChartTypeMeta;
-        })
-        .flat();
-
-    const pages = demos.map((demo, i) => {
-        return {
-            params: {
-                pageName: demo.example,
-            },
-            props: {
-                page: demo,
-                prevDemo: i > 0 ? demos[i - 1] : demos[demos.length - 1],
-                nextDemo: demos.length > i + 1 ? demos[i + 1] : demos[0],
-            },
-        };
-    });
-
+    const pages = getDemoPages({ demos: demosEntry.data });
     return pages;
 }
 
