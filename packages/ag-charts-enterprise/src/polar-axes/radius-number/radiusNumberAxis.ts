@@ -78,11 +78,11 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
 
     protected getAxisTransform() {
         const maxRadius = this.scale.range[0];
-        const { translation, positionAngle } = this;
+        const { translation, positionAngle, innerRadius } = this;
         const rotation = toRadians(positionAngle);
         return {
             translationX: translation.x,
-            translationY: translation.y - maxRadius,
+            translationY: translation.y - maxRadius - innerRadius,
             rotation,
             rotationCenterX: 0,
             rotationCenterY: maxRadius,

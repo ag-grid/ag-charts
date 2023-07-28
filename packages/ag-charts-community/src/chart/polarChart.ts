@@ -40,25 +40,29 @@ export class PolarChart extends Chart {
     }
 
     protected updateAxes(cx: number, cy: number, radius: number) {
-        this.axes.forEach((axis) => {
-            if (axis.direction === ChartAxisDirection.X) {
-                const rotation = toRadians(axis.rotation ?? 0);
-                axis.range = [-Math.PI / 2 + rotation, (3 * Math.PI) / 2 + rotation];
-                axis.gridLength = radius;
-            } else if (axis.direction === ChartAxisDirection.Y) {
-                axis.range = [radius, 0];
-            }
+        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
+        const radiusAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
+        if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) {
+            return;
+        }
+
+        const angleScale = angleAxis.scale;
+        const angles = angleScale.ticks?.().map((value: string) => angleScale.convert(value));
+        const innerRadius = radiusAxis.innerRadius;
+        const rotation = toRadians(angleAxis.rotation ?? 0);
+
+        angleAxis.innerRadius = innerRadius;
+        angleAxis.range = [-Math.PI / 2 + rotation, (3 * Math.PI) / 2 + rotation];
+        angleAxis.gridLength = radius;
+
+        radiusAxis.gridAngles = angles;
+        radiusAxis.range = [radius, innerRadius];
+
+        [angleAxis, radiusAxis].forEach((axis) => {
             axis.translation.x = cx;
             axis.translation.y = cy;
             axis.update();
         });
-
-        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
-        const scale = angleAxis?.scale;
-        const angles = scale?.ticks?.().map((value) => scale.convert(value));
-        this.axes
-            .filter((axis): axis is PolarAxis => axis instanceof PolarAxis)
-            .forEach((axis) => (axis.gridAngles = angles));
     }
 
     private computeSeriesRect(shrinkRect: BBox) {

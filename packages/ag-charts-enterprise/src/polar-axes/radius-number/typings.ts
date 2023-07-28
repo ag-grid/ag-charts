@@ -24,6 +24,8 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions[];
+    /** Radius of a hole of polar axes. */
+    innerRadius?: number;
 }
 
 export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}
