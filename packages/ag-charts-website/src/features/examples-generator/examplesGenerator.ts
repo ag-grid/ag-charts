@@ -7,6 +7,7 @@ import type { InternalFramework } from '../../types/ag-grid';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import type { GeneratedContents } from './types.d';
 import { SOURCE_ENTRY_FILE_NAME } from './constants';
+import { pathJoin } from '../../utils/pathJoin';
 
 /**
  * Get the file list of the generated contents
@@ -55,7 +56,7 @@ export const getGeneratedContents = async ({
     const entryFile = await getFileContents({
         folderUrl,
         fileName: sourceEntryFileName,
-    });
+    }).catch(() => {}); // Fail silently
 
     if (!entryFile) {
         return;

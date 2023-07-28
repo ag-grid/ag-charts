@@ -38,7 +38,7 @@ export async function get({ params }: { params: Params }) {
         return JSON.stringify(error);
     };
 
-    const { files } =
+    const { files = {} } =
         (await getGeneratedDocsContents({
             internalFramework,
             pageName,

@@ -26,7 +26,7 @@ const isDev = getIsDev();
 
 const library = 'charts';
 
-const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } = generatedContents;
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } = generatedContents || {};
 const indexFragment = files && files['index.html'];
 const appLocation = relativePath ? '' : exampleUrl;
 const boilerPlateUrl = relativePath
@@ -49,6 +49,14 @@ const supportedInternalFrameworks: InternalFramework[] = [
 
 const timeNow = Date.now();
 ---
+
+{
+    !generatedContents && (
+        <p>
+            Error generating content for: <a href={exampleUrl}>{exampleUrl}</a>
+        </p>
+    )
+}
 
 {
     internalFramework === 'vanilla' && (
