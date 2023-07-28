@@ -1,15 +1,56 @@
-import type {
-    AgBaseSeriesOptions,
-    AgChartLabelOptions,
-    AgSeriesListeners,
-    AgSeriesTooltip,
-    AgSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    CssColor,
-    Opacity,
-    PixelSize,
-} from 'ag-charts-community';
+---
+title: "Nightingale Series"
+enterprise: true
+---
 
+**Nightingale** series (sometimes called a *Rose chart*) represent a dataset in a form of a polar area diagram.
+
+## Grouped Nightingale
+
+To plot a basic Nightingale we need an array of data, where every item will have a single category value (for the angle axis) and a single numeric value (for the radius axis).
+
+A minimal nightingale series configuration will look like:
+
+```js
+series: [{
+    type: 'nightingale',
+    angleKey: 'product',
+    radiusKey: 'sales',
+}]
+```
+
+{% chartExampleRunner title="Grouped Nightingale Chart" name="group-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Stacked Nightingale
+
+Nightingale sectors can be stacked over each other to form a total by each category. The next example demonstrates a stacked nightingale chart:
+
+```js
+series: [
+    {
+        type: 'nightingale',
+        angleKey: 'product',
+        radiusKey: 'A sales',
+        stacked: true,
+    },
+    {
+        type: 'nightingale',
+        angleKey: 'product',
+        radiusKey: 'B sales',
+        stacked: true,
+    },
+],
+```
+
+{% chartExampleRunner title="Stacked Nightingale Chart" name="stack-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
+
+Please see the API reference for more polar axes style options.
+
+### API Reference
+
+{/*  TODO: replace with usual api reference component  */}
+
+```ts
 /** Configuration for Nightingale series. */
 export interface AgNightingaleSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     type?: 'nightingale';
@@ -101,8 +142,4 @@ export interface AgNightingaleSeriesFormat {
     stroke?: CssColor;
     strokeWidth?: PixelSize;
 }
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;
+```
