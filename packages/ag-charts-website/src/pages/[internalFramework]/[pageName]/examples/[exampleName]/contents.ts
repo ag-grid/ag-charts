@@ -7,7 +7,6 @@ interface Params {
     internalFramework: InternalFramework;
     pageName: string;
     exampleName: string;
-    fileName: string;
 }
 
 export async function getStaticPaths() {
