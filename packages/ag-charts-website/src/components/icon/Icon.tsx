@@ -133,7 +133,7 @@ export const ICON_MAP = {
     ...SOCIALS_ICON_MAP,
     ...DOCS_CATEGORIES_ICON_MAP,
     ...HOMEPAGE_FEATURES_ICON_MAP,
-    ...CHARTS_ICON_MAP
+    ...CHARTS_ICON_MAP,
 };
 
 export type IconName = keyof typeof ICON_MAP;
