@@ -32,7 +32,6 @@ describe('Nightingale Chart', () => {
     });
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
-        container: document.getElementById('myChart'),
         title: {
             text: `Night & Gale Inc revenue by product category`,
         },
