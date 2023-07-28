@@ -190,7 +190,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 on: {
                     update: {
                         target: 'ready',
-                        action: () => {},
+                        action: () => this.animateEmptyUpdateReady(),
                     },
                 },
             },
@@ -198,11 +198,11 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 on: {
                     update: {
                         target: 'ready',
-                        action: () => {},
+                        action: () => this.animateReadyUpdate(),
                     },
                     resize: {
                         target: 'ready',
-                        action: () => {},
+                        action: () => this.animateReadyResize(),
                     },
                 },
             },
@@ -475,6 +475,80 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             } else {
                 node.visible = false;
             }
+        });
+    }
+
+    protected beforeSectorAnimation() {
+        const { fill, fillOpacity, stroke, strokeWidth } = this;
+        this.sectorSelection.each((node, datum) => {
+            node.centerX = 0;
+            node.centerY = 0;
+            node.startAngle = datum.startAngle;
+            node.endAngle = datum.endAngle;
+            node.fill = fill;
+            node.fillOpacity = fillOpacity;
+            node.stroke = stroke;
+            node.strokeWidth = strokeWidth;
+            node.lineDash = this.lineDash;
+        });
+    }
+
+    protected animateEmptyUpdateReady() {
+        if (!this.visible) {
+            return;
+        }
+
+        const { sectorSelection, labelSelection } = this;
+
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const labelDuration = 200;
+        const labelDelay = duration;
+
+        this.beforeSectorAnimation();
+
+        sectorSelection.each((node, datum) => {
+            this.ctx.animationManager?.animateMany<number>(
+                `${this.id}_empty-update-ready_${node.id}`,
+                [
+                    { from: 0, to: datum.innerRadius },
+                    { from: 0, to: datum.outerRadius },
+                ],
+                {
+                    duration,
+                    onUpdate: ([innerRadius, outerRadius]) => {
+                        node.innerRadius = innerRadius;
+                        node.outerRadius = outerRadius;
+                    },
+                }
+            );
+        });
+
+        labelSelection.each((label) => {
+            this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+                from: 0,
+                to: 1,
+                delay: labelDelay,
+                duration: labelDuration,
+                onUpdate: (opacity) => {
+                    label.opacity = opacity;
+                },
+            });
+        });
+    }
+
+    protected animateReadyUpdate() {
+        this.resetSectors();
+    }
+
+    protected animateReadyResize() {
+        this.ctx.animationManager?.reset();
+        this.resetSectors();
+    }
+
+    protected resetSectors() {
+        this.sectorSelection.each((node, datum) => {
+            node.innerRadius = datum.innerRadius;
+            node.outerRadius = datum.outerRadius;
         });
     }
 
