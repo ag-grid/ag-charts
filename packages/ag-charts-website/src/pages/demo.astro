@@ -2,8 +2,9 @@
 import { getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { Icon, IconName } from '../components/icon/Icon';
-import { getPageHashUrl, getPageUrl } from '../features/demo/utils/urlPaths';
+import { getPageHashUrl } from '../features/demo/utils/urlPaths';
 import type { DemoExamples } from '../types/ag-grid';
+import { DemoExampleLink } from '../features/demo/components/DemoExampleLink';
 
 const demosEntry = await getEntry('demo', 'demos');
 const demos: DemoExamples = demosEntry.data;
@@ -47,11 +48,8 @@ const { chartTypes } = demos;
                             </a>
                         </h2>
                         <div class="demo-list">
-                            {chartType.demos.map((demo) => (
-                                <a class="demo-item" href={getPageUrl(demo.example)}>
-                                    <div class="dummy-image" />
-                                    <p>{demo.name}</p>
-                                </a>
+                            {chartType.demos.map(({ name, example }) => (
+                                <DemoExampleLink client:load label={name} exampleName={example} />
                             ))}
                         </div>
                     </div>
@@ -157,17 +155,6 @@ const { chartTypes } = demos;
         flex-direction: row;
         flex-wrap: wrap;
         gap: $size-2 $list-gap;
-    }
-
-    .demo-item {
-        width: calc(50% - $list-gap / 2);
-    }
-
-    .dummy-image {
-        width: 100%;
-        aspect-ratio: 16 / 10;
-        background-color: #ddd;
-        border-radius: var(--border-radius);
     }
 </style>
 

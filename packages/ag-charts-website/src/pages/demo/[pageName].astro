@@ -3,8 +3,8 @@ import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Icon } from '../../components/icon/Icon';
 import DemoExampleRunner from '../../features/demo/components/DemoExampleRunner.astro';
-import { getExampleUrl } from '../../features/demo/utils/urlPaths';
 import { getDemoPages } from '../../features/demo/utils/pageData';
+import { DemoExampleLink } from '../../features/demo/components/DemoExampleLink';
 
 export async function getStaticPaths() {
     const demosEntry = await getEntry('demo', 'demos');
@@ -40,27 +40,9 @@ const { page, prevDemo, nextDemo } = Astro.props;
         <p set:html={page.description} />
 
         <div class="moreDemos">
-            <a
-                class="prevDemo"
-                href={getExampleUrl({
-                    exampleName: prevDemo.example,
-                })}
-            >
-                <div class="dummyImage"></div>
-                <span>Previous:</span>
-                <b>{prevDemo.name}</b>
-            </a>
+            <DemoExampleLink client:load label={prevDemo.name} exampleName={prevDemo.example} />
 
-            <a
-                class="nextDemo"
-                href={getExampleUrl({
-                    exampleName: nextDemo.example,
-                })}
-            >
-                <div class="dummyImage"></div>
-                <span>Next:</span>
-                <b>{nextDemo.name}</b>
-            </a>
+            <DemoExampleLink client:load label={nextDemo.name} exampleName={nextDemo.example} />
         </div>
     </div>
 </Layout>
