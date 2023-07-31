@@ -445,6 +445,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const fill = highlightedStyle?.fill ?? this.fill;
         const fillOpacity = highlightedStyle?.fillOpacity ?? this.fillOpacity;
         const stroke = highlightedStyle?.stroke ?? this.stroke;
+        const strokeOpacity = this.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
 
         selection.update(selectionData).each((node, datum) => {
@@ -457,6 +458,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             node.fill = fill;
             node.fillOpacity = fillOpacity;
             node.stroke = stroke;
+            node.strokeOpacity = strokeOpacity;
             node.strokeWidth = strokeWidth;
             node.lineDash = this.lineDash;
         });
@@ -487,7 +489,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
     }
 
     protected beforeSectorAnimation() {
-        const { fill, fillOpacity, stroke, strokeWidth } = this;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } = this;
         this.sectorSelection.each((node, datum) => {
             node.centerX = 0;
             node.centerY = 0;
@@ -496,6 +498,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             node.fill = fill;
             node.fillOpacity = fillOpacity;
             node.stroke = stroke;
+            node.strokeOpacity = strokeOpacity;
             node.strokeWidth = strokeWidth;
             node.lineDash = this.lineDash;
         });
