@@ -216,7 +216,9 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
         } else {
             mergedOptions.axes = mergedOptions.axes?.map((axis: any) => {
                 const axisType = axis.type;
-                const axisDefaults = (defaultOverrides as AgCartesianChartOptions).axes?.find(({ type }) => type === axisType);
+                const axisDefaults = (defaultOverrides as AgCartesianChartOptions).axes?.find(
+                    ({ type }) => type === axisType
+                );
                 const axesTheme = jsonMerge([
                     axesThemes[axisType],
                     axesThemes[axisType][axis.position ?? 'unknown'] ?? {},
