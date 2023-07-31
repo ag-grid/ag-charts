@@ -519,7 +519,6 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             radiusAxis instanceof PolarAxis
                 ? this.radius * radiusAxis.innerRadiusRatio + radiusAxis.innerRadiusOffset
                 : 0;
-        console.log(axisInnerRadius);
 
         sectorSelection.each((node, datum) => {
             this.ctx.animationManager?.animateMany<number>(
