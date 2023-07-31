@@ -50,7 +50,7 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
     groupPaddingInner: number = 0;
 
     @Validate(NUMBER(0, 1))
-    groupPaddingOuter: number = 0;
+    paddingInner: number = 0;
 
     protected labelData: AngleCategoryAxisLabelDatum[] = [];
     protected tickData: AngleCategoryAxisTickDatum[] = [];

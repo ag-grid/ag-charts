@@ -325,7 +325,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         let groupPaddingOuter = 0;
         if (angleAxis instanceof AngleCategoryAxis) {
             groupPaddingInner = angleAxis.groupPaddingInner;
-            groupPaddingOuter = angleAxis.groupPaddingOuter;
+            groupPaddingOuter = angleAxis.paddingInner;
         }
 
         const groupAngleStep = angleScale.bandwidth ?? 0;
