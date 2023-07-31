@@ -4,6 +4,8 @@ import type {
     AgAxisNumberTickOptions,
     AgBaseCrossLineOptions,
     AgBaseCrossLineLabelOptions,
+    PixelSize,
+    Ratio,
 } from 'ag-charts-community';
 
 export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
@@ -24,6 +26,10 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions[];
+    /** The offset in pixels of the inner radius of the axis. */
+    innerRadiusOffset?: PixelSize;
+    /** The ratio of the inner radius of the axis. */
+    innerRadiusRatio?: Ratio;
 }
 
 export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}

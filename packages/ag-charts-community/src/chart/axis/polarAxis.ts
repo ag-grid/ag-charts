@@ -7,6 +7,9 @@ export abstract class PolarAxis<S extends Scale<any, any, any> = Scale<any, any,
 
     shape: 'polygon' | 'circle' = 'polygon';
 
+    innerRadiusOffset: number = 0;
+    innerRadiusRatio: number = 0;
+
     protected defaultTickMinSpacing = 20;
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null {

@@ -173,17 +173,18 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
     }
 
     protected updateGridLines() {
-        const { scale, gridLength: radius, gridStyle, tick } = this;
+        const { scale, gridLength: radius, gridStyle, tick, innerRadiusOffset, innerRadiusRatio } = this;
         if (!(gridStyle && radius > 0)) {
             return;
         }
 
         const ticks = this.getVisibleTicks();
+        const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;
         this.gridLineGroupSelection.update(tick.enabled ? ticks : []).each((line, value, index) => {
             const style = gridStyle[index % gridStyle.length];
             const angle = scale.convert(value);
-            line.x1 = 0;
-            line.y1 = 0;
+            line.x1 = innerRadius * Math.cos(angle);
+            line.y1 = innerRadius * Math.sin(angle);
             line.x2 = radius * Math.cos(angle);
             line.y2 = radius * Math.sin(angle);
             line.stroke = style.stroke;

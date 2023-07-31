@@ -18,6 +18,7 @@ const {
     OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
+    PolarAxis,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
@@ -305,8 +306,9 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         }
 
         const angleAxis = this.axes[ChartAxisDirection.X];
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
         const angleScale = angleAxis?.scale;
-        const radiusScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const radiusScale = radiusAxis?.scale;
 
         if (!angleScale || !radiusScale) {
             return [];
@@ -335,6 +337,12 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         groupScale.range = [-paddedGroupAngleStep / 2, paddedGroupAngleStep / 2];
         groupScale.paddingInner = groupPaddingInner;
 
+        const axisInnerRadius =
+            radiusAxis instanceof PolarAxis
+                ? this.radius * radiusAxis.innerRadiusRatio + radiusAxis.innerRadiusOffset
+                : 0;
+        const axisOuterRadius = this.radius;
+
         const nodeData = processedData.data.map((group, index): NightingaleNodeDatum => {
             const { datum, keys, values } = group;
 
@@ -348,8 +356,8 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             const endAngle = startAngle + groupScale.bandwidth;
             const angle = startAngle + groupScale.bandwidth / 2;
 
-            const innerRadius = this.radius - radiusScale.convert(innerRadiusDatum);
-            const outerRadius = this.radius - radiusScale.convert(outerRadiusDatum);
+            const innerRadius = axisOuterRadius + axisInnerRadius - radiusScale.convert(innerRadiusDatum);
+            const outerRadius = axisOuterRadius + axisInnerRadius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
 
             const cos = Math.cos(angle);
@@ -506,12 +514,18 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
 
         this.beforeSectorAnimation();
 
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const axisInnerRadius =
+            radiusAxis instanceof PolarAxis
+                ? this.radius * radiusAxis.innerRadiusRatio + radiusAxis.innerRadiusOffset
+                : 0;
+
         sectorSelection.each((node, datum) => {
             this.ctx.animationManager?.animateMany<number>(
                 `${this.id}_empty-update-ready_${node.id}`,
                 [
-                    { from: 0, to: datum.innerRadius },
-                    { from: 0, to: datum.outerRadius },
+                    { from: axisInnerRadius, to: datum.innerRadius },
+                    { from: axisInnerRadius, to: datum.outerRadius },
                 ],
                 {
                     duration,
