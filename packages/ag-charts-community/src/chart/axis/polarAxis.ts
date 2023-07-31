@@ -7,7 +7,8 @@ export abstract class PolarAxis<S extends Scale<any, any, any> = Scale<any, any,
 
     shape: 'polygon' | 'circle' = 'polygon';
 
-    innerRadius: number = 0;
+    innerRadiusOffset: number = 0;
+    innerRadiusRatio: number = 0;
 
     protected defaultTickMinSpacing = 20;
 

@@ -48,15 +48,17 @@ export class PolarChart extends Chart {
 
         const angleScale = angleAxis.scale;
         const angles = angleScale.ticks?.().map((value: string) => angleScale.convert(value));
-        const innerRadius = radiusAxis.innerRadius;
+        const innerRadiusOffset = radiusAxis.innerRadiusOffset;
+        const innerRadiusRatio = radiusAxis.innerRadiusRatio;
         const rotation = toRadians(angleAxis.rotation ?? 0);
 
-        angleAxis.innerRadius = innerRadius;
+        angleAxis.innerRadiusOffset = innerRadiusOffset;
+        angleAxis.innerRadiusRatio = innerRadiusRatio;
         angleAxis.range = [-Math.PI / 2 + rotation, (3 * Math.PI) / 2 + rotation];
         angleAxis.gridLength = radius;
 
         radiusAxis.gridAngles = angles;
-        radiusAxis.range = [radius, innerRadius];
+        radiusAxis.range = [radius, radius * innerRadiusRatio + innerRadiusOffset];
 
         [angleAxis, radiusAxis].forEach((axis) => {
             axis.translation.x = cx;
