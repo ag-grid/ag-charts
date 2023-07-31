@@ -89,7 +89,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             // Find and update the datum for each node or throw into garbage if datum no longer exists
             for (const [datumId, nodeIndex] of this._datumNodeIndices) {
                 const datumIndex = datumIds.get(datumId);
-                if (datumIndex !== undefined) {
+                if (datumIndex !== undefined && datumIndex < this._nodes.length) {
                     this._nodes[nodeIndex].datum = data[datumIndex];
                 } else {
                     this._garbage.push(datumId);
