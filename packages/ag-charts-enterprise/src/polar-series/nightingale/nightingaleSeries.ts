@@ -449,17 +449,30 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
 
         selection.update(selectionData).each((node, datum) => {
+            const format = this.formatter
+                ? this.ctx.callbackCache.call(this.formatter, {
+                      datum,
+                      fill,
+                      stroke,
+                      strokeWidth,
+                      highlighted: false,
+                      angleKey: this.angleKey,
+                      radiusKey: this.radiusKey,
+                      seriesId: this.id,
+                  })
+                : undefined;
+
             node.centerX = 0;
             node.centerY = 0;
             node.innerRadius = datum.innerRadius;
             node.outerRadius = datum.outerRadius;
             node.startAngle = datum.startAngle;
             node.endAngle = datum.endAngle;
-            node.fill = fill;
-            node.fillOpacity = fillOpacity;
-            node.stroke = stroke;
+            node.fill = format?.fill ?? fill;
+            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
+            node.stroke = format?.stroke ?? stroke;
             node.strokeOpacity = strokeOpacity;
-            node.strokeWidth = strokeWidth;
+            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.lineDash = this.lineDash;
         });
     }
@@ -489,17 +502,42 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
     }
 
     protected beforeSectorAnimation() {
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } = this;
+        const {
+            formatter,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            id: seriesId,
+            angleKey,
+            radiusKey,
+        } = this;
+        const { callbackCache } = this.ctx;
+
         this.sectorSelection.each((node, datum) => {
+            const format = formatter
+                ? callbackCache.call(formatter, {
+                      datum,
+                      fill,
+                      stroke,
+                      strokeWidth,
+                      highlighted: false,
+                      angleKey,
+                      radiusKey,
+                      seriesId,
+                  })
+                : undefined;
+
             node.centerX = 0;
             node.centerY = 0;
             node.startAngle = datum.startAngle;
             node.endAngle = datum.endAngle;
-            node.fill = fill;
-            node.fillOpacity = fillOpacity;
-            node.stroke = stroke;
+            node.fill = format?.fill ?? fill;
+            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
+            node.stroke = format?.stroke ?? stroke;
             node.strokeOpacity = strokeOpacity;
-            node.strokeWidth = strokeWidth;
+            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.lineDash = this.lineDash;
         });
     }
@@ -581,7 +619,20 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
     }
 
     getTooltipHtml(nodeDatum: NightingaleNodeDatum): string {
-        const { id: seriesId, axes, angleKey, angleName, radiusKey, radiusName, fill, tooltip, dataModel } = this;
+        const {
+            id: seriesId,
+            axes,
+            angleKey,
+            angleName,
+            radiusKey,
+            radiusName,
+            fill,
+            formatter,
+            stroke,
+            strokeWidth,
+            tooltip,
+            dataModel,
+        } = this;
         const { angleValue, radiusValue, datum } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -604,6 +655,20 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             content,
         };
         const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
+        const { callbackCache } = this.ctx;
+
+        const format = formatter
+            ? callbackCache.call(formatter, {
+                  datum,
+                  fill,
+                  stroke,
+                  strokeWidth,
+                  highlighted: false,
+                  angleKey,
+                  radiusKey,
+                  seriesId,
+              })
+            : undefined;
 
         if (tooltipFormat || tooltipRenderer) {
             const params = {
@@ -615,7 +680,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 radiusName,
                 radiusValue,
                 processedYValue,
-                color: fill,
+                color: format?.fill ?? fill,
                 title,
                 seriesId,
             };
