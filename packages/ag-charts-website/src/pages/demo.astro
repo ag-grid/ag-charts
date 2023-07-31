@@ -84,6 +84,7 @@ const { chartTypes = demosData.data.chartTypes } = Astro.props;
     .menu {
         position: sticky;
         width: $menu-width;
+        min-width: $menu-width;
         max-height: calc(100vh - #{$site-header-height});
         top: $site-header-height;
         padding-top: calc($size-7 + $size-2);
