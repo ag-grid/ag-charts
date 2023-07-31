@@ -21,17 +21,13 @@ export async function getStaticPaths() {
 export async function get({ params }: { params: Params }) {
     const { internalFramework, pageName, exampleName } = params;
 
-    const { entryFileName, files, boilerPlateFiles } =
+    const generatedContents =
         (await getGeneratedContents({
             internalFramework,
             pageName,
             exampleName,
         })) || {};
-    const response = {
-        files,
-        boilerPlateFiles,
-        entryFileName,
-    };
+    const response = generatedContents;
     const body = JSON.stringify(response);
 
     return {

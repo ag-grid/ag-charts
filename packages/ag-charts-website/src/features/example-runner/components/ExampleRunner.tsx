@@ -8,7 +8,7 @@ import { Icon } from '../../../components/icon/Icon';
 import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
 import type { ExampleOptions } from '../types';
 import { CodeViewer } from './CodeViewer';
-import { getExampleUrl, getExampleFilesUrl } from '../../../utils/pages';
+import { getExampleUrl, getExampleContentsUrl } from '../../../utils/pages';
 import { getFrameworkFromInternalFramework } from '../../../utils/framework';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
 import type { Framework } from '../../../types/ag-grid';
@@ -88,7 +88,7 @@ const ExampleRunnerInner: FunctionComponent<Props> = ({ name, title, exampleType
         ['exampleFiles', internalFramework, pageName, exampleName],
         () =>
             fetch(
-                getExampleFilesUrl({
+                getExampleContentsUrl({
                     internalFramework,
                     pageName,
                     exampleName,

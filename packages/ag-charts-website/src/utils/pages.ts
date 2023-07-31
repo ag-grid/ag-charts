@@ -179,7 +179,7 @@ export const getExampleUrlWithRelativePath = ({
 /**
  * Get endpoint for all example files
  */
-export const getExampleFilesUrl = ({
+export const getExampleContentsUrl = ({
     internalFramework,
     pageName,
     exampleName,
@@ -194,7 +194,7 @@ export const getExampleFilesUrl = ({
             pageName,
             exampleName,
         }),
-        'files'
+        'contents'
     );
 };
 
