@@ -3,7 +3,7 @@ title: "Nightingale Series"
 enterprise: true
 ---
 
-**Nightingale** series (sometimes called a *Rose chart*) represents a dataset in the form of a polar area diagram.
+**Nightingale** series (also known as *Rose chart*, *Wind Rose*,, *Polar area*, *Coxcomb chart*) represents a dataset in the form of a polar area diagram.
 
 ## Grouped Nightingale
 
@@ -43,6 +43,26 @@ series: [
 ```
 
 {% chartExampleRunner title="Stacked Nightingale Chart" name="stack-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Additional Styling Options
+
+There is a way to control the padding between elements, as well as the size of the hole in the middle. To do this, a few options should be added to the polar axes:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+        groupPaddingInner: 0.25,
+        paddingInner: 0.25,
+    },
+    {
+        type: 'radius-number',
+        innerRadiusRatio: 0.5
+    },
+]
+```
+
+{% chartExampleRunner title="Nightingale Sector Padding" name="nightingale-padding" type="generated" options="{ \"enterprise\": true }" /%}
 
 Please see the API reference for more polar axes style options.
 
