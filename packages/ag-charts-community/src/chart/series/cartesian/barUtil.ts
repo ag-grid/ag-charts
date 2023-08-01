@@ -147,8 +147,10 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
     rect.visible = visible;
 }
 
+interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
+
 export function getRectConfig<
-    Params extends Parameters<NonNullable<AgBarSeriesOptions['formatter']>>[0],
+    Params extends Omit<Parameters<NonNullable<AgBarSeriesOptions['formatter']>>[0], 'yKey' | 'value'>,
     ExtraParams extends {}
 >({
     datum,
@@ -161,7 +163,7 @@ export function getRectConfig<
     ctx: { callbackCache },
     ...opts
 }: {
-    datum: CartesianSeriesNodeDatum;
+    datum: NodeDatum;
     isHighlighted: boolean;
     style: RectConfig;
     highlightStyle: SeriesItemHighlightStyle;
@@ -181,7 +183,6 @@ export function getRectConfig<
         format = callbackCache.call(formatter as any, {
             datum: datum.datum,
             xKey: datum.xKey,
-            yKey: datum.yKey,
             fill: itemFill,
             stroke: itemStroke,
             strokeWidth: itemStrokeWidth,

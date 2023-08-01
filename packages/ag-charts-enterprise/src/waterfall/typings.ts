@@ -48,7 +48,7 @@ export interface AgWaterfallSeriesItemTooltip {
 }
 
 export interface AgWaterfallSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
-    /** Where to render series labels relative to the segments. */
+    /** Where to render series labels relative to the bars. */
     placement?: AgWaterfallSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
     padding?: PixelSize;

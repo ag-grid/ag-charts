@@ -491,6 +491,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     protected async updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
         const { datumSelection, isHighlight } = opts;
         const {
+            yKey = '',
             fill,
             stroke,
             fillOpacity,
@@ -531,6 +532,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 seriesId,
                 stackGroup,
                 ctx,
+                yKey,
             });
             config.crisp = crisp;
             config.visible = visible;
