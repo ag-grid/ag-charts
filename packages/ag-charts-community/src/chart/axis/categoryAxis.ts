@@ -35,13 +35,13 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
     }
 
     normaliseDataDomain(d: (string | object)[]): (string | object)[] {
-        // Prevent duplicate categories.
         const domain = [];
-        const valuesSet = new Set();
+        const uniqueValues = new Set();
         for (const v of d) {
             const key = v instanceof Date ? v.getTime() : v;
-            if (!valuesSet.has(key)) {
-                valuesSet.add(key);
+            if (!uniqueValues.has(key)) {
+                uniqueValues.add(key);
+                // Only add unique values
                 domain.push(v);
             }
         }
