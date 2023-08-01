@@ -60,9 +60,13 @@ export interface AgRangeBarSeriesTooltip extends AgSeriesTooltip {
 }
 
 export interface AgRangeBarSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
+    /** Where to render series labels relative to the bars. */
+    placement?: AgRangeBarSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
     padding?: PixelSize;
 }
+
+export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
 /** Configuration for RangeBar series. */
 export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
