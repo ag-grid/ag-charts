@@ -21,7 +21,7 @@ export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions {
      * It is a proportion between 0 and 1 which determines the size of the gap between the groups of items along the angle axis.
      * Default: `0.2`
      */
-    groupPaddingOuter?: number;
+    paddingInner?: number;
 }
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}

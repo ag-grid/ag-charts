@@ -674,7 +674,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const points = nodeData.map((datum) => datum.point!);
 
-        const duration = 1000;
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const markerDuration = 200;
         const markerDelay = duration;
 

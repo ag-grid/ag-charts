@@ -199,6 +199,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     readonly tick: AxisTick<S> = this.createTick();
     readonly label = new AxisLabel();
 
+    protected defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
+
     readonly translation = { x: 0, y: 0 };
     rotation: number = 0; // axis rotation angle in degrees
 
@@ -910,7 +912,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const availableRange = this.calculateAvailableRange();
 
         const defaultMinSpacing = Math.max(
-            Axis.defaultTickMinSpacing,
+            this.defaultTickMinSpacing,
             availableRange / ContinuousScale.defaultMaxTickCount
         );
 

@@ -70,16 +70,17 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** The key to use to retrieve values from the data to use as labels for the bars. */
-    labelKey?: string;
-    /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    labelName?: string;
-    /** Configuration for the negative series items. */
-    negativeItem?: AgWaterfallSeriesItemOptions<DatumType>;
-    /** Configuration for the positive series items. */
-    positiveItem?: AgWaterfallSeriesItemOptions<DatumType>;
-    /** Configuration for the total and subtotal series items. */
-    totalItem?: AgWaterfallSeriesItemOptions<DatumType>;
+    /** Configuration of total and subtotal values. */
+    totals?: WaterfallSeriesTotalMeta[];
+    /** Configuration used for the waterfall series item types. */
+    item: {
+        /** Configuration for the negative series items. */
+        negative?: AgWaterfallSeriesItemOptions<DatumType>;
+        /** Configuration for the positive series items. */
+        positive?: AgWaterfallSeriesItemOptions<DatumType>;
+        /** Configuration for the total and subtotal series items. */
+        total?: AgWaterfallSeriesItemOptions<DatumType>;
+    };
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
@@ -90,6 +91,16 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the waterfall series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
+}
+
+export interface WaterfallSeriesTotalMeta {
+    /** Configuration for the calculation of the value. This can be `total` or `subtotal`, `total` shows the cumulative value from `0` to the current data position, while `subtotal` shows the cumulative value from the previous subtotal value to the current position.
+     */
+    totalType: 'subtotal' | 'total';
+    /** The index after which the total item will be displayed. */
+    index: number;
+    /** The label to display at the axis position where the total value is positioned. */
+    axisLabel: any;
 }
 
 export interface AgWaterfallSeriesItemOptions<DatumType> {

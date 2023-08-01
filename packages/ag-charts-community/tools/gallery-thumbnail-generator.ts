@@ -71,7 +71,7 @@ const genThumbnails = async () => {
         const globalNsValues = { window, document, HTMLElement, navigator };
         Object.assign(global, globalNsValues);
 
-        const mockCtx = mockCanvas.setup({ width, height });
+        const mockCtx = mockCanvas.setup({ width, height, mockText: false });
 
         const options = { ...example, ...optionOverrides };
         const chartProxy = AgChart.create(options);

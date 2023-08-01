@@ -18,6 +18,7 @@ const {
     OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
+    PolarAxis,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
@@ -190,7 +191,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 on: {
                     update: {
                         target: 'ready',
-                        action: () => {},
+                        action: () => this.animateEmptyUpdateReady(),
                     },
                 },
             },
@@ -198,11 +199,11 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 on: {
                     update: {
                         target: 'ready',
-                        action: () => {},
+                        action: () => this.animateReadyUpdate(),
                     },
                     resize: {
                         target: 'ready',
-                        action: () => {},
+                        action: () => this.animateReadyResize(),
                     },
                 },
             },
@@ -305,8 +306,9 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         }
 
         const angleAxis = this.axes[ChartAxisDirection.X];
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
         const angleScale = angleAxis?.scale;
-        const radiusScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const radiusScale = radiusAxis?.scale;
 
         if (!angleScale || !radiusScale) {
             return [];
@@ -323,7 +325,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         let groupPaddingOuter = 0;
         if (angleAxis instanceof AngleCategoryAxis) {
             groupPaddingInner = angleAxis.groupPaddingInner;
-            groupPaddingOuter = angleAxis.groupPaddingOuter;
+            groupPaddingOuter = angleAxis.paddingInner;
         }
 
         const groupAngleStep = angleScale.bandwidth ?? 0;
@@ -334,6 +336,12 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         groupScale.domain = Array.from({ length: visibleGroupCount }).map((_, i) => String(i));
         groupScale.range = [-paddedGroupAngleStep / 2, paddedGroupAngleStep / 2];
         groupScale.paddingInner = groupPaddingInner;
+
+        const axisInnerRadius =
+            radiusAxis instanceof PolarAxis
+                ? this.radius * radiusAxis.innerRadiusRatio + radiusAxis.innerRadiusOffset
+                : 0;
+        const axisOuterRadius = this.radius;
 
         const nodeData = processedData.data.map((group, index): NightingaleNodeDatum => {
             const { datum, keys, values } = group;
@@ -348,8 +356,8 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             const endAngle = startAngle + groupScale.bandwidth;
             const angle = startAngle + groupScale.bandwidth / 2;
 
-            const innerRadius = this.radius - radiusScale.convert(innerRadiusDatum);
-            const outerRadius = this.radius - radiusScale.convert(outerRadiusDatum);
+            const innerRadius = axisOuterRadius + axisInnerRadius - radiusScale.convert(innerRadiusDatum);
+            const outerRadius = axisOuterRadius + axisInnerRadius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
 
             const cos = Math.cos(angle);
@@ -437,19 +445,34 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const fill = highlightedStyle?.fill ?? this.fill;
         const fillOpacity = highlightedStyle?.fillOpacity ?? this.fillOpacity;
         const stroke = highlightedStyle?.stroke ?? this.stroke;
+        const strokeOpacity = this.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
 
         selection.update(selectionData).each((node, datum) => {
+            const format = this.formatter
+                ? this.ctx.callbackCache.call(this.formatter, {
+                      datum,
+                      fill,
+                      stroke,
+                      strokeWidth,
+                      highlighted: false,
+                      angleKey: this.angleKey,
+                      radiusKey: this.radiusKey,
+                      seriesId: this.id,
+                  })
+                : undefined;
+
             node.centerX = 0;
             node.centerY = 0;
             node.innerRadius = datum.innerRadius;
             node.outerRadius = datum.outerRadius;
             node.startAngle = datum.startAngle;
             node.endAngle = datum.endAngle;
-            node.fill = fill;
-            node.fillOpacity = fillOpacity;
-            node.stroke = stroke;
-            node.strokeWidth = strokeWidth;
+            node.fill = format?.fill ?? fill;
+            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
+            node.stroke = format?.stroke ?? stroke;
+            node.strokeOpacity = strokeOpacity;
+            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.lineDash = this.lineDash;
         });
     }
@@ -478,6 +501,112 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         });
     }
 
+    protected beforeSectorAnimation() {
+        const {
+            formatter,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            id: seriesId,
+            angleKey,
+            radiusKey,
+        } = this;
+        const { callbackCache } = this.ctx;
+
+        this.sectorSelection.each((node, datum) => {
+            const format = formatter
+                ? callbackCache.call(formatter, {
+                      datum,
+                      fill,
+                      stroke,
+                      strokeWidth,
+                      highlighted: false,
+                      angleKey,
+                      radiusKey,
+                      seriesId,
+                  })
+                : undefined;
+
+            node.centerX = 0;
+            node.centerY = 0;
+            node.startAngle = datum.startAngle;
+            node.endAngle = datum.endAngle;
+            node.fill = format?.fill ?? fill;
+            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
+            node.stroke = format?.stroke ?? stroke;
+            node.strokeOpacity = strokeOpacity;
+            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
+            node.lineDash = this.lineDash;
+        });
+    }
+
+    protected animateEmptyUpdateReady() {
+        if (!this.visible) {
+            return;
+        }
+
+        const { sectorSelection, labelSelection } = this;
+
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const labelDuration = 200;
+        const labelDelay = duration;
+
+        this.beforeSectorAnimation();
+
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const axisInnerRadius =
+            radiusAxis instanceof PolarAxis
+                ? this.radius * radiusAxis.innerRadiusRatio + radiusAxis.innerRadiusOffset
+                : 0;
+
+        sectorSelection.each((node, datum) => {
+            this.ctx.animationManager?.animateMany<number>(
+                `${this.id}_empty-update-ready_${node.id}`,
+                [
+                    { from: axisInnerRadius, to: datum.innerRadius },
+                    { from: axisInnerRadius, to: datum.outerRadius },
+                ],
+                {
+                    duration,
+                    onUpdate: ([innerRadius, outerRadius]) => {
+                        node.innerRadius = innerRadius;
+                        node.outerRadius = outerRadius;
+                    },
+                }
+            );
+        });
+
+        labelSelection.each((label) => {
+            this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+                from: 0,
+                to: 1,
+                delay: labelDelay,
+                duration: labelDuration,
+                onUpdate: (opacity) => {
+                    label.opacity = opacity;
+                },
+            });
+        });
+    }
+
+    protected animateReadyUpdate() {
+        this.resetSectors();
+    }
+
+    protected animateReadyResize() {
+        this.ctx.animationManager?.reset();
+        this.resetSectors();
+    }
+
+    protected resetSectors() {
+        this.sectorSelection.each((node, datum) => {
+            node.innerRadius = datum.innerRadius;
+            node.outerRadius = datum.outerRadius;
+        });
+    }
+
     protected getNodeClickEvent(event: MouseEvent, datum: NightingaleNodeDatum): NightingaleSeriesNodeClickEvent {
         return new NightingaleSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
@@ -490,7 +619,20 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
     }
 
     getTooltipHtml(nodeDatum: NightingaleNodeDatum): string {
-        const { id: seriesId, axes, angleKey, angleName, radiusKey, radiusName, fill, tooltip, dataModel } = this;
+        const {
+            id: seriesId,
+            axes,
+            angleKey,
+            angleName,
+            radiusKey,
+            radiusName,
+            fill,
+            formatter,
+            stroke,
+            strokeWidth,
+            tooltip,
+            dataModel,
+        } = this;
         const { angleValue, radiusValue, datum } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -513,6 +655,20 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
             content,
         };
         const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
+        const { callbackCache } = this.ctx;
+
+        const format = formatter
+            ? callbackCache.call(formatter, {
+                  datum,
+                  fill,
+                  stroke,
+                  strokeWidth,
+                  highlighted: false,
+                  angleKey,
+                  radiusKey,
+                  seriesId,
+              })
+            : undefined;
 
         if (tooltipFormat || tooltipRenderer) {
             const params = {
@@ -524,7 +680,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
                 radiusName,
                 radiusValue,
                 processedYValue,
-                color: fill,
+                color: format?.fill ?? fill,
                 title,
                 seriesId,
             };

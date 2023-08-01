@@ -252,7 +252,7 @@ export function setupMockCanvas(): { nodeCanvas: Canvas } {
     beforeEach(() => {
         resetIds();
 
-        mockCanvas.setup({ mockCtx, width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+        mockCanvas.setup({ mockCtx, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, mockText: true });
     });
 
     afterEach(() => {
