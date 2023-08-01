@@ -172,6 +172,11 @@ class WaterfallSeriesConnectorLine {
 }
 
 type SeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
+interface TotalMeta {
+    totalType: 'subtotal' | 'total';
+    index: number;
+    axisLabel: any;
+}
 
 export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.SeriesNodeDataContext<any>,
@@ -185,6 +190,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         negative: new WaterfallSeriesItem(),
         total: new WaterfallSeriesItem(),
     };
+
+    readonly totals: TotalMeta[] = [];
 
     readonly line = new WaterfallSeriesConnectorLine();
 
@@ -228,13 +235,11 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    @Validate(OPT_STRING)
-    typeKey?: string = undefined;
-
     private seriesItemTypes: Set<SeriesItemType> = new Set(['positive', 'negative', 'total']);
 
     async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey, yKey, data = [], typeKey = '' } = this;
+        const { xKey = '', yKey } = this;
+        const { data = [] } = this;
 
         if (!yKey) return;
 
@@ -248,7 +253,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             return isContinuous(v) && v < 0;
         };
 
-        const typeKeyValue = (v: any) => {
+        const totalTypeValue = (v: any) => {
             return v === 'total' || v === 'subtotal';
         };
 
@@ -257,9 +262,39 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             invalidValue: undefined,
         };
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const dataWithTotals: any[] = [];
+
+        const totalsMap = this.totals.reduce((totalsMap, total) => {
+            const totalsAtIndex = totalsMap.get(total.index);
+            if (totalsAtIndex) {
+                totalsAtIndex.push(total);
+            } else {
+                totalsMap.set(total.index, [total]);
+            }
+            return totalsMap;
+        }, new Map<number, TotalMeta[]>());
+
+        data.forEach((datum, i) => {
+            dataWithTotals.push(datum);
+            const totalsAtIndex = totalsMap.get(i);
+            if (totalsAtIndex) {
+                // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
+                // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
+                totalsAtIndex.forEach((total) =>
+                    dataWithTotals.push({
+                        ...total,
+                        [xKey]: {
+                            id: Math.random(),
+                            toString: () => String(total.axisLabel),
+                        },
+                    })
+                );
+            }
+        });
+
+        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, dataWithTotals, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xKey` }),
+                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 accumulativeValueProperty(this, yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrent`,
@@ -284,15 +319,11 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                     id: `yPrevious`,
                 }),
                 valueProperty(this, yKey, true, { id: `yRaw` }), // Raw value pass-through.
-                ...(typeKey
-                    ? [
-                          valueProperty(this, typeKey, false, {
-                              id: `typeValue`,
-                              missingValue: undefined,
-                              validation: typeKeyValue,
-                          }),
-                      ]
-                    : []),
+                valueProperty(this, 'totalType', false, {
+                    id: `totalTypeValue`,
+                    missingValue: undefined,
+                    validation: totalTypeValue,
+                }),
             ],
             dataVisible: this.visible,
         });
@@ -370,8 +401,8 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         const contexts: WaterfallContext[] = [];
 
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`).index;
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xKey`).index;
-        const typeKeyIndex = this.typeKey ? dataModel.resolveProcessedDataIndexById(this, `typeValue`).index : -1;
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
+        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
         const contextIndexMap = new Map<SeriesItemType, number>();
 
         const pointData: WaterfallNodePointDatum[] = [];
@@ -416,7 +447,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         let trailingSubtotal = 0;
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
-            const datumType = values[typeKeyIndex];
+            const datumType = values[totalTypeIndex];
 
             const isSubtotal = this.isSubtotal(datumType);
             const isTotal = this.isTotal(datumType);
@@ -542,7 +573,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
         const yPositiveIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentPositive').index;
         const yNegativeIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentNegative').index;
-        const typeKeyIndex = this.typeKey ? dataModel.resolveProcessedDataIndexById(this, `typeValue`).index : -1;
+        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
 
         const positiveDomain = processedData.domain.values[yPositiveIndex] ?? [];
         const negativeDomain = processedData.domain.values[yNegativeIndex] ?? [];
@@ -555,7 +586,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
             seriesItemTypes.add('negative');
         }
 
-        const itemTypes = processedData?.domain.values[typeKeyIndex];
+        const itemTypes = processedData?.domain.values[totalTypeIndex];
         if (!itemTypes) {
             return;
         }
