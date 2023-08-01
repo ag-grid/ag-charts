@@ -1,12 +1,14 @@
 import { CanvasRenderingContext2D } from 'canvas';
 
-CanvasRenderingContext2D.prototype.measureText = function (text: string) {
-    return measureText(this, text);
-};
-
-CanvasRenderingContext2D.prototype.fillText = function (text: string, x: number, y: number) {
-    fillText(this, text, x, y);
-};
+export function mockCanvasText() {
+    CanvasRenderingContext2D.prototype.measureText = function (text: string) {
+        return measureText(this, text);
+    };
+    
+    CanvasRenderingContext2D.prototype.fillText = function (text: string, x: number, y: number) {
+        fillText(this, text, x, y);
+    };
+}
 
 function fillText(context: CanvasRenderingContext2D, text: string, x: number, y: number) {
     text = singleLineText(text);

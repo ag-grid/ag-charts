@@ -1,6 +1,6 @@
 import type { Canvas } from 'canvas';
 import { createCanvas, Image } from 'canvas';
-import './mock-canvas-text';
+import { mockCanvasText } from  './mock-canvas-text';
 
 export class MockContext {
     realCreateElement: typeof document.createElement;
@@ -25,7 +25,10 @@ export class MockContext {
     }
 }
 
-export function setup({ width = 800, height = 600, mockCtx = new MockContext() } = {}) {
+export function setup({ width = 800, height = 600, mockCtx = new MockContext(), mockText = false } = {}) {
+    if (mockText) {
+        mockCanvasText();
+    }
     const nodeCanvas = createCanvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
