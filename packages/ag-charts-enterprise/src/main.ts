@@ -70,7 +70,7 @@ import {
     AgRangeBarSeriesTooltip,
     AgRangeBarSeriesLabelOptions,
     AgRangeBarSeriesTooltipRendererParams,
-} from './rangeBAr/main';
+} from './rangeBar/main';
 
 export * from 'ag-charts-community';
 
