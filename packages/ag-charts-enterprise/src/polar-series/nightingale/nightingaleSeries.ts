@@ -335,7 +335,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         const { index: groupIndex, visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
         groupScale.domain = Array.from({ length: visibleGroupCount }).map((_, i) => String(i));
         groupScale.range = [-paddedGroupAngleStep / 2, paddedGroupAngleStep / 2];
-        groupScale.paddingInner = groupPaddingInner;
+        groupScale.paddingInner = visibleGroupCount > 1 ? groupPaddingInner : 0;
 
         const axisInnerRadius =
             radiusAxis instanceof PolarAxis
