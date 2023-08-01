@@ -1,0 +1,37 @@
+---
+title: "Range Bar/Column Series"
+enterprise: true
+---
+
+A Range Bar/Column series displays both the high and low values within the data using bars or columns. This series type is used to monitor how consistent or variable the data is.
+
+
+## Range Column
+
+To create a basic Range Column chart, use the `range-column` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
+
+```js
+series: [{
+    type: 'range-column',
+    xKey: 'date',
+    yLowKey: 'low',
+    yHighKey: 'high'
+}]
+```
+
+{% chartExampleRunner title="Basic Range Column" name="basic-range-column" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Range Bar
+
+To create a basic Range Bar chart, use the `range-bar` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
+
+```js
+series: [{
+    type: 'range-bar',
+    xKey: 'date',
+    yLowKey: 'low',
+    yHighKey: 'high'
+}]
+```
+
+{% chartExampleRunner title="Basic Range Bar" name="basic-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
