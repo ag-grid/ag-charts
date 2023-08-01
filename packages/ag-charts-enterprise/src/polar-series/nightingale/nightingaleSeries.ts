@@ -337,10 +337,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         groupScale.range = [-paddedGroupAngleStep / 2, paddedGroupAngleStep / 2];
         groupScale.paddingInner = visibleGroupCount > 1 ? groupPaddingInner : 0;
 
-        const axisInnerRadius =
-            radiusAxis instanceof PolarAxis
-                ? this.radius * radiusAxis.innerRadiusRatio + radiusAxis.innerRadiusOffset
-                : 0;
+        const axisInnerRadius = radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
         const axisOuterRadius = this.radius;
 
         const nodeData = processedData.data.map((group, index): NightingaleNodeDatum => {
@@ -556,10 +553,7 @@ export class NightingaleSeries extends _ModuleSupport.PolarSeries<NightingaleNod
         this.beforeSectorAnimation();
 
         const radiusAxis = this.axes[ChartAxisDirection.Y];
-        const axisInnerRadius =
-            radiusAxis instanceof PolarAxis
-                ? this.radius * radiusAxis.innerRadiusRatio + radiusAxis.innerRadiusOffset
-                : 0;
+        const axisInnerRadius = radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
 
         sectorSelection.each((node, datum) => {
             this.ctx.animationManager?.animateMany<number>(
