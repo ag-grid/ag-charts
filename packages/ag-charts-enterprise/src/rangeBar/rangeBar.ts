@@ -315,8 +315,11 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             const xDatum = keys[xIndex];
             const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
 
-            const yLowValue = values[0][yLowIndex];
-            const yHighValue = values[0][yHighIndex];
+            const rawLowValue = values[0][yLowIndex];
+            const rawHighValue = values[0][yHighIndex];
+
+            const yLowValue = Math.min(rawLowValue, rawHighValue);
+            const yHighValue = Math.max(rawLowValue, rawHighValue);
             const yLow = Math.round(yScale.convert(yLowValue, { strict: false }));
             const yHigh = Math.round(yScale.convert(yHighValue, { strict: false }));
 
