@@ -231,7 +231,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         event: MouseEvent,
         datum: RangeBarNodeDatum
     ): _ModuleSupport.CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yLowKey, event, datum, this); // TODO: fix this
+        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yLowKey, event, datum, this); // TODO: Range series has two y keys, yLowKey and yHighKey so it doesn't fit the usual cartesian series pattern. Fix this.
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
