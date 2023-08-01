@@ -12,8 +12,8 @@ const options: AgChartOptions = {
       type: "range-column",
       xKey: "date",
       xName: "Date",
-      yMinKey: "low",
-      yMaxKey: "high",
+      yLowKey: "low",
+      yHighKey: "high",
     } as any,
   ],
 }

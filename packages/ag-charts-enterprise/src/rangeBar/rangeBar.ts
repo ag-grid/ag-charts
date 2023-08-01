@@ -40,10 +40,10 @@ interface RangeBarNodeDatum
         Readonly<_Scene.Point> {
     readonly index: number;
     readonly itemId: string;
-    readonly yMinKey: string;
-    readonly yMaxKey: string;
-    readonly yMinValue: number;
-    readonly yMaxValue: number;
+    readonly yLowKey: string;
+    readonly yHighKey: string;
+    readonly yLowValue: number;
+    readonly yHighValue: number;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -162,21 +162,21 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     xName?: string = undefined;
 
     @Validate(OPT_STRING)
-    yMinKey?: string = undefined;
+    yLowKey?: string = undefined;
 
     @Validate(OPT_STRING)
-    yMinName?: string = undefined;
+    yLowName?: string = undefined;
 
     @Validate(OPT_STRING)
-    yMaxKey?: string = undefined;
+    yHighKey?: string = undefined;
 
     @Validate(OPT_STRING)
-    yMaxName?: string = undefined;
+    yHighName?: string = undefined;
 
     async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey, yMinKey, yMaxKey, data = [] } = this;
+        const { xKey, yLowKey, yHighKey, data = [] } = this;
 
-        if (!yMinKey || !yMaxKey) return;
+        if (!yLowKey || !yHighKey) return;
 
         const isContinuousX = this.getCategoryAxis()?.scale instanceof ContinuousScale;
         const isContinuousY = this.getValueAxis()?.scale instanceof ContinuousScale;
@@ -184,8 +184,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, yMinKey, isContinuousY, { id: `yMinValue` }),
-                valueProperty(this, yMaxKey, isContinuousY, { id: `yMaxValue` }),
+                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
+                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue` }),
             ],
             groupByKeys: true,
             dataVisible: this.visible,
@@ -208,13 +208,13 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         if (direction === this.getCategoryDirection()) {
             return keys;
         } else {
-            const yMinIndex = dataModel.resolveProcessedDataIndexById(this, 'yMinValue').index;
-            const yMinExtent = values[yMinIndex];
-            const yMaxIndex = dataModel.resolveProcessedDataIndexById(this, 'yMaxValue').index;
-            const yMaxExtent = values[yMaxIndex];
+            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
+            const yLowExtent = values[yLowIndex];
+            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue').index;
+            const yHighExtent = values[yHighIndex];
             const fixedYExtent = [
-                yMinExtent[0] > yMaxExtent[0] ? yMaxExtent[0] : yMinExtent[0],
-                yMaxExtent[1] < yMinExtent[1] ? yMinExtent[1] : yMaxExtent[1],
+                yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
+                yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
             return this.fixNumericExtent(fixedYExtent as any);
         }
@@ -224,14 +224,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         event: MouseEvent,
         datum: RangeBarNodeDatum
     ): _ModuleSupport.CartesianSeriesNodeClickEvent<any> {
-        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yMinKey, event, datum, this);
+        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yLowKey, event, datum, this);
     }
 
     protected getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RangeBarNodeDatum
     ): _ModuleSupport.CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yMinKey, event, datum, this);
+        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yLowKey, event, datum, this); // TODO: fix this
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
@@ -265,9 +265,9 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
-        const { yMinKey = '', yMaxKey = '', xKey = '', processedData } = this;
+        const { yLowKey = '', yHighKey = '', xKey = '', processedData } = this;
 
-        const itemId = `${yMinKey}-${yMaxKey}`;
+        const itemId = `${yLowKey}-${yHighKey}`;
 
         const context: RangeBarContext = {
             itemId,
@@ -307,21 +307,21 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 : // Handle high-volume range charts gracefully.
                   groupScale.rawBandwidth;
 
-        const yMinIndex = dataModel.resolveProcessedDataIndexById(this, `yMinValue`).index;
-        const yMaxIndex = dataModel.resolveProcessedDataIndexById(this, `yMaxValue`).index;
+        const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`).index;
+        const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`).index;
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
 
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             const xDatum = keys[xIndex];
             const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
 
-            const yMinValue = values[0][yMinIndex];
-            const yMaxValue = values[0][yMaxIndex];
-            const yMin = Math.round(yScale.convert(yMinValue, { strict: false }));
-            const yMax = Math.round(yScale.convert(yMaxValue, { strict: false }));
+            const yLowValue = values[0][yLowIndex];
+            const yHighValue = values[0][yHighIndex];
+            const yLow = Math.round(yScale.convert(yLowValue, { strict: false }));
+            const yHigh = Math.round(yScale.convert(yHighValue, { strict: false }));
 
-            const y = yMax;
-            const bottomY = yMin;
+            const y = yHigh;
+            const bottomY = yLow;
             const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
 
             const rect = {
@@ -343,10 +343,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 datum,
                 cumulativeValue: 0,
                 xValue: xDatum,
-                yMinValue,
-                yMaxValue,
-                yMinKey,
-                yMaxKey,
+                yLowValue,
+                yHighValue,
+                yLowKey,
+                yHighKey,
                 xKey,
                 x: rect.x,
                 y: rect.y,
@@ -361,7 +361,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                     y: nodeMidPoint.y,
                     textAlign: 'center',
                     textBaseline: 'middle',
-                    text: `${yMinValue} - ${yMaxValue}`,
+                    text: `${yLowValue} - ${yHighValue}`,
                 },
             };
 
@@ -391,8 +391,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            yMinKey = '',
-            yMaxKey = '',
+            yLowKey = '',
+            yHighKey = '',
             highlightStyle: { item: itemHighlightStyle },
             id: seriesId,
             ctx,
@@ -427,8 +427,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
             const config = getRectConfig({
                 datum,
-                minValue: datum.yMinValue,
-                maxValue: datum.yMaxValue,
+                lowValue: datum.yLowValue,
+                highValue: datum.yHighValue,
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
@@ -436,8 +436,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
-                yMinKey,
-                yMaxKey,
+                yLowKey,
+                yHighKey,
             });
             config.crisp = crisp;
             config.visible = visible;
@@ -475,8 +475,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     getTooltipHtml(nodeDatum: RangeBarNodeDatum): string {
         const {
             xKey,
-            yMinKey,
-            yMaxKey,
+            yLowKey,
+            yHighKey,
             axes,
             ctx: { callbackCache },
         } = this;
@@ -484,13 +484,13 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!xKey || !yMinKey || !yMaxKey || !xAxis || !yAxis) {
+        if (!xKey || !yLowKey || !yHighKey || !xAxis || !yAxis) {
             return '';
         }
 
-        const { xName, yMinName, yMaxName, id: seriesId } = this;
+        const { xName, yLowName, yHighName, id: seriesId } = this;
 
-        const { datum, itemId, xValue, yMinValue, yMaxValue } = nodeDatum;
+        const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
         const { fill, strokeWidth, formatter, tooltip: itemTooltip } = this;
 
@@ -501,11 +501,11 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum,
-                minValue: yMinValue,
-                maxValue: yMaxValue,
+                lowValue: yLowValue,
+                highValue: yHighValue,
                 xKey,
-                yMinKey,
-                yMaxKey,
+                yLowKey,
+                yHighKey,
                 fill,
                 strokeWidth,
                 highlighted: false,
@@ -517,17 +517,17 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const color = format?.fill ?? fill ?? 'gray';
 
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yMinString = sanitizeHtml(yAxis.formatDatum(yMinValue));
-        const yMaxString = sanitizeHtml(yAxis.formatDatum(yMaxValue));
+        const yLowString = sanitizeHtml(yAxis.formatDatum(yLowValue));
+        const yHighString = sanitizeHtml(yAxis.formatDatum(yHighValue));
 
-        const yMinSubheading = `${yMinName ?? yMinKey}`;
-        const yMaxSubheading = `${yMaxName ?? yMaxKey}`;
+        const yLowSubheading = `${yLowName ?? yLowKey}`;
+        const yHighSubheading = `${yHighName ?? yHighKey}`;
 
         const title = sanitizeHtml(xName);
         const content =
             `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yMinSubheading)}</b>: ${yMinString}<br>` +
-            `<b>${sanitizeHtml(yMaxSubheading)}</b>: ${yMaxString}<br>`;
+            `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
+            `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`;
 
         const defaults: AgTooltipRendererResult = {
             title,
@@ -542,12 +542,12 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                     xKey,
                     xValue,
                     xName,
-                    yMinKey,
-                    yMinValue,
-                    yMinName,
-                    yMaxKey,
-                    yMaxValue,
-                    yMaxName,
+                    yLowKey,
+                    yLowValue,
+                    yLowName,
+                    yHighKey,
+                    yHighValue,
+                    yHighName,
                     color,
                     seriesId,
                     itemId,
@@ -564,12 +564,12 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
-        const { fill, stroke, fillOpacity, strokeOpacity, yMinName, yMaxName, yMinKey, yMaxKey } = this;
-        const legendItemText = `${yMinName ?? yMinKey}-${yMaxName ?? yMaxKey}`;
+        const { fill, stroke, fillOpacity, strokeOpacity, yLowName, yHighName, yLowKey, yHighKey } = this;
+        const legendItemText = `${yLowName ?? yLowKey}-${yHighName ?? yHighKey}`;
         legendData.push({
             legendType: 'category',
             id,
-            itemId: `${yMinKey}-${yMaxKey}`,
+            itemId: `${yLowKey}-${yHighKey}`,
             seriesId: id,
             enabled: true,
             label: {

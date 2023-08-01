@@ -14,15 +14,15 @@ import type {
 
 export interface AgRangeBarSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;
-    readonly minValue: number;
-    readonly maxValue: number;
+    readonly lowValue: number;
+    readonly highValue: number;
     readonly fill?: CssColor;
     readonly stroke?: CssColor;
     readonly strokeWidth: PixelSize;
     readonly highlighted: boolean;
     readonly xKey: string;
-    readonly yMinKey: string;
-    readonly yMaxKey: string;
+    readonly yLowKey: string;
+    readonly yHighKey: string;
     readonly labelKey?: string;
     readonly seriesId: string;
     readonly itemId: string;
@@ -40,18 +40,18 @@ export interface AgRangeBarSeriesTooltipRendererParams
     itemId: string;
 
     /** yKey as specified on series options. */
-    readonly yMinKey: string;
+    readonly yLowKey: string;
     /** yValue as read from series data via the yKey property. */
-    readonly yMinValue?: any;
+    readonly yLowValue?: any;
     /** yName as specified on series options. */
-    readonly yMinName?: string;
+    readonly yLowName?: string;
 
     /** yKey as specified on series options. */
-    readonly yMaxKey: string;
+    readonly yHighKey: string;
     /** yValue as read from series data via the yKey property. */
-    readonly yMaxValue?: any;
+    readonly yHighValue?: any;
     /** yName as specified on series options. */
-    readonly yMaxName?: string;
+    readonly yHighName?: string;
 }
 
 export interface AgRangeBarSeriesTooltip extends AgSeriesTooltip {
@@ -70,16 +70,16 @@ export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOp
     type?: 'range-bar' | 'range-column';
     /** The key to use to retrieve x-values from the data. */
     xKey?: string;
-    /** The key to use to retrieve y-min-values from the data. */
-    yMinKey?: string;
-    /** The key to use to retrieve y-max-values from the data. */
-    yMaxKey?: string;
+    /** The key to use to retrieve y-low-values from the data. */
+    yLowKey?: string;
+    /** The key to use to retrieve y-high-values from the data. */
+    yHighKey?: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
-    /** A human-readable description of the y-min-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    yMinName?: string;
-    /** A human-readable description of the y-max-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    yMaxName?: string;
+    /** A human-readable description of the y-low-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    yLowName?: string;
+    /** A human-readable description of the y-high-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    yHighName?: string;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Series-specific tooltip configuration. */
