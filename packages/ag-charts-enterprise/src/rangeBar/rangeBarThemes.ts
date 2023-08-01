@@ -3,11 +3,11 @@ import { _Theme } from 'ag-charts-community';
 export const RANGE_BAR_SERIES_THEME = {
     __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
     xKey: '',
-    yMinKey: '',
-    yMaxKey: '',
+    yLowKey: '',
+    yHighKey: '',
     xName: '',
-    yMinName: '',
-    yMaxName: '',
+    yLowName: '',
+    yHighName: '',
     label: {
         enabled: false,
         fontStyle: undefined,
