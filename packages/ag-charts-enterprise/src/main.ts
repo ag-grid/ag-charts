@@ -49,6 +49,7 @@ import {
     AgNightingaleSeriesTooltip,
     AgNightingaleSeriesTooltipRendererParams,
 } from './polar-series/nightingale/main';
+import { RadialColumnModule } from './polar-series/radial-column/main';
 import { RadarLineModule, AgRadarLineSeriesOptions } from './polar-series/radar-line/main';
 import { RadarAreaModule, AgRadarAreaSeriesOptions } from './polar-series/radar-area/main';
 import { AgZoomAxes, AgZoomOptions, AgZoomPanKey, AgZoomScrollingPivot, ZoomModule } from './zoom/main';
@@ -84,6 +85,7 @@ _ModuleSupport.registerModule(HeatmapModule);
 _ModuleSupport.registerModule(NightingaleModule);
 _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
+_ModuleSupport.registerModule(RadialColumnModule);
 _ModuleSupport.registerModule(RadiusNumberAxisModule);
 _ModuleSupport.registerModule(WaterfallBarModule);
 _ModuleSupport.registerModule(WaterfallColumnModule);

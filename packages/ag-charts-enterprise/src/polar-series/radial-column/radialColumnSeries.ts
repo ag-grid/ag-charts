@@ -1,30 +1,36 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import { RadialColumnSeriesBase } from '../radial-column/radialColumnBase';
+import { _Scene, _ModuleSupport } from 'ag-charts-community';
+import { RadialColumnSeriesBase } from './radialColumnBase';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnBase';
+
+const { Rect, Selection } = _Scene;
 
 const { ChartAxisDirection, PolarAxis } = _ModuleSupport;
 
-const { Sector, Selection } = _Scene;
+export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Rect> {
+    static className = 'RadialColumnSeries';
 
-export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
-    static className = 'NightingaleSeries';
+    itemWidth = 20;
 
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
-        return `nightingale-stack-${groupIndex}-yValues`;
+        return `radarColumn-stack-${groupIndex}-yValues`;
     }
 
-    protected createPathSelection(parent: _Scene.Group): _Scene.Selection<_Scene.Sector, RadialColumnNodeDatum> {
-        return Selection.select(parent, Sector);
+    protected createPathSelection(parent: _Scene.Group): _Scene.Selection<_Scene.Rect, RadialColumnNodeDatum> {
+        return Selection.select(parent, Rect);
     }
 
-    protected updateItemPath(node: _Scene.Sector, datum: RadialColumnNodeDatum) {
-        node.centerX = 0;
-        node.centerY = 0;
-        node.innerRadius = datum.innerRadius;
-        node.outerRadius = datum.outerRadius;
-        node.startAngle = datum.startAngle;
-        node.endAngle = datum.endAngle;
+    protected updateItemPath(node: _Scene.Rect, datum: RadialColumnNodeDatum) {
+        const angle = (datum.startAngle + datum.endAngle) / 2;
+        const width = this.itemWidth;
+
+        node.x = -width / 2;
+        node.y = -datum.outerRadius;
+        node.width = width;
+        node.height = datum.outerRadius - datum.innerRadius;
+        node.rotation = angle + Math.PI / 2;
+        node.rotationCenterX = 0;
+        node.rotationCenterY = 0;
     }
 
     protected animateItemsShapes() {
@@ -44,8 +50,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
                 {
                     duration,
                     onUpdate: ([innerRadius, outerRadius]) => {
-                        node.innerRadius = innerRadius;
-                        node.outerRadius = outerRadius;
+                        node.y = -outerRadius;
+                        node.height = outerRadius - innerRadius;
                     },
                 }
             );
