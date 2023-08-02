@@ -511,6 +511,16 @@ export abstract class CartesianSeries<
         );
     }
 
+    protected getHighlightLabelData(
+        labelData: C['labelData'],
+        highlightedItem: C['nodeData'][number]
+    ): C['labelData'] | undefined {
+        const labelItem = labelData.find(
+            (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
+        );
+        return labelItem ? [labelItem] : undefined;
+    }
+
     protected async updateHighlightSelection(seriesHighlighted?: boolean) {
         const { highlightSelection, highlightLabelSelection, _contextNodeData: contextNodeData } = this;
 
@@ -519,21 +529,19 @@ export abstract class CartesianSeries<
             seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as C['nodeData'][number]) : undefined;
         this.highlightSelection = await this.updateHighlightSelectionItem({ item, highlightSelection });
 
-        let labelItem: C['labelData'][number] | undefined;
+        let labelItems: C['labelData'] | undefined;
         if (this.isLabelEnabled() && item != null) {
-            const { itemId = undefined } = item;
-
             for (const { labelData } of contextNodeData) {
-                labelItem = labelData.find((ld) => ld.datum === item.datum && ld.itemId === itemId);
+                labelItems = this.getHighlightLabelData(labelData, item);
 
-                if (labelItem != null) {
+                if (labelItems != null) {
                     break;
                 }
             }
         }
 
         this.highlightLabelSelection = await this.updateHighlightSelectionLabel({
-            item: labelItem,
+            items: labelItems,
             highlightLabelSelection,
         });
     }
@@ -730,11 +738,11 @@ export abstract class CartesianSeries<
     }
 
     protected async updateHighlightSelectionLabel(opts: {
-        item?: C['labelData'][number];
+        items?: C['labelData'];
         highlightLabelSelection: LabelDataSelection<Text, C>;
     }): Promise<LabelDataSelection<Text, C>> {
-        const { item, highlightLabelSelection } = opts;
-        const labelData = item ? [item] : [];
+        const { items, highlightLabelSelection } = opts;
+        const labelData = items ?? [];
 
         return this.updateLabelSelection({ labelData, labelSelection: highlightLabelSelection, seriesIdx: -1 });
     }
