@@ -9,7 +9,7 @@ const { ChartAxisDirection, PolarAxis } = _ModuleSupport;
 export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Rect> {
     static className = 'RadialColumnSeries';
 
-    itemWidth = 20;
+    columnWidth = 20;
 
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
@@ -22,7 +22,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Rect> {
 
     protected updateItemPath(node: _Scene.Rect, datum: RadialColumnNodeDatum) {
         const angle = (datum.startAngle + datum.endAngle) / 2;
-        const width = this.itemWidth;
+        const width = this.columnWidth;
 
         node.x = -width / 2;
         node.y = -datum.outerRadius;

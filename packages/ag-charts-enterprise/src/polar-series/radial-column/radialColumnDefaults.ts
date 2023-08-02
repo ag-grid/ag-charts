@@ -13,6 +13,7 @@ export const RADIAL_COLUMN_DEFAULTS: AgPolarChartOptions = {
         {
             type: RadiusNumberAxis.type,
             shape: 'circle',
+            innerRadiusRatio: 0.5,
         },
     ],
 };

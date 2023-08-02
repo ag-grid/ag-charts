@@ -1,6 +1,18 @@
 import type { AgPolarChartOptions } from 'ag-charts-community';
-import { RADIAL_COLUMN_DEFAULTS } from '../radial-column/radialColumnDefaults';
+import { AngleCategoryAxis } from '../../polar-axes/angle-category/angleCategoryAxis';
+import { RadiusNumberAxis } from '../../polar-axes/radius-number/radiusNumberAxis';
 
 export const NIGHTINGALE_DEFAULTS: AgPolarChartOptions = {
-    ...RADIAL_COLUMN_DEFAULTS,
+    axes: [
+        {
+            type: AngleCategoryAxis.type,
+            shape: 'circle',
+            groupPaddingInner: 0,
+            paddingInner: 0,
+        },
+        {
+            type: RadiusNumberAxis.type,
+            shape: 'circle',
+        },
+    ],
 };
