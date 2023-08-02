@@ -52,6 +52,8 @@ export interface AgBaseRadialColumnSeriesOptions<DatumType = any> extends AgBase
 /** Configuration for Radial Column series. */
 export interface AgRadialColumnSeriesOptions<DatumType = any> extends AgBaseRadialColumnSeriesOptions<DatumType> {
     type?: 'radial-column';
+    /** The width of columns. If unset it will be calculated based on items count and the radius of the axis hole. */
+    columnWidth?: PixelSize;
 }
 
 export interface AgRadialColumnSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {

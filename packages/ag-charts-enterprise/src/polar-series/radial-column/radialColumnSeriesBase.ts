@@ -303,6 +303,11 @@ export abstract class RadialColumnSeriesBase<
         return this._createNodeData();
     }
 
+    protected getAxisInnerRadius() {
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
+    }
+
     protected _createNodeData() {
         const { processedData, dataModel, angleKey, radiusKey } = this;
 
@@ -342,7 +347,7 @@ export abstract class RadialColumnSeriesBase<
         groupScale.range = [-paddedGroupAngleStep / 2, paddedGroupAngleStep / 2];
         groupScale.paddingInner = visibleGroupCount > 1 ? groupPaddingInner : 0;
 
-        const axisInnerRadius = radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
+        const axisInnerRadius = this.getAxisInnerRadius();
         const axisOuterRadius = this.radius;
 
         const nodeData = processedData.data.map((group, index): RadialColumnNodeDatum => {

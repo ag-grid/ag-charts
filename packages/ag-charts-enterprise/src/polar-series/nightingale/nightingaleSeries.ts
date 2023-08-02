@@ -1,8 +1,6 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import { RadialColumnSeriesBase } from '../radial-column/radialColumnBase';
-import type { RadialColumnNodeDatum } from '../radial-column/radialColumnBase';
-
-const { ChartAxisDirection, PolarAxis } = _ModuleSupport;
+import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
+import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 
 const { Sector, Selection } = _Scene;
 
@@ -31,8 +29,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         const { itemSelection } = this;
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
 
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-        const axisInnerRadius = radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
+        const axisInnerRadius = this.getAxisInnerRadius();
 
         itemSelection.each((node, datum) => {
             this.ctx.animationManager?.animateMany<number>(

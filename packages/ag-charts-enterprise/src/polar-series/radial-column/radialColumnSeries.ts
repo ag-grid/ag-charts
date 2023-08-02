@@ -1,15 +1,16 @@
 import { _Scene, _ModuleSupport } from 'ag-charts-community';
-import { RadialColumnSeriesBase } from './radialColumnBase';
-import type { RadialColumnNodeDatum } from '../radial-column/radialColumnBase';
+import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
+import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 
 const { Rect, Selection } = _Scene;
 
-const { ChartAxisDirection, PolarAxis } = _ModuleSupport;
+const { ChartAxisDirection, PolarAxis, Validate, OPT_NUMBER } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Rect> {
     static className = 'RadialColumnSeries';
 
-    columnWidth = 20;
+    @Validate(OPT_NUMBER(0))
+    columnWidth: number | undefined = undefined;
 
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
@@ -22,11 +23,22 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Rect> {
 
     protected updateItemPath(node: _Scene.Rect, datum: RadialColumnNodeDatum) {
         const angle = (datum.startAngle + datum.endAngle) / 2;
-        const width = this.columnWidth;
+        let { columnWidth } = this;
+        if (columnWidth == undefined) {
+            const axisInnerRadius = this.getAxisInnerRadius();
+            const startX = axisInnerRadius * Math.cos(datum.startAngle);
+            const startY = axisInnerRadius * Math.sin(datum.startAngle);
+            const endX = axisInnerRadius * Math.cos(datum.endAngle);
+            const endY = axisInnerRadius * Math.sin(datum.endAngle);
+            columnWidth = Math.max(
+                1,
+                Math.min(axisInnerRadius * 2, Math.floor(Math.sqrt((startX - endX) ** 2 + (startY - endY) ** 2)))
+            );
+        }
 
-        node.x = -width / 2;
+        node.x = -columnWidth / 2;
         node.y = -datum.outerRadius;
-        node.width = width;
+        node.width = columnWidth;
         node.height = datum.outerRadius - datum.innerRadius;
         node.rotation = angle + Math.PI / 2;
         node.rotationCenterX = 0;
