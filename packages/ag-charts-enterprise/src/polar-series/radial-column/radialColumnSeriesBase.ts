@@ -679,7 +679,7 @@ export abstract class RadialColumnSeriesBase<
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [
             {
                 legendType: 'category',
-                id: id,
+                id,
                 itemId: radiusKey,
                 seriesId: id,
                 enabled: visible,
