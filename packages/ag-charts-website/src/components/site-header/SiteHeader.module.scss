@@ -30,17 +30,6 @@
     }
 }
 
-.chartsLogoType {
-    position: absolute;
-    font-weight: $font-weight-bold;
-    left: 76px;
-    top: 12px;
-    background-color: var(--ag-grid-red);
-    color: var(--white);
-    padding: 0 $size-1;
-    transform: rotate(-10deg);
-}
-
 .mobileMenuButton {
     --button-color: transparent;
     --border-radius: 0;
