@@ -4,6 +4,7 @@ import type {
     AgRangeBarSeriesFormat,
     AgRangeBarSeriesFormatterParams,
     AgRangeBarSeriesTooltipRendererParams,
+    AgRangeBarSeriesLabelPlacement,
 } from './typings';
 
 const {
@@ -14,6 +15,7 @@ const {
     ChartAxisDirection,
     CartesianSeriesNodeClickEvent,
     CartesianSeriesNodeDoubleClickEvent,
+    OPTIONAL,
     NUMBER,
     OPT_NUMBER,
     OPT_STRING,
@@ -26,13 +28,26 @@ const {
     updateLabel,
     CategoryAxis,
 } = _ModuleSupport;
-const { toTooltipHtml, ContinuousScale, BandScale, Rect } = _Scene;
+const { toTooltipHtml, ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
 const { sanitizeHtml } = _Util;
 
+const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
+const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
+    OPTIONAL(v, ctx, (v: any) => RANGE_BAR_LABEL_PLACEMENTS.includes(v));
+
+type Bounds = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
 type RangeBarNodeLabelDatum = Readonly<_Scene.Point> & {
-    readonly text: string;
-    readonly textAlign: CanvasTextAlign;
-    readonly textBaseline: CanvasTextBaseline;
+    text: string;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+    datum: any;
+    itemId: string;
 };
 
 interface RangeBarNodeDatum
@@ -47,13 +62,13 @@ interface RangeBarNodeDatum
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
-    readonly label: RangeBarNodeLabelDatum;
+    readonly labels: RangeBarNodeLabelDatum[];
     readonly fill: string;
     readonly stroke: string;
     readonly strokeWidth: number;
 }
 
-type RangeBarContext = _ModuleSupport.SeriesNodeDataContext<RangeBarNodeDatum>;
+type RangeBarContext = _ModuleSupport.SeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
 class RangeBarSeriesNodeBaseClickEvent extends _ModuleSupport.CartesianSeriesNodeBaseClickEvent<any> {
     constructor(
@@ -84,6 +99,9 @@ class RangeBarSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgCartesianSeriesLabelFormatterParams & { itemId: string }) => string = undefined;
 
+    @Validate(OPT_RANGE_BAR_LABEL_PLACEMENT)
+    placement: AgRangeBarSeriesLabelPlacement = 'inside';
+
     @Validate(OPT_NUMBER(0))
     padding: number = 6;
 }
@@ -105,10 +123,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     shadow?: _Scene.DropShadow = undefined;
 
     @Validate(OPT_COLOR_STRING)
-    fill: string = '#233e6f';
+    fill: string = '#99CCFF';
 
     @Validate(OPT_COLOR_STRING)
-    stroke: string = '#233e6f';
+    stroke: string = '#99CCFF';
 
     @Validate(NUMBER(0, 1))
     fillOpacity = 1;
@@ -327,7 +345,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             const bottomY = yLow;
             const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
 
-            const rect = {
+            const rect: Bounds = {
                 x: barAlongX ? bottomY : x,
                 y: barAlongX ? x : y,
                 width: barAlongX ? barHeight : barWidth,
@@ -338,6 +356,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 x: rect.x + rect.width / 2,
                 y: rect.y + rect.height / 2,
             };
+
+            const labelData: RangeBarNodeDatum['labels'] = this.createLabelData(
+                rect,
+                barAlongX,
+                yLowValue,
+                yHighValue,
+                datum,
+            );
 
             const nodeDatum: RangeBarNodeDatum = {
                 index: dataIndex,
@@ -359,20 +385,54 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 fill,
                 stroke,
                 strokeWidth,
-                label: {
-                    x: nodeMidPoint.x,
-                    y: nodeMidPoint.y,
-                    textAlign: 'center',
-                    textBaseline: 'middle',
-                    text: `${yLowValue} - ${yHighValue}`,
-                },
+                labels: labelData,
             };
 
             context.nodeData.push(nodeDatum);
-            context.labelData.push(nodeDatum);
+            context.labelData.push(...labelData);
         });
 
         return [context];
+    }
+
+    private createLabelData(
+        rect: Bounds,
+        barAlongX: boolean,
+        yLowValue: number,
+        yHighValue: number,
+        datum: any,
+    ): RangeBarNodeLabelDatum[] {
+        const { placement, padding } = this.label;
+
+        const paddingDirection = placement === 'outside' ? 1 : -1;
+        const labelPadding = padding * paddingDirection;
+        const yLowLabel: RangeBarNodeLabelDatum = {
+            x: rect.x + (barAlongX ? -labelPadding : rect.width / 2),
+            y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
+            textAlign: barAlongX ? 'left' : 'center',
+            textBaseline: barAlongX ? 'middle' : 'bottom',
+            text: `${yLowValue}`,
+            itemId: 'low',
+            datum,
+        };
+        const yHighLabel: RangeBarNodeLabelDatum = {
+            x: rect.x + (barAlongX ? rect.width + labelPadding : rect.width / 2),
+            y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
+            textAlign: barAlongX ? 'right' : 'center',
+            textBaseline: barAlongX ? 'middle' : 'top',
+            text: `${yHighValue}`,
+            itemId: 'high',
+            datum,
+        };
+
+        if (placement === 'outside') {
+            yLowLabel.textAlign = barAlongX ? 'right' : 'center';
+            yLowLabel.textBaseline = barAlongX ? 'middle' : 'top';
+
+            yHighLabel.textAlign = barAlongX ? 'left' : 'center';
+            yHighLabel.textBaseline = barAlongX ? 'middle' : 'bottom';
+        }
+        return [yLowLabel, yHighLabel];
     }
 
     protected nodeFactory() {
@@ -448,6 +508,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
+    protected getHighlightLabelData(
+        labelData: RangeBarNodeLabelDatum[],
+        highlightedItem: RangeBarNodeDatum
+    ): RangeBarNodeLabelDatum[] | undefined {
+        const labelItems = labelData.filter((ld) => ld.datum === highlightedItem.datum);
+        return labelItems.length > 0 ? labelItems : undefined;
+    }
+
     protected async updateLabelSelection(opts: {
         labelData: RangeBarNodeDatum[];
         labelSelection: _Scene.Selection<_Scene.Text, RangeBarNodeDatum>;
@@ -457,21 +525,21 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         if (labelData.length === 0) {
             return labelSelection.update([]);
         }
-
         const {
             label: { enabled },
         } = this;
         const data = enabled ? labelData : [];
 
-        return labelSelection.update(data);
+        return labelSelection.update(data, (text) => {
+            text.pointerEvents = PointerEvents.None;
+        });
     }
 
     protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, any> }) {
         const { labelSelection } = opts;
         labelSelection.each((text, datum) => {
-            const labelDatum = datum.label;
             const { label } = this;
-            updateLabel({ labelNode: text, labelDatum, config: label, visible: true });
+            updateLabel({ labelNode: text, labelDatum: datum, config: label, visible: true });
         });
     }
 
