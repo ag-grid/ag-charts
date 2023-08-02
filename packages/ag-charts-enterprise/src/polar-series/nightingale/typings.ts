@@ -1,9 +1,9 @@
 import type { AgChartLabelOptions, AgSeriesTooltip, AgTooltipRendererResult } from 'ag-charts-community';
-import type { AgRadarSeriesLabelFormatterParams } from '../radar/typings';
 import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
+    AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
 } from '../radial-column/typings';
 
@@ -20,7 +20,7 @@ export interface AgNightingaleSeriesOptions<DatumType = any> extends AgBaseRadia
 
 export interface AgNightingaleSeriesTooltipRendererParams extends AgRadialColumnSeriesTooltipRendererParams {}
 
-export interface AgNightingaleSeriesLabelFormatterParams extends AgRadarSeriesLabelFormatterParams {}
+export interface AgNightingaleSeriesLabelFormatterParams extends AgRadialColumnSeriesLabelFormatterParams {}
 
 export interface AgNightingaleSeriesLabelOptions extends AgChartLabelOptions {
     /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
