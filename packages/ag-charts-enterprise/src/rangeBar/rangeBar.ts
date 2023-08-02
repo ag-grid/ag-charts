@@ -27,7 +27,7 @@ const {
     CategoryAxis,
 } = _ModuleSupport;
 const { toTooltipHtml, ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
-const { sanitizeHtml } = _Util;
+const { sanitizeHtml, isNumber } = _Util;
 
 const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
@@ -421,7 +421,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: `${yLowValue}`,
+            text: this.getLabelText({ itemId: 'low', value: yLowValue }),
             itemId: 'low',
             datum,
             series,
@@ -431,7 +431,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: `${yHighValue}`,
+            text: this.getLabelText({ itemId: 'high', value: yHighValue }),
             itemId: 'high',
             datum,
             series,
@@ -445,6 +445,23 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             yHighLabel.textBaseline = barAlongX ? 'middle' : 'bottom';
         }
         return [yLowLabel, yHighLabel];
+    }
+
+    private getLabelText({ itemId, value }: { itemId: string; value: any }) {
+        const {
+            id: seriesId,
+            label: { formatter },
+            ctx: { callbackCache },
+        } = this;
+        let labelText;
+        if (formatter) {
+            labelText = callbackCache.call(formatter, {
+                value: isNumber(value) ? value : undefined,
+                seriesId,
+                itemId,
+            });
+        }
+        return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
     }
 
     protected nodeFactory() {
