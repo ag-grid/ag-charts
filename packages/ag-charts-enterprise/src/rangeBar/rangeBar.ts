@@ -13,8 +13,6 @@ const {
     valueProperty,
     keyProperty,
     ChartAxisDirection,
-    CartesianSeriesNodeClickEvent,
-    CartesianSeriesNodeDoubleClickEvent,
     OPTIONAL,
     NUMBER,
     OPT_NUMBER,
@@ -48,6 +46,7 @@ type RangeBarNodeLabelDatum = Readonly<_Scene.Point> & {
     textBaseline: CanvasTextBaseline;
     datum: any;
     itemId: string;
+    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 };
 
 interface RangeBarNodeDatum
@@ -70,15 +69,23 @@ interface RangeBarNodeDatum
 
 type RangeBarContext = _ModuleSupport.SeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
-class RangeBarSeriesNodeBaseClickEvent extends _ModuleSupport.CartesianSeriesNodeBaseClickEvent<any> {
+class RangeBarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<RangeBarNodeDatum> {
+    readonly xKey: string;
+    readonly yLowKey: string;
+    readonly yHighKey: string;
+
     constructor(
         xKey: string,
-        yKey: string,
+        yLowKey: string,
+        yHighKey: string,
         nativeEvent: MouseEvent,
         datum: RangeBarNodeDatum,
         series: RangeBarSeries | RangeColumnSeries
     ) {
-        super(xKey, yKey, nativeEvent, datum, series);
+        super(nativeEvent, datum, series);
+        this.xKey = xKey;
+        this.yLowKey = yLowKey;
+        this.yHighKey = yHighKey;
     }
 }
 
@@ -238,18 +245,12 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected getNodeClickEvent(
-        event: MouseEvent,
-        datum: RangeBarNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<any> {
-        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yLowKey, event, datum, this);
+    protected getNodeClickEvent(event: MouseEvent, datum: RangeBarNodeDatum): RangeBarSeriesNodeClickEvent {
+        return new RangeBarSeriesNodeClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RangeBarNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yLowKey, event, datum, this); // TODO: Range series has two y keys, yLowKey and yHighKey so it doesn't fit the usual cartesian series pattern. Fix this.
+    protected getNodeDoubleClickEvent(event: MouseEvent, datum: RangeBarNodeDatum): RangeBarSeriesNodeDoubleClickEvent {
+        return new RangeBarSeriesNodeDoubleClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
@@ -357,13 +358,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y + rect.height / 2,
             };
 
-            const labelData: RangeBarNodeDatum['labels'] = this.createLabelData(
+            const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
                 rect,
                 barAlongX,
                 yLowValue,
                 yHighValue,
                 datum,
-            );
+                series: this,
+            });
 
             const nodeDatum: RangeBarNodeDatum = {
                 index: dataIndex,
@@ -395,13 +397,21 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return [context];
     }
 
-    private createLabelData(
-        rect: Bounds,
-        barAlongX: boolean,
-        yLowValue: number,
-        yHighValue: number,
-        datum: any,
-    ): RangeBarNodeLabelDatum[] {
+    private createLabelData({
+        rect,
+        barAlongX,
+        yLowValue,
+        yHighValue,
+        datum,
+        series,
+    }: {
+        rect: Bounds;
+        barAlongX: boolean;
+        yLowValue: number;
+        yHighValue: number;
+        datum: any;
+        series: RangeBarSeries | RangeColumnSeries;
+    }): RangeBarNodeLabelDatum[] {
         const { placement, padding } = this.label;
 
         const paddingDirection = placement === 'outside' ? 1 : -1;
@@ -414,6 +424,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             text: `${yLowValue}`,
             itemId: 'low',
             datum,
+            series,
         };
         const yHighLabel: RangeBarNodeLabelDatum = {
             x: rect.x + (barAlongX ? rect.width + labelPadding : rect.width / 2),
@@ -423,6 +434,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             text: `${yHighValue}`,
             itemId: 'high',
             datum,
+            series,
         };
 
         if (placement === 'outside') {
