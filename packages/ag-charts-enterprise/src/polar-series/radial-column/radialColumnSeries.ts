@@ -4,7 +4,7 @@ import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 
 const { Rect, Selection } = _Scene;
 
-const { ChartAxisDirection, PolarAxis, Validate, OPT_NUMBER } = _ModuleSupport;
+const { Validate, OPT_NUMBER } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Rect> {
     static className = 'RadialColumnSeries';
@@ -49,8 +49,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Rect> {
         const { itemSelection } = this;
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
 
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-        const axisInnerRadius = radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
+        const axisInnerRadius = this.getAxisInnerRadius();
 
         itemSelection.each((node, datum) => {
             this.ctx.animationManager?.animateMany<number>(

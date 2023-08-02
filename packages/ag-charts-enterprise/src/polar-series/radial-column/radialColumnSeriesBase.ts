@@ -56,14 +56,16 @@ class RadialColumnSeriesNodeDoubleClickEvent extends RadialColumnSeriesNodeBaseC
     readonly type = 'nodeDoubleClick';
 }
 
+interface RadialColumnLabelNodeDatum {
+    text: string;
+    x: number;
+    y: number;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+}
+
 export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
-    readonly label?: {
-        text: string;
-        x: number;
-        y: number;
-        textAlign: CanvasTextAlign;
-        textBaseline: CanvasTextBaseline;
-    };
+    readonly label?: RadialColumnLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
     readonly innerRadius: number;
@@ -95,8 +97,6 @@ class RadialColumnStateMachine extends _ModuleSupport.StateMachine<
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Path
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
-    // static className = 'NightingaleSeries';
-
     readonly label = new RadialColumnSeriesLabel();
 
     protected itemSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
@@ -109,21 +109,12 @@ export abstract class RadialColumnSeriesBase<
 
     tooltip: RadialColumnSeriesTooltip = new RadialColumnSeriesTooltip();
 
-    /**
-     * The key of the numeric field to use to determine the angle (for example,
-     * a pie sector angle).
-     */
     @Validate(STRING)
     angleKey = '';
 
     @Validate(OPT_STRING)
     angleName?: string = undefined;
 
-    /**
-     * The key of the numeric field to use to determine the radii of pie sectors.
-     * The largest value will correspond to the full radius and smaller values to
-     * proportionally smaller radii.
-     */
     @Validate(STRING)
     radiusKey: string = '';
 
@@ -151,9 +142,6 @@ export abstract class RadialColumnSeriesBase<
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgRadialColumnSeriesFormatterParams<any>) => AgRadialColumnSeriesFormat = undefined;
 
-    /**
-     * The series rotation in degrees.
-     */
     @Validate(NUMBER(-360, 360))
     rotation = 0;
 
@@ -168,9 +156,6 @@ export abstract class RadialColumnSeriesBase<
 
     readonly highlightStyle = new HighlightStyle();
 
-    /**
-     * Used to get the position of bars within each group.
-     */
     private groupScale = new BandScale<string>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -292,15 +277,15 @@ export abstract class RadialColumnSeriesBase<
     }
 
     maybeRefreshNodeData() {
-        const didCircleChange = this.didCircleChange();
-        if (!didCircleChange && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = this._createNodeData();
+        const circleChanged = this.didCircleChange();
+        if (!circleChanged && !this.nodeDataRefresh) return;
+        const [{ nodeData = [] } = {}] = this.createNodeDataSync();
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
 
     async createNodeData() {
-        return this._createNodeData();
+        return this.createNodeDataSync();
     }
 
     protected getAxisInnerRadius() {
@@ -308,7 +293,7 @@ export abstract class RadialColumnSeriesBase<
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
-    protected _createNodeData() {
+    protected createNodeDataSync() {
         const { processedData, dataModel, angleKey, radiusKey } = this;
 
         if (!processedData || !dataModel || !angleKey || !radiusKey) {
@@ -349,6 +334,33 @@ export abstract class RadialColumnSeriesBase<
 
         const axisInnerRadius = this.getAxisInnerRadius();
         const axisOuterRadius = this.radius;
+        const axisTotalRadius = axisOuterRadius + axisInnerRadius;
+
+        const getLabelNodeDatum = (
+            radiusDatum: number,
+            x: number,
+            y: number
+        ): RadialColumnLabelNodeDatum | undefined => {
+            let labelText = '';
+            if (label.formatter) {
+                labelText = label.formatter({ value: radiusDatum, seriesId });
+            } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
+                labelText = radiusDatum.toFixed(2);
+            } else if (radiusDatum) {
+                labelText = String(radiusDatum);
+            }
+            if (labelText) {
+                const labelX = x;
+                const labelY = y;
+                return {
+                    text: labelText,
+                    x: labelX,
+                    y: labelY,
+                    textAlign: 'center',
+                    textBaseline: 'middle',
+                };
+            }
+        };
 
         const nodeData = processedData.data.map((group, index): RadialColumnNodeDatum => {
             const { datum, keys, values } = group;
@@ -363,8 +375,8 @@ export abstract class RadialColumnSeriesBase<
             const endAngle = startAngle + groupScale.bandwidth;
             const angle = startAngle + groupScale.bandwidth / 2;
 
-            const innerRadius = axisOuterRadius + axisInnerRadius - radiusScale.convert(innerRadiusDatum);
-            const outerRadius = axisOuterRadius + axisInnerRadius - radiusScale.convert(outerRadiusDatum);
+            const innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);
+            const outerRadius = axisTotalRadius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
 
             const cos = Math.cos(angle);
@@ -373,28 +385,7 @@ export abstract class RadialColumnSeriesBase<
             const x = cos * midRadius;
             const y = sin * midRadius;
 
-            let labelNodeDatum: RadialColumnNodeDatum['label'];
-            if (label.enabled) {
-                let labelText = '';
-                if (label.formatter) {
-                    labelText = label.formatter({ value: radiusDatum, seriesId });
-                } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
-                    labelText = radiusDatum.toFixed(2);
-                } else if (radiusDatum) {
-                    labelText = String(radiusDatum);
-                }
-                if (labelText) {
-                    const labelX = x;
-                    const labelY = y;
-                    labelNodeDatum = {
-                        text: labelText,
-                        x: labelX,
-                        y: labelY,
-                        textAlign: 'center',
-                        textBaseline: 'middle',
-                    };
-                }
-            }
+            const labelNodeDatum = label.enabled ? getLabelNodeDatum(radiusDatum, x, y) : undefined;
 
             return {
                 series: this,
@@ -622,11 +613,10 @@ export abstract class RadialColumnSeriesBase<
         if (!(angleKey && radiusKey) || !(xAxis && yAxis && isNumber(radiusValue)) || !dataModel) {
             return '';
         }
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, 'radiusValue-raw').index;
 
         const angleString = xAxis.formatDatum(angleValue);
         const radiusString = yAxis.formatDatum(radiusValue);
-        const processedYValue = this.processedData?.data[nodeDatum.index]?.values[0][yRawIndex];
+        const processedYValue = nodeDatum.radiusValue;
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${angleString}: ${radiusString}`);
 

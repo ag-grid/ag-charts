@@ -1,5 +1,4 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scale } from 'ag-charts-community';
 import { RadialColumnSeries } from './radialColumnSeries';
 import { RADIAL_COLUMN_DEFAULTS } from './radialColumnDefaults';
 import { RADIAL_COLUMN_SERIES_THEME } from './radialColumnThemes';
