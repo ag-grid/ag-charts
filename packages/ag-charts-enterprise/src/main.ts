@@ -49,6 +49,17 @@ import {
     AgNightingaleSeriesTooltip,
     AgNightingaleSeriesTooltipRendererParams,
 } from './polar-series/nightingale/main';
+import {
+    RadialColumnModule,
+    AgRadialColumnSeriesOptions,
+    AgRadialColumnSeriesFormat,
+    AgBaseRadialColumnSeriesOptions,
+    AgRadialColumnSeriesFormatterParams,
+    AgRadialColumnSeriesLabelFormatterParams,
+    AgRadialColumnSeriesLabelOptions,
+    AgRadialColumnSeriesTooltip,
+    AgRadialColumnSeriesTooltipRendererParams,
+} from './polar-series/radial-column/main';
 import { RadarLineModule, AgRadarLineSeriesOptions } from './polar-series/radar-line/main';
 import { RadarAreaModule, AgRadarAreaSeriesOptions } from './polar-series/radar-area/main';
 import { AgZoomAxes, AgZoomOptions, AgZoomPanKey, AgZoomScrollingPivot, ZoomModule } from './zoom/main';
@@ -84,6 +95,7 @@ _ModuleSupport.registerModule(HeatmapModule);
 _ModuleSupport.registerModule(NightingaleModule);
 _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
+_ModuleSupport.registerModule(RadialColumnModule);
 _ModuleSupport.registerModule(RadiusNumberAxisModule);
 _ModuleSupport.registerModule(WaterfallBarModule);
 _ModuleSupport.registerModule(WaterfallColumnModule);
@@ -113,6 +125,16 @@ export {
     AgRadarSeriesMarkerFormatterParams,
     AgRadarSeriesTooltip,
     AgRadarSeriesTooltipRendererParams,
+};
+export {
+    AgRadialColumnSeriesOptions,
+    AgRadialColumnSeriesFormat,
+    AgBaseRadialColumnSeriesOptions,
+    AgRadialColumnSeriesFormatterParams,
+    AgRadialColumnSeriesLabelFormatterParams,
+    AgRadialColumnSeriesLabelOptions,
+    AgRadialColumnSeriesTooltip,
+    AgRadialColumnSeriesTooltipRendererParams,
 };
 export {
     AgNightingaleSeriesOptions,
@@ -179,8 +201,12 @@ import { LicenseManager } from './license/licenseManager';
 type CartesianAddonType = 'heatmap' | 'waterfall-bar' | 'waterfall-column' | 'range-bar' | 'range-column';
 type CartesianAddonSeries = AgHeatmapSeriesOptions | AgWaterfallSeriesOptions | AgRangeBarSeriesOptions;
 
-type PolarAddonType = 'radar-line' | 'radar-area' | 'nightingale';
-type PolarAddonSeries = AgRadarLineSeriesOptions | AgRadarAreaSeriesOptions | AgNightingaleSeriesOptions;
+type PolarAddonType = 'radar-line' | 'radar-area' | 'radial-column' | 'nightingale';
+type PolarAddonSeries =
+    | AgRadarLineSeriesOptions
+    | AgRadarAreaSeriesOptions
+    | AgRadialColumnSeriesOptions
+    | AgNightingaleSeriesOptions;
 
 export type AgChartOptions = AgCommunityChartOptions<
     CartesianAddonType,
