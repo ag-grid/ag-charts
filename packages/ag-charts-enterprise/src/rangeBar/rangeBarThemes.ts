@@ -6,8 +6,6 @@ export const RANGE_BAR_SERIES_THEME = {
     yLowKey: '',
     yHighKey: '',
     xName: '',
-    yLowName: '',
-    yHighName: '',
     label: {
         enabled: false,
         fontStyle: undefined,
