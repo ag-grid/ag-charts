@@ -211,10 +211,10 @@ export abstract class RadialColumnSeriesBase<
         if (!processedData || !dataModel) return [];
 
         if (direction === ChartAxisDirection.X) {
-            return dataModel.getDomain(this, `angleValue`, 'key', processedData);
+            return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
             const radiusAxis = axes[ChartAxisDirection.Y];
-            const yExtent = dataModel.getDomain(this, /radiusValue-(previous-)?end/, 'value', processedData);
+            const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
             return this.fixNumericExtent(fixedYExtent as any, radiusAxis);
         }
@@ -254,7 +254,6 @@ export abstract class RadialColumnSeriesBase<
                 }),
                 ...extraProps,
             ],
-            groupByKeys: true,
             dataVisible: visible,
         });
 
@@ -312,7 +311,6 @@ export abstract class RadialColumnSeriesBase<
         const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`).index;
         const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`).index;
         const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`).index;
-        const dataIndex = 0;
 
         const { label, id: seriesId } = this;
 
@@ -365,10 +363,10 @@ export abstract class RadialColumnSeriesBase<
         const nodeData = processedData.data.map((group, index): RadialColumnNodeDatum => {
             const { datum, keys, values } = group;
 
-            const angleDatum = keys[dataIndex];
-            const radiusDatum = values[dataIndex][radiusRawIndex];
-            const innerRadiusDatum = values[dataIndex][radiusStartIndex];
-            const outerRadiusDatum = values[dataIndex][radiusEndIndex];
+            const angleDatum = keys[0];
+            const radiusDatum = values[radiusRawIndex];
+            const innerRadiusDatum = values[radiusStartIndex];
+            const outerRadiusDatum = values[radiusEndIndex];
 
             const groupAngle = angleScale.convert(angleDatum);
             const startAngle = groupAngle + groupScale.convert(String(groupIndex));
