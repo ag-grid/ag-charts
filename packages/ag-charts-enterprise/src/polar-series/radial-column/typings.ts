@@ -95,8 +95,7 @@ export interface AgRadialColumnSeriesFormatterParams<DatumType> {
     readonly strokeWidth: PixelSize;
     readonly highlighted: boolean;
     readonly angleKey: string;
-    readonly radiusKey?: string;
-    readonly sectorLabelKey?: string;
+    readonly radiusKey: string;
     readonly seriesId: string;
 }
 
