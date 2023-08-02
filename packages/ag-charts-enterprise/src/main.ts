@@ -201,7 +201,7 @@ import { LicenseManager } from './license/licenseManager';
 type CartesianAddonType = 'heatmap' | 'waterfall-bar' | 'waterfall-column' | 'range-bar' | 'range-column';
 type CartesianAddonSeries = AgHeatmapSeriesOptions | AgWaterfallSeriesOptions | AgRangeBarSeriesOptions;
 
-type PolarAddonType = 'radar-line' | 'radar-area' | 'radial-series' | 'nightingale';
+type PolarAddonType = 'radar-line' | 'radar-area' | 'radial-column' | 'nightingale';
 type PolarAddonSeries =
     | AgRadarLineSeriesOptions
     | AgRadarAreaSeriesOptions
