@@ -1,0 +1,150 @@
+---
+import { getBoilerPlateUrl } from '../../../utils/pages';
+import type { InternalFramework } from '../../../types/ag-grid';
+import JavascriptTemplate from '../framework-templates/JavascriptTemplate.astro';
+import TypescriptTemplate from '../framework-templates/TypescriptTemplate.astro';
+import { getIsDev } from '../../../utils/env';
+import ReactTemplate from '../framework-templates/ReactTemplate.astro';
+import VueTemplate from '../framework-templates/VueTemplate.astro';
+import type { GeneratedContents } from '../../examples-generator/types';
+
+interface Props {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+    exampleUrl: string;
+    generatedContents: GeneratedContents;
+    /**
+     * Whether to use relative paths for script files references
+     */
+    relativePath?: boolean;
+}
+
+const { internalFramework, pageName, exampleName, exampleUrl, generatedContents, relativePath } = Astro.props as Props;
+
+const isDev = getIsDev();
+
+const library = 'charts';
+
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } = generatedContents || {};
+const indexFragment = files && files['index.html'];
+const appLocation = relativePath ? '' : exampleUrl;
+const boilerPlateUrl = relativePath
+    ? ''
+    : getBoilerPlateUrl({
+          library,
+          internalFramework,
+      });
+
+// TODO: Can remove, once we support all frameworks
+const supportedInternalFrameworks: InternalFramework[] = [
+    'vanilla',
+    'typescript',
+    'react',
+    'reactFunctional',
+    'reactFunctionalTs',
+    'vue',
+    'vue3',
+];
+
+const timeNow = Date.now();
+---
+
+{
+    !generatedContents && (
+        <p>
+            Error generating content for: <a href={exampleUrl}>{exampleUrl}</a>
+        </p>
+    )
+}
+
+{
+    internalFramework === 'vanilla' && (
+        <JavascriptTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={timeNow}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            indexFragment={indexFragment!}
+            appLocation={appLocation}
+        />
+    )
+}
+
+{
+    internalFramework === 'typescript' && (
+        <TypescriptTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={timeNow}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            entryFileName={entryFileName!}
+            styleFiles={styleFiles}
+            indexFragment={indexFragment!}
+            appLocation={appLocation}
+            library={library}
+            boilerplatePath={boilerPlateUrl}
+        />
+    )
+}
+
+{
+    ['react', 'reactFunctional', 'reactFunctionalTs'].includes(internalFramework) && (
+        <ReactTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={timeNow}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            entryFileName={entryFileName!}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            appLocation={appLocation}
+            library={library}
+            boilerplatePath={boilerPlateUrl}
+        />
+    )
+}
+
+{
+    (internalFramework === 'vue' || internalFramework === 'vue3') && (
+        <VueTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={timeNow}
+            isExecuting={true}
+            options={{
+                enterprise: isEnterprise,
+            }}
+            entryFileName={entryFileName!}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            appLocation={appLocation}
+            library={library}
+            boilerplatePath={boilerPlateUrl}
+            vueFramework={internalFramework}
+        />
+    )
+}
+
+{
+    !supportedInternalFrameworks.includes(internalFramework) && (
+        <h1>
+            TODO: [{internalFramework}] {pageName} - {exampleName}
+        </h1>
+    )
+}

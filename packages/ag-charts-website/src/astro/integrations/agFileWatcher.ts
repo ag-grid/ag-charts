@@ -1,5 +1,5 @@
 import { type AstroIntegration } from 'astro';
-import { getAllSourceExampleFileList } from '../../features/examples-generator/utils/fileUtils';
+import { getAllExamplesFileList } from '../../features/docs/utils/filesData';
 
 /**
  * Astro plugin to watch AG files, so dev server restarts when they are changed
@@ -13,7 +13,7 @@ export default function createAgFileWatcherIntegration(): AstroIntegration {
                     return;
                 }
 
-                const exampleFiles = await getAllSourceExampleFileList();
+                const exampleFiles = await getAllExamplesFileList();
                 exampleFiles.forEach((exampleFile) => {
                     addWatchFile(exampleFile);
                 });

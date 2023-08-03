@@ -1,0 +1,55 @@
+---
+import { getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { getDemoExampleFiles } from '../../features/demo/utils/pageData';
+import { getExampleFileUrl } from '../../features/demo/utils/urlPaths';
+
+const demosEntry = await getEntry('demo', 'demos');
+const exampleFiles = await getDemoExampleFiles({
+    demos: demosEntry.data,
+});
+---
+
+<Layout title={`Debug: Demo Example Files`}>
+    <main class="page-margin container">
+        <h1>Example files ({exampleFiles.length})</h1>
+        <table>
+            <thead>
+                <th>No.</th>
+                <th>Url</th>
+                <th><code>params.exampleName</code></th>
+                <th><code>params.fileName</code></th>
+            </thead>
+            <tbody>
+                {
+                    exampleFiles.map((example, index) => {
+                        const { exampleName, fileName } = example.params;
+                        const url = getExampleFileUrl({
+                            exampleName,
+                            fileName,
+                        });
+                        return (
+                            <tr>
+                                <td>{index + 1}</td>
+                                <td>
+                                    <a href={url}>{url}</a>
+                                </td>
+                                <td>{exampleName}</td>
+                                <td>{fileName}</td>
+                            </tr>
+                        );
+                    })
+                }
+            </tbody>
+        </table>
+    </main>
+</Layout>
+
+<style lang="scss">
+    @use '../../design-system' as *;
+
+    .container {
+        margin-top: $size-6;
+        margin-bottom: calc($size-6 * 4);
+    }
+</style>
