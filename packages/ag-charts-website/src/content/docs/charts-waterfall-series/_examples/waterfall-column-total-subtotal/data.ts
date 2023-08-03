@@ -1,48 +1,48 @@
 export function getData() {
     return [
         {
-            date: 'July 3',
-            amount: 900,
+            source: 'Income \nTax',
+            amount: 185,
         },
         {
-            date: 'July 4',
-            amount: 345,
+            source: 'VAT',
+            amount: 145,
         },
         {
-            date: 'July 5',
-            amount: 393,
+            source: 'NI',
+            amount: 134,
         },
         {
-            date: 'July 6',
-            amount: -108,
+            source: 'Coorp \nTax',
+            amount: 55,
         },
         {
-            date: 'July 7',
-            amount: -154,
+            source: 'Council \nTax',
+            amount: 34,
         },
         {
-            date: 'July 10',
-            amount: 135,
+            source: 'Social \nProtection',
+            amount: -252,
         },
         {
-            date: 'July 11',
-            amount: 178,
+            source: 'Health',
+            amount: -155,
         },
         {
-            date: 'July 12',
-            amount: 286,
+            source: 'Education',
+            amount: -112,
         },
         {
-            date: 'July 13',
-            amount: -119,
+            source: 'Defence',
+            amount: -65,
         },
         {
-            date: 'July 14',
-            amount: -361,
+            source: 'Debt \nInterest',
+            amount: -63,
         },
         {
-            date: 'July 17',
-            amount: -203,
+            source: 'Housing',
+            amount: -31,
         },
     ];
 }

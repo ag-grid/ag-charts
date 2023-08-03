@@ -5,19 +5,22 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Waterfall Column',
+        text: 'UK Govornment Budget',
+    },
+    subtitle: {
+        text: 'All values in £bns',
     },
     series: [
         {
             type: 'waterfall-column',
-            xKey: 'date',
-            xName: 'Date',
+            xKey: 'source',
+            xName: 'Source',
             yKey: 'amount',
             yName: 'Amount',
             totals: [
-                { totalType: 'subtotal', index: 4, axisLabel: 'Subtotal 1' },
-                { totalType: 'subtotal', index: 9, axisLabel: 'Subtotal 2' },
-                { totalType: 'total', index: 10, axisLabel: 'Total' },
+                { totalType: 'total', index: 4, axisLabel: 'Total \nRevenue' },
+                { totalType: 'subtotal', index: 10, axisLabel: 'Total \nExpenditure' },
+                { totalType: 'total', index: 10, axisLabel: 'Borrowing' },
             ],
         },
     ],
