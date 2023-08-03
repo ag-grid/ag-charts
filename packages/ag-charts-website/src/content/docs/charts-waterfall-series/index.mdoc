@@ -25,7 +25,7 @@ series: [{
 
 ## Total / Subtotal Values
 
-Total shows the cumulative value from `0` to the current data position, while subtotal shows the cumulative value from the previous subtotal value to the current position.
+Total shows the cumulative value from `0` to the current data position, while subtotal shows the cumulative value from the previous total or subtotal value to the current position.
 Total and subtotal values are calculated automatically based on previous items in the data array and help to break down the cumulative effect of multiple changes at any point in the data.
 
 To add total and subtotal values at a specific position in the chart, add the configuration to the `totals` array on the series options object.
@@ -71,15 +71,6 @@ series: [{
             name: 'Total / Subtotal',
             fill: '#EE6666',
             stroke: '#EE6666',
-            label: {
-                enabled: true,
-                formatter: ({ value }) => `${value.toFixed(0)}`
-            },
-            tooltip: {
-                renderer: ({ yValue, itemId }: any) =>  ({
-                    content: `${itemId === 'subtotal' ? 'Subtotal' : 'Total'}: ${yValue}`
-                })
-            }
         }
     },
 }]

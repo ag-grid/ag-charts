@@ -5,13 +5,16 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Waterfall Column',
+        text: 'UK Government Budget',
+    },
+    subtitle: {
+        text: 'All values in £ billions',
     },
     series: [
         {
             type: 'waterfall-column',
-            xKey: 'date',
-            xName: 'Date',
+            xKey: 'source',
+            xName: 'Source',
             yKey: 'amount',
             yName: 'Amount',
             line: {

@@ -1,48 +1,48 @@
 export function getData() {
     return [
         {
-            date: 'Nov 1',
-            amount: 900,
+            source: 'Income \nTax',
+            amount: 185,
         },
         {
-            date: 'Nov 2',
-            amount: 345,
+            source: 'VAT',
+            amount: 145,
         },
         {
-            date: 'Nov 3',
-            amount: 393,
+            source: 'NI',
+            amount: 134,
         },
         {
-            date: 'Nov 4',
-            amount: -108,
+            source: 'Coorp \nTax',
+            amount: 55,
         },
         {
-            date: 'Nov 5',
-            amount: -154,
+            source: 'Council \nTax',
+            amount: 34,
         },
         {
-            date: 'Nov 6',
-            amount: 135,
+            source: 'Social \nProtection',
+            amount: -252,
         },
         {
-            date: 'Nov 7',
-            amount: 178,
+            source: 'Health',
+            amount: -155,
         },
         {
-            date: 'Nov 8',
-            amount: 286,
+            source: 'Education',
+            amount: -112,
         },
         {
-            date: 'Nov 9',
-            amount: -119,
+            source: 'Defence',
+            amount: -65,
         },
         {
-            date: 'Nov 10',
-            amount: -361,
+            source: 'Debt \nInterest',
+            amount: -63,
         },
         {
-            date: 'Nov 11',
-            amount: -203,
+            source: 'Housing',
+            amount: -31,
         },
     ];
 }

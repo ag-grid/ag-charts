@@ -1,49 +1,48 @@
-// Source: http://www.sheffieldweather.co.uk/Averages/MONTHLYAIRAVERAGE.htm
 export function getData() {
-  return [
-    {
-      date: "Nov 1",
-      amount: 900,
-    },
-    {
-      date: "Nov 2",
-      amount: 345,
-    },
-    {
-      date: "Nov 3",
-      amount: 393,
-    },
-    {
-      date: "Nov 4",
-      amount: -108,
-    },
-    {
-      date: "Nov 5",
-      amount: -154,
-    },
-    {
-      date: "Nov 6",
-      amount: 135,
-    },
-    {
-      date: "Nov 7",
-      amount: 178,
-    },
-    {
-      date: "Nov 8",
-      amount: 286,
-    },
-    {
-      date: "Nov 9",
-      amount: -119,
-    },
-    {
-      date: "Nov 10",
-      amount: -361,
-    },
-    {
-      date: "Nov 11",
-      amount: -203,
-    },
-  ]
+    return [
+        {
+            source: 'Income \nTax',
+            amount: 185,
+        },
+        {
+            source: 'VAT',
+            amount: 145,
+        },
+        {
+            source: 'NI',
+            amount: 134,
+        },
+        {
+            source: 'Coorp \nTax',
+            amount: 55,
+        },
+        {
+            source: 'Council \nTax',
+            amount: 34,
+        },
+        {
+            source: 'Social \nProtection',
+            amount: -252,
+        },
+        {
+            source: 'Health',
+            amount: -155,
+        },
+        {
+            source: 'Education',
+            amount: -112,
+        },
+        {
+            source: 'Defence',
+            amount: -65,
+        },
+        {
+            source: 'Debt \nInterest',
+            amount: -63,
+        },
+        {
+            source: 'Housing',
+            amount: -31,
+        },
+    ];
 }

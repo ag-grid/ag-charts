@@ -453,7 +453,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
             const { cumulativeValue, trailingValue } = getValues(isTotal, isSubtotal, values);
 
-            if (isSubtotal) {
+            if (isTotalOrSubtotal) {
                 trailingSubtotal = cumulativeValue ?? 0;
             }
 
