@@ -21,10 +21,6 @@ export function getData() {
             amount: -154,
         },
         {
-            date: 'Subtotal 1',
-            datumType: 'subtotal',
-        },
-        {
             date: 'July 10',
             amount: 135,
         },
@@ -45,16 +41,8 @@ export function getData() {
             amount: -361,
         },
         {
-            date: 'Subtotal 2',
-            datumType: 'subtotal',
-        },
-        {
             date: 'July 17',
             amount: -203,
-        },
-        {
-            date: 'Total',
-            datumType: 'total',
         },
     ];
 }

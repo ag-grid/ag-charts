@@ -1,47 +1,47 @@
 export function getData() {
     return [
         {
-            date: 'July 3',
+            date: 'Nov 1',
             amount: 900,
         },
         {
-            date: 'July 4',
+            date: 'Nov 2',
             amount: 345,
         },
         {
-            date: 'July 5',
+            date: 'Nov 3',
             amount: 393,
         },
         {
-            date: 'July 6',
+            date: 'Nov 4',
             amount: -108,
         },
         {
-            date: 'July 7',
+            date: 'Nov 5',
             amount: -154,
         },
         {
-            date: 'July 10',
+            date: 'Nov 6',
             amount: 135,
         },
         {
-            date: 'July 11',
+            date: 'Nov 7',
             amount: 178,
         },
         {
-            date: 'July 12',
+            date: 'Nov 8',
             amount: 286,
         },
         {
-            date: 'July 13',
+            date: 'Nov 9',
             amount: -119,
         },
         {
-            date: 'July 14',
+            date: 'Nov 10',
             amount: -361,
         },
         {
-            date: 'July 17',
+            date: 'Nov 11',
             amount: -203,
         },
     ];

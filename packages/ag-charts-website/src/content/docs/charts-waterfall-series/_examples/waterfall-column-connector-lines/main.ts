@@ -14,11 +14,11 @@ const options: AgChartOptions = {
             xName: 'Date',
             yKey: 'amount',
             yName: 'Amount',
-            totals: [
-                { totalType: 'subtotal', index: 4, axisLabel: 'Subtotal 1' },
-                { totalType: 'subtotal', index: 9, axisLabel: 'Subtotal 2' },
-                { totalType: 'total', index: 10, axisLabel: 'Total' },
-            ],
+            line: {
+                strokeWidth: 4,
+                stroke: '#7290C4',
+                lineDash: [4, 2],
+            },
         },
     ],
 };
