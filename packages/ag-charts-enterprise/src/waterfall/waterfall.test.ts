@@ -32,9 +32,9 @@ describe('Chart', () => {
     });
 
     const TOTALS_META_DATA = [
-        { totalType: 'subtotal', index: 2, axisLabel: 'Subtotal' },
-        { totalType: 'subtotal', index: 5, axisLabel: 'Subtotal' },
-        { totalType: 'subtotal', index: 7, axisLabel: 'Subtotal' },
+        { totalType: 'subtotal', index: 2, axisLabel: 'Subtotal 1' },
+        { totalType: 'subtotal', index: 5, axisLabel: 'Subtotal 2' },
+        { totalType: 'subtotal', index: 7, axisLabel: 'Subtotal 3' },
         { totalType: 'total', index: 8, axisLabel: 'Total' },
     ];
 

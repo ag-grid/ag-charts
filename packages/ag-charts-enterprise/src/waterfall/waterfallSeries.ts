@@ -279,10 +279,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 totalsAtIndex.forEach((total) =>
                     dataWithTotals.push({
                         ...total,
-                        [xKey]: {
-                            id: Math.random(),
-                            toString: () => String(total.axisLabel),
-                        },
+                        [xKey]: total.axisLabel,
                     })
                 );
             }
