@@ -20,7 +20,7 @@ series: [{
 {% chartExampleRunner title="Basic Waterfall Column" name="basic-waterfall-column" type="generated" options="{ \"enterprise\": true }" /%}
 
 <note>
-| Waterfall series are designed for only a single series in a given chart. For Waterfall Column series, the Y-Axis is a [Number](../charts-axes-types/number) axis and the X-Axis is a [Category](../charts-axes-types/category) axis.
+| Waterfall series are designed to display only a single waterfall series in a given chart. Waterfall series should be used with a [Category](../charts-axes-types/category) axis.
 </note>
 
 ## Total / Subtotal Values
@@ -28,37 +28,37 @@ series: [{
 Total shows the cumulative value from `0` to the current data position, while subtotal shows the cumulative value from the previous subtotal value to the current position.
 Total and subtotal values are calculated automatically based on previous items in the data array and help to break down the cumulative effect of multiple changes at any point in the data.
 
-To differentiate regular positive or negative data points from total and subtotal data points, you can use a `typeKey` in the `series` options.
+To add total and subtotal values at a specific position in the chart, add the configuration to the `totals` array on the series options object.
+
+Use `totalType` in the configuration with values `total` or `subtotal` to determine whether to display a total or subtotal value after the data object at the specified index:
 
 ```js
 series: [{
     type: 'waterfall-column',
     xKey: 'date',
     yKey: 'amount',
-    typeKey: 'datumType'
+    totals: [{
+        totalType: 'subtotal',
+        index: 4,
+        axisLabel: 'Subtotal 1'
+    }]
 }]
-```
-This `typeKey` should be included in the data objects that represent total or subtotal values. The value of the `typeKey` in the data can be `total` or `subtotal`.
-
-```js
-data: [
-    {
-        xKey: 'date',
-        datumType: 'total',
-    },
-    {
-        xKey: 'date',
-        datumType: 'subtotal',
-    },
-]
 ```
 
 {% chartExampleRunner title="Waterfall Column Total and Subtotal" name="waterfall-column-total-subtotal" type="generated" options="{ \"enterprise\": true }" /%}
 
+<note>
+| The `axisLabel` property value must be unique because it is used as a category value on the category axis.
+</note>
+
 ## Customisation
 
-The positive and negative data values can be customised using `series.positiveItem` and `series.negativeItem` options, respectively.
-Total and subtotal data values can be customised using the `series.total` options object.
+### Positive, Negative and Total Items
+
+The positive and negative data values can be customised using `series.item.positive` and `series.item.negative` options, respectively.
+Total and subtotal values can be customised using the `series.item.total` options object.
+
+If the legend is enabled, the `name` property in these configuration objects will be used as the label for the legend item.
 
 ```js
 series: [{
@@ -66,15 +66,20 @@ series: [{
     xKey: 'date',
     yKey: 'amount',
     typeKey: 'datumType',
-    totalItem: {
-        label: {
-            enabled: true,
-            formatter: ({ value }) => `${value.toFixed(0)}`
-        },
-        tooltip: {
-            renderer: ({ yValue, itemId }: any) =>  ({
-                content: `${itemId === 'subtotal' ? 'Subtotal' : 'Total'}: ${yValue}`
-            })
+    item: {
+        total: {
+            name: 'Total / Subtotal',
+            fill: '#EE6666',
+            stroke: '#EE6666',
+            label: {
+                enabled: true,
+                formatter: ({ value }) => `${value.toFixed(0)}`
+            },
+            tooltip: {
+                renderer: ({ yValue, itemId }: any) =>  ({
+                    content: `${itemId === 'subtotal' ? 'Subtotal' : 'Total'}: ${yValue}`
+                })
+            }
         }
     },
 }]
@@ -82,9 +87,43 @@ series: [{
 
 {% chartExampleRunner title="Waterfall Column Customisation" name="waterfall-column-customisation" type="generated" options="{ \"enterprise\": true }" /%}
 
+### Connector Lines
+
+The connector lines can be customised using the `line` property.
+
+```js
+series: [{
+    type: 'waterfall-column',
+    xKey: 'date',
+    yKey: 'amount',
+    line: {
+        strokeWidth: 4,
+        stroke: '#7290C4',
+        lineDash: [4, 2],
+    }
+}]
+```
+
+{% chartExampleRunner title="Waterfall Column Connector Lines" name="waterfall-column-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
+
+To remove the connector lines, set `line.enabled` to `false`:
+
+```js
+series: [{
+    type: 'waterfall-column',
+    xKey: 'date',
+    yKey: 'amount',
+    line: {
+        enabled: false
+    }
+}]
+```
+
 ## Legend
 
 The legend shows items for positive, negative, and total/subtotal values. However, these items are not toggleable.
+
+The legend item label can be configured using the `name` property in the item configuration objects.
 
 ## Waterfall Bar
 
