@@ -1,0 +1,87 @@
+---
+import { getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { Icon } from '../../components/icon/Icon';
+import DemoExampleRunner from '../../features/demo/components/DemoExampleRunner.astro';
+import { getDemoPages } from '../../features/demo/utils/pageData';
+import { DemoExampleLink } from '../../features/demo/components/DemoExampleLink';
+
+export async function getStaticPaths() {
+    const demosEntry = await getEntry('demo', 'demos');
+
+    const pages = getDemoPages({ demos: demosEntry.data });
+    return pages;
+}
+
+const { page, prevDemo, nextDemo } = Astro.props;
+---
+
+<Layout>
+    <div class="page-margin font-size-responsive font-size-medium">
+        <h1>
+            <span>
+                {page.name}
+                {
+                    page.enterprise && (
+                        <span class="enterpriseIcon">
+                            <Icon client:only name="enterprise" />
+                        </span>
+                    )
+                }
+            </span>
+
+            <a class="font-size-medium" href={page.docsUrl}>
+                View {page.chartType.toLowerCase()} charts documentation
+            </a>
+        </h1>
+
+        <DemoExampleRunner title={page.name} name={page.slug} />
+
+        <p set:html={page.description} />
+
+        <div class="moreDemos">
+            <DemoExampleLink client:load label={prevDemo.name} exampleName={prevDemo.example} />
+
+            <DemoExampleLink client:load label={nextDemo.name} exampleName={nextDemo.example} />
+        </div>
+    </div>
+</Layout>
+
+<style lang="scss">
+    @use '../../design-system' as *;
+
+    .page-margin {
+        padding-top: $size-5;
+        padding-bottom: $size-9;
+    }
+
+    h1 {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+    }
+
+    .enterpriseIcon {
+        --text-color: red;
+        --icon-size: 28px;
+    }
+
+    .moreDemos {
+        display: flex;
+        gap: $size-2;
+        justify-content: space-between;
+        margin-top: $size-9;
+    }
+
+    .prevDemo,
+    .nextDemo {
+        width: min(28rem, 50%);
+    }
+
+    .dummyImage {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        background-color: #ddd;
+        border-radius: var(--border-radius);
+    }
+</style>

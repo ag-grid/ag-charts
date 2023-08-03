@@ -4,7 +4,7 @@ import styles from './ExampleIFrame.module.scss';
 import { useIntersectionObserver } from '../../../utils/hooks/useIntersectionObserver';
 
 interface Props {
-    isHidden: boolean;
+    isHidden?: boolean;
     url: string;
 }
 
@@ -25,7 +25,7 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url }) => {
 
     useEffect(() => {
         const currentSrc = iFrameRef.current?.src && new URL(iFrameRef.current.src);
-        if (!isIntersecting || !url || !iFrameRef.current || currentSrc.pathname === url) {
+        if (!isIntersecting || !url || !iFrameRef.current || (currentSrc as URL)?.pathname === url) {
             return;
         }
 

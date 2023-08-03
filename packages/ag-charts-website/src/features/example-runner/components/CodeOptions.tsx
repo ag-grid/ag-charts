@@ -4,6 +4,8 @@ import styles from './CodeOptions.module.scss';
 import { isGeneratedExample } from '../../examples-generator/utils/isGeneratedExample';
 import { isReactInternalFramework, isVueInternalFramework } from '../../../utils/framework';
 import { setInternalFramework } from '../../../stores/frameworkStore';
+import type { ExampleType } from '../../examples-generator/types';
+import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-grid';
 
 type SelectorType = 'typescript' | 'react' | 'vue';
 interface SelectorConfig {
@@ -84,7 +86,15 @@ function CodeOptionSelector({
     );
 }
 
-export const CodeOptions = ({ id, internalFramework, exampleType }) => {
+export const CodeOptions = ({
+    id,
+    internalFramework,
+    exampleType,
+}: {
+    id: string;
+    internalFramework: InternalFramework;
+    exampleType: ExampleType;
+}) => {
     const isGenerated = isGeneratedExample(exampleType);
 
     const showTypescriptSelector =

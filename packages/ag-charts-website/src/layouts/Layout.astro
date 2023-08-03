@@ -6,7 +6,7 @@ import '../design-system/design-system.scss';
 import { Footer } from '../components/footer/Footer';
 import { TopBar } from '../components/top-bar/TopBar';
 import { FRAMEWORKS } from '../constants';
-import { getFrameworkFromPath } from '../utils/pages';
+import { getFrameworkFromPath } from '../features/docs/utils/urlPaths';
 
 export interface Props {
     title?: string;
@@ -67,21 +67,9 @@ const framework = getFrameworkFromPath(path);
             }
 
             .mainContainer {
-                display: flex;
-                flex-direction: column;
+                width: 100%;
                 min-height: 100vh;
                 padding: 0;
-                width: 100%;
-            }
-
-            .contentViewport {
-                display: flex;
-                flex-direction: column;
-                flex-grow: 1;
-
-                @media (min-width: $breakpoint-docs-nav-medium) {
-                    flex-direction: row;
-                }
             }
         </style>
     </body>

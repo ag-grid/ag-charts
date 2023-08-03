@@ -1,0 +1,184 @@
+---
+import { getEntry } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import { Icon, IconName } from '../components/icon/Icon';
+import { getPageHashUrl } from '../features/demo/utils/urlPaths';
+import type { DemoExamples } from '../types/ag-grid';
+import { DemoExampleLink } from '../features/demo/components/DemoExampleLink';
+
+const demosEntry = await getEntry('demo', 'demos');
+const demos: DemoExamples = demosEntry.data;
+const { chartTypes } = demos;
+---
+
+<Layout>
+    <div class="demo-outer font-size-responsive font-size-medium">
+        <div class="menu">
+            <ul class="list-style-none">
+                {
+                    chartTypes.map((chartType) => (
+                        <li>
+                            <a href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}>
+                                <Icon client:only name={chartType.icon as IconName} />
+                                <span class="name">{chartType.name}</span>
+                                {chartType.enterprise && (
+                                    <span class="enterpriseIcon">
+                                        <Icon client:only name="enterprise" />
+                                    </span>
+                                )}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+            <div class="menu-scroll-indicator"></div>
+        </div>
+
+        <div class="content">
+            {
+                chartTypes.map((chartType) => (
+                    <div class="chart-type">
+                        <h2 id={chartType.slug}>
+                            <span>{chartType.name} Charts</span>
+                            <a
+                                class="font-size-medium"
+                                href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}
+                            >
+                                View {chartType.name.toLowerCase()} charts documentation
+                            </a>
+                        </h2>
+                        <div class="demo-list">
+                            {chartType.demos.map(({ name, example }) => (
+                                <DemoExampleLink client:load label={name} exampleName={example} />
+                            ))}
+                        </div>
+                    </div>
+                ))
+            }
+        </div>
+    </div>
+</Layout>
+
+<script>
+    // Add smooth scrolling for menu anchor links
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth',
+            });
+        });
+    });
+</script>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    $site-header-height: 64px;
+
+    .demo-outer {
+        --horizontal-padding: calc((100vw - var(--max-page-width)) / 2);
+        --menu-width: 14rem;
+        --demos-list-gap: #{$size-3};
+
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+
+    .menu {
+        position: sticky;
+        flex-shrink: 0;
+        max-height: calc(100vh - #{$site-header-height});
+        width: calc(var(--menu-width) + var(--horizontal-padding));
+        top: $site-header-height;
+        padding-top: calc($size-7 + $size-2);
+        padding-left: var(--horizontal-padding);
+        overflow-y: scroll;
+    }
+
+    .menu li {
+        margin-bottom: $size-2 !important;
+    }
+
+    .menu a {
+        --text-color: var(--secondary-text-color);
+        --icon-size: 1.75em;
+
+        display: flex;
+        align-items: center;
+
+        &:hover {
+            --text-color: var(--link-hover-color);
+        }
+    }
+
+    .menu .name {
+        margin-left: $size-1;
+        margin-right: $size-half;
+    }
+
+    .enterpriseIcon {
+        --text-color: red;
+        --icon-size: 18px;
+    }
+
+    .menu-scroll-indicator {
+        position: sticky;
+        width: 100%;
+        height: $size-8;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(transparent, white);
+        pointer-events: none;
+    }
+
+    .content {
+        padding-right: var(--horizontal-padding);
+    }
+
+    .chart-type {
+        margin-bottom: $size-5;
+    }
+
+    .chart-type h2 {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+        width: 100%;
+        padding-top: $size-5;
+    }
+
+    .chart-type h2 a {
+        align-self: flex-end;
+    }
+
+    .demo-list {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--demos-list-gap);
+    }
+</style>
+
+<style lang="scss" is:global>
+    @use '../design-system' as *;
+
+    $site-header-height: 64px;
+
+    .site-header {
+        position: fixed !important;
+        width: 100%;
+        z-index: 1;
+    }
+
+    .contentViewport {
+        padding-top: $site-header-height;
+    }
+
+    .menu svg {
+        transition: fill $default-transition-timing;
+    }
+</style>

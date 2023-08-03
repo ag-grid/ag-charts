@@ -1,0 +1,23 @@
+---
+import { getEntry } from 'astro:content';
+import DemoFrameworkTemplate from '../../../../features/demo/components/DemoFrameworkTemplate.astro';
+import { getDemoExamplePages } from '../../../../features/demo/utils/pageData';
+
+/**
+ * This page is the same as `[exampleName].astro`, but using relative paths for script files
+ *
+ * This is useful for situations where the script files are self contained eg, plunkr
+ *
+ * NOTE: This can't be called `index.astro` because it would clash with the generated
+ * `index.html` fragment file from examples
+ */
+export async function getStaticPaths() {
+    const demosEntry = await getEntry('demo', 'demos');
+    const pages = getDemoExamplePages({ demos: demosEntry.data });
+    return pages;
+}
+
+const { exampleName } = Astro.params;
+---
+
+<DemoFrameworkTemplate exampleName={exampleName!} relativePath={true} />

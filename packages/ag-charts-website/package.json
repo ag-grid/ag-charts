@@ -1,5 +1,7 @@
 {
   "name": "ag-charts-website",
   "version": "1.0.0",
-  "scripts": {}
+  "scripts": {
+    "generate-demo-thumbnails": "tsx ./scripts/generateDemoThumbnails.ts"
+  }
 }

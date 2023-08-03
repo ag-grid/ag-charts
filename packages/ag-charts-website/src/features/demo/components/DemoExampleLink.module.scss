@@ -1,0 +1,26 @@
+@use '../../../design-system' as *;
+
+.link {
+    width: calc(50% - var(--demos-list-gap) / 2);
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+    transition: border-color $default-transition-timing;
+
+    &:hover {
+        border-color: var(--link-hover-color);
+    }
+
+    img {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        padding: $size-3 $size-3 $size-2;
+    }
+
+    span {
+        display: block;
+        padding: $size-1 $size-3;
+        background-color: var(--ghost-blue);
+        border-top: 1px solid var(--bright-blue-gray);
+        transition: color $default-transition-timing;
+    }
+}

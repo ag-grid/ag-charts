@@ -7,10 +7,11 @@ import { vanillaToVue } from '../transformation-scripts/chart-vanilla-to-vue';
 import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
 import { getBoilerPlateFiles, getEntryFileName } from './fileUtils';
 import { deepCloneObject } from './deepCloneObject';
+import type { FileContents } from '../types';
 
 interface FrameworkFiles {
-    files: Record<string, string>;
-    boilerPlateFiles?: Record<string, string>;
+    files: FileContents;
+    boilerPlateFiles?: FileContents;
     scriptFiles?: string[];
     entryFileName: string;
 }
@@ -28,7 +29,7 @@ type ConfigGenerator = ({
     isEnterprise: boolean;
     bindings: any;
     typedBindings: any;
-    otherScriptFiles: Record<string, string>;
+    otherScriptFiles: FileContents;
 }) => FrameworkFiles | Promise<FrameworkFiles>;
 
 const createReactFilesGenerator =

@@ -5,11 +5,29 @@ import { doOnEnter } from '../../../utils/doOnEnter';
 import { Icon } from '../../../components/icon/Icon';
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
+import type { InternalFramework } from '../../../types/ag-grid';
+import type { ExampleType, FileContents } from '../../examples-generator/types';
 
 /**
  * This renders the code viewer in the example runner.
  */
-export const CodeViewer = ({ id, isActive, files, initialSelectedFile, exampleType, internalFramework }) => {
+export const CodeViewer = ({
+    id,
+    isActive,
+    files,
+    initialSelectedFile,
+    exampleType,
+    internalFramework,
+    hideInternalFrameworkSelection,
+}: {
+    id: string;
+    isActive?: boolean;
+    files: FileContents;
+    initialSelectedFile: string;
+    internalFramework: InternalFramework;
+    exampleType: ExampleType;
+    hideInternalFrameworkSelection?: boolean;
+}) => {
     const [activeFile, setActiveFile] = useState(initialSelectedFile);
     const [showFiles, setShowFiles] = useState(true);
 
@@ -59,7 +77,9 @@ export const CodeViewer = ({ id, isActive, files, initialSelectedFile, exampleTy
                             />
                         ))}
                     </ul>
-                    <CodeOptions id={id} internalFramework={internalFramework} exampleType={exampleType} />
+                    {!hideInternalFrameworkSelection && (
+                        <CodeOptions id={id} internalFramework={internalFramework} exampleType={exampleType} />
+                    )}
                 </div>
                 <div className={styles.code}>
                     {!files && <FileView path={'loading.js'} code={'// Loading...'} />}

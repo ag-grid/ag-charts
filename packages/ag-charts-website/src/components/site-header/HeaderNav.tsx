@@ -13,7 +13,7 @@ const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 const links = [
     {
         name: 'Demo',
-        url: `${SITE_BASE_URL}example`,
+        url: `${SITE_BASE_URL}demo`,
     },
     {
         name: 'Documentation',

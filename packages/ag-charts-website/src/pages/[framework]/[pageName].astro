@@ -1,15 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { getDocPages, getDocPagesList } from '../../utils/pages';
 import { PagesNavigation } from '../../components/pages-navigation/PagesNavigation';
-import { Header } from '../../components/docs/Header';
+import { Header } from '../../features/docs/components/Header';
 import { getFrameworkDisplayText } from '../../utils/framework';
 import type { Framework } from '../../types/ag-grid';
+import { getPagesList } from '../../features/docs/utils/filesData';
+import { getDocsPages } from '../../features/docs/utils/pageData';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
-    return getDocPages(pages);
+    return getDocsPages(pages);
 }
 
 const { page } = Astro.props;
@@ -19,7 +20,7 @@ const { title, enterprise, sideMenu = true } = page.data;
 const { Content } = await page.render();
 
 const allDocPages = await getCollection('docs');
-const pages = getDocPagesList(allDocPages);
+const pages = getPagesList(allDocPages);
 ---
 
 <Layout title={`${getFrameworkDisplayText(framework as Framework)} Charts: AG Charts`} showTopBar={true}>
@@ -46,6 +47,20 @@ const pages = getDocPagesList(allDocPages);
         {sideMenu && <div class="sideMenu">TODO: Side menu</div>}
     </div>
 </Layout>
+
+<style lang="scss" is:global>
+    @use '../../design-system' as *;
+
+    .contentViewport {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+
+        @media (min-width: $breakpoint-docs-nav-medium) {
+            flex-direction: row;
+        }
+    }
+</style>
 
 <style lang="scss">
     @use '../../design-system' as *;
