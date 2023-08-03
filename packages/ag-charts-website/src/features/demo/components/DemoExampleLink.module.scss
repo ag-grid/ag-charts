@@ -1,6 +1,8 @@
 @use '../../../design-system' as *;
 
 .link {
+    display: flex;
+    flex-direction: column;
     border-radius: var(--border-radius);
     border: 2px solid var(--border-color);
     transition: border-color $default-transition-timing;
@@ -17,9 +19,11 @@
 
     span {
         display: block;
+        flex-grow: 1;
         padding: $size-1 $size-3;
         background-color: var(--ghost-blue);
         border-top: 1px solid var(--bright-blue-gray);
+        line-height: var(--line-height-tight);
         transition: color $default-transition-timing;
     }
 }
