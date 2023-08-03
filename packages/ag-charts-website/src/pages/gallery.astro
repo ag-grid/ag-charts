@@ -40,11 +40,18 @@ const { chartTypes } = demos;
                     <div class="chart-type">
                         <h2 id={chartType.slug}>
                             <span>{chartType.name} Charts</span>
+
+                            {chartType.enterprise && (
+                                <span class="enterpriseIcon">
+                                    <Icon client:only name="enterprise" />
+                                </span>
+                            )}
+
                             <a
                                 class="font-size-medium"
                                 href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}
                             >
-                                view {chartType.name.toLowerCase()} charts documentation
+                                View {chartType.name.toLowerCase()} charts documentation
                                 <span class="arrow-icon">
                                     <Icon client:only name="arrowRight" />
                                 </span>
@@ -86,8 +93,8 @@ const { chartTypes } = demos;
 
     $site-header-height: 64px;
 
-    .demoExample {
-        width: calc(25% - var(--demos-list-gap) / 4 * 3);
+    .enterpriseIcon {
+        --text-color: red;
     }
 
     .demo-outer {
@@ -132,8 +139,7 @@ const { chartTypes } = demos;
         margin-right: $size-half;
     }
 
-    .enterpriseIcon {
-        --text-color: red;
+    .menu .enterpriseIcon {
         --icon-size: 18px;
     }
 
@@ -159,19 +165,23 @@ const { chartTypes } = demos;
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0 $size-2;
         width: 100%;
         margin-bottom: $size-2;
         padding-top: $size-5;
+    }
+
+    .chart-type .enterpriseIcon {
+        --icon-size: #{$size-3};
+
+        margin-left: $size-half;
+        margin-right: $size-half;
     }
 
     .chart-type h2 a {
         position: relative;
         top: 6px;
         font-weight: var(--font-weight-normal);
-
-        &:hover {
-        }
+        margin-left: $size-1;
 
         &:hover .arrow-icon {
             --text-color: var(--link-hover-color);
@@ -196,6 +206,10 @@ const { chartTypes } = demos;
         flex-direction: row;
         flex-wrap: wrap;
         gap: var(--demos-list-gap);
+    }
+
+    .demoExample {
+        width: calc(25% - var(--demos-list-gap) / 4 * 3);
     }
 </style>
 
