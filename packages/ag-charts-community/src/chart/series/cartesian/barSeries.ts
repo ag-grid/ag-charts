@@ -801,7 +801,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     { from: rect.height, to: datum.height },
                 ];
                 let delay = diff.removed.length > 0 ? sectionDuration : 0;
-                let duration = sectionDuration;
+                const duration = sectionDuration;
                 let cleanup = false;
 
                 const datumId = datumIdKey ? datum.xValue : '';
@@ -828,7 +828,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                         { from: contextY, to: datum.y },
                         { from: contextHeight, to: datum.height },
                     ];
-                    duration = sectionDuration;
                 } else if (isRemoved) {
                     props = [
                         { from: datum.x, to: contextX },
@@ -837,7 +836,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                         { from: datum.height, to: contextHeight },
                     ];
                     delay = 0;
-                    duration = sectionDuration;
                     cleanup = true;
                 }
 
