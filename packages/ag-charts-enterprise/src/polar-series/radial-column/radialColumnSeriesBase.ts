@@ -29,7 +29,7 @@ const {
 
 const { BandScale } = _Scale;
 const { Group, Selection, Text, toTooltipHtml } = _Scene;
-const { interpolateString, isNumber, sanitizeHtml } = _Util;
+const { interpolateString, isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -369,8 +369,8 @@ export abstract class RadialColumnSeriesBase<
             const outerRadiusDatum = values[radiusEndIndex];
 
             const groupAngle = angleScale.convert(angleDatum);
-            const startAngle = groupAngle + groupScale.convert(String(groupIndex));
-            const endAngle = startAngle + groupScale.bandwidth;
+            const startAngle = normalizeAngle360(groupAngle + groupScale.convert(String(groupIndex)));
+            const endAngle = normalizeAngle360(startAngle + groupScale.bandwidth);
             const angle = startAngle + groupScale.bandwidth / 2;
 
             const innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);

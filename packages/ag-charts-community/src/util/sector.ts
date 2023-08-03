@@ -1,5 +1,6 @@
 import type { BBox } from '../scene/bbox';
 import { segmentIntersection, arcIntersections } from '../scene/intersection';
+import { normalizeAngle180 } from './angle';
 
 interface SectorBoundaries {
     startAngle: number;
@@ -19,31 +20,14 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
     if (radius < Math.min(innerRadius, outerRadius) || radius > Math.max(innerRadius, outerRadius)) {
         return false;
     }
-    // Start and End angles are expected to be [-90, 270]
-    // while Math.atan2 returns [-180, 180]
-    const pi_2 = Math.PI / 2;
-    let angle = Math.atan2(y, x);
-    if (angle < -pi_2) {
-        angle += 2 * Math.PI;
-    }
-    // Start is actually bigger than End clock-wise
-    let { startAngle, endAngle } = sector;
-    if (startAngle < -pi_2) {
-        startAngle += 2 * Math.PI;
-    }
-    if (endAngle < -pi_2) {
-        endAngle += 2 * Math.PI;
-    }
-    if (endAngle === -pi_2) {
-        return angle < startAngle;
-    }
-    if (startAngle === 3 * pi_2) {
-        return angle > endAngle;
-    }
+
+    const startAngle = normalizeAngle180(sector.startAngle);
+    const endAngle = normalizeAngle180(sector.endAngle);
+    const angle = Math.atan2(y, x);
     // Sector can cross axis start
     return startAngle < endAngle
         ? angle <= endAngle && angle >= startAngle
-        : (angle <= endAngle && angle >= -pi_2) || (angle >= startAngle && angle <= 3 * pi_2);
+        : (angle <= endAngle && angle >= -Math.PI) || (angle >= startAngle && angle <= Math.PI);
 }
 
 function lineCollidesSector(line: LineCoordinates, sector: SectorBoundaries) {
