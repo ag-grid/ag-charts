@@ -46,7 +46,7 @@ series: [
 
 ## Additional Styling Options
 
-There is a way to control the padding between elements, as well as the size of the hole in the middle. To do this, a few options should be added to the polar axes:
+There is a way to set a padding between elements. To do this, a few options should be added to the polar **angle** axis. `paddingInner` controls the padding between column groups, and `groupPaddingInner` controls the padding between columns within a group.
 
 ```js
 axes: [
@@ -57,12 +57,27 @@ axes: [
     },
     {
         type: 'radius-number',
-        innerRadiusRatio: 0.5
     },
 ]
 ```
 
 {% chartExampleRunner title="Nightingale Sector Padding" name="nightingale-padding" type="generated" options="{ \"enterprise\": true }" /%}
+
+To create a hole in the middle, `innerRadiusRatio` option should be added to the polar **radius** axis:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+    },
+    {
+        type: 'radius-number',
+        innerRadiusRatio: 0.5
+    },
+]
+```
+
+{% chartExampleRunner title="Nightingale Hole in the Middle" name="nightingale-hole" type="generated" options="{ \"enterprise\": true }" /%}
 
 Please see the API reference for more polar axes style options.
 
