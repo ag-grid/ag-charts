@@ -12,7 +12,7 @@ const { chartTypes } = demos;
 ---
 
 <Layout>
-    <div class="page-margin font-size-responsive font-size-medium">
+    <div class="demo-outer font-size-responsive font-size-medium">
         <div class="menu">
             <ul class="list-style-none">
                 {
@@ -76,10 +76,12 @@ const { chartTypes } = demos;
     @use '../design-system' as *;
 
     $site-header-height: 64px;
-    $menu-width: 14rem;
     $list-gap: $size-3;
 
-    .page-margin {
+    .demo-outer {
+        --horizontal-padding: calc((100vw - var(--max-page-width)) / 2);
+        --menu-width: 14rem;
+
         display: flex;
         flex-direction: row;
         position: relative;
@@ -87,11 +89,12 @@ const { chartTypes } = demos;
 
     .menu {
         position: sticky;
-        width: $menu-width;
-        min-width: $menu-width;
+        flex-shrink: 0;
         max-height: calc(100vh - #{$site-header-height});
+        width: calc(var(--menu-width) + var(--horizontal-padding));
         top: $site-header-height;
         padding-top: calc($size-7 + $size-2);
+        padding-left: var(--horizontal-padding);
         overflow-y: scroll;
     }
 
@@ -122,15 +125,16 @@ const { chartTypes } = demos;
 
     .menu-scroll-indicator {
         position: sticky;
-        width: $menu-width;
+        width: 100%;
         height: $size-8;
         bottom: 0;
         left: 0;
         background: linear-gradient(transparent, white);
+        pointer-events: none;
     }
 
     .content {
-        flex-grow: 1;
+        padding-right: var(--horizontal-padding);
     }
 
     .chart-type {
