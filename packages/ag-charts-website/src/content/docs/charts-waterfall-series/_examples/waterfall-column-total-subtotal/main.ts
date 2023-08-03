@@ -5,10 +5,10 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'UK Govornment Budget',
+        text: 'UK Government Budget',
     },
     subtitle: {
-        text: 'All values in £bns',
+        text: 'All values in £ billions',
     },
     series: [
         {
