@@ -61,12 +61,6 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly strokeWidth: number;
 }
 
-interface WaterfallSeriesItems {
-    readonly positive: WaterfallSeriesItem;
-    readonly negative: WaterfallSeriesItem;
-    readonly total: WaterfallSeriesItem;
-}
-
 type WaterfallContext = _ModuleSupport.SeriesNodeDataContext<WaterfallNodeDatum> & {
     pointData?: WaterfallNodePointDatum[];
 };
@@ -171,6 +165,12 @@ class WaterfallSeriesConnectorLine {
     strokeWidth: number = 2;
 }
 
+class WaterfallSeriesItems {
+    readonly positive: WaterfallSeriesItem = new WaterfallSeriesItem();
+    readonly negative: WaterfallSeriesItem = new WaterfallSeriesItem();
+    readonly total: WaterfallSeriesItem = new WaterfallSeriesItem();
+}
+
 type SeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 interface TotalMeta {
     totalType: 'subtotal' | 'total';
@@ -185,11 +185,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
     static className = 'WaterfallBarSeries';
     static type: 'waterfall-bar' | 'waterfall-column' = 'waterfall-bar' as const;
 
-    readonly item: WaterfallSeriesItems = {
-        positive: new WaterfallSeriesItem(),
-        negative: new WaterfallSeriesItem(),
-        total: new WaterfallSeriesItem(),
-    };
+    readonly item: WaterfallSeriesItems = new WaterfallSeriesItems();
 
     readonly totals: TotalMeta[] = [];
 
