@@ -44,7 +44,7 @@ export const SITE_BASE_URL = import.meta.env?.BASE_URL || process.env.SITE_BASE_
 /**
  * Number of URL segments in `SITE_BASE_URL`
  */
-export const SITE_BASE_URL_SEGMENTS = SITE_BASE_URL?.split('/').filter(Boolean).length;
+export const SITE_BASE_URL_SEGMENTS = SITE_BASE_URL?.split('/').filter(Boolean).length || 0;
 
 /**
  * URL prefix to serve files for dev server

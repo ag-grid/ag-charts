@@ -1,7 +1,6 @@
 @use '../../../design-system' as *;
 
 .link {
-    width: calc(50% - var(--demos-list-gap) / 2);
     border-radius: var(--border-radius);
     border: 2px solid var(--border-color);
     transition: border-color $default-transition-timing;

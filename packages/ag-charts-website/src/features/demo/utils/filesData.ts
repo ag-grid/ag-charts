@@ -15,9 +15,9 @@ export const getDemoData = ({ isDev }: { isDev?: boolean } = {}): DemoExamples =
     return demoData;
 };
 
-export const getThumbnailFileUrl = ({ exampleName, isDev }: { exampleName: string; isDev?: boolean }) => {
+export const getPlainThumbnailFileUrl = ({ exampleName, isDev }: { exampleName: string; isDev?: boolean }) => {
     const publicPath = getPublicFileUrl({ isDev });
-    const thumbnailFilePath = pathJoin(publicPath.pathname, 'demo', 'thumbnails', `${exampleName}.png`);
+    const thumbnailFilePath = pathJoin(publicPath.pathname, 'demo', 'thumbnails', `${exampleName}-plain.png`);
 
     return new URL(thumbnailFilePath, import.meta.url);
 };

@@ -52,7 +52,13 @@ const { chartTypes } = demos;
                         </h2>
                         <div class="demo-list">
                             {chartType.demos.map(({ name, example }) => (
-                                <DemoExampleLink client:load label={name} exampleName={example} />
+                                <DemoExampleLink
+                                    client:load
+                                    className="demoExample"
+                                    label={name!}
+                                    exampleName={example!}
+                                    isPlain={true}
+                                />
                             ))}
                         </div>
                     </div>
@@ -79,6 +85,10 @@ const { chartTypes } = demos;
     @use '../design-system' as *;
 
     $site-header-height: 64px;
+
+    .demoExample {
+        width: calc(25% - var(--demos-list-gap) / 4 * 3);
+    }
 
     .demo-outer {
         --horizontal-padding: calc((100vw - var(--max-page-width)) / 2);

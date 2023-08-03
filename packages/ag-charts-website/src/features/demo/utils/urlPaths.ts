@@ -3,12 +3,12 @@ import { pathJoin } from '../../../utils/pathJoin';
 
 export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string; isFullPath?: boolean }) => {
     const path = pathJoin(SITE_BASE_URL, 'demo', 'examples', exampleName);
-    const fullPath = pathJoin(import.meta.env.SITE_URL, path);
+    const fullPath = pathJoin(import.meta.env?.SITE_URL, path);
     return isFullPath ? fullPath : path;
 };
 
-export const getExampleImageUrl = ({ exampleName }: { exampleName: string }) => {
-    const imageUrl = pathJoin(SITE_BASE_URL, 'demo', 'examples', `${exampleName}.png`);
+export const getPlainExampleImageUrl = ({ exampleName }: { exampleName: string }) => {
+    const imageUrl = pathJoin(SITE_BASE_URL, 'demo', 'examples', `${exampleName}-plain.png`);
     return imageUrl;
 };
 

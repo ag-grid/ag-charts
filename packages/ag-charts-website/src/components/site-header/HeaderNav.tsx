@@ -7,21 +7,22 @@ import { useWindowSize } from '../../utils/hooks/useWindowSize';
 import { Collapsible } from '../Collapsible';
 import { Icon } from '../icon/Icon';
 import styles from './SiteHeader.module.scss';
+import { pathJoin } from '../../utils/pathJoin';
 
 const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 
 const links = [
     {
-        name: 'Demo',
-        url: `${SITE_BASE_URL}demo`,
+        name: 'Gallery',
+        url: pathJoin(SITE_BASE_URL, 'gallery'),
     },
     {
         name: 'Documentation',
-        url: `${SITE_BASE_URL}documentation/`,
+        url: pathJoin(SITE_BASE_URL, 'documentation'),
     },
     {
         name: 'Pricing',
-        url: `${SITE_BASE_URL}license-pricing`,
+        url: pathJoin(SITE_BASE_URL, 'license-pricing'),
     },
     {
         name: 'Blog',

@@ -40,15 +40,31 @@ const { page, prevDemo, nextDemo } = Astro.props;
         <p set:html={page.description} />
 
         <div class="moreDemos">
-            <DemoExampleLink client:load label={prevDemo.name} exampleName={prevDemo.example} />
+            <DemoExampleLink
+                client:load
+                className="demoExample"
+                label={prevDemo.name}
+                exampleName={prevDemo.example}
+                isPlain={true}
+            />
 
-            <DemoExampleLink client:load label={nextDemo.name} exampleName={nextDemo.example} />
+            <DemoExampleLink
+                client:load
+                className="demoExample"
+                label={nextDemo.name}
+                exampleName={nextDemo.example}
+                isPlain={true}
+            />
         </div>
     </div>
 </Layout>
 
 <style lang="scss">
     @use '../../design-system' as *;
+
+    .demoExample {
+        width: 24rem;
+    }
 
     .page-margin {
         padding-top: $size-5;

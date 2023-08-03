@@ -71,42 +71,113 @@
             "slug": "line",
             "icon": "chartsLine",
             "enterprise": false,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Simple Line",
+                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> or <a href='./simple-column/'>column</a> charts.",
+                    "example": "simple-line"
+                },
+                {
+                    "name": "Line With Gaps",
+                    "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
+                    "example": "line-with-gaps"
+                }
+            ]
         },
         {
             "name": "Area",
             "slug": "area",
             "icon": "chartsArea",
             "enterprise": false,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Simple Area",
+                    "description": "Area charts plot series using a line with the area below the line filled. They are useful to show changes over time, and are easy to interpret.",
+                    "example": "simple-area"
+                },
+                {
+                    "name": "Stacked Area",
+                    "description": "Stacked area charts plot multiple <a href='./simple-area/'>area</a> series stacked on top of each other, showing how part-to-whole relationships change over time.",
+                    "example": "stacked-area"
+                },
+                {
+                    "name": "100% Stacked Area",
+                    "description": "100% stacked area charts show the relative percentage of multiple series in <a href='./stacked-area/'>stacked areas</a>, where the cumulative area always totals to 100%.",
+                    "example": "100--stacked-area"
+                },
+                {
+                    "name": "Area With Negative Values",
+                    "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                    "example": "area-with-negative-values"
+                }
+            ]
         },
         {
             "name": "Scatter",
             "slug": "scatter",
             "icon": "chartsScatter",
             "enterprise": false,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Simple Scatter",
+                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                    "example": "simple-scatter"
+                }
+            ]
         },
         {
             "name": "Bubble",
             "slug": "bubble",
             "icon": "chartsBubble",
             "enterprise": false,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Simple Bubble",
+                    "description": "Bubble charts are a specialised type of <a href='./simple-scatter/'>scatter charts</a> that can represent a third variable through the size of each marker (or bubble).",
+                    "example": "simple-bubble"
+                },
+                {
+                    "name": "Bubble With Negative Values",
+                    "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
+                    "example": "bubble-with-negative-values"
+                },
+                {
+                    "name": "Bubble With Categories",
+                    "description": "The axes of scatter and bubble charts can show categories in addition to values.",
+                    "example": "bubble-with-categories"
+                }
+            ]
         },
         {
             "name": "Pie",
             "slug": "pie",
             "icon": "chartsPie",
             "enterprise": false,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Simple Pie",
+                    "description": "Pie charts are used to express a part-to-whole relationship, where all the slices combine to represent 100%. They work best for a small number of categories.",
+                    "example": "simple-pie"
+                },
+                {
+                    "name": "Pie With Variable Radius",
+                    "description": "Pie sectors radius can be encoded by an additional numeric scale.",
+                    "example": "pie-with-variable-radius"
+                }
+            ]
         },
         {
             "name": "Donut",
             "slug": "donut",
             "icon": "chartsDonut",
             "enterprise": false,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Simple Doughnut",
+                    "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                    "example": "simple-doughnut"
+                }
+            ]
         },
         {
             "name": "Combination",
@@ -120,7 +191,23 @@
             "slug": "histogram",
             "icon": "chartsHistogram",
             "enterprise": true,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Simple Histogram",
+                    "description": "Histograms show your data grouped into bins, revealing underlying trends. A standard histogram plots the population size of each bin against the y-axis. Here we show the distribution of car engine sizes, using the <code>engine-size</code> field from the available data.",
+                    "example": "simple-histogram"
+                },
+                {
+                    "name": "Histogram With Specified Bins",
+                    "description": "Rather than using the automatically generated fixed-width bins, it is possible to explicitly specify bins. In this case the bins can be different widths. In the example below the data is split into light, medium, and heavy vehicles, and we also demonstrate custom tooltips to give names to these categories.",
+                    "example": "histogram-with-specified-bins"
+                },
+                {
+                    "name": "XY Histogram With Mean Aggregation",
+                    "description": "Here we bin the data by car engine size, but plot the average highway MPG in the y-axis, revealing the relationship between these two fields. We also plot the same data as a scatter series to illustrate the aggregation.",
+                    "example": "xy-histogram-with-mean-aggregation"
+                }
+            ]
         },
         {
             "name": "Heatmap",
@@ -190,7 +277,13 @@
             "slug": "treemap",
             "icon": "chartsTreemap",
             "enterprise": true,
-            "demos": []
+            "demos": [
+                {
+                    "name": "Market Index Treemap",
+                    "description": "A treemap of a snapshot of the S&P 500 stock market index.",
+                    "example": "market-index-treemap"
+                }
+            ]
         },
         {
             "name": "Sunburst",

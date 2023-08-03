@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
-import { getDemoData, getDemoExamples, getThumbnailFileUrl } from '../src/features/demo/utils/filesData';
+import { getDemoData, getDemoExamples, getPlainThumbnailFileUrl } from '../src/features/demo/utils/filesData';
 import { getThumbnail } from '../src/features/demo/utils/getThumbnail';
 
 const DEV_SERVER_CMD = `nx dev ag-charts-website`;
@@ -18,7 +18,7 @@ async function generateDemoThumbnails({ baseUrl }: { baseUrl: string }) {
     const demoExamples = getDemoExamples({ demos });
 
     const generateDemoExamplesPromises = demoExamples.map(async ({ exampleName }) => {
-        const imageFilePath = getThumbnailFileUrl({ exampleName, isDev });
+        const imageFilePath = getPlainThumbnailFileUrl({ exampleName, isDev });
         const imageBuffer = await getThumbnail({ exampleName, baseUrl });
         writeFileSync(imageFilePath, imageBuffer);
     });

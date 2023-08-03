@@ -2,7 +2,7 @@ import { getEntry } from 'astro:content';
 import { readFileSync, existsSync } from 'node:fs';
 import { getDemoExamplePages } from '../../../features/demo/utils/pageData';
 import { getThumbnail } from '../../../features/demo/utils/getThumbnail';
-import { getThumbnailFileUrl } from '../../../features/demo/utils/filesData';
+import { getPlainThumbnailFileUrl } from '../../../features/demo/utils/filesData';
 import { getIsDev } from '../../../utils/env';
 
 interface Params {
@@ -19,7 +19,7 @@ export async function get({ params }: { params: Params }) {
     const { exampleName } = params;
 
     const isDev = getIsDev();
-    const imageFilePath = getThumbnailFileUrl({ exampleName });
+    const imageFilePath = getPlainThumbnailFileUrl({ exampleName });
 
     // Generate the thumbnail image for dev
     let imageBuffer;

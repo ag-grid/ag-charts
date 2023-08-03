@@ -19,13 +19,14 @@ export async function getThumbnail({
     await page.setViewportSize({ width, height });
 
     const hasBaseUrl = Boolean(baseUrl);
-    const plainExampleUrl = getPlainExampleUrl({
+    const isFullPath = !hasBaseUrl;
+    const exampleUrl = getPlainExampleUrl({
         exampleName,
-        isFullPath: !hasBaseUrl,
+        isFullPath,
         excludeSiteBaseUrl: hasBaseUrl,
     });
 
-    const url = hasBaseUrl ? pathJoin(baseUrl, plainExampleUrl) : plainExampleUrl;
+    const url = hasBaseUrl ? pathJoin(baseUrl, exampleUrl) : exampleUrl;
 
     await page.goto(url);
     const buffer = await page.screenshot();
