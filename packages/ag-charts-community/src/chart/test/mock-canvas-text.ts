@@ -905,6 +905,15 @@ const MOCK_FONT_NORMAL: Record<string, string[]> = {
         ' #  # #',
         '#    # ',
     ],
+    '°': [
+        ' # ',
+        '# #',
+        ' # ',
+        '   ',
+        '   ',
+        '   ',
+        '   ',
+    ],
 };
 
 // prettier-ignore
@@ -1684,5 +1693,14 @@ const MOCK_FONT_BOLD: Record<string, string[]> = {
         '  ##  # ',
         ' ##  # #',
         '##    # ',
+    ],
+    '°': [
+        ' ### ',
+        '## ##',
+        ' ### ',
+        '     ',
+        '     ',
+        '     ',
+        '     ',
     ],
 };
