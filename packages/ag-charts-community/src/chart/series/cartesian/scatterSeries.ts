@@ -1,6 +1,6 @@
 import type { Selection } from '../../../scene/selection';
 import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, SeriesNodePickMode, valueProperty } from '../series';
+import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
 import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
@@ -26,6 +26,8 @@ import type {
 } from '../../agChartOptions';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
+import { diff } from '../../data/processors';
+import * as easing from '../../../motion/easing';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
@@ -138,7 +140,16 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
     }
 
     async processData(dataController: DataController) {
-        const { xKey = '', yKey = '', sizeKey, labelKey, axes, marker, data } = this;
+        const {
+            xKey = '',
+            yKey = '',
+            sizeKey,
+            labelKey,
+            axes,
+            marker,
+            data,
+            ctx: { animationManager },
+        } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -149,11 +160,15 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
             props: [
+                keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
+                keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
                 valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
                 ...(sizeKey ? [valueProperty(this, sizeKey, true, { id: `sizeValue` })] : []),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
+                ...(!animationManager?.skipAnimations && this.processedData ? [diff(this.processedData)] : []),
             ],
             dataVisible: this.visible,
         });
@@ -172,6 +187,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             colorScale.range = colorRange;
             colorScale.update();
         }
+
+        this.animationState.transition('updateData');
     }
 
     getDomain(direction: ChartAxisDirection): any[] {
@@ -300,6 +317,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         return new MarkerShape();
     }
 
+    markerSelectionGarbageCollection = false;
+
     protected async updateMarkerSelection(opts: {
         nodeData: ScatterNodeDatum[];
         markerSelection: Selection<Marker, ScatterNodeDatum>;
@@ -314,7 +333,11 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         }
 
         const data = enabled ? nodeData : [];
-        return markerSelection.update(data);
+        return markerSelection.update(
+            data,
+            undefined,
+            (datum) => `${datum.xValue}___${datum.yValue}___${datum.label.text}`
+        );
     }
 
     protected async updateMarkerNodes(opts: {
@@ -381,8 +404,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.fillOpacity = fillOpacity ?? 1;
             node.strokeOpacity = strokeOpacity ?? 1;
-            node.translationX = datum.point?.x ?? 0;
-            node.translationY = datum.point?.y ?? 0;
             node.visible = node.size > 0;
 
             if (!customMarker || node.dirtyPath) {
@@ -586,12 +607,14 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         markerSelections.forEach((markerSelection) => {
             markerSelection.each((marker, datum) => {
                 const format = this.animateFormatter(marker, datum);
-                const size = datum.point?.size ?? 0;
-                const to = format?.size ?? size;
+                const to = format?.size ?? datum.point.size;
+
+                marker.translationX = datum.point.x;
+                marker.translationY = datum.point.y;
 
                 this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${marker.id}`, {
                     from: 0,
-                    to: to,
+                    to,
                     duration,
                     onUpdate(size) {
                         marker.size = size;
@@ -625,11 +648,95 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         this.resetMarkers(markerSelection);
     }
 
+    animateWaitingUpdateReady({ markerSelections }: { markerSelections: Array<Selection<Marker, ScatterNodeDatum>> }) {
+        const { processedData } = this;
+        const diff = processedData?.reduced?.diff;
+
+        if (!diff?.changed) {
+            markerSelections.forEach((markerSelection) => {
+                this.resetMarkers(markerSelection);
+            });
+            return;
+        }
+
+        // Zip an array into an object of keys with a given value
+        const zipObject = (props: Array<any>, value = true) => {
+            const zipped: { [key: string]: boolean } = {};
+            for (let i = 0; i < props.length; i++) {
+                zipped[`${props[i]}`] = value;
+            }
+            return zipped;
+        };
+
+        const addedIds = zipObject(diff.added);
+        const removedIds = zipObject(diff.removed);
+
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+
+        markerSelections.forEach((markerSelection) => {
+            markerSelection.each((marker, datum, index) => {
+                const datumId = `${datum.xValue}___${datum.yValue}___${datum.label.text}`;
+                const cleanup = index === markerSelection.nodes().length - 1;
+
+                const markerFormat = this.animateFormatter(marker, datum);
+                const size = markerFormat?.size ?? datum.point.size ?? 0;
+
+                let from = 0;
+                let to = 0;
+
+                if (removedIds[datumId]) {
+                    from = size;
+                } else if (addedIds[datumId]) {
+                    to = size;
+                    marker.translationX = datum.point.x;
+                    marker.translationY = datum.point.y;
+                }
+
+                if (removedIds[datumId] || addedIds[datumId]) {
+                    this.ctx.animationManager?.animate(`${this.id}_waiting-update-ready_${marker.id}`, {
+                        from,
+                        to,
+                        duration,
+                        ease: easing.easeOut,
+                        onUpdate(size) {
+                            marker.size = size;
+                        },
+                        onComplete: () => {
+                            if (cleanup) this.resetMarkers(markerSelection);
+                        },
+                    });
+                } else {
+                    this.ctx.animationManager?.animateMany(
+                        `${this.id}_waiting-update-ready_${marker.id}`,
+                        [
+                            { from: marker.size, to: size },
+                            { from: marker.translationX, to: datum.point.x },
+                            { from: marker.translationY, to: datum.point.y },
+                        ],
+                        {
+                            duration,
+                            ease: easing.easeOut,
+                            onUpdate([size, x, y]) {
+                                marker.size = size;
+                                marker.translationX = x;
+                                marker.translationY = y;
+                            },
+                            onComplete: () => {
+                                if (cleanup) this.resetMarkers(markerSelection);
+                            },
+                        }
+                    );
+                }
+            });
+        });
+    }
+
     resetMarkers(markerSelection: Selection<Marker, ScatterNodeDatum>) {
-        markerSelection.each((marker, datum) => {
+        markerSelection.cleanup().each((marker, datum) => {
             const format = this.animateFormatter(marker, datum);
-            const size = datum.point?.size ?? 0;
-            marker.size = format?.size ?? size;
+            marker.size = format?.size ?? datum.point?.size ?? 0;
+            marker.translationX = datum.point.x;
+            marker.translationY = datum.point.y;
         });
     }
 

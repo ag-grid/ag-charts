@@ -115,7 +115,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     }
 
     cleanup() {
-        if (this._garbage.length === 0) return;
+        if (this._garbage.length === 0) return this;
 
         this._garbage.forEach((datumId) => {
             const nodeIndex = this._datumNodeIndices.get(datumId);
@@ -148,6 +148,8 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         });
 
         this._garbage = [];
+
+        return this;
     }
 
     static selectAll<T extends Node = Node>(parent: Node, predicate: (node: Node) => boolean): T[] {
