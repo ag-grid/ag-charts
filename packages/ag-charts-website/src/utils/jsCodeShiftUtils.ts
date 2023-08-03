@@ -1,5 +1,5 @@
 const getPropertyToCheck = (property: any) => {
-    return property.key.type === 'Identifier' ? property.key.name : property.key.value;
+    return property.key?.type === 'Identifier' ? property.key?.name : property.key?.value;
 };
 
 export function filterPropertyKeys({

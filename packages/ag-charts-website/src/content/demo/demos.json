@@ -163,6 +163,11 @@
                     "name": "Pie With Variable Radius",
                     "description": "Pie sectors radius can be encoded by an additional numeric scale.",
                     "example": "pie-with-variable-radius"
+                },
+                {
+                    "name": "Pie In A Doughnut",
+                    "description": "There can be multiple levels of Pie/Doughnut charts. It can be used when comparing shares for different periods.",
+                    "example": "pie-in-a-doughnut"
                 }
             ]
         },
