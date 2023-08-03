@@ -292,11 +292,13 @@ export function diff(
                 if (added.has(prevId)) {
                     if (updateMovedDatums || !arraysEqual(added.get(prevId).values, prev.values)) {
                         updated.set(prevId, prev);
-                        updatedIndices.set(datumId, i);
+                        updatedIndices.set(prevId, i);
                     }
                     added.delete(prevId);
                     addedIndices.delete(prevId);
                 } else if (prev) {
+                    updated.delete(prevId);
+                    updatedIndices.delete(prevId);
                     removed.set(prevId, prev);
                     removedIndices.set(prevId, i);
                 }
