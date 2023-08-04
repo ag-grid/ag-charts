@@ -14,6 +14,18 @@ export const RangeColumnModule: _ModuleSupport.SeriesModule = {
     instanceConstructor: RangeColumnSeries,
     seriesDefaults: RANGE_COLUMN_DEFAULTS,
     themeTemplate: RANGE_BAR_SERIES_THEME,
+
+    paletteFactory: ({ takeColors }) => {
+        const {
+            fills: [fill],
+            strokes: [stroke],
+        } = takeColors(1);
+        return {
+            fill,
+            stroke,
+        };
+    },
+
     groupable: true,
 };
 
@@ -27,5 +39,17 @@ export const RangeBarModule: _ModuleSupport.SeriesModule = {
     instanceConstructor: RangeBarSeries,
     seriesDefaults: RANGE_BAR_DEFAULTS,
     themeTemplate: RANGE_BAR_SERIES_THEME,
+
+    paletteFactory: ({ takeColors }) => {
+        const {
+            fills: [fill],
+            strokes: [stroke],
+        } = takeColors(1);
+        return {
+            fill,
+            stroke,
+        };
+    },
+
     groupable: true,
 };
