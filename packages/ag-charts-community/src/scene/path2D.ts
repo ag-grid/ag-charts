@@ -226,20 +226,26 @@ export class Path2D {
                     py = params[pi - 1];
                     break;
                 case Command.Arc:
+                    const cx = params[pi++];
+                    const cy = params[pi++];
+                    const r = params[pi++];
+                    const startAngle = params[pi++];
+                    const endAngle = params[pi++];
+                    const counterClockwise = Boolean(params[pi++]);
                     intersectionCount += arcIntersections(
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        Boolean(params[pi++]),
+                        cx,
+                        cy,
+                        r,
+                        startAngle,
+                        endAngle,
+                        counterClockwise,
                         ox,
                         oy,
                         x,
                         y
                     ).length;
-                    px = params[pi - 2];
-                    py = params[pi - 1];
+                    px = cx + Math.cos(endAngle) * r;
+                    py = cy + Math.sin(endAngle) * r;
                     break;
                 case Command.ClosePath:
                     if (!isNaN(sx) && segmentIntersection(sx, sy, px, py, ox, oy, x, y)) {

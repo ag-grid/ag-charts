@@ -152,21 +152,20 @@ export function arcIntersections(
             return;
         }
 
-        const y = k * x;
+        const y = k * x + y0;
 
-        const a1 = normalizeAngle360(counterClockwise ? endAngle : startAngle);
-        let a2 = normalizeAngle360(counterClockwise ? startAngle : endAngle);
-        let intersectionAngle = normalizeAngle360(Math.atan2(y, x));
+        const a1 = normalizeAngle360(startAngle);
+        let a2 = normalizeAngle360(endAngle);
+        let a = normalizeAngle360(Math.atan2(y, x));
 
         // Order angles clockwise after the start angle
-        // (end angle if counter-clockwise)
         if (a2 <= a1) {
             a2 += 2 * Math.PI;
         }
-        if (intersectionAngle < a1) {
-            intersectionAngle += 2 * Math.PI;
+        if (a < a1) {
+            a += 2 * Math.PI;
         }
-        if (intersectionAngle >= a1 && intersectionAngle <= a2) {
+        if (counterClockwise !== (a >= a1 && a <= a2)) {
             intersections.push({ x, y });
         }
     });
