@@ -35,7 +35,7 @@ export interface AgRangeBarSeriesFormat {
 }
 
 export interface AgRangeBarSeriesTooltipRendererParams
-    extends Omit<AgCartesianSeriesTooltipRendererParams, 'yKey' | 'yValue' | 'yName'> {
+    extends Omit<AgCartesianSeriesTooltipRendererParams, 'yKey' | 'yValue'> {
     /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemId: string;
 
@@ -43,14 +43,14 @@ export interface AgRangeBarSeriesTooltipRendererParams
     readonly yLowKey: string;
     /** yValue as read from series data via the yKey property. */
     readonly yLowValue?: any;
-    /** yName as specified on series options. */
+    /** yLowName as specified on series options. */
     readonly yLowName?: string;
 
     /** yKey as specified on series options. */
     readonly yHighKey: string;
     /** yValue as read from series data via the yKey property. */
     readonly yHighValue?: any;
-    /** yName as specified on series options. */
+    /** yHighName as specified on series options. */
     readonly yHighName?: string;
 }
 
@@ -84,6 +84,8 @@ export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOp
     yLowName?: string;
     /** A human-readable description of the y-high-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yHighName?: string;
+    /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    yName?: string;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Series-specific tooltip configuration. */

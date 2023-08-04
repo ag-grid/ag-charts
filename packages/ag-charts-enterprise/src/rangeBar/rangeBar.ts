@@ -198,6 +198,9 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yHighName?: string = undefined;
 
+    @Validate(OPT_STRING)
+    yName?: string = undefined;
+
     async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
