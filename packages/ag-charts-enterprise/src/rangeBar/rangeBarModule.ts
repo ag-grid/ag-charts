@@ -15,7 +15,6 @@ export const RangeColumnModule: _ModuleSupport.SeriesModule = {
     seriesDefaults: RANGE_COLUMN_DEFAULTS,
     themeTemplate: RANGE_BAR_SERIES_THEME,
     groupable: true,
-    stackable: true, // TODO: groupable doesn't work without stackable. Fix this and remove stackable: true
 };
 
 export const RangeBarModule: _ModuleSupport.SeriesModule = {
@@ -29,5 +28,4 @@ export const RangeBarModule: _ModuleSupport.SeriesModule = {
     seriesDefaults: RANGE_BAR_DEFAULTS,
     themeTemplate: RANGE_BAR_SERIES_THEME,
     groupable: true,
-    stackable: true, // TODO: groupable doesn't work without stackable. Fix this and remove stackable: true
 };

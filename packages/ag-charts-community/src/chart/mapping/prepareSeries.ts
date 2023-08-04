@@ -37,7 +37,7 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
 
         const stacked = sStackGroup != null || sStacked === true;
         anyStacked[type] ??= false;
-        anyStacked[type] ||= stacked;
+        anyStacked[type] ||= stacked && stackable;
         const grouped = sGrouped === true;
         let groupingKey = [sStackGroup ?? (sStacked === true ? 'stacked' : undefined), grouped ? 'grouped' : undefined]
             .filter((v) => v != null)
@@ -85,7 +85,7 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
     const preprocessed = seriesOptions.map((series: SeriesOptions & { stacked?: boolean; grouped?: boolean }) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
-        if (isGroupableSeries(series.type ?? '') && !series.stacked) {
+        if (isGroupableSeries(series.type ?? '') && !(series.stacked && isStackableSeries(series.type ?? ''))) {
             return { ...series, grouped: series.grouped ?? true };
         }
 
@@ -143,12 +143,19 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
     for (const group of grouped) {
         const seriesType = String(group.opts[0].type);
-        if (isStackableSeries(seriesType)) {
+        const { grouped, stacked } = group.opts[0] as any;
+        const groupable = isGroupableSeries(seriesType);
+        const stackable = isStackableSeries(seriesType);
+        if (stacked && !stackable) {
+            Logger.warn(`unexpected stacking of series type: ${seriesType}`);
+        }
+        if (grouped && !groupable) {
+            Logger.warn(`unexpected grouping of series type: ${seriesType}`);
+        }
+
+        if (isGroupableSeries(seriesType) || isStackableSeries(seriesType)) {
             result.push(...addSeriesGroupingMeta(group));
         } else {
-            if (group.opts.length > 1) {
-                Logger.warn(`unexpected grouping of series type: ${seriesType}`);
-            }
             result.push(...group.opts);
         }
     }
