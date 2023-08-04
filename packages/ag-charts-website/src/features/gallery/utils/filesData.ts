@@ -86,12 +86,12 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
             const { examples } = chartType;
             return examples.map((example, i) => {
                 return {
-                    exampleName: example.example,
+                    exampleName: example.name,
                     page: {
                         ...example,
-                        chartType: chartType.name,
-                        slug: chartType.slug,
-                        docsUrl: getPageHashUrl({ chartTypeSlug: chartType.slug }),
+                        chartTypeTitle: chartType.title,
+                        chartTypeName: chartType.name,
+                        docsUrl: getPageHashUrl({ chartTypeName: chartType.name }),
                         icon: chartType.icon,
                         enterprise: chartType.enterprise,
                     },

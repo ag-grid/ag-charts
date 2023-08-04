@@ -35,8 +35,8 @@ export const getPageUrl = (pageName: string) => {
     return pathJoin(SITE_BASE_URL, 'gallery', pageName);
 };
 
-export const getPageHashUrl = ({ chartTypeSlug, isRelative }: { chartTypeSlug: string; isRelative?: boolean }) => {
-    const hash = `#${chartTypeSlug}`;
+export const getPageHashUrl = ({ chartTypeName, isRelative }: { chartTypeName: string; isRelative?: boolean }) => {
+    const hash = `#${chartTypeName}`;
     return isRelative ? hash : pathJoin(SITE_BASE_URL, 'gallery', hash);
 };
 

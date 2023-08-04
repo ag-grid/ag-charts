@@ -20,7 +20,7 @@ const { page, prevExample, nextExample } = Astro.props;
     <div class="page-margin font-size-responsive font-size-medium">
         <h1>
             <span>
-                {page.name}
+                {page.title}
                 {
                     page.enterprise && (
                         <span class="enterpriseIcon">
@@ -31,7 +31,7 @@ const { page, prevExample, nextExample } = Astro.props;
             </span>
 
             <a class="font-size-medium" href={page.docsUrl}>
-                View {page.chartType.toLowerCase()} charts documentation
+                View {page.chartTypeTitle.toLowerCase()} charts documentation
             </a>
         </h1>
 
@@ -43,15 +43,15 @@ const { page, prevExample, nextExample } = Astro.props;
             <GalleryExampleLink
                 client:load
                 className="galleryExample"
-                label={prevExample.name}
-                exampleName={prevExample.example}
+                label={prevExample.title}
+                exampleName={prevExample.name}
             />
 
             <GalleryExampleLink
                 client:load
                 className="galleryExample"
-                label={nextExample.name}
-                exampleName={nextExample.example}
+                label={nextExample.title}
+                exampleName={nextExample.name}
             />
         </div>
     </div>
