@@ -17,7 +17,7 @@ function transformer(sourceFile: string) {
         .find(j.ObjectExpression);
 
     // Find and remove properties in the 'options' object
-    const propertiesToRemove = ['title', 'footnote', 'legend', 'tick', 'padding'];
+    const propertiesToRemove = ['title', 'footnote', 'legend', 'tick', 'padding', 'line', 'gridStyle'];
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
             removePropertyKeys: propertiesToRemove,
@@ -60,17 +60,44 @@ function transformer(sourceFile: string) {
                 )
             );
 
-            // Add `tick.enabled = false`
-            const hasTick = propertiesNode.properties.some((prop) => prop.key.name === 'tick');
-            if (!hasTick) {
-                propertiesNode.properties.push(
-                    j.property(
-                        'init',
-                        j.identifier('tick'),
-                        j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
-                    )
-                );
-            }
+            // Hide axis ticks and make the chart lines thicker
+            propertiesNode.properties.push(
+                j.property(
+                    'init',
+                    j.identifier('tick'),
+                    j.objectExpression([
+                        j.property('init', j.identifier('width'), j.literal(2)),
+                        j.property('init', j.identifier('color'), j.literal('transparent')),
+                    ])
+                )
+            );
+
+            // Hide axis lines
+            propertiesNode.properties.push(
+                j.property(
+                    'init',
+                    j.identifier('line'),
+                    j.objectExpression([j.property('init', j.identifier('color'), j.literal('transparent'))])
+                )
+            );
+
+            // Make grid lines more prominent
+            propertiesNode.properties.push(
+                j.property(
+                    'init',
+                    j.identifier('gridStyle'),
+                    j.arrayExpression([
+                        j.objectExpression([
+                            j.property('init', j.identifier('stroke'), j.literal('#C3C3C3')),
+                            j.property(
+                                'init',
+                                j.identifier('lineDash'),
+                                j.arrayExpression([j.literal(4), j.literal(4)])
+                            ),
+                        ]),
+                    ])
+                )
+            );
         });
 
     // Remove any padding

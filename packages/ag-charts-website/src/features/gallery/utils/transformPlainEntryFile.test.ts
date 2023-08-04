@@ -145,8 +145,18 @@ describe('transformPlainEntryFile', () => {
                 },
 
                 tick: {
-                  enabled: false
-                }
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
               },
               {
                 type: 'number',
@@ -157,8 +167,18 @@ describe('transformPlainEntryFile', () => {
                 },
 
                 tick: {
-                  enabled: false
-                }
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
               }
             ],
 
@@ -224,7 +244,7 @@ describe('transformPlainEntryFile', () => {
         `);
     });
 
-    test('disable axes ticks', () => {
+    test('hide axis ticks and make the chart lines thicker', () => {
         expect(
             getChartsOptionsPlainEntryFile({
                 axes: [
@@ -256,8 +276,18 @@ describe('transformPlainEntryFile', () => {
                 },
 
                 tick: {
-                  enabled: false
-                }
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
               },
               {
                 type: 'number',
@@ -268,8 +298,186 @@ describe('transformPlainEntryFile', () => {
                 },
 
                 tick: {
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
+              }
+            ],
+
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('hide axis lines', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                axes: [
+                    {
+                        type: 'category',
+                        position: 'bottom',
+                        line: {
+                            color: 'black',
+                        },
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        line: {
+                            color: 'black',
+                        },
+                    },
+                ],
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            axes: [
+              {
+                type: 'category',
+                position: 'bottom',
+
+                label: {
                   enabled: false
-                }
+                },
+
+                tick: {
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
+              },
+              {
+                type: 'number',
+                position: 'left',
+
+                label: {
+                  enabled: false
+                },
+
+                tick: {
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
+              }
+            ],
+
+            legend: {
+              enabled: false
+            },
+
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
+            }
+          };
+          var chart = agCharts.AgChart.create(options);"
+        `);
+    });
+
+    test('make grid lines more prominent', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                axes: [
+                    {
+                        type: 'category',
+                        position: 'bottom',
+                        gridStyle: {
+                            stroke: 'blue',
+                        },
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        gridStyle: {
+                            stroke: 'blue',
+                        },
+                    },
+                ],
+            })
+        ).toMatchInlineSnapshot(`
+          "const options = {
+            axes: [
+              {
+                type: 'category',
+                position: 'bottom',
+
+                label: {
+                  enabled: false
+                },
+
+                tick: {
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
+              },
+              {
+                type: 'number',
+                position: 'left',
+
+                label: {
+                  enabled: false
+                },
+
+                tick: {
+                  width: 2,
+                  color: \\"transparent\\"
+                },
+
+                line: {
+                  color: \\"transparent\\"
+                },
+
+                gridStyle: [{
+                  stroke: \\"#C3C3C3\\",
+                  lineDash: [4, 4]
+                }]
               }
             ],
 
