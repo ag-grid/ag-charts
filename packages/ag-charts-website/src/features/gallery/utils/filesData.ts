@@ -32,8 +32,8 @@ export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
 export const getChartTypeName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
     const { chartTypes } = galleryData;
 
-    const foundChartType = chartTypes.find(({ demos: chartDemos }) => {
-        const foundExample = chartDemos.find(({ example }) => {
+    const foundChartType = chartTypes.find(({ examples }) => {
+        const foundExample = examples.find(({ example }) => {
             return example === exampleName;
         });
 
@@ -46,8 +46,8 @@ export const getChartTypeName = ({ galleryData, exampleName }: { galleryData: Ga
 export const getExampleName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
     const { chartTypes } = galleryData;
     let result;
-    chartTypes.forEach(({ demos: chartDemos }) => {
-        const foundExample = chartDemos.find(({ example }) => {
+    chartTypes.forEach(({ examples }) => {
+        const foundExample = examples.find(({ example }) => {
             return example === exampleName;
         });
 
@@ -83,21 +83,20 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
     const { chartTypes } = galleryData;
     const galleryExamples = chartTypes
         .map((chartType) => {
-            const { demos } = chartType;
-            return demos.map((demo, i) => {
-                const { example } = demo;
+            const { examples } = chartType;
+            return examples.map((example, i) => {
                 return {
-                    exampleName: example,
+                    exampleName: example.example,
                     page: {
-                        ...demo,
+                        ...example,
                         chartType: chartType.name,
                         slug: chartType.slug,
                         docsUrl: getPageHashUrl({ chartTypeSlug: chartType.slug }),
                         icon: chartType.icon,
                         enterprise: chartType.enterprise,
                     },
-                    prevDemo: i > 0 ? demos[i - 1] : demos[demos.length - 1],
-                    nextDemo: demos.length > i + 1 ? demos[i + 1] : demos[0],
+                    prevExample: i > 0 ? examples[i - 1] : examples[examples.length - 1],
+                    nextExample: examples.length > i + 1 ? examples[i + 1] : examples[0],
                 };
             });
         })

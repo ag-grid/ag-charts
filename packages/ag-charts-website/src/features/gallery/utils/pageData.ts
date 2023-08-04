@@ -4,15 +4,15 @@ import { getGalleryExamples } from './filesData';
 
 export function getGalleryPages({ galleryData }: { galleryData: GalleryData }) {
     const galleryExamples = getGalleryExamples({ galleryData });
-    const galleryExamplePages = galleryExamples.map(({ exampleName, page, prevDemo, nextDemo }) => {
+    const galleryExamplePages = galleryExamples.map(({ exampleName, page, prevExample, nextExample }) => {
         return {
             params: {
                 pageName: exampleName,
             },
             props: {
                 page,
-                prevDemo,
-                nextDemo,
+                prevExample,
+                nextExample,
             },
         };
     });

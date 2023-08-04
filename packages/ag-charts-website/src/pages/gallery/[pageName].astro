@@ -13,7 +13,7 @@ export async function getStaticPaths() {
     return pages;
 }
 
-const { page, prevDemo, nextDemo } = Astro.props;
+const { page, prevExample, nextExample } = Astro.props;
 ---
 
 <Layout>
@@ -39,19 +39,19 @@ const { page, prevDemo, nextDemo } = Astro.props;
 
         <p set:html={page.description} />
 
-        <div class="moreDemos">
+        <div class="moreExamples">
             <GalleryExampleLink
                 client:load
-                className="demoExample"
-                label={prevDemo.name}
-                exampleName={prevDemo.example}
+                className="galleryExample"
+                label={prevExample.name}
+                exampleName={prevExample.example}
             />
 
             <GalleryExampleLink
                 client:load
-                className="demoExample"
-                label={nextDemo.name}
-                exampleName={nextDemo.example}
+                className="galleryExample"
+                label={nextExample.name}
+                exampleName={nextExample.example}
             />
         </div>
     </div>
@@ -60,7 +60,7 @@ const { page, prevDemo, nextDemo } = Astro.props;
 <style lang="scss">
     @use '../../design-system' as *;
 
-    .demoExample {
+    .galleryExample {
         width: 24rem;
     }
 
@@ -80,15 +80,15 @@ const { page, prevDemo, nextDemo } = Astro.props;
         --icon-size: 28px;
     }
 
-    .moreDemos {
+    .moreExamples {
         display: flex;
         gap: $size-2;
         justify-content: space-between;
         margin-top: $size-9;
     }
 
-    .prevDemo,
-    .nextDemo {
+    .prevExample,
+    .nextExample {
         width: min(28rem, 50%);
     }
 

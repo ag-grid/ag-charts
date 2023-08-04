@@ -5,7 +5,7 @@
             "slug": "bar",
             "icon": "chartsBar",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Bar",
                     "description": "Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
@@ -38,7 +38,7 @@
             "slug": "column",
             "icon": "chartsColumn",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Column",
                     "description": "Column charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical columns, with the height of each column proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
@@ -71,7 +71,7 @@
             "slug": "line",
             "icon": "chartsLine",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Line",
                     "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> or <a href='./simple-column/'>column</a> charts.",
@@ -89,7 +89,7 @@
             "slug": "area",
             "icon": "chartsArea",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Area",
                     "description": "Area charts plot series using a line with the area below the line filled. They are useful to show changes over time, and are easy to interpret.",
@@ -117,7 +117,7 @@
             "slug": "scatter",
             "icon": "chartsScatter",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Scatter",
                     "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
@@ -130,7 +130,7 @@
             "slug": "bubble",
             "icon": "chartsBubble",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Bubble",
                     "description": "Bubble charts are a specialised type of <a href='./simple-scatter/'>scatter charts</a> that can represent a third variable through the size of each marker (or bubble).",
@@ -153,7 +153,7 @@
             "slug": "pie",
             "icon": "chartsPie",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Pie",
                     "description": "Pie charts are used to express a part-to-whole relationship, where all the slices combine to represent 100%. They work best for a small number of categories.",
@@ -176,7 +176,7 @@
             "slug": "donut",
             "icon": "chartsDonut",
             "enterprise": false,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Doughnut",
                     "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
@@ -189,14 +189,14 @@
             "slug": "combination",
             "icon": "chartsCombination",
             "enterprise": false,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Histogram",
             "slug": "histogram",
             "icon": "chartsHistogram",
             "enterprise": true,
-            "demos": [
+            "examples": [
                 {
                     "name": "Simple Histogram",
                     "description": "Histograms show your data grouped into bins, revealing underlying trends. A standard histogram plots the population size of each bin against the y-axis. Here we show the distribution of car engine sizes, using the <code>engine-size</code> field from the available data.",
@@ -219,70 +219,70 @@
             "slug": "heatmap",
             "icon": "chartsHeatmap",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Range",
             "slug": "range",
             "icon": "chartsRange",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Box Plot",
             "slug": "box-plot",
             "icon": "chartsBoxPlot",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Error Bar",
             "slug": "error-bar",
             "icon": "chartsErrorBar",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Waterfall",
             "slug": "waterfall",
             "icon": "chartsWaterfall",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Radar",
             "slug": "radar",
             "icon": "chartsRadar",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Nightingale",
             "slug": "nightingale",
             "icon": "chartsNightingale",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Radial Column",
             "slug": "radial-column",
             "icon": "chartsRadialColumn",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Radial Bar",
             "slug": "radial-bar",
             "icon": "chartsRadialBar",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Treemap",
             "slug": "treemap",
             "icon": "chartsTreemap",
             "enterprise": true,
-            "demos": [
+            "examples": [
                 {
                     "name": "Market Index Treemap",
                     "description": "A treemap of a snapshot of the S&P 500 stock market index.",
@@ -295,28 +295,28 @@
             "slug": "sunburst",
             "icon": "chartsSunburst",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Icicle",
             "slug": "icicle",
             "icon": "chartsIcicle",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Funnel",
             "slug": "funnel",
             "icon": "chartsFunnel",
             "enterprise": true,
-            "demos": []
+            "examples": []
         },
         {
             "name": "Pyramid",
             "slug": "pyramid",
             "icon": "chartsPyramid",
             "enterprise": true,
-            "demos": []
+            "examples": []
         }
     ]
 }
