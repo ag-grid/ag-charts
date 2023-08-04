@@ -21,7 +21,14 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
         return Selection.select(parent, Path);
     }
 
-    private drawColumnShape(node: _Scene.Path, datum: RadialColumnNodeDatum, columnWidth: number, axisInnerRadius: number, innerRadius: number, outerRadius: number) {
+    private drawColumnShape(
+        node: _Scene.Path,
+        datum: RadialColumnNodeDatum,
+        columnWidth: number,
+        axisInnerRadius: number,
+        innerRadius: number,
+        outerRadius: number
+    ) {
         const { startAngle, endAngle } = datum;
         const { path } = node;
 
@@ -44,7 +51,14 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
 
         if (shouldConnectWithCircle) {
             // Connect column with inner circle
-            path.arc(0, 0, innerRadius, normalizeAngle360(midAngle / 2 - Math.PI / 2), normalizeAngle360(-midAngle / 2 - Math.PI / 2), true);
+            path.arc(
+                0,
+                0,
+                innerRadius,
+                normalizeAngle360(midAngle / 2 - Math.PI / 2),
+                normalizeAngle360(-midAngle / 2 - Math.PI / 2),
+                true
+            );
         } else {
             path.lineTo(left, bottom);
         }
