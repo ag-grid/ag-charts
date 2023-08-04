@@ -671,8 +671,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
-        const { fill, stroke, fillOpacity, strokeOpacity, yLowName, yHighName, yLowKey, yHighKey } = this;
-        const legendItemText = `${yLowName ?? yLowKey}-${yHighName ?? yHighKey}`;
+        const { fill, stroke, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } = this;
+        const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         legendData.push({
             legendType: 'category',
             id,
