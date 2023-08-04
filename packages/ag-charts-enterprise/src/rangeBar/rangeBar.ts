@@ -591,7 +591,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             return '';
         }
 
-        const { xName, yLowName, yHighName, id: seriesId } = this;
+        const { xName, yLowName, yHighName, yName, id: seriesId } = this;
 
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
@@ -623,14 +623,17 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const yLowString = sanitizeHtml(yAxis.formatDatum(yLowValue));
         const yHighString = sanitizeHtml(yAxis.formatDatum(yHighValue));
 
-        const yLowSubheading = `${yLowName ?? yLowKey}`;
-        const yHighSubheading = `${yHighName ?? yHighKey}`;
+        const xSubheading = xName ?? xKey;
+        const yLowSubheading = yLowName ?? yLowKey;
+        const yHighSubheading = yHighName ?? yHighKey;
 
-        const title = sanitizeHtml(xName);
-        const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
-            `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`;
+        const title = sanitizeHtml(yName);
+
+        const content = yName
+            ? `<b>${sanitizeHtml(xSubheading)}</b>: ${xString}<br>` +
+              `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
+              `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`
+            : `${xString}: ${yLowString} - ${yHighString}`;
 
         const defaults: AgTooltipRendererResult = {
             title,
@@ -651,6 +654,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                     yHighKey,
                     yHighValue,
                     yHighName,
+                    yName,
                     color,
                     seriesId,
                     itemId,
