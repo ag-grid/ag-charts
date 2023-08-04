@@ -1,5 +1,5 @@
 import chokidar from 'chokidar';
-import { getDevFileList } from '@utils/pages';
+import { getDevFileList } from '../../utils/pages';
 
 export default function createAgHotModuleReload() {
     return {
