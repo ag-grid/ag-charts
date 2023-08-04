@@ -467,6 +467,7 @@ export abstract class RadialColumnSeriesBase<
             node.strokeOpacity = strokeOpacity;
             node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.lineDash = this.lineDash;
+            node.lineJoin = 'round';
         });
     }
 
@@ -529,6 +530,7 @@ export abstract class RadialColumnSeriesBase<
             node.strokeOpacity = strokeOpacity;
             node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.lineDash = this.lineDash;
+            node.lineJoin = 'round';
         });
     }
 
