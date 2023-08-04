@@ -1,17 +1,16 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { getDemoExamplePages } from '../../features/demo/utils/pageData';
-import { getExampleUrl } from '../../features/demo/utils/urlPaths';
+import { getGalleryExamplePages } from '../../features/gallery/utils/pageData';
+import { getExampleUrl } from '../../features/gallery/utils/urlPaths';
 
-const demosEntry = await getEntry('demo', 'demos');
-
-const examples = getDemoExamplePages({ demos: demosEntry.data });
+const galleryDataEntry = await getEntry('gallery', 'data');
+const examples = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
 ---
 
-<Layout title={`Debug: Demo Examples`}>
+<Layout title={`Debug: Gallery Examples`}>
     <main class="page-margin container">
-        <h1>Demo Example Pages ({examples.length})</h1>
+        <h1>Gallery Example Pages ({examples.length})</h1>
         <table>
             <thead>
                 <th>No.</th>

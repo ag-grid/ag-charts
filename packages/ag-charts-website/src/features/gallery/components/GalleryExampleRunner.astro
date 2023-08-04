@@ -1,0 +1,20 @@
+---
+import { getEntry } from 'astro:content';
+import ExampleRunnerContainer from '../../example-runner/components/ExampleRunnerContainer.astro';
+import { GalleryExampleRunner } from './GalleryExampleRunner';
+import { getChartExampleTitle } from '../utils/filesData';
+import { GALLERY_EXAMPLE_NAME_PATH_INDEX } from '../constants';
+
+const pathSegments = Astro.url.pathname.split('/');
+const exampleName = pathSegments[GALLERY_EXAMPLE_NAME_PATH_INDEX];
+
+const galleryDataEntry = await getEntry('gallery', 'data');
+const title = getChartExampleTitle({
+    galleryData: galleryDataEntry.data,
+    exampleName,
+});
+---
+
+<ExampleRunnerContainer>
+    <GalleryExampleRunner client:load title={title} exampleName={exampleName} />
+</ExampleRunnerContainer>

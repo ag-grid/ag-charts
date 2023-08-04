@@ -1,8 +1,8 @@
 import { getEntry } from 'astro:content';
 import { readFileSync, existsSync } from 'node:fs';
-import { getDemoExamplePages } from '../../../features/demo/utils/pageData';
-import { getThumbnail } from '../../../features/demo/utils/getThumbnail';
-import { getPlainThumbnailFileUrl } from '../../../features/demo/utils/filesData';
+import { getGalleryExamplePages } from '../../../features/gallery/utils/pageData';
+import { getThumbnail } from '../../../features/gallery/utils/getThumbnail';
+import { getPlainThumbnailFileUrl } from '../../../features/gallery/utils/filesData';
 import { getIsDev } from '../../../utils/env';
 
 interface Params {
@@ -10,8 +10,8 @@ interface Params {
 }
 
 export async function getStaticPaths() {
-    const demosEntry = await getEntry('demo', 'demos');
-    const pages = getDemoExamplePages({ demos: demosEntry.data });
+    const galleryDataEntry = await getEntry('gallery', 'data');
+    const pages = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
     return pages;
 }
 
@@ -26,11 +26,11 @@ export async function get({ params }: { params: Params }) {
     if (isDev) {
         imageBuffer = await getThumbnail({ exampleName });
     } else {
-        // Show error during production build, and let the build fail if demo thumbnails are not generated
+        // Show error during production build, and let the build fail if gallery thumbnails are not generated
         if (!existsSync(imageFilePath)) {
             // eslint-disable-next-line no-console
             console.error(
-                `No image found at: ${imageFilePath}.\nRun \`nx generate-demo-thumbnails ag-charts-website\` to generated demo images.`
+                `No image found at: ${imageFilePath}.\nRun \`nx generate-gallery-thumbnails ag-charts-website\` to generate gallery images.`
             );
         }
         // Get it from cache if on production

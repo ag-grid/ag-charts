@@ -2,6 +2,6 @@
   "name": "ag-charts-website",
   "version": "1.0.0",
   "scripts": {
-    "generate-demo-thumbnails": "tsx ./scripts/generateDemoThumbnails.ts"
+    "generate-gallery-thumbnails": "tsx ./scripts/generateGalleryThumbnails.ts"
   }
 }

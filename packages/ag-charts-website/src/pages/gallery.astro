@@ -2,17 +2,17 @@
 import { getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { Icon, IconName } from '../components/icon/Icon';
-import { getPageHashUrl } from '../features/demo/utils/urlPaths';
-import type { DemoExamples } from '../types/ag-grid';
-import { DemoExampleLink } from '../features/demo/components/DemoExampleLink';
+import { getPageHashUrl } from '../features/gallery/utils/urlPaths';
+import type { GalleryData } from '../types/ag-grid';
+import { GalleryExampleLink } from '../features/gallery/components/GalleryExampleLink';
 
-const demosEntry = await getEntry('demo', 'demos');
-const demos: DemoExamples = demosEntry.data;
-const { chartTypes } = demos;
+const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryData: GalleryData = galleryDataEntry?.data;
+const { chartTypes } = galleryData;
 ---
 
 <Layout>
-    <div class="demo-outer font-size-responsive font-size-medium">
+    <div class="gallery-outer font-size-responsive font-size-medium">
         <div class="menu">
             <ul class="list-style-none">
                 {
@@ -57,11 +57,11 @@ const { chartTypes } = demos;
                                 </span>
                             </a>
                         </h2>
-                        <div class="demo-list">
+                        <div class="gallery-list">
                             {chartType.demos.map(({ name, example }) => (
-                                <DemoExampleLink
-                                    client:load
-                                    className="demoExample"
+                                <GalleryExampleLink
+                                    client:visible
+                                    className="galleryExample"
                                     label={name!}
                                     exampleName={example!}
                                 />
@@ -96,10 +96,10 @@ const { chartTypes } = demos;
         --text-color: red;
     }
 
-    .demo-outer {
+    .gallery-outer {
         --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
         --menu-width: 14rem;
-        --demos-list-gap: #{$size-3};
+        --gallery-list-gap: #{$size-3};
 
         display: flex;
         flex-direction: row;
@@ -216,17 +216,17 @@ const { chartTypes } = demos;
         transition: transform $default-transition-timing;
     }
 
-    .demo-list {
+    .gallery-list {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: var(--demos-list-gap);
+        gap: var(--gallery-list-gap);
     }
 
-    .demoExample {
+    .galleryExample {
         --columns: 1;
 
-        width: calc(100% / var(--columns) - var(--demos-list-gap) / var(--columns) * (var(--columns) - 1));
+        width: calc(100% / var(--columns) - var(--gallery-list-gap) / var(--columns) * (var(--columns) - 1));
 
         @media screen and (min-width: 720px) {
             --columns: 2;

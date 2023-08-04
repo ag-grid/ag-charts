@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import { OpenInPlunkr } from '../../plunkr/components/OpenInPlunkr';
 import { ExampleRunner } from '../../example-runner/components/ExampleRunner';
 import { getExampleContentsUrl, getExampleUrl, getExampleWithRelativePathUrl } from '../utils/urlPaths';
-import { DEMO_EXAMPLE_TYPE, DEMO_INTERNAL_FRAMEWORK } from '../constants';
+import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 
 interface Props {
     title: string;
@@ -21,15 +21,15 @@ const queryOptions = {
     refetchOnReconnect: false,
 };
 
-const DemoExampleRunnerInner = ({ title, exampleName }: Props) => {
+const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
 
-    const internalFramework = DEMO_INTERNAL_FRAMEWORK;
-    const exampleType = DEMO_EXAMPLE_TYPE;
+    const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
+    const exampleType = GALLERY_EXAMPLE_TYPE;
     const id = `example-${exampleName}`;
 
     const {
@@ -37,7 +37,7 @@ const DemoExampleRunnerInner = ({ title, exampleName }: Props) => {
         isError: exampleFilesIsError,
         data,
     } = useQuery(
-        ['demoExampleFiles', exampleName],
+        ['galleryExampleFiles', exampleName],
         () =>
             fetch(
                 getExampleContentsUrl({
@@ -48,7 +48,7 @@ const DemoExampleRunnerInner = ({ title, exampleName }: Props) => {
     );
 
     const { data: exampleFileHtml } = useQuery(
-        ['demoExampleHtml', exampleName],
+        ['galleryExampleHtml', exampleName],
         () =>
             fetch(
                 getExampleUrl({
@@ -124,10 +124,10 @@ const DemoExampleRunnerInner = ({ title, exampleName }: Props) => {
     );
 };
 
-export const DemoExampleRunner = (props: Props) => {
+export const GalleryExampleRunner = (props: Props) => {
     return (
         <QueryClientProvider client={queryClient}>
-            <DemoExampleRunnerInner {...props} />
+            <GalleryExampleRunnerInner {...props} />
         </QueryClientProvider>
     );
 };

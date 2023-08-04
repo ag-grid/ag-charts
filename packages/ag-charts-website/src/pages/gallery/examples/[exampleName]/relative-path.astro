@@ -1,7 +1,7 @@
 ---
 import { getEntry } from 'astro:content';
-import DemoFrameworkTemplate from '../../../../features/demo/components/DemoFrameworkTemplate.astro';
-import { getDemoExamplePages } from '../../../../features/demo/utils/pageData';
+import GalleryFrameworkTemplate from '../../../../features/gallery/components/GalleryFrameworkTemplate.astro';
+import { getGalleryExamplePages } from '../../../../features/gallery/utils/pageData';
 
 /**
  * This page is the same as `[exampleName].astro`, but using relative paths for script files
@@ -12,12 +12,12 @@ import { getDemoExamplePages } from '../../../../features/demo/utils/pageData';
  * `index.html` fragment file from examples
  */
 export async function getStaticPaths() {
-    const demosEntry = await getEntry('demo', 'demos');
-    const pages = getDemoExamplePages({ demos: demosEntry.data });
+    const galleryDataEntry = await getEntry('gallery', 'data');
+    const pages = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
     return pages;
 }
 
 const { exampleName } = Astro.params;
 ---
 
-<DemoFrameworkTemplate exampleName={exampleName!} relativePath={true} />
+<GalleryFrameworkTemplate exampleName={exampleName!} relativePath={true} />

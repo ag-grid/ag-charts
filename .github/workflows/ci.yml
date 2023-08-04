@@ -111,17 +111,17 @@ jobs:
             - name: Update playwright
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: npx playwright install
-            - name: Generate website demo thumbnails
-              id: generate_demo_thumbnails
+            - name: Generate website gallery thumbnails
+              id: generate_gallery_thumbnails
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx generate-demo-thumbnails ag-charts-website
+              run: yarn nx generate-gallery-thumbnails ag-charts-website
               timeout-minutes: 5
-            - name: Archive demo thumbnails
-              if: steps.generate_demo_thumbnails.outcome == 'success' || steps.generate_demo_thumbnails.outcome == 'skipped'
+            - name: Archive gallery thumbnails
+              if: steps.generate_gallery_thumbnails.outcome == 'success' || steps.generate_gallery_thumbnails.outcome == 'skipped'
               uses: actions/upload-artifact@v3
               with:
-                  name: ag-charts-website-demo-thumbnails
-                  path: packages/ag-charts-website/public/demo/thumbnails/
+                  name: ag-charts-website-gallery-thumbnails
+                  path: packages/ag-charts-website/public/gallery/thumbnails/
 
             - name: nx build
               id: build

@@ -1,21 +1,25 @@
 import type { GeneratedContents } from '../../examples-generator/types';
 import { getGeneratedContents, getGeneratedContentsFileList } from '../../examples-generator/examplesGenerator';
 import { getFolderUrl } from './filesData';
-import { DEMO_INTERNAL_FRAMEWORK, PLAIN_ENTRY_FILE_NAME } from '../constants';
+import { GALLERY_INTERNAL_FRAMEWORK, PLAIN_ENTRY_FILE_NAME } from '../constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
-export const getGeneratedDemoContentsFileList = async ({ exampleName }: { exampleName: string }): Promise<string[]> => {
+export const getGeneratedGalleryContentsFileList = async ({
+    exampleName,
+}: {
+    exampleName: string;
+}): Promise<string[]> => {
     const folderUrl = getFolderUrl({
         exampleName,
     });
 
     return getGeneratedContentsFileList({
-        internalFramework: DEMO_INTERNAL_FRAMEWORK,
+        internalFramework: GALLERY_INTERNAL_FRAMEWORK,
         folderUrl,
     });
 };
 
-export const getGeneratedDemoContents = async ({
+export const getGeneratedGalleryContents = async ({
     exampleName,
 }: {
     exampleName: string;
@@ -25,13 +29,13 @@ export const getGeneratedDemoContents = async ({
     });
 
     return getGeneratedContents({
-        internalFramework: DEMO_INTERNAL_FRAMEWORK,
+        internalFramework: GALLERY_INTERNAL_FRAMEWORK,
         folderUrl,
     });
 };
 
-export const getGeneratedPlainDemoContents = async ({ exampleName }: { exampleName: string }) => {
-    const generatedContents = await getGeneratedDemoContents({
+export const getGeneratedPlainGalleryContents = async ({ exampleName }: { exampleName: string }) => {
+    const generatedContents = await getGeneratedGalleryContents({
         exampleName,
     });
     const { entryFileName, files = {} } = generatedContents || {};

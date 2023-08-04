@@ -32,12 +32,12 @@ To skip the `nx` cache use `--skip-nx-cache`.
 
 ## Advanced Website Commands
 
-| Command                                         | Description                                          |
-| ----------------------------------------------- | ---------------------------------------------------- |
-| `nx build ag-charts-website`                    | Run the local website build                          |
-| `nx preview ag-charts-website`                  | Preview the static local website build               |
-| `nx build ag-charts-website -c staging`         | Run the website build for staging env                |
-| `nx preview ag-charts-website -c staging`       | Preview the static website build for staging env     |
-| `nx build ag-charts-website -c production`      | Run the website build for production env             |
-| `nx preview ag-charts-website -c production`    | Preview the static website build for production env  |
-| `nx generate-demo-thumbnails ag-charts-website` | Generate demo thumbnails in `public/demo/thumbnails` |
+| Command                                            | Description                                                |
+| -------------------------------------------------- | ---------------------------------------------------------- |
+| `nx build ag-charts-website`                       | Run the local website build                                |
+| `nx preview ag-charts-website`                     | Preview the static local website build                     |
+| `nx build ag-charts-website -c staging`            | Run the website build for staging env                      |
+| `nx preview ag-charts-website -c staging`          | Preview the static website build for staging env           |
+| `nx build ag-charts-website -c production`         | Run the website build for production env                   |
+| `nx preview ag-charts-website -c production`       | Preview the static website build for production env        |
+| `nx generate-gallery-thumbnails ag-charts-website` | Generate gallery thumbnails in `public/gallery/thumbnails` |

@@ -2,14 +2,14 @@
 import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Icon } from '../../components/icon/Icon';
-import DemoExampleRunner from '../../features/demo/components/DemoExampleRunner.astro';
-import { getDemoPages } from '../../features/demo/utils/pageData';
-import { DemoExampleLink } from '../../features/demo/components/DemoExampleLink';
+import GalleryExampleRunner from '../../features/gallery/components/GalleryExampleRunner.astro';
+import { getGalleryPages } from '../../features/gallery/utils/pageData';
+import { GalleryExampleLink } from '../../features/gallery/components/GalleryExampleLink';
 
 export async function getStaticPaths() {
-    const demosEntry = await getEntry('demo', 'demos');
+    const galleryEntry = await getEntry('gallery', 'data');
 
-    const pages = getDemoPages({ demos: demosEntry.data });
+    const pages = getGalleryPages({ galleryData: galleryEntry.data });
     return pages;
 }
 
@@ -35,14 +35,24 @@ const { page, prevDemo, nextDemo } = Astro.props;
             </a>
         </h1>
 
-        <DemoExampleRunner title={page.name} name={page.slug} />
+        <GalleryExampleRunner title={page.name} name={page.slug} />
 
         <p set:html={page.description} />
 
         <div class="moreDemos">
-            <DemoExampleLink client:load className="demoExample" label={prevDemo.name} exampleName={prevDemo.example} />
+            <GalleryExampleLink
+                client:load
+                className="demoExample"
+                label={prevDemo.name}
+                exampleName={prevDemo.example}
+            />
 
-            <DemoExampleLink client:load className="demoExample" label={nextDemo.name} exampleName={nextDemo.example} />
+            <GalleryExampleLink
+                client:load
+                className="demoExample"
+                label={nextDemo.name}
+                exampleName={nextDemo.example}
+            />
         </div>
     </div>
 </Layout>
