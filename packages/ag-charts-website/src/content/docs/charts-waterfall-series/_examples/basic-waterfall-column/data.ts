@@ -13,7 +13,7 @@ export function getData() {
             amount: 134,
         },
         {
-            source: 'Coorp \nTax',
+            source: 'Corp \nTax',
             amount: 55,
         },
         {

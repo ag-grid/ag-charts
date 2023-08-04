@@ -39,6 +39,7 @@ const options: AgChartOptions = {
                     name: 'Total / Subtotal',
                     label: {
                         enabled: true,
+                        fontSize: 10,
                         fontWeight: 'bold',
                         formatter: ({ value, itemId }) => {
                             const val =
@@ -63,9 +64,15 @@ const options: AgChartOptions = {
         {
             position: 'left',
             type: 'number',
-            tick: { values: [0], color: 'black', width: 2 },
             line: { width: 0 },
-            gridStyle: [{ stroke: 'black', lineDash: [0] }],
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 0,
+                    stroke: '#EE6666',
+                    strokeWidth: 2,
+                },
+            ],
         },
         { position: 'bottom', type: 'category', line: { width: 0 } },
     ],
