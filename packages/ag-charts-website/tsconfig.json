@@ -1,6 +1,22 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
+
+    // Import aliases
+    "paths": {
+      "@astro/*": ["src/astro/*"],
+      "@components/*": ["src/components/*"],
+      "@design-system/*": ["src/design-system/*"],
+      "@features/*": ["src/features/*"],
+      "@images/*": ["src/images/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@stores/*": ["src/stores/*"],
+      "@ag-grid-types": ["src/types/ag-grid.d.ts"],
+      "@utils/*": ["src/utils/*"],
+      "@constants": ["src/constants.ts"]
+    },
+
     // Enable top-level await, and other modern ESM features
     "target": "ESNext",
     "module": "ESNext",
