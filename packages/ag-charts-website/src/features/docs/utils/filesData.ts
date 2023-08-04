@@ -1,8 +1,8 @@
 import fs from 'fs/promises';
-import { INTERNAL_FRAMEWORKS } from '../../../constants';
-import { type DocsPage, type InternalFrameworkExample, getContentRootFileUrl } from '../../../utils/pages';
-import { pathJoin } from '../../../utils/pathJoin';
-import { getFolders } from '../../../utils/fs';
+import { INTERNAL_FRAMEWORKS } from '@constants';
+import { type DocsPage, type InternalFrameworkExample, getContentRootFileUrl } from '@utils/pages';
+import { pathJoin } from '@utils/pathJoin';
+import { getFolders } from '@utils/fs';
 
 function ignoreUnderscoreFiles(page: DocsPage) {
     const pageFolders = page.slug.split('/');

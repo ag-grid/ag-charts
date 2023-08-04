@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import { getPlainExampleUrl } from './urlPaths';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../constants';
-import { pathJoin } from '../../../utils/pathJoin';
+import { pathJoin } from '@utils/pathJoin';
 
 export async function getThumbnail({
     exampleName,

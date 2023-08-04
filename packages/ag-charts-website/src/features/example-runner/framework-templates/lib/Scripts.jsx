@@ -1,5 +1,5 @@
 import React from 'react';
-import { pathJoin } from '../../../../utils/pathJoin';
+import { pathJoin } from '@utils/pathJoin';
 
 export const Scripts = ({ baseUrl, files = [] }) => {
     return files.map((file) => {

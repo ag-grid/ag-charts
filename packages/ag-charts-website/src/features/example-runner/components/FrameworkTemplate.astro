@@ -1,12 +1,12 @@
 ---
-import { getBoilerPlateUrl } from '../../../utils/pages';
-import type { InternalFramework } from '../../../types/ag-grid';
+import { getBoilerPlateUrl } from '@utils/pages';
+import type { InternalFramework } from '@ag-grid-types';
 import JavascriptTemplate from '../framework-templates/JavascriptTemplate.astro';
 import TypescriptTemplate from '../framework-templates/TypescriptTemplate.astro';
-import { getIsDev } from '../../../utils/env';
+import { getIsDev } from '@utils/env';
 import ReactTemplate from '../framework-templates/ReactTemplate.astro';
 import VueTemplate from '../framework-templates/VueTemplate.astro';
-import type { GeneratedContents } from '../../examples-generator/types';
+import type { GeneratedContents } from '@features/examples-generator/types';
 
 interface Props {
     internalFramework: InternalFramework;

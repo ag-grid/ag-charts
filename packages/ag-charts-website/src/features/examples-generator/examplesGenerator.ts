@@ -3,11 +3,10 @@ import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-pa
 import fs from 'node:fs/promises';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getStyleFiles } from './utils/getStyleFiles';
-import type { InternalFramework } from '../../types/ag-grid';
+import type { InternalFramework } from '@ag-grid-types';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import type { GeneratedContents } from './types.d';
 import { SOURCE_ENTRY_FILE_NAME } from './constants';
-import { pathJoin } from '../../utils/pathJoin';
 
 /**
  * Get the file list of the generated contents

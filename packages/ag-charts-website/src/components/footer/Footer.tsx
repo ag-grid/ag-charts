@@ -2,8 +2,8 @@ import classNames from 'classnames';
 import { Icon } from '../icon/Icon';
 import footerItems from './footer-items.json';
 import styles from './Footer.module.scss';
-import { SITE_BASE_URL } from '../../constants';
-import { urlWithBaseUrl } from '../../utils/pages';
+import { SITE_BASE_URL } from '@constants';
+import { urlWithBaseUrl } from '@utils/pages';
 
 interface FooterProps {
     path: string;

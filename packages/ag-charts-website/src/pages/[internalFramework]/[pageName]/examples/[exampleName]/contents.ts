@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
-import { getGeneratedDocsContents } from '../../../../../features/docs/utils/examplesGenerator';
-import type { InternalFramework } from '../../../../../types/ag-grid';
-import { getDocsExamplePages } from '../../../../../features/docs/utils/pageData';
+import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
+import type { InternalFramework } from '@ag-grid-types';
+import { getDocsExamplePages } from '@features/docs/utils/pageData';
 
 interface Params {
     internalFramework: InternalFramework;

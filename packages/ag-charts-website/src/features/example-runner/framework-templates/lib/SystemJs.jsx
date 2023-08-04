@@ -12,10 +12,10 @@ import {
     agGridEnterpriseVersion,
     SITE_BASE_URL,
     DEV_FILE_BASE_PATH,
-} from '../../../../constants';
-import { pathJoin } from '../../../../utils/pathJoin';
+} from '@constants';
+import { pathJoin } from '@utils/pathJoin';
 
-import { isUsingPublishedPackages, isBuildServerBuild, isPreProductionBuild } from '../../../../utils/pages';
+import { isUsingPublishedPackages, isBuildServerBuild, isPreProductionBuild } from '@utils/pages';
 
 const localPrefix = pathJoin(import.meta.env?.SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
 

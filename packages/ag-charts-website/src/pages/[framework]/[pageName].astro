@@ -1,12 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { PagesNavigation } from '../../components/pages-navigation/PagesNavigation';
-import { Header } from '../../features/docs/components/Header';
-import { getFrameworkDisplayText } from '../../utils/framework';
-import type { Framework } from '../../types/ag-grid';
-import { getPagesList } from '../../features/docs/utils/filesData';
-import { getDocsPages } from '../../features/docs/utils/pageData';
+import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
+import { Header } from '@features/docs/components/Header';
+import { getFrameworkDisplayText } from '@utils/framework';
+import type { Framework } from '@ag-grid-types';
+import { getPagesList } from '@features/docs/utils/filesData';
+import { getDocsPages } from '@features/docs/utils/pageData';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');

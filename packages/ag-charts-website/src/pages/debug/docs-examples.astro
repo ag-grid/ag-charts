@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
-import Layout from '../../layouts/Layout.astro';
-import { getDocsExamplePages } from '../../features/docs/utils/pageData';
-import { getExampleUrl } from '../../features/docs/utils/urlPaths';
+import Layout from '@layouts/Layout.astro';
+import { getDocsExamplePages } from '@features/docs/utils/pageData';
+import { getExampleUrl } from '@features/docs/utils/urlPaths';
 
 const pages = await getCollection('docs');
 const examples = await getDocsExamplePages({

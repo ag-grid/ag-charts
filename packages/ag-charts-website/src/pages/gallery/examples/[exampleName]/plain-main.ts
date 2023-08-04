@@ -1,7 +1,7 @@
 import { getEntry } from 'astro:content';
-import { getGeneratedGalleryContents } from '../../../../features/gallery/utils/examplesGenerator';
-import { getGalleryExamplePages } from '../../../../features/gallery/utils/pageData';
-import { transformPlainEntryFile } from '../../../../features/gallery/utils/transformPlainEntryFile';
+import { getGeneratedGalleryContents } from '@features/gallery/utils/examplesGenerator';
+import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+import { transformPlainEntryFile } from '@features/gallery/utils/transformPlainEntryFile';
 
 interface Params {
     exampleName: string;

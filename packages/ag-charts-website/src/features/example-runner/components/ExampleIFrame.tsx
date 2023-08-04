@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, type FunctionComponent } from 'react';
 import classnames from 'classnames';
 import styles from './ExampleIFrame.module.scss';
-import { useIntersectionObserver } from '../../../utils/hooks/useIntersectionObserver';
+import { useIntersectionObserver } from '@utils/hooks/useIntersectionObserver';
 
 interface Props {
     isHidden?: boolean;

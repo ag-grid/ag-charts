@@ -1,5 +1,5 @@
 import type { FunctionComponent } from 'react';
-import { ReactComponent as LogoMarkSVG } from '../../images/inline-svgs/ag-grid-logomark.svg';
+import { ReactComponent as LogoMarkSVG } from '@images/inline-svgs/ag-grid-logomark.svg';
 import styles from './LogoMark.module.scss';
 
 interface Props {

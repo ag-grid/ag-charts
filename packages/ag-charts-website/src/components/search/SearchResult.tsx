@@ -1,5 +1,4 @@
 import classnames from 'classnames';
-import React from 'react';
 import { connectStateResults, Highlight, Index, InfiniteHits, Snippet } from 'react-instantsearch-dom';
 import styles from './SearchResult.module.scss';
 

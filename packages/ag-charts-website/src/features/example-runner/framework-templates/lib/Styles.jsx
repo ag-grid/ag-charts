@@ -1,5 +1,5 @@
 import React from 'react';
-import { pathJoin } from '../../../../utils/pathJoin';
+import { pathJoin } from '@utils/pathJoin';
 
 export const Styles = ({ baseUrl, files = [] }) =>
     files.map((file) => {

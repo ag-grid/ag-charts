@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icon, type IconName, ICON_MAP } from '../icon/Icon';
 
 export const Icons = () => {

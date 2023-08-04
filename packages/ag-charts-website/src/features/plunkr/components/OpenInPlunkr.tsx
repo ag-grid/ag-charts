@@ -1,9 +1,9 @@
-import { OpenInCTA } from '../../../components/open-in-cta/OpenInCTA';
+import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
 import { useCallback, type FunctionComponent } from 'react';
 import { openPlunker } from '../utils/plunkr';
 import { fetchTextFile } from '../utils/fetchTextFile';
-import type { FileContents } from '../../examples-generator/types';
-import type { InternalFramework } from '../../../types/ag-grid';
+import type { FileContents } from '@features/examples-generator/types';
+import type { InternalFramework } from '@ag-grid-types';
 
 interface Props {
     title: string;

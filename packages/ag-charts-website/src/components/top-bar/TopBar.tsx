@@ -1,10 +1,9 @@
 import classNames from 'classnames';
-import React from 'react';
 import { FrameworkSelector } from '../framework-selector/FrameworkSelector';
 import { Icon } from '../icon/Icon';
 import Search from '../search/Search';
 import styles from './TopBar.module.scss';
-import { getNewFrameworkPath } from '../../utils/pages';
+import { getNewFrameworkPath } from '@utils/pages';
 
 export const TopBar = ({ frameworks, currentFramework, path }) => {
     const frameworksData = frameworks.map((framework) => ({

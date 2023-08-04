@@ -1,5 +1,5 @@
 import j from 'jscodeshift';
-import { filterPropertyKeys } from '../../../utils/jsCodeShiftUtils';
+import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
 
 /**
  * JS Code Shift transformer to generate plain entry file

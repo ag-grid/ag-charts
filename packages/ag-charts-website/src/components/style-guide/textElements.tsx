@@ -1,4 +1,3 @@
-import React from 'react';
 import { Snippet } from '../snippet/Snippet';
 
 export const TextElements = () => {

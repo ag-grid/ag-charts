@@ -1,6 +1,6 @@
 import { persistentAtom, persistentMap } from '@nanostores/persistent';
-import type { Framework, InternalFramework } from '../types/ag-grid.d';
-import { getInternalFramework } from '../utils/framework';
+import type { Framework, InternalFramework } from '@ag-grid-types';
+import { getInternalFramework } from '@utils/framework';
 
 export type FrameworkContext = {
     useFunctionalReact: boolean;

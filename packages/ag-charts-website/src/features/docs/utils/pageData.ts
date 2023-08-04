@@ -1,6 +1,6 @@
-import { FRAMEWORKS } from '../../../constants';
+import { FRAMEWORKS } from '@constants';
 import { getPagesList, getInternalFrameworkExamples } from './filesData';
-import type { DocsPage } from '../../../utils/pages';
+import type { DocsPage } from '@utils/pages';
 import { getGeneratedDocsContentsFileList } from './examplesGenerator';
 
 export function getDocsPages(pages: DocsPage[]) {
