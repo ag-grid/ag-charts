@@ -2,25 +2,25 @@
 import { getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { Icon, IconName } from '../components/icon/Icon';
-import { getPageHashUrl } from '../features/demo/utils/urlPaths';
-import type { DemoExamples } from '../types/ag-grid';
-import { DemoExampleLink } from '../features/demo/components/DemoExampleLink';
+import { getPageHashUrl } from '../features/gallery/utils/urlPaths';
+import type { GalleryData, GalleryExample, GalleryExampleChartType } from '../types/ag-grid';
+import { GalleryExampleLink } from '../features/gallery/components/GalleryExampleLink';
 
-const demosEntry = await getEntry('demo', 'demos');
-const demos: DemoExamples = demosEntry.data;
-const { chartTypes } = demos;
+const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryData: GalleryData = galleryDataEntry?.data;
+const { chartTypes } = galleryData;
 ---
 
 <Layout>
-    <div class="demo-outer font-size-responsive font-size-medium">
+    <div class="gallery-outer font-size-responsive font-size-medium">
         <div class="menu">
             <ul class="list-style-none">
                 {
-                    chartTypes.map((chartType) => (
+                    chartTypes.map((chartType: GalleryExampleChartType) => (
                         <li>
-                            <a href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}>
+                            <a href={getPageHashUrl({ chartTypeName: chartType.name, isRelative: true })}>
                                 <Icon client:only name={chartType.icon as IconName} />
-                                <span class="name">{chartType.name}</span>
+                                <span class="name">{chartType.title}</span>
                                 {chartType.enterprise && (
                                     <span class="enterpriseIcon">
                                         <Icon client:only name="enterprise" />
@@ -36,10 +36,10 @@ const { chartTypes } = demos;
 
         <div class="content">
             {
-                chartTypes.map((chartType) => (
+                chartTypes.map((chartType: GalleryExampleChartType) => (
                     <div class="chart-type">
-                        <h2 id={chartType.slug}>
-                            <span>{chartType.name} Charts</span>
+                        <h2 id={chartType.name}>
+                            <span>{chartType.title} Charts</span>
 
                             {chartType.enterprise && (
                                 <span class="enterpriseIcon">
@@ -49,22 +49,21 @@ const { chartTypes } = demos;
 
                             <a
                                 class="font-size-small"
-                                href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}
+                                href={getPageHashUrl({ chartTypeName: chartType.name, isRelative: true })}
                             >
-                                View {chartType.name.toLowerCase()} charts documentation
+                                View {chartType.title.toLowerCase()} charts documentation
                                 <span class="arrow-icon">
                                     <Icon client:only name="arrowRight" />
                                 </span>
                             </a>
                         </h2>
-                        <div class="demo-list">
-                            {chartType.demos.map(({ name, example }) => (
-                                <DemoExampleLink
-                                    client:load
-                                    className="demoExample"
-                                    label={name!}
-                                    exampleName={example!}
-                                    isPlain={true}
+                        <div class="gallery-list">
+                            {chartType.examples.map(({ title, name }: GalleryExample) => (
+                                <GalleryExampleLink
+                                    client:visible
+                                    className="galleryExample"
+                                    label={title}
+                                    exampleName={name}
                                 />
                             ))}
                         </div>
@@ -97,10 +96,10 @@ const { chartTypes } = demos;
         --text-color: red;
     }
 
-    .demo-outer {
+    .gallery-outer {
         --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
         --menu-width: 14rem;
-        --demos-list-gap: #{$size-3};
+        --gallery-list-gap: #{$size-3};
 
         display: flex;
         flex-direction: row;
@@ -217,17 +216,17 @@ const { chartTypes } = demos;
         transition: transform $default-transition-timing;
     }
 
-    .demo-list {
+    .gallery-list {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: var(--demos-list-gap);
+        gap: var(--gallery-list-gap);
     }
 
-    .demoExample {
+    .galleryExample {
         --columns: 1;
 
-        width: calc(100% / var(--columns) - var(--demos-list-gap) / var(--columns) * (var(--columns) - 1));
+        width: calc(100% / var(--columns) - var(--gallery-list-gap) / var(--columns) * (var(--columns) - 1));
 
         @media screen and (min-width: 720px) {
             --columns: 2;

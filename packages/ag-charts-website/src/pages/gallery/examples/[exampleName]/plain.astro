@@ -1,0 +1,29 @@
+---
+import { getEntry } from 'astro:content';
+import GalleryFrameworkTemplate from '../../../../features/gallery/components/GalleryFrameworkTemplate.astro';
+import { getGalleryExamplePages } from '../../../../features/gallery/utils/pageData';
+import { getGeneratedPlainGalleryContents } from '../../../../features/gallery/utils/examplesGenerator';
+
+/**
+ * This page is the same as `[exampleName].astro`, but replacing the
+ * main entry file with the plain configuration to show a more
+ * simplified chart.
+ */
+export async function getStaticPaths() {
+    const galleryDataEntry = await getEntry('gallery', 'data');
+    const pages = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
+    return pages;
+}
+
+const { exampleName } = Astro.params;
+const thumbnailGeneratedContents = await getGeneratedPlainGalleryContents({ exampleName: exampleName! });
+---
+
+<style>
+    /* Remove default page padding */
+    body {
+        padding: 0;
+    }
+</style>
+
+<GalleryFrameworkTemplate exampleName={exampleName!} generatedContents={thumbnailGeneratedContents} />

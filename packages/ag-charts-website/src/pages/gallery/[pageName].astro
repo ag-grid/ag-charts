@@ -2,25 +2,25 @@
 import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { Icon } from '../../components/icon/Icon';
-import DemoExampleRunner from '../../features/demo/components/DemoExampleRunner.astro';
-import { getDemoPages } from '../../features/demo/utils/pageData';
-import { DemoExampleLink } from '../../features/demo/components/DemoExampleLink';
+import GalleryExampleRunner from '../../features/gallery/components/GalleryExampleRunner.astro';
+import { getGalleryPages } from '../../features/gallery/utils/pageData';
+import { GalleryExampleLink } from '../../features/gallery/components/GalleryExampleLink';
 
 export async function getStaticPaths() {
-    const demosEntry = await getEntry('demo', 'demos');
+    const galleryEntry = await getEntry('gallery', 'data');
 
-    const pages = getDemoPages({ demos: demosEntry.data });
+    const pages = getGalleryPages({ galleryData: galleryEntry.data });
     return pages;
 }
 
-const { page, prevDemo, nextDemo } = Astro.props;
+const { page, prevExample, nextExample } = Astro.props;
 ---
 
 <Layout>
     <div class="page-margin font-size-responsive font-size-medium">
         <h1>
             <span>
-                {page.name}
+                {page.title}
                 {
                     page.enterprise && (
                         <span class="enterpriseIcon">
@@ -31,29 +31,27 @@ const { page, prevDemo, nextDemo } = Astro.props;
             </span>
 
             <a class="font-size-medium" href={page.docsUrl}>
-                View {page.chartType.toLowerCase()} charts documentation
+                View {page.chartTypeTitle.toLowerCase()} charts documentation
             </a>
         </h1>
 
-        <DemoExampleRunner title={page.name} name={page.slug} />
+        <GalleryExampleRunner title={page.name} name={page.slug} />
 
         <p set:html={page.description} />
 
-        <div class="moreDemos">
-            <DemoExampleLink
+        <div class="moreExamples">
+            <GalleryExampleLink
                 client:load
-                className="demoExample"
-                label={prevDemo.name}
-                exampleName={prevDemo.example}
-                isPlain={true}
+                className="galleryExample"
+                label={prevExample.title}
+                exampleName={prevExample.name}
             />
 
-            <DemoExampleLink
+            <GalleryExampleLink
                 client:load
-                className="demoExample"
-                label={nextDemo.name}
-                exampleName={nextDemo.example}
-                isPlain={true}
+                className="galleryExample"
+                label={nextExample.title}
+                exampleName={nextExample.name}
             />
         </div>
     </div>
@@ -62,7 +60,7 @@ const { page, prevDemo, nextDemo } = Astro.props;
 <style lang="scss">
     @use '../../design-system' as *;
 
-    .demoExample {
+    .galleryExample {
         width: 24rem;
     }
 
@@ -82,15 +80,15 @@ const { page, prevDemo, nextDemo } = Astro.props;
         --icon-size: 28px;
     }
 
-    .moreDemos {
+    .moreExamples {
         display: flex;
         gap: $size-2;
         justify-content: space-between;
         margin-top: $size-9;
     }
 
-    .prevDemo,
-    .nextDemo {
+    .prevExample,
+    .nextExample {
         width: min(28rem, 50%);
     }
 

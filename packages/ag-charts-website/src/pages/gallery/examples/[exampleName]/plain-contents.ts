@@ -1,14 +1,14 @@
 import { getEntry } from 'astro:content';
-import { getGeneratedPlainDemoContents } from '../../../../features/demo/utils/examplesGenerator';
-import { getDemoExamplePages } from '../../../../features/demo/utils/pageData';
+import { getGeneratedPlainGalleryContents } from '../../../../features/gallery/utils/examplesGenerator';
+import { getGalleryExamplePages } from '../../../../features/gallery/utils/pageData';
 
 interface Params {
     exampleName: string;
 }
 
 export async function getStaticPaths() {
-    const demosEntry = await getEntry('demo', 'demos');
-    const pages = getDemoExamplePages({ demos: demosEntry.data });
+    const galleryDataEntry = await getEntry('gallery', 'data');
+    const pages = getGalleryExamplePages({ galleryData: galleryDataEntry?.data });
     return pages;
 }
 
@@ -16,7 +16,7 @@ export async function get({ params }: { params: Params }) {
     const { exampleName } = params;
 
     const generatedContents =
-        (await getGeneratedPlainDemoContents({
+        (await getGeneratedPlainGalleryContents({
             exampleName,
         })) || {};
     const response = generatedContents;

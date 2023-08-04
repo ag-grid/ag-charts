@@ -1,7 +1,7 @@
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
 import { getPlainExampleImageUrl, getPageUrl } from '../utils/urlPaths';
-import styles from './DemoExampleLink.module.scss';
+import styles from './GalleryExampleLink.module.scss';
 
 interface Props {
     label: string;
@@ -9,7 +9,7 @@ interface Props {
     className?: string;
 }
 
-export const DemoExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
+export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
     const imageUrl = getPlainExampleImageUrl({
         exampleName,
     });

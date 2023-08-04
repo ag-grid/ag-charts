@@ -1,9 +1,9 @@
 ---
 import { getEntry } from 'astro:content';
-import { getGeneratedDemoContents } from '../utils/examplesGenerator';
+import { getGeneratedGalleryContents } from '../utils/examplesGenerator';
 import { getExampleUrl } from '../utils/urlPaths';
 import FrameworkTemplate from '../../example-runner/components/FrameworkTemplate.astro';
-import { DEMO_INTERNAL_FRAMEWORK } from '../constants';
+import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 import { getChartTypeName, getExampleName } from '../utils/filesData';
 import type { GeneratedContents } from '../../examples-generator/types';
 
@@ -21,10 +21,10 @@ interface Props {
 
 const { exampleName, relativePath, generatedContents: generatedContentsOverride } = Astro.props as Props;
 
-const internalFramework = DEMO_INTERNAL_FRAMEWORK;
+const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
 const generatedContents = generatedContentsOverride
     ? generatedContentsOverride
-    : await getGeneratedDemoContents({
+    : await getGeneratedGalleryContents({
           exampleName,
       });
 
@@ -32,14 +32,14 @@ const exampleUrl = getExampleUrl({
     exampleName,
 });
 
-const demosEntry = await getEntry('demo', 'demos');
+const galleryDataEntry = await getEntry('gallery', 'data');
 const chartTypeName = getChartTypeName({
-    demos: demosEntry.data,
+    galleryData: galleryDataEntry.data,
     exampleName,
 });
 const pageName = `${chartTypeName} Chart`;
 const displayExampleName = getExampleName({
-    demos: demosEntry.data,
+    galleryData: galleryDataEntry.data,
     exampleName,
 });
 ---

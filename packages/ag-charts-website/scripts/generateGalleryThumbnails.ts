@@ -1,7 +1,12 @@
-import { writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
-import { getDemoData, getDemoExamples, getPlainThumbnailFileUrl } from '../src/features/demo/utils/filesData';
-import { getThumbnail } from '../src/features/demo/utils/getThumbnail';
+import {
+    getGalleryData,
+    getGalleryExamples,
+    getPlainThumbnailFileUrl,
+    getPlainThumbnailFolderUrl,
+} from '../src/features/gallery/utils/filesData';
+import { getThumbnail } from '../src/features/gallery/utils/getThumbnail';
 
 const DEV_SERVER_CMD = `nx dev ag-charts-website`;
 
@@ -12,18 +17,23 @@ const ROOT_PATH = '../../../';
 
 let server: ChildProcessWithoutNullStreams;
 
-async function generateDemoThumbnails({ baseUrl }: { baseUrl: string }) {
+async function generateGalleryThumbnails({ baseUrl }: { baseUrl: string }) {
     const isDev = true;
-    const demos = getDemoData({ isDev });
-    const demoExamples = getDemoExamples({ demos });
+    const galleryData = getGalleryData({ isDev });
+    const galleryExamples = getGalleryExamples({ galleryData });
+    const thumbnailFolder = getPlainThumbnailFolderUrl({ isDev });
 
-    const generateDemoExamplesPromises = demoExamples.map(async ({ exampleName }) => {
+    if (!existsSync(thumbnailFolder)) {
+        mkdirSync(thumbnailFolder, { recursive: true });
+    }
+
+    const generateGalleryExamplesPromises = galleryExamples.map(async ({ exampleName }) => {
         const imageFilePath = getPlainThumbnailFileUrl({ exampleName, isDev });
         const imageBuffer = await getThumbnail({ exampleName, baseUrl });
         writeFileSync(imageFilePath, imageBuffer);
     });
 
-    await Promise.all(generateDemoExamplesPromises);
+    await Promise.all(generateGalleryExamplesPromises);
 }
 
 function startPreviewServer(): Promise<{ baseUrl: string; server: ChildProcessWithoutNullStreams }> {
@@ -69,10 +79,10 @@ async function main() {
     // eslint-disable-next-line no-console
     console.log(`Dev server started: ${baseUrl}`);
 
-    await generateDemoThumbnails({ baseUrl });
+    await generateGalleryThumbnails({ baseUrl });
 
     // eslint-disable-next-line no-console
-    console.log(`Generated all demo thumbnails`);
+    console.log(`Generated all gallery thumbnails`);
 
     cleanUp();
 
