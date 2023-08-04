@@ -660,7 +660,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
-        const { id } = this;
+        const { id, visible } = this;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
@@ -671,7 +671,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             id,
             itemId: `${yLowKey}-${yHighKey}`,
             seriesId: id,
-            enabled: true,
+            enabled: visible,
             label: {
                 text: `${legendItemText}`,
             },
@@ -685,8 +685,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         return legendData;
     }
-
-    protected toggleSeriesItem(): void {}
 
     animateEmptyUpdateReady({
         datumSelections,
