@@ -1,6 +1,11 @@
-import { writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
-import { getGalleryData, getGalleryExamples, getPlainThumbnailFileUrl } from '../src/features/gallery/utils/filesData';
+import {
+    getGalleryData,
+    getGalleryExamples,
+    getPlainThumbnailFileUrl,
+    getPlainThumbnailFolderUrl,
+} from '../src/features/gallery/utils/filesData';
 import { getThumbnail } from '../src/features/gallery/utils/getThumbnail';
 
 const DEV_SERVER_CMD = `nx dev ag-charts-website`;
@@ -16,6 +21,11 @@ async function generateGalleryThumbnails({ baseUrl }: { baseUrl: string }) {
     const isDev = true;
     const galleryData = getGalleryData({ isDev });
     const galleryExamples = getGalleryExamples({ galleryData });
+    const thumbnailFolder = getPlainThumbnailFolderUrl({ isDev });
+
+    if (!existsSync(thumbnailFolder)) {
+        mkdirSync(thumbnailFolder, { recursive: true });
+    }
 
     const generateGalleryExamplesPromises = galleryExamples.map(async ({ exampleName }) => {
         const imageFilePath = getPlainThumbnailFileUrl({ exampleName, isDev });

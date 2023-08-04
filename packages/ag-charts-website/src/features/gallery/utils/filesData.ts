@@ -15,9 +15,16 @@ export const getGalleryData = ({ isDev }: { isDev?: boolean } = {}): GalleryData
     return galleryData;
 };
 
-export const getPlainThumbnailFileUrl = ({ exampleName, isDev }: { exampleName: string; isDev?: boolean }) => {
+export const getPlainThumbnailFolderUrl = ({ isDev }: { isDev?: boolean }) => {
     const publicPath = getPublicFileUrl({ isDev });
-    const thumbnailFilePath = pathJoin(publicPath.pathname, 'gallery', 'thumbnails', `${exampleName}-plain.png`);
+    const thumbnailFolderPath = pathJoin(publicPath.pathname, 'gallery', 'thumbnails');
+
+    return new URL(thumbnailFolderPath, import.meta.url);
+};
+
+export const getPlainThumbnailFileUrl = ({ exampleName, isDev }: { exampleName: string; isDev?: boolean }) => {
+    const folderPath = getPlainThumbnailFolderUrl({ isDev });
+    const thumbnailFilePath = pathJoin(folderPath.pathname, `${exampleName}-plain.png`);
 
     return new URL(thumbnailFilePath, import.meta.url);
 };
