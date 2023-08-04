@@ -23,25 +23,23 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
 
     private drawColumnShape(
         node: _Scene.Path,
-        datum: RadialColumnNodeDatum,
         columnWidth: number,
         axisInnerRadius: number,
         innerRadius: number,
         outerRadius: number
     ) {
-        const { startAngle, endAngle } = datum;
         const { path } = node;
 
         const isStackBottom = isNumberEqual(innerRadius, axisInnerRadius);
-        const midAngle = Math.min(Math.PI, angleBetween(startAngle, endAngle));
+        const sideRotation = Math.asin(columnWidth / 2 / innerRadius);
 
         // Avoid the connecting lines to be too long
-        const shouldConnectWithCircle = isStackBottom && midAngle < Math.PI / 3;
+        const shouldConnectWithCircle = isStackBottom && !isNaN(sideRotation) && sideRotation < Math.PI / 6;
 
         const left = -columnWidth / 2;
         const right = columnWidth / 2;
         const top = -outerRadius;
-        const bottom = -innerRadius * (shouldConnectWithCircle ? Math.cos(midAngle / 2) : 1);
+        const bottom = -innerRadius * (shouldConnectWithCircle ? Math.cos(sideRotation) : 1);
 
         path.clear({ trackChanges: true });
         path.moveTo(left, bottom);
@@ -55,8 +53,8 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
                 0,
                 0,
                 innerRadius,
-                normalizeAngle360(midAngle / 2 - Math.PI / 2),
-                normalizeAngle360(-midAngle / 2 - Math.PI / 2),
+                normalizeAngle360(sideRotation - Math.PI / 2),
+                normalizeAngle360(-sideRotation - Math.PI / 2),
                 true
             );
         } else {
@@ -92,7 +90,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
         const columnWidth = this.getColumnWidth(datum);
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        this.drawColumnShape(node, datum, columnWidth, axisInnerRadius, datum.innerRadius, datum.outerRadius);
+        this.drawColumnShape(node, columnWidth, axisInnerRadius, datum.innerRadius, datum.outerRadius);
         node.rotation = angle + Math.PI / 2;
         node.rotationCenterX = 0;
         node.rotationCenterY = 0;
@@ -115,7 +113,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
                 {
                     duration,
                     onUpdate: ([innerRadius, outerRadius]) => {
-                        this.drawColumnShape(node, datum, columnWidth, axisInnerRadius, innerRadius, outerRadius);
+                        this.drawColumnShape(node, columnWidth, axisInnerRadius, innerRadius, outerRadius);
                     },
                 }
             );
