@@ -48,7 +48,7 @@ const { chartTypes } = demos;
                             )}
 
                             <a
-                                class="font-size-medium"
+                                class="font-size-small"
                                 href={getPageHashUrl({ chartTypeSlug: chartType.slug, isRelative: true })}
                             >
                                 View {chartType.name.toLowerCase()} charts documentation
@@ -98,7 +98,7 @@ const { chartTypes } = demos;
     }
 
     .demo-outer {
-        --horizontal-padding: calc((100vw - var(--max-page-width)) / 2);
+        --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
         --menu-width: 14rem;
         --demos-list-gap: #{$size-3};
 
@@ -109,6 +109,7 @@ const { chartTypes } = demos;
 
     .menu {
         position: sticky;
+        display: none;
         flex-shrink: 0;
         max-height: calc(100vh - #{$site-header-height});
         width: calc(var(--menu-width) + var(--horizontal-padding));
@@ -116,6 +117,10 @@ const { chartTypes } = demos;
         padding-top: calc($size-7 + $size-2);
         padding-left: var(--horizontal-padding);
         overflow-y: scroll;
+
+        @media screen and (min-width: $breakpoint-gallery-small) {
+            display: block;
+        }
     }
 
     .menu li {
@@ -154,7 +159,11 @@ const { chartTypes } = demos;
     }
 
     .content {
-        padding-right: var(--horizontal-padding);
+        padding: 0 var(--horizontal-padding);
+
+        @media screen and (min-width: $breakpoint-gallery-small) {
+            padding-left: 0;
+        }
     }
 
     .chart-type {
@@ -163,6 +172,7 @@ const { chartTypes } = demos;
 
     .chart-type h2 {
         display: flex;
+        flex-wrap: wrap;
         flex-direction: row;
         align-items: center;
         width: 100%;
@@ -179,14 +189,20 @@ const { chartTypes } = demos;
 
     .chart-type h2 a {
         position: relative;
-        top: 6px;
+        width: 100%;
         font-weight: var(--font-weight-normal);
-        margin-left: $size-1;
 
         &:hover .arrow-icon {
             --text-color: var(--link-hover-color);
 
             transform: translateX(2px);
+        }
+
+        @media screen and (min-width: $breakpoint-gallery-small) {
+            width: auto;
+            top: 6px;
+            margin-left: $size-1;
+            font-size: var(--font-size-medium);
         }
     }
 
@@ -209,7 +225,21 @@ const { chartTypes } = demos;
     }
 
     .demoExample {
-        width: calc(25% - var(--demos-list-gap) / 4 * 3);
+        --columns: 1;
+
+        width: calc(100% / var(--columns) - var(--demos-list-gap) / var(--columns) * (var(--columns) - 1));
+
+        @media screen and (min-width: 720px) {
+            --columns: 2;
+        }
+
+        @media screen and (min-width: 1120px) {
+            --columns: 3;
+        }
+
+        @media screen and (min-width: 1320px) {
+            --columns: 4;
+        }
     }
 </style>
 
