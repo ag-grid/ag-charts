@@ -198,6 +198,9 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yHighName?: string = undefined;
 
+    @Validate(OPT_STRING)
+    yName?: string = undefined;
+
     async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
@@ -588,7 +591,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             return '';
         }
 
-        const { xName, yLowName, yHighName, id: seriesId } = this;
+        const { xName, yLowName, yHighName, yName, id: seriesId } = this;
 
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
@@ -620,14 +623,17 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const yLowString = sanitizeHtml(yAxis.formatDatum(yLowValue));
         const yHighString = sanitizeHtml(yAxis.formatDatum(yHighValue));
 
-        const yLowSubheading = `${yLowName ?? yLowKey}`;
-        const yHighSubheading = `${yHighName ?? yHighKey}`;
+        const xSubheading = xName ?? xKey;
+        const yLowSubheading = yLowName ?? yLowKey;
+        const yHighSubheading = yHighName ?? yHighKey;
 
-        const title = sanitizeHtml(xName);
-        const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
-            `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`;
+        const title = sanitizeHtml(yName);
+
+        const content = yName
+            ? `<b>${sanitizeHtml(xSubheading)}</b>: ${xString}<br>` +
+              `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
+              `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`
+            : `${xString}: ${yLowString} - ${yHighString}`;
 
         const defaults: AgTooltipRendererResult = {
             title,
@@ -648,6 +654,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                     yHighKey,
                     yHighValue,
                     yHighName,
+                    yName,
                     color,
                     seriesId,
                     itemId,
@@ -660,18 +667,18 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
-        const { id } = this;
+        const { id, visible } = this;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
-        const { fill, stroke, fillOpacity, strokeOpacity, yLowName, yHighName, yLowKey, yHighKey } = this;
-        const legendItemText = `${yLowName ?? yLowKey}-${yHighName ?? yHighKey}`;
+        const { fill, stroke, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } = this;
+        const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         legendData.push({
             legendType: 'category',
             id,
             itemId: `${yLowKey}-${yHighKey}`,
             seriesId: id,
-            enabled: true,
+            enabled: visible,
             label: {
                 text: `${legendItemText}`,
             },
@@ -685,8 +692,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         return legendData;
     }
-
-    protected toggleSeriesItem(): void {}
 
     animateEmptyUpdateReady({
         datumSelections,
