@@ -49,38 +49,9 @@ export class RadarAreaSeries extends RadarSeries {
         areaNode.stroke = undefined;
     }
 
-    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
-        super.updatePathAnimation(points, totalDuration, timePassed);
-
-        const areaNode = this.getAreaNode();
-        const { path: areaPath } = areaNode;
-
-        areaPath.clear({ trackChanges: true });
-
-        const axisInnerRadius = this.getAxisInnerRadius();
-
-        const startFromCenter = timePassed < totalDuration;
-        if (startFromCenter) {
-            areaPath.moveTo(0, 0);
-        }
-        points.forEach((point, index) => {
-            const { x: x1, y: y1 } = point;
-            const angle = Math.atan2(y1, x1);
-            const x0 = axisInnerRadius * Math.cos(angle);
-            const y0 = axisInnerRadius * Math.sin(angle);
-            const t = timePassed / totalDuration;
-            const x = x0 * (1 - t) + x1 * t;
-            const y = y0 * (1 - t) + y1 * t;
-
-            if (index === 0) {
-                areaPath.moveTo(x, y);
-            } else {
-                areaPath.lineTo(x, y);
-            }
-        });
-
-        areaPath.closePath();
-        areaNode.checkPathDirty();
+    protected animatePaths(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
+        super.animatePaths(points, totalDuration, timePassed);
+        this.animateSinglePath(this.getAreaNode(), points, totalDuration, timePassed);
     }
 
     protected resetMarkersAndPaths() {

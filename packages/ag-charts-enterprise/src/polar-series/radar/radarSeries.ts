@@ -648,11 +648,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
-    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
-        const lineNode = this.getLineNode();
-        const { path: linePath } = lineNode;
+    protected animateSinglePath(
+        pathNode: _Scene.Path,
+        points: Array<{ x: number; y: number }>,
+        totalDuration: number,
+        timePassed: number
+    ) {
+        const { path } = pathNode;
 
-        linePath.clear({ trackChanges: true });
+        path.clear({ trackChanges: true });
 
         const axisInnerRadius = this.getAxisInnerRadius();
 
@@ -666,14 +670,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const y = y0 * (1 - t) + y1 * t;
 
             if (index === 0) {
-                linePath.moveTo(x, y);
+                path.moveTo(x, y);
             } else {
-                linePath.lineTo(x, y);
+                path.lineTo(x, y);
             }
         });
 
-        linePath.closePath();
-        lineNode.checkPathDirty();
+        path.closePath();
+        pathNode.checkPathDirty();
+    }
+
+    protected animatePaths(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
+        this.animateSinglePath(this.getLineNode(), points, totalDuration, timePassed);
     }
 
     animateEmptyUpdateReady() {
@@ -699,7 +707,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
             ...animationOptions,
             duration,
-            onUpdate: (timePassed) => this.updatePathAnimation(points, duration, timePassed),
+            onUpdate: (timePassed) => this.animatePaths(points, duration, timePassed),
         });
 
         markerSelection.each((marker, datum) => {
