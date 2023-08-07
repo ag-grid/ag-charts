@@ -120,6 +120,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
             internalFramework={internalFramework}
             externalLinkButton={externalLinkButton}
             hideInternalFrameworkSelection={true}
+            exampleHeight={620}
         />
     );
 };

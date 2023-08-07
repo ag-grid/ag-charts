@@ -32,12 +32,15 @@ const { page, prevExample, nextExample } = Astro.props;
 
             <a class="font-size-medium" href={page.docsUrl}>
                 View {page.chartTypeTitle.toLowerCase()} charts documentation
+                <span class="arrow-icon">
+                    <Icon client:only name="arrowRight" />
+                </span>
             </a>
         </h1>
 
         <GalleryExampleRunner title={page.name} name={page.slug} />
 
-        <p set:html={page.description} />
+        <p class="description" set:html={page.description} />
 
         <div class="moreExamples">
             <GalleryExampleLink
@@ -71,13 +74,51 @@ const { page, prevExample, nextExample } = Astro.props;
 
     h1 {
         display: flex;
+        flex-wrap: wrap;
         align-items: flex-end;
-        justify-content: space-between;
+        margin-bottom: $size-1;
+    }
+
+    h1 a {
+        --font-weight: var(--font-weight-normal);
+
+        position: relative;
+        width: 100%;
+        font-weight: var(--font-weight-normal);
+
+        &:hover .arrow-icon {
+            --text-color: var(--link-hover-color);
+
+            transform: translateX(2px);
+        }
+
+        @media screen and (min-width: $breakpoint-gallery-small) {
+            width: auto;
+            top: -5px;
+            margin-left: $size-2;
+        }
+    }
+
+    .arrow-icon {
+        --text-color: var(--link-color);
+        --icon-size: 1.125em;
+
+        position: relative;
+        display: inline-block;
+        top: -1px;
+        left: -2px;
+        transition: transform $default-transition-timing;
     }
 
     .enterpriseIcon {
         --text-color: red;
         --icon-size: 28px;
+    }
+
+    .description {
+        @media screen and (min-width: $breakpoint-gallery-small) {
+            font-size: var(--font-size-large);
+        }
     }
 
     .moreExamples {
@@ -86,16 +127,12 @@ const { page, prevExample, nextExample } = Astro.props;
         justify-content: space-between;
         margin-top: $size-9;
     }
+</style>
 
-    .prevExample,
-    .nextExample {
-        width: min(28rem, 50%);
-    }
+<style lang="scss" is:global>
+    @use '../../design-system' as *;
 
-    .dummyImage {
-        width: 100%;
-        aspect-ratio: 16 / 10;
-        background-color: #ddd;
-        border-radius: var(--border-radius);
+    .icon {
+        transition: fill $default-transition-timing;
     }
 </style>
