@@ -108,7 +108,10 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
                         enterprise: chartType.enterprise,
                     },
                     prevExample: exampleIndex > 0 ? allExamples[exampleIndex - 1] : allExamples[allExamples.length - 1],
-                    nextExample: allExamples.length > exampleIndex + 1 ? allExamples[exampleIndex + 1] : allExamples[0],
+                    nextExampleOne:
+                        allExamples.length > exampleIndex + 1 ? allExamples[exampleIndex + 1] : allExamples[0],
+                    nextExampleTwo:
+                        allExamples.length > exampleIndex + 2 ? allExamples[exampleIndex + 2] : allExamples[1],
                 };
             });
         })

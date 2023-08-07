@@ -13,7 +13,7 @@ export async function getStaticPaths() {
     return pages;
 }
 
-const { page, prevExample, nextExample } = Astro.props;
+const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 ---
 
 <Layout>
@@ -42,6 +42,8 @@ const { page, prevExample, nextExample } = Astro.props;
 
         <p class="description" set:html={page.description} />
 
+        <p class="moreExampleLabel text-secondary">More from the charts gallery...</p>
+
         <div class="moreExamples">
             <GalleryExampleLink
                 client:load
@@ -53,8 +55,15 @@ const { page, prevExample, nextExample } = Astro.props;
             <GalleryExampleLink
                 client:load
                 className="galleryExample"
-                label={nextExample.title}
-                exampleName={nextExample.name}
+                label={nextExampleOne.title}
+                exampleName={nextExampleOne.name}
+            />
+
+            <GalleryExampleLink
+                client:load
+                className="galleryExample nextExampleTwo"
+                label={nextExampleTwo.title}
+                exampleName={nextExampleTwo.name}
             />
         </div>
     </div>
@@ -62,10 +71,6 @@ const { page, prevExample, nextExample } = Astro.props;
 
 <style lang="scss">
     @use '../../design-system' as *;
-
-    .galleryExample {
-        width: 24rem;
-    }
 
     .page-margin {
         padding-top: $size-5;
@@ -116,6 +121,11 @@ const { page, prevExample, nextExample } = Astro.props;
     }
 
     .description {
+        margin-bottom: $size-8 !important;
+    }
+
+    .description,
+    .moreExampleLabel {
         @media screen and (min-width: $breakpoint-gallery-small) {
             font-size: var(--font-size-large);
         }
@@ -123,14 +133,46 @@ const { page, prevExample, nextExample } = Astro.props;
 
     .moreExamples {
         display: flex;
-        gap: $size-2;
+        flex-wrap: wrap;
         justify-content: space-between;
-        margin-top: $size-9;
+        gap: $size-3;
+    }
+
+    .galleryExample {
+        --columns: 1;
+
+        width: calc(100% / var(--columns) - #{$size-3} / var(--columns) * (var(--columns) - 1));
+
+        @media screen and (min-width: 720px) {
+            --columns: 2;
+        }
+
+        @media screen and (min-width: 1120px) {
+            --columns: 3;
+        }
+    }
+
+    .nextExampleTwo {
+        display: none !important;
+
+        @media screen and (min-width: 1120px) {
+            display: block !important;
+        }
     }
 </style>
 
 <style lang="scss" is:global>
     @use '../../design-system' as *;
+
+    @media screen and (max-width: 920px) {
+        .container > * > div {
+            min-height: calc(480px + 48px) !important;
+        }
+
+        .tabs-content {
+            height: 480px !important;
+        }
+    }
 
     .icon {
         transition: fill $default-transition-timing;

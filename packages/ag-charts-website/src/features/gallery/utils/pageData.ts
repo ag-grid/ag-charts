@@ -4,18 +4,21 @@ import { getGalleryExamples } from './filesData';
 
 export function getGalleryPages({ galleryData }: { galleryData: GalleryData }) {
     const galleryExamples = getGalleryExamples({ galleryData });
-    const galleryExamplePages = galleryExamples.map(({ exampleName, page, prevExample, nextExample }) => {
-        return {
-            params: {
-                pageName: exampleName,
-            },
-            props: {
-                page,
-                prevExample,
-                nextExample,
-            },
-        };
-    });
+    const galleryExamplePages = galleryExamples.map(
+        ({ exampleName, page, prevExample, nextExampleOne, nextExampleTwo }) => {
+            return {
+                params: {
+                    pageName: exampleName,
+                },
+                props: {
+                    page,
+                    prevExample,
+                    nextExampleOne,
+                    nextExampleTwo,
+                },
+            };
+        }
+    );
 
     return galleryExamplePages;
 }
