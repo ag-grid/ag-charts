@@ -432,7 +432,7 @@ export abstract class RadialColumnSeriesBase<
         let selectionData: RadialColumnNodeDatum[] = [];
         if (highlight) {
             const highlighted = this.ctx.highlightManager?.getActiveHighlight();
-            if (highlighted?.datum) {
+            if (highlighted?.datum && highlighted.series === this) {
                 selectionData = [highlighted as RadialColumnNodeDatum];
             }
         } else {
@@ -445,7 +445,6 @@ export abstract class RadialColumnSeriesBase<
         const stroke = highlightedStyle?.stroke ?? this.stroke;
         const strokeOpacity = this.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
-
         selection.update(selectionData).each((node, datum) => {
             const format = this.formatter
                 ? this.ctx.callbackCache.call(this.formatter, {
@@ -453,7 +452,7 @@ export abstract class RadialColumnSeriesBase<
                       fill,
                       stroke,
                       strokeWidth,
-                      highlighted: false,
+                      highlighted: highlight,
                       angleKey: this.angleKey,
                       radiusKey: this.radiusKey,
                       seriesId: this.id,
