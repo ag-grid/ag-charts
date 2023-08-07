@@ -1,8 +1,8 @@
 import { getEntry } from 'astro:content';
-import { getContentRootFileUrl } from '../../../../utils/pages';
-import { getIsDev } from '../../../../utils/env';
-import { getGalleryExampleFiles } from '../../../../features/gallery/utils/pageData';
-import { getGeneratedGalleryContents } from '../../../../features/gallery/utils/examplesGenerator';
+import { getContentRootFileUrl } from '@utils/pages';
+import { getIsDev } from '@utils/env';
+import { getGalleryExampleFiles } from '@features/gallery/utils/pageData';
+import { getGeneratedGalleryContents } from '@features/gallery/utils/examplesGenerator';
 
 interface Params {
     exampleName: string;

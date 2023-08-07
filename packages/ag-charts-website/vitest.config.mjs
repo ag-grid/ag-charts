@@ -1,7 +1,27 @@
 import { getViteConfig } from 'astro/config';
+import path from 'node:path';
+
+function resolvePath(srcPath) {
+    return path.resolve(__dirname, srcPath);
+}
 
 export default getViteConfig({
     test: {
         globals: true,
+    },
+    resolve: {
+        alias: {
+            // Matches `tsconfig.json`
+            '@astro': resolvePath('src/astro'),
+            '@components': resolvePath('src/components'),
+            '@design-system': resolvePath('src/design-system'),
+            '@features': resolvePath('src/features'),
+            '@images': resolvePath('src/images'),
+            '@layouts': resolvePath('src/layouts'),
+            '@stores': resolvePath('src/stores'),
+            '@ag-grid-types': resolvePath('src/types/ag-grid.d.ts'),
+            '@utils': resolvePath('src/utils'),
+            '@constants': resolvePath('src/constants.ts'),
+        },
     },
 });

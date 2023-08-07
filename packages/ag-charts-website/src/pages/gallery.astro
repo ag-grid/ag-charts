@@ -1,10 +1,10 @@
 ---
 import { getEntry } from 'astro:content';
-import Layout from '../layouts/Layout.astro';
-import { Icon, IconName } from '../components/icon/Icon';
-import { getPageHashUrl } from '../features/gallery/utils/urlPaths';
-import type { GalleryData, GalleryExample, GalleryExampleChartType } from '../types/ag-grid';
-import { GalleryExampleLink } from '../features/gallery/components/GalleryExampleLink';
+import Layout from '@layouts/Layout.astro';
+import { Icon, IconName } from '@components/icon/Icon';
+import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
+import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
+import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;

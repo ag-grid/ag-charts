@@ -1,5 +1,5 @@
-import { FRAMEWORK_DISPLAY_TEXT } from '../constants';
-import type { Framework, InternalFramework } from '../types/ag-grid';
+import { FRAMEWORK_DISPLAY_TEXT } from '@constants';
+import type { Framework, InternalFramework } from '@ag-grid-types';
 
 export const getFrameworkDisplayText = (framework: Framework): string => {
     return FRAMEWORK_DISPLAY_TEXT[framework];

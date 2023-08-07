@@ -1,9 +1,9 @@
 import { getEntry } from 'astro:content';
 import { readFileSync, existsSync } from 'node:fs';
-import { getGalleryExamplePages } from '../../../features/gallery/utils/pageData';
-import { getThumbnail } from '../../../features/gallery/utils/getThumbnail';
-import { getPlainThumbnailFileUrl } from '../../../features/gallery/utils/filesData';
-import { getIsDev } from '../../../utils/env';
+import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+import { getThumbnail } from '@features/gallery/utils/getThumbnail';
+import { getPlainThumbnailFileUrl } from '@features/gallery/utils/filesData';
+import { getIsDev } from '@utils/env';
 
 interface Params {
     exampleName: string;

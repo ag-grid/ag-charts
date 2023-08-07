@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
-import type { ExampleOptions } from '../../example-runner/types';
-import { getFrameworkFromInternalFramework } from '../../../utils/framework';
-import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '../../../stores/frameworkStore';
-import type { Framework } from '../../../types/ag-grid';
-import { OpenInPlunkr } from '../../plunkr/components/OpenInPlunkr';
-import type { ExampleType } from '../../examples-generator/types';
-import { ExampleRunner } from '../../example-runner/components/ExampleRunner';
+import type { ExampleOptions } from '@features/example-runner/types';
+import { getFrameworkFromInternalFramework } from '@utils/framework';
+import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '@stores/frameworkStore';
+import type { Framework } from '@ag-grid-types';
+import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
+import type { ExampleType } from '@features/examples-generator/types';
+import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { getExampleContentsUrl, getExampleUrl, getExampleWithRelativePathUrl } from '../utils/urlPaths';
 
 interface Props {

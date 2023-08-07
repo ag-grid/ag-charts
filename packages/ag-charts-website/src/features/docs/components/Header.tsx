@@ -1,8 +1,8 @@
 import type { FunctionComponent } from 'react';
 import styles from './Header.module.scss';
-import { Icon } from '../../../components/icon/Icon';
-import type { Framework } from '../../../types/ag-grid';
-import { getFrameworkDisplayText } from '../../../utils/framework';
+import { Icon } from '@components/icon/Icon';
+import type { Framework } from '@ag-grid-types';
+import { getFrameworkDisplayText } from '@utils/framework';
 
 interface Props {
     title: string;

@@ -1,11 +1,9 @@
-import { Icon } from '../../../components/icon/Icon';
-import React from 'react';
 import styles from './CodeOptions.module.scss';
-import { isGeneratedExample } from '../../examples-generator/utils/isGeneratedExample';
-import { isReactInternalFramework, isVueInternalFramework } from '../../../utils/framework';
-import { setInternalFramework } from '../../../stores/frameworkStore';
-import type { ExampleType } from '../../examples-generator/types';
-import type { InternalFramework } from 'packages/ag-charts-website/src/types/ag-grid';
+import { isGeneratedExample } from '@features/examples-generator/utils/isGeneratedExample';
+import { isReactInternalFramework, isVueInternalFramework } from '@utils/framework';
+import { setInternalFramework } from '@stores/frameworkStore';
+import type { ExampleType } from '@features/examples-generator/types';
+import type { InternalFramework } from '@ag-grid-types';
 
 type SelectorType = 'typescript' | 'react' | 'vue';
 interface SelectorConfig {

@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
-import { getIsDev } from '../../../utils/env';
-import type { InternalFramework } from '../../../types/ag-grid.d';
-import { pathJoin } from '../../../utils/pathJoin';
-import { isTypescriptInternalFramework } from '../../../utils/pages';
+import { getIsDev } from '@utils/env';
+import type { InternalFramework } from '@ag-grid-types';
+import { pathJoin } from '@utils/pathJoin';
+import { isTypescriptInternalFramework } from '@utils/pages';
 import type { TransformTsFileExt } from '../types';
 
 /**

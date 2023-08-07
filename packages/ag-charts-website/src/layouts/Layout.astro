@@ -1,12 +1,12 @@
 ---
 import { getEntry } from 'astro:content';
-import { getFavIconsData, getAppleTouchIconsData } from '../utils/favicons';
-import SiteHeader from '../components/site-header/SiteHeader.astro';
-import '../design-system/design-system.scss';
-import { Footer } from '../components/footer/Footer';
-import { TopBar } from '../components/top-bar/TopBar';
-import { FRAMEWORKS } from '../constants';
-import { getFrameworkFromPath } from '../features/docs/utils/urlPaths';
+import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
+import SiteHeader from '@components/site-header/SiteHeader.astro';
+import '@design-system/design-system.scss';
+import { Footer } from '@components/footer/Footer';
+import { TopBar } from '@components/top-bar/TopBar';
+import { FRAMEWORKS } from '@constants';
+import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 
 export interface Props {
     title?: string;

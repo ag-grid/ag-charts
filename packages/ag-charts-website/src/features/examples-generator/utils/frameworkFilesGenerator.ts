@@ -1,4 +1,4 @@
-import type { InternalFramework } from '../../../types/ag-grid';
+import type { InternalFramework } from '@ag-grid-types';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import { vanillaToReact } from '../transformation-scripts/chart-vanilla-to-react';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';

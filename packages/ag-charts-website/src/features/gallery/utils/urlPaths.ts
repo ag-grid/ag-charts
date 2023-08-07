@@ -1,5 +1,5 @@
-import { SITE_BASE_URL } from '../../../constants';
-import { pathJoin } from '../../../utils/pathJoin';
+import { SITE_BASE_URL } from '@constants';
+import { pathJoin } from '@utils/pathJoin';
 
 export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string; isFullPath?: boolean }) => {
     const path = pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName);

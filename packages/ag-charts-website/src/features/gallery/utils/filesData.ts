@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
-import type { GalleryData } from '../../../types/ag-grid';
-import { getContentRootFileUrl, getPublicFileUrl } from '../../../utils/pages';
-import { pathJoin } from '../../../utils/pathJoin';
+import type { GalleryData } from '@ag-grid-types';
+import { getContentRootFileUrl, getPublicFileUrl } from '@utils/pages';
+import { pathJoin } from '@utils/pathJoin';
 import { getPageHashUrl } from './urlPaths';
 
 export const getGalleryData = ({ isDev }: { isDev?: boolean } = {}): GalleryData => {

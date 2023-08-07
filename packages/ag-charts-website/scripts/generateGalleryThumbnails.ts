@@ -5,8 +5,8 @@ import {
     getGalleryExamples,
     getPlainThumbnailFileUrl,
     getPlainThumbnailFolderUrl,
-} from '../src/features/gallery/utils/filesData';
-import { getThumbnail } from '../src/features/gallery/utils/getThumbnail';
+} from '@features/gallery/utils/filesData';
+import { getThumbnail } from '@features/gallery/utils/getThumbnail';
 
 const DEV_SERVER_CMD = `nx dev ag-charts-website`;
 

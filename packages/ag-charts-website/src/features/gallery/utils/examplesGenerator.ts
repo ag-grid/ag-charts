@@ -1,5 +1,5 @@
-import type { GeneratedContents } from '../../examples-generator/types';
-import { getGeneratedContents, getGeneratedContentsFileList } from '../../examples-generator/examplesGenerator';
+import type { GeneratedContents } from '@features/examples-generator/types';
+import { getGeneratedContents, getGeneratedContentsFileList } from '@features/examples-generator/examplesGenerator';
 import { getFolderUrl } from './filesData';
 import { GALLERY_INTERNAL_FRAMEWORK, PLAIN_ENTRY_FILE_NAME } from '../constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';

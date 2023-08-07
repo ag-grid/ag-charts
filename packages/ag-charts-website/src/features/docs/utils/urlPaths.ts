@@ -1,6 +1,6 @@
-import { SITE_BASE_URL } from '../../../constants';
-import type { InternalFramework } from '../../../types/ag-grid';
-import { pathJoin } from '../../../utils/pathJoin';
+import { SITE_BASE_URL } from '@constants';
+import type { InternalFramework } from '@ag-grid-types';
+import { pathJoin } from '@utils/pathJoin';
 import { DOCS_FRAMEWORK_PATH_INDEX } from '../constants';
 
 export function getFrameworkFromPath(path: string) {

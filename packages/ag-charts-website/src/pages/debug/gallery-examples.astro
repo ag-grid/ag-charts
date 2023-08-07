@@ -1,8 +1,8 @@
 ---
 import { getEntry } from 'astro:content';
-import Layout from '../../layouts/Layout.astro';
-import { getGalleryExamplePages } from '../../features/gallery/utils/pageData';
-import { getExampleUrl } from '../../features/gallery/utils/urlPaths';
+import Layout from '@layouts/Layout.astro';
+import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+import { getExampleUrl } from '@features/gallery/utils/urlPaths';
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const examples = getGalleryExamplePages({ galleryData: galleryDataEntry.data });

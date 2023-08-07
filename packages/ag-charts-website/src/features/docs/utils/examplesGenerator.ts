@@ -1,7 +1,7 @@
-import type { InternalFramework } from '../../../types/ag-grid';
-import type { GeneratedContents } from '../../examples-generator/types';
+import type { InternalFramework } from '@ag-grid-types';
+import type { GeneratedContents } from '@features/examples-generator/types';
 import { getFolderUrl } from './filesData';
-import { getGeneratedContents, getGeneratedContentsFileList } from '../../examples-generator/examplesGenerator';
+import { getGeneratedContents, getGeneratedContentsFileList } from '@features/examples-generator/examplesGenerator';
 
 export const getGeneratedDocsContentsFileList = async ({
     internalFramework,

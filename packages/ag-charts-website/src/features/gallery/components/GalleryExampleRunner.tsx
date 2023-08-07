@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
-import { OpenInPlunkr } from '../../plunkr/components/OpenInPlunkr';
-import { ExampleRunner } from '../../example-runner/components/ExampleRunner';
+import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
+import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { getExampleContentsUrl, getExampleUrl, getExampleWithRelativePathUrl } from '../utils/urlPaths';
 import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 

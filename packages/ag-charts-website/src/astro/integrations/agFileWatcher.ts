@@ -1,4 +1,4 @@
-import { type AstroIntegration } from 'astro';
+import type { AstroIntegration } from 'astro';
 import { getAllExamplesFileList } from '../../features/docs/utils/filesData';
 
 /**

@@ -1,4 +1,4 @@
-import type { GalleryData } from '../../../types/ag-grid';
+import type { GalleryData } from '@ag-grid-types';
 import { getGeneratedGalleryContentsFileList } from './examplesGenerator';
 import { getGalleryExamples } from './filesData';
 

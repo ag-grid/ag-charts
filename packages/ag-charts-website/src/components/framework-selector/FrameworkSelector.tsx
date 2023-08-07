@@ -1,6 +1,5 @@
 import classnames from 'classnames';
-import fwLogos from '../../images/fw-logos';
-import React from 'react';
+import fwLogos from '@images/fw-logos';
 import styles from './FrameworkSelector.module.scss';
 
 /**
