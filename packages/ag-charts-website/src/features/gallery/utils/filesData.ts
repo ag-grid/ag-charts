@@ -88,10 +88,15 @@ export const getChartExampleTitle = ({
 
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
     const { chartTypes } = galleryData;
+
+    const allExamples = chartTypes.map((chartType) => chartType.examples).flat();
+
     const galleryExamples = chartTypes
         .map((chartType) => {
             const { examples } = chartType;
-            return examples.map((example, i) => {
+            return examples.map((example) => {
+                const exampleIndex = allExamples.findIndex((item) => item.name === example.name);
+
                 return {
                     exampleName: example.name,
                     page: {
@@ -102,8 +107,8 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
                         icon: chartType.icon,
                         enterprise: chartType.enterprise,
                     },
-                    prevExample: i > 0 ? examples[i - 1] : examples[examples.length - 1],
-                    nextExample: examples.length > i + 1 ? examples[i + 1] : examples[0],
+                    prevExample: exampleIndex > 0 ? allExamples[exampleIndex - 1] : allExamples[allExamples.length - 1],
+                    nextExample: allExamples.length > exampleIndex + 1 ? allExamples[exampleIndex + 1] : allExamples[0],
                 };
             });
         })
