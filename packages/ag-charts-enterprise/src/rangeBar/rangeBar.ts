@@ -25,9 +25,11 @@ const {
     checkCrisp,
     updateLabel,
     CategoryAxis,
+    SMALLEST_KEY_INTERVAL,
+    calculateStep,
 } = _ModuleSupport;
 const { toTooltipHtml, ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
-const { sanitizeHtml, isNumber } = _Util;
+const { sanitizeHtml, isNumber, extent } = _Util;
 
 const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
@@ -201,6 +203,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
+    protected smallestDataInterval?: { x: number; y: number } = undefined;
     async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
@@ -214,12 +217,18 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
                 valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue` }),
+                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
             ],
             groupByKeys: true,
             dataVisible: this.visible,
         });
         this.dataModel = dataModel;
         this.processedData = processedData;
+
+        this.smallestDataInterval = {
+            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            y: Infinity,
+        };
     }
 
     getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -234,7 +243,21 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         } = processedData;
 
         if (direction === this.getCategoryDirection()) {
-            return keys;
+            const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
+
+            if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
+                return keys;
+            }
+
+            const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
+            const scalePadding = isFinite(smallestX) ? smallestX : 0;
+            const keysExtent = extent(keys) ?? [NaN, NaN];
+
+            const categoryAxis = this.getCategoryAxis();
+            if (direction === ChartAxisDirection.Y) {
+                return this.fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+            }
+            return this.fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
             const yLowExtent = values[yLowIndex];
@@ -268,6 +291,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const {
             data,
             dataModel,
+            smallestDataInterval,
             visible,
             groupScale,
             fill,
@@ -303,7 +327,16 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             domain.push(String(groupIdx));
         }
 
-        const xBandWidth = xScale.bandwidth;
+        let xBandWidth = xScale.bandwidth;
+
+        if (xScale instanceof ContinuousScale) {
+            const rangeExtent = Math.max(xAxis.range[0], xAxis.range[1]);
+            const xDomain = xAxis.scale.getDomain?.();
+            const domainExtent = xDomain?.[1] - xDomain?.[0];
+            const step = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
+
+            xBandWidth = step;
+        }
 
         groupScale.domain = domain;
         groupScale.range = [0, xBandWidth ?? 0];

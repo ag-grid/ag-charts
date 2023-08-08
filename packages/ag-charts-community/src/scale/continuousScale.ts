@@ -34,7 +34,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
     abstract toDomain(d: number): D;
 
-    protected getDomain() {
+    getDomain() {
         if (this.nice) {
             this.refresh();
             if (this.niceDomain) {
