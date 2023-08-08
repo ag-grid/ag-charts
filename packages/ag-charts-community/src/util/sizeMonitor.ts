@@ -16,7 +16,7 @@ export class SizeMonitor {
     private static pollerHandler?: number;
 
     static init() {
-        const NativeResizeObserver = (window as any).ResizeObserver;
+        const NativeResizeObserver = ResizeObserver;
 
         if (NativeResizeObserver) {
             this.resizeObserver = new NativeResizeObserver((entries: any) => {

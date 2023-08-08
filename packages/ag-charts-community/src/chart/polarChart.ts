@@ -1,4 +1,4 @@
-import type { TransferableResources } from './chart';
+import type { SpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 import { PolarSeries } from './series/polar/polarSeries';
 import { toRadians } from '../util/angle';
@@ -15,8 +15,8 @@ export class PolarChart extends Chart {
 
     padding = new Padding(40);
 
-    constructor(document = window.document, overrideDevicePixelRatio?: number, resources?: TransferableResources) {
-        super(document, overrideDevicePixelRatio, resources);
+    constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
+        super(specialOverrides, resources);
     }
 
     async performLayout() {

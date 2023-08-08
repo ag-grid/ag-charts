@@ -15,6 +15,8 @@ import type { Scene } from '../integrated-charts-scene';
 import type { CallbackCache } from './callbackCache';
 
 export interface ModuleContext {
+    document: Document;
+    window: Window;
     scene: Scene;
     mode: 'standalone' | 'integrated';
     animationManager: AnimationManager;

@@ -1,13 +1,13 @@
 import { BBox } from '../scene/bbox';
-import type { TransferableResources } from './chart';
+import type { SpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 
 export class HierarchyChart extends Chart {
     static className = 'HierarchyChart';
     static type = 'hierarchy' as const;
 
-    constructor(document = window.document, overrideDevicePixelRatio?: number, resources?: TransferableResources) {
-        super(document, overrideDevicePixelRatio, resources);
+    constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
+        super(specialOverrides, resources);
     }
 
     protected _data: any = {};

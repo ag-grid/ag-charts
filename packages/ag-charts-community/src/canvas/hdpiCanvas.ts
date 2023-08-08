@@ -11,22 +11,35 @@ type OffscreenCanvasRenderingContext2D = any;
  */
 export class HdpiCanvas {
     readonly document: Document;
+    readonly window: Window;
     readonly element: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly imageSource: HTMLCanvasElement;
 
     // The width/height attributes of the Canvas element default to
     // 300/150 according to w3.org.
-    constructor({
-        document = window.document,
-        width = 600,
-        height = 300,
-        domLayer = false,
-        zIndex = 0,
-        name = undefined as undefined | string,
-        overrideDevicePixelRatio = undefined as undefined | number,
+    constructor(opts: {
+        document: Document;
+        window: Window;
+        width?: number;
+        height?: number;
+        domLayer?: boolean;
+        zIndex?: number;
+        name?: string;
+        overrideDevicePixelRatio?: number;
     }) {
+        const {
+            document,
+            window,
+            width = 600,
+            height = 300,
+            domLayer = false,
+            zIndex = 0,
+            name = undefined as undefined | string,
+            overrideDevicePixelRatio = undefined as undefined | number,
+        } = opts;
         this.document = document;
+        this.window = window;
 
         // Create canvas and immediately apply width + height to avoid out-of-memory
         // errors on iOS/iPadOS Safari.
@@ -156,7 +169,7 @@ export class HdpiCanvas {
      * element accordingly (default).
      */
     private setPixelRatio(ratio?: number) {
-        let pixelRatio = ratio ?? window.devicePixelRatio;
+        let pixelRatio = ratio ?? this.window.devicePixelRatio;
         if (!isDesktop()) {
             // Mobile browsers have stricter memory limits, we reduce rendering resolution to
             // improve stability on mobile browsers. iOS Safari 12->16 are pain-points since they

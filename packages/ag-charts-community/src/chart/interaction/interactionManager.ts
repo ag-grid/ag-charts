@@ -80,6 +80,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private readonly rootElement: HTMLElement;
     private readonly element: HTMLElement;
+    private readonly window: Window;
 
     private eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -90,11 +91,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private enabled = true;
     private pausers: string[] = [];
 
-    public constructor(element: HTMLElement, doc = document) {
+    public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
 
-        this.rootElement = doc.body;
+        this.rootElement = document.body;
         this.element = element;
+        this.window = window;
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch')) {
@@ -106,23 +108,23 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         for (const type of WINDOW_EVENT_HANDLERS) {
             if (type === 'wheel') {
-                window.addEventListener(type, this.eventHandler, { passive: false });
+                this.window.addEventListener(type, this.eventHandler, { passive: false });
             } else {
-                window.addEventListener(type, this.eventHandler);
+                this.window.addEventListener(type, this.eventHandler);
             }
         }
 
-        if (InteractionManager.interactionDocuments.indexOf(doc) < 0) {
+        if (InteractionManager.interactionDocuments.indexOf(document) < 0) {
             const styleElement = document.createElement('style');
             styleElement.innerHTML = CSS;
             document.head.insertBefore(styleElement, document.head.querySelector('style'));
-            InteractionManager.interactionDocuments.push(doc);
+            InteractionManager.interactionDocuments.push(document);
         }
     }
 
     public destroy() {
         for (const type of WINDOW_EVENT_HANDLERS) {
-            window.removeEventListener(type, this.eventHandler);
+            this.window.removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {

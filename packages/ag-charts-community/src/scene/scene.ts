@@ -13,7 +13,8 @@ import { Logger } from '../util/logger';
 
 interface SceneOptions {
     document: Document;
-    mode: 'simple' | 'composite' | 'dom-composite' | 'adv-composite';
+    window: Window;
+    mode?: 'simple' | 'composite' | 'dom-composite' | 'adv-composite';
 }
 
 interface SceneLayer {
@@ -56,17 +57,18 @@ export class Scene {
     readonly canvas: HdpiCanvas;
     readonly layers: SceneLayer[] = [];
 
-    private readonly opts: SceneOptions;
+    private readonly opts: Required<SceneOptions>;
 
     constructor(
         opts: {
             width?: number;
             height?: number;
             overrideDevicePixelRatio?: number;
-        } & Partial<SceneOptions>
+        } & SceneOptions
     ) {
         const {
-            document = window.document,
+            document,
+            window,
             mode = (windowValue('agChartsSceneRenderModel') as SceneOptions['mode']) ?? advancedCompositeIdentifier,
             width,
             height,
@@ -75,7 +77,7 @@ export class Scene {
 
         this.overrideDevicePixelRatio = overrideDevicePixelRatio;
 
-        this.opts = { document, mode };
+        this.opts = { document, window, mode };
         this.debug.consoleLog = [true, 'scene'].includes(windowValue('agChartsDebug') as any);
         this.debug.level = ['scene'].includes(windowValue('agChartsDebug') as any)
             ? SceneDebugLevel.DETAILED
@@ -83,7 +85,7 @@ export class Scene {
         this.debug.stats = (windowValue('agChartsSceneStats') as any) ?? false;
         this.debug.dirtyTree = (windowValue('agChartsSceneDirtyTree') as boolean) ?? false;
         this.debug.sceneNodeHighlight = buildSceneNodeHighlight();
-        this.canvas = new HdpiCanvas({ document, width, height, overrideDevicePixelRatio });
+        this.canvas = new HdpiCanvas({ document, window, width, height, overrideDevicePixelRatio });
     }
 
     set container(value: HTMLElement | undefined) {
@@ -153,6 +155,7 @@ export class Scene {
             !advLayer || !HdpiOffscreenCanvas.isSupported()
                 ? new HdpiCanvas({
                       document: this.opts.document,
+                      window,
                       width,
                       height,
                       domLayer,

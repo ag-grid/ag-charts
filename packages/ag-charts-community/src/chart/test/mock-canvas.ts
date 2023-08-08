@@ -25,7 +25,13 @@ export class MockContext {
     }
 }
 
-export function setup({ width = 800, height = 600, mockCtx = new MockContext(), mockText = false } = {}) {
+export function setup({
+    width = 800,
+    height = 600,
+    document = window.document,
+    mockCtx = new MockContext(),
+    mockText = false,
+} = {}) {
     if (mockText) {
         mockCanvasText();
     }

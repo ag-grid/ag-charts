@@ -1,4 +1,4 @@
-import type { TransferableResources } from './chart';
+import type { SpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
@@ -19,8 +19,8 @@ export class CartesianChart extends Chart {
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
-    constructor(document = window.document, overrideDevicePixelRatio?: number, resources?: TransferableResources) {
-        super(document, overrideDevicePixelRatio, resources);
+    constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
+        super(specialOverrides, resources);
     }
 
     async performLayout() {

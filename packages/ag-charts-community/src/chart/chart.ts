@@ -53,12 +53,27 @@ import { SeriesLayerManager } from './series/seriesLayerManager';
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
 export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
+export type SpecialOverrides = {
+    overrideDevicePixelRatio?: number;
+    document?: Document;
+    window?: Window & typeof globalThis;
+};
 
 type PickedNode = {
     series: Series<any>;
     datum: SeriesNodeDatum;
     distance: number;
 };
+
+function initialiseSpecialOverrides(opts: SpecialOverrides): Required<SpecialOverrides> {
+    const globalWindow = window;
+    const globalDocument = document;
+    return {
+        document: opts.document ?? globalDocument,
+        window: opts.window ?? globalWindow,
+        overrideDevicePixelRatio: opts.overrideDevicePixelRatio ?? 1,
+    };
+}
 
 export abstract class Chart extends Observable implements AgChartInstance {
     readonly id = createId(this);
@@ -214,14 +229,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
+    private readonly specialOverrides: Required<SpecialOverrides>;
     private legendType: string | undefined;
 
-    protected constructor(
-        document = window.document,
-        overrideDevicePixelRatio?: number,
-        resources?: TransferableResources
-    ) {
+    protected constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
         super();
+
+        this.specialOverrides = initialiseSpecialOverrides(specialOverrides);
+        const { window, document } = this.specialOverrides;
 
         const scene = resources?.scene;
         const element = resources?.element ?? document.createElement('div');
@@ -240,7 +255,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
 
-        this.scene = scene ?? new Scene({ document, overrideDevicePixelRatio });
+        this.scene = scene ?? new Scene(this.specialOverrides);
         this.scene.debug.consoleLog = false;
         this.scene.root = root;
         this.scene.container = element;
@@ -249,7 +264,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.chartEventManager = new ChartEventManager();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(element);
+        this.interactionManager = new InteractionManager(element, document, window);
         this.zoomManager = new ZoomManager();
         this.dataService = new DataService(() => this.series);
         this.layoutService = new LayoutService();
@@ -260,11 +275,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
 
-        this.animationManager = new AnimationManager(this.interactionManager);
+        this.animationManager = new AnimationManager(this.interactionManager, window);
         this.animationManager.skipAnimations = true;
         this.animationManager.play();
 
-        this.tooltip = new Tooltip(this.scene.canvas.element, document, document.body);
+        this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
         this.overlays = new ChartOverlays(this.element);
         this.highlight = new ChartHighlight();
@@ -351,8 +366,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesLayerManager,
             mode,
             callbackCache,
+            specialOverrides: { window, document },
         } = this;
         return {
+            window,
+            document,
             scene,
             animationManager,
             chartEventManager,
@@ -1237,6 +1255,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const { type } = datum.series.tooltip.position;
 
         if (type === 'node' && datum.nodeMidPoint) {
+            const { window } = this.specialOverrides;
             const { x, y } = datum.nodeMidPoint;
             const { canvas } = this.scene;
             const point = datum.series.contentGroup.inverseTransformPoint(x, y);
