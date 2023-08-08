@@ -29,8 +29,10 @@ const options: AgChartOptions = {
                     },
                 },
                 total: {
+                    fill: '#FAC858',
+                    stroke: '#FAC858',
                     formatter: ({ itemId }) => {
-                        const color = itemId === 'subtotal' ? `#FAC858` : '#EE6666';
+                        const color = itemId === 'subtotal' ? '#FAC858' : '#EE6666';
                         return {
                             fill: color,
                             stroke: color,
