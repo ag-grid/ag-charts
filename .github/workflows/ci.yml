@@ -144,12 +144,12 @@ jobs:
             - name: Count test targets to run
               id: test_count
               run: |
-                  echo "test_count=$(yarn nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+                  echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
 
     test:
         runs-on: ubuntu-latest
         needs: execute_blt
-        if: ${{ needs.execute_blt.outputs.test_count }} > 0
+        if: needs.execute_blt.outputs.test_count > 0
         strategy:
             matrix:
                 shard: [1/4, 2/4, 3/4, 4/4]
