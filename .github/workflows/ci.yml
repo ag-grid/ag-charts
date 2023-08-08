@@ -188,8 +188,8 @@ jobs:
               continue-on-error: true
               with:
                   name: 'Tests Results $1'
-                  artifact: test-shard-result-*
-                  path: *.xml
+                  artifact: test-shard-result-.*
+                  path: '*.xml'
                   reporter: jest-junit
 
             - name: Tag Latest Successful Commit
