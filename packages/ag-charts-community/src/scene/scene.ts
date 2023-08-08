@@ -155,7 +155,7 @@ export class Scene {
             !advLayer || !HdpiOffscreenCanvas.isSupported()
                 ? new HdpiCanvas({
                       document: this.opts.document,
-                      window,
+                      window: this.opts.window,
                       width,
                       height,
                       domLayer,

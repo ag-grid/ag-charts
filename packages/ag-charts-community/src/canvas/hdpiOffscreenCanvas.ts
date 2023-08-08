@@ -17,7 +17,7 @@ export class HdpiOffscreenCanvas {
     enabled: boolean = true;
 
     static isSupported() {
-        return OffscreenCanvas != null;
+        return OffscreenCanvas != null && OffscreenCanvas.prototype.transferToImageBitmap != null;
     }
 
     // The width/height attributes of the Canvas element default to
@@ -25,7 +25,6 @@ export class HdpiOffscreenCanvas {
     constructor({ width = 600, height = 300, overrideDevicePixelRatio = undefined as undefined | number }) {
         this.canvas = new OffscreenCanvas(width, height);
         this.context = this.canvas.getContext('2d')!;
-        // console.log(this.canvas);
         this.imageSource = this.canvas.transferToImageBitmap();
 
         this.setPixelRatio(overrideDevicePixelRatio);

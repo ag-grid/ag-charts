@@ -10,6 +10,7 @@ type OffscreenCanvasRenderingContext2D = any;
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiCanvas {
+    static document: Document;
     readonly document: Document;
     readonly window: Window;
     readonly element: HTMLCanvasElement;
@@ -40,6 +41,7 @@ export class HdpiCanvas {
         } = opts;
         this.document = document;
         this.window = window;
+        HdpiCanvas.document = document;
 
         // Create canvas and immediately apply width + height to avoid out-of-memory
         // errors on iOS/iPadOS Safari.
@@ -220,7 +222,7 @@ export class HdpiCanvas {
         if (this._textMeasuringContext) {
             return this._textMeasuringContext;
         }
-        const canvas = document.createElement('canvas');
+        const canvas = this.document.createElement('canvas');
         this._textMeasuringContext = canvas.getContext('2d')!;
         return this._textMeasuringContext;
     }
@@ -272,9 +274,9 @@ export class HdpiCanvas {
         if (this._has) {
             return this._has;
         }
-        const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
-        const isFirefox = navigator.userAgent.indexOf('Firefox') > -1;
-        const isSafari = !isChrome && navigator.userAgent.indexOf('Safari') > -1;
+        const isChrome = typeof navigator === 'undefined' || navigator.userAgent.indexOf('Chrome') > -1;
+        const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Firefox') > -1;
+        const isSafari = !isChrome && typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Safari') > -1;
         this._has = Object.freeze({
             textMetrics:
                 this.textMeasuringContext.measureText('test').actualBoundingBoxDescent !== undefined &&
