@@ -74,7 +74,7 @@ function initialiseSpecialOverrides(opts: SpecialOverrides): Required<SpecialOve
     } else if (typeof global !== 'undefined') {
         globalWindow = global.window;
     } else {
-        throw new Error('AG Charts - unable to resolve global window');
+        throw new Error('AG Charts - unable to resolve global window11111');
     }
     let globalDocument;
     if (opts.document != null) {
