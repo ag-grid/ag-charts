@@ -54,7 +54,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     public skipAnimations = false;
     public debug = false;
 
-    constructor(interactionManager: InteractionManager) {
+    constructor(interactionManager: InteractionManager, window: Window) {
         super();
 
         this.interactionManager = interactionManager;

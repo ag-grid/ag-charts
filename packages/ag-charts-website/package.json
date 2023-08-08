@@ -1,7 +1,6 @@
 {
   "name": "ag-charts-website",
   "version": "1.0.0",
-  "scripts": {
-    "generate-gallery-thumbnails": "tsx ./scripts/generateGalleryThumbnails.ts"
-  }
+  "license": "MIT",
+  "scripts": {}
 }

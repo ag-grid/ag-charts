@@ -7,7 +7,7 @@ import {
     DATA_TREEMAP,
     DATA_FRUIT_VEG_CONSUMPTION,
 } from './data';
-import { loadExampleOptions } from '../../test/examples';
+import { loadExampleOptions } from '../../test/load-example';
 
 const GROUPED_AREA_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('area-with-negative-values');
 const { axes, ...LINE_WITH_GAPS_EXAMPLE }: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');

@@ -2,9 +2,10 @@ import { OPT_FUNCTION, OPT_STRING, Validate } from '../../util/validation';
 import type { BBox } from '../../scene/bbox';
 
 export class Overlay {
-    constructor(className: string, parent: HTMLElement) {
+    constructor(className: string, parent: HTMLElement, document: Document) {
         this.className = className;
         this.parentElement = parent;
+        this.document = document;
     }
 
     @Validate(OPT_FUNCTION)
@@ -16,11 +17,12 @@ export class Overlay {
     private className: string;
     private parentElement: HTMLElement;
     private element?: HTMLElement;
+    private document: Document;
 
     show(rect: BBox) {
         let element = this.element;
         if (!element) {
-            element = document.createElement('div');
+            element = this.document.createElement('div');
             element.className = this.className;
             this.element = element;
         }
@@ -34,7 +36,7 @@ export class Overlay {
         if (this.renderer) {
             element.innerHTML = this.renderer();
         } else {
-            const content = document.createElement('div');
+            const content = this.document.createElement('div');
             content.style.alignItems = 'center';
             content.style.boxSizing = 'border-box';
             content.style.display = 'flex';

@@ -26,7 +26,7 @@ import type { PieSeries } from './series/polar/pieSeries';
 import { PieTitle } from './series/polar/pieSeries';
 import type { TreemapSeries } from './series/hierarchy/treemapSeries';
 import type { ChartAxis } from './chartAxis';
-import type { Chart } from './chart';
+import type { Chart, SpecialOverrides } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
 import type { TypedEventListener } from '../util/observable';
 import { jsonDiff, jsonMerge, jsonApply } from '../util/json';
@@ -217,10 +217,7 @@ abstract class AgChartInternal {
         AgChartInternal.initialised = true;
     }
 
-    static createOrUpdate(
-        userOptions: AgChartOptions & { overrideDevicePixelRatio?: number },
-        proxy?: AgChartInstanceProxy
-    ) {
+    static createOrUpdate(userOptions: AgChartOptions & SpecialOverrides, proxy?: AgChartInstanceProxy) {
         AgChartInternal.initialiseModules();
 
         debug('>>> AgChartV2.createOrUpdate() user options', userOptions);
@@ -229,13 +226,16 @@ abstract class AgChartInternal {
             mixinOpts['debug'] = true;
         }
 
-        const { overrideDevicePixelRatio } = userOptions;
+        const { overrideDevicePixelRatio, document, window } = userOptions;
         delete userOptions['overrideDevicePixelRatio'];
+        delete userOptions['document'];
+        delete userOptions['window'];
+        const specialOverrides = { overrideDevicePixelRatio, document, window };
 
         const processedOptions = prepareOptions(userOptions, mixinOpts);
         let chart = proxy?.chart;
         if (chart == null || chartType(userOptions as any) !== chartType(chart.processedOptions as any)) {
-            chart = AgChartInternal.createChartInstance(processedOptions, overrideDevicePixelRatio, chart);
+            chart = AgChartInternal.createChartInstance(processedOptions, specialOverrides, chart);
         }
 
         if (proxy == null) {
@@ -353,17 +353,17 @@ abstract class AgChartInternal {
 
     private static createChartInstance(
         options: AgChartOptions,
-        overrideDevicePixelRatio?: number,
+        specialOverrides: SpecialOverrides,
         oldChart?: Chart
     ): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
 
         if (isAgCartesianChartOptions(options)) {
-            return new CartesianChart(document, overrideDevicePixelRatio, transferableResource);
+            return new CartesianChart(specialOverrides, transferableResource);
         } else if (isAgHierarchyChartOptions(options)) {
-            return new HierarchyChart(document, overrideDevicePixelRatio, transferableResource);
+            return new HierarchyChart(specialOverrides, transferableResource);
         } else if (isAgPolarChartOptions(options)) {
-            return new PolarChart(document, overrideDevicePixelRatio, transferableResource);
+            return new PolarChart(specialOverrides, transferableResource);
         }
 
         throw new Error(`AG Charts - couldn't apply configuration, check type of options: ${options['type']}`);

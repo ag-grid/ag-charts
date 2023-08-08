@@ -16,10 +16,8 @@ export class SizeMonitor {
     private static pollerHandler?: number;
 
     static init() {
-        const NativeResizeObserver = (window as any).ResizeObserver;
-
-        if (NativeResizeObserver) {
-            this.resizeObserver = new NativeResizeObserver((entries: any) => {
+        if (typeof ResizeObserver !== 'undefined') {
+            this.resizeObserver = new ResizeObserver((entries: any) => {
                 for (const entry of entries) {
                     const { width, height } = entry.contentRect;
                     this.checkSize(this.elements.get(entry.target), entry.target, width, height);

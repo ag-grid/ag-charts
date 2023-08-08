@@ -3,12 +3,20 @@ import { createCanvas, Image } from 'canvas';
 import { mockCanvasText } from './mock-canvas-text';
 
 export class MockContext {
-    realCreateElement: typeof document.createElement;
+    document: Document;
+    realCreateElement: Document['createElement'];
     ctx: { nodeCanvas: Canvas };
     canvasStack: Canvas[];
     canvases: Canvas[];
 
-    constructor(width = 1, height = 1, realCreateElement: typeof document.createElement = document.createElement) {
+    constructor(
+        width = 1,
+        height = 1,
+        document: Document,
+        realCreateElement: Document['createElement'] = document.createElement
+    ) {
+        this.document = document;
+
         const nodeCanvas = createCanvas(width, height);
 
         this.realCreateElement = realCreateElement;
@@ -25,7 +33,21 @@ export class MockContext {
     }
 }
 
-export function setup({ width = 800, height = 600, mockCtx = new MockContext(), mockText = false } = {}) {
+export function setup(opts: {
+    width?: number;
+    height?: number;
+    document?: Document;
+    window?: Window;
+    mockCtx?: MockContext;
+    mockText?: boolean;
+}) {
+    const {
+        width = 800,
+        height = 600,
+        document = window.document,
+        mockCtx = new MockContext(width, height, document),
+        mockText = false,
+    } = opts;
     if (mockText) {
         mockCanvasText();
     }
@@ -74,6 +96,6 @@ export function setup({ width = 800, height = 600, mockCtx = new MockContext(), 
 }
 
 export function teardown(mockContext: MockContext) {
-    document.createElement = mockContext.realCreateElement!;
+    mockContext.document.createElement = mockContext.realCreateElement!;
     mockContext.destroy();
 }

@@ -21,7 +21,7 @@ describe('transformPlainEntryFile', () => {
     test('object key as literal with strings ');
 
     test('default entry file', () => {
-        expect(getChartsOptionsPlainEntryFile({})).toMatchInlineSnapshot(`
+        expect(getChartsOptionsPlainEntryFile({}).code).toMatchInlineSnapshot(`
           "const options = {
             legend: {
               enabled: false
@@ -45,7 +45,7 @@ describe('transformPlainEntryFile', () => {
                     enabled: true,
                     text: 'Test title',
                 },
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             legend: {
@@ -70,7 +70,7 @@ describe('transformPlainEntryFile', () => {
                     enabled: true,
                     text: 'Test footnote',
                 },
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             legend: {
@@ -95,7 +95,7 @@ describe('transformPlainEntryFile', () => {
                     enabled: true,
                     text: 'Test legend',
                 },
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             legend: {
@@ -132,7 +132,7 @@ describe('transformPlainEntryFile', () => {
                         },
                     },
                 ],
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             axes: [
@@ -216,7 +216,7 @@ describe('transformPlainEntryFile', () => {
                         },
                     },
                 ],
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             series: [
@@ -263,7 +263,7 @@ describe('transformPlainEntryFile', () => {
                         },
                     },
                 ],
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             axes: [
@@ -347,7 +347,7 @@ describe('transformPlainEntryFile', () => {
                         },
                     },
                 ],
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             axes: [
@@ -431,7 +431,7 @@ describe('transformPlainEntryFile', () => {
                         },
                     },
                 ],
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             axes: [
@@ -505,7 +505,7 @@ describe('transformPlainEntryFile', () => {
                     bottom: 30,
                     left: 40,
                 },
-            })
+            }).code
         ).toMatchInlineSnapshot(`
           "const options = {
             legend: {

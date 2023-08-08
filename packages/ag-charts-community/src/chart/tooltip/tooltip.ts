@@ -204,16 +204,18 @@ export class Tooltip {
     range: InteractionRange = 'nearest';
 
     readonly position: TooltipPosition = new TooltipPosition();
+    private readonly window: Window;
 
-    constructor(canvasElement: HTMLCanvasElement, document: Document, container: HTMLElement) {
+    constructor(canvasElement: HTMLCanvasElement, document: Document, window: Window, container: HTMLElement) {
         this.tooltipRoot = container;
+        this.window = window;
         const element = document.createElement('div');
         this.element = this.tooltipRoot.appendChild(element);
         this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
         this.canvasElement = canvasElement;
 
         // Detect when the chart becomes invisible and hide the tooltip as well.
-        if (window.IntersectionObserver) {
+        if (typeof IntersectionObserver !== 'undefined') {
             const observer = new IntersectionObserver(
                 (entries) => {
                     for (const entry of entries) {
@@ -327,7 +329,7 @@ export class Tooltip {
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
-            this.showTimeout = window.setTimeout(() => {
+            this.showTimeout = this.window.setTimeout(() => {
                 this.toggle(true);
             }, this.delay);
             return;
@@ -337,12 +339,12 @@ export class Tooltip {
     }
 
     private getWindowBoundingBox(): BBox {
-        return new BBox(0, 0, window.innerWidth, window.innerHeight);
+        return new BBox(0, 0, this.window.innerWidth, this.window.innerHeight);
     }
 
     toggle(visible?: boolean) {
         if (!visible) {
-            window.clearTimeout(this.showTimeout);
+            this.window.clearTimeout(this.showTimeout);
         }
         this.updateClass(visible, this._showArrow);
     }

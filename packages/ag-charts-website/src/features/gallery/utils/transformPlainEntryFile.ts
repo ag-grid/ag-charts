@@ -1,10 +1,12 @@
 import j from 'jscodeshift';
 import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { parseExampleOptions } from '../../../../../ag-charts-community/src/chart/test/load-example';
 
 /**
  * JS Code Shift transformer to generate plain entry file
  */
-function transformer(sourceFile: string) {
+function transformer(sourceFile: string, dataFile?: string) {
     const root = j(sourceFile);
 
     const optionsExpression = root
@@ -113,10 +115,12 @@ function transformer(sourceFile: string) {
     );
     optionsExpression.get(0).node.properties.push(paddingPropertyNode);
 
-    return root.toSource();
+    const code = root.toSource();
+    const options = parseExampleOptions('options', code, dataFile);
+
+    return { code, options };
 }
 
-export function transformPlainEntryFile(entryFile: string) {
-    const transformedCode = transformer(entryFile);
-    return transformedCode;
+export function transformPlainEntryFile(entryFile: string, dataFile?: string): { code: string; options: {} } {
+    return transformer(entryFile, dataFile);
 }
