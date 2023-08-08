@@ -163,7 +163,7 @@ jobs:
                       cache-nx-${{ hashFiles('yarn.lock') }}-
             - name: nx test
               id: test
-              run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --shard=${{ matrix.shard }}
+              run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}
             - name: Perist test results
               uses: actions/upload-artifact@v3
               with:
