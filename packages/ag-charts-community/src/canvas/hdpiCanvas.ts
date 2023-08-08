@@ -10,7 +10,7 @@ type OffscreenCanvasRenderingContext2D = any;
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiCanvas {
-    static document: Document;
+    static document: Document = globalThis.document;
     readonly document: Document;
     readonly window: Window;
     readonly element: HTMLCanvasElement;

@@ -17,7 +17,7 @@ export class HdpiOffscreenCanvas {
     enabled: boolean = true;
 
     static isSupported() {
-        return OffscreenCanvas != null && OffscreenCanvas.prototype.transferToImageBitmap != null;
+        return typeof OffscreenCanvas !== 'undefined' && OffscreenCanvas.prototype.transferToImageBitmap != null;
     }
 
     // The width/height attributes of the Canvas element default to

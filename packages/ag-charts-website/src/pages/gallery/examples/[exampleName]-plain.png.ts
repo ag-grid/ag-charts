@@ -1,9 +1,12 @@
 import { getEntry } from 'astro:content';
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
-import { getGeneratedGalleryContents } from '../../../features/gallery/utils/examplesGenerator';
+import { JSDOM } from 'jsdom';
+
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import * as mockCanvas from '../../../../../ag-charts-community/src/chart/test/mock-canvas';
 import { AgChart } from 'ag-charts-community';
-import { JSDOM } from 'jsdom';
+
+import { getGeneratedGalleryContents } from '../../../features/gallery/utils/examplesGenerator';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../../../features/gallery/constants';
 import { transformPlainEntryFile } from '../../../features/gallery/utils/transformPlainEntryFile';
 
