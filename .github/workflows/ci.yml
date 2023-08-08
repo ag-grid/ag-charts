@@ -178,6 +178,11 @@ jobs:
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --shard=${{ matrix.shard }}
+            - name: Perist test results
+              uses: actions/upload-artifact@v3
+              with:
+                  name: test-shard-result-${{matrix.shard}}
+                  path: reports/
 
     report:
         runs-on: ubuntu-latest
@@ -201,15 +206,18 @@ jobs:
               if: needs.test.result == 'success' || needs.test.result == 'failure'
               continue-on-error: true
               with:
-                  name: Tests Results
+                  name: 'Tests Results $1'
+                  artifact: /test-shard-result-(.*)/
                   path: reports/*.xml
                   reporter: jest-junit
+
             - name: Tag Latest Successful Commit
               if: success() && github.ref == 'refs/heads/latest'
               uses: EndBug/latest-tag@latest
               with:
                   ref: latest-success
                   description: Latest commit to pass GitHub Actions workflow on latest branch.
+
             - name: Check last job status
               id: lastJobStatus
               if: always() && github.ref == 'refs/heads/latest'
@@ -225,6 +233,7 @@ jobs:
                   fi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Commit History
               id: commits
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
@@ -233,6 +242,7 @@ jobs:
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
+
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
