@@ -32,6 +32,63 @@ describe('Chart', () => {
         expect(console.warn).not.toBeCalled();
     });
 
+    const CONTINUOUS_DATA = [
+        {
+            date: new Date(1996, 4, 11).getTime(),
+            high: 1900,
+            low: 900,
+        },
+        {
+            date: new Date(1996, 4, 12).getTime(),
+            high: 1345,
+            low: 345,
+        },
+        {
+            date: new Date(1996, 4, 13).getTime(),
+            high: 1393,
+            low: 393,
+        },
+        {
+            date: new Date(1996, 4, 14).getTime(),
+            high: 1108,
+            low: -108,
+        },
+        {
+            date: new Date(1996, 4, 15).getTime(),
+            high: 1154,
+            low: -154,
+        },
+        {
+            date: new Date(1996, 4, 16).getTime(),
+            high: 1135,
+            low: 135,
+        },
+        {
+            date: new Date(1996, 4, 17).getTime(),
+            high: 1178,
+            low: 178,
+        },
+        {
+            date: new Date(1996, 4, 18).getTime(),
+            high: 1286,
+            low: 286,
+        },
+        {
+            date: new Date(1996, 4, 19).getTime(),
+            high: 1119,
+            low: -119,
+        },
+        {
+            date: new Date(1996, 4, 20).getTime(),
+            high: 1361,
+            low: -361,
+        },
+        {
+            date: new Date(1996, 4, 21).getTime(),
+            high: 1203,
+            low: -203,
+        },
+    ];
     const RANGE_COLUMN_OPTIONS: AgChartOptions = {
         data: [
             {
@@ -166,6 +223,92 @@ describe('Chart', () => {
                 low: datum.high,
                 high: datum.low,
             })),
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-column chart with a time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                },
+            ],
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-bar chart with a time y-axis`, async () => {
+        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'range-bar');
+        const options: AgChartOptions = {
+            ...RANGE_BAR_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'time',
+                },
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+            ],
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-column chart with a number x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+            ],
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-bar chart with a number y-axis`, async () => {
+        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'range-bar');
+        const options: AgChartOptions = {
+            ...RANGE_BAR_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+            ],
         };
         prepareTestOptions(options as any);
 
