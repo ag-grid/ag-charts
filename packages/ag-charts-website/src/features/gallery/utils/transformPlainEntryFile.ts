@@ -118,7 +118,7 @@ function transformer(sourceFile: string, dataFile?: string) {
     const code = root.toSource();
     const options = parseExampleOptions('options', code, dataFile);
 
-    return { code: root.toSource(), options };
+    return { code, options };
 }
 
 export function transformPlainEntryFile(entryFile: string, dataFile?: string): { code: string; options: {} } {

@@ -21,7 +21,7 @@ export async function get({ params }: { params: Params }) {
             exampleName,
         })) || {};
     const entryFile = files[entryFileName!];
-    const { code } = transformPlainEntryFile(entryFile);
+    const { code } = transformPlainEntryFile(entryFile, files['data.js']);
 
     return {
         body: code,

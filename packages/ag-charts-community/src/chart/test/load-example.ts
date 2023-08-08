@@ -66,12 +66,6 @@ export function parseExampleOptions(evalFn: string, exampleJs: string, dataJs?: 
     // @ts-ignore - used in the eval() call.
     const { AgChart, time, Marker } = agCharts;
 
-    try {
-        const exampleRunFn = new Function('ag_charts_community_1', 'AgChart', 'time', 'Marker', evalExpr);
-        return exampleRunFn(agCharts, AgChart, time, Marker);
-    } catch (error: any) {
-        Logger.error(`unable to read example data; error: ${error.message}`);
-        Logger.debug(evalExpr);
-        return [];
-    }
+    const exampleRunFn = new Function('ag_charts_community_1', 'AgChart', 'time', 'Marker', evalExpr);
+    return exampleRunFn(agCharts, AgChart, time, Marker);
 }
