@@ -38,7 +38,8 @@
     "dev": {
       "executor": "@nxtensions/astro:dev",
       "options": {
-        "port": 4600
+        "port": 4600,
+        "host": true
       },
       "dependsOn": [
         {
