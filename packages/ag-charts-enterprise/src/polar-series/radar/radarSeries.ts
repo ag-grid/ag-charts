@@ -20,6 +20,7 @@ const {
     OPT_FUNCTION,
     OPT_LINE_DASH,
     OPT_STRING,
+    PolarAxis,
     STRING,
     SeriesNodePickMode,
     Validate,
@@ -253,6 +254,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         return false;
     }
 
+    protected getAxisInnerRadius() {
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
+    }
+
     maybeRefreshNodeData() {
         const didCircleChange = this.didCircleChange();
         if (!didCircleChange && !this.nodeDataRefresh) return;
@@ -281,6 +287,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`, 'value').index;
         const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`, 'value').index;
+        const axisInnerRadius = this.getAxisInnerRadius();
 
         const { label, marker, id: seriesId } = this;
         const { size: markerSize } = this.marker;
@@ -292,7 +299,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const radiusDatum = values[radiusIdx];
 
             const angle = angleScale.convert(angleDatum);
-            const radius = this.radius - radiusScale.convert(radiusDatum);
+            const radius = this.radius + axisInnerRadius - radiusScale.convert(radiusDatum);
 
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
@@ -641,28 +648,40 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
-    protected updatePathAnimation(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
-        const lineNode = this.getLineNode();
-        const { path: linePath } = lineNode;
+    protected animateSinglePath(
+        pathNode: _Scene.Path,
+        points: Array<{ x: number; y: number }>,
+        totalDuration: number,
+        timePassed: number
+    ) {
+        const { path } = pathNode;
 
-        linePath.clear({ trackChanges: true });
+        path.clear({ trackChanges: true });
+
+        const axisInnerRadius = this.getAxisInnerRadius();
 
         points.forEach((point, index) => {
-            const { x: x0, y: y0 } = point;
-            const angle = Math.atan2(y0, x0);
-            const distance = (Math.sqrt(x0 ** 2 + y0 ** 2) * timePassed) / totalDuration;
-            const x = distance * Math.cos(angle);
-            const y = distance * Math.sin(angle);
+            const { x: x1, y: y1 } = point;
+            const angle = Math.atan2(y1, x1);
+            const x0 = axisInnerRadius * Math.cos(angle);
+            const y0 = axisInnerRadius * Math.sin(angle);
+            const t = timePassed / totalDuration;
+            const x = x0 * (1 - t) + x1 * t;
+            const y = y0 * (1 - t) + y1 * t;
 
             if (index === 0) {
-                linePath.moveTo(x, y);
+                path.moveTo(x, y);
             } else {
-                linePath.lineTo(x, y);
+                path.lineTo(x, y);
             }
         });
 
-        linePath.closePath();
-        lineNode.checkPathDirty();
+        path.closePath();
+        pathNode.checkPathDirty();
+    }
+
+    protected animatePaths(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
+        this.animateSinglePath(this.getLineNode(), points, totalDuration, timePassed);
     }
 
     animateEmptyUpdateReady() {
@@ -688,7 +707,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
             ...animationOptions,
             duration,
-            onUpdate: (timePassed) => this.updatePathAnimation(points, duration, timePassed),
+            onUpdate: (timePassed) => this.animatePaths(points, duration, timePassed),
         });
 
         markerSelection.each((marker, datum) => {

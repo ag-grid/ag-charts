@@ -86,7 +86,7 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
             translationY: translation.y - maxRadius - innerRadius,
             rotation,
             rotationCenterX: 0,
-            rotationCenterY: maxRadius,
+            rotationCenterY: maxRadius + innerRadius,
         };
     }
 
