@@ -1,6 +1,3 @@
-import * as fs from 'fs';
-import { Logger } from '../../util/logger';
-
 import type { AgCartesianChartOptions, AgChartOptions } from '../agChartOptions';
 import {
     DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
@@ -16,62 +13,7 @@ import {
     DATA_APPLE_REVENUE_BY_PRODUCT,
     DATA_BROWSER_MARKET_SHARE_MISSING_FIRST_Y,
 } from './data';
-
-export function loadExampleOptions(name: string, evalFn = 'options'): any {
-    const filters = [
-        /.*AgChart\.(update|create)/,
-        /.* container: .*/,
-        /.*setInterval.*/,
-        /.*setTimeout.*/,
-        /^Object\.defineProperty/,
-        /^exports\./,
-        /^const ag_charts_community_1 =/,
-        /^const data_1 =/,
-    ];
-    const exampleRootDir = `${process.cwd()}/dist/packages/ag-charts-community-examples/src/`;
-    const dataFile = `${exampleRootDir}charts-overview/examples/${name}/data.js`;
-    const exampleFile = `${exampleRootDir}charts-overview/examples/${name}/main.js`;
-
-    const cleanJs = (content: Buffer) => {
-        const inputLines = content.toString().split('\n');
-        const lines: string[] = [];
-
-        for (let line of inputLines) {
-            // Remove grossly unsupported lines.
-            if (filters.some((f) => f.test(line))) continue;
-            // Remove declares.
-            line = line.replace(/declare var.*;/g, '');
-
-            lines.push(line);
-        }
-
-        return lines;
-    };
-
-    const dataFileExists = fs.existsSync(dataFile);
-    // const dataFileContent = dataFileExists ? cleanJs(fs.readFileSync(dataFile)) : [];
-    const exampleFileLines = cleanJs(fs.readFileSync(exampleFile));
-
-    const evalExpr = [
-        dataFileExists ? `with (data_1 = require('${dataFile}')) {` : '',
-        `${exampleFileLines.join('\n')}`,
-        `return ${evalFn};`,
-        dataFileExists ? `}` : '',
-    ].join('\n');
-    // @ts-ignore - used in the eval() call.
-    const agCharts = require('../../main');
-    // @ts-ignore - used in the eval() call.
-    const { AgChart, time, Marker } = agCharts;
-
-    try {
-        const exampleRunFn = new Function('ag_charts_community_1', 'AgChart', 'time', 'Marker', 'require', evalExpr);
-        return exampleRunFn(agCharts, AgChart, time, Marker, require);
-    } catch (error: any) {
-        Logger.error(`unable to read example data for [${name}]; error: ${error.message}`);
-        Logger.debug(evalExpr);
-        return [];
-    }
-}
+import { loadExampleOptions } from './load-example';
 
 export const DOCS_EXAMPLES = {
     '100--stacked-area': loadExampleOptions('100--stacked-area'),
