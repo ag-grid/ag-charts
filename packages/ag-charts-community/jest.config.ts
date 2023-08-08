@@ -1,5 +1,4 @@
 /* eslint-disable */
-import { registerFont } from 'canvas';
 import { readFileSync } from 'fs';
 import * as glob from 'glob';
 
@@ -40,8 +39,6 @@ const commonConfig = {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
     },
 };
-
-registerFont('packages/ag-charts-community/src/chart/test/Inter-Regular.otf', { family: 'Verdana' });
 
 const reporters: any[] = ['default'];
 if (process.env.CI != null || process.env.NX_TASK_TARGET_CONFIGURATION === 'ci') {
