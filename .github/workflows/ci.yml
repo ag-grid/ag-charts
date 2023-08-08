@@ -15,7 +15,6 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             nx_base: ${{ steps.nx_config.outputs.base }}
-            test_check_id: ${{ steps.init_test.outputs.check_id }}
             build: ${{ steps.build.outcome || '' }}
             lint: ${{ steps.lint.outcome || '' }}
             format: ${{ steps.format.outcome || '' }}
