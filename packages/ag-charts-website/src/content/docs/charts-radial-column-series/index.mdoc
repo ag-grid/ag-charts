@@ -3,7 +3,7 @@ title: "Radial Column Series"
 enterprise: true
 ---
 
-**Radial Column** series (sometimes called *Circular Column chart*) represents a dataset in the form of rectangular columns placed along the polar axis. It is similar to [Nightingale Chart](./charts-nightingale-series).
+The **Radial Column** series, also known as the *Circular Column chart*, displays data using rectangular columns that are positioned along a polar axis. This chart type is similar to the [Nightingale Chart](./charts-nightingale-series).
 
 ## Grouped Radial Column
 
@@ -12,18 +12,20 @@ To create a basic Radial Column chart, use a data array where each item has one 
 A minimal Radial Column series configuration will look like:
 
 ```js
-series: [{
-    type: 'radial-column',
-    angleKey: 'product',
-    radiusKey: 'sales',
-}]
+series: [
+    {
+        type: 'radial-column',
+        angleKey: 'product',
+        radiusKey: 'sales',
+    },
+],
 ```
 
 {% chartExampleRunner title="Grouped Radial Column Chart" name="group-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Stacked Radial Column
 
-In a stacked Radial Column series, columns are placed on top of each other to create a total for each category. The following example illustrates a stacked Radial Column chart:
+In a stacked Radial Column chart, columns are placed on top of each other to create a total for each category. The following example illustrates a stacked Radial Column chart:
 
 ```js
 series: [
@@ -44,9 +46,9 @@ series: [
 
 {% chartExampleRunner title="Stacked Radial Column Chart" name="stack-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Additional Styling Options
+## Customisation
 
-There is a way to set a padding between columns. To do this, a few options should be added to the polar **angle** axis. `paddingInner` controls the padding between column groups, and `groupPaddingInner` controls the padding between columns within a group.
+The column spacing in the Radial Column chart can be adjusted by modifying the polar **angle** axis configuration. Use `paddingInner` to control gaps between column groups, and `groupPaddingInner` to manage gaps between individual columns within groups.
 
 ```js
 axes: [
@@ -58,12 +60,12 @@ axes: [
     {
         type: 'radius-number',
     },
-]
+],
 ```
 
 {% chartExampleRunner title="Radial Column Sector Padding" name="radial-column-padding" type="generated" options="{ \"enterprise\": true }" /%}
 
-To change the radius of the hole in the middle, `innerRadiusRatio` option should be added to the polar **radius** axis:
+To change the radius of the hole in the middle, use the `innerRadiusRatio` option on the polar **radius** axis:
 
 ```js
 axes: [
@@ -72,9 +74,9 @@ axes: [
     },
     {
         type: 'radius-number',
-        innerRadiusRatio: 0.75
+        innerRadiusRatio: 0.75,
     },
-]
+],
 ```
 
 {% chartExampleRunner title="Radial Column Hole in the Middle" name="radial-column-hole" type="generated" options="{ \"enterprise\": true }" /%}
