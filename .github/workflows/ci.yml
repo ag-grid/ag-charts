@@ -108,21 +108,6 @@ jobs:
                   check_id: ${{ steps.init_lint.outputs.check_id }}
                   conclusion: ${{ steps.lint.outcome }}
 
-            - name: Update playwright
-              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: npx playwright install
-            - name: Generate website gallery thumbnails
-              id: generate_gallery_thumbnails
-              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx generate-gallery-thumbnails ag-charts-website
-              timeout-minutes: 5
-            - name: Archive gallery thumbnails
-              if: steps.generate_gallery_thumbnails.outcome == 'success' || steps.generate_gallery_thumbnails.outcome == 'skipped'
-              uses: actions/upload-artifact@v3
-              with:
-                  name: ag-charts-website-gallery-thumbnails
-                  path: packages/ag-charts-website/public/gallery/thumbnails/
-
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -134,6 +119,13 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
+
+            - name: Archive gallery thumbnails
+              if: steps.build.outcome == 'success'
+              uses: actions/upload-artifact@v3
+              with:
+                  name: ag-charts-website-gallery-thumbnails
+                  path: packages/ag-charts-website/public/gallery/thumbnails/
 
             - name: Update Status - In Progress (test)
               uses: LouisBrunner/checks-action@v1.6.1
