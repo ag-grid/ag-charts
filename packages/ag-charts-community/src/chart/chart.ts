@@ -66,11 +66,29 @@ type PickedNode = {
 };
 
 function initialiseSpecialOverrides(opts: SpecialOverrides): Required<SpecialOverrides> {
-    const globalWindow = window;
-    const globalDocument = document;
+    let globalWindow;
+    if (opts.window != null) {
+        globalWindow = opts.window;
+    } else if (typeof window !== 'undefined') {
+        globalWindow = window;
+    } else if (typeof global !== 'undefined') {
+        globalWindow = global.window;
+    } else {
+        throw new Error('AG Charts - unable to resolve global window');
+    }
+    let globalDocument;
+    if (opts.document != null) {
+        globalDocument = opts.document;
+    } else if (typeof document !== 'undefined') {
+        globalDocument = document;
+    } else if (typeof global !== 'undefined') {
+        globalDocument = global.document;
+    } else {
+        throw new Error('AG Charts - unable to resolve global document');
+    }
     return {
-        document: opts.document ?? globalDocument,
-        window: opts.window ?? globalWindow,
+        document: globalDocument,
+        window: globalWindow,
         overrideDevicePixelRatio: opts.overrideDevicePixelRatio ?? 1,
     };
 }
