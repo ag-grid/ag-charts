@@ -125,7 +125,7 @@ jobs:
               uses: actions/upload-artifact@v3
               with:
                   name: ag-charts-website-gallery-thumbnails
-                  path: packages/ag-charts-website/public/gallery/thumbnails/
+                  path: dist/packages/ag-charts-website/gallery/examples/
 
             - name: Update Status - In Progress (test)
               uses: LouisBrunner/checks-action@v1.6.1

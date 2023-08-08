@@ -44,6 +44,8 @@ export async function get({ params }: { params: Params }) {
             ...options,
             document: jsdom.window.document,
             window: jsdom.window,
+            width: DEFAULT_THUMBNAIL_WIDTH,
+            height: DEFAULT_THUMBNAIL_HEIGHT,
         };
 
         const chartProxy = AgChart.create(options);
