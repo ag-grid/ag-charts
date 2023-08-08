@@ -50,7 +50,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import type { RectConfig } from './barUtil';
-import { createLabelData, getRectConfig, updateRect, checkCrisp, updateLabel } from './barUtil';
+import { createLabelData, getRectConfig, updateRect, checkCrisp, updateLabel, calculateStep } from './barUtil';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 
@@ -283,28 +283,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         return this.axes[direction];
     }
 
-    private calculateStep(range: number): number | undefined {
-        const { smallestDataInterval: smallestInterval } = this;
-
-        const xAxis = this.getCategoryAxis();
-
-        if (!xAxis) {
-            return;
-        }
-
-        // calculate step
-        const domainLength = xAxis.dataDomain[1] - xAxis.dataDomain[0];
-        const intervals = domainLength / (smallestInterval?.x ?? 1) + 1;
-
-        // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
-        // Allow a maximum number of bands to ensure the step does not fall below 1 pixel.
-        // This means there could be some overlap of the bands in the chart.
-        const maxBands = Math.floor(range); // A minimum of 1px per bar/column means the maximum number of bands will equal the available range
-        const bands = Math.min(intervals, maxBands);
-
-        return range / Math.max(1, bands);
-    }
-
     async createNodeData() {
         const { visible, dataModel } = this;
         const xAxis = this.getCategoryAxis();
@@ -329,13 +307,15 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             processedData,
             ctx,
             ctx: { seriesStateManager },
+            smallestDataInterval,
         } = this;
 
         let xBandWidth = xScale.bandwidth;
 
         if (xScale instanceof ContinuousScale) {
-            const availableRange = Math.max(xAxis.range[0], xAxis.range[1]);
-            const step = this.calculateStep(availableRange);
+            const rangeExtent = Math.max(xAxis.range[0], xAxis.range[1]);
+            const domainExtent = xAxis.dataDomain[1] - xAxis.dataDomain[0];
+            const step = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
 
             xBandWidth = step;
         }
