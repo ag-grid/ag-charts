@@ -139,6 +139,7 @@ jobs:
         strategy:
             matrix:
                 shard: [1, 2, 3, 4]
+        name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         steps:
             - name: Checkout
               id: checkout
@@ -163,7 +164,7 @@ jobs:
                       cache-nx-${{ hashFiles('yarn.lock') }}-
             - name: nx test
               id: test
-              run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/4
+              run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
             - name: Perist test results
               uses: actions/upload-artifact@v3
               with:
@@ -187,8 +188,8 @@ jobs:
               continue-on-error: true
               with:
                   name: 'Tests Results $1'
-                  artifact: /test-shard-result-(.*)/
-                  path: reports/*.xml
+                  artifact: test-shard-result-*
+                  path: *.xml
                   reporter: jest-junit
 
             - name: Tag Latest Successful Commit
