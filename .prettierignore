@@ -4,8 +4,8 @@
 /packages/ag-charts-community/dist
 /packages/ag-charts-enterprise/dist
 /packages/ag-charts-community-examples/src
-/packages/ag-charts-website/src/content/docs/**/*.md
 /packages/ag-charts-website/.astro
+/packages/ag-charts-website/**/_examples/*
 /packages/ag-charts-angular/dist
 /packages/ag-charts-react/dist
 /packages/ag-charts-vue/dist

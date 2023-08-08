@@ -8,14 +8,14 @@ Prerequisites:
 
 ## Common commands
 
-| Command     | Description                         |
-| ----------- | ----------------------------------- |
-| `nx dev`    | Run Astro dev server                |
-| `nx build`  | Build all the packages              |
-| `nx lint`   | Check all packages with ESLint      |
-| `nx test`   | Run all tests                       |
-| `nx format` | Reformat all packages with prettier |
-| `nx reset`  | Clear the NX cache                  |
+| Command           | Description                         |
+| ----------------- | ----------------------------------- |
+| `nx dev`          | Run Astro dev server                |
+| `nx build`        | Build all the packages              |
+| `nx lint`         | Check all packages with ESLint      |
+| `nx test`         | Run all tests                       |
+| `nx format --all` | Reformat all packages with prettier |
+| `nx reset`        | Clear the NX cache                  |
 
 To skip the `nx` cache use `--skip-nx-cache`.
 
