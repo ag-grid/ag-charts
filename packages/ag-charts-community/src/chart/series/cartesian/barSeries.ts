@@ -314,7 +314,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         if (xScale instanceof ContinuousScale) {
             const rangeExtent = Math.max(xAxis.range[0], xAxis.range[1]);
-            const domainExtent = xAxis.dataDomain[1] - xAxis.dataDomain[0];
+            const xDomain = xAxis.scale.getDomain?.();
+            const domainExtent = xDomain?.[1] - xDomain?.[0];
             const step = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
 
             xBandWidth = step;
