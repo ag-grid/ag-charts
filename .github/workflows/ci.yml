@@ -180,9 +180,10 @@ jobs:
 
             - name: Merge JUnit Report XMLs
               run: |
+                  yarn global add junit-report-merger
                   reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
                   echo "$reports" | (while read name ; do
-                    yarn jrm reports/${name} "test-results/**/${name}"
+                    yarn exec -s jrm reports/${name} "test-results/**/${name}"
                   done)
 
             - name: Test Report
