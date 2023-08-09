@@ -82,6 +82,7 @@
     },
     "test": {
       "executor": "@nx/vite:test",
+      "outputs": ["{workspaceRoot}/reports/ag-charts-website.xml"],
       "dependsOn": [],
       "options": {
         "config": "packages/ag-charts-website/vitest.config.mjs"

@@ -30,7 +30,7 @@
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community-examples.xml"],
       "options": {
         "jestConfig": "packages/ag-charts-community-examples/jest.config.ts",
         "passWithNoTests": true
