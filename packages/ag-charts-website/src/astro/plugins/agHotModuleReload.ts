@@ -1,17 +1,21 @@
 import chokidar from 'chokidar';
 import { getDevFileList } from '../../utils/pages';
 import { getAllExamplesFileList } from '../../features/docs/utils/filesData';
+import { getIsDev } from '../../utils/env';
 
 export default function createAgHotModuleReload() {
     return {
-        configureServer(server) {
+        async configureServer(server) {
+            if (!getIsDev()) return;
+
             const devFiles = getDevFileList();
+            const exampleFiles = await getAllExamplesFileList();
 
             const fullReload = (path: string) => {
                 server.ws.send({ type: 'full-reload', path });
             };
 
-            const watcher = chokidar.watch(devFiles);
+            const watcher = chokidar.watch([...devFiles, ...exampleFiles]);
             watcher
                 .on('change', (path) => {
                     fullReload(path);
@@ -19,17 +23,6 @@ export default function createAgHotModuleReload() {
                 .on('add', (path) => {
                     fullReload(path);
                 });
-
-            getAllExamplesFileList().then((files) => {
-                const watcher = chokidar.watch(files);
-                watcher
-                    .on('change', (path) => {
-                        fullReload(path);
-                    })
-                    .on('add', (path) => {
-                        fullReload(path);
-                    });
-            });
         },
     };
 }
