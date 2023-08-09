@@ -119,13 +119,6 @@ jobs:
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
 
-            - name: Archive gallery thumbnails
-              if: steps.build.outcome == 'success'
-              uses: actions/upload-artifact@v3
-              with:
-                  name: ag-charts-website-gallery-thumbnails
-                  path: dist/packages/ag-charts-website/gallery/examples/
-
             - name: Count test targets to run
               id: test_count
               run: |
@@ -158,7 +151,7 @@ jobs:
               uses: actions/cache@v3
               with:
                   path: node_modules/.cache/nx
-                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{matrix.shard}}-${{ github.sha }}
+                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
                   restore-keys: |
                       cache-nx-${{ hashFiles('yarn.lock') }}-
             - name: nx test
@@ -167,7 +160,7 @@ jobs:
             - name: Perist test results
               uses: actions/upload-artifact@v3
               with:
-                  name: test-results
+                  name: test-results-${{matrix.shard}}
                   path: reports/
 
     report:
@@ -183,7 +176,6 @@ jobs:
 
             - uses: actions/download-artifact@v3
               with:
-                  name: test-results
                   path: test-results/
 
             - name: Test Report
