@@ -88,12 +88,12 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
         const sType = series.type ?? '';
         const groupable = isGroupableSeries(sType);
         const stackable = isStackableSeries(sType);
+        const stackedByDefault = isSeriesStackedByDefault(sType);
 
-        if (series.grouped == undefined && series.stacked == undefined) {
-            const stackedByDefault = isSeriesStackedByDefault(sType);
-            if (groupable && stackable) {
-                return { ...series, stacked: stackedByDefault, grouped: !stackedByDefault };
-            }
+        if (groupable || stackable) {
+            const grouped = groupable ? series.grouped ?? (!series.stacked && !stackedByDefault) : false;
+            const stacked = stackable ? series.stacked ?? (!series.grouped && stackedByDefault) : false;
+            return { ...series, stacked, grouped };
         }
 
         return series;
