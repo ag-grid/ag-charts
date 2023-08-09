@@ -28,7 +28,8 @@ export function setupModules() {
                 m.themeTemplate,
                 m.paletteFactory,
                 m.stackable,
-                m.groupable
+                m.groupable,
+                m.stackedByDefault
             );
         }
 

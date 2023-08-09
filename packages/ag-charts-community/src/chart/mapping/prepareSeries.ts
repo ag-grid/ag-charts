@@ -6,7 +6,7 @@ import type {
     AgChartOptions,
 } from '../agChartOptions';
 import type { SeriesGrouping } from '../series/seriesStateManager';
-import { isStackableSeries, isGroupableSeries } from '../factory/seriesTypes';
+import { isStackableSeries, isGroupableSeries, isSeriesStackedByDefault } from '../factory/seriesTypes';
 import { windowValue } from '../../util/window';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
@@ -85,8 +85,15 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
     const preprocessed = seriesOptions.map((series: SeriesOptions & { stacked?: boolean; grouped?: boolean }) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
-        if (isGroupableSeries(series.type ?? '') && !(series.stacked && isStackableSeries(series.type ?? ''))) {
-            return { ...series, grouped: series.grouped ?? true };
+        const sType = series.type ?? '';
+        const groupable = isGroupableSeries(sType);
+        const stackable = isStackableSeries(sType);
+        const stackedByDefault = isSeriesStackedByDefault(sType);
+
+        if (groupable || stackable) {
+            const grouped = groupable ? series.grouped ?? (!series.stacked && !stackedByDefault) : false;
+            const stacked = stackable ? series.stacked ?? (!series.grouped && stackedByDefault) : false;
+            return { ...series, stacked, grouped };
         }
 
         return series;

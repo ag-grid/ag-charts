@@ -80,6 +80,7 @@ export interface SeriesModule extends BaseModule {
     paletteFactory?: SeriesPaletteFactory;
     stackable?: boolean;
     groupable?: boolean;
+    stackedByDefault?: boolean;
 }
 
 export type Module<M extends ModuleInstance = ModuleInstance> =
