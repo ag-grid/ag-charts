@@ -74,20 +74,20 @@ describe('Nightingale Chart', () => {
         (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    it(`should render nightingale chart as expected`, async () => {
+    it(`should render stacked nightingale chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
         prepareTestOptions(options as any);
         chart = AgEnterpriseCharts.create(options);
         await compare();
     });
 
-    it(`should render stacked nightingale as expected`, async () => {
+    it(`should render grouped nightingale as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: EXAMPLE_OPTIONS.series?.map((series) => {
                 return {
                     ...series,
-                    stacked: true,
+                    grouped: true,
                 };
             }),
         };
@@ -103,7 +103,6 @@ describe('Nightingale Chart', () => {
             series: EXAMPLE_OPTIONS.series?.map((series) => {
                 return {
                     ...series,
-                    stacked: true,
                     normalizedTo: 100,
                 };
             }),
