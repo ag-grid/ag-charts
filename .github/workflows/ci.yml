@@ -167,7 +167,7 @@ jobs:
             - name: Perist test results
               uses: actions/upload-artifact@v3
               with:
-                  name: test-shard-result-${{matrix.shard}}
+                  name: test-results
                   path: reports/
 
     report:
@@ -181,14 +181,18 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - uses: actions/download-artifact@v3
+              with:
+                  name: test-results
+                  path: test-results/
+
             - name: Test Report
               uses: dorny/test-reporter@v1
               if: needs.test.result == 'success' || needs.test.result == 'failure'
               continue-on-error: true
               with:
-                  name: 'Tests Results $1'
-                  artifact: test-shard-result-.*
-                  path: '*.xml'
+                  name: 'Tests Results'
+                  path: test-results/**/*.xml'
                   reporter: jest-junit
 
             - name: Tag Latest Successful Commit
