@@ -178,13 +178,20 @@ jobs:
               with:
                   path: test-results/
 
+            - name: Merge JUnit Report XMLs
+              run: |
+                  reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
+                  echo "$reports" | (while read name ; do
+                    yarn jrm reports/${name} "test-results/**/${name}"
+                  done)
+
             - name: Test Report
               uses: dorny/test-reporter@v1
               if: needs.test.result == 'success' || needs.test.result == 'failure'
               continue-on-error: true
               with:
                   name: 'Tests Results'
-                  path: test-results/**/*.xml
+                  path: reports/combined.xml
                   reporter: jest-junit
 
             - name: Tag Latest Successful Commit
