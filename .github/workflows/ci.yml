@@ -182,6 +182,7 @@ jobs:
               run: |
                   yarn global add junit-report-merger
                   reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
+                  mkdir -p reports/
                   echo "$reports" | (while read name ; do
                     yarn exec -s jrm reports/${name} "test-results/**/${name}"
                   done)
