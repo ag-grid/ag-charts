@@ -3,7 +3,7 @@ import AnimateHeight from 'react-animate-height';
 
 interface Props {
     id: string;
-    isDisabled: boolean;
+    isDisabled?: boolean;
     isOpen: boolean;
     animationDuration?: number;
     children: ReactElement;

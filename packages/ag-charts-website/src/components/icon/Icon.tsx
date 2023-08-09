@@ -143,5 +143,5 @@ type Props = { name: IconName; svgClasses?: string };
 export const Icon = ({ name, svgClasses }: Props) => {
     const IconSvg = ICON_MAP[name];
 
-    return <IconSvg size="32" className={classNames(styles.icon, 'icon', svgClasses)} />;
+    return IconSvg ? <IconSvg size="32" className={classNames(styles.icon, 'icon', svgClasses)} /> : null;
 };

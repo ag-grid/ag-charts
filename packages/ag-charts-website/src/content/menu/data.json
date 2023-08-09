@@ -1,0 +1,352 @@
+{
+    "main": {
+        "items": [
+            {
+                "title": "Getting Started",
+                "path": "getting-started"
+            },
+            {
+                "title": "Building & Tooling",
+                "items": [
+                    { "title": "Install with NPM", "path": "npm", "frameworks": ["javascript"] },
+                    { "title": "Download Bundles", "path": "download", "frameworks": ["javascript"] },
+                    { "title": "Community and Enterprise", "path": "licensing" },
+                    { "title": "Packages vs Modules", "path": "packages-modules" },
+                    { "title": "Packages", "path": "packages", "frameworks": ["javascript"] },
+                    { "title": "Modules", "path": "modules", "frameworks": ["javascript"] },
+                    { "title": "Supported browsers", "path": "supported-browsers" },
+                    { "title": "Building", "path": "building", "frameworks": ["javascript"] }
+                ]
+            },
+            {
+                "title": "API",
+                "items": [
+                    { "title": "Create/Update", "path": "charts-api-create-update" },
+                    { "title": "Download", "path": "charts-api-download" },
+                    { "title": "Events", "path": "charts-events" }
+                ]
+            },
+            {
+                "title": "Layout & Styling",
+                "items": [
+                    { "title": "Layout", "path": "charts-layout" },
+                    { "title": "Themes", "path": "charts-themes" },
+                    { "title": "Overlays", "path": "charts-overlays" },
+                    { "title": "Background", "path": "charts-background" },
+                    {
+                        "title": "Background Image",
+                        "path": "charts-background-image",
+                        "isEnterprise": true
+                    }
+                ]
+            },
+            {
+                "title": "Axes",
+                "items": [
+                    { "title": "Axis Types", "path": "charts-axes-types" },
+                    { "title": "Axis Ticks", "path": "charts-axes-ticks" },
+                    { "title": "Axis Domain", "path": "charts-axes-domain" },
+                    { "title": "Axis Labels", "path": "charts-axes-labels" },
+                    { "title": "Grid Lines", "path": "charts-axes-grid-lines" },
+                    { "title": "Secondly Axes", "path": "charts-axes-secondary" }
+                ]
+            },
+            {
+                "title": "Features",
+                "items": [
+                    { "title": "Legend", "path": "charts-legend" },
+                    { "title": "Series Markers", "path": "charts-markers" },
+                    { "title": "Series Highlighting", "path": "charts-series-highlighting" },
+                    { "title": "Tooltips", "path": "charts-tooltips" },
+                    { "title": "Formatters", "path": "charts-formatters" },
+                    { "title": "Cross lines", "path": "charts-axes-cross-lines" },
+                    { "title": "Navigator", "path": "charts-navigator" },
+                    {
+                        "title": "Crosshairs",
+                        "path": "charts-axes-crosshairs",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Context Menu",
+                        "path": "charts-context-menu",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Zoom",
+                        "path": "charts-zoom",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Animation",
+                        "path": "charts-animation",
+                        "isEnterprise": true
+                    }
+                ]
+            },
+            {
+                "title": "AG Grid Integrated Charts",
+                "url": "https://ag-grid.com/javascript-data-grid/integrated-charts/",
+                "isEnterprise": true
+            }
+        ]
+    },
+    "charts": {
+        "items": [
+            {
+                "title": "Line",
+                "icon": "chartsLine",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-line-series"
+                    }
+                ]
+            },
+            {
+                "title": "Area",
+                "icon": "chartsArea",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-area-series"
+                    }
+                ]
+            },
+            {
+                "title": "Column",
+                "icon": "chartsColumn",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-column-series"
+                    }
+                ]
+            },
+            {
+                "title": "Bar",
+                "icon": "chartsBar",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-bar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Scatter",
+                "icon": "chartsScatter",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-scatter-series"
+                    }
+                ]
+            },
+            {
+                "title": "Bubble",
+                "icon": "chartsBubble",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-bubble-series"
+                    }
+                ]
+            },
+            {
+                "title": "Pie",
+                "icon": "chartsPie",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-pie-series"
+                    }
+                ]
+            },
+            {
+                "title": "Donut",
+                "icon": "chartsDonut",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-donut-series"
+                    }
+                ]
+            },
+            {
+                "title": "Combination",
+                "icon": "chartsCombination",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "charts-combination-series"
+                    }
+                ]
+            },
+            {
+                "title": "Histogram",
+                "icon": "chartsHistogram",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-histogram-series"
+                    }
+                ]
+            },
+            {
+                "title": "Heatmap",
+                "icon": "chartsHeatmap",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-heatmap-series"
+                    }
+                ]
+            },
+            {
+                "title": "Range",
+                "icon": "chartsRange",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-range-bar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Box",
+                "icon": "chartsBoxPlot",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-box-series"
+                    }
+                ]
+            },
+            {
+                "title": "Error",
+                "icon": "chartsErrorBar",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-error-series"
+                    }
+                ]
+            },
+            {
+                "title": "Waterfall",
+                "icon": "chartsWaterfall",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-waterfall-series"
+                    }
+                ]
+            },
+            {
+                "title": "Radar",
+                "icon": "chartsRadar",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-radar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Nightingale",
+                "icon": "chartsNightingale",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-nightingale-series"
+                    }
+                ]
+            },
+            {
+                "title": "Radial Column",
+                "icon": "chartsRadialColumn",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-radial-column-series"
+                    }
+                ]
+            },
+            {
+                "title": "Radial Bar",
+                "icon": "chartsRadialBar",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-radial-bar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Treemap",
+                "icon": "chartsTreemap",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-treemap-series"
+                    }
+                ]
+            },
+            {
+                "title": "Sunburst",
+                "icon": "chartsSunburst",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-sunburst-series"
+                    }
+                ]
+            },
+            {
+                "title": "Icicle",
+                "icon": "chartsIcicle",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-icicle-series"
+                    }
+                ]
+            },
+            {
+                "title": "Funnel",
+                "icon": "chartsFunnel",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-funnel-series"
+                    }
+                ]
+            },
+            {
+                "title": "Pyramid",
+                "icon": "chartsPyramid",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "isEnterprise": true,
+                        "path": "charts-pyramid-series"
+                    }
+                ]
+            }
+        ]
+    }
+}
