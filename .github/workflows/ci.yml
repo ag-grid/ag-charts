@@ -157,11 +157,15 @@ jobs:
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              continue-on-error: true
             - name: Perist test results
+              if: always()
               uses: actions/upload-artifact@v3
               with:
                   name: test-results-${{matrix.shard}}
-                  path: reports/
+                  path: |
+                      reports/
+                      packages/**/__diff_output__/*
 
     report:
         runs-on: ubuntu-latest
