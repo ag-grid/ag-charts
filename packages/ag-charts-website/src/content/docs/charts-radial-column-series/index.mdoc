@@ -1,15 +1,93 @@
-import type {
-    AgBaseSeriesOptions,
-    AgChartLabelOptions,
-    AgSeriesListeners,
-    AgSeriesTooltip,
-    AgSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    CssColor,
-    Opacity,
-    PixelSize,
-} from 'ag-charts-community';
+---
+title: "Radial Column Series"
+enterprise: true
+---
 
+The **Radial Column** series, also known as the *Circular Column chart*, displays data using rectangular columns that are positioned along a polar axis. This chart type is similar to the [Nightingale Chart](./charts-nightingale-series).
+
+## Grouped Radial Column
+
+To create a basic Radial Column chart, use a data array where each item has one category value (for the angle axis) and one numeric value (for the radius axis).
+
+A minimal Radial Column series configuration will look like:
+
+```js
+series: [
+    {
+        type: 'radial-column',
+        angleKey: 'product',
+        radiusKey: 'sales',
+    },
+],
+```
+
+{% chartExampleRunner title="Grouped Radial Column Chart" name="group-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Stacked Radial Column
+
+In a stacked Radial Column chart, columns are placed on top of each other to create a total for each category. The following example illustrates a stacked Radial Column chart:
+
+```js
+series: [
+    {
+        type: 'radial-column',
+        angleKey: 'product',
+        radiusKey: 'A sales',
+        stacked: true,
+    },
+    {
+        type: 'radial-column',
+        angleKey: 'product',
+        radiusKey: 'B sales',
+        stacked: true,
+    },
+],
+```
+
+{% chartExampleRunner title="Stacked Radial Column Chart" name="stack-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Customisation
+
+The column spacing in the Radial Column chart can be adjusted by modifying the polar **angle** axis configuration. Use `paddingInner` to control gaps between column groups, and `groupPaddingInner` to manage gaps between individual columns within groups.
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+        groupPaddingInner: 0.25,
+        paddingInner: 0.25,
+    },
+    {
+        type: 'radius-number',
+    },
+],
+```
+
+{% chartExampleRunner title="Radial Column Sector Padding" name="radial-column-padding" type="generated" options="{ \"enterprise\": true }" /%}
+
+To change the radius of the hole in the middle, use the `innerRadiusRatio` option on the polar **radius** axis:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+    },
+    {
+        type: 'radius-number',
+        innerRadiusRatio: 0.75,
+    },
+],
+```
+
+{% chartExampleRunner title="Radial Column Hole in the Middle" name="radial-column-hole" type="generated" options="{ \"enterprise\": true }" /%}
+
+Please see the API reference for more polar axes style options.
+
+### API Reference
+
+{/*  TODO: replace with usual api reference component  */}
+
+```ts
 /** Base configuration for Radial Column series. */
 export interface AgBaseRadialColumnSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     type?: 'radial-column' | 'nightingale';
@@ -107,8 +185,4 @@ export interface AgRadialColumnSeriesFormat {
     stroke?: CssColor;
     strokeWidth?: PixelSize;
 }
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;
+```
