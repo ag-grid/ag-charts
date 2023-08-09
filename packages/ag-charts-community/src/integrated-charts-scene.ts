@@ -5,7 +5,7 @@ export { Scene } from './scene/scene';
 export { Node, PointerEvents, RedrawType, SceneChangeDetection } from './scene/node';
 export type { RenderContext } from './scene/node';
 export { Selection } from './scene/selection';
-export type { Point } from './scene/point';
+export type { Point, SizedPoint } from './scene/point';
 export { Arc } from './scene/shape/arc';
 export { Line } from './scene/shape/line';
 export { Path } from './scene/shape/path';
