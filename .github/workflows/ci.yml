@@ -165,7 +165,7 @@ jobs:
                   name: test-results-${{matrix.shard}}
                   path: |
                       reports/
-                      **/__diff_output__/*
+                      packages/**/__diff_output__/*
 
     report:
         runs-on: ubuntu-latest
