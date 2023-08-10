@@ -212,21 +212,21 @@ jobs:
               id: lastJobStatus
               if: always() && github.ref == 'refs/heads/latest'
               run: |
-                  THIS_JOB_STATUS="success"
+                  WORKFLOW_STATUS="success"
                   if [[ "${{ needs.execute_blt.result }}" == "failure" ]] ; then
-                    THIS_JOB_STATUS="failure"
+                    WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
-                    THIS_JOB_STATUS="failure"
+                    WORKFLOW_STATUS="failure"
                   elif [ "${{ steps.testReport.outcome }}" == "failure" ] ; then
-                    THIS_JOB_STATUS="failure"
+                    WORKFLOW_STATUS="failure"
                   fi
 
-                  LAST_JOB_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
-                  if [ "$LAST_JOB_STATUS" != "$THIS_JOB_STATUS" ]; then
-                    echo "status changed from $LAST_JOB_STATUS to $THIS_JOB_STATUS"
+                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
+                  if [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
+                    echo "status changed from $LAST_WORKFLOW_STATUS to $WORKFLOW_STATUS"
                     echo "changedState=true" >> $GITHUB_OUTPUT
                   else
-                    echo "status is still $THIS_JOB_STATUS"
+                    echo "status is still $WORKFLOW_STATUS"
                     echo "changedState=false" >> $GITHUB_OUTPUT
                   fi
               env:
