@@ -516,6 +516,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this._lastPerformUpdateError;
     }
 
+    private updateShortcutCount = 0;
     private seriesToUpdate: Set<Series> = new Set();
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this._destroyed) return;
@@ -568,6 +569,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 splits.push(performance.now());
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.PERFORM_LAYOUT:
+                if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
                 if (!this.checkFirstAutoSize(seriesToUpdate)) break;
 
                 await this.performLayout();
@@ -577,6 +579,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SERIES_UPDATE:
+                if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
+
                 const { seriesRect } = this;
                 const seriesUpdates = [...seriesToUpdate].map((series) => series.update({ seriesRect }));
                 await Promise.all(seriesUpdates);
@@ -584,6 +588,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 splits.push(performance.now());
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.TOOLTIP_RECALCULATION:
+                if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
+
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
                 if (performUpdateType < ChartUpdateType.SERIES_UPDATE && tooltipMeta?.event?.type === 'hover') {
                     this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
@@ -591,19 +597,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SCENE_RENDER:
-                if (
-                    this.performUpdateType > ChartUpdateType.NONE &&
-                    this.performUpdateType < ChartUpdateType.SCENE_RENDER
-                ) {
-                    // A previous step modified series state, and we need to re-run SERIES_UPDATE
-                    // before rendering.
-                    break;
-                }
+                if (this.checkUpdateShortcut(ChartUpdateType.SCENE_RENDER)) break;
+
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.NONE:
-            // Do nothing.
+                // Do nothing.
+                this.updateShortcutCount = 0;
         }
 
         const end = performance.now();
@@ -613,6 +614,27 @@ export abstract class Chart extends Observable implements AgChartInstance {
             count,
             performUpdateType: ChartUpdateType[performUpdateType],
         });
+    }
+
+    private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
+        const maxShortcuts = 3;
+
+        if (this.updateShortcutCount > maxShortcuts) {
+            Logger.warn(
+                `exceeded the maximum number of simultaneous updates (${
+                    maxShortcuts + 1
+                }), discarding changes and rendering`
+            );
+            return false;
+        }
+
+        if (this.performUpdateType <= checkUpdateType) {
+            // A previous step modified series state, and we need to re-run this or an earlier step before rendering.
+            this.updateShortcutCount++;
+            return true;
+        }
+
+        return false;
     }
 
     private checkFirstAutoSize(seriesToUpdate: Series[]) {
