@@ -197,7 +197,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     readonly line = new AxisLine();
     readonly tick: AxisTick<S> = this.createTick();
-    readonly label = new AxisLabel();
+    readonly label = this.createLabel();
 
     protected defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
 
@@ -452,6 +452,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected createTick(): AxisTick<S> {
         return new AxisTick();
+    }
+
+    protected createLabel(): AxisLabel {
+        return new AxisLabel();
     }
 
     private checkAxisHover(event: InteractionEvent<'hover'>) {

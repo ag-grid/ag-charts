@@ -1,6 +1,11 @@
-import type { AgBaseAxisOptions, AgAxisCategoryTickOptions, AgBaseCrossLineOptions } from 'ag-charts-community';
+import type {
+    AgBaseAxisOptions,
+    AgAxisCategoryTickOptions,
+    AgBaseCrossLineOptions,
+    AgBaseAxisLabelOptions,
+} from 'ag-charts-community';
 
-export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions {
+export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleCategoryAxisLabelOptions> {
     type: 'angle-category';
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
@@ -22,6 +27,19 @@ export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions {
      * Default: `0.2`
      */
     paddingInner?: number;
+}
+
+export type AgAngleCategoryAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
+
+export interface AgAngleCategoryAxisLabelOptions extends AgBaseAxisLabelOptions {
+    /**
+     * Labels orientation on the angle category axis.
+     * `fixed` - all labels remain in a fixed orientation of horizontal text.
+     * `parallel` - labels are in a circle around the axis.
+     * `perpendicular` - labels are in the radial direction perpendicular to the axis.
+     * Default: `fixed`
+     */
+    orientation: AgAngleCategoryAxisLabelOrientation;
 }
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}

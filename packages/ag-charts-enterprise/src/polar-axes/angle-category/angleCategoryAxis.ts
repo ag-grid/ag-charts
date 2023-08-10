@@ -1,10 +1,12 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { AngleCrossLine } from './angleCrossLine';
+import type { AgAngleCategoryAxisLabelOrientation } from './typings';
 
-const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate } = _ModuleSupport;
+const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate, predicateWithMessage } =
+    _ModuleSupport;
 const { BandScale } = _Scale;
 const { Path, Text } = _Scene;
-const { isNumberEqual, toRadians } = _Util;
+const { isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
 interface AngleCategoryAxisLabelDatum {
     text: string;
@@ -38,6 +40,18 @@ function loopSymmetrically<T>(items: T[], step: number, iterator: (prev: T, next
     return loop(items.length - step, midIndex, -step, iterator);
 }
 
+const ANGLE_LABEL_ORIENTATIONS: AgAngleCategoryAxisLabelOrientation[] = ['fixed', 'parallel', 'perpendicular'];
+
+const ANGLE_LABEL_ORIENTATION = predicateWithMessage(
+    (v: any) => ANGLE_LABEL_ORIENTATIONS.includes(v),
+    `expecting a label orientation keyword such as 'fixed', 'parallel' or 'perpendicular'`
+);
+
+class AngleCategoryAxisLabel extends _ModuleSupport.AxisLabel {
+    @Validate(ANGLE_LABEL_ORIENTATION)
+    orientation: AgAngleCategoryAxisLabelOrientation = 'fixed';
+}
+
 export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale<any>> {
     static className = 'AngleCategoryAxis';
     static type = 'angle-category' as const;
@@ -67,6 +81,10 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
 
     protected assignCrossLineArrayConstructor(crossLines: _ModuleSupport.CrossLine[]) {
         assignJsonApplyConstructedArray(crossLines, AngleCrossLine);
+    }
+
+    protected createLabel() {
+        return new AngleCategoryAxisLabel();
     }
 
     update() {
@@ -265,10 +283,7 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
             const y = distance * sin;
             const { textAlign, textBaseline } = this.getLabelAlign(angle);
 
-            let rotation = toRadians(label.rotation ?? 0);
-            if (label.autoRotate) {
-                rotation = angle + toRadians(label.autoRotateAngle ?? 0) + Math.PI / 2;
-            }
+            const rotation = this.getLabelRotation(angle);
 
             let text = String(value);
             if (label.formatter) {
@@ -375,44 +390,59 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
         return _Scene.BBox.merge(textBoxes);
     }
 
-    protected getLabelAlign(angle: number) {
+    protected getLabelOrientation(): AgAngleCategoryAxisLabelOrientation {
         const { label } = this;
-        const cos = Math.cos(angle);
-        const sin = Math.sin(angle);
+        return label instanceof AngleCategoryAxisLabel ? label.orientation : 'fixed';
+    }
+
+    protected getLabelRotation(tickAngle: number) {
+        let rotation = toRadians(this.label.rotation ?? 0);
+        tickAngle = normalizeAngle360(tickAngle);
+
+        const orientation = this.getLabelOrientation();
+        if (orientation === 'parallel') {
+            rotation += tickAngle;
+            if (tickAngle >= 0 && tickAngle < Math.PI) {
+                rotation -= Math.PI / 2;
+            } else {
+                rotation += Math.PI / 2;
+            }
+        } else if (orientation === 'perpendicular') {
+            rotation += tickAngle;
+            if (tickAngle >= Math.PI / 2 && tickAngle < (3 * Math.PI) / 2) {
+                rotation += Math.PI;
+            }
+        }
+
+        return rotation;
+    }
+
+    protected getLabelAlign(tickAngle: number) {
+        const cos = Math.cos(tickAngle);
+        const sin = Math.sin(tickAngle);
 
         let textAlign: CanvasTextAlign;
         let textBaseline: CanvasTextBaseline;
-        if (label.autoRotate) {
-            if (isNumberEqual(label.autoRotateAngle, 0)) {
-                textAlign = 'center';
-                textBaseline = 'bottom';
-            } else if (isNumberEqual(label.autoRotateAngle, 180)) {
-                textAlign = 'center';
-                textBaseline = 'top';
-            } else {
-                if (label.autoRotateAngle > 0 && label.autoRotateAngle < 180) {
-                    textAlign = 'right';
-                } else {
-                    textAlign = 'left';
-                }
-                if (isNumberEqual(Math.abs(label.autoRotateAngle), 90) || isNumberEqual(label.autoRotateAngle, 270)) {
-                    textBaseline = 'middle';
-                } else if (label.autoRotateAngle > 270 || (label.autoRotateAngle > -90 && label.autoRotateAngle < 90)) {
-                    textBaseline = 'bottom';
-                } else {
-                    textBaseline = 'top';
-                }
-            }
-        } else if (label.rotation) {
-            const rot = toRadians(label.rotation);
-            const rotCos = Math.cos(angle - rot);
-            const rotSin = Math.sin(angle - rot);
-            textAlign = isNumberEqual(rotCos, 0) ? 'center' : rotCos > 0 ? 'left' : 'right';
-            textBaseline = isNumberEqual(rotSin, 0) ? 'middle' : rotSin > 0 ? 'top' : 'bottom';
+
+        const orientation = this.getLabelOrientation();
+        const isCos0 = isNumberEqual(cos, 0);
+        const isSin0 = isNumberEqual(sin, 0);
+        const isCos1 = isNumberEqual(cos, 1);
+        const isSinMinus1 = isNumberEqual(sin, -1);
+        const isCosPositive = cos > 0 && !isCos0;
+        const isSinPositive = sin > 0 && !isSin0;
+
+        if (orientation === 'parallel') {
+            textAlign = 'center';
+            textBaseline = (isCos1 && isSin0) || isSinPositive ? 'top' : 'bottom';
+        } else if (orientation === 'perpendicular') {
+            textAlign = isSinMinus1 || isCosPositive ? 'left' : 'right';
+            textBaseline = 'middle';
         } else {
-            textAlign = isNumberEqual(cos, 0) ? 'center' : cos > 0 ? 'left' : 'right';
-            textBaseline = isNumberEqual(sin, 0) ? 'middle' : sin > 0 ? 'top' : 'bottom';
+            textAlign = isCos0 ? 'center' : isCosPositive ? 'left' : 'right';
+            textBaseline = isSin0 ? 'middle' : isSinPositive ? 'top' : 'bottom';
         }
+
         return { textAlign, textBaseline };
     }
 
