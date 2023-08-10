@@ -201,13 +201,6 @@ jobs:
                   path: reports/*.xml
                   reporter: jest-junit
 
-            - name: Tag Latest Successful Commit
-              if: success() && github.ref == 'refs/heads/latest'
-              uses: EndBug/latest-tag@latest
-              with:
-                  ref: latest-success
-                  description: Latest commit to pass GitHub Actions workflow on latest branch.
-
             - name: Check last job status
               id: lastJobStatus
               if: always() && github.ref == 'refs/heads/latest'
@@ -220,6 +213,7 @@ jobs:
                   elif [ "${{ steps.testReport.outcome }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   fi
+                  echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
                   LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
                   if [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
@@ -240,6 +234,13 @@ jobs:
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
+
+            - name: Tag Latest Successful Commit
+              if: success() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus == 'success'
+              uses: EndBug/latest-tag@latest
+              with:
+                  ref: latest-success
+                  description: Latest commit to pass GitHub Actions workflow on latest branch.
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
