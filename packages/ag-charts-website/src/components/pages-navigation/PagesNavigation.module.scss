@@ -195,21 +195,6 @@ a.sectionHeader {
     ul ul ul .groupLabel {
         margin-left: calc(var(--first-indent-size) + var(--indent-size) * 3);
     }
-
-    .enterpriseIcon {
-        --icon-size: 1.15em;
-        --text-color: red;
-
-        position: relative;
-        margin-left: 2px;
-        color: transparent;
-
-        svg {
-            position: absolute;
-            left: 0;
-            transform: translate(-0.05em, 0.075em);
-        }
-    }
 }
 
 .navGroup a {
@@ -277,6 +262,24 @@ a.sectionHeader {
 
     &.activeItemParent {
         color: var(--text-color);
+    }
+}
+
+.enterpriseIcon {
+    --text-color: red;
+    --button-text-color: red;
+
+    position: relative;
+    margin-left: 2px;
+    color: transparent;
+
+    svg {
+        --icon-size: 1.15em;
+
+        position: absolute;
+        left: 0;
+        margin: 0;
+        transform: translate(-0.05em, 0.075em);
     }
 }
 

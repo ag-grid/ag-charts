@@ -100,6 +100,7 @@ function Level1Nav({
 
                     {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
                     {title}
+                    {isEnterprise && <EnterpriseIcon />}
                 </button>
             ) : (
                 <a

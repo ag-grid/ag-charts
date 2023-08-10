@@ -175,6 +175,7 @@
             {
                 "title": "Combination",
                 "icon": "chartsCombination",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -185,6 +186,7 @@
             {
                 "title": "Histogram",
                 "icon": "chartsHistogram",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -196,6 +198,7 @@
             {
                 "title": "Heatmap",
                 "icon": "chartsHeatmap",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -207,6 +210,7 @@
             {
                 "title": "Range",
                 "icon": "chartsRange",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -218,6 +222,7 @@
             {
                 "title": "Box",
                 "icon": "chartsBoxPlot",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -229,6 +234,7 @@
             {
                 "title": "Error",
                 "icon": "chartsErrorBar",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -240,6 +246,7 @@
             {
                 "title": "Waterfall",
                 "icon": "chartsWaterfall",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -251,6 +258,7 @@
             {
                 "title": "Radar",
                 "icon": "chartsRadar",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -262,6 +270,7 @@
             {
                 "title": "Nightingale",
                 "icon": "chartsNightingale",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -273,6 +282,7 @@
             {
                 "title": "Radial Column",
                 "icon": "chartsRadialColumn",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -284,6 +294,7 @@
             {
                 "title": "Radial Bar",
                 "icon": "chartsRadialBar",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -295,6 +306,7 @@
             {
                 "title": "Treemap",
                 "icon": "chartsTreemap",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -306,6 +318,7 @@
             {
                 "title": "Sunburst",
                 "icon": "chartsSunburst",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -317,6 +330,7 @@
             {
                 "title": "Icicle",
                 "icon": "chartsIcicle",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -328,6 +342,7 @@
             {
                 "title": "Funnel",
                 "icon": "chartsFunnel",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
@@ -339,6 +354,7 @@
             {
                 "title": "Pyramid",
                 "icon": "chartsPyramid",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Overview",
