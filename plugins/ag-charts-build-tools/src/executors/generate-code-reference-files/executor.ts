@@ -7,8 +7,6 @@ import { generate } from './generate-code-reference-files';
 
 export default async function runExecutor(options: GenerateCodeReferenceFilesExecutorSchema, context: ExecutorContext) {
     try {
-        console.log({ options });
-
         const outputDir = options.output.split('/').slice(0, -1).join('/');
         fs.mkdirSync(outputDir, { recursive: true });
 
@@ -16,6 +14,7 @@ export default async function runExecutor(options: GenerateCodeReferenceFilesExe
 
         return { success: true };
     } catch (e) {
+        console.log({ options });
         console.error(e);
         return { success: false };
     }
