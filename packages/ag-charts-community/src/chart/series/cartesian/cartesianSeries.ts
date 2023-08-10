@@ -157,43 +157,36 @@ export abstract class CartesianSeries<
 
         this.animationState = new CartesianStateMachine('empty', {
             empty: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: (data) => this.animateEmptyUpdateReady(data),
-                    },
+                update: {
+                    target: 'ready',
+                    action: (data) => this.animateEmptyUpdateReady(data),
                 },
             },
             ready: {
-                on: {
-                    updateData: {
-                        target: 'waiting',
-                        action: () => {},
-                    },
-                    update: {
-                        target: 'ready',
-                        action: (data) => this.animateReadyUpdate(data),
-                    },
-                    highlight: {
-                        target: 'ready',
-                        action: (data) => this.animateReadyHighlight(data),
-                    },
-                    highlightMarkers: {
-                        target: 'ready',
-                        action: (data) => this.animateReadyHighlightMarkers(data),
-                    },
-                    resize: {
-                        target: 'ready',
-                        action: (data) => this.animateReadyResize(data),
-                    },
+                updateData: {
+                    target: 'waiting',
+                },
+                update: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyUpdate(data),
+                },
+                highlight: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyHighlight(data),
+                },
+                highlightMarkers: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyHighlightMarkers(data),
+                },
+                resize: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyResize(data),
                 },
             },
             waiting: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: (data) => this.animateWaitingUpdateReady(data),
-                    },
+                update: {
+                    target: 'ready',
+                    action: (data) => this.animateWaitingUpdateReady(data),
                 },
             },
         });

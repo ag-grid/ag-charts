@@ -361,31 +361,24 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         this.animationState = new PieStateMachine('empty', {
             empty: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateEmptyUpdateReady(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateEmptyUpdateReady(),
                 },
             },
             ready: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateReadyUpdateReady(),
-                    },
-                    updateData: {
-                        target: 'waiting',
-                        action: () => {},
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateReadyUpdateReady(),
+                },
+                updateData: {
+                    target: 'waiting',
                 },
             },
             waiting: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateWaitingUpdateReady(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateWaitingUpdateReady(),
                 },
             },
         });
