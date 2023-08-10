@@ -6,6 +6,7 @@
     --menu-width: min(30vw, 320px);
     --font-size: var(--font-size-medium);
 
+    padding-top: $size-4;
     padding-bottom: $size-7;
     border-bottom: 1px solid var(--border-color);
 
@@ -39,25 +40,11 @@
 }
 
 .navInner {
-    padding-top: $size-3;
-    padding-bottom: $size-4;
-    border-bottom: 1px dashed var(--border-color);
+    margin-bottom: 0 !important;
+}
 
-    &:last-child {
-        border-bottom: none;
-    }
-
-    li {
-        margin-bottom: $size-half !important;
-    }
-
-    li li {
-        margin-bottom: 0 !important;
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        display: block !important;
-    }
+.navGroup {
+    margin-bottom: $size-half;
 }
 
 .navGroup a {
@@ -121,6 +108,8 @@
     padding-bottom: $size-half;
     margin-top: 0;
     font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-normal);
+    color: var(--text-color) !important;
     border: 2px solid transparent;
     outline: none;
     transition: color $default-transition-timing, border-color $default-transition-timing;
@@ -128,6 +117,11 @@
 
     &:hover {
         --text-color: var(--link-color);
+
+        .menuIcon {
+            opacity: 1;
+            fill: var(--link-color);
+        }
     }
 
     &:focus-visible {
@@ -142,11 +136,12 @@
         transition: color $default-transition-timing;
     }
 
-    li:first-child & {
-        margin-top: $size-1;
+    + .navGroup {
+        padding-bottom: $size-1;
     }
 
-    + .navGroup {
+    .chartTypesNav & {
+        padding-top: $size-1;
         padding-bottom: $size-1;
     }
 
@@ -175,7 +170,7 @@ a.sectionHeader {
 }
 
 .navGroup {
-    --first-indent-size: 4px;
+    --first-indent-size: 6px;
     --indent-size: 12px;
 
     line-height: var(--line-height-tight);
@@ -183,7 +178,7 @@ a.sectionHeader {
 
     ul a,
     ul .groupLabel {
-        margin-left: calc(var(--first-indent-size) + var(--indent-size));
+        margin-left: var(--first-indent-size);
     }
 
     ul ul a,
@@ -220,6 +215,10 @@ a.sectionHeader {
         border-radius: 50%;
         background-color: var(--white);
         transition: background-color $default-transition-timing;
+    }
+
+    &.sectionHeader::before {
+        transform: translate(-0.85em, 0.6em);
     }
 
     &:focus-visible {
@@ -270,7 +269,7 @@ a.sectionHeader {
     --button-text-color: red;
 
     position: relative;
-    margin-left: 2px;
+    margin-left: $size-half;
     color: transparent;
 
     svg {
@@ -279,11 +278,16 @@ a.sectionHeader {
         position: absolute;
         left: 0;
         margin: 0;
-        transform: translate(-0.05em, 0.075em);
+        transform: translate(-0.05em, 0.175em);
     }
 }
 
 button .menuIcon {
-    --icon-size: 1.5em;
+    --icon-size: 1.75em;
+    --button-text-color: var(--secondary-text-color);
+
     bottom: 0.15em;
+    margin-right: $size-half;
+    opacity: 0.6666;
+    transition: fill $default-transition-timing, opacity $default-transition-timing;
 }

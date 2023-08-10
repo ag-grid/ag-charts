@@ -218,7 +218,7 @@ function ChartPagesNavigation({
     const chartsMenuItems = menuData.charts.items;
 
     return (
-        <ul className={classnames('list-style-none', styles.navInner)}>
+        <ul className={classnames('list-style-none', styles.navInner, styles.chartTypesNav)}>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
                 const isActive = menuItem === activeLevel1MenuItem;
