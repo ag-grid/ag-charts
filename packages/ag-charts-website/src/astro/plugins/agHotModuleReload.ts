@@ -1,11 +1,13 @@
 import chokidar from 'chokidar';
+import type { Plugin, ViteDevServer } from 'vite';
 import { getDevFileList } from '../../utils/pages';
 import { getAllExamplesFileList } from '../../features/docs/utils/filesData';
 import { getIsDev } from '../../utils/env';
 
-export default function createAgHotModuleReload() {
+export default function createAgHotModuleReload(): Plugin {
     return {
-        async configureServer(server) {
+        name: 'ag-hmr',
+        async configureServer(server: ViteDevServer) {
             if (!getIsDev()) return;
 
             const devFiles = getDevFileList();

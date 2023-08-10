@@ -2,9 +2,14 @@
   "name": "ag-charts-enterprise",
   "version": "9.0.0",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
-  "main": "./dist/esm/es6/main.mjs",
-  "module": "./dist/esm/es6/main.mjs",
-  "types": "./dist/esm/es6/main.d.ts",
+  "main": "./dist/main.cjs",
+  "types": "./dist/src/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/main.d.ts",
+      "require": "./dist/main.cjs"
+    }
+  },
   "private": true,
   "scripts": {
     "lint:circular": "npx madge --circular --extensions ts src/",

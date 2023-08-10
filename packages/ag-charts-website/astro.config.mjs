@@ -21,6 +21,12 @@ export default defineConfig({
     outDir: OUTPUT_DIR,
     vite: {
         plugins: [svgr(), agHotModuleReload()],
+        resolve: {
+            conditions: ['require'],
+        },
+        optimizeDeps: {
+            exclude: ['ag-charts-community', 'ag-charts-enterprise'],
+        },
         server: {
             fs: {
                 allow: [

@@ -52,6 +52,10 @@
         },
         {
           "target": "build",
+          "projects": "ag-charts-angular"
+        },
+        {
+          "target": "build",
           "projects": "ag-charts-react"
         },
         {
