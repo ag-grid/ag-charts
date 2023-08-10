@@ -147,9 +147,6 @@ export function trailingValue(): DatumPropertyDefinition<any>['processor'] {
         let value = 0;
 
         return (datum: any) => {
-            if (typeof datum !== 'number') return datum;
-            if (isNaN(datum)) return datum;
-
             const trailingValue = value;
             value = datum;
             return trailingValue;
