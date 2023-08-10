@@ -43,6 +43,6 @@
 
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["vitest/globals", "@astrojs/image/client"]
+    "types": ["vitest/globals"]
   }
 }
