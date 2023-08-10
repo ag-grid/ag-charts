@@ -2,10 +2,15 @@ import { SITE_BASE_URL } from '@constants';
 import type { InternalFramework } from '@ag-grid-types';
 import { pathJoin } from '@utils/pathJoin';
 import { DOCS_FRAMEWORK_PATH_INDEX } from '../constants';
+import type { Framework } from '@ag-grid-types';
 
 export function getFrameworkFromPath(path: string) {
     return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX];
 }
+
+export const getExamplePageUrl = ({ framework, path }: { framework: Framework; path: string }) => {
+    return pathJoin(SITE_BASE_URL, framework, path);
+};
 
 /**
  * Dynamic path where examples are

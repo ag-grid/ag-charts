@@ -1,3 +1,6 @@
+import type { CollectionEntry } from 'astro:content';
+import type { IconName } from '@components/icon/Icon';
+
 import type Gallery from '../content/gallery/data.json';
 
 export type Framework = 'javascript' | 'react' | 'angular' | 'vue';
@@ -29,4 +32,20 @@ export interface GalleryExampleChartType {
     icon: string;
     enterprise: boolean;
     examples: GalleryExample[];
+}
+
+/**
+ * Menu types
+ *
+ * Replicates Astro content validation in `src/content/config.ts`
+ */
+export type MenuData = CollectionEntry<'menu'>['data'];
+export interface MenuItem {
+    title: string;
+    path?: string;
+    url?: string;
+    icon?: IconName;
+    frameworks?: Framework[];
+    isEnterprise?: boolean;
+    items?: MenuItem[];
 }

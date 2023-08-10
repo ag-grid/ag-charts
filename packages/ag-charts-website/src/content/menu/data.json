@@ -1,0 +1,367 @@
+{
+    "main": {
+        "items": [
+            {
+                "title": "Getting Started",
+                "path": "getting-started"
+            },
+            {
+                "title": "Building & Tooling",
+                "items": [
+                    { "title": "Install with NPM", "path": "npm", "frameworks": ["javascript"] },
+                    { "title": "Download Bundles", "path": "download", "frameworks": ["javascript"] },
+                    { "title": "Community and Enterprise", "path": "licensing" },
+                    { "title": "Packages vs Modules", "path": "packages-modules" },
+                    { "title": "Packages", "path": "packages", "frameworks": ["javascript"] },
+                    { "title": "Modules", "path": "modules", "frameworks": ["javascript"] },
+                    { "title": "Supported browsers", "path": "supported-browsers" },
+                    { "title": "Building", "path": "building", "frameworks": ["javascript"] }
+                ]
+            },
+            {
+                "title": "API",
+                "items": [
+                    { "title": "Create/Update", "path": "charts-api-create-update" },
+                    { "title": "Download", "path": "charts-api-download" },
+                    { "title": "Events", "path": "charts-events" }
+                ]
+            },
+            {
+                "title": "Layout & Styling",
+                "items": [
+                    { "title": "Layout", "path": "charts-layout" },
+                    { "title": "Themes", "path": "charts-themes" },
+                    { "title": "Overlays", "path": "charts-overlays" },
+                    { "title": "Background", "path": "charts-background" },
+                    {
+                        "title": "Background Image",
+                        "path": "charts-background-image",
+                        "isEnterprise": true
+                    }
+                ]
+            },
+            {
+                "title": "Axes",
+                "items": [
+                    { "title": "Axis Types", "path": "charts-axes-types" },
+                    { "title": "Axis Ticks", "path": "charts-axes-ticks" },
+                    { "title": "Axis Domain", "path": "charts-axes-domain" },
+                    { "title": "Axis Labels", "path": "charts-axes-labels" },
+                    { "title": "Grid Lines", "path": "charts-axes-grid-lines" },
+                    { "title": "Secondly Axes", "path": "charts-axes-secondary" }
+                ]
+            },
+            {
+                "title": "Features",
+                "items": [
+                    { "title": "Legend", "path": "charts-legend" },
+                    { "title": "Series Markers", "path": "charts-markers" },
+                    { "title": "Series Highlighting", "path": "charts-series-highlighting" },
+                    { "title": "Tooltips", "path": "charts-tooltips" },
+                    { "title": "Formatters", "path": "charts-formatters" },
+                    { "title": "Cross lines", "path": "charts-axes-cross-lines" },
+                    { "title": "Navigator", "path": "charts-navigator" },
+                    {
+                        "title": "Crosshairs",
+                        "path": "charts-axes-crosshairs",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Context Menu",
+                        "path": "charts-context-menu",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Zoom",
+                        "path": "charts-zoom",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Animation",
+                        "path": "charts-animation",
+                        "isEnterprise": true
+                    }
+                ]
+            },
+            {
+                "title": "AG Grid Integrated Charts",
+                "url": "https://ag-grid.com/javascript-data-grid/integrated-charts/",
+                "isEnterprise": true
+            }
+        ]
+    },
+    "charts": {
+        "items": [
+            {
+                "title": "Bar",
+                "icon": "chartsBar",
+                "items": [
+                    {
+                        "title": "Bar Chart Overview",
+                        "path": "charts-bar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Column",
+                "icon": "chartsColumn",
+                "items": [
+                    {
+                        "title": "Column Chart Overview",
+                        "path": "charts-column-series"
+                    }
+                ]
+            },
+            {
+                "title": "Line",
+                "icon": "chartsLine",
+                "items": [
+                    {
+                        "title": "Line Chart Overview",
+                        "path": "charts-line-series"
+                    }
+                ]
+            },
+            {
+                "title": "Area",
+                "icon": "chartsArea",
+                "items": [
+                    {
+                        "title": "Area Chart Overview",
+                        "path": "charts-area-series"
+                    }
+                ]
+            },
+            {
+                "title": "Scatter",
+                "icon": "chartsScatter",
+                "items": [
+                    {
+                        "title": "Scatter Chart Overview",
+                        "path": "charts-scatter-series"
+                    }
+                ]
+            },
+            {
+                "title": "Bubble",
+                "icon": "chartsBubble",
+                "items": [
+                    {
+                        "title": "Bubble Chart Overview",
+                        "path": "charts-bubble-series"
+                    }
+                ]
+            },
+            {
+                "title": "Pie",
+                "icon": "chartsPie",
+                "items": [
+                    {
+                        "title": "Pie Chart Overview",
+                        "path": "charts-pie-series"
+                    }
+                ]
+            },
+            {
+                "title": "Donut",
+                "icon": "chartsDonut",
+                "items": [
+                    {
+                        "title": "Donut Chart Overview",
+                        "path": "charts-donut-series"
+                    }
+                ]
+            },
+            {
+                "title": "Combination",
+                "icon": "chartsCombination",
+                "items": [
+                    {
+                        "title": "Combination Chart Overview",
+                        "path": "charts-combination-series"
+                    }
+                ]
+            },
+            {
+                "title": "Histogram",
+                "icon": "chartsHistogram",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Histogram Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-histogram-series"
+                    }
+                ]
+            },
+            {
+                "title": "Heatmap",
+                "icon": "chartsHeatmap",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Heatmap Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-heatmap-series"
+                    }
+                ]
+            },
+            {
+                "title": "Range",
+                "icon": "chartsRange",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Range Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-range-bar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Box Plot",
+                "icon": "chartsBoxPlot",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Box Plot Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-box-series"
+                    }
+                ]
+            },
+            {
+                "title": "Error Bar",
+                "icon": "chartsErrorBar",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Error Bar Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-error-series"
+                    }
+                ]
+            },
+            {
+                "title": "Waterfall",
+                "icon": "chartsWaterfall",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Waterfall Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-waterfall-series"
+                    }
+                ]
+            },
+            {
+                "title": "Radar",
+                "icon": "chartsRadar",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Radar Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-radar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Nightingale",
+                "icon": "chartsNightingale",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Nightingale Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-nightingale-series"
+                    }
+                ]
+            },
+            {
+                "title": "Radial Column",
+                "icon": "chartsRadialColumn",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Radial Column Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-radial-column-series"
+                    }
+                ]
+            },
+            {
+                "title": "Radial Bar",
+                "icon": "chartsRadialBar",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Radial Bar Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-radial-bar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Treemap",
+                "icon": "chartsTreemap",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Treemap Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-treemap-series"
+                    }
+                ]
+            },
+            {
+                "title": "Sunburst",
+                "icon": "chartsSunburst",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Sunburst Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-sunburst-series"
+                    }
+                ]
+            },
+            {
+                "title": "Icicle",
+                "icon": "chartsIcicle",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Icicle Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-icicle-series"
+                    }
+                ]
+            },
+            {
+                "title": "Funnel",
+                "icon": "chartsFunnel",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Funnel Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-funnel-series"
+                    }
+                ]
+            },
+            {
+                "title": "Pyramid",
+                "icon": "chartsPyramid",
+                "isEnterprise": true,
+                "items": [
+                    {
+                        "title": "Pyramid Chart Overview",
+                        "isEnterprise": true,
+                        "path": "charts-pyramid-series"
+                    }
+                ]
+            }
+        ]
+    }
+}
