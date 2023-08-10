@@ -2,5 +2,6 @@
   "git.pullTags": false,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSaveMode": "file"
+  "editor.formatOnSaveMode": "file",
+  "eslint.validate": ["json"]
 }

@@ -30,6 +30,26 @@
         }
       }
     },
+    "interface-metadata": {
+      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "inputs": ["{projectRoot}/src"],
+      "outputPath": "{options.output}",
+      "options": {
+        "mode": "interfaces",
+        "inputs": ["packages/ag-charts-community/src"],
+        "output": "dist/packages/ag-charts-community/interfaces.AUTO.json"
+      }
+    },
+    "interface-docs": {
+      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "inputs": ["{projectRoot}/src"],
+      "outputPath": "{options.output}",
+      "options": {
+        "mode": "docs",
+        "inputs": ["packages/ag-charts-community/src"],
+        "output": "dist/packages/ag-charts-community/doc-interfaces.AUTO.json"
+      }
+    },
     "lint": {
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
