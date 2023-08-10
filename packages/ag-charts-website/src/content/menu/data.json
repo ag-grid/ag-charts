@@ -93,11 +93,31 @@
     "charts": {
         "items": [
             {
+                "title": "Bar",
+                "icon": "chartsBar",
+                "items": [
+                    {
+                        "title": "Bar Chart Overview",
+                        "path": "charts-bar-series"
+                    }
+                ]
+            },
+            {
+                "title": "Column",
+                "icon": "chartsColumn",
+                "items": [
+                    {
+                        "title": "Column Chart Overview",
+                        "path": "charts-column-series"
+                    }
+                ]
+            },
+            {
                 "title": "Line",
                 "icon": "chartsLine",
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Line Chart Overview",
                         "path": "charts-line-series"
                     }
                 ]
@@ -107,28 +127,8 @@
                 "icon": "chartsArea",
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Area Chart Overview",
                         "path": "charts-area-series"
-                    }
-                ]
-            },
-            {
-                "title": "Column",
-                "icon": "chartsColumn",
-                "items": [
-                    {
-                        "title": "Overview",
-                        "path": "charts-column-series"
-                    }
-                ]
-            },
-            {
-                "title": "Bar",
-                "icon": "chartsBar",
-                "items": [
-                    {
-                        "title": "Overview",
-                        "path": "charts-bar-series"
                     }
                 ]
             },
@@ -137,7 +137,7 @@
                 "icon": "chartsScatter",
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Scatter Chart Overview",
                         "path": "charts-scatter-series"
                     }
                 ]
@@ -147,7 +147,7 @@
                 "icon": "chartsBubble",
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Bubble Chart Overview",
                         "path": "charts-bubble-series"
                     }
                 ]
@@ -157,7 +157,7 @@
                 "icon": "chartsPie",
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Pie Chart Overview",
                         "path": "charts-pie-series"
                     }
                 ]
@@ -167,7 +167,7 @@
                 "icon": "chartsDonut",
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Donut Chart Overview",
                         "path": "charts-donut-series"
                     }
                 ]
@@ -175,10 +175,9 @@
             {
                 "title": "Combination",
                 "icon": "chartsCombination",
-                "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Combination Chart Overview",
                         "path": "charts-combination-series"
                     }
                 ]
@@ -189,7 +188,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Histogram Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-histogram-series"
                     }
@@ -201,7 +200,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Heatmap Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-heatmap-series"
                     }
@@ -213,31 +212,31 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Range Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-range-bar-series"
                     }
                 ]
             },
             {
-                "title": "Box",
+                "title": "Box Plot",
                 "icon": "chartsBoxPlot",
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Box Plot Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-box-series"
                     }
                 ]
             },
             {
-                "title": "Error",
+                "title": "Error Bar",
                 "icon": "chartsErrorBar",
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Error Bar Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-error-series"
                     }
@@ -249,7 +248,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Waterfall Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-waterfall-series"
                     }
@@ -261,7 +260,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Radar Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-radar-series"
                     }
@@ -273,7 +272,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Nightingale Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-nightingale-series"
                     }
@@ -285,7 +284,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Radial Column Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-radial-column-series"
                     }
@@ -297,7 +296,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Radial Bar Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-radial-bar-series"
                     }
@@ -309,7 +308,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Treemap Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-treemap-series"
                     }
@@ -321,7 +320,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Sunburst Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-sunburst-series"
                     }
@@ -333,7 +332,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Icicle Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-icicle-series"
                     }
@@ -345,7 +344,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Funnel Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-funnel-series"
                     }
@@ -357,7 +356,7 @@
                 "isEnterprise": true,
                 "items": [
                     {
-                        "title": "Overview",
+                        "title": "Pyramid Chart Overview",
                         "isEnterprise": true,
                         "path": "charts-pyramid-series"
                     }
