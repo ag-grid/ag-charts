@@ -756,8 +756,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
-        const datumIdKey = this.processedData?.defs.keys?.[0];
-
         // Zip an array into an object of keys with a given value
         const zipObject = (props: Array<any>, value = true) => {
             const zipped: { [key: string]: boolean } = {};
