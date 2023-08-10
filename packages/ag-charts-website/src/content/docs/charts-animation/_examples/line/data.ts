@@ -65,6 +65,6 @@ export function getRandomisedData() {
 
 export function getRemovedData() {
     return getData().filter(
-        (d) => (d.date > new Date(2019, 1, 1) && d.date < new Date(2019, 7, 1)) || d.date > new Date(2019, 9, 1)
+        (d) => (d.date > new Date(2019, 2, 1) && d.date < new Date(2019, 5, 1)) || d.date > new Date(2019, 7, 1)
     );
 }
