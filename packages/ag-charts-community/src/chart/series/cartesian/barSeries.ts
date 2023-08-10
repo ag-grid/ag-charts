@@ -785,8 +785,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 const duration = sectionDuration;
                 let cleanup = false;
 
-                const datumId = datumIdKey ? datum.xValue : '';
-
                 let contextX = startingX;
                 let contextWidth = 0;
                 let contextY = datum.y;
@@ -799,8 +797,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     contextHeight = 0;
                 }
 
-                const isAdded = datumId !== undefined && addedIds[datumId] !== undefined;
-                const isRemoved = datumId !== undefined && removedIds[datumId] !== undefined;
+                const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
+                const isRemoved = datum.xValue !== undefined && removedIds[datum.xValue] !== undefined;
 
                 if (isAdded) {
                     props = [
