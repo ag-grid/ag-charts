@@ -1,9 +1,10 @@
+/* eslint-disable no-console */
 import * as fs from 'fs';
 
 import type { ExecutorContext } from '@nx/devkit';
 
 import type { GenerateCodeReferenceFilesExecutorSchema } from './schema';
-import { generate } from './generate-code-reference-files';
+import { generate } from './generate-code-reference-files.mjs';
 
 export default async function runExecutor(options: GenerateCodeReferenceFilesExecutorSchema, context: ExecutorContext) {
     try {

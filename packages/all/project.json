@@ -43,7 +43,8 @@
     "ag-charts-angular",
     "ag-charts-react",
     "ag-charts-vue",
-    "ag-charts-vue3"
+    "ag-charts-vue3",
+    "ag-charts-build-tools"
   ],
   "tags": []
 }
