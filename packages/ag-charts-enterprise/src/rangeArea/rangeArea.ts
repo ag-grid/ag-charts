@@ -39,13 +39,20 @@ enum RangeAreaTag {
     Label,
 }
 
-interface RangeAreaFillDatum {
-    readonly itemId: string;
-    readonly points: { x: number; y: number }[];
+interface PathPoint {
+    x: number;
+    y: number;
+    yValue: any;
+    itemId: string;
 }
 
-interface RangeAreaStrokeDatum extends RangeAreaFillDatum {
-    readonly yValues: (number | undefined)[];
+interface SizedPathPoint extends PathPoint {
+    size: number;
+}
+
+interface RangeAreaPathDatum {
+    readonly itemId: string;
+    readonly points: PathPoint[];
 }
 
 type RangeAreaLabelDatum = {
@@ -68,8 +75,8 @@ interface RangeAreaMarkerDatum extends Required<Omit<_ModuleSupport.CartesianSer
 }
 
 type RangeAreaContext = _ModuleSupport.SeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> & {
-    fillData: RangeAreaFillDatum;
-    strokeData: RangeAreaStrokeDatum;
+    fillData: RangeAreaPathDatum;
+    strokeData: RangeAreaPathDatum;
 };
 
 class RangeAreaSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<RangeAreaMarkerDatum> {
@@ -203,10 +210,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
-                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue` }),
-                trailingValueProperty(this, yLowKey, isContinuousY, { id: `yLowTrailingValue` }),
-                trailingValueProperty(this, yHighKey, isContinuousY, { id: `yHighTrailingValue` }),
+                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: null }),
+                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: null }),
+                trailingValueProperty(this, yLowKey, isContinuousY, { id: `yLowTrailingValue`, invalidValue: null }),
+                trailingValueProperty(this, yHighKey, isContinuousY, { id: `yHighTrailingValue`, invalidValue: null }),
             ],
             dataVisible: this.visible,
         });
@@ -289,47 +296,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         const yHighTrailingIndex = dataModel.resolveProcessedDataIndexById(this, `yHighTrailingValue`).index;
         const yLowTrailingIndex = dataModel.resolveProcessedDataIndexById(this, `yLowTrailingValue`).index;
 
-        const createPathCoordinates = (
-            xDatum: any,
-            yHigh: number,
-            yLow: number
-        ): [_Scene.SizedPoint, _Scene.SizedPoint] => {
-            const x = xScale.convert(xDatum) + xOffset;
+        const createCoordinates = (xValue: any, yHigh: number, yLow: number): [SizedPathPoint, SizedPathPoint] => {
+            const x = xScale.convert(xValue) + xOffset;
             const yHighCoordinate = yScale.convert(yHigh, { strict: false });
             const yLowCoordinate = yScale.convert(yLow, { strict: false });
 
             return [
-                { x, y: yHighCoordinate, size: this.marker.size },
-                { x, y: yLowCoordinate, size: this.marker.size },
-            ];
-        };
-
-        const createNodeCoordinates = (
-            xValue: any,
-            yHigh: number,
-            yLow: number
-        ): [
-            _Scene.SizedPoint & { itemId: string; value: number },
-            _Scene.SizedPoint & { itemId: string; value: number }
-        ] => {
-            // check if unprocessed datum is valid as we only want to show markers for valid points
-            const validYHigh = !isNaN(yHigh);
-            const validYLow = !isNaN(yLow);
-
-            const x = xScale.convert(xValue) + xOffset;
-            const yHighCoordinate = yScale.convert(validYHigh ? yHigh : undefined, { strict: false });
-            const yLowCoordinate = yScale.convert(validYLow ? yLow : undefined, { strict: false });
-
-            return [
-                { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, value: yHigh },
-                { x, y: yLowCoordinate, size: this.marker.size, itemId: `low`, value: yLow },
+                { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, yValue: yHigh },
+                { x, y: yLowCoordinate, size: this.marker.size, itemId: `low`, yValue: yLow },
             ];
         };
 
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
-        const strokeData: RangeAreaStrokeDatum = { itemId, points: [], yValues: [] };
-        const fillData: RangeAreaFillDatum = { itemId, points: [] };
+        const strokeData: RangeAreaPathDatum = { itemId, points: [] };
+        const fillData: RangeAreaPathDatum = { itemId, points: [] };
         const context: RangeAreaContext = {
             itemId,
             labelData,
@@ -339,11 +320,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         };
 
         const fillHighPoints = fillData.points;
-        const fillLowPoints: _Scene.SizedPoint[] = [];
+        const fillLowPoints: PathPoint[] = [];
 
         const strokeHighPoints = strokeData.points;
-        const strokeLowPoints: _Scene.SizedPoint[] = [];
-        const yValues = strokeData.yValues;
+        const strokeLowPoints: PathPoint[] = [];
+
+        const moveTo: PathPoint = { x: NaN, y: NaN, yValue: undefined, itemId: 'moveTo' };
 
         let lastXValue: any;
         processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
@@ -353,8 +335,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             const yHighTrailingValue = values[yHighTrailingIndex];
             const yLowTrailingValue = values[yLowTrailingIndex];
 
-            const points = createNodeCoordinates(xValue, yHighValue, yLowValue);
-            points.forEach(({ x, y, size, itemId, value }) => {
+            const points = createCoordinates(xValue, yHighValue, yLowValue);
+            points.forEach(({ x, y, size, itemId, yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,
@@ -374,9 +356,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                 // label data
                 let labelText;
                 if (label.formatter) {
-                    labelText = callbackCache.call(label.formatter, { value, seriesId: this.id, itemId }) ?? '';
+                    labelText = callbackCache.call(label.formatter, { value: yValue, seriesId: this.id, itemId }) ?? '';
                 } else {
-                    labelText = isNumber(value) ? Number(value).toFixed(2) : String(value);
+                    labelText = isNumber(yValue) ? Number(yValue).toFixed(2) : String(yValue);
                 }
                 labelData.push({
                     series: this,
@@ -389,52 +371,39 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                 });
             });
 
-            // fill data
             // Handle data in pairs of current and next x and y values
             const windowX = [lastXValue, xValue];
             const windowYHigh = [yHighTrailingValue, yHighValue];
             const windowYLow = [yLowTrailingValue, yLowValue];
 
-            if (windowX.some((v) => v == undefined)) {
+            if (windowX.some((v) => v == null)) {
                 lastXValue = xValue;
                 return;
             }
-            if (windowYHigh.some((v) => v == undefined)) {
-                windowYHigh[0] = 0;
-                windowYHigh[1] = 0;
-            }
-            if (windowYLow.some((v) => v == undefined)) {
-                windowYLow[0] = 0;
-                windowYLow[1] = 0;
+            if (windowYHigh.some((v) => v == null) || windowYLow.some((v) => v == null)) {
+                windowYHigh[0] = null;
+                windowYHigh[1] = null;
+                windowYLow[0] = null;
+                windowYLow[1] = null;
             }
 
-            const trailingCoordinates = createPathCoordinates(lastXValue, +windowYHigh[0], +windowYLow[0]!);
-            fillHighPoints.push(trailingCoordinates[0]);
-            fillLowPoints.push(trailingCoordinates[1]);
+            const trailingCoordinates = createCoordinates(lastXValue, +windowYHigh[0], +windowYLow[0]!);
+            const currentCoordinates = createCoordinates(xValue, +windowYHigh[1], +windowYLow[1]!);
 
-            const currentCoordinates = createPathCoordinates(xValue, +windowYHigh[1], +windowYLow[1]!);
-            fillHighPoints.push(currentCoordinates[0]);
-            fillLowPoints.push(currentCoordinates[1]);
+            const highPoints = [trailingCoordinates[0], currentCoordinates[0]];
+            const lowPoints = [trailingCoordinates[1], currentCoordinates[1]];
+
+            // fill data
+            fillHighPoints.push(...highPoints);
+            fillLowPoints.push(...lowPoints);
 
             // stroke data
-            if (yHighTrailingValue != null) {
-                strokeHighPoints.push(trailingCoordinates[0]);
-                yValues.push(yHighTrailingValue);
-            }
-
-            if (yHighValue != undefined) {
-                strokeHighPoints.push(currentCoordinates[0]);
-                yValues.push(yHighValue);
-            }
-
-            if (yLowTrailingValue != null) {
-                strokeLowPoints.push(trailingCoordinates[1]);
-                yValues.push(yLowTrailingValue);
-            }
-
-            if (yLowValue != undefined) {
-                strokeLowPoints.push(currentCoordinates[1]);
-                yValues.push(yLowValue);
+            if (yHighTrailingValue == null || yHighValue == null || yLowTrailingValue == null || yLowValue == null) {
+                strokeHighPoints.push(moveTo);
+                strokeLowPoints.push(moveTo);
+            } else {
+                strokeHighPoints.push(...highPoints);
+                strokeLowPoints.push(...lowPoints);
             }
 
             lastXValue = xValue;
@@ -444,11 +413,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             fillHighPoints.push(fillLowPoints[i]);
         }
 
-        strokeHighPoints.push({ x: NaN, y: NaN }); // moveTo
-        yValues.splice(strokeHighPoints.length - 1, 0, undefined);
+        strokeHighPoints.push(moveTo);
         for (let i = strokeLowPoints.length - 1; i >= 0; i--) {
             strokeHighPoints.push(strokeLowPoints[i]);
         }
+
         return [context];
     }
 
@@ -749,7 +718,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
 
             // Stroke
             {
-                const { points, yValues } = strokeData;
+                const { points } = strokeData;
 
                 stroke.tag = RangeAreaTag.Stroke;
                 stroke.fill = undefined;
@@ -770,7 +739,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                         let moveTo = true;
                         points.forEach((point, index) => {
                             // Draw/move the full segment if past the end of this segment
-                            if (yValues[index] === undefined || isNaN(point.x) || isNaN(point.y)) {
+                            if (point.yValue === undefined || isNaN(point.x) || isNaN(point.y)) {
                                 moveTo = true;
                             } else if (point.x <= xValue) {
                                 if (moveTo) {
@@ -781,8 +750,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                                 }
                             } else if (
                                 index > 0 &&
-                                yValues[index] !== undefined &&
-                                yValues[index - 1] !== undefined &&
+                                point.yValue !== undefined &&
+                                points[index - 1].yValue !== undefined &&
                                 points[index - 1].x <= xValue
                             ) {
                                 // Draw/move partial line if in between the start and end of this segment
@@ -937,14 +906,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             stroke.path.clear({ trackChanges: true });
 
             let moveTo = true;
-            strokeData.points.forEach((point, index) => {
-                if (strokeData.yValues[index] === undefined || isNaN(point.x) || isNaN(point.y)) {
+            strokeData.points.forEach(({ x, y, yValue }) => {
+                if (yValue === undefined || isNaN(x) || isNaN(y)) {
                     moveTo = true;
                 } else if (moveTo) {
-                    stroke.path.moveTo(point.x, point.y);
+                    stroke.path.moveTo(x, y);
                     moveTo = false;
                 } else {
-                    stroke.path.lineTo(point.x, point.y);
+                    stroke.path.lineTo(x, y);
                 }
             });
 
