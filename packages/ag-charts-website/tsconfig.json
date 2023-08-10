@@ -14,7 +14,9 @@
       "@stores/*": ["src/stores/*"],
       "@ag-grid-types": ["src/types/ag-grid.d.ts"],
       "@utils/*": ["src/utils/*"],
-      "@constants": ["src/constants.ts"]
+      "@constants": ["src/constants.ts"],
+      "ag-charts-community": ["../ag-charts-community/src/main.ts"],
+      "ag-charts-enterprise": ["../ag-charts-enterprise/src/main.ts"]
     },
 
     // Enable top-level await, and other modern ESM features
@@ -41,6 +43,6 @@
 
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "@astrojs/image/client"]
   }
 }
