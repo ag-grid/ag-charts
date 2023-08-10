@@ -24,6 +24,8 @@ export * from './chart/series/series';
 export * from './chart/series/seriesMarker';
 export * from './chart/series/cartesian/cartesianSeries';
 export * from './chart/series/cartesian/barUtil';
+export * from './chart/series/cartesian/markerUtil';
+export * from './chart/series/cartesian/labelUtil';
 export * from './chart/series/polar/polarSeries';
 export * from './axis';
 export * from './chart/axis/axisTick';

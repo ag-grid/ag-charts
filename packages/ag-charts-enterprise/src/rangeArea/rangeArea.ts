@@ -24,6 +24,9 @@ const {
     OPT_FUNCTION,
     OPT_COLOR_STRING,
     OPT_LINE_DASH,
+    getMarkerConfig,
+    updateMarker,
+    updateLabel,
 } = _ModuleSupport;
 const { getMarker, toTooltipHtml, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
@@ -55,8 +58,7 @@ interface RangeAreaPathDatum {
     readonly points: PathPoint[];
 }
 
-type RangeAreaLabelDatum = {
-    point: _Scene.SizedPoint;
+type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
@@ -364,7 +366,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                     series: this,
                     itemId,
                     datum,
-                    point: { x, y, size },
+                    x,
+                    y: y + (itemId === 'low' ? +10 : -10),
                     text: labelText,
                     textAlign: 'center',
                     textBaseline: itemId === 'low' ? 'top' : 'bottom',
@@ -454,90 +457,49 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: isDatumHighlighted } = opts;
+        const { markerSelection, isHighlight: highlighted } = opts;
         const {
             id: seriesId,
             xKey = '',
             yLowKey = '',
             yHighKey = '',
             marker,
-            fill: seriesFill,
-            stroke: seriesStroke,
-            fillOpacity: seriesFillOpacity,
-            marker: { fillOpacity: markerFillOpacity = seriesFillOpacity },
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
             strokeOpacity,
-            highlightStyle: {
-                item: {
-                    fill: highlightedFill,
-                    fillOpacity: highlightFillOpacity = markerFillOpacity,
-                    stroke: highlightedStroke,
-                    strokeWidth: highlightedDatumStrokeWidth,
-                },
-            },
+            highlightStyle: { item: markerHighlightStyle },
             visible,
-            ctx: { callbackCache },
+            ctx,
         } = this;
-
-        const { size, formatter } = marker;
-        const markerStrokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
         const customMarker = typeof marker.shape === 'function';
 
-        markerSelection.each((node, nodeDatum) => {
-            const fill =
-                isDatumHighlighted && highlightedFill !== undefined ? highlightedFill : marker.fill ?? seriesFill;
-            const fillOpacity = isDatumHighlighted ? highlightFillOpacity : markerFillOpacity;
-            const stroke =
-                isDatumHighlighted && highlightedStroke !== undefined
-                    ? highlightedStroke
-                    : marker.stroke ?? seriesStroke;
-            const strokeWidth =
-                isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
-                    ? highlightedDatumStrokeWidth
-                    : markerStrokeWidth;
+        markerSelection.each((node, datum) => {
+            const styles = getMarkerConfig({
+                datum,
+                highlighted,
+                formatter: marker.formatter,
+                markerStyle: marker,
+                seriesStyle: { fill, stroke, strokeWidth, fillOpacity, strokeOpacity },
+                highlightStyle: markerHighlightStyle,
+                seriesId,
+                ctx,
+                xKey,
+                yHighKey,
+                yLowKey,
+                highValue: datum.yHighValue,
+                lowValue: datum.yLowValue,
+                itemId: datum.itemId,
+                size: datum.point.size,
+            });
 
-            const { datum, itemId, yLowValue, yHighValue, point } = nodeDatum;
-            let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
-            if (formatter) {
-                format = callbackCache.call(formatter, {
-                    datum,
-                    lowValue: yLowValue,
-                    highValue: yHighValue,
-                    xKey,
-                    yLowKey,
-                    yHighKey,
-                    fill,
-                    stroke,
-                    strokeWidth,
-                    size,
-                    highlighted: isDatumHighlighted,
-                    seriesId,
-                    itemId,
-                });
-            }
-
-            node.fill = format?.fill ?? fill;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.fillOpacity = fillOpacity ?? 1;
-            node.strokeOpacity = marker.strokeOpacity ?? strokeOpacity ?? 1;
-            node.size = format?.size ?? size;
-
-            node.translationX = point.x;
-            node.translationY = point.y;
-            node.visible = node.size > 0 && visible && !isNaN(point.x) && !isNaN(point.y);
-
-            if (!customMarker || node.dirtyPath) {
-                return;
-            }
-
-            // Only for custom marker shapes
-            node.path.clear({ trackChanges: true });
-            node.updatePath();
-            node.checkPathDirty();
+            const config = { ...styles, point: datum.point, visible, customMarker };
+            updateMarker({ node, config });
         });
 
-        if (!isDatumHighlighted) {
+        if (!highlighted) {
             this.marker.markClean();
         }
     }
@@ -554,27 +516,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, any> }) {
+    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RangeAreaLabelDatum> }) {
         const { labelSelection } = opts;
-        const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.label;
         labelSelection.each((node, datum) => {
-            const { point, text, textAlign, textBaseline, itemId } = datum;
-
-            if (labelEnabled) {
-                node.fontStyle = fontStyle;
-                node.fontWeight = fontWeight;
-                node.fontSize = fontSize;
-                node.fontFamily = fontFamily;
-                node.textAlign = textAlign;
-                node.textBaseline = textBaseline;
-                node.text = text;
-                node.x = point.x;
-                node.y = point.y + (itemId === 'low' ? +10 : -10);
-                node.fill = color;
-                node.visible = true;
-            } else {
-                node.visible = false;
-            }
+            const { label } = this;
+            updateLabel({ labelNode: node, labelDatum: datum, config: label, visible: true });
         });
     }
 
@@ -861,7 +807,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             });
 
             labelSelections[seriesIdx].each((label, datum) => {
-                const delay = seriesRect?.width ? (datum.point.x / seriesRect.width) * duration : 0;
+                const delay = seriesRect?.width ? (datum.x / seriesRect.width) * duration : 0;
                 this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,

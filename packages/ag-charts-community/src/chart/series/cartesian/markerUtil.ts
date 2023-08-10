@@ -1,0 +1,109 @@
+import type { SizedPoint } from '../../../scene/point';
+import type {
+    AgSeriesHighlightMarkerStyle,
+    AgCartesianSeriesMarkerFormat,
+    AgSeriesMarkerFormatterParams,
+} from '../../agChartOptions';
+import type { Marker } from '../../marker/marker';
+import type { ModuleContext } from '../../../util/moduleContext';
+import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+
+interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
+    readonly point: SizedPoint;
+}
+
+export type Style = {
+    fill?: string;
+    stroke?: string;
+    strokeWidth?: number;
+    fillOpacity?: number;
+    strokeOpacity?: number;
+    visible?: boolean;
+};
+
+export type MarkerConfig = Style & {
+    point: SizedPoint;
+    customMarker: boolean;
+};
+
+export function getMarkerConfig<ExtraParams extends {}>({
+    datum,
+    highlighted,
+    markerStyle,
+    seriesStyle,
+    highlightStyle,
+    formatter,
+    seriesId,
+    ctx: { callbackCache },
+    ...opts
+}: {
+    datum: NodeDatum;
+    highlighted: boolean;
+    markerStyle: Style;
+    seriesStyle: Style;
+    highlightStyle: AgSeriesHighlightMarkerStyle;
+    formatter?: (params: AgSeriesMarkerFormatterParams<NodeDatum> & ExtraParams) => AgCartesianSeriesMarkerFormat;
+    seriesId: string;
+    ctx: ModuleContext;
+} & ExtraParams): Style {
+    const fill =
+        highlighted && highlightStyle.fill !== undefined ? highlightStyle.fill : markerStyle.fill ?? seriesStyle.fill;
+    const fillOpacity =
+        highlighted && highlightStyle.fillOpacity !== undefined
+            ? highlightStyle.fillOpacity
+            : markerStyle.fillOpacity ?? seriesStyle.fillOpacity;
+    const stroke =
+        highlighted && highlightStyle.stroke !== undefined
+            ? highlightStyle.stroke
+            : markerStyle.stroke ?? seriesStyle.stroke;
+    const strokeWidth =
+        highlighted && highlightStyle.strokeWidth !== undefined
+            ? highlightStyle.strokeWidth
+            : markerStyle.strokeWidth ?? 1;
+
+    let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+    if (formatter) {
+        format = callbackCache.call(formatter as any, {
+            datum,
+            fill,
+            stroke,
+            strokeWidth,
+            size: datum.point?.size ?? 0,
+            highlighted,
+            seriesId,
+            ...opts,
+        });
+    }
+
+    return {
+        fill: format?.fill ?? fill,
+        stroke: format?.stroke ?? stroke,
+        strokeWidth: format?.strokeWidth ?? strokeWidth,
+        fillOpacity,
+        strokeOpacity: seriesStyle.strokeOpacity,
+    };
+}
+
+export function updateMarker({ node, config }: { node: Marker; config: MarkerConfig }) {
+    const { point, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, visible = true, customMarker } = config;
+
+    node.fill = fill;
+    node.stroke = stroke;
+    node.strokeWidth = strokeWidth ?? 1;
+    node.fillOpacity = fillOpacity ?? 1;
+    node.strokeOpacity = strokeOpacity ?? 1;
+    node.size = point.size;
+
+    node.translationX = point.x;
+    node.translationY = point.y;
+    node.visible = node.size > 0 && visible && !isNaN(point.x) && !isNaN(point.y);
+
+    if (!customMarker || node.dirtyPath) {
+        return;
+    }
+
+    // Only for custom marker shapes
+    node.path.clear({ trackChanges: true });
+    node.updatePath();
+    node.checkPathDirty();
+}
