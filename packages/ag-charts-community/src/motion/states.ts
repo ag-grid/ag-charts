@@ -1,18 +1,12 @@
 import { Logger } from '../util/logger';
 import { windowValue } from '../util/window';
 
-interface StateDefinition<State extends string, Event extends string> {
-    actions?: {
-        onEnter?: () => void;
-        onExit?: () => void;
+type StateDefinition<State extends string, Event extends string> = {
+    [key in Event]?: {
+        target: State;
+        action?: (data?: any) => void;
     };
-    on?: {
-        [key in Event]?: {
-            target: State;
-            action: (data?: any) => void;
-        };
-    };
-}
+};
 
 export class StateMachine<State extends string, Event extends string> {
     static DEBUG = () => [true, 'animation'].includes(windowValue('agChartsDebug') as string) ?? false;
@@ -29,7 +23,7 @@ export class StateMachine<State extends string, Event extends string> {
 
     transition(event: Event, data?: any) {
         const currentStateConfig = this.states[this.state];
-        const destinationTransition = currentStateConfig?.on?.[event];
+        const destinationTransition = currentStateConfig?.[event];
 
         if (!destinationTransition) {
             if (StateMachine.DEBUG()) {
@@ -39,7 +33,6 @@ export class StateMachine<State extends string, Event extends string> {
         }
 
         const destinationState = destinationTransition.target;
-        const destinationStateConfig = this.states[destinationState];
 
         if (StateMachine.DEBUG()) {
             Logger.debug(
@@ -48,9 +41,7 @@ export class StateMachine<State extends string, Event extends string> {
             );
         }
 
-        destinationTransition.action(data);
-        currentStateConfig?.actions?.onExit?.();
-        destinationStateConfig?.actions?.onEnter?.();
+        destinationTransition.action?.(data);
 
         this.state = destinationState;
 

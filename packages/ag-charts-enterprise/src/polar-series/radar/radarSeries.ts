@@ -182,23 +182,19 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         this.animationState = new RadarStateMachine('empty', {
             empty: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateEmptyUpdateReady(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateEmptyUpdateReady(),
                 },
             },
             ready: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateReadyUpdate(),
-                    },
-                    resize: {
-                        target: 'ready',
-                        action: () => this.animateReadyResize(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateReadyUpdate(),
+                },
+                resize: {
+                    target: 'ready',
+                    action: () => this.animateReadyResize(),
                 },
             },
         });

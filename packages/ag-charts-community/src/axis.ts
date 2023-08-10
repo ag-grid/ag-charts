@@ -234,27 +234,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.animationManager = moduleCtx.animationManager;
         this.animationState = new AxisStateMachine('empty', {
             empty: {
-                on: {
-                    update: {
-                        target: 'align',
-                        action: () => this.resetSelectionNodes(),
-                    },
+                update: {
+                    target: 'align',
+                    action: () => this.resetSelectionNodes(),
                 },
             },
             align: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.resetSelectionNodes(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.resetSelectionNodes(),
                 },
             },
             ready: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: (data: AxisUpdateDiff) => this.animateReadyUpdate(data),
-                    },
+                update: {
+                    target: 'ready',
+                    action: (data: AxisUpdateDiff) => this.animateReadyUpdate(data),
                 },
             },
         });
