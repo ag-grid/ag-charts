@@ -358,4 +358,40 @@ describe('Polar Axes', () => {
         chart = AgEnterpriseCharts.create(options);
         await compare();
     });
+
+    it(`should render axis labels with parallel orientation as expected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            data: EXAMPLE_OPTIONS.data!.concat([
+                { skill: 'Test 1', Bob: 7, Collin: 4, Giovanni: 10 },
+                { skill: 'Test2', Bob: 8, Collin: 10, Giovanni: 3 },
+            ]),
+            axes: [
+                { type: 'angle-category', label: { orientation: 'parallel' } },
+                { type: 'radius-number', title: { text: 'Skill Score' } },
+            ],
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
+    it(`should render axis labels with perpendicular orientation as expected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            data: EXAMPLE_OPTIONS.data!.concat([
+                { skill: 'Test 1', Bob: 7, Collin: 4, Giovanni: 10 },
+                { skill: 'Test2', Bob: 8, Collin: 10, Giovanni: 3 },
+            ]),
+            axes: [
+                { type: 'angle-category', label: { orientation: 'perpendicular' } },
+                { type: 'radius-number', title: { text: 'Skill Score' } },
+            ],
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
 });
