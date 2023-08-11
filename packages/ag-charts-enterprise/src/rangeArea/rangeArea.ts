@@ -212,10 +212,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: null }),
-                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: null }),
-                trailingValueProperty(this, yLowKey, isContinuousY, { id: `yLowTrailingValue`, invalidValue: null }),
-                trailingValueProperty(this, yHighKey, isContinuousY, { id: `yHighTrailingValue`, invalidValue: null }),
+                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
+                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
+                trailingValueProperty(this, yLowKey, isContinuousY, {
+                    id: `yLowTrailingValue`,
+                    invalidValue: undefined,
+                }),
+                trailingValueProperty(this, yHighKey, isContinuousY, {
+                    id: `yHighTrailingValue`,
+                    invalidValue: undefined,
+                }),
             ],
             dataVisible: this.visible,
         });
