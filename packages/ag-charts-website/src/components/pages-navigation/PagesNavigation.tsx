@@ -40,7 +40,7 @@ function Level2Nav({
     return (
         <Collapsible id={id} isOpen={isOpen}>
             <ul className={classnames(styles.navGroup, 'list-style-none')}>
-                {items.map(({ title, path, url, isEnterprise }: any) => {
+                {items.map(({ title, path, url, icon, isEnterprise }: any) => {
                     const linkUrl = getLinkUrl({ framework, path, url });
                     const isActive = activeMenuItem?.path === path;
 
@@ -52,6 +52,7 @@ function Level2Nav({
                                     [styles.activeMenuItem]: isActive,
                                 })}
                             >
+                                {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
                                 {title}
                                 {isEnterprise && <EnterpriseIcon />}
                             </a>
