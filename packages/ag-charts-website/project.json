@@ -6,40 +6,7 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
-      "dependsOn": [
-        {
-          "target": "build",
-          "projects": "ag-charts-community"
-        },
-        {
-          "target": "interface-metadata",
-          "projects": "ag-charts-community"
-        },
-        {
-          "target": "interface-docs",
-          "projects": "ag-charts-community"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-enterprise"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-angular"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-react"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-vue"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-vue3"
-        }
-      ],
+      "dependsOn": ["^build", "^interface-metadata", "^interface-docs"],
       "executor": "@nxtensions/astro:build",
       "options": {},
       "configurations": {
@@ -53,40 +20,7 @@
         "port": 4600,
         "host": true
       },
-      "dependsOn": [
-        {
-          "target": "build",
-          "projects": "ag-charts-community"
-        },
-        {
-          "target": "interface-metadata",
-          "projects": "ag-charts-community"
-        },
-        {
-          "target": "interface-docs",
-          "projects": "ag-charts-community"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-enterprise"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-angular"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-react"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-vue"
-        },
-        {
-          "target": "build",
-          "projects": "ag-charts-vue3"
-        }
-      ]
+      "dependsOn": ["^build", "^interface-metadata", "^interface-docs"]
     },
     "preview": {
       "dependsOn": [
@@ -144,5 +78,13 @@
       "executor": "@nxtensions/astro:sync"
     }
   },
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-angular",
+    "ag-charts-react",
+    "ag-charts-vue",
+    "ag-charts-vue3"
+  ],
   "tags": []
 }
