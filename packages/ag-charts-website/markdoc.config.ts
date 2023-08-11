@@ -13,5 +13,11 @@ export default defineMarkdocConfig({
                 options: { type: String },
             },
         },
+        note: {
+            render: component('./src/components/Note'),
+            attributes: {
+                disableMarkdown: { type: Boolean },
+            },
+        },
     },
 });
