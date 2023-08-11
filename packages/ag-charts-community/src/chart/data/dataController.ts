@@ -110,10 +110,10 @@ export class DataController {
 
         const propMatch = (prop: PropertyDefinition<any>) => (existing: PropertyDefinition<any>) => {
             if (existing.type !== prop.type) return false;
-            if (existing.id !== prop.id) return false;
 
             const diff = jsonDiff(existing, prop) ?? {};
             delete diff['scopes'];
+            delete diff['id'];
 
             return Object.keys(diff).length === 0;
         };
@@ -125,13 +125,21 @@ export class DataController {
                     for (const prop of next.props) {
                         const match = result.find(propMatch(prop));
 
-                        if (match) {
-                            match.scopes ??= [];
-                            match.scopes.push(...(prop.scopes ?? []), ...(next.scopes ?? []));
+                        if (!match) {
+                            result.push(prop);
                             continue;
                         }
 
-                        result.push(prop);
+                        match.scopes ??= [];
+                        match.scopes.push(...(prop.scopes ?? []), ...(next.scopes ?? []));
+
+                        if (match.id === prop.id || prop.id == null) continue;
+                        if (match.type !== 'key' && match.type !== 'value') continue;
+
+                        match.idAliases ??= [];
+                        if (match.idAliases.indexOf(prop.id) < 0) {
+                            match.idAliases.push(prop.id);
+                        }
                     }
 
                     return result;
