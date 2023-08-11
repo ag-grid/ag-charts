@@ -48,7 +48,7 @@
                     { "title": "Axis Domain", "path": "charts-axes-domain" },
                     { "title": "Axis Labels", "path": "charts-axes-labels" },
                     { "title": "Grid Lines", "path": "charts-axes-grid-lines" },
-                    { "title": "Secondly Axes", "path": "charts-axes-secondary" }
+                    { "title": "Secondary Axes", "path": "charts-axes-secondary" }
                 ]
             },
             {
