@@ -5,9 +5,9 @@ enterprise: true
 
 **Nightingale** series (also known as *Rose chart*, *Wind Rose*, *Polar area*, *Coxcomb chart*) represents a dataset in the form of a polar area diagram.
 
-## Stacked Nightingale
+## Single Series
 
-To create a basic Nightingale chart, use a data array where each item has one category value (for the angle axis) and one numeric value (for the radius axis). Multiple Nightingale series are stacked by default.
+To create a basic Nightingale chart, use a data array where each item has one category value (for the angle axis) and one numeric value (for the radius axis).
 
 A minimal Nightingale series configuration will look like:
 
@@ -19,11 +19,32 @@ series: [{
 }]
 ```
 
+{% chartExampleRunner title="Basic Nightingale Chart" name="basic-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Stacked Nightingale
+
+When multiple Nightingale series are provided, their sectors will be stacked for each category by default:
+
+```js
+series: [
+    {
+        type: 'nightingale',
+        angleKey: 'product',
+        radiusKey: 'A sales',
+    },
+    {
+        type: 'nightingale',
+        angleKey: 'product',
+        radiusKey: 'B sales',
+    },
+],
+```
+
 {% chartExampleRunner title="Stacked Nightingale Chart" name="stack-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Grouped Nightingale
 
-In a grouped Nightingale series, sectors are placed next to each other. The following example illustrates a grouped Nightingale chart:
+In a grouped Nightingale series, sectors are placed next to each other. This behaviour is controlled by the `grouped: true` property.  The following example illustrates a grouped Nightingale chart:
 
 ```js
 series: [
@@ -44,7 +65,7 @@ series: [
 
 {% chartExampleRunner title="Grouped Nightingale Chart" name="group-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Additional Styling Options
+## Axis Styling
 
 There is a way to set a padding between elements. To do this, a few options should be added to the polar **angle** axis. `paddingInner` controls the padding between column groups, and `groupPaddingInner` controls the padding between columns within a group.
 
