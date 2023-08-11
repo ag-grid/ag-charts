@@ -25,6 +25,4 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule = {
             stroke,
         };
     },
-
-    groupable: true,
 };

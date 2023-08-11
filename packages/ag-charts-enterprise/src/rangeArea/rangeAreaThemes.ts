@@ -6,6 +6,10 @@ export const RANGE_AREA_SERIES_THEME = {
     yLowKey: '',
     yHighKey: '',
     xName: '',
+    fillOpacity: 0.7,
+    marker: {
+        enabled: false,
+    },
     label: {
         enabled: false,
         fontStyle: undefined,
