@@ -1,5 +1,10 @@
 import type { AgBaseChartOptions, AgChartLabelOptions } from '../../agChartOptions';
-import type { AgAxisBaseTickOptions, AgAxisCaptionOptions, AgBaseAxisOptions } from '../../options/axisOptions';
+import type {
+    AgAxisBaseTickOptions,
+    AgAxisCaptionOptions,
+    AgBaseAxisOptions,
+    AgBaseAxisLabelOptions,
+} from '../../options/axisOptions';
 import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
@@ -27,7 +32,7 @@ export type AgCartesianSeriesOptions<TAddon = never> =
     | TAddon;
 
 /** Configuration for axes in cartesian charts. */
-export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions {
+export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions<AgCartesianAxisLabelOptions> {
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */
@@ -36,6 +41,13 @@ export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions {
     thickness?: PixelSize;
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
+}
+
+export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
+    /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
+    autoRotate?: boolean;
+    /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
+    autoRotateAngle?: number;
 }
 
 export interface AgCartesianChartOptions<TAddonType = never, TAddonSeries = never> extends AgBaseChartOptions {
