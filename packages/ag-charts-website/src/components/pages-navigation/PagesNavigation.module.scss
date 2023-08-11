@@ -7,7 +7,6 @@
     --font-size: var(--font-size-medium);
 
     padding-top: $size-4;
-    padding-bottom: $size-7;
     border-bottom: 1px solid var(--border-color);
 
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
@@ -15,14 +14,11 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        --menu-horizontal-margin: #{$size-2};
         --right-margin: max(#{$size-4}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
 
         flex-shrink: 0;
         width: var(--menu-width);
         margin-right: var(--right-margin);
-        padding-right: var(--menu-horizontal-margin);
-        padding-left: var(--horizontal-margin);
         border-right: solid 1px var(--bright-blue-gray);
 
         @supports (position: sticky) {
@@ -33,14 +29,22 @@
             overflow-y: auto;
         }
     }
-
-    @media screen and (min-width: $breakpoint-docs-nav-large) {
-        padding-left: var(--menu-horizontal-margin);
-    }
 }
 
 .navInner {
     margin-bottom: 0 !important;
+    margin-left: $size-3 !important;
+    margin-right: $size-3;
+
+    &:last-child {
+        padding-bottom: $size-7;
+    }
+}
+
+.chartTypesNav {
+    margin-top: $size-3;
+    padding-top: $size-2 + $size-half;
+    border-top: 1px solid var(--bright-blue-gray);
 }
 
 .navGroup {
@@ -102,7 +106,8 @@
     }
 }
 
-.sectionHeader {
+button.sectionHeader,
+a.sectionHeader {
     width: 100%;
     padding-top: $size-half;
     padding-bottom: $size-half;
@@ -150,11 +155,18 @@
 
         position: relative;
         top: -1px;
+        margin-right: $size-1;
         transition: transform 0.33s ease-in-out, fill $default-transition-timing;
 
         &.active {
             transform: rotate(90deg) !important;
         }
+    }
+
+    .enterpriseIcon svg {
+        --icon-size: 1em;
+
+        transform: translate(0, 0.45em);
     }
 }
 
@@ -170,7 +182,7 @@ a.sectionHeader {
 }
 
 .navGroup {
-    --first-indent-size: 6px;
+    --first-indent-size: 12px;
     --indent-size: 12px;
 
     line-height: var(--line-height-tight);
@@ -218,7 +230,7 @@ a.sectionHeader {
     }
 
     &.sectionHeader::before {
-        transform: translate(-0.85em, 0.6em);
+        transform: translate(-0.85em, 0.7em);
     }
 
     &:focus-visible {
@@ -247,6 +259,11 @@ a.sectionHeader {
 
         &::before {
             background-color: var(--text-color);
+        }
+
+        .menuIcon {
+            opacity: 1;
+            fill: var(--dark-gunmetal-gray); // This should be updated after colors refactor
         }
     }
 }
@@ -289,5 +306,15 @@ button .menuIcon {
     bottom: 0.15em;
     margin-right: $size-half;
     opacity: 0.6666;
+    transition: fill $default-transition-timing, opacity $default-transition-timing;
+}
+
+a :global(.icon).menuIcon {
+    --icon-size: 1.75em;
+
+    fill: var(--secondary-text-color);
+    margin-bottom: $size-half;
+    margin-right: $size-half;
+    opacity: 0.5;
     transition: fill $default-transition-timing, opacity $default-transition-timing;
 }

@@ -109,6 +109,7 @@ function Level1Nav({
                         [styles.activeMenuItem]: activeMenuItem === menuItem,
                     })}
                 >
+                    {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
                     {title}
                     {isEnterprise && <EnterpriseIcon />}
                 </a>
