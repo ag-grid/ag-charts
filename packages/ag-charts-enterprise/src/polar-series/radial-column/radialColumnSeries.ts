@@ -27,12 +27,12 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
         const right = columnWidth / 2;
         const top = -outerRadius;
         const bottom = -innerRadius;
+        path.clear({ trackChanges: true });
         path.moveTo(left, bottom);
         path.lineTo(left, top);
         path.lineTo(right, top);
         path.lineTo(right, bottom);
         path.lineTo(left, bottom);
-        path.clear({ trackChanges: true });
         path.closePath();
         node.checkPathDirty();
     }
