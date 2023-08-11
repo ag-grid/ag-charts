@@ -2,7 +2,6 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import markdoc from '@astrojs/markdoc';
 import svgr from 'vite-plugin-svgr';
-import agFileWatcher from './src/astro/integrations/agFileWatcher';
 import agHotModuleReload from './src/astro/plugins/agHotModuleReload';
 import { getDevFileList } from './src/utils/pages';
 
@@ -22,6 +21,12 @@ export default defineConfig({
     outDir: OUTPUT_DIR,
     vite: {
         plugins: [svgr(), agHotModuleReload()],
+        resolve: {
+            conditions: ['require'],
+        },
+        optimizeDeps: {
+            exclude: ['ag-charts-community', 'ag-charts-enterprise'],
+        },
         server: {
             fs: {
                 allow: [
@@ -32,5 +37,5 @@ export default defineConfig({
             },
         },
     },
-    integrations: [react(), markdoc(), agFileWatcher()],
+    integrations: [react(), markdoc()],
 });

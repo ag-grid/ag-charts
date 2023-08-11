@@ -8,38 +8,4 @@ import Layout from '@layouts/Layout.astro';
         <h2>A taster...</h2>
         <div id="myChart" style="width: 400px; height: 400px"></div>
     </ComingSoon>
-
-    <script>
-        import * as agCharts from 'ag-charts-community';
-
-        const data = [
-            {
-                quarter: 'Q1',
-                spending: 200,
-            },
-            {
-                quarter: 'Q2',
-                spending: 300,
-            },
-            {
-                quarter: 'Q3',
-                spending: 560,
-            },
-            {
-                quarter: 'Q4',
-                spending: 1050,
-            },
-        ];
-
-        agCharts.AgChart.create({
-            container: document.getElementById('myChart'),
-            data: data,
-            series: [
-                {
-                    xKey: 'quarter',
-                    yKey: 'spending',
-                },
-            ],
-        });
-    </script>
 </Layout>

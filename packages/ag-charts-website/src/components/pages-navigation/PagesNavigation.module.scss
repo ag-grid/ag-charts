@@ -6,6 +6,7 @@
     --menu-width: min(30vw, 320px);
     --font-size: var(--font-size-medium);
 
+    padding-top: $size-4;
     border-bottom: 1px solid var(--border-color);
 
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
@@ -13,14 +14,11 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        --menu-horizontal-margin: #{$size-2};
         --right-margin: max(#{$size-4}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
 
         flex-shrink: 0;
         width: var(--menu-width);
         margin-right: var(--right-margin);
-        padding-right: var(--menu-horizontal-margin);
-        padding-left: var(--horizontal-margin);
         border-right: solid 1px var(--bright-blue-gray);
 
         @supports (position: sticky) {
@@ -31,15 +29,26 @@
             overflow-y: auto;
         }
     }
-
-    @media screen and (min-width: $breakpoint-docs-nav-large) {
-        padding-left: var(--menu-horizontal-margin);
-    }
 }
 
 .navInner {
-    padding-top: $size-3;
-    padding-bottom: $size-7;
+    margin-bottom: 0 !important;
+    margin-left: $size-3 !important;
+    margin-right: $size-3;
+
+    &:last-child {
+        padding-bottom: $size-7;
+    }
+}
+
+.chartTypesNav {
+    margin-top: $size-3;
+    padding-top: $size-2 + $size-half;
+    border-top: 1px solid var(--bright-blue-gray);
+}
+
+.navGroup {
+    margin-bottom: $size-half;
 }
 
 .navGroup a {
@@ -95,4 +104,217 @@
             background-color: var(--text-color);
         }
     }
+}
+
+button.sectionHeader,
+a.sectionHeader {
+    width: 100%;
+    padding-top: $size-half;
+    padding-bottom: $size-half;
+    margin-top: 0;
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-normal);
+    color: var(--text-color) !important;
+    border: 2px solid transparent;
+    outline: none;
+    transition: color $default-transition-timing, border-color $default-transition-timing;
+    border-radius: var(--border-radius);
+
+    &:hover {
+        --text-color: var(--link-color);
+
+        .menuIcon {
+            opacity: 1;
+            fill: var(--link-color);
+        }
+    }
+
+    &:focus-visible {
+        border-color: var(--bright-blue-gray);
+    }
+
+    &:hover .sectionIcon {
+        transform: translateX(3px);
+    }
+
+    &.active {
+        transition: color $default-transition-timing;
+    }
+
+    + .navGroup {
+        padding-bottom: $size-1;
+    }
+
+    .chartTypesNav & {
+        padding-top: $size-1;
+        padding-bottom: $size-1;
+    }
+
+    .sectionIcon {
+        --icon-size: 20px;
+
+        position: relative;
+        top: -1px;
+        margin-right: $size-1;
+        transition: transform 0.33s ease-in-out, fill $default-transition-timing;
+
+        &.active {
+            transform: rotate(90deg) !important;
+        }
+    }
+
+    .enterpriseIcon svg {
+        --icon-size: 1em;
+
+        transform: translate(0, 0.45em);
+    }
+}
+
+a.sectionHeader {
+    font-size: var(--font-size-medium);
+
+    margin-left: 22px;
+    color: var(--text-color);
+
+    &:hover {
+        color: var(--link-color);
+    }
+}
+
+.navGroup {
+    --first-indent-size: 12px;
+    --indent-size: 12px;
+
+    line-height: var(--line-height-tight);
+    font-size: var(--font-size-small);
+
+    ul a,
+    ul .groupLabel {
+        margin-left: var(--first-indent-size);
+    }
+
+    ul ul a,
+    ul ul .groupLabel {
+        margin-left: calc(var(--first-indent-size) + var(--indent-size) * 2);
+    }
+
+    ul ul ul a,
+    ul ul ul .groupLabel {
+        margin-left: calc(var(--first-indent-size) + var(--indent-size) * 3);
+    }
+}
+
+.navGroup a {
+    position: relative;
+    display: block;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: $size-2;
+    margin-left: var(--first-indent-size);
+    outline: none;
+    border-radius: var(--border-radius);
+    border: 2px solid transparent;
+    color: var(--secondary-text-color);
+    font-weight: var(--font-weight-bold);
+    transition: color $default-transition-timing, border-color $default-transition-timing;
+
+    &::before {
+        content: '';
+        position: absolute;
+        width: 0.375em;
+        height: 0.375em;
+        transform: translate(-0.625em, 0.45em);
+        border-radius: 50%;
+        background-color: var(--white);
+        transition: background-color $default-transition-timing;
+    }
+
+    &.sectionHeader::before {
+        transform: translate(-0.85em, 0.7em);
+    }
+
+    &:focus-visible {
+        border-color: var(--input-focus-border-color);
+
+        &::before {
+            background-color: var(--input-focus-border-color);
+        }
+    }
+
+    &.activeItemParent {
+        color: var(--text-color);
+    }
+
+    &:hover {
+        color: var(--link-color);
+
+        &::before {
+            background-color: var(--link-color) !important;
+        }
+    }
+
+    &.activeMenuItem {
+        pointer-events: none;
+        color: var(--text-color);
+
+        &::before {
+            background-color: var(--text-color);
+        }
+
+        .menuIcon {
+            opacity: 1;
+            fill: var(--dark-gunmetal-gray); // This should be updated after colors refactor
+        }
+    }
+}
+
+.navGroup .groupLabel {
+    display: block;
+    margin-left: var(--first-indent-size) !important;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: $size-2 + 2px;
+    transition: color $default-transition-timing;
+
+    &.activeItemParent {
+        color: var(--text-color);
+    }
+}
+
+.enterpriseIcon {
+    --text-color: red;
+    --button-text-color: red;
+
+    position: relative;
+    margin-left: $size-half;
+    color: transparent;
+
+    svg {
+        --icon-size: 1.15em;
+
+        position: absolute;
+        left: 0;
+        margin: 0;
+        transform: translate(-0.05em, 0.175em);
+    }
+}
+
+button .menuIcon {
+    --icon-size: 1.75em;
+    --button-text-color: var(--secondary-text-color);
+
+    bottom: 0.15em;
+    margin-right: $size-half;
+    opacity: 0.6666;
+    transition: fill $default-transition-timing, opacity $default-transition-timing;
+}
+
+a :global(.icon).menuIcon {
+    --icon-size: 1.75em;
+
+    fill: var(--secondary-text-color);
+    margin-bottom: $size-half;
+    margin-right: $size-half;
+    opacity: 0.5;
+    transition: fill $default-transition-timing, opacity $default-transition-timing;
 }

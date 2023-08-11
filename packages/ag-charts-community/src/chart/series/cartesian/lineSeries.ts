@@ -307,7 +307,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             markerSelection.clear();
         }
 
-        return markerSelection.update(nodeData, undefined, (datum) => datum.xValue);
+        return markerSelection.update(nodeData, undefined, (datum) => `${datum.xValue}`);
     }
 
     protected async updateMarkerNodes(opts: {

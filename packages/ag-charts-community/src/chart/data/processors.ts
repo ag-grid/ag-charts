@@ -260,14 +260,13 @@ export function diff(
             const addedIndices = new Map<string, number>();
             const updatedIndices = new Map<string, number>();
             const removedIndices = new Map<string, number>();
-            const sep = '___';
 
             for (let i = 0; i < Math.max(previousData.data.length, processedData.data.length); i++) {
                 const prev = previousData.data[i];
                 const datum = processedData.data[i];
 
-                const prevId = prev?.keys.join(sep);
-                const datumId = datum?.keys.join(sep);
+                const prevId = prev ? createDatumId(prev.keys) : '';
+                const datumId = datum ? createDatumId(datum.keys) : '';
 
                 if (prevId === datumId) {
                     if (!arraysEqual(prev.values, datum.values)) {
@@ -316,6 +315,10 @@ export function diff(
             return diff;
         },
     };
+}
+
+export function createDatumId(keys: string[]) {
+    return keys.join('___');
 }
 
 function arraysEqual(a: any[], b: any[]): boolean {

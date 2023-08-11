@@ -135,6 +135,8 @@ type PropertyIdentifiers = {
     scopes?: string[];
     /** Unique id for a property definition within the scope(s) provided. */
     id?: string;
+    /** Alternative unique ids for the property. */
+    idAliases?: string[];
     /** Optional group a property belongs to, for cross-scope combination. */
     groupId?: string;
 };
@@ -346,15 +348,22 @@ export class DataModel<
     ): { index: number; def: PropertyDefinition<any> }[] | never {
         const { keys, values, aggregates, groupProcessors, reducers } = this;
 
-        const match = ({ id, scopes }: PropertyDefinition<any> & InternalDefinition) => {
+        const match = (prop: PropertyDefinition<any> & InternalDefinition) => {
+            const { id, scopes, type } = prop;
+
             if (id == null) return false;
             if (scope != null && !scopes?.includes(scope.id)) return false;
 
-            if (typeof searchId === 'string') {
-                return id === searchId;
+            const ids = [id];
+            if (type === 'key' || type === 'value') {
+                ids.push(...(prop.idAliases ?? []));
             }
 
-            return searchId.test(id);
+            if (typeof searchId === 'string') {
+                return ids.indexOf(searchId) >= 0;
+            }
+
+            return ids.some((id) => searchId.test(id));
         };
 
         const allDefs: (PropertyDefinition<any> & InternalDefinition)[][] = [

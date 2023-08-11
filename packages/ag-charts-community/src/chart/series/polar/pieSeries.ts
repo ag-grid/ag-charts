@@ -15,6 +15,7 @@ import {
     valueProperty,
     rangedValueProperty,
     accumulativeValueProperty,
+    keyProperty,
 } from './../series';
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
@@ -50,11 +51,12 @@ import type {
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
 import { StateMachine } from '../../../motion/states';
 import * as easing from '../../../motion/easing';
-import { normalisePropertyTo } from '../../data/processors';
+import { createDatumId, normalisePropertyTo } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { Has } from '../../../util/types';
 import type { DataController } from '../../data/dataController';
 import type { DataModel } from '../../data/dataModel';
+import { diff } from '../../data/processors';
 
 class PieSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -113,7 +115,7 @@ interface PieNodeDatum extends SeriesNodeDatum {
     };
 
     readonly sectorFormat: Required<AgPieSeriesFormat>;
-    readonly legendItemKey?: string;
+    readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
 }
 
@@ -189,8 +191,8 @@ export class DoughnutInnerCircle {
     fillOpacity? = 1;
 }
 
-type PieAnimationState = 'empty' | 'ready';
-type PieAnimationEvent = 'update';
+type PieAnimationState = 'empty' | 'ready' | 'waiting';
+type PieAnimationEvent = 'update' | 'updateData';
 class PieStateMachine extends StateMachine<PieAnimationState, PieAnimationEvent> {}
 
 export class PieSeries extends PolarSeries<PieNodeDatum> {
@@ -198,8 +200,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     static type = 'pie' as const;
 
     private radiusScale: LinearScale = new LinearScale();
-    private groupSelection: Selection<Group, PieNodeDatum> = Selection.select(this.contentGroup, Group);
-    private highlightSelection: Selection<Group, PieNodeDatum> = Selection.select(this.highlightGroup, Group);
+    private groupSelection: Selection<Group, PieNodeDatum> = Selection.select(this.contentGroup, Group, false);
+    private highlightSelection: Selection<Group, PieNodeDatum> = Selection.select(this.highlightGroup, Group, false);
     private calloutLabelSelection: Selection<Group, PieNodeDatum>;
     private sectorLabelSelection: Selection<Text, PieNodeDatum>;
     private innerLabelsSelection: Selection<Text, DoughnutInnerLabel>;
@@ -359,19 +361,24 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         this.animationState = new PieStateMachine('empty', {
             empty: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateEmptyUpdateReady(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateEmptyUpdateReady(),
                 },
             },
             ready: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateReadyUpdateReady(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateReadyUpdateReady(),
+                },
+                updateData: {
+                    target: 'waiting',
+                },
+            },
+            waiting: {
+                update: {
+                    target: 'ready',
+                    action: () => this.animateWaitingUpdateReady(),
                 },
             },
         });
@@ -404,7 +411,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         if (!angleKey) return;
 
+        const extraKeyProps = [];
         const extraProps = [];
+
+        if (calloutLabelKey) {
+            extraKeyProps.push(keyProperty(this, calloutLabelKey, false, { id: `calloutLabelKey` }));
+        } else if (sectorLabelKey) {
+            extraKeyProps.push(keyProperty(this, sectorLabelKey, false, { id: `sectorLabelKey` }));
+        } else if (legendItemKey) {
+            extraKeyProps.push(keyProperty(this, legendItemKey, false, { id: `legendItemKey` }));
+        }
+
         if (radiusKey) {
             extraProps.push(
                 rangedValueProperty(this, radiusKey, {
@@ -415,7 +432,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 valueProperty(this, radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
                 normalisePropertyTo(this, { id: 'radiusValue' }, [0, 1], this.radiusMin ?? 0, this.radiusMax)
             );
-            extraProps.push();
         }
         if (calloutLabelKey) {
             extraProps.push(valueProperty(this, calloutLabelKey, false, { id: `calloutLabelValue` }));
@@ -426,11 +442,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         if (legendItemKey) {
             extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
         }
+        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
 
         data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
+                ...extraKeyProps,
                 accumulativeValueProperty(this, angleKey, true, { id: `angleValue` }),
                 valueProperty(this, angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
                 normalisePropertyTo(this, { id: 'angleValue' }, [0, 1], 0),
@@ -439,6 +459,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
         this.dataModel = dataModel;
         this.processedData = processedData;
+
+        this.animationState.transition('updateData');
     }
 
     maybeRefreshNodeData() {
@@ -841,11 +863,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         } = this;
 
         const update = (selection: typeof groupSelection) => {
-            return selection.update(this.nodeData, (group) => {
-                const sector = new Sector();
-                sector.tag = PieNodeTag.Sector;
-                group.appendChild(sector);
-            });
+            return selection.update(
+                this.nodeData,
+                (group) => {
+                    const sector = new Sector();
+                    sector.tag = PieNodeTag.Sector;
+                    group.appendChild(sector);
+                },
+                (datum) => this.getDatumId(datum)
+            );
         };
 
         this.groupSelection = update(groupSelection);
@@ -907,14 +933,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             if (isDatumHighlighted) {
                 sector.startAngle = datum.startAngle;
                 sector.endAngle = datum.endAngle;
+
+                const format = this.getSectorFormat(datum.datum, datum.itemId, index, isDatumHighlighted);
+                sector.fill = format.fill;
+                sector.stroke = format.stroke;
+                sector.strokeWidth = format.strokeWidth!;
+                sector.fillOpacity = format.fillOpacity!;
             }
 
-            const format = this.getSectorFormat(datum.datum, datum.itemId, index, isDatumHighlighted);
-
-            sector.fill = format.fill;
-            sector.stroke = format.stroke;
-            sector.strokeWidth = format.strokeWidth!;
-            sector.fillOpacity = format.fillOpacity!;
             sector.strokeOpacity = this.strokeOpacity;
             sector.lineDash = this.lineDash;
             sector.lineDashOffset = this.lineDashOffset;
@@ -1625,11 +1651,19 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         const rotation = Math.PI / -2 + toRadians(this.rotation);
 
-        this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector).forEach((node) => {
-            const datum: PieNodeDatum = node.datum;
+        const sectors = this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
+        sectors.forEach((sector, index) => {
+            const datum: PieNodeDatum = sector.datum;
+            const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
+            const cleanup = index === sectors.length - 1;
+
+            sector.fill = format.fill;
+            sector.stroke = format.stroke;
+            sector.strokeWidth = format.strokeWidth!;
+            sector.fillOpacity = format.fillOpacity!;
 
             this.ctx.animationManager?.animateMany<number>(
-                `${this.id}_empty-update-ready_${node.id}`,
+                `${this.id}_empty-update-ready_${sector.id}`,
                 [
                     { from: rotation, to: datum.startAngle },
                     { from: rotation, to: datum.endAngle },
@@ -1638,8 +1672,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                     duration,
                     ease: easing.easeOut,
                     onUpdate([startAngle, endAngle]) {
-                        node.startAngle = startAngle;
-                        node.endAngle = endAngle;
+                        sector.startAngle = startAngle;
+                        sector.endAngle = endAngle;
+                    },
+                    onComplete: () => {
+                        if (cleanup) this.resetSectors();
                     },
                 }
             );
@@ -1681,11 +1718,209 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     }
 
     animateReadyUpdateReady() {
-        this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector).forEach((node) => {
-            const { datum } = node;
+        this.resetSectors();
+    }
 
-            node.startAngle = datum.startAngle;
-            node.endAngle = datum.endAngle;
+    animateWaitingUpdateReady() {
+        const { groupSelection, processedData } = this;
+        const diff = processedData?.reduced?.diff;
+
+        if (!diff?.changed) {
+            this.resetSectors();
+            return;
+        }
+
+        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const labelDuration = 200;
+        const rotation = Math.PI / -2 + toRadians(this.rotation);
+        const sectors = this.sortSectorsByData(groupSelection.selectByTag<Sector>(PieNodeTag.Sector));
+
+        const datumIndices: { [key: string]: number } = {};
+        processedData?.data.forEach((d, index) => {
+            const datumId = createDatumId(d.keys) ?? index;
+            datumIndices[datumId] = index;
         });
+
+        sectors.forEach((sector, index) => {
+            const { datum } = sector;
+            const datumId = this.getDatumId(datum);
+
+            const isAdded = diff.added.includes(datumId);
+            const isRemoved = diff.removed.includes(datumId);
+
+            const cleanup = index === sectors.length - 1;
+
+            let formatIndex = datumIndices[datumId] ?? index;
+            if (isRemoved) formatIndex = diff.removedIndices[diff.removed.findIndex((d: string) => d === datumId)];
+            const format = this.getSectorFormat(datum.datum, datum.itemId, formatIndex, false);
+
+            let props = [
+                { from: sector.startAngle, to: datum.startAngle },
+                { from: sector.endAngle, to: datum.endAngle },
+                { from: sector.fill ?? format.fill, to: format.fill },
+            ];
+
+            if (isRemoved) {
+                // Find, by the earlier indices, the nearest sector that still exists previous to this removed sector.
+                // Then transition both angles of this sector to that sectors end position, if it exists, else to
+                // the starting point of the pie.
+                let previousExistingIndex = -1;
+                const removedIndex = diff.removedIndices[diff.removed.findIndex((d: string) => d === datumId)];
+                for (let i = removedIndex - 1; i >= 0; i--) {
+                    if (!diff.removedIndices.includes(i)) {
+                        previousExistingIndex = diff.updatedIndices.findIndex((ui: number) => ui === i);
+                        break;
+                    }
+                }
+                const previousSector = sectors[previousExistingIndex];
+                const previousEndAngle = previousSector?.datum.endAngle ?? rotation;
+
+                props = [
+                    { from: datum.startAngle, to: previousEndAngle },
+                    { from: datum.endAngle, to: previousEndAngle },
+                    { from: format.fill, to: format.fill },
+                ];
+            } else if (isAdded) {
+                const previousSector = sectors[index - 1];
+                const previousEndAngle = previousSector?.endAngle ?? rotation;
+
+                props = [
+                    { from: previousEndAngle, to: datum.startAngle },
+                    { from: previousEndAngle, to: datum.endAngle },
+                    { from: format.fill, to: format.fill },
+                ];
+            }
+
+            props.push(
+                { from: sector.stroke ?? format.stroke, to: format.stroke },
+                { from: sector.strokeWidth, to: format.strokeWidth },
+                { from: sector.fillOpacity, to: format.fillOpacity }
+            );
+
+            // All sectors must be visible while animating, including removed ones, these are hidden in `resetSectors()`
+            sector.visible = true;
+
+            this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${sector.id}`, props, {
+                duration,
+                ease: easing.easeOut,
+                onUpdate([startAngle, endAngle, fill, stroke, strokeWidth, fillOpacity]) {
+                    sector.startAngle = startAngle;
+                    sector.endAngle = endAngle;
+                    sector.fill = fill;
+                    sector.stroke = stroke;
+                    sector.strokeWidth = strokeWidth;
+                    sector.fillOpacity = fillOpacity;
+                },
+                onComplete: () => {
+                    if (cleanup) this.resetSectors();
+                },
+            });
+        });
+
+        this.highlightSelection.selectByTag<Sector>(PieNodeTag.Sector).forEach((sector) => {
+            sector.visible = false;
+        });
+
+        const labelAnimationOptions = {
+            from: 0,
+            to: 1,
+            delay: duration,
+            duration: labelDuration,
+        };
+
+        this.calloutLabelSelection.each((label) => {
+            label.opacity = 0;
+            this.ctx.animationManager?.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+                ...labelAnimationOptions,
+                onUpdate(opacity) {
+                    label.opacity = opacity;
+                },
+            });
+        });
+
+        this.sectorLabelSelection.each((label) => {
+            label.opacity = 0;
+            this.ctx.animationManager?.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+                ...labelAnimationOptions,
+                onUpdate(opacity) {
+                    label.opacity = opacity;
+                },
+            });
+        });
+
+        this.innerLabelsSelection.each((label) => {
+            label.opacity = 0;
+            this.ctx.animationManager?.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+                ...labelAnimationOptions,
+                onUpdate(opacity) {
+                    label.opacity = opacity;
+                },
+            });
+        });
+    }
+
+    resetSectors() {
+        const sectors = this.groupSelection.cleanup().selectByTag<Sector>(PieNodeTag.Sector);
+        this.sortSectorsByData(sectors);
+
+        sectors.forEach((sector, index) => {
+            const { datum } = sector;
+            const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
+
+            sector.startAngle = datum.startAngle;
+            sector.endAngle = datum.endAngle;
+            sector.fill = format.fill;
+            sector.stroke = format.stroke;
+            sector.strokeWidth = format.strokeWidth!;
+            sector.fillOpacity = format.fillOpacity!;
+            sector.visible = this.seriesItemEnabled[index];
+        });
+
+        this.highlightSelection
+            .cleanup()
+            .selectByTag<Sector>(PieNodeTag.Sector)
+            .forEach((sector) => {
+                const { datum } = sector;
+
+                sector.startAngle = datum.startAngle;
+                sector.endAngle = datum.endAngle;
+            });
+    }
+
+    getDatumId(datum: PieNodeDatum) {
+        const { calloutLabelKey, sectorLabelKey } = this;
+        const { legendItemValue, index } = datum;
+
+        let datumId = legendItemValue ?? `${index}`;
+
+        if (calloutLabelKey) {
+            datumId = datum.datum[calloutLabelKey];
+        } else if (sectorLabelKey) {
+            datumId = datum.datum[sectorLabelKey];
+        }
+
+        return datumId;
+    }
+
+    sortSectorsByData(sectors: Array<Sector>) {
+        if (!this.processedData) return sectors;
+
+        const datumIndices: { [key: string]: number } = {};
+        this.processedData?.data.forEach((d, index) => {
+            const datumId = createDatumId(d.keys) ?? index;
+            datumIndices[datumId] = index;
+        });
+
+        sectors.sort((a, b) => {
+            const aDatumId = this.getDatumId(a.datum);
+            const bDatumId = this.getDatumId(b.datum);
+            const aDatumIndex = datumIndices[aDatumId];
+            const bDatumIndex = datumIndices[bDatumId];
+
+            if (aDatumIndex === bDatumIndex) return 0;
+            return aDatumIndex < bDatumIndex ? -1 : 1;
+        });
+
+        return sectors;
     }
 }

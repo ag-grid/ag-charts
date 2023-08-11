@@ -757,8 +757,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
-        const datumIdKey = this.processedData?.defs.keys?.[0];
-
         // Zip an array into an object of keys with a given value
         const zipObject = (props: Array<any>, value = true) => {
             const zipped: { [key: string]: boolean } = {};
@@ -786,8 +784,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 const duration = sectionDuration;
                 let cleanup = false;
 
-                const datumId = datumIdKey ? datum.xValue : '';
-
                 let contextX = startingX;
                 let contextWidth = 0;
                 let contextY = datum.y;
@@ -800,8 +796,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     contextHeight = 0;
                 }
 
-                const isAdded = datumId !== undefined && addedIds[datumId] !== undefined;
-                const isRemoved = datumId !== undefined && removedIds[datumId] !== undefined;
+                const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
+                const isRemoved = datum.xValue !== undefined && removedIds[datum.xValue] !== undefined;
 
                 if (isAdded) {
                     props = [

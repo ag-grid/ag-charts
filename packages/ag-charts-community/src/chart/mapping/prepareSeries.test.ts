@@ -159,6 +159,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": true,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "iphone",
@@ -174,6 +175,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": false,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "mac",
@@ -188,6 +190,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": true,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "wearables",
@@ -202,6 +205,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": false,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "services",
@@ -241,6 +245,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": true,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "iphone",
@@ -256,6 +261,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": false,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "mac",
@@ -270,6 +276,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": true,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "wearables",
@@ -284,6 +291,7 @@ describe('transform series options', () => {
                   "stackIndex": 0,
                 },
                 "showInLegend": false,
+                "stacked": false,
                 "type": "column",
                 "xKey": "quarter",
                 "yKey": "services",
@@ -315,7 +323,7 @@ describe('transform series options', () => {
             [
               {
                 "fill": "pink",
-                "grouped": undefined,
+                "grouped": false,
                 "seriesGrouping": {
                   "groupCount": 1,
                   "groupIndex": 0,
@@ -331,7 +339,7 @@ describe('transform series options', () => {
               },
               {
                 "fill": "red",
-                "grouped": undefined,
+                "grouped": false,
                 "seriesGrouping": {
                   "groupCount": 1,
                   "groupIndex": 0,
@@ -346,7 +354,7 @@ describe('transform series options', () => {
                 "yName": "Mac",
               },
               {
-                "grouped": undefined,
+                "grouped": false,
                 "seriesGrouping": {
                   "groupCount": 1,
                   "groupIndex": 0,
@@ -361,7 +369,7 @@ describe('transform series options', () => {
                 "yName": "Wearables",
               },
               {
-                "grouped": undefined,
+                "grouped": false,
                 "seriesGrouping": {
                   "groupCount": 1,
                   "groupIndex": 0,

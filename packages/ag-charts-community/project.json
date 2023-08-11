@@ -30,6 +30,26 @@
         }
       }
     },
+    "interface-metadata": {
+      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "inputs": ["{projectRoot}/src"],
+      "outputPath": "{options.output}",
+      "options": {
+        "mode": "interfaces",
+        "inputs": ["packages/ag-charts-community/src"],
+        "output": "dist/packages/ag-charts-community/interfaces.AUTO.json"
+      }
+    },
+    "interface-docs": {
+      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "inputs": ["{projectRoot}/src"],
+      "outputPath": "{options.output}",
+      "options": {
+        "mode": "docs",
+        "inputs": ["packages/ag-charts-community/src"],
+        "output": "dist/packages/ag-charts-community/doc-interfaces.AUTO.json"
+      }
+    },
     "lint": {
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
@@ -45,7 +65,7 @@
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community.xml"],
       "options": {
         "jestConfig": "packages/ag-charts-community/jest.config.ts"
       },

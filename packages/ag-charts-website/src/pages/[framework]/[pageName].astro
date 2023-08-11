@@ -1,12 +1,12 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
 import { Header } from '@features/docs/components/Header';
 import { getFrameworkDisplayText } from '@utils/framework';
 import type { Framework } from '@ag-grid-types';
-import { getPagesList } from '@features/docs/utils/filesData';
 import { getDocsPages } from '@features/docs/utils/pageData';
+import { SideNavigation } from '@components/pages-navigation/SideNavigation';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -14,17 +14,17 @@ export async function getStaticPaths() {
 }
 
 const { page } = Astro.props;
-const { framework } = Astro.params;
+const framework = Astro.params.framework as Framework;
+const pageName = Astro.params.pageName as Framework;
 const { title, enterprise, sideMenu = true } = page.data;
 
-const { Content } = await page.render();
+const { Content, headings } = await page.render();
 
-const allDocPages = await getCollection('docs');
-const pages = getPagesList(allDocPages);
+const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title={`${getFrameworkDisplayText(framework as Framework)} Charts: AG Charts`} showTopBar={true}>
-    <PagesNavigation client:load slot="aside" pages={pages} framework={framework!} />
+<Layout title={`${getFrameworkDisplayText(framework)} Charts: AG Charts`} showTopBar={true}>
+    <PagesNavigation client:load slot="aside" menuData={menuEntry.data} framework={framework} pageName={pageName} />
 
     <div id="doc-page-wrapper" class="docPageWrapper">
         <div
@@ -44,7 +44,7 @@ const pages = getPagesList(allDocPages);
             </div>
         </div>
 
-        {sideMenu && <div class="sideMenu">TODO: Side menu</div>}
+        {sideMenu && <SideNavigation client:load title={title} headings={headings} />}
     </div>
 </Layout>
 
@@ -58,6 +58,41 @@ const pages = getPagesList(allDocPages);
 
         @media (min-width: $breakpoint-docs-nav-medium) {
             flex-direction: row;
+        }
+    }
+
+    .pageSections article {
+        > h2 {
+            margin-top: $size-6;
+        }
+
+        > h3,
+        > h4 {
+            margin-top: $size-4;
+        }
+
+        p,
+        > ul,
+        > ol,
+        > table,
+        > pre {
+            font-size: var(--font-size-medium);
+        }
+
+        > h1,
+        > h2,
+        > h3,
+        > h4,
+        > h5,
+        > h6,
+        > p,
+        > ul,
+        > ol,
+        > table,
+        > hr {
+            @media screen and (min-width: $max-page-width) {
+                @include font-size-responsive();
+            }
         }
     }
 </style>
@@ -197,41 +232,6 @@ const pages = getPagesList(allDocPages);
     // Hack to target markdown images and not images within components
     .pageSections > :global(article) > :global(div) *:not([class]) :global(img) {
         max-width: 100%;
-    }
-
-    .pageSections > :global(article) {
-        > h2 {
-            margin-top: $size-6;
-        }
-
-        > h3,
-        > h4 {
-            margin-top: $size-4;
-        }
-
-        p,
-        > ul,
-        > ol,
-        > table,
-        > pre {
-            font-size: var(--font-size-medium);
-        }
-
-        > h1,
-        > h2,
-        > h3,
-        > h4,
-        > h5,
-        > h6,
-        > p,
-        > ul,
-        > ol,
-        > table,
-        > hr {
-            @media screen and (min-width: $max-page-width) {
-                @include font-size-responsive();
-            }
-        }
     }
 
     .sideMenu {

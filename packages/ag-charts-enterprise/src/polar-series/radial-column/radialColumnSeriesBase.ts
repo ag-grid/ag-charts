@@ -175,23 +175,19 @@ export abstract class RadialColumnSeriesBase<
 
         this.animationState = new RadialColumnStateMachine('empty', {
             empty: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateEmptyUpdateReady(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateEmptyUpdateReady(),
                 },
             },
             ready: {
-                on: {
-                    update: {
-                        target: 'ready',
-                        action: () => this.animateReadyUpdate(),
-                    },
-                    resize: {
-                        target: 'ready',
-                        action: () => this.animateReadyResize(),
-                    },
+                update: {
+                    target: 'ready',
+                    action: () => this.animateReadyUpdate(),
+                },
+                resize: {
+                    target: 'ready',
+                    action: () => this.animateReadyResize(),
                 },
             },
         });

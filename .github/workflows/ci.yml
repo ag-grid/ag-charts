@@ -13,6 +13,12 @@ concurrency:
 jobs:
     execute_blt:
         runs-on: ubuntu-latest
+        outputs:
+            nx_base: ${{ steps.nx_config.outputs.base }}
+            build: ${{ steps.build.outcome || '' }}
+            lint: ${{ steps.lint.outcome || '' }}
+            format: ${{ steps.format.outcome || '' }}
+            test_count: ${{ steps.test_count.outputs.test_count }}
         steps:
             - id: init_format
               name: Update Status (format)
@@ -34,13 +40,6 @@ jobs:
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
-                  status: queued
-            - id: init_test
-              name: Update Status (test)
-              uses: LouisBrunner/checks-action@v1.6.1
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: test
                   status: queued
 
             - name: Checkout
@@ -120,82 +119,142 @@ jobs:
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
 
-            - name: Archive gallery thumbnails
-              if: steps.build.outcome == 'success'
-              uses: actions/upload-artifact@v3
-              with:
-                  name: ag-charts-website-gallery-thumbnails
-                  path: dist/packages/ag-charts-website/gallery/examples/
+            - name: Count test targets to run
+              id: test_count
+              run: |
+                  echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
 
-            - name: Update Status - In Progress (test)
-              uses: LouisBrunner/checks-action@v1.6.1
+    test:
+        runs-on: ubuntu-latest
+        needs: execute_blt
+        if: needs.execute_blt.outputs.test_count > 0
+        strategy:
+            matrix:
+                shard: [1, 2, 3, 4]
+        name: test (${{ matrix.shard }}/${{ strategy.job-total }})
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v3
               with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_test.outputs.check_id }}
-                  status: in_progress
+                  fetch-depth: 0
+            - name: Cache node_modules
+              id: cache
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      node_modules/
+                      packages/*/node_modules/
+                  key: node_modules-${{hashFiles('yarn.lock')}}
+                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+            - name: Cache Nx
+              uses: actions/cache@v3
+              with:
+                  path: node_modules/.cache/nx
+                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  restore-keys: |
+                      cache-nx-${{ hashFiles('yarn.lock') }}-
             - name: nx test
               id: test
-              if: steps.build.outcome == 'success'
-              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t test --configuration=ci
-            - name: Update Status (test)
-              uses: LouisBrunner/checks-action@v1.6.1
+              run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+            - name: Perist test results
               if: always()
+              uses: actions/upload-artifact@v3
               with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_test.outputs.check_id }}
-                  conclusion: ${{ steps.test.outcome }}
+                  name: test-results-${{matrix.shard}}
+                  path: |
+                      reports/
+                      packages/**/__diff_output__/*
+
+    report:
+        runs-on: ubuntu-latest
+        needs: [execute_blt, test]
+        if: always()
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/download-artifact@v3
+              with:
+                  path: test-results/
+
+            - name: Merge JUnit Report XMLs
+              run: |
+                  yarn global add junit-report-merger
+                  reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
+                  mkdir -p reports/
+                  echo "$reports" | (while read name ; do
+                    yarn exec -s jrm reports/${name} "test-results/**/${name}"
+                  done)
 
             - name: Test Report
               uses: dorny/test-reporter@v1
-              if: steps.test.outcome == 'success' || steps.test.outcome == 'failure'
+              if: needs.test.result == 'success' || needs.test.result == 'failure'
+              id: testReport
               continue-on-error: true
               with:
-                  name: Tests Results
+                  name: 'Tests Results'
                   path: reports/*.xml
                   reporter: jest-junit
-            - name: Tag Latest Successful Commit
-              if: success() && github.ref == 'refs/heads/latest'
-              uses: EndBug/latest-tag@latest
-              with:
-                  ref: latest-success
-                  description: Latest commit to pass GitHub Actions workflow on latest branch.
+
             - name: Check last job status
               id: lastJobStatus
               if: always() && github.ref == 'refs/heads/latest'
               run: |
-                  LAST_JOB_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
-                  THIS_JOB_STATUS="${{ job.status }}"
-                  if [ "$LAST_JOB_STATUS" != "$THIS_JOB_STATUS" ]; then
-                    echo "status changed from $LAST_JOB_STATUS to $THIS_JOB_STATUS"
+                  WORKFLOW_STATUS="success"
+                  if [[ "${{ needs.execute_blt.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.test.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ steps.testReport.outcome }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  fi
+                  echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
+
+                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
+                  if [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
+                    echo "status changed from $LAST_WORKFLOW_STATUS to $WORKFLOW_STATUS"
                     echo "changedState=true" >> $GITHUB_OUTPUT
                   else
-                    echo "status is still $THIS_JOB_STATUS"
+                    echo "status is still $WORKFLOW_STATUS"
                     echo "changedState=false" >> $GITHUB_OUTPUT
                   fi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Commit History
               id: commits
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
-                  GIT_LOG=$(git log HEAD ^${{ steps.nx_config.outputs.base }} --format="%an (%h) %s")
+                  GIT_LOG=$(git log HEAD ^${{ needs.execute_blt.outputs.nx_base }} --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
+
+            - name: Tag Latest Successful Commit
+              if: success() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus == 'success'
+              uses: EndBug/latest-tag@latest
+              with:
+                  ref: latest-success
+                  description: Latest commit to pass GitHub Actions workflow on latest branch.
+
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_COLOR: ${{ job.status }}
+                  SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus }}
                   SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
                   SLACK_MESSAGE: >
-                      Build: ${{ steps.build.outcome == 'success' && '✅' || steps.build.outcome == 'failure' && '❌' || 'NA' }}
-                      Lint: ${{ steps.lint.outcome == 'success' && '✅' || steps.lint.outcome == 'failure' && '❌' || 'NA' }}
-                      Format: ${{ steps.format.outcome == 'success' && '✅' || steps.format.outcome == 'failure' && '❌' || 'NA' }}
-                      Test: ${{ steps.test.outcome == 'success' && '✅' || steps.test.outcome == 'failure' && '❌' || 'NA' }}
+                      Build: ${{ needs.execute_blt.outputs.build == 'success' && '✅' || needs.execute_blt.outputs.build == 'failure' && '❌' || 'NA' }}
+                      Lint: ${{ needs.execute_blt.outputs.lint == 'success' && '✅' || needs.execute_blt.outputs.lint == 'failure' && '❌' || 'NA' }}
+                      Format: ${{ needs.execute_blt.outputs.format == 'success' && '✅' || needs.execute_blt.outputs.format == 'failure' && '❌' || 'NA' }}
+                      Test: ${{ needs.test.result == 'success' && '✅' || needs.test.result == 'failure' && '❌' || 'NA' }}
 
                       *Changes:*
 

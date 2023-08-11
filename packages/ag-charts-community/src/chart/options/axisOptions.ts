@@ -35,14 +35,14 @@ export interface AgAxisCaptionOptions {
     formatter?: (params: AgAxisCaptionFormatterParams) => string;
 }
 
-export interface AgBaseAxisOptions {
+export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     /** Axis type identifier. */
     type: string;
     keys?: string[];
     /** Configuration for the axis line. */
     line?: AgAxisLineOptions;
     /** Configuration for the axis labels, shown next to the ticks. */
-    label?: AgAxisLabelOptions;
+    label?: LabelType;
     /** Configuration of the lines used to form the grid in the chart area. */
     gridStyle?: AgAxisGridStyle[];
 }
@@ -78,7 +78,7 @@ export interface AgAxisLabelFormatterParams {
     readonly formatter?: (x: any) => string;
 }
 
-export interface AgAxisLabelOptions {
+export interface AgBaseAxisLabelOptions {
     /** Set to false to hide the axis labels. */
     enabled?: boolean;
     /** The font style to use for the labels. */
@@ -95,10 +95,6 @@ export interface AgAxisLabelOptions {
     color?: CssColor;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
     rotation?: number;
-    /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
-    autoRotate?: boolean;
-    /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
-    autoRotateAngle?: number;
     /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */

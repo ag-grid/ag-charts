@@ -33,14 +33,14 @@ const unitTests = tests.map(pathToGlob).filter((path) => !e2eTests.includes(path
 const commonConfig = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
     // extensionsToTreatAsEsm: ['.ts'],
-    testEnvironment: 'jsdom',
+    testEnvironment: '../ag-charts-community/jest.jsdom-with-timezone.cjs',
     setupFiles: ['jest-canvas-mock', './jest.setup.cjs'],
     preset: '../../jest.preset.js',
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
     },
     moduleNameMapper: {
-        'ag-charts-community-test': '../ag-charts-community/src/main-test.ts',
+        'ag-charts-community-test': '<rootDir>/../ag-charts-community/src/main-test.ts',
     },
     // transform: {
     //     '^.+\\.[tj]s$': ['ts-jest', { useESM: true, tsconfig: '<rootDir>/tsconfig.spec.json' }],

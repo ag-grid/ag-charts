@@ -75,14 +75,13 @@ const { chartTypes } = galleryData;
 </Layout>
 
 <script>
+    import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
+
     // Add smooth scrolling for menu anchor links
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth',
-            });
+            smoothScrollIntoView(anchor.getAttribute('href')!);
         });
     });
 </script>
@@ -195,7 +194,7 @@ const { chartTypes } = galleryData;
     }
 
     .content {
-        padding: 0 var(--horizontal-padding);
+        padding: $site-header-height var(--horizontal-padding) 0;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding: 0 var(--horizontal-padding) 0 $size-3;
@@ -210,10 +209,16 @@ const { chartTypes } = galleryData;
         width: 100%;
         margin-bottom: $size-2;
         padding-top: $size-6;
+        scroll-margin-top: -$size-5;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
-            margin-top: $site-header-height * -1;
-            padding-top: calc(#{$site-header-height} * 2 + #{$size-3});
+            scroll-margin-top: $site-header-height * 2 - $size-2;
+        }
+    }
+
+    .chart-type:first-child h2 {
+        @media screen and (min-width: $breakpoint-gallery-small) {
+            padding-top: $size-4;
         }
     }
 
@@ -288,7 +293,7 @@ const { chartTypes } = galleryData;
     .site-header {
         position: fixed !important;
         width: 100%;
-        z-index: 1;
+        z-index: 2;
     }
 
     .contentViewport {

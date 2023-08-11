@@ -1,0 +1,9 @@
+{
+    "executors": {
+        "generate-code-reference-files": {
+            "implementation": "./src/executors/generate-code-reference-files/executor",
+            "schema": "./src/executors/generate-code-reference-files/schema.json",
+            "description": "generate-code-reference-files executor"
+        }
+    }
+}
