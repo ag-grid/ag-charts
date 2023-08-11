@@ -5,13 +5,16 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Range Area',
+        text: 'Average High and Low Temperatures',
+    },
+    subtitle: {
+        text: 'London 2022-2023'
     },
     series: [
         {
             type: 'range-area',
-            xKey: 'date',
-            xName: 'Date',
+            xKey: 'month',
+            xName: 'Month',
             yLowKey: 'low',
             yHighKey: 'high',
         } as any,
