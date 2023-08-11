@@ -300,12 +300,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
 
         const createCoordinates = (xValue: any, yHigh: number, yLow: number): [SizedPathPoint, SizedPathPoint] => {
             const x = xScale.convert(xValue) + xOffset;
-            const yHighCoordinate = yScale.convert(yHigh, { strict: false });
-            const yLowCoordinate = yScale.convert(yLow, { strict: false });
+            const yHighValue = Math.max(yHigh, yLow);
+            const yLowValue = Math.min(yLow, yHigh);
+            const yHighCoordinate = yScale.convert(yHighValue, { strict: false });
+            const yLowCoordinate = yScale.convert(yLowValue, { strict: false });
 
             return [
-                { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, yValue: yHigh },
-                { x, y: yLowCoordinate, size: this.marker.size, itemId: `low`, yValue: yLow },
+                { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, yValue: yHighValue },
+                { x, y: yLowCoordinate, size: this.marker.size, itemId: `low`, yValue: yLowValue },
             ];
         };
 
