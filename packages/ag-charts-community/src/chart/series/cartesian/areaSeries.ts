@@ -54,6 +54,7 @@ import {
     areaAnimateReadyUpdate,
     type AreaPathDatum,
 } from './areaUtil';
+import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
     readonly index: number;
@@ -322,7 +323,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         const context: AreaSeriesNodeDataContext = {
             itemId,
             fillData,
-            labelData: labelData,
+            labelData,
             nodeData: markerData,
             strokeData,
         };
@@ -487,83 +488,45 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: isDatumHighlighted } = opts;
+        const { markerSelection, isHighlight: highlighted } = opts;
         const {
             id: seriesId,
             xKey = '',
+            yKey = '',
             marker,
-            fill: seriesFill,
-            stroke: seriesStroke,
-            fillOpacity: seriesFillOpacity,
-            marker: { fillOpacity: markerFillOpacity = seriesFillOpacity },
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
             strokeOpacity,
-            highlightStyle: {
-                item: {
-                    fill: highlightedFill,
-                    fillOpacity: highlightFillOpacity = markerFillOpacity,
-                    stroke: highlightedStroke,
-                    strokeWidth: highlightedDatumStrokeWidth,
-                },
-            },
+            highlightStyle: { item: markerHighlightStyle },
             visible,
-            ctx: { callbackCache },
+            ctx,
         } = this;
-
-        const { size, formatter } = marker;
-        const markerStrokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
         const customMarker = typeof marker.shape === 'function';
 
         markerSelection.each((node, datum) => {
-            const fill =
-                isDatumHighlighted && highlightedFill !== undefined ? highlightedFill : marker.fill ?? seriesFill;
-            const fillOpacity = isDatumHighlighted ? highlightFillOpacity : markerFillOpacity;
-            const stroke =
-                isDatumHighlighted && highlightedStroke !== undefined
-                    ? highlightedStroke
-                    : marker.stroke ?? seriesStroke;
-            const strokeWidth =
-                isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
-                    ? highlightedDatumStrokeWidth
-                    : markerStrokeWidth;
+            const styles = getMarkerConfig({
+                datum,
+                highlighted,
+                formatter: marker.formatter,
+                markerStyle: marker,
+                seriesStyle: { fill, stroke, strokeWidth, fillOpacity, strokeOpacity },
+                highlightStyle: markerHighlightStyle,
+                seriesId,
+                ctx,
+                xKey,
+                yKey,
+                size: datum.point.size,
+                strokeWidth,
+            });
 
-            let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
-            if (formatter) {
-                format = callbackCache.call(formatter, {
-                    datum: datum.datum,
-                    xKey,
-                    yKey: datum.yKey,
-                    fill,
-                    stroke,
-                    strokeWidth,
-                    size,
-                    highlighted: isDatumHighlighted,
-                    seriesId,
-                });
-            }
-
-            node.fill = format?.fill ?? fill;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.fillOpacity = fillOpacity ?? 1;
-            node.strokeOpacity = marker.strokeOpacity ?? strokeOpacity ?? 1;
-            node.size = format?.size ?? size;
-
-            node.translationX = datum.point.x;
-            node.translationY = datum.point.y;
-            node.visible = node.size > 0 && visible && !isNaN(datum.point.x) && !isNaN(datum.point.y);
-
-            if (!customMarker || node.dirtyPath) {
-                return;
-            }
-
-            // Only for custom marker shapes
-            node.path.clear({ trackChanges: true });
-            node.updatePath();
-            node.checkPathDirty();
+            const config = { ...styles, point: datum.point, visible, customMarker };
+            updateMarker({ node, config });
         });
 
-        if (!isDatumHighlighted) {
+        if (!highlighted) {
             this.marker.markClean();
         }
     }
