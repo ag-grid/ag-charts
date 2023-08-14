@@ -3,14 +3,11 @@ import type {
     AgPieSeriesTooltipRendererParams,
     AgPieSeriesFormat,
     AgTooltipRendererResult,
-} from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-
-import type {
     AgRadarSeriesLabelFormatterParams,
     AgRadarSeriesMarkerFormat,
     AgRadarSeriesMarkerFormatterParams,
-} from './typings';
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
     ChartAxisDirection,

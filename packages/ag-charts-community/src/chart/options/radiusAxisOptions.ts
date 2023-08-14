@@ -1,11 +1,7 @@
-import type {
-    AgBaseAxisOptions,
-    AgAxisCaptionOptions,
-    AgAxisNumberTickOptions,
-    AgBaseCrossLineOptions,
-    AgBaseCrossLineLabelOptions,
-    Ratio,
-} from 'ag-charts-community';
+import type { AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
+import type { AgAxisCaptionOptions, AgBaseAxisOptions } from './axisOptions';
+import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
+import type { Ratio } from './types';
 
 export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     type: 'radius-number';

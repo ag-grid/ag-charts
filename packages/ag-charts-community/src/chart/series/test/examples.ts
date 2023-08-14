@@ -1,4 +1,12 @@
-import type { AgCartesianChartOptions, AgHierarchyChartOptions, AgPolarChartOptions } from '../../agChartOptions';
+import type {
+    AgAreaSeriesOptions,
+    AgCartesianChartOptions,
+    AgHierarchyChartOptions,
+    AgHistogramSeriesOptions,
+    AgLineSeriesOptions,
+    AgPolarChartOptions,
+    AgScatterSeriesOptions,
+} from '../../agChartOptions';
 import { DATA_APPLE_REVENUE_BY_PRODUCT, DATA_BROWSER_MARKET_SHARE } from '../../test/data';
 import {
     DATA_MALE_HEIGHT_WEIGHT,
@@ -9,7 +17,8 @@ import {
 } from './data';
 import { loadExampleOptions } from '../../test/load-example';
 
-const GROUPED_AREA_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('area-with-negative-values');
+const GROUPED_AREA_EXAMPLE: AgCartesianChartOptions & { series: AgAreaSeriesOptions[] } =
+    loadExampleOptions('area-with-negative-values');
 const { axes, ...LINE_WITH_GAPS_EXAMPLE }: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');
 const HISTOGRAM_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('simple-histogram');
 const SCATTER_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('simple-scatter');
@@ -319,13 +328,13 @@ export const STACKED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
 export const GROUPED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
     ...GROUPED_AREA_EXAMPLE,
     series: [
-        ...(GROUPED_AREA_EXAMPLE.series?.slice(0, 3).map((s) => {
+        ...(GROUPED_AREA_EXAMPLE.series?.slice(0, 3).map((s: any) => {
             return {
                 ...s,
                 label: {
                     enabled: true,
                 },
-            };
+            } as AgAreaSeriesOptions;
         }) ?? []),
     ],
 };
@@ -333,13 +342,13 @@ export const GROUPED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
 export const LINE_SERIES_LABELS: AgCartesianChartOptions = {
     ...LINE_WITH_GAPS_EXAMPLE,
     series: [
-        ...(LINE_WITH_GAPS_EXAMPLE.series?.slice(0, 3).map((s) => {
+        ...(LINE_WITH_GAPS_EXAMPLE.series?.slice(0, 3).map((s: any) => {
             return {
                 ...s,
                 label: {
                     enabled: true,
                 },
-            };
+            } as AgLineSeriesOptions;
         }) ?? []),
     ],
 };
@@ -347,13 +356,13 @@ export const LINE_SERIES_LABELS: AgCartesianChartOptions = {
 export const HISTOGRAM_SERIES_LABELS: AgCartesianChartOptions = {
     ...HISTOGRAM_EXAMPLE,
     series: [
-        ...(HISTOGRAM_EXAMPLE.series?.map((s) => {
+        ...(HISTOGRAM_EXAMPLE.series?.map((s: any) => {
             return {
                 ...s,
                 label: {
                     enabled: true,
                 },
-            };
+            } as AgHistogramSeriesOptions;
         }) ?? []),
     ],
 };
@@ -361,14 +370,14 @@ export const HISTOGRAM_SERIES_LABELS: AgCartesianChartOptions = {
 export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ...SCATTER_EXAMPLE,
     series: [
-        ...(SCATTER_EXAMPLE.series?.map((s) => {
+        ...(SCATTER_EXAMPLE.series?.map((s: any) => {
             return {
                 ...s,
                 labelKey: 'team',
                 label: {
                     enabled: true,
                 },
-            };
+            } as AgScatterSeriesOptions;
         }) ?? []),
     ],
 };
@@ -376,7 +385,7 @@ export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
 export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ...GROUPED_LINE_EXAMPLE,
     series: [
-        ...(GROUPED_LINE_EXAMPLE.series?.map((s) => {
+        ...(GROUPED_LINE_EXAMPLE.series?.map((s: any) => {
             return {
                 ...s,
                 type: 'scatter' as const,
@@ -384,7 +393,7 @@ export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
                 label: {
                     enabled: true,
                 },
-            };
+            } as AgScatterSeriesOptions;
         }) ?? []),
     ],
 };
@@ -392,14 +401,14 @@ export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
 export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
     ...BUBBLE_EXAMPLE,
     series: [
-        ...(BUBBLE_EXAMPLE.series?.map((s) => {
+        ...(BUBBLE_EXAMPLE.series?.map((s: any) => {
             return {
                 ...s,
                 labelKey: 'city',
                 label: {
                     enabled: true,
                 },
-            };
+            } as AgScatterSeriesOptions;
         }) ?? []),
     ],
     axes: [

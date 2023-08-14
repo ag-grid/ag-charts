@@ -1,6 +1,6 @@
+import type { AgAngleCategoryAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { AngleCrossLine } from './angleCrossLine';
-import type { AgAngleCategoryAxisLabelOrientation } from './typings';
 
 const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate, predicateWithMessage } =
     _ModuleSupport;

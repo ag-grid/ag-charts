@@ -1,5 +1,5 @@
-import type { CssColor, Opacity } from 'ag-charts-community';
-import type { AgBaseRadarSeriesOptions } from '../radar/typings';
+import type { CssColor, Opacity } from '../../options/types';
+import type { AgBaseRadarSeriesOptions } from './radarOptions';
 
 export interface AgRadarAreaSeriesOptions<DatumType = any> extends AgBaseRadarSeriesOptions<DatumType> {
     type?: 'radar-area';

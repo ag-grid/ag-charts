@@ -1,4 +1,5 @@
 import type {
+  AgPieSeriesOptions,
   AgPolarChartOptions,
   AgPolarSeriesOptions} from "ag-charts-community";
 import {
@@ -11,7 +12,7 @@ const numFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 })
 
-const sharedSeriesOptions: AgPolarSeriesOptions = {
+const sharedSeriesOptions: AgPieSeriesOptions = {
   sectorLabelKey: "share",
   angleKey: "share",
   sectorLabel: {

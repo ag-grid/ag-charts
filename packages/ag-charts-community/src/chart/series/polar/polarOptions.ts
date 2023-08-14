@@ -1,17 +1,36 @@
 import type { AgBaseChartOptions } from '../../agChartOptions';
+import type { AgAnimationOptions } from '../../interaction/animationOptions';
+import type { AgContextMenuOptions } from '../../options/contextOptions';
 import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
 import type { AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
 import type { AgPieSeriesOptions, AgPieSeriesTheme } from './pieOptions';
+import type { AgAngleCategoryAxisOptions } from '../../options/polarAxisOptions';
+import type { AgRadiusNumberAxisOptions } from '../../options/radiusAxisOptions';
+import type { AgRadarLineSeriesOptions } from './radarLineOptions';
+import type { AgRadarAreaSeriesOptions } from './radarAreaOptions';
+import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
+import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
 
-export type AgPolarSeriesOptions<TAddon = never> = AgPieSeriesOptions | TAddon;
+export type AgPolarSeriesOptions =
+    | AgPieSeriesOptions
+    | AgRadarLineSeriesOptions
+    | AgRadarAreaSeriesOptions
+    | AgRadialColumnSeriesOptions
+    | AgNightingaleSeriesOptions;
+export type AgPolarAxisOptions = AgAngleCategoryAxisOptions | AgRadiusNumberAxisOptions;
 
-export interface AgPolarChartOptions<TAddonType = never, TAddonSeries = never> extends AgBaseChartOptions {
+export interface AgPolarChartOptions extends AgBaseChartOptions {
     /** If specified overrides the default series type. */
-    type?: 'pie' | TAddonType;
+    type?: 'pie' | 'radar-line' | 'radar-area' | 'radial-column' | 'nightingale';
     /** Series configurations. */
-    series?: AgPolarSeriesOptions<TAddonSeries>[];
+    series?: AgPolarSeriesOptions[];
     /** Configuration for the chart legend. */
     legend?: AgPolarChartLegendOptions;
+
+    animation?: AgAnimationOptions;
+    contextMenu?: AgContextMenuOptions;
+    /** Axis configurations. */
+    axes?: AgPolarAxisOptions[];
 }
 
 export interface AgPolarThemeOptions<S = AgPolarSeriesTheme> extends AgBaseChartOptions {

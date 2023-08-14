@@ -1,13 +1,12 @@
-import type { AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import { AngleCategoryAxis } from '../../polar-axes/angle-category/angleCategoryAxis';
-
 import type {
-    AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
+    AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
-} from './typings';
+    AgTooltipRendererResult,
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { AngleCategoryAxis } from '../../polar-axes/angle-category/angleCategoryAxis';
 
 const {
     ChartAxisDirection,

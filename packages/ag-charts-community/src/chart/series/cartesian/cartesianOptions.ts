@@ -1,10 +1,12 @@
 import type { AgBaseChartOptions, AgChartLabelOptions } from '../../agChartOptions';
+import type { AgAnimationOptions } from '../../interaction/animationOptions';
 import type {
     AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
     AgBaseAxisOptions,
     AgBaseAxisLabelOptions,
 } from '../../options/axisOptions';
+import type { AgContextMenuOptions } from '../../options/contextOptions';
 import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
@@ -21,15 +23,22 @@ import type { AgBarSeriesOptions, AgColumnSeriesOptions } from './barOptions';
 import type { AgHistogramSeriesOptions } from './histogramOptions';
 import type { AgLineSeriesOptions } from './lineOptions';
 import type { AgScatterSeriesOptions } from './scatterOptions';
+import type { AgZoomOptions } from '../../options/zoomOptions';
+import type { AgCrosshairOptions } from '../../options/crosshairOptions';
+import type { AgHeatmapSeriesOptions } from './heatmapOptions';
+import type { AgWaterfallSeriesOptions } from './waterfallOptions';
+import type { AgRangeBarSeriesOptions } from './rangeBarOptions';
 
-export type AgCartesianSeriesOptions<TAddon = never> =
+export type AgCartesianSeriesOptions =
     | AgLineSeriesOptions
     | AgScatterSeriesOptions
     | AgAreaSeriesOptions
     | AgBarSeriesOptions
     | AgColumnSeriesOptions
     | AgHistogramSeriesOptions
-    | TAddon;
+    | AgHeatmapSeriesOptions
+    | AgWaterfallSeriesOptions
+    | AgRangeBarSeriesOptions;
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions<AgCartesianAxisLabelOptions> {
@@ -41,6 +50,8 @@ export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions<AgCartesia
     thickness?: PixelSize;
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
+    /** Configuration for the axis crosshair. */
+    crosshair?: AgCrosshairOptions;
 }
 
 export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
@@ -50,17 +61,33 @@ export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     autoRotateAngle?: number;
 }
 
-export interface AgCartesianChartOptions<TAddonType = never, TAddonSeries = never> extends AgBaseChartOptions {
+export interface AgCartesianChartOptions extends AgBaseChartOptions {
     /** If specified overrides the default series type. */
-    type?: 'line' | 'bar' | 'column' | 'area' | 'scatter' | 'histogram' | TAddonType;
+    type?:
+        | 'line'
+        | 'bar'
+        | 'column'
+        | 'area'
+        | 'scatter'
+        | 'histogram'
+        | 'heatmap'
+        | 'waterfall-bar'
+        | 'waterfall-column'
+        | 'range-bar'
+        | 'range-column';
     /** Axis configurations. */
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
-    series?: AgCartesianSeriesOptions<TAddonSeries>[];
+    series?: AgCartesianSeriesOptions[];
     /** Configuration for the chart legend. */
     legend?: AgCartesianChartLegendOptions;
     /** Configuration for the chart navigator. */
     navigator?: AgNavigatorOptions;
+
+    animation?: AgAnimationOptions;
+    contextMenu?: AgContextMenuOptions;
+    /** Configuration for zoom. */
+    zoom?: AgZoomOptions;
 }
 
 export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {

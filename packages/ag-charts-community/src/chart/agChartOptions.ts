@@ -1,185 +1,40 @@
-import type { AgBaseChartListeners } from './options/eventOptions';
-import type { AgChartTheme } from './options/themeOptions';
-import type { AgChartTooltipOptions } from './options/tooltipOptions';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextWrap } from './options/types';
 import type { AgCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgPolarChartOptions } from './series/polar/polarOptions';
 
 export * from './options/axisOptions';
+export * from './options/crosshairOptions';
+export * from './options/chartOptions';
 export * from './options/crossLineOptions';
 export * from './options/eventOptions';
 export * from './options/legendOptions';
+export * from './options/polarAxisOptions';
 export * from './options/tooltipOptions';
 export * from './options/themeOptions';
 export * from './options/types';
+export * from './options/zoomOptions';
 export * from './series/seriesOptions';
 export * from './series/cartesian/cartesianOptions';
 export * from './series/cartesian/areaOptions';
 export * from './series/cartesian/barOptions';
 export * from './series/cartesian/lineOptions';
+export * from './series/cartesian/heatmapOptions';
 export * from './series/cartesian/histogramOptions';
+export * from './series/cartesian/rangeBarOptions';
+export * from './series/cartesian/rangeAreaOptions';
 export * from './series/cartesian/scatterOptions';
+export * from './series/cartesian/waterfallOptions';
 export * from './series/hierarchy/hierarchyOptions';
 export * from './series/hierarchy/treemapOptions';
+export * from './series/polar/nightingaleOptions';
 export * from './series/polar/pieOptions';
 export * from './series/polar/polarOptions';
+export * from './series/polar/radarOptions';
+export * from './series/polar/radarLineOptions';
+export * from './series/polar/radarAreaOptions';
+export * from './series/polar/radialColumnOptions';
 
-export interface AgChartPaddingOptions {
-    /** The number of pixels of padding at the top of the chart area. */
-    top?: PixelSize;
-    /** The number of pixels of padding at the right of the chart area. */
-    right?: PixelSize;
-    /** The number of pixels of padding at the bottom of the chart area. */
-    bottom?: PixelSize;
-    /** The number of pixels of padding at the left of the chart area. */
-    left?: PixelSize;
-}
-
-export interface AgSeriesAreaPaddingOptions {
-    /** The number of pixels of padding at the top of the series area. */
-    top?: PixelSize;
-    /** The number of pixels of padding at the right of the series area. */
-    right?: PixelSize;
-    /** The number of pixels of padding at the bottom of the series area. */
-    bottom?: PixelSize;
-    /** The number of pixels of padding at the left of the series area. */
-    left?: PixelSize;
-}
-
-export interface AgChartOverlayOptions {
-    /** Text to render in the overlay. */
-    text?: string;
-    /** A function for generating HTML string for overlay content. */
-    renderer?: () => string;
-}
-
-export interface AgChartOverlaysOptions {
-    /** An overlay to be displayed when there is no data. */
-    noData?: AgChartOverlayOptions;
-}
-
-export interface AgChartLabelOptions {
-    /** Whether or not the labels should be shown. */
-    enabled?: boolean;
-    /** The font style to use for the labels. */
-    fontStyle?: FontStyle;
-    /** The font weight to use for the labels. */
-    fontWeight?: FontWeight;
-    /** The font size in pixels to use for the labels. */
-    fontSize?: FontSize;
-    /** The font family to use for the labels. */
-    fontFamily?: FontFamily;
-    /** The colour to use for the labels. */
-    color?: CssColor;
-}
-
-export interface AgDropShadowOptions {
-    /** Whether or not the shadow is visible. */
-    enabled?: boolean;
-    /** The colour of the shadow. */
-    color?: CssColor;
-    /** The horizontal offset in pixels for the shadow. */
-    xOffset?: PixelSize;
-    /** The vertical offset in pixels for the shadow. */
-    yOffset?: PixelSize;
-    /** The radius of the shadow's blur, given in pixels. */
-    blur?: PixelSize;
-}
-
-export interface AgChartCaptionOptions {
-    /** Whether or not the text should be shown. */
-    enabled?: boolean;
-    /** The text to display. */
-    text?: string;
-    /** The font style to use for the text. */
-    fontStyle?: FontStyle;
-    /** The font weight to use for the text. */
-    fontWeight?: FontWeight;
-    /** The font size in pixels to use for the text. */
-    fontSize?: FontSize;
-    /** The font family to use for the text. */
-    fontFamily?: FontFamily;
-    /** The colour to use for the text. */
-    color?: CssColor;
-    /** Spacing added to help position the text. */
-    spacing?: number;
-    /** Used to constrain the width of the title. */
-    maxWidth?: PixelSize;
-    /** Used to constrain the height of the title. */
-    maxHeight?: PixelSize;
-    /**
-     * Text wrapping strategy for long text.
-     * `'always'` will always wrap text to fit within the `maxWidth`.
-     * `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy `maxWidth`, the text will be truncated.
-     * `'never'` disables text wrapping.
-     */
-    wrapping?: TextWrap;
-}
-export interface AgChartSubtitleOptions extends AgChartCaptionOptions {}
-export interface AgChartFooterOptions extends AgChartCaptionOptions {}
-
-export interface AgChartBackground {
-    /** Whether or not the background should be visible. */
-    visible?: boolean;
-    /** Colour of the chart background. */
-    fill?: CssColor;
-}
-
-type AgChartHighlightRange = 'tooltip' | 'node';
-
-export interface AgChartHighlightOptions {
-    /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
-    range?: AgChartHighlightRange;
-}
-
-/** Configuration common to all charts.  */
-export interface AgBaseChartOptions {
-    /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
-    data?: any[];
-    /** The element to place the rendered chart into.<br/><strong>Important:</strong> make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default). */
-    container?: HTMLElement | null;
-    /** The width of the chart in pixels. */
-    width?: PixelSize;
-    /** The height of the chart in pixels. */
-    height?: PixelSize;
-    /** By default, the chart will resize automatically to fill the container element. Set this to `false` to disable this behaviour. If `width` or `height` are specified, auto-sizing will be active for the other unspecified dimension.<br/><strong>Important:</strong> if this config is set to `true`, make sure to give the chart's `container` element an explicit size, otherwise you will run into a chicken and egg situation where the container expects to size itself according to the content and the chart expects to size itself according to the container. */
-    autoSize?: boolean;
-    /** Configuration for the padding shown around the chart. */
-    padding?: AgChartPaddingOptions;
-    /** Configuration for the padding around the series area. */
-    seriesAreaPadding?: AgSeriesAreaPaddingOptions;
-    /** Configuration for the background shown behind the chart. */
-    background?: AgChartBackground;
-    /** Configuration for the title shown at the top of the chart. */
-    title?: AgChartCaptionOptions;
-    /** Configuration for the subtitle shown beneath the chart title. Note: a subtitle will only be shown if a title is also present. */
-    subtitle?: AgChartSubtitleOptions;
-    /** Configuration for the footnote shown at the bottom of the chart. */
-    footnote?: AgChartFooterOptions;
-    /** Global configuration that applies to all tooltips in the chart. */
-    tooltip?: AgChartTooltipOptions;
-    /** A map of event names to event listeners. */
-    listeners?: AgBaseChartListeners;
-    /** Configuration for the chart highlighting. */
-    highlight?: AgChartHighlightOptions;
-    /** Theme to use for rendering of the chart. Specify an inbuilt theme name, or provide an `AgChartTheme` instance to customise. */
-    theme?: string | AgChartTheme;
-    /** HTML overlays */
-    overlays?: AgChartOverlaysOptions;
-}
-
-export type AgChartOptions<
-    CartesianAddonType = never,
-    CartesianAddonSeries = never,
-    PolarAddonType = never,
-    PolarAddonSeries = never
-> =
-    | AgCartesianChartOptions<CartesianAddonType, CartesianAddonSeries>
-    | AgPolarChartOptions<PolarAddonType, PolarAddonSeries>
-    | AgHierarchyChartOptions;
-
+export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
 export interface AgChartInstance {
     /** Get the `AgChartOptions` representing the current chart configuration. */
     getOptions(): AgChartOptions;
