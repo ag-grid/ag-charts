@@ -208,7 +208,7 @@ a.sectionHeader {
         background-color: var(--white);
         transition: background-color $default-transition-timing;
 
-        .chartTypesNav & {
+        .seriesTypesNav & {
             transform: translate(-0.825em, 0.75em);
         }
     }
@@ -286,7 +286,7 @@ a.sectionHeader {
         margin: 0;
         transform: translate(-0.05em, 0.175em);
 
-        .chartTypesNav & {
+        .seriesTypesNav & {
             transform: translate(-0.05em, 0.475em);
         }
     }

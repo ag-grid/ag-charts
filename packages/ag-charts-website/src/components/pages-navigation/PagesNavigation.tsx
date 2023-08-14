@@ -204,7 +204,7 @@ function MainPagesNavigation({
     );
 }
 
-function ChartPagesNavigation({
+function SeriesPagesNavigation({
     menuData,
     framework,
     activeMenuItem,
@@ -220,7 +220,7 @@ function ChartPagesNavigation({
     const chartsMenuItems = menuData.charts.items;
 
     return (
-        <ul className={classnames('list-style-none', styles.navInner, styles.chartTypesNav)}>
+        <ul className={classnames('list-style-none', styles.navInner, styles.seriesTypesNav)}>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
                 const isActive = menuItem === activeLevel1MenuItem || !activeLevel1MenuItem;
@@ -275,7 +275,7 @@ export function PagesNavigation({
                 activeLevel1MenuItem={activeLevel1MenuItem}
                 setActiveLevel1MenuItem={setActiveLevel1MenuItem}
             />
-            <ChartPagesNavigation
+            <SeriesPagesNavigation
                 menuData={menuData}
                 framework={framework}
                 activeMenuItem={activeMenuItem}
