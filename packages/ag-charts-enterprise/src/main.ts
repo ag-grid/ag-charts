@@ -83,6 +83,14 @@ import {
     AgRangeBarSeriesTooltipRendererParams,
 } from './rangeBar/main';
 
+import {
+    RangeAreaModule,
+    AgRangeAreaSeriesOptions,
+    AgRangeAreaSeriesTooltip,
+    AgRangeAreaSeriesLabelOptions,
+    AgRangeAreaSeriesTooltipRendererParams,
+} from './rangeArea/main';
+
 export * from 'ag-charts-community';
 
 _ModuleSupport.registerModule(AngleCategoryAxisModule);
@@ -101,6 +109,7 @@ _ModuleSupport.registerModule(WaterfallBarModule);
 _ModuleSupport.registerModule(WaterfallColumnModule);
 _ModuleSupport.registerModule(RangeBarModule);
 _ModuleSupport.registerModule(RangeColumnModule);
+_ModuleSupport.registerModule(RangeAreaModule);
 _ModuleSupport.registerModule(ZoomModule);
 
 export { AgCrosshairOptions, AgCrosshairLabel, AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult };
@@ -162,6 +171,13 @@ export {
     AgRangeBarSeriesTooltipRendererParams,
 };
 
+export {
+    AgRangeAreaSeriesOptions,
+    AgRangeAreaSeriesTooltip,
+    AgRangeAreaSeriesLabelOptions,
+    AgRangeAreaSeriesTooltipRendererParams,
+};
+
 declare module 'ag-charts-community' {
     export interface AgCartesianChartOptions {
         animation?: AgAnimationOptions;
@@ -198,8 +214,18 @@ declare module 'ag-charts-community' {
 
 import { LicenseManager } from './license/licenseManager';
 
-type CartesianAddonType = 'heatmap' | 'waterfall-bar' | 'waterfall-column' | 'range-bar' | 'range-column';
-type CartesianAddonSeries = AgHeatmapSeriesOptions | AgWaterfallSeriesOptions | AgRangeBarSeriesOptions;
+type CartesianAddonType =
+    | 'heatmap'
+    | 'waterfall-bar'
+    | 'waterfall-column'
+    | 'range-bar'
+    | 'range-column'
+    | 'range-area';
+type CartesianAddonSeries =
+    | AgHeatmapSeriesOptions
+    | AgWaterfallSeriesOptions
+    | AgRangeBarSeriesOptions
+    | AgRangeAreaSeriesOptions;
 
 type PolarAddonType = 'radar-line' | 'radar-area' | 'radial-column' | 'nightingale';
 type PolarAddonSeries =

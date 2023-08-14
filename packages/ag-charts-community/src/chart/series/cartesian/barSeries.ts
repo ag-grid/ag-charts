@@ -50,7 +50,8 @@ import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import type { RectConfig } from './barUtil';
-import { createLabelData, getRectConfig, updateRect, checkCrisp, updateLabel, calculateStep } from './barUtil';
+import { getRectConfig, updateRect, checkCrisp, calculateStep } from './barUtil';
+import { updateLabel, createLabelData } from './labelUtil';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 

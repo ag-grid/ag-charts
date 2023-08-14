@@ -129,6 +129,31 @@ export function rangedValueProperty<K>(
     };
 }
 
+export function trailingValueProperty<K>(
+    scope: ScopeProvider,
+    propName: K,
+    continuous: boolean,
+    opts = {} as Partial<DatumPropertyDefinition<K>>
+) {
+    const result: DatumPropertyDefinition<K> = {
+        ...valueProperty(scope, propName, continuous, opts),
+        processor: trailingValue(),
+    };
+    return result;
+}
+
+export function trailingValue(): DatumPropertyDefinition<any>['processor'] {
+    return () => {
+        let value = 0;
+
+        return (datum: any) => {
+            const trailingValue = value;
+            value = datum;
+            return trailingValue;
+        };
+    };
+}
+
 export function accumulativeValueProperty<K>(
     scope: ScopeProvider,
     propName: K,

@@ -646,7 +646,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 strokeWidth,
                 highlighted: false,
                 seriesId,
-                itemId: nodeDatum.itemId,
+                itemId,
             });
         }
 
