@@ -51,3 +51,11 @@
         --text-color: var(--ag-grid-orange);
     }
 }
+
+.content {
+    flex-grow: 1;
+
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
