@@ -15,12 +15,6 @@
                 ".vscode/*.json"
             ],
             "options": { "tabWidth": 2 }
-        },
-        {
-            "files": ["*.mdoc"],
-            "options": {
-                "parser": "markdown"
-            }
         }
     ]
 }
