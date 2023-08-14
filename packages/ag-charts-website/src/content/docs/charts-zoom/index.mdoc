@@ -1,5 +1,5 @@
 ---
-title: "Zoom"
+title: 'Zoom'
 enterprise: true
 ---
 
@@ -15,11 +15,11 @@ zoom: {
 
 A user will now be able to use the zooming features as in the following example, including:
 
-- Scroll in and out with the mouse wheel.
-- Click and drag to pan around the zoomed in chart.
-- Click and drag an axis to zoom in or out on only that axis.
-- Double click anywhere to reset the zoom.
-- Click and drag a box to select an area to zoom into (not enabled by default).
+-   Scroll in and out with the mouse wheel.
+-   Click and drag to pan around the zoomed in chart.
+-   Click and drag an axis to zoom in or out on only that axis.
+-   Double click anywhere to reset the zoom.
+-   Click and drag a box to select an area to zoom into (not enabled by default).
 
 {% chartExampleRunner title="Zoom" name="zoom" type="generated" options="{ \"enterprise\": true }" /%}
 
@@ -66,9 +66,9 @@ In the example below, we have series attached to different y-axes.
 
 By default, the chart will zoom while keeping the right side of the x-axis pinned. You can change this pivot point with the `scrollingPivot` property, setting it one of:
 
-- `end` (default), the right or top of the chart when scrolling on the x or y axis respectively,
-- `start`, the left or bottom of the chart when scrolling on the x or y axis respectively,
-- `pointer`, keep the mouse pointer above the same position on the chart when zooming.
+-   `end` (default), the right or top of the chart when scrolling on the x or y axis respectively,
+-   `start`, the left or bottom of the chart when scrolling on the x or y axis respectively,
+-   `pointer`, keep the mouse pointer above the same position on the chart when zooming.
 
 In the example below, we set pivoting to about the pointer.
 
@@ -133,29 +133,29 @@ When both the zoom and context menu are enabled, additional zoom actions are add
 
 ## API Reference
 
-{/*  TODO: replace with usual api reference component  */}
+{/_ TODO: replace with usual api reference component _/}
 
 ```ts
 interface AgCartesianChartOptions {
-  zoom?: AgZoomOptions
+    zoom?: AgZoomOptions;
 }
 
-type AgZoomAxes = "x" | "y" | "xy"
-type AgZoomPanKey = "alt" | "ctrl" | "meta" | "shift"
-type AgZoomScrollingPivot = "pointer" | "start" | "end"
+type AgZoomAxes = 'x' | 'y' | 'xy';
+type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
+type AgZoomScrollingPivot = 'pointer' | 'start' | 'end';
 
 interface AgZoomOptions {
-  axes?: AgZoomAxes
-  enabled?: boolean
-  enablePanning?: boolean
-  enableScrolling?: boolean
-  enableSelecting?: boolean
-  minXRatio?: number
-  minYRatio?: number
-  panKey?: AgZoomPanKey
-  scrollingStep?: number
-  scrollingPivot?: AgZoomScrollingPivot
+    axes?: AgZoomAxes;
+    enabled?: boolean;
+    enablePanning?: boolean;
+    enableScrolling?: boolean;
+    enableSelecting?: boolean;
+    minXRatio?: number;
+    minYRatio?: number;
+    panKey?: AgZoomPanKey;
+    scrollingStep?: number;
+    scrollingPivot?: AgZoomScrollingPivot;
 }
 ```
 
-{/*  <interface-documentation interfaceName="AgZoomOptions" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>  */}
+{/_ <interface-documentation interfaceName="AgZoomOptions" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation> _/}

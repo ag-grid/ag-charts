@@ -1,5 +1,5 @@
 ---
-title: "Bar and Column Series"
+title: 'Bar and Column Series'
 ---
 
 Bar series are commonly used to show values for a discrete set of objects, such as item categories, specific items, or time periods such as years or quarters.
@@ -16,12 +16,12 @@ A minimal `'column'` series config would therefore look like this:
 
 ```js
 series: [
-  {
-    type: "column",
-    xKey: "quarter",
-    yKey: "iphone",
-  },
-]
+    {
+        type: 'column',
+        xKey: 'quarter',
+        yKey: 'iphone',
+    },
+];
 ```
 
 In the snippet above we are using `'iphone'` as the `yKey`, to show revenue per quarter for this product. Using this simple series config produces the following chart:
@@ -35,17 +35,17 @@ by adding more `column`-type series.
 
 ```js
 series: [
-  { type: "column", xKey: "quarter", yKey: "iphone", stacked: true },
-  { type: "column", xKey: "quarter", yKey: "mac", stacked: true },
-  { type: "column", xKey: "quarter", yKey: "ipad", stacked: true },
-  { type: "column", xKey: "quarter", yKey: "wearables", stacked: true },
-  { type: "column", xKey: "quarter", yKey: "services", stacked: true },
-]
+    { type: 'column', xKey: 'quarter', yKey: 'iphone', stacked: true },
+    { type: 'column', xKey: 'quarter', yKey: 'mac', stacked: true },
+    { type: 'column', xKey: 'quarter', yKey: 'ipad', stacked: true },
+    { type: 'column', xKey: 'quarter', yKey: 'wearables', stacked: true },
+    { type: 'column', xKey: 'quarter', yKey: 'services', stacked: true },
+];
 ```
 
 This example demonstrates stacked columns using the `series` configuration above. Additionally:
 
-- We set `yName` on each series to configure the display names to provide tooltip headers and legend entries.
+-   We set `yName` on each series to configure the display names to provide tooltip headers and legend entries.
 
 {% chartExampleRunner title="Stacked Column Series" name="stacked-column" type="generated" /%}
 
@@ -74,7 +74,7 @@ Providing a matching `legendItemName` allows us to create multiple bar series th
 Going back to our [stacked column](#stacked-columns) example, if we wanted to normalize the totals so that each column's segments add up to a certain value, for example 100, we could add the following to our `series` config:
 
 ```js
-normalizedTo: 100
+normalizedTo: 100;
 ```
 
 {% note %}
@@ -88,7 +88,8 @@ It's possible to use any non-zero value to normalize to.
 It's possible to add labels to columns, by adding the following to the series config:
 
 ```js
-label: {}
+label: {
+}
 ```
 
 That's it. The config can be empty like that. However, you might want to customise your labels. For example, by default the values are rounded to two decimal places for the labels, but in the example below even that is too much, so we use a label formatter that simply returns the integer part of the number:
@@ -135,7 +136,9 @@ With this simple change we go from [stacked columns](#stacked-columns) to stacke
 ## API Reference
 
 ### Column Series
+
 <interface-documentation interfaceName="AgColumnSeriesOptions" overridesrc="charts-api/api.json" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>
 
 ### Bar Series
+
 <interface-documentation interfaceName="AgBarSeriesOptions" overridesrc="charts-api/api.json" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>

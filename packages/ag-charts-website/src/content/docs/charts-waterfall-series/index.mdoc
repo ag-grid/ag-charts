@@ -1,5 +1,5 @@
 ---
-title: "Waterfall Series"
+title: 'Waterfall Series'
 enterprise: true
 ---
 
@@ -10,11 +10,13 @@ Waterfall series show how positive and negative data values accumulate, using ba
 To create a basic waterfall column chart, use the `waterfall-column` series type and specify the `xKey` and `yKey` properties:
 
 ```js
-series: [{
-    type: 'waterfall-column',
-    xKey: 'date',
-    yKey: 'amount',
-}]
+series: [
+    {
+        type: 'waterfall-column',
+        xKey: 'date',
+        yKey: 'amount',
+    },
+];
 ```
 
 {% chartExampleRunner title="Basic Waterfall Column" name="basic-waterfall-column" type="generated" options="{ \"enterprise\": true }" /%}
@@ -33,16 +35,20 @@ To add total and subtotal values at a specific position in the chart, add the co
 Use `totalType` in the configuration with values `total` or `subtotal` to determine whether to display a total or subtotal value after the data object at the specified index:
 
 ```js
-series: [{
-    type: 'waterfall-column',
-    xKey: 'date',
-    yKey: 'amount',
-    totals: [{
-        totalType: 'subtotal',
-        index: 4,
-        axisLabel: 'Subtotal 1'
-    }]
-}]
+series: [
+    {
+        type: 'waterfall-column',
+        xKey: 'date',
+        yKey: 'amount',
+        totals: [
+            {
+                totalType: 'subtotal',
+                index: 4,
+                axisLabel: 'Subtotal 1',
+            },
+        ],
+    },
+];
 ```
 
 {% chartExampleRunner title="Waterfall Column Total and Subtotal" name="waterfall-column-total-subtotal" type="generated" options="{ \"enterprise\": true }" /%}
@@ -61,19 +67,21 @@ Total and subtotal values can be customised using the `series.item.total` option
 If the legend is enabled, the `name` property in these configuration objects will be used as the label for the legend item.
 
 ```js
-series: [{
-    type: 'waterfall-column',
-    xKey: 'date',
-    yKey: 'amount',
-    typeKey: 'datumType',
-    item: {
-        total: {
-            name: 'Total / Subtotal',
-            fill: '#EE6666',
-            stroke: '#EE6666',
-        }
+series: [
+    {
+        type: 'waterfall-column',
+        xKey: 'date',
+        yKey: 'amount',
+        typeKey: 'datumType',
+        item: {
+            total: {
+                name: 'Total / Subtotal',
+                fill: '#EE6666',
+                stroke: '#EE6666',
+            },
+        },
     },
-}]
+];
 ```
 
 {% chartExampleRunner title="Waterfall Column Customisation" name="waterfall-column-customisation" type="generated" options="{ \"enterprise\": true }" /%}
@@ -83,16 +91,18 @@ series: [{
 The connector lines can be customised using the `line` property.
 
 ```js
-series: [{
-    type: 'waterfall-column',
-    xKey: 'date',
-    yKey: 'amount',
-    line: {
-        strokeWidth: 4,
-        stroke: '#7290C4',
-        lineDash: [4, 2],
-    }
-}]
+series: [
+    {
+        type: 'waterfall-column',
+        xKey: 'date',
+        yKey: 'amount',
+        line: {
+            strokeWidth: 4,
+            stroke: '#7290C4',
+            lineDash: [4, 2],
+        },
+    },
+];
 ```
 
 {% chartExampleRunner title="Waterfall Column Connector Lines" name="waterfall-column-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
@@ -100,14 +110,16 @@ series: [{
 To remove the connector lines, set `line.enabled` to `false`:
 
 ```js
-series: [{
-    type: 'waterfall-column',
-    xKey: 'date',
-    yKey: 'amount',
-    line: {
-        enabled: false
-    }
-}]
+series: [
+    {
+        type: 'waterfall-column',
+        xKey: 'date',
+        yKey: 'amount',
+        line: {
+            enabled: false,
+        },
+    },
+];
 ```
 
 ## Legend
@@ -121,18 +133,20 @@ The legend item label can be configured using the `name` property in the item co
 To create a basic waterfall bar chart, use the `waterfall-bar` series type and specify the `xKey` and `yKey` properties:
 
 ```js
-series: [{
-    type: 'waterfall-bar',
-    xKey: 'date',
-    yKey: 'amount',
-}]
+series: [
+    {
+        type: 'waterfall-bar',
+        xKey: 'date',
+        yKey: 'amount',
+    },
+];
 ```
 
 {% chartExampleRunner title="Basic Waterfall Bar" name="basic-waterfall-bar" type="generated" options="{ \"enterprise\": true }" /%}
 
 ### API Reference
 
-{/*  TODO: replace with usual api reference component  */}
+{/_ TODO: replace with usual api reference component _/}
 
 ```ts
 /** Configuration for waterfall series. */
@@ -197,7 +211,6 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     highlightStyle?: AgSeriesHighlightStyle;
 }
 
-
 export interface WaterfallSeriesTotalMeta {
     /** Configuration for the calculation of the value. This can be `total` or `subtotal`, `total` shows the cumulative value from `0` to the current data position, while `subtotal` shows the cumulative value from the previous subtotal value to the current position.
      */
@@ -207,7 +220,6 @@ export interface WaterfallSeriesTotalMeta {
     /** The label to display at the axis position where the total value is positioned. */
     axisLabel: any;
 }
-
 
 export interface AgWaterfallSeriesItemOptions<DatumType> {
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -250,3 +262,4 @@ export interface AgWaterfallSeriesLineOptions {
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
 }
+```

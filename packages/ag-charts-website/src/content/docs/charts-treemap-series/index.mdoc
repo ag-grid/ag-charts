@@ -1,5 +1,5 @@
 ---
-title: "Treemap Series"
+title: 'Treemap Series'
 ---
 
 Treemap series is used to render hierarchical data structures or trees, where each node in the
@@ -79,21 +79,23 @@ the same parent have the same area (but not necessarily the same shape).
 The org chart example below takes advantage of that by using the following config:
 
 ```js
-series: [{
-    type: 'treemap',
-    labelKey: 'orgHierarchy',
-    sizeKey: undefined,  // make all siblings within a parent the same size
-    colorKey: undefined, // use node depth value to determine the tile color
-    groupFill: 'black',  // the color of group tiles, retrieved from data if `undefined`
-    colorDomain: [0, 2, 4], // depth of 0 will correspond to 'red', 2 to 'green' and so on
-    colorRange: ['red', 'green', 'blue'], // tiles with a depth of 1 will be a blend of 'red' and 'green'
-    // change the color of a particular tile
-    formatter: ({ datum, labelKey, highlighted }) => {
-        if (datum[labelKey] === 'Joel Cooper') {
-            return { fill: highlighted ? 'white' : 'orchid' };
-        }
+series: [
+    {
+        type: 'treemap',
+        labelKey: 'orgHierarchy',
+        sizeKey: undefined, // make all siblings within a parent the same size
+        colorKey: undefined, // use node depth value to determine the tile color
+        groupFill: 'black', // the color of group tiles, retrieved from data if `undefined`
+        colorDomain: [0, 2, 4], // depth of 0 will correspond to 'red', 2 to 'green' and so on
+        colorRange: ['red', 'green', 'blue'], // tiles with a depth of 1 will be a blend of 'red' and 'green'
+        // change the color of a particular tile
+        formatter: ({ datum, labelKey, highlighted }) => {
+            if (datum[labelKey] === 'Joel Cooper') {
+                return { fill: highlighted ? 'white' : 'orchid' };
+            }
+        },
     },
-}]
+];
 ```
 
 ## Organizational Chart Example
@@ -110,16 +112,17 @@ If treemap data nodes have fill colours assigned to them,
 the property containing the colour should be specified in `colorKey`.
 
 ```js
-series: [{
-    type: 'treemap',
-    colorKey: 'color',
-    data: [{
-        children: [
-            { color: 'red' },
-            { color: '#fa5310' },
+series: [
+    {
+        type: 'treemap',
+        colorKey: 'color',
+        data: [
+            {
+                children: [{ color: 'red' }, { color: '#fa5310' }],
+            },
         ],
-    }],
-}]
+    },
+];
 ```
 
 ### Using the color scale
@@ -128,26 +131,27 @@ series: [{
 In this case the `colorDomain` and `colorRange` should be provided.
 
 ```js
-series: [{
-    type: 'treemap',
-    colorKey: 'color',
-    colorDomain: [0, 10, 20],
-    colorRange: ['red', 'yellow', 'green'],
-    data: [{
-        children: [
-            { color: 5 },
-            { color: 8 },
-            { color: 12 },
+series: [
+    {
+        type: 'treemap',
+        colorKey: 'color',
+        colorDomain: [0, 10, 20],
+        colorRange: ['red', 'yellow', 'green'],
+        data: [
+            {
+                children: [{ color: 5 }, { color: 8 }, { color: 12 }],
+            },
         ],
-    }],
-}]
+    },
+];
 ```
 
 ### Groups colours
 
 The groups can be coloured in 2 ways:
-- A static colour value can be specified in `groupFill` property.
-- If `groupFill` can be set to `undefined`, the group colour behaviour will match the one for tiles.
+
+-   A static colour value can be specified in `groupFill` property.
+-   If `groupFill` can be set to `undefined`, the group colour behaviour will match the one for tiles.
 
 ```js
 series: [{
@@ -172,13 +176,15 @@ series: [{
 There are several properties to control the tiles' and groups' stroke colors and widths.
 
 ```js
-series: [{
-    type: 'treemap',
-    tileStroke: 'black',
-    tileStrokeWidth: 2,
-    groupStroke: 'transparent',
-    groupStrokeWidth: 0,
-}]
+series: [
+    {
+        type: 'treemap',
+        tileStroke: 'black',
+        tileStrokeWidth: 2,
+        groupStroke: 'transparent',
+        groupStrokeWidth: 0,
+    },
+];
 ```
 
 ### Labels colours and font styles
@@ -189,44 +195,48 @@ Tiles can also have separate `value` labels.
 The styles for all of them can be specified like:
 
 ```js
-series: [{
-    type: 'treemap',
-    labels: {
-        large: {
-            color: 'black',
-            fontWeight: 'bold',
-        },
-        medium: {
-            color: 'black',
-        },
-        small: {
-            color: 'gray',
-            fontSize: 8,
-        },
-        value: {
-            formatter: ({ datum }) => `${datum.size * 100}%`,
-            style: {
-                color: 'orange',
+series: [
+    {
+        type: 'treemap',
+        labels: {
+            large: {
+                color: 'black',
+                fontWeight: 'bold',
+            },
+            medium: {
+                color: 'black',
+            },
+            small: {
+                color: 'gray',
+                fontSize: 8,
+            },
+            value: {
+                formatter: ({ datum }) => `${datum.size * 100}%`,
+                style: {
+                    color: 'orange',
+                },
             },
         },
     },
-}]
+];
 ```
 
 In addition the groups' titles can have their own styles:
 
 ```js
-series: [{
-    type: 'treemap',
-    title: {
-        color: 'black',
-        fontWeight: 'bold',
+series: [
+    {
+        type: 'treemap',
+        title: {
+            color: 'black',
+            fontWeight: 'bold',
+        },
+        subtitle: {
+            color: 'black',
+            fontSize: 8,
+        },
     },
-    subtitle: {
-        color: 'black',
-        fontSize: 8,
-    },
-}]
+];
 ```
 
 ### Overriding the styles for particular tiles
@@ -234,13 +244,15 @@ series: [{
 Use `formatter` function to change a colour for specific tiles.
 
 ```js
-series: [{
-    formatter: ({ datum, depth, labelKey, highlighted }) => {
-        if (datum[labelKey] === 'Joel Cooper') {
-            return { fill: highlighted ? 'white' : 'orchid' };
-        }
+series: [
+    {
+        formatter: ({ datum, depth, labelKey, highlighted }) => {
+            if (datum[labelKey] === 'Joel Cooper') {
+                return { fill: highlighted ? 'white' : 'orchid' };
+            }
+        },
     },
-}]
+];
 ```
 
 Please see the API reference for more information.
@@ -253,18 +265,20 @@ Please see the API reference for more information.
 
 With no `tooltip` or `series[].tooltip` configuration, tooltip content will be taken from series
 values:
-- `series[].labelKey` will be displayed as tooltip title.
-- `series[].labels.value.name` will be displayed as tooltip content.
-- `series[].labels.value.key` will be displayed as additional tooltip content with a `: ` prefix to separate it from the previous content.
-- `series[].labels.value.formatter` allows formatting of the additional tooltip content.
+
+-   `series[].labelKey` will be displayed as tooltip title.
+-   `series[].labels.value.name` will be displayed as tooltip content.
+-   `series[].labels.value.key` will be displayed as additional tooltip content with a `: ` prefix to separate it from the previous content.
+-   `series[].labels.value.formatter` allows formatting of the additional tooltip content.
 
 For more advanced configuration see the [Tooltips](../tooltips/) section.
 
 ## Padding
 
 There are some properties to control the spacing of treemap tiles:
-- `nodeGap` controls the gap between the treemap tiles. This is the space between the sibling tiles within their parent.
-- `nodePadding` controls the padding of the inner content of treemap tiles. This is the space between the border of each tile and the contained labels and tiles.
+
+-   `nodeGap` controls the gap between the treemap tiles. This is the space between the sibling tiles within their parent.
+-   `nodePadding` controls the padding of the inner content of treemap tiles. This is the space between the border of each tile and the contained labels and tiles.
 
 ```js
 series: [{

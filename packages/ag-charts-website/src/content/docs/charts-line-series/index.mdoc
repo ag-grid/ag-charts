@@ -1,5 +1,5 @@
 ---
-title: "Line Series"
+title: 'Line Series'
 ---
 
 The Line series is a good choice when you need to spot a trend, render large amounts of data or create a real-time chart. Line series is also the preferred choice for rendering continuous data with irregular intervals or incomplete data that has some values missing.
@@ -11,11 +11,13 @@ Since the `'line'` series type is so common, it doesn't have to be specified exp
 The simplest line series config therefore only requires two properties, `xKey` and `yKey`:
 
 ```js
-series: [{
-    // type: 'line' -- assumed
-    xKey: 'year',
-    yKey: 'spending'
-}]
+series: [
+    {
+        // type: 'line' -- assumed
+        xKey: 'year',
+        yKey: 'spending',
+    },
+];
 ```
 
 {% chartExampleRunner title="Single Line Series" name="basic-line" type="generated" /%}
@@ -61,13 +63,13 @@ To create multiple line series we need to provide two config objects in the `ser
 series: [
     {
         xKey: 'quarter',
-        yKey: 'petrol'
+        yKey: 'petrol',
     },
     {
         xKey: 'quarter',
-        yKey: 'diesel'
-    }
-]
+        yKey: 'diesel',
+    },
+];
 ```
 
 And we get a result like this:
@@ -83,14 +85,14 @@ series: [
     {
         xKey: 'quarter',
         yKey: 'petrol',
-        yName: 'Petrol'
+        yName: 'Petrol',
     },
     {
         xKey: 'quarter',
         yKey: 'diesel',
-        yName: 'Diesel'
-    }
-]
+        yName: 'Diesel',
+    },
+];
 ```
 
 {% chartExampleRunner title="Legend and Tooltip Information" name="legend-info" type="generated" /%}

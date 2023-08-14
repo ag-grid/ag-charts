@@ -1,5 +1,5 @@
 ---
-title: "Scatter Series"
+title: 'Scatter Series'
 ---
 
 Scatter charts use two axes to plot `(x,y)` pairs of numeric variables as points at the intersection of `x` and `y`.
@@ -15,11 +15,13 @@ Scatter plots are great for identifying the relationship between plotted values,
 To create a simple scatter chart we need to use series type `'scatter'`. We also have to provide the `xKey` and `yKey` properties. A minimal `'scatter'` series config would therefore look like this:
 
 ```js
-series: [{
-    type: 'scatter',
-    xKey: 'time',
-    yKey: 'mm',
-}]
+series: [
+    {
+        type: 'scatter',
+        xKey: 'time',
+        yKey: 'mm',
+    },
+];
 ```
 
 Using this simple series config, we can produce the following chart which plots the mean sea level measured over a few years. The measurements may have a certain degree of variability and error to them, but the overall trend is clear &mdash; the sea level is rising.
@@ -52,8 +54,9 @@ So for example, if the `sizeKey` data ranges from `-100` to `200`, the above con
 Finally, the bubble chart is so called because the circle is the most common marker `shape` used for this kind of scatter plot, but with AG Charts any other marker `shape` can be used as well.
 
 The example below uses both `'circle'` and `'square'` markers to represent the age of females and males respectively.
-- We provide the names of all keys (`xName`, `yName` and `sizeName`) to get nice looking tooltips.
-- The series `title` is also provided which is reflected in the legend and displayed as the title in the tooltips.
+
+-   We provide the names of all keys (`xName`, `yName` and `sizeName`) to get nice looking tooltips.
+-   The series `title` is also provided which is reflected in the legend and displayed as the title in the tooltips.
 
 {% chartExampleRunner title="Bubble Chart" name="bubble-chart" type="generated" /%}
 
@@ -62,8 +65,8 @@ The example below uses both `'circle'` and `'square'` markers to represent the a
 Scatter series can be configured to use labels. Unlike other series types where a label is placed
 for every data point, scatter series label placement is constrained so that:
 
-- labels don't overlap any markers
-- labels don't overlap other labels
+-   labels don't overlap any markers
+-   labels don't overlap other labels
 
 If these constraints are not satisfied, a label is not placed.
 

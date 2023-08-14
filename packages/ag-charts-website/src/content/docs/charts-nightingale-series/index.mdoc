@@ -1,9 +1,9 @@
 ---
-title: "Nightingale Series"
+title: 'Nightingale Series'
 enterprise: true
 ---
 
-**Nightingale** series (also known as *Rose chart*, *Wind Rose*, *Polar area*, *Coxcomb chart*) represents a dataset in the form of a polar area diagram.
+**Nightingale** series (also known as _Rose chart_, _Wind Rose_, _Polar area_, _Coxcomb chart_) represents a dataset in the form of a polar area diagram.
 
 ## Single Series
 
@@ -12,11 +12,13 @@ To create a basic Nightingale chart, use a data array where each item has one ca
 A minimal Nightingale series configuration will look like:
 
 ```js
-series: [{
-    type: 'nightingale',
-    angleKey: 'product',
-    radiusKey: 'sales',
-}]
+series: [
+    {
+        type: 'nightingale',
+        angleKey: 'product',
+        radiusKey: 'sales',
+    },
+];
 ```
 
 {% chartExampleRunner title="Basic Nightingale Chart" name="basic-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
@@ -44,7 +46,7 @@ series: [
 
 ## Grouped Nightingale
 
-In a grouped Nightingale series, sectors are placed next to each other. This behaviour is controlled by the `grouped: true` property.  The following example illustrates a grouped Nightingale chart:
+In a grouped Nightingale series, sectors are placed next to each other. This behaviour is controlled by the `grouped: true` property. The following example illustrates a grouped Nightingale chart:
 
 ```js
 series: [
@@ -69,8 +71,8 @@ series: [
 
 It's possible to set a padding between elements in a polar chart's `angle` axis by using two options:
 
-- `paddingInner` controls the padding between column groups.
-- `groupPaddingInner` controls the padding between columns within a group.
+-   `paddingInner` controls the padding between column groups.
+-   `groupPaddingInner` controls the padding between columns within a group.
 
 ```js
 axes: [
@@ -82,7 +84,7 @@ axes: [
     {
         type: 'radius-number',
     },
-]
+];
 ```
 
 {% chartExampleRunner title="Nightingale Sector Padding" name="nightingale-padding" type="generated" options="{ \"enterprise\": true }" /%}
@@ -96,9 +98,9 @@ axes: [
     },
     {
         type: 'radius-number',
-        innerRadiusRatio: 0.5
+        innerRadiusRatio: 0.5,
     },
-]
+];
 ```
 
 {% chartExampleRunner title="Nightingale Hole in the Middle" name="nightingale-hole" type="generated" options="{ \"enterprise\": true }" /%}
@@ -107,7 +109,7 @@ Please see the API reference for more polar axes style options.
 
 ### API Reference
 
-{/*  TODO: replace with usual api reference component  */}
+{/_ TODO: replace with usual api reference component _/}
 
 ```ts
 /** Configuration for Nightingale series. */

@@ -1,5 +1,5 @@
 ---
-title: "Range Area Series"
+title: 'Range Area Series'
 enterprise: true
 ---
 
@@ -10,16 +10,17 @@ A Range Area series shows an area between high and low data values. It's used to
 To create a basic Range Area chart, use the `range-area` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
 
 ```js
-series: [{
-    type: 'range-area',
-    xKey: 'date',
-    yLowKey: 'low',
-    yHighKey: 'high'
-}]
+series: [
+    {
+        type: 'range-area',
+        xKey: 'date',
+        yLowKey: 'low',
+        yHighKey: 'high',
+    },
+];
 ```
 
 {% chartExampleRunner title="Basic Range Area" name="basic-range-area" type="generated" options="{ \"enterprise\": true }" /%}
-
 
 ```ts
 export interface AgRangeAreaSeriesTooltipRendererParams
@@ -105,3 +106,4 @@ export interface AgRangeAreaSeriesMarker<DatumType> extends AgSeriesMarker {
     /** Function used to return formatting for individual RangeArea series markers, based on the given parameters. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgRangeAreaSeriesMarkerFormatterParams<DatumType>) => AgRangeAreaSeriesFormat;
 }
+```

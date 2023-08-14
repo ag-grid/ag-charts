@@ -1,5 +1,5 @@
 ---
-title: "Heatmap Series"
+title: 'Heatmap Series'
 enterprise: true
 ---
 
@@ -14,19 +14,21 @@ To plot a basic heatmap we need an array of data, where every item will have 2 c
 A minimal heatmap series configuration will look like:
 
 ```js
-series: [{
-    type: 'heatmap',
-    xKey: 'month',
-    yKey: 'year',
-    colorKey: 'temperature',
-}]
+series: [
+    {
+        type: 'heatmap',
+        xKey: 'month',
+        yKey: 'year',
+        colorKey: 'temperature',
+    },
+];
 ```
 
-{% chartExampleRunner title="Basic Heatmap" name="basic-heatmap" type="generated" options="{ \"enterprise\": true }" /%} 
+{% chartExampleRunner title="Basic Heatmap" name="basic-heatmap" type="generated" options="{ \"enterprise\": true }" /%}
 
 ### API Reference
 
-{/*  TODO: replace with usual api reference component  */}
+{/_ TODO: replace with usual api reference component _/}
 
 ```ts
 /** Configuration for heatmap series. */
