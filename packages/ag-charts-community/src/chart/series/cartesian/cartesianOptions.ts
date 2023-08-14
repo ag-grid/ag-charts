@@ -289,7 +289,7 @@ export interface AgCartesianSeriesLabelFormatterParams {
     /** The ID of the series. */
     readonly seriesId: string;
     /** The value of yKey as specified on series options. */
-    readonly value: number;
+    readonly value: any;
 }
 
 export interface AgCartesianSeriesLabelOptions extends AgChartLabelOptions {

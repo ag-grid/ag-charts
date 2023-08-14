@@ -12,7 +12,7 @@ export interface AgRangeAreaSeriesMarkerFormatterParams<DatumType> {
     readonly size: number;
     readonly fill?: CssColor;
     readonly stroke?: CssColor;
-    readonly strokeWidth?: PixelSize;
+    readonly strokeWidth: PixelSize;
     readonly highlighted: boolean;
     readonly xKey: string;
     readonly yLowKey: string;
