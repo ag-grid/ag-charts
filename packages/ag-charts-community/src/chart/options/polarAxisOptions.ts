@@ -1,9 +1,6 @@
-import type {
-    AgBaseAxisOptions,
-    AgAxisCategoryTickOptions,
-    AgBaseCrossLineOptions,
-    AgBaseAxisLabelOptions,
-} from 'ag-charts-community';
+import type { AgAxisCategoryTickOptions } from '../series/cartesian/cartesianOptions';
+import type { AgBaseAxisLabelOptions, AgBaseAxisOptions } from './axisOptions';
+import type { AgBaseCrossLineOptions } from './crossLineOptions';
 
 export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleCategoryAxisLabelOptions> {
     type: 'angle-category';

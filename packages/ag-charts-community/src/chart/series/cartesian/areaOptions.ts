@@ -1,4 +1,4 @@
-import type { AgDropShadowOptions } from '../../agChartOptions';
+import type { AgDropShadowOptions } from '../../options/chartOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';

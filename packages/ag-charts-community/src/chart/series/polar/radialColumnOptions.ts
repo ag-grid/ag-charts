@@ -1,14 +1,12 @@
+import type { AgChartLabelOptions } from '../../options/chartOptions';
+import type { AgSeriesListeners } from '../../options/eventOptions';
 import type {
-    AgBaseSeriesOptions,
-    AgChartLabelOptions,
-    AgSeriesListeners,
     AgSeriesTooltip,
     AgSeriesTooltipRendererParams,
     AgTooltipRendererResult,
-    CssColor,
-    Opacity,
-    PixelSize,
-} from 'ag-charts-community';
+} from '../../options/tooltipOptions';
+import type { CssColor, Opacity, PixelSize } from '../../options/types';
+import type { AgBaseSeriesOptions } from '../seriesOptions';
 
 /** Base configuration for Radial Column series. */
 export interface AgBaseRadialColumnSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {

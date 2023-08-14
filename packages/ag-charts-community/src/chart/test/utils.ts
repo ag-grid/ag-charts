@@ -35,7 +35,7 @@ export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filte
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
-export function prepareTestOptions<T extends AgChartOptions<any, any>>(options: T, container = document.body) {
+export function prepareTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
     options.autoSize = false;
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;

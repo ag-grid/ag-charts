@@ -1,16 +1,12 @@
+import type { AgChartLabelOptions } from '../../options/chartOptions';
+import type { AgSeriesListeners } from '../../options/eventOptions';
 import type {
-    AgBaseSeriesOptions,
-    AgChartLabelOptions,
-    AgSeriesListeners,
-    AgSeriesMarker,
-    AgSeriesMarkerFormatterParams,
     AgSeriesTooltip,
     AgSeriesTooltipRendererParams,
     AgTooltipRendererResult,
-    CssColor,
-    Opacity,
-    PixelSize,
-} from 'ag-charts-community';
+} from '../../options/tooltipOptions';
+import type { CssColor, Opacity, PixelSize } from '../../options/types';
+import type { AgBaseSeriesOptions, AgSeriesMarker, AgSeriesMarkerFormatterParams } from '../seriesOptions';
 
 export interface AgBaseRadarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     type?: 'radar-line' | 'radar-area';

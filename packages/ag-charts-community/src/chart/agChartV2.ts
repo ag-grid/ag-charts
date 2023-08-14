@@ -1,30 +1,11 @@
-import type {
-    AgChartOptions,
-    AgLineSeriesOptions,
-    AgBarSeriesOptions,
-    AgAreaSeriesOptions,
-    AgScatterSeriesOptions,
-    AgHistogramSeriesOptions,
-    AgPieSeriesOptions,
-    AgTreemapSeriesOptions,
-    AgChartInstance,
-    AgBaseAxisOptions,
-    AgColumnSeriesOptions,
-} from './agChartOptions';
+import type { AgChartOptions, AgChartInstance, AgBaseAxisOptions, AgBaseSeriesOptions } from './agChartOptions';
 import { CartesianChart } from './cartesianChart';
 import { PolarChart } from './polarChart';
 import { HierarchyChart } from './hierarchyChart';
 import type { Series } from './series/series';
 import { getAxis } from './factory/axisTypes';
 import { getSeries } from './factory/seriesTypes';
-import type { AreaSeries } from './series/cartesian/areaSeries';
-import type { BarSeries, ColumnSeries } from './series/cartesian/barSeries';
-import type { HistogramSeries } from './series/cartesian/histogramSeries';
-import type { LineSeries } from './series/cartesian/lineSeries';
-import type { ScatterSeries } from './series/cartesian/scatterSeries';
-import type { PieSeries } from './series/polar/pieSeries';
 import { PieTitle } from './series/polar/pieSeries';
-import type { TreemapSeries } from './series/hierarchy/treemapSeries';
 import type { ChartAxis } from './chartAxis';
 import type { Chart, SpecialOverrides } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
@@ -47,24 +28,6 @@ import { getJsonApplyOptions } from './chartOptions';
 // Deliberately imported via `module-support` so that internal module registration happens.
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
-
-type SeriesOptionType<T extends Series> = T extends LineSeries
-    ? AgLineSeriesOptions
-    : T extends BarSeries
-    ? AgBarSeriesOptions
-    : T extends ColumnSeries
-    ? AgColumnSeriesOptions
-    : T extends AreaSeries
-    ? AgAreaSeriesOptions
-    : T extends ScatterSeries
-    ? AgScatterSeriesOptions
-    : T extends HistogramSeries
-    ? AgHistogramSeriesOptions
-    : T extends PieSeries
-    ? AgPieSeriesOptions
-    : T extends TreemapSeries
-    ? AgTreemapSeriesOptions
-    : never;
 
 export interface DownloadOptions extends ImageDataUrlOptions {
     /** Name of downloaded image file. Defaults to `image`.  */
@@ -228,8 +191,8 @@ abstract class AgChartInternal {
 
         const { overrideDevicePixelRatio, document, window } = userOptions;
         delete userOptions['overrideDevicePixelRatio'];
-        delete userOptions['document'];
-        delete userOptions['window'];
+        delete (userOptions as any)['document'];
+        delete (userOptions as any)['window'];
         const specialOverrides = { overrideDevicePixelRatio, document, window };
 
         const processedOptions = prepareOptions(userOptions, mixinOpts);
@@ -636,7 +599,7 @@ function applyOptionValues<T extends object, S>(
 
 function applySeriesValues(
     target: Series<any>,
-    options?: SeriesOptionType<any>,
+    options?: AgBaseSeriesOptions<any>,
     { path, index }: { path?: string; index?: number } = {}
 ): Series<any> {
     const skip: string[] = ['series[].listeners', 'series[].seriesGrouping'];

@@ -1,11 +1,11 @@
-import type { AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type { GradientLegendDatum } from '../gradient-legend/gradientLegendDatum';
 import type {
     AgHeatmapSeriesFormat,
-    AgHeatmapSeriesTooltipRendererParams,
     AgHeatmapSeriesFormatterParams,
-} from './typings';
+    AgHeatmapSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import type { GradientLegendDatum } from '../gradient-legend/gradientLegendDatum';
 
 const {
     Validate,

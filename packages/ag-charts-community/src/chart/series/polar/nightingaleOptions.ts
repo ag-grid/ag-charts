@@ -1,11 +1,12 @@
-import type { AgChartLabelOptions, AgSeriesTooltip, AgTooltipRendererResult } from 'ag-charts-community';
+import type { AgChartLabelOptions } from '../../options/chartOptions';
+import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
     AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
-} from '../radial-column/typings';
+} from './radialColumnOptions';
 
 /** Configuration for Nightingale series. */
 export interface AgNightingaleSeriesOptions<DatumType = any> extends AgBaseRadialColumnSeriesOptions<DatumType> {

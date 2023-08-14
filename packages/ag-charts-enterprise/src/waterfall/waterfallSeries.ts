@@ -1,11 +1,12 @@
-import type { AgCartesianSeriesLabelFormatterParams, AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import type {
+    AgCartesianSeriesLabelFormatterParams,
+    AgTooltipRendererResult,
     AgWaterfallSeriesFormat,
-    AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesFormatterParams,
+    AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesTooltipRendererParams,
-} from './typings';
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
