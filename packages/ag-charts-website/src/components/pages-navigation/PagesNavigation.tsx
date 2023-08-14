@@ -223,7 +223,7 @@ function ChartPagesNavigation({
         <ul className={classnames('list-style-none', styles.navInner, styles.chartTypesNav)}>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
-                const isActive = menuItem === activeLevel1MenuItem;
+                const isActive = menuItem === activeLevel1MenuItem || !activeLevel1MenuItem;
 
                 const toggleActive = () => {
                     setActiveLevel1MenuItem(isActive ? undefined : menuItem);
