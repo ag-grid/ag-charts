@@ -21,6 +21,7 @@ export * from './series/cartesian/lineOptions';
 export * from './series/cartesian/heatmapOptions';
 export * from './series/cartesian/histogramOptions';
 export * from './series/cartesian/rangeBarOptions';
+export * from './series/cartesian/rangeAreaOptions';
 export * from './series/cartesian/scatterOptions';
 export * from './series/cartesian/waterfallOptions';
 export * from './series/hierarchy/hierarchyOptions';

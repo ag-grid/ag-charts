@@ -1,17 +1,9 @@
-import type {
-    AgBaseSeriesOptions,
-    AgSeriesListeners,
-    AgSeriesHighlightStyle,
-    AgSeriesTooltip,
-    AgCartesianSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    AgCartesianSeriesLabelOptions,
-    AgSeriesMarker,
-    CssColor,
-    PixelSize,
-    Opacity,
-    AgDropShadowOptions,
-} from 'ag-charts-community';
+import type { AgDropShadowOptions } from '../../options/chartOptions';
+import type { AgSeriesListeners } from '../../options/eventOptions';
+import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { CssColor, Opacity, PixelSize } from '../../options/types';
+import type { AgBaseSeriesOptions, AgSeriesHighlightStyle, AgSeriesMarker } from '../seriesOptions';
+import type { AgCartesianSeriesLabelOptions, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
 
 export interface AgRangeAreaSeriesMarkerFormatterParams<DatumType> {
     readonly datum: DatumType;

@@ -2,13 +2,11 @@ import type {
     AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
-} from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type {
-    AgRangeAreaSeriesTooltipRendererParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
-} from './typings';
+    AgRangeAreaSeriesTooltipRendererParams,
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
