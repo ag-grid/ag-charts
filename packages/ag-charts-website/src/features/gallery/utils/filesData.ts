@@ -36,10 +36,10 @@ export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
     return new URL(sourceExamplesPath, import.meta.url);
 };
 
-export const getChartTypeName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
-    const { chartTypes } = galleryData;
+export const getSeriesTypeName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
+    const { series } = galleryData;
 
-    const foundChartType = chartTypes.find(({ examples }) => {
+    const foundseries = series.find(({ examples }) => {
         const foundExample = examples.find(({ example }) => {
             return example === exampleName;
         });
@@ -47,13 +47,13 @@ export const getChartTypeName = ({ galleryData, exampleName }: { galleryData: Ga
         return Boolean(foundExample);
     });
 
-    return foundChartType?.name;
+    return foundseries?.name;
 };
 
 export const getExampleName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
-    const { chartTypes } = galleryData;
+    const { series } = galleryData;
     let result;
-    chartTypes.forEach(({ examples }) => {
+    series.forEach(({ examples }) => {
         const foundExample = examples.find(({ example }) => {
             return example === exampleName;
         });
@@ -73,11 +73,11 @@ export const getChartExampleTitle = ({
     galleryData: GalleryData;
     exampleName: string;
 }) => {
-    const chartTypeName = getChartTypeName({
+    const chartSeriesName = getSeriesTypeName({
         galleryData,
         exampleName,
     });
-    const pageName = `${chartTypeName} Chart`;
+    const pageName = `${chartSeriesName} Chart`;
     const displayExampleName = getExampleName({
         galleryData,
         exampleName,
@@ -87,13 +87,13 @@ export const getChartExampleTitle = ({
 };
 
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
-    const { chartTypes } = galleryData;
+    const { series } = galleryData;
 
-    const allExamples = chartTypes.map((chartType) => chartType.examples).flat();
+    const allExamples = series.map((series) => series.examples).flat();
 
-    const galleryExamples = chartTypes
-        .map((chartType) => {
-            const { examples } = chartType;
+    const galleryExamples = series
+        .map((series) => {
+            const { examples } = series;
             return examples.map((example) => {
                 const exampleIndex = allExamples.findIndex((item) => item.name === example.name);
 
@@ -101,11 +101,11 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
                     exampleName: example.name,
                     page: {
                         ...example,
-                        chartTypeTitle: chartType.title,
-                        chartTypeName: chartType.name,
-                        docsUrl: getPageHashUrl({ chartTypeName: chartType.name }),
-                        icon: chartType.icon,
-                        enterprise: chartType.enterprise,
+                        seriesTitle: series.title,
+                        chartSeriesName: series.name,
+                        docsUrl: getPageHashUrl({ chartSeriesName: series.name }),
+                        icon: series.icon,
+                        enterprise: series.enterprise,
                     },
                     prevExample: exampleIndex > 0 ? allExamples[exampleIndex - 1] : allExamples[allExamples.length - 1],
                     nextExampleOne:

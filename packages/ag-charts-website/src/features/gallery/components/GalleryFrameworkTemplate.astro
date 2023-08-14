@@ -4,7 +4,7 @@ import { getGeneratedGalleryContents } from '../utils/examplesGenerator';
 import { getExampleUrl } from '../utils/urlPaths';
 import FrameworkTemplate from '@features/example-runner/components/FrameworkTemplate.astro';
 import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
-import { getChartTypeName, getExampleName } from '../utils/filesData';
+import { getSeriesTypeName, getExampleName } from '../utils/filesData';
 import type { GeneratedContents } from '@features/examples-generator/types';
 
 interface Props {
@@ -33,11 +33,11 @@ const exampleUrl = getExampleUrl({
 });
 
 const galleryDataEntry = await getEntry('gallery', 'data');
-const chartTypeName = getChartTypeName({
+const chartSeriesName = getSeriesTypeName({
     galleryData: galleryDataEntry.data,
     exampleName,
 });
-const pageName = `${chartTypeName} Chart`;
+const pageName = `${chartSeriesName} Chart`;
 const displayExampleName = getExampleName({
     galleryData: galleryDataEntry.data,
     exampleName,
