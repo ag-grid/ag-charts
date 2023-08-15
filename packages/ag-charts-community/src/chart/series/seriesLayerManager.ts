@@ -68,7 +68,7 @@ export class SeriesLayerManager {
 
         this.groups[type] ??= {};
 
-        const lookupIndex = this.mode === 'normal' ? groupIndex : 0;
+        const lookupIndex = this.lookupIdx(groupIndex);
         let groupInfo = this.groups[type][lookupIndex];
         if (!groupInfo) {
             groupInfo = this.groups[type][lookupIndex] ??= {
@@ -129,7 +129,7 @@ export class SeriesLayerManager {
             throw new Error(`AG Charts - series doesn't have an allocated layer: ${id}`);
         }
 
-        const lookupIndex = this.mode === 'normal' ? groupIndex : 0;
+        const lookupIndex = this.lookupIdx(groupIndex);
         const groupInfo = this.groups[type]?.[lookupIndex] ?? this.series[id]?.layerState;
         if (groupInfo) {
             groupInfo.seriesIds = groupInfo.seriesIds.filter((v) => v !== id);
@@ -152,6 +152,22 @@ export class SeriesLayerManager {
         }
 
         delete this.series[id];
+    }
+
+    private lookupIdx(groupIndex: number | string) {
+        if (this.mode === 'normal') {
+            return groupIndex;
+        }
+
+        if (typeof groupIndex === 'string') {
+            groupIndex = Number(groupIndex.split('-').slice(-1)[0]);
+            if (!groupIndex) return 0;
+        }
+
+        return Math.floor(
+            Math.max(Math.min(groupIndex / this.expectedSeriesCount, 1), 0) *
+                SERIES_THRESHOLD_FOR_AGGRESSIVE_LAYER_REDUCTION
+        );
     }
 
     public destroy() {

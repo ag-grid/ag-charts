@@ -611,7 +611,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const end = performance.now();
         this.log('Chart.performUpdate() - end', {
             chart: this,
-            durationMs: Math.round((end - splits[0]) * 100) / 100,
+            durationMs: Math.round((end - splits['start']) * 100) / 100,
             count,
             performUpdateType: ChartUpdateType[performUpdateType],
         });
@@ -643,7 +643,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const count = this._performUpdateNoRenderCount++;
             const backOffMs = (count ^ 2) * 10;
 
-            if (count < 5) {
+            if (count < 8) {
                 // Reschedule if canvas size hasn't been set yet to avoid a race.
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { seriesToUpdate, backOffMs });
 

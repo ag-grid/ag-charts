@@ -372,6 +372,10 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         if (next) {
             this.ctx.seriesStateManager.registerSeries({ id, type, visible, seriesGrouping: next });
         }
+
+        // Short-circuit if series isn't already attached to the scene-graph yet.
+        if (this.rootGroup.parent == null) return;
+
         this.ctx.seriesLayerManager.changeGroup({
             id,
             type,
