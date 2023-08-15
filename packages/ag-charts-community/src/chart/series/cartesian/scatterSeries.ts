@@ -28,6 +28,7 @@ import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
+import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
@@ -344,79 +345,41 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: isDatumHighlighted } = opts;
+        const { markerSelection, isHighlight: highlighted } = opts;
         const {
-            marker,
+            id: seriesId,
             xKey = '',
             yKey = '',
-            sizeScale,
-            marker: {
-                fillOpacity: markerFillOpacity,
-                strokeOpacity: markerStrokeOpacity,
-                strokeWidth: markerStrokeWidth,
-            },
-            highlightStyle: {
-                item: {
-                    fill: highlightedFill,
-                    fillOpacity: highlightFillOpacity = markerFillOpacity,
-                    stroke: highlightedStroke,
-                    strokeWidth: highlightedDatumStrokeWidth,
-                },
-            },
-            id: seriesId,
-            ctx: { callbackCache },
+            marker,
+            highlightStyle: { item: markerHighlightStyle },
+            visible,
+            ctx,
         } = this;
-        const { formatter } = marker;
 
-        sizeScale.range = [marker.size, marker.maxSize];
-
+        this.sizeScale.range = [marker.size, marker.maxSize];
         const customMarker = typeof marker.shape === 'function';
 
         markerSelection.each((node, datum) => {
-            const fill =
-                isDatumHighlighted && highlightedFill !== undefined ? highlightedFill : datum.fill ?? marker.fill;
-            const fillOpacity = isDatumHighlighted ? highlightFillOpacity : markerFillOpacity;
-            const stroke = isDatumHighlighted && highlightedStroke !== undefined ? highlightedStroke : marker.stroke;
-            const strokeOpacity = markerStrokeOpacity;
-            const strokeWidth =
-                isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
-                    ? highlightedDatumStrokeWidth
-                    : markerStrokeWidth ?? 1;
-            const size = datum.point?.size ?? 0;
+            const styles = getMarkerConfig({
+                datum,
+                highlighted,
+                formatter: marker.formatter,
+                markerStyle: marker,
+                seriesStyle: {},
+                highlightStyle: markerHighlightStyle,
+                seriesId,
+                ctx,
+                xKey,
+                yKey,
+                size: datum.point.size,
+                strokeWidth: marker.strokeWidth ?? 1,
+            });
 
-            let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
-            if (formatter) {
-                format = callbackCache.call(formatter, {
-                    datum: datum.datum,
-                    xKey,
-                    yKey,
-                    fill,
-                    stroke,
-                    strokeWidth,
-                    size,
-                    highlighted: isDatumHighlighted,
-                    seriesId,
-                });
-            }
-
-            node.fill = format?.fill ?? fill;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.fillOpacity = fillOpacity ?? 1;
-            node.strokeOpacity = strokeOpacity ?? 1;
-            node.visible = node.size > 0;
-
-            if (!customMarker || node.dirtyPath) {
-                return;
-            }
-
-            // Only for custom marker shapes.
-            node.path.clear({ trackChanges: true });
-            node.updatePath();
-            node.checkPathDirty();
+            const config = { ...styles, point: datum.point, visible, customMarker };
+            updateMarker({ node, config });
         });
 
-        if (!isDatumHighlighted) {
+        if (!highlighted) {
             this.marker.markClean();
         }
     }

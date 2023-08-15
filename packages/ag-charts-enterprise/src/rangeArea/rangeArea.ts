@@ -27,6 +27,7 @@ const {
     updateLabel,
     areaAnimateEmptyUpdateReady,
     areaAnimateReadyUpdate,
+    AreaSeriesTag,
 } = _ModuleSupport;
 const { getMarker, toTooltipHtml, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
@@ -34,13 +35,6 @@ const { sanitizeHtml, extent, isNumber } = _Util;
 const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_RANGE_AREA_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
     OPTIONAL(v, ctx, (v: any) => RANGE_AREA_LABEL_PLACEMENTS.includes(v));
-
-enum RangeAreaTag {
-    Fill,
-    Stroke,
-    Marker,
-    Label,
-}
 
 type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     text: string;
@@ -446,7 +440,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         }
 
         return markerSelection.update(data, (marker) => {
-            marker.tag = RangeAreaTag.Marker;
+            marker.tag = AreaSeriesTag.Marker;
         });
     }
 
@@ -509,7 +503,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         const { labelData, labelSelection } = opts;
 
         return labelSelection.update(labelData, (text) => {
-            text.tag = RangeAreaTag.Label;
+            text.tag = AreaSeriesTag.Label;
             text.pointerEvents = PointerEvents.None;
         });
     }
