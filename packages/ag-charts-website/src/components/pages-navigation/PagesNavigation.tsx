@@ -301,7 +301,7 @@ export function PagesNavigation({
     }, [navOpen]);
 
     return (
-        <Collapsible id={'docs-nav-collapser'} isOpen={navOpen}>
+        <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
             <aside className={classnames(styles.nav, 'font-size-responsive')}>
                 <MainPagesNavigation
                     menuData={menuData}
