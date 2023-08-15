@@ -19,5 +19,34 @@ export default defineMarkdocConfig({
                 disableMarkdown: { type: Boolean },
             },
         },
+        imageCaption: {
+            render: component('./src/components/image/ImageCaption'),
+            attributes: {
+                pageName: { type: String, required: true },
+                imageName: { type: String, required: true },
+                alt: { type: String, required: true },
+                centered: { type: Boolean },
+                constrained: { type: Boolean },
+                descriptionTop: { type: Boolean },
+                width: { type: String },
+                height: { type: String },
+                minWidth: { type: String },
+                maxWidth: { type: String },
+            },
+        },
+        flex: {
+            render: component('./src/components/flex/Flex.astro'),
+            attributes: {
+                direction: { type: String, matches: ['row', 'column'] },
+                alignItems: {
+                    type: String,
+                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
+                },
+                justifyContent: {
+                    type: String,
+                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
+                },
+            },
+        },
     },
 });
