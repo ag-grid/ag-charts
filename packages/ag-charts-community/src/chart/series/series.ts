@@ -363,7 +363,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     seriesGrouping?: SeriesGrouping = undefined;
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
-        const { id, type, visible, rootGroup } = this;
+        const { id, type, visible, rootGroup, highlightGroup } = this;
 
         if (prev) {
             this.ctx.seriesStateManager.deregisterSeries({ id, type });
@@ -371,10 +371,15 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         if (next) {
             this.ctx.seriesStateManager.registerSeries({ id, type, visible, seriesGrouping: next });
         }
+
+        // Short-circuit if series isn't already attached to the scene-graph yet.
+        if (this.rootGroup.parent == null) return;
+
         this.ctx.seriesLayerManager.changeGroup({
             id,
             type,
             rootGroup,
+            highlightGroup,
             getGroupZIndexSubOrder: (type) => this.getGroupZIndexSubOrder(type),
             seriesGrouping: next,
             oldGrouping: prev,
@@ -425,14 +430,13 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
             })
         );
 
-        this.highlightGroup = rootGroup.appendChild(
-            new Group({
-                name: `${this.id}-highlight`,
-                layer: true,
-                zIndex: Layers.SERIES_LAYER_ZINDEX,
-                zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
-            })
-        );
+        this.highlightGroup = new Group({
+            name: `${this.id}-highlight`,
+            layer: !contentGroupVirtual,
+            isVirtual: contentGroupVirtual,
+            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
+        });
         this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode' }));
         this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel' }));
         this.highlightNode.zIndex = 0;
