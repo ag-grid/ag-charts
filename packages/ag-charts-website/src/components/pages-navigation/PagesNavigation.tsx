@@ -281,7 +281,7 @@ export function PagesNavigation({
         setSeriesIsActive(false);
     };
 
-    const [navOpen, setNavOpen] = useState(true);
+    const [navOpen, setNavOpen] = useState(false);
 
     useEffect(() => {
         if (window.innerWidth > 992) {
