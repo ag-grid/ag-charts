@@ -512,25 +512,38 @@ export abstract class CartesianSeries<
         return labelItem ? [labelItem] : undefined;
     }
 
+    protected getHighlightData(
+        _nodeData: C['nodeData'],
+        highlightedItem: C['nodeData'][number]
+    ): C['nodeData'] | undefined {
+        return highlightedItem ? [highlightedItem] : undefined;
+    }
+
     protected async updateHighlightSelection(seriesHighlighted?: boolean) {
         const { highlightSelection, highlightLabelSelection, _contextNodeData: contextNodeData } = this;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const item =
             seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as C['nodeData'][number]) : undefined;
-        this.highlightSelection = await this.updateHighlightSelectionItem({ item, highlightSelection });
 
         let labelItems: C['labelData'] | undefined;
-        if (this.isLabelEnabled() && item != null) {
-            for (const { labelData } of contextNodeData) {
-                labelItems = this.getHighlightLabelData(labelData, item);
+        let highlightItems: C['nodeData'] | undefined;
+        if (item != null) {
+            const labelsEnabled = this.isLabelEnabled();
+            for (const { labelData, nodeData } of contextNodeData) {
+                highlightItems = this.getHighlightData(nodeData, item);
+                labelItems = labelsEnabled ? this.getHighlightLabelData(labelData, item) : undefined;
 
-                if (labelItems != null) {
+                if ((!labelsEnabled || labelItems != null) && highlightItems != null) {
                     break;
                 }
             }
         }
 
+        this.highlightSelection = await this.updateHighlightSelectionItem({
+            items: highlightItems,
+            highlightSelection,
+        });
         this.highlightLabelSelection = await this.updateHighlightSelectionLabel({
             items: labelItems,
             highlightLabelSelection,
@@ -710,15 +723,15 @@ export abstract class CartesianSeries<
     }
 
     protected async updateHighlightSelectionItem(opts: {
-        item?: C['nodeData'][number];
+        items?: C['nodeData'];
         highlightSelection: NodeDataSelection<N, C>;
     }): Promise<NodeDataSelection<N, C>> {
         const {
             opts: { hasMarkers },
         } = this;
 
-        const { item, highlightSelection } = opts;
-        const nodeData = item ? [item] : [];
+        const { items, highlightSelection } = opts;
+        const nodeData = items ?? [];
 
         if (hasMarkers) {
             const markerSelection = highlightSelection as any;

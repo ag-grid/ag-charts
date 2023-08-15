@@ -524,6 +524,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         return labelItems.length > 0 ? labelItems : undefined;
     }
 
+    protected getHighlightData(
+        nodeData: RangeAreaMarkerDatum[],
+        highlightedItem: RangeAreaMarkerDatum
+    ): RangeAreaMarkerDatum[] | undefined {
+        const highlightItems = nodeData.filter((nodeDatum) => nodeDatum.datum === highlightedItem.datum);
+        return highlightItems.length > 0 ? highlightItems : undefined;
+    }
+
     getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): string {
         const { xKey, yLowKey, yHighKey, axes } = this;
 
