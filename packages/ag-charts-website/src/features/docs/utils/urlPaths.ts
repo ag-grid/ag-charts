@@ -1,4 +1,4 @@
-import { SITE_BASE_URL } from '@constants';
+import { SITE_BASE_URL, SITE_BASE_URL_SEGMENTS } from '@constants';
 import type { InternalFramework } from '@ag-grid-types';
 import { pathJoin } from '@utils/pathJoin';
 import { DOCS_FRAMEWORK_PATH_INDEX } from '../constants';
@@ -86,4 +86,12 @@ export const getExampleFileUrl = ({
         }),
         fileName
     );
+};
+
+/**
+ * Get image url on docs page
+ */
+export const getImageUrl = ({ pageName, imageName }: { pageName: string; imageName: string }) => {
+    // Go up a directory to account for the framework path in the url
+    return pathJoin('../', 'docs', pageName, imageName);
 };
