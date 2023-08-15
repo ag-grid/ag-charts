@@ -17,7 +17,14 @@ export const SideNavigation: FunctionComponent<Props> = ({ title, headings }) =>
                 {headings.length > 0 && (
                     <ul className="list-style-none">
                         <li className={styles.level1}>
-                            <a href="#top" className={classnames(styles.topLink, 'nav-link')}>
+                            <a
+                                href="#top"
+                                className={classnames(styles.topLink, 'nav-link')}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    smoothScrollIntoView('#top');
+                                }}
+                            >
                                 {title}
                             </a>
                         </li>
