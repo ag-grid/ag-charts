@@ -559,14 +559,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesToUpdate.clear();
 
         this.log('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
-        const splits = [performance.now()];
+        const splits: Record<string, number> = { start: performance.now() };
 
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
             case ChartUpdateType.PROCESS_DATA:
                 await this.processData();
                 this.disablePointer(true);
-                splits.push(performance.now());
+                splits['🏭'] = performance.now();
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.PERFORM_LAYOUT:
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
@@ -575,7 +575,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 await this.performLayout();
                 this.handleOverlays();
                 this.log('Chart.performUpdate() - seriesRect', this.seriesRect);
-                splits.push(performance.now());
+                splits['⌖'] = performance.now();
 
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SERIES_UPDATE:
@@ -585,7 +585,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 const seriesUpdates = [...seriesToUpdate].map((series) => series.update({ seriesRect }));
                 await Promise.all(seriesUpdates);
 
-                splits.push(performance.now());
+                splits['🤔'] = performance.now();
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.TOOLTIP_RECALCULATION:
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
@@ -594,6 +594,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (performUpdateType < ChartUpdateType.SERIES_UPDATE && tooltipMeta?.event?.type === 'hover') {
                     this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
                 }
+                splits['↖'] = performance.now();
 
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SCENE_RENDER:

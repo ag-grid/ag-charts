@@ -316,8 +316,8 @@ export class Scene {
         Object.assign(this, { canvas: undefined, ctx: undefined });
     }
 
-    async render(opts?: { debugSplitTimes: number[]; extraDebugStats: Record<string, number> }) {
-        const { debugSplitTimes = [performance.now()], extraDebugStats = {} } = opts ?? {};
+    async render(opts?: { debugSplitTimes: Record<string, number>; extraDebugStats: Record<string, number> }) {
+        const { debugSplitTimes = { start: performance.now() }, extraDebugStats = {} } = opts ?? {};
         const {
             canvas,
             canvas: { context: ctx },
@@ -389,6 +389,8 @@ export class Scene {
             }
         }
 
+        debugSplitTimes['✍️'] = performance.now();
+
         if (mode !== domCompositeIdentifier && layers.length > 0 && canvasCleared) {
             this.sortLayers();
             ctx.save();
@@ -402,6 +404,8 @@ export class Scene {
                 ctx.drawImage(imageSource, 0, 0);
             });
             ctx.restore();
+
+            debugSplitTimes['⛙'] = performance.now();
         }
 
         // Check for save/restore depth of zero!
@@ -422,7 +426,7 @@ export class Scene {
     }
 
     debugStats(
-        debugSplitTimes: number[],
+        debugSplitTimes: Record<string, number>,
         ctx: CanvasRenderingContext2D,
         renderCtxStats: RenderContext['stats'],
         extraDebugStats = {}
@@ -430,20 +434,26 @@ export class Scene {
         const end = performance.now();
 
         if (this.debug.stats) {
-            const start = debugSplitTimes[0];
-            debugSplitTimes.push(end);
+            const start = debugSplitTimes['start'];
+            debugSplitTimes['end'] = performance.now();
 
             const pct = (rendered: number, skipped: number) => {
                 const total = rendered + skipped;
                 return `${rendered} / ${total} (${Math.round((100 * rendered) / total)}%)`;
             };
-            const time = (start: number, end: number) => {
-                return `${Math.round((end - start) * 100) / 100}ms`;
+            const time = (name: string, start: number, end: number) => {
+                return `${name}: ${Math.round((end - start) * 100) / 100}ms`;
             };
             const { layersRendered = 0, layersSkipped = 0, nodesRendered = 0, nodesSkipped = 0 } = renderCtxStats ?? {};
 
-            const splits = debugSplitTimes
-                .map((t, i) => (i > 0 ? time(debugSplitTimes[i - 1], t) : null))
+            let lastSplit = 0;
+            const splits = Object.entries(debugSplitTimes)
+                .filter(([n]) => n !== 'end')
+                .map(([n, t], i) => {
+                    const result = i > 0 ? time(n, lastSplit, t) : null;
+                    lastSplit = t;
+                    return result;
+                })
                 .filter((v) => v != null)
                 .join(' + ');
             const extras = Object.entries(extraDebugStats)
@@ -451,8 +461,9 @@ export class Scene {
                 .join(' ; ');
 
             const stats = [
-                `${time(start, end)} (${splits})`,
+                `${time('⏱️', start, end)} (${splits})`,
                 `${extras}`,
+                this.debug.stats !== 'detailed' ? `Layers: ${this.layers.length}` : null,
                 this.debug.stats === 'detailed' ? `Layers: ${pct(layersRendered, layersSkipped)}` : null,
                 this.debug.stats === 'detailed' ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
             ].filter((v): v is string => v != null);
