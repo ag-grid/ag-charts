@@ -93,5 +93,5 @@ export const getExampleFileUrl = ({
  */
 export const getImageUrl = ({ pageName, imageName }: { pageName: string; imageName: string }) => {
     // Go up a directory to account for the framework path in the url
-    return pathJoin('../', 'docs', pageName, imageName);
+    return pathJoin(SITE_BASE_URL, 'docs', pageName, imageName);
 };
