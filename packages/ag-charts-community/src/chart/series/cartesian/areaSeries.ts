@@ -733,10 +733,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         const stroke = marker.stroke ?? styles.stroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
         const getFormatterParams = (
-            datum: MarkerSelectionDatum
+            nodeDatum: MarkerSelectionDatum
         ): AgCartesianSeriesMarkerFormatterParams<MarkerSelectionDatum> => {
             return {
-                datum,
+                datum: nodeDatum.datum,
                 xKey,
                 yKey,
                 seriesId,

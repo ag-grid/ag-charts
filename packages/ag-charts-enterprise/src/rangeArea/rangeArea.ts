@@ -648,8 +648,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         const stroke = marker.stroke ?? styles.stroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
-        const getFormatterParams = (datum: RangeAreaMarkerDatum) => {
-            const { itemId, yLowValue, yHighValue } = datum;
+        const getFormatterParams = (nodeDatum: RangeAreaMarkerDatum) => {
+            const { datum, itemId, yLowValue, yHighValue } = nodeDatum;
             return {
                 datum,
                 lowValue: yLowValue,
