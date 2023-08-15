@@ -1,5 +1,5 @@
 {
-    "chartTypes": [
+    "series": [
         {
             "title": "Bar",
             "name": "bar",

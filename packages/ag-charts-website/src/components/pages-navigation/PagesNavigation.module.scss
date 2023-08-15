@@ -41,16 +41,6 @@
     }
 }
 
-.chartTypesNav {
-    margin-top: $size-3;
-    padding-top: $size-2 + $size-half;
-    border-top: 1px solid var(--bright-blue-gray);
-}
-
-.navGroup {
-    margin-bottom: $size-half;
-}
-
 .navGroup a {
     position: relative;
     display: block;
@@ -122,11 +112,6 @@ a.sectionHeader {
 
     &:hover {
         --text-color: var(--link-color);
-
-        .menuIcon {
-            opacity: 1;
-            fill: var(--link-color);
-        }
     }
 
     &:focus-visible {
@@ -142,11 +127,6 @@ a.sectionHeader {
     }
 
     + .navGroup {
-        padding-bottom: $size-1;
-    }
-
-    .chartTypesNav & {
-        padding-top: $size-1;
         padding-bottom: $size-1;
     }
 
@@ -227,6 +207,10 @@ a.sectionHeader {
         border-radius: 50%;
         background-color: var(--white);
         transition: background-color $default-transition-timing;
+
+        .seriesTypesNav & {
+            transform: translate(-0.825em, 0.75em);
+        }
     }
 
     &.sectionHeader::before {
@@ -250,6 +234,11 @@ a.sectionHeader {
 
         &::before {
             background-color: var(--link-color) !important;
+        }
+
+        .menuIcon {
+            opacity: 1;
+            fill: var(--link-color);
         }
     }
 
@@ -296,6 +285,10 @@ a.sectionHeader {
         left: 0;
         margin: 0;
         transform: translate(-0.05em, 0.175em);
+
+        .seriesTypesNav & {
+            transform: translate(-0.05em, 0.475em);
+        }
     }
 }
 
@@ -310,7 +303,7 @@ button .menuIcon {
 }
 
 a :global(.icon).menuIcon {
-    --icon-size: 1.75em;
+    --icon-size: 2em;
 
     fill: var(--secondary-text-color);
     margin-bottom: $size-half;

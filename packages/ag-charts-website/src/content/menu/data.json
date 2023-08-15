@@ -88,145 +88,144 @@
     "charts": {
         "items": [
             {
-                "title": "Bar",
-                "icon": "chartsBar",
-                "path": "charts-bar-series"
-            },
-            {
-                "title": "Column",
-                "icon": "chartsColumn",
-                "path": "charts-column-series"
-            },
-            {
-                "title": "Line",
-                "icon": "chartsLine",
-                "path": "charts-line-series"
-            },
-            {
-                "title": "Area",
-                "icon": "chartsArea",
-                "path": "charts-area-series"
-            },
-            {
-                "title": "Scatter",
-                "icon": "chartsScatter",
-                "path": "charts-scatter-series"
-            },
-            {
-                "title": "Bubble",
-                "icon": "chartsBubble",
-                "path": "charts-bubble-series"
-            },
-            {
-                "title": "Pie",
-                "icon": "chartsPie",
-                "path": "charts-pie-series"
-            },
-            {
-                "title": "Donut",
-                "icon": "chartsDonut",
-                "path": "charts-donut-series"
-            },
-            {
-                "title": "Combination",
-                "icon": "chartsCombination",
-                "path": "charts-combination-series"
-            },
-            {
-                "title": "Histogram",
-                "icon": "chartsHistogram",
-                "path": "charts-histogram-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Heatmap",
-                "icon": "chartsHeatmap",
-                "path": "charts-heatmap-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Range Bar / Column",
-                "icon": "chartsRange",
-                "path": "charts-range-bar-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Range Area",
-                "icon": "chartsRange",
-                "path": "charts-range-area-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Box Plot",
-                "icon": "chartsBoxPlot",
-                "path": "charts-box-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Error Bar",
-                "icon": "chartsErrorBar",
-                "path": "charts-error-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Waterfall",
-                "icon": "chartsWaterfall",
-                "path": "charts-waterfall-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Radar",
-                "icon": "chartsRadar",
-                "path": "charts-radar-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Nightingale",
-                "icon": "chartsNightingale",
-                "path": "charts-nightingale-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Radial Column",
-                "icon": "chartsRadialColumn",
-                "path": "charts-radial-column-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Radial Bar",
-                "icon": "chartsRadialBar",
-                "path": "charts-radial-bar-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Treemap",
-                "icon": "chartsTreemap",
-                "path": "charts-treemap-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Sunburst",
-                "icon": "chartsSunburst",
-                "path": "charts-sunburst-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Icicle",
-                "icon": "chartsIcicle",
-                "path": "charts-icicle-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Funnel",
-                "icon": "chartsFunnel",
-                "path": "charts-funnel-series",
-                "isEnterprise": true
-            },
-            {
-                "title": "Pyramid",
-                "icon": "chartsPyramid",
-                "path": "charts-pyramid-series",
-                "isEnterprise": true
+                "title": "Series",
+                "items": [
+                    {
+                        "title": "Bar",
+                        "icon": "chartsBar",
+                        "path": "charts-bar-series"
+                    },
+                    {
+                        "title": "Column",
+                        "icon": "chartsColumn",
+                        "path": "charts-column-series"
+                    },
+                    {
+                        "title": "Line",
+                        "icon": "chartsLine",
+                        "path": "charts-line-series"
+                    },
+                    {
+                        "title": "Area",
+                        "icon": "chartsArea",
+                        "path": "charts-area-series"
+                    },
+                    {
+                        "title": "Scatter",
+                        "icon": "chartsScatter",
+                        "path": "charts-scatter-series"
+                    },
+                    {
+                        "title": "Bubble",
+                        "icon": "chartsBubble",
+                        "path": "charts-bubble-series"
+                    },
+                    {
+                        "title": "Pie",
+                        "icon": "chartsPie",
+                        "path": "charts-pie-series"
+                    },
+                    {
+                        "title": "Donut",
+                        "icon": "chartsDonut",
+                        "path": "charts-donut-series"
+                    },
+                    {
+                        "title": "Combination",
+                        "icon": "chartsCombination",
+                        "path": "charts-combination-series"
+                    },
+                    {
+                        "title": "Histogram",
+                        "icon": "chartsHistogram",
+                        "path": "charts-histogram-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Heatmap",
+                        "icon": "chartsHeatmap",
+                        "path": "charts-heatmap-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Range",
+                        "icon": "chartsRange",
+                        "path": "charts-range-bar-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Box Plot",
+                        "icon": "chartsBoxPlot",
+                        "path": "charts-box-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Error Bar",
+                        "icon": "chartsErrorBar",
+                        "path": "charts-error-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Waterfall",
+                        "icon": "chartsWaterfall",
+                        "path": "charts-waterfall-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Radar",
+                        "icon": "chartsRadar",
+                        "path": "charts-radar-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Nightingale",
+                        "icon": "chartsNightingale",
+                        "path": "charts-nightingale-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Radial Column",
+                        "icon": "chartsRadialColumn",
+                        "path": "charts-radial-column-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Radial Bar",
+                        "icon": "chartsRadialBar",
+                        "path": "charts-radial-bar-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Treemap",
+                        "icon": "chartsTreemap",
+                        "path": "charts-treemap-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Sunburst",
+                        "icon": "chartsSunburst",
+                        "path": "charts-sunburst-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Icicle",
+                        "icon": "chartsIcicle",
+                        "path": "charts-icicle-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Funnel",
+                        "icon": "chartsFunnel",
+                        "path": "charts-funnel-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Pyramid",
+                        "icon": "chartsPyramid",
+                        "path": "charts-pyramid-series",
+                        "isEnterprise": true
+                    }
+                ]
             }
         ]
     }

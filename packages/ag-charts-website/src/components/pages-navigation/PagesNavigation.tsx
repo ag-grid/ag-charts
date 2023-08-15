@@ -7,6 +7,8 @@ import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { Collapsible } from '@components/Collapsible';
 import type { MenuItem } from '@ag-grid-types';
 
+const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
+
 function toElementId(str: string) {
     return 'menu-' + str.toLowerCase().replace('&', '').replace('/', '').replaceAll(' ', '-');
 }
@@ -40,7 +42,7 @@ function Level2Nav({
     return (
         <Collapsible id={id} isOpen={isOpen}>
             <ul className={classnames(styles.navGroup, 'list-style-none')}>
-                {items.map(({ title, path, url, isEnterprise }: any) => {
+                {items.map(({ title, path, url, icon, isEnterprise }: any) => {
                     const linkUrl = getLinkUrl({ framework, path, url });
                     const isActive = activeMenuItem?.path === path;
 
@@ -52,6 +54,7 @@ function Level2Nav({
                                     [styles.activeMenuItem]: isActive,
                                 })}
                             >
+                                {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
                                 {title}
                                 {isEnterprise && <EnterpriseIcon />}
                             </a>
@@ -170,12 +173,14 @@ function MainPagesNavigation({
     activeMenuItem,
     activeLevel1MenuItem,
     setActiveLevel1MenuItem,
+    onMenuToggle,
 }: {
     menuData: MenuData;
     framework: Framework;
     activeMenuItem?: MenuItem;
     activeLevel1MenuItem?: MenuItem;
     setActiveLevel1MenuItem: (menuItem?: MenuItem) => void;
+    onMenuToggle: () => void;
 }) {
     const mainMenuItems = menuData.main.items;
     return (
@@ -186,6 +191,7 @@ function MainPagesNavigation({
 
                 const toggleActive = () => {
                     setActiveLevel1MenuItem(isActive ? undefined : menuItem);
+                    onMenuToggle();
                 };
 
                 return (
@@ -203,28 +209,33 @@ function MainPagesNavigation({
     );
 }
 
-function ChartPagesNavigation({
+function SeriesPagesNavigation({
     menuData,
     framework,
     activeMenuItem,
     activeLevel1MenuItem,
     setActiveLevel1MenuItem,
+    seriesIsActive,
+    onMenuToggle,
 }: {
     menuData: MenuData;
     framework: Framework;
     activeMenuItem?: MenuItem;
     activeLevel1MenuItem?: MenuItem;
     setActiveLevel1MenuItem: (menuItem?: MenuItem) => void;
+    seriesIsActive: boolean;
+    onMenuToggle: () => void;
 }) {
     const chartsMenuItems = menuData.charts.items;
 
     return (
-        <ul className={classnames('list-style-none', styles.navInner, styles.chartTypesNav)}>
+        <ul className={classnames('list-style-none', styles.navInner, styles.seriesTypesNav)}>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
-                const isActive = menuItem === activeLevel1MenuItem;
+                const isActive = menuItem === activeLevel1MenuItem || (seriesIsActive && title === 'Series');
 
                 const toggleActive = () => {
+                    onMenuToggle();
                     setActiveLevel1MenuItem(isActive ? undefined : menuItem);
                 };
 
@@ -252,6 +263,7 @@ export function PagesNavigation({
     framework: Framework;
     pageName: string;
 }) {
+    const [seriesIsActive, setSeriesIsActive] = useState(pageName === PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT);
     const [activeLevel1MenuItem, setActiveLevel1MenuItem] = useState<MenuItem | undefined>(
         findActiveLevel1MenuItem({
             menuData,
@@ -265,6 +277,10 @@ export function PagesNavigation({
         })
     );
 
+    const onMenuToggle = () => {
+        setSeriesIsActive(false);
+    };
+
     return (
         <aside className={classnames(styles.nav, 'font-size-responsive')}>
             <MainPagesNavigation
@@ -273,13 +289,16 @@ export function PagesNavigation({
                 activeMenuItem={activeMenuItem}
                 activeLevel1MenuItem={activeLevel1MenuItem}
                 setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                onMenuToggle={onMenuToggle}
             />
-            <ChartPagesNavigation
+            <SeriesPagesNavigation
                 menuData={menuData}
                 framework={framework}
                 activeMenuItem={activeMenuItem}
                 activeLevel1MenuItem={activeLevel1MenuItem}
                 setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                seriesIsActive={seriesIsActive}
+                onMenuToggle={onMenuToggle}
             />
         </aside>
     );

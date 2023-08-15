@@ -8,7 +8,7 @@ import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleL
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
-const { chartTypes } = galleryData;
+const { series } = galleryData;
 ---
 
 <Layout>
@@ -16,12 +16,12 @@ const { chartTypes } = galleryData;
         <div class="menu">
             <ul class="list-style-none">
                 {
-                    chartTypes.map((chartType: GalleryExampleChartType) => (
+                    series.map((series: GalleryExampleChartType) => (
                         <li>
-                            <a href={getPageHashUrl({ chartTypeName: chartType.name, isRelative: true })}>
-                                <Icon client:only name={chartType.icon as IconName} />
-                                <span class="name">{chartType.title}</span>
-                                {chartType.enterprise && (
+                            <a href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}>
+                                <Icon client:only name={series.icon as IconName} />
+                                <span class="name">{series.title}</span>
+                                {series.enterprise && (
                                     <span class="enterpriseIcon">
                                         <Icon client:only name="enterprise" />
                                     </span>
@@ -36,12 +36,12 @@ const { chartTypes } = galleryData;
 
         <div class="content">
             {
-                chartTypes.map((chartType: GalleryExampleChartType) => (
+                series.map((series: GalleryExampleChartType) => (
                     <div class="chart-type">
-                        <h2 id={chartType.name}>
-                            <span>{chartType.title} Charts</span>
+                        <h2 id={series.name}>
+                            <span>{series.title} Charts</span>
 
-                            {chartType.enterprise && (
+                            {series.enterprise && (
                                 <span class="enterpriseIcon">
                                     <Icon client:only name="enterprise" />
                                 </span>
@@ -49,16 +49,16 @@ const { chartTypes } = galleryData;
 
                             <a
                                 class="font-size-small"
-                                href={getPageHashUrl({ chartTypeName: chartType.name, isRelative: true })}
+                                href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}
                             >
-                                View {chartType.title.toLowerCase()} charts documentation
+                                View {series.title.toLowerCase()} charts documentation
                                 <span class="arrow-icon">
                                     <Icon client:only name="arrowRight" />
                                 </span>
                             </a>
                         </h2>
                         <div class="gallery-list">
-                            {chartType.examples.map(({ title, name }: GalleryExample) => (
+                            {series.examples.map(({ title, name }: GalleryExample) => (
                                 <GalleryExampleLink
                                     client:visible
                                     className="galleryExample"
