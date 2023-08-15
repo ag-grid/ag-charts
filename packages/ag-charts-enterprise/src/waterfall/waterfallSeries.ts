@@ -668,7 +668,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
                 lineDash,
                 lineDashOffset,
                 fillShadow,
-                strokeWidth: this.getStrokeWidth(strokeWidth, datum),
+                strokeWidth: this.getStrokeWidth(strokeWidth),
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
