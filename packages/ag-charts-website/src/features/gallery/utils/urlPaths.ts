@@ -45,7 +45,7 @@ export const getExampleContentsUrl = ({ exampleName }: { exampleName: string }) 
         getExampleUrl({
             exampleName,
         }),
-        'contents'
+        'contents.json'
     );
 };
 

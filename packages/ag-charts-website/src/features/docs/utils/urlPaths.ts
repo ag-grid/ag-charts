@@ -60,7 +60,7 @@ export const getExampleContentsUrl = ({
             pageName,
             exampleName,
         }),
-        'contents'
+        'contents.json'
     );
 };
 
