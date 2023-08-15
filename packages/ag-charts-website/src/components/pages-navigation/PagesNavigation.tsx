@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import classnames from 'classnames';
 import styles from './PagesNavigation.module.scss';
 import { Icon } from '@components/icon/Icon';
@@ -281,25 +281,44 @@ export function PagesNavigation({
         setSeriesIsActive(false);
     };
 
+    const [isMobile, setIsMobile] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(true);
+
+    useEffect(() => {
+        if (window.innerWidth > 992) {
+            setMobileMenuOpen(true);
+        }
+
+        document.querySelector('#top-bar-docs-button').addEventListener('click', () => {
+            setMobileMenuOpen(!mobileMenuOpen);
+        });
+
+        window.addEventListener('resize', () => {
+            setMobileMenuOpen(window.innerWidth > 992);
+        });
+    }, [mobileMenuOpen]);
+
     return (
-        <aside className={classnames(styles.nav, 'font-size-responsive')}>
-            <MainPagesNavigation
-                menuData={menuData}
-                framework={framework}
-                activeMenuItem={activeMenuItem}
-                activeLevel1MenuItem={activeLevel1MenuItem}
-                setActiveLevel1MenuItem={setActiveLevel1MenuItem}
-                onMenuToggle={onMenuToggle}
-            />
-            <SeriesPagesNavigation
-                menuData={menuData}
-                framework={framework}
-                activeMenuItem={activeMenuItem}
-                activeLevel1MenuItem={activeLevel1MenuItem}
-                setActiveLevel1MenuItem={setActiveLevel1MenuItem}
-                seriesIsActive={seriesIsActive}
-                onMenuToggle={onMenuToggle}
-            />
-        </aside>
+        <Collapsible id={'sadsadsadsa'} isOpen={mobileMenuOpen}>
+            <aside className={classnames(styles.nav, 'font-size-responsive')}>
+                <MainPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeLevel1MenuItem={activeLevel1MenuItem}
+                    setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                    onMenuToggle={onMenuToggle}
+                />
+                <SeriesPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeLevel1MenuItem={activeLevel1MenuItem}
+                    setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                    seriesIsActive={seriesIsActive}
+                    onMenuToggle={onMenuToggle}
+                />
+            </aside>
+        </Collapsible>
     );
 }
