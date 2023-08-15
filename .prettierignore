@@ -12,3 +12,6 @@
 /packages/ag-charts-vue/lib
 /packages/ag-charts-vue3/dist
 /packages/ag-charts-vue3/lib
+
+# Files that don't format correctly.
+/packages/ag-charts-website/src/content/docs/charts-getting-started/index.mdoc

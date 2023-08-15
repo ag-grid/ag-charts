@@ -14,7 +14,7 @@ AG Charts is a powerful standalone component with no dependencies. The charts fa
 </div>
 
 <div tab-label="main.js">
-```
+```javascript
 const data = [
     {
         beverage: 'Coffee',
@@ -40,32 +40,32 @@ const data = [
 ];
 
 const options = {
-container: document.getElementById('myChart'),
-data: data,
-title: {
-text: 'Beverage Expenses'
-},
-subtitle: {
-text: 'per quarter'
-},
-footnote: {
-text: 'Based on a sample size of 200 respondents'
-},
-padding: {
-top: 40,
-right: 40,
-bottom: 40,
-left: 40
-},
-series: [
-{ type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-{ type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-{ type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-{ type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
-],
-legend: {
-spacing: 40
-},
+    container: document.getElementById('myChart'),
+    data: data,
+    title: {
+        text: 'Beverage Expenses'
+    },
+    subtitle: {
+        text: 'per quarter'
+    },
+    footnote: {
+        text: 'Based on a sample size of 200 respondents'
+    },
+    padding: {
+        top: 40,
+        right: 40,
+        bottom: 40,
+        left: 40
+    },
+    series: [
+        { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
+        { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
+        { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
+        { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+    ],
+    legend: {
+        spacing: 40
+    },
 };
 
 agCharts.AgChart.create(options);
@@ -102,34 +102,34 @@ agCharts.AgChart.create(options);
 </div>
 
 <div tab-label="index.js">
-```jsx
+```javascript
 import React, { Component } from 'react';
 import { AgChartsReact } from 'ag-charts-react';
 
 export default class ChartExample extends Component {
-data = [
-{
-beverage: 'Coffee',
-Q1: 700,
-Q2: 600,
-Q3: 560,
-Q4: 450
-},
-{
-beverage: 'Tea',
-Q1: 520,
-Q2: 450,
-Q3: 380,
-Q4: 270
-},
-{
-beverage: 'Milk',
-Q1: 200,
-Q2: 190,
-Q3: 170,
-Q4: 180
-},
-];
+    data = [
+        {
+            beverage: 'Coffee',
+            Q1: 700,
+            Q2: 600,
+            Q3: 560,
+            Q4: 450
+        },
+        {
+            beverage: 'Tea',
+            Q1: 520,
+            Q2: 450,
+            Q3: 380,
+            Q4: 270
+        },
+        {
+            beverage: 'Milk',
+            Q1: 200,
+            Q2: 190,
+            Q3: 170,
+            Q4: 180
+        },
+    ];
 
     constructor(props) {
         super(props);
@@ -172,7 +172,6 @@ Q4: 180
 ````
 
 </div>
-
 </tabs>
 </framework-specific-section>
 
@@ -184,16 +183,16 @@ Q4: 180
 </div>
 
 <div tab-label="app.component.ts">
-```jsx
+```javascript
 import { Component } from '@angular/core';
 import { AgChartOptions } from 'ag-charts-community';
 
 @Component({
-selector: 'my-app',
-templateUrl: './app.component.html'
+    selector: 'my-app',
+    templateUrl: './app.component.html'
 })
 export class AppComponent {
-public options: AgChartOptions;
+    public options: AgChartOptions;
 
     beverageSpending = [
         {
@@ -372,7 +371,7 @@ body {
 </div>
 
 <div tab-label="main.js">
-```jsx
+```javascript
 import { createApp } from 'vue'
 import App from './App.vue'
 
@@ -669,38 +668,40 @@ Next, let's declare the basic charts configuration. Edit `src/App.vue`:
     import { AgChartsVue } from 'ag-charts-vue3';
 
     export default {
-      name: 'App',
-      components: {
-        AgChartsVue,)
-      },
-      data() {
-        return {
-          options: {
-            data: [
-              {
-                    quarter: 'Q1',
-                    spending: 700,
-              },
-              {
-                    quarter: 'Q2',
-                    spending: 600,
-              },
-              {
-                    quarter: 'Q3',
-                    spending: 560,
-              },
-              {
-                    quarter: 'Q4',
-                    spending: 450,
-              },
-            ],
-            series: [{
-              xKey: 'quarter',
-              yKey: 'spending',
-            }],
-          },
-        };
-      },
+        name: 'App',
+        components: {
+            AgChartsVue,
+        },
+        data() {
+            return {
+                options: {
+                    data: [
+                        {
+                            quarter: 'Q1',
+                            spending: 700,
+                        },
+                        {
+                            quarter: 'Q2',
+                            spending: 600,
+                        },
+                        {
+                            quarter: 'Q3',
+                            spending: 560,
+                        },
+                        {
+                            quarter: 'Q4',
+                            spending: 450,
+                        },
+                    ],
+                    series: [
+                        {
+                            xKey: 'quarter',
+                            yKey: 'spending',
+                        },
+                    ],
+                },
+            };
+        },
     };
 </script>
 ```
@@ -767,16 +768,14 @@ constructor(props) {
             series: [{
                 xKey: 'quarter',
                 yKey: 'spending',
-
--                  yName: 'Coffee Spending',
-              }],
--              legend: {
--                  enabled: true,
--              },
-            }
++                yName: 'Coffee Spending',
+            }],
++            legend: {
++                enabled: true,
++            },
         }
     }
-
+}
 ````
 </framework-specific-section>
 
@@ -909,49 +908,48 @@ constructor(props) {
 
 }
 
-```
+````
 </framework-specific-section>
 
 <framework-specific-section frameworks="vue">
-```
-
+```js
 data() {
-return {
-options: {
-data: [
-{
-beverage: 'Coffee',
-Q1: 700,
-Q2: 600,
-Q3: 560,
-Q4: 450
-},
-{
-beverage: 'Tea',
-Q1: 520,
-Q2: 450,
-Q3: 380,
-Q4: 270
-},
-{
-beverage: 'Milk',
-Q1: 200,
-Q2: 190,
-Q3: 170,
-Q4: 180
-},
-],
-series: [
-{ type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-{ type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-{ type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-{ type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
-],
-},
-};
+  return {
+    options: {
+      data: [
+        {
+          beverage: 'Coffee',
+          Q1: 700,
+          Q2: 600,
+          Q3: 560,
+          Q4: 450
+        },
+        {
+          beverage: 'Tea',
+          Q1: 520,
+          Q2: 450,
+          Q3: 380,
+          Q4: 270
+        },
+        {
+          beverage: 'Milk',
+          Q1: 200,
+          Q2: 190,
+          Q3: 170,
+          Q4: 180
+        },
+      ],
+      series: [
+          { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
+          { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
+          { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
+          { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+      ],
+    },
+  };
 }
-
 ````
+
 </framework-specific-section>
 
 Chart tooltips are enabled by default so you can hover over a block to see its value.
@@ -999,7 +997,7 @@ agCharts.AgChart.create({
         },
     ],
 });
-````
+```
 
 </framework-specific-section>
 
@@ -1057,35 +1055,33 @@ constructor(props) {
                     xKey: 'beverage',
                     yKey: 'Q1',
                     stacked: true,
-
--                      label: {},
-                  },
-                  {
-                      type: 'column',
-                      xKey: 'beverage',
-                      yKey: 'Q2',
-                      stacked: true,
--                      label: {},
-                  },
-                  {
-                      type: 'column',
-                      xKey: 'beverage',
-                      yKey: 'Q3',
-                      stacked: true,
--                      label: {},
-                  },
-                  {
-                      type: 'column',
-                      xKey: 'beverage',
-                      yKey: 'Q4',
-                      stacked: true,
--                      label: {},
-                    },
-                ],
-            }
++                    label: {},
+                },
+                {
+                    type: 'column',
+                    xKey: 'beverage',
+                    yKey: 'Q2',
+                    stacked: true,
++                    label: {},
+                },
+                {
+                    type: 'column',
+                    xKey: 'beverage',
+                    yKey: 'Q3',
+                    stacked: true,
++                    label: {},
+                },
+                {
+                    type: 'column',
+                    xKey: 'beverage',
+                    yKey: 'Q4',
+                    stacked: true,
++                    label: {},
+                },
+            ],
         }
     }
-
+}
 ````
 </framework-specific-section>
 
@@ -1263,50 +1259,48 @@ constructor(props) {
     this.state = {
         options: {
             data: this.data,
-
--              title: {
--                  text: 'Beverage Expenses',
--              },
--              subtitle: {
--                  text: 'per quarter',
--              },
--              footnote: {
--                  text: 'Based on a sample size of 200 respondents',
--              },
-                series: [
-                    {
-                        type: 'column',
-                        xKey: 'beverage',
-                        yKey: 'Q1',
-                        stacked: true,
-                        label: {},
-                    },
-                    {
-                        type: 'column',
-                        xKey: 'beverage',
-                        yKey: 'Q2',
-                        stacked: true,
-                        label: {},
-                    },
-                    {
-                        type: 'column',
-                        xKey: 'beverage',
-                        yKey: 'Q3',
-                        stacked: true,
-                        label: {},
-                    },
-                    {
-                        type: 'column',
-                        xKey: 'beverage',
-                        yKey: 'Q4',
-                        stacked: true,
-                        label: {},
-                    },
-                ],
-            }
++              title: {
++                  text: 'Beverage Expenses',
++              },
++              subtitle: {
++                  text: 'per quarter',
++              },
++              footnote: {
++                  text: 'Based on a sample size of 200 respondents',
++              },
+            series: [
+                {
+                    type: 'column',
+                    xKey: 'beverage',
+                    yKey: 'Q1',
+                    stacked: true,
+                    label: {},
+                },
+                {
+                    type: 'column',
+                    xKey: 'beverage',
+                    yKey: 'Q2',
+                    stacked: true,
+                    label: {},
+                },
+                {
+                    type: 'column',
+                    xKey: 'beverage',
+                    yKey: 'Q3',
+                    stacked: true,
+                    label: {},
+                },
+                {
+                    type: 'column',
+                    xKey: 'beverage',
+                    yKey: 'Q4',
+                    stacked: true,
+                    label: {},
+                },
+            ],
         }
     }
-
+}
 ````
 </framework-specific-section>
 
