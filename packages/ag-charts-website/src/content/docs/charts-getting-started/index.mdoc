@@ -1,5 +1,5 @@
 ---
-title: "Get Started with AG Charts"
+title: 'Get Started with AG Charts'
 ---
 
 AG Charts is a powerful standalone component with no dependencies. The charts factory API can be used to seamlessly create and update data visualizations independently of the grid.
@@ -14,7 +14,7 @@ AG Charts is a powerful standalone component with no dependencies. The charts fa
 </div>
 
 <div tab-label="main.js">
-```
+```javascript
 const data = [
     {
         beverage: 'Coffee',
@@ -69,7 +69,8 @@ const options = {
 };
 
 agCharts.AgChart.create(options);
-```
+
+````
 </div>
 
 <div tab-label="index.html">
@@ -86,7 +87,8 @@ agCharts.AgChart.create(options);
         <script src="main.js"></script>
     </body>
 </html>
-```
+````
+
 </div>
 
 </tabs>
@@ -100,7 +102,7 @@ agCharts.AgChart.create(options);
 </div>
 
 <div tab-label="index.js">
-```jsx
+```javascript
 import React, { Component } from 'react';
 import { AgChartsReact } from 'ag-charts-react';
 
@@ -158,16 +160,18 @@ export default class ChartExample extends Component {
     render() {
         return <AgChartsReact options={this.state.options} />;
     }
+
 }
-```
+
+````
 </div>
 
 <div tab-label="index.html">
 ```html
 <div id="root"></div>
-```
-</div>
+````
 
+</div>
 </tabs>
 </framework-specific-section>
 
@@ -179,7 +183,7 @@ export default class ChartExample extends Component {
 </div>
 
 <div tab-label="app.component.ts">
-```jsx
+```javascript
 import { Component } from '@angular/core';
 import { AgChartOptions } from 'ag-charts-community';
 
@@ -233,8 +237,10 @@ export class AppComponent {
             ],
         };
     }
+
 }
-```
+
+````
 </div>
 
 <div tab-label="app.module.ts">
@@ -254,7 +260,8 @@ import { AppComponent } from './app.component';
 })
 export class AppModule {
 }
-```
+````
+
 </div>
 
 <div tab-label="app.component.html">
@@ -359,16 +366,18 @@ body {
  height: inherit;
 }
 </style>
-```
+
+````
 </div>
 
 <div tab-label="main.js">
-```jsx
+```javascript
 import { createApp } from 'vue'
 import App from './App.vue'
 
 createApp(App).mount('#app')
-```
+````
+
 </div>
 
 </tabs>
@@ -459,10 +468,7 @@ import { AgChartsAngularModule } from 'ag-charts-angular';
 import { AppComponent } from './app.component';
 
 @NgModule({
-    imports: [
-        BrowserModule,
-        AgChartsAngularModule
-    ],
+    imports: [BrowserModule, AgChartsAngularModule],
     declarations: [AppComponent],
     bootstrap: [AppComponent],
 })
@@ -476,7 +482,7 @@ import { Component } from '@angular/core';
 
 @Component({
     selector: 'app-root',
-    templateUrl: './app.component.html'
+    templateUrl: './app.component.html',
 })
 export class AppComponent {
     public options: any;
@@ -503,10 +509,12 @@ export class AppComponent {
     constructor() {
         this.options = {
             data: this.data,
-            series: [{
-                xKey: 'quarter',
-                yKey: 'spending',
-            }],
+            series: [
+                {
+                    xKey: 'quarter',
+                    yKey: 'spending',
+                },
+            ],
         };
     }
 }
@@ -519,11 +527,10 @@ The series `type` defaults to `'line'`, so the only series configuration we need
 Finally, let's add the component definition to our template. Edit `app/app.component.html` and remove the scaffold code:
 
 ```html
-<ag-charts-angular
-    style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"
-    [options]="options">
+<ag-charts-angular style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;" [options]="options">
 </ag-charts-angular>
 ```
+
 </framework-specific-section>
 
 <framework-specific-section frameworks="react">
@@ -583,10 +590,12 @@ export default class ChartExample extends Component {
         this.state = {
             options: {
                 data: this.data,
-                series: [{
-                    xKey: 'quarter',
-                    yKey: 'spending',
-                }],
+                series: [
+                    {
+                        xKey: 'quarter',
+                        yKey: 'spending',
+                    },
+                ],
             },
         };
     }
@@ -646,9 +655,9 @@ Let's add the component definition to our template. Edit `src/App.vue` and repla
 
 ```html
 <template>
-  <div id="app">
-      <ag-charts-vue :options="options"></ag-charts-vue>
-  </div>
+    <div id="app">
+        <ag-charts-vue :options="options"></ag-charts-vue>
+    </div>
 </template>
 ```
 
@@ -656,44 +665,47 @@ Next, let's declare the basic charts configuration. Edit `src/App.vue`:
 
 ```html
 <script>
-  import { AgChartsVue } from 'ag-charts-vue3';
+    import { AgChartsVue } from 'ag-charts-vue3';
 
-  export default {
-    name: 'App',
-    components: {
-      AgChartsVue,)
-    },
-    data() {
-      return {
-        options: {
-          data: [
-            {
-                  quarter: 'Q1',
-                  spending: 700,
-            },
-            {
-                  quarter: 'Q2',
-                  spending: 600,
-            },
-            {
-                  quarter: 'Q3',
-                  spending: 560,
-            },
-            {
-                  quarter: 'Q4',
-                  spending: 450,
-            },
-          ],
-          series: [{
-            xKey: 'quarter',
-            yKey: 'spending',
-          }],
+    export default {
+        name: 'App',
+        components: {
+            AgChartsVue,
         },
-      };
-    },
-  };
+        data() {
+            return {
+                options: {
+                    data: [
+                        {
+                            quarter: 'Q1',
+                            spending: 700,
+                        },
+                        {
+                            quarter: 'Q2',
+                            spending: 600,
+                        },
+                        {
+                            quarter: 'Q3',
+                            spending: 560,
+                        },
+                        {
+                            quarter: 'Q4',
+                            spending: 450,
+                        },
+                    ],
+                    series: [
+                        {
+                            xKey: 'quarter',
+                            yKey: 'spending',
+                        },
+                    ],
+                },
+            };
+        },
+    };
 </script>
 ```
+
 &nbsp;
 Here we'll provide the `options` we want to use for our chart, including the `series` to use to plot the data.
 &nbsp;
@@ -764,7 +776,7 @@ constructor(props) {
         }
     }
 }
-```
+````
 </framework-specific-section>
 
 <framework-specific-section frameworks="vue">
@@ -801,7 +813,8 @@ data() {
     },
   };
 }
-```
+````
+
 </framework-specific-section>
 
 {% chartExampleRunner title="Line Chart" name="line-chart-legend" type="generated" /%}
@@ -853,6 +866,7 @@ agCharts.AgChart.create({
     ],
 });
 ```
+
 </framework-specific-section>
 
 <framework-specific-section frameworks="frameworks">
@@ -891,12 +905,14 @@ constructor(props) {
             ],
         }
     }
+
 }
-```
+
+````
 </framework-specific-section>
 
 <framework-specific-section frameworks="vue">
-```
+```js
 data() {
   return {
     options: {
@@ -932,7 +948,8 @@ data() {
     },
   };
 }
-```
+````
+
 </framework-specific-section>
 
 Chart tooltips are enabled by default so you can hover over a block to see its value.
@@ -981,6 +998,7 @@ agCharts.AgChart.create({
     ],
 });
 ```
+
 </framework-specific-section>
 
 <framework-specific-section frameworks="angular">
@@ -1064,7 +1082,7 @@ constructor(props) {
         }
     }
 }
-```
+````
 </framework-specific-section>
 
 <framework-specific-section frameworks="vue">
@@ -1128,7 +1146,8 @@ data() {
     },
   };
 }
-```
+````
+
 </framework-specific-section>
 
 {% chartExampleRunner title="Column Chart With Labels" name="beverage-expenses-labels" type="generated" /%}
@@ -1240,15 +1259,15 @@ constructor(props) {
     this.state = {
         options: {
             data: this.data,
-+            title: {
-+                text: 'Beverage Expenses',
-+            },
-+            subtitle: {
-+                text: 'per quarter',
-+            },
-+            footnote: {
-+                text: 'Based on a sample size of 200 respondents',
-+            },
++              title: {
++                  text: 'Beverage Expenses',
++              },
++              subtitle: {
++                  text: 'per quarter',
++              },
++              footnote: {
++                  text: 'Based on a sample size of 200 respondents',
++              },
             series: [
                 {
                     type: 'column',
@@ -1282,7 +1301,7 @@ constructor(props) {
         }
     }
 }
-```
+````
 </framework-specific-section>
 
 <framework-specific-section frameworks="vue">
@@ -1355,7 +1374,8 @@ data() {
     },
   };
 }
-```
+````
+
 </framework-specific-section>
 
 {% chartExampleRunner title="Column Chart With Captions" name="beverage-expenses-captions" type="generated" /%}
@@ -1381,6 +1401,7 @@ Creating charts is done using the `agCharts.AgChart` factory as shown in the exa
 ```
 agCharts.AgChart.create(options);
 ```
+
 </framework-specific-section>
 
 <framework-specific-section frameworks="angular">
@@ -1392,12 +1413,14 @@ The table below gives the ranges of compatible versions of AG Charts with Angula
 AG Charts Legacy is only required for apps on Angular v8-11 that wish to use AG Charts v6-7. See [AG Grid Legacy](/angular-compatibility/#ag-grid-legacy) for more details about our legacy packages.
 {% /note %}
 
-Angular AG Charts AG Charts Package        
-------- --------- ------------------------ 
-+14     6 - 8+    ag-charts-angular        
-12 - 13 6 - 8     ag-charts-angular        
-8 - 11  6 - 7     ag-charts-angular-legacy 
-8 - 11  2 - 5     ag-charts-angular        
+Angular AG Charts AG Charts Package
+
+---
+
++14 6 - 8+ ag-charts-angular  
+12 - 13 6 - 8 ag-charts-angular  
+8 - 11 6 - 7 ag-charts-angular-legacy
+8 - 11 2 - 5 ag-charts-angular
 
 </framework-specific-section>
 

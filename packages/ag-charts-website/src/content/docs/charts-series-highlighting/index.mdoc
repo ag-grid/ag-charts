@@ -1,5 +1,5 @@
 ---
-title: "Series Highlighting"
+title: 'Series Highlighting'
 ---
 
 In data-rich charts with multiple overlapping series it might be difficult to tell one series from another
@@ -53,13 +53,13 @@ highlightStyle: {
 
 This custom highlightStyle is applied to the column series in the example below. Note the following:
 
-- When a series item (column segment) is hovered, it gets highlighted using the style in the `highlightStyle.item` configuration.
-  Also, the segments belonging to all other stack levels are dimmed, and only segments
-  from the stack level that the highlighted segment belongs to remain unaffected.
-- At the same time the segments from the highlighted stack level (subseries) get the `strokeWidth` of `2`,
-  while the currently hovered segment gets a `strokeWidth` of `4`.
-- When a legend item (representing a stack level) is hovered, the rest of the stack levels in the series are dimmed,
-  but this time with no column segment item highlighted because none is hovered.
+-   When a series item (column segment) is hovered, it gets highlighted using the style in the `highlightStyle.item` configuration.
+    Also, the segments belonging to all other stack levels are dimmed, and only segments
+    from the stack level that the highlighted segment belongs to remain unaffected.
+-   At the same time the segments from the highlighted stack level (subseries) get the `strokeWidth` of `2`,
+    while the currently hovered segment gets a `strokeWidth` of `4`.
+-   When a legend item (representing a stack level) is hovered, the rest of the stack levels in the series are dimmed,
+    but this time with no column segment item highlighted because none is hovered.
 
 {% chartExampleRunner title="Column Series with Custom Highlight Style" name="basic-column" type="generated" /%}
 
@@ -67,13 +67,13 @@ This custom highlightStyle is applied to the column series in the example below.
 
 Let's take a look at the pie chart configuration now, which is going to be slightly different. Note the following:
 
-- We are using the same data set for the pie chart example as for the column chart example, but because the pie series are not stacked,
-  we need 4 different pie series - one for each quarter - to render the whole data set.
-- If the series are missing the `title` config, we will have legend items that are indistinguishable from those of other series,
-  because each series legend items will be: `Coffee`, `Tea`, `Milk`. This is why in order to make legend items unique we use the name of the quarter
-  in the series `title` config.
-- Since we have multiple pie series, we have to modify the `highlightStyle` of every single series;
-  in this example we are using the same `highlightStyle` for all 4 of them, but they could also be unique.
+-   We are using the same data set for the pie chart example as for the column chart example, but because the pie series are not stacked,
+    we need 4 different pie series - one for each quarter - to render the whole data set.
+-   If the series are missing the `title` config, we will have legend items that are indistinguishable from those of other series,
+    because each series legend items will be: `Coffee`, `Tea`, `Milk`. This is why in order to make legend items unique we use the name of the quarter
+    in the series `title` config.
+-   Since we have multiple pie series, we have to modify the `highlightStyle` of every single series;
+    in this example we are using the same `highlightStyle` for all 4 of them, but they could also be unique.
 
 {% chartExampleRunner title="Pie Series with Custom Highlight Style" name="basic-pie" type="generated" /%}
 

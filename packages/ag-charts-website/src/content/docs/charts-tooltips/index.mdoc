@@ -1,13 +1,13 @@
 ---
-title: "Tooltips"
+title: 'Tooltips'
 ---
 
 There are four ways of enabling the tooltips in AG Charts by using:
 
-- [default tooltips](#default-tooltip)
-- [custom styled tooltips](#styling-the-default-tooltip) via CSS classes
-- [custom title / content](#modifying-content--title) via a renderer function
-- [completely custom template and markup](#using-custom-tooltips) via a renderer function
+-   [default tooltips](#default-tooltip)
+-   [custom styled tooltips](#styling-the-default-tooltip) via CSS classes
+-   [custom title / content](#modifying-content--title) via a renderer function
+-   [completely custom template and markup](#using-custom-tooltips) via a renderer function
 
 ## Default Tooltip
 
@@ -15,8 +15,8 @@ The default chart tooltip has the following template:
 
 ```html
 <div class="ag-chart-tooltip">
-  <div class="ag-chart-tooltip-title"></div>
-  <div class="ag-chart-tooltip-content"></div>
+    <div class="ag-chart-tooltip-title"></div>
+    <div class="ag-chart-tooltip-content"></div>
 </div>
 ```
 
@@ -35,20 +35,20 @@ In the sample data below the `value1` key is not descriptive, while `hats_made` 
 
 ```js
 data: [
-  {
-    month: "Jun",
-    value1: 50,
-    hats_made: 40,
-  },
-  // ...
-]
+    {
+        month: 'Jun',
+        value1: 50,
+        hats_made: 40,
+    },
+    // ...
+];
 ```
 
 Notice that when we set the `yName` of the `'column'` series:
 
-- The tooltip title is visible when `yName` config is set, and hidden when the `yName` is reset.
-- The `yName` changes are reflected in the legend as well.
-- The legend will use the `yKey` when the `yName` is not set. The tooltip however will only have a title if the `yName` (or `title`) is set.
+-   The tooltip title is visible when `yName` config is set, and hidden when the `yName` is reset.
+-   The `yName` changes are reflected in the legend as well.
+-   The legend will use the `yKey` when the `yName` is not set. The tooltip however will only have a title if the `yName` (or `title`) is set.
 
 Also note that for numeric values the tooltips show two digits after the decimal point by default.
 
@@ -60,8 +60,8 @@ The tooltip position can be modified using the `tooltip.position.type` property.
 
 `tooltip.position.type` can be one of the following:
 
-- `node` - Anchors the tooltip to the highlighted node
-- `pointer` - Anchors the tooltip to the mouse pointer
+-   `node` - Anchors the tooltip to the highlighted node
+-   `pointer` - Anchors the tooltip to the mouse pointer
 
 For series with markers, such as `line`, `area`, and `scatter`, where each data point is represented by a marker, the default tooltip `position.type` is `node`. This means that the tooltip will be positioned above the highlighted marker node.
 
@@ -83,8 +83,8 @@ tooltip: {
 
 In this example we show how to change the tooltip's default position. Note that:
 
-- Instead of the tooltip being anchored to the highlighted marker node, it is anchored 80 pixels to the left and below the mouse pointer.
-- By default, when `tooltip.position.xOffset` or `tooltip.position.yOffset` are configured, the tooltip arrow is removed.
+-   Instead of the tooltip being anchored to the highlighted marker node, it is anchored 80 pixels to the left and below the mouse pointer.
+-   By default, when `tooltip.position.xOffset` or `tooltip.position.yOffset` are configured, the tooltip arrow is removed.
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
@@ -96,7 +96,7 @@ Set `tooltip.showArrow` to `true` to always show the arrow, and set it to `false
 
 ```js
 tooltip: {
-  showArrow: false
+    showArrow: false;
 }
 ```
 
@@ -115,14 +115,14 @@ The default tooltip already uses `ag-chart-tooltip`, `ag-chart-tooltip-title` an
 For example, if we wanted to set the tooltip's content `background-color` to `gold`, we'd add a custom class name to our chart in the code:
 
 ```js
-chart.tooltip.class = "my-tooltip"
+chart.tooltip.class = 'my-tooltip';
 ```
 
 And then in the CSS:
 
 ```css
 .my-tooltip .ag-chart-tooltip-content {
-  background-color: gold;
+    background-color: gold;
 }
 ```
 
@@ -179,21 +179,21 @@ Let's say we wanted to remove the digits after the decimal point from the values
 
 ```js
 series: [
-  {
-    type: "column",
-    tooltip: {
-      renderer: function (params) {
-        return `
+    {
+        type: 'column',
+        tooltip: {
+            renderer: function (params) {
+                return `
             <div class="ag-chart-tooltip-title" style="background-color: ${params.color}">
                 ${params.xValue}
             </div>
             <div class="ag-chart-tooltip-content">
                 ${params.yValue}
-            </div>`
-      },
+            </div>`;
+            },
+        },
     },
-  },
-]
+];
 ```
 
 The tooltip renderer function receives the `params` object as a single parameter. Inside that object you get the `xValue` and `yValue` for the highlighted data point as well as the reference to the raw `datum` element from the `chart.data` or `series.data` array. You can then process the raw values however you like before using them as a part of the returned HTML string.
@@ -208,11 +208,11 @@ The effect of applying the tooltip renderer from the snippet above can be seen i
 
 Notice that the tooltip renderer in the example below:
 
-- Returns two `div` elements, one for the tooltip's title and another for its content.
-- The value of the title comes from `params.xValue` which is the name of the month.
-- The title element gets its background color from the `params` object. The provided color matches the color of the series.
-- The `'Sweaters Made'` value comes from the `params.yValue`, which we then stringify as an integer via `toFixed(0)`.
-- We use the default class names on the returned `div` elements, so that our tooltip gets the default styling. You could however add your own classes to the class list, or replace the default CSS classes with your own. The structure of the returned DOM is also up to you, we are just following the convention for this example.
+-   Returns two `div` elements, one for the tooltip's title and another for its content.
+-   The value of the title comes from `params.xValue` which is the name of the month.
+-   The title element gets its background color from the `params` object. The provided color matches the color of the series.
+-   The `'Sweaters Made'` value comes from the `params.yValue`, which we then stringify as an integer via `toFixed(0)`.
+-   We use the default class names on the returned `div` elements, so that our tooltip gets the default styling. You could however add your own classes to the class list, or replace the default CSS classes with your own. The structure of the returned DOM is also up to you, we are just following the convention for this example.
 
 {% chartExampleRunner title="Column Series with Tooltip Renderer" name="tooltip-renderer" type="generated" /%}
 
@@ -224,9 +224,9 @@ By default, the tooltip of the nearest node is visible when the cursor is on the
 
 The example below shows the three types of interaction range:
 
-- `'nearest'` (default) will show the tooltip of the nearest node anywhere on the chart
-- `'exact'` will show the tooltip if the user hovers over a node
-- given a number the tooltip will show if the cursor is within that distance in pixels of a node
+-   `'nearest'` (default) will show the tooltip of the nearest node anywhere on the chart
+-   `'exact'` will show the tooltip if the user hovers over a node
+-   given a number the tooltip will show if the cursor is within that distance in pixels of a node
 
 {% chartExampleRunner title="Tooltip Range" name="interaction-range" type="generated" /%}
 

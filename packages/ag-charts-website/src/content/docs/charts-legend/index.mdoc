@@ -1,5 +1,5 @@
 ---
-title: "Legend"
+title: 'Legend'
 ---
 
 A legend makes it easier to tell at a glance which series or series items correspond to which pieces of data. This section describes the legend options and layout behaviour.
@@ -10,7 +10,7 @@ By default, a legend is displayed for all charts with more than one series prese
 
 ```js
 legend: {
-  enabled: false
+    enabled: false;
 }
 ```
 
@@ -18,7 +18,7 @@ When enabled, it can be positioned to any side of a chart using the `position` c
 
 ```js
 legend: {
-  position: "right" // 'bottom', 'left', 'top'
+    position: 'right'; // 'bottom', 'left', 'top'
 }
 ```
 
@@ -26,8 +26,8 @@ legend: {
 
 Notice how when you click on one of the buttons in the example to change the position of the legend:
 
-- the layout of the legend items also changes
-- the layout of the chart changes as well, with series moving around and growing/shrinking slightly to accommodate the legend
+-   the layout of the legend items also changes
+-   the layout of the chart changes as well, with series moving around and growing/shrinking slightly to accommodate the legend
 
 {% chartExampleRunner title="Legend Position" name="legend-position" type="generated" /%}
 
@@ -68,9 +68,9 @@ In addition to `maxWidth` and `maxHeight`, the legend's layout is also affected 
 
 ```js
 legend: {
-  item: {
-    paddingX: 16
-  }
+    item: {
+        paddingX: 16;
+    }
 }
 ```
 
@@ -78,9 +78,9 @@ legend: {
 
 ```js
 legend: {
-  item: {
-    paddingY: 8
-  }
+    item: {
+        paddingY: 8;
+    }
 }
 ```
 
@@ -88,11 +88,11 @@ And the `legend.item.marker.padding` config is responsible for the amount of pad
 
 ```js
 legend: {
-  item: {
-    marker: {
-      padding: 8
+    item: {
+        marker: {
+            padding: 8;
+        }
     }
-  }
 }
 ```
 
@@ -110,11 +110,11 @@ The pagination component can be customised using `legend.pagination`. For exampl
 
 ```js
 legend: {
-  pagination: {
-    marker: {
-      size: 18
+    pagination: {
+        marker: {
+            size: 18;
+        }
     }
-  }
 }
 ```
 
@@ -136,11 +136,11 @@ legend: {
 
 ### Example: Legend Pagination
 
-- Initially the legend is positioned at the bottom of the chart so by default, the legend is rendered in the `horizontal` orientation.
-- `legend.maxHeight` is used to restrict the height of the legend, resulting in a single row of legend items spread across different pages.
-- The pagination component appears automatically when the legend items combined with their configured padding do not fit in the given width and height constraints.
-- `legend.pagination` is used to customise the styles of the pagination label and buttons.
-- You can switch between different legend positions using the buttons above the chart to see how the legend pagination component behaves.
+-   Initially the legend is positioned at the bottom of the chart so by default, the legend is rendered in the `horizontal` orientation.
+-   `legend.maxHeight` is used to restrict the height of the legend, resulting in a single row of legend items spread across different pages.
+-   The pagination component appears automatically when the legend items combined with their configured padding do not fit in the given width and height constraints.
+-   `legend.pagination` is used to customise the styles of the pagination label and buttons.
+-   You can switch between different legend positions using the buttons above the chart to see how the legend pagination component behaves.
 
 {% chartExampleRunner title="Legend Pagination" name="legend-pagination" type="generated" /%}
 
@@ -206,9 +206,9 @@ To disable series toggling on legend item click or double click, the `legend.ite
 
 ```js
 legend: {
-  item: {
-    toggleSeriesVisible: false
-  }
+    item: {
+        toggleSeriesVisible: false;
+    }
 }
 ```
 
@@ -229,10 +229,13 @@ This example demonstrates toggling the visiblity of series via clicks and double
 ## API Reference
 
 ### Cartesian Chart Legend Options
+
 <interface-documentation interfaceName="AgCartesianChartLegendOptions" overridesrc="charts-api/api.json" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>
 
 ### Polar Chart Legend Options
+
 <interface-documentation interfaceName="AgPolarChartLegendOptions" overridesrc="charts-api/api.json" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>
 
 ### Hierarchy Chart Legend Options
+
 <interface-documentation interfaceName="AgHierarchyChartLegendOptions" overridesrc="charts-api/api.json" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>

@@ -1,5 +1,5 @@
 ---
-title: "Axis Domain"
+title: 'Axis Domain'
 ---
 
 The axis domain is the extent of displayed values along the axis.
@@ -16,18 +16,18 @@ To prevent this and use the exact data domain as the axis domain, set the `axis.
 
 ```js
 axes: [
-  {
-    type: "number",
-    position: "left",
-    nice: false, // Use the exact data domain as the axis domain
-  },
-]
+    {
+        type: 'number',
+        position: 'left',
+        nice: false, // Use the exact data domain as the axis domain
+    },
+];
 ```
 
 The `axis.nice` configuration is demonstrated in the example below. Use the button to toggle the `nice` property. Note that:
 
-- When `nice` is set to `false`, the axis ranges from the minimum data value of `1.87` to the maximum data value of `88.07`.
-- When `nice` is set to `true`, the axis domain is extended to nice round numbers, starting from `0` and stopping at `100`.
+-   When `nice` is set to `false`, the axis ranges from the minimum data value of `1.87` to the maximum data value of `88.07`.
+-   When `nice` is set to `true`, the axis domain is extended to nice round numbers, starting from `0` and stopping at `100`.
 
 {% chartExampleRunner title="Number Axis Nice" name="axis-nice" type="generated" /%}
 
@@ -37,13 +37,13 @@ The domain of a continuous axis can be configured explicitly by using the `axis.
 
 ```js
 axes: [
-  {
-    type: "number",
-    position: "left",
-    min: -50,
-    max: 150,
-  },
-]
+    {
+        type: 'number',
+        position: 'left',
+        min: -50,
+        max: 150,
+    },
+];
 ```
 
 The example below shows how to use the `axis.min` and `axis.max` configurations.

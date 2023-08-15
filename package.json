@@ -5,7 +5,7 @@
   "scripts": {
     "init": "yarn install",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "postinstall": "node ./tools/scripts/patch-nx-cli.js"
+    "postinstall": "patch-package"
   },
   "private": true,
   "dependencies": {
@@ -78,6 +78,7 @@
     "npm-run-all": "^4.1.5",
     "nx": "16.4.0",
     "nx-cloud": "latest",
+    "patch-package": "^8.0.0",
     "pixelmatch": "^5.2.1",
     "prettier": "^2.8.3",
     "raf": "3.4.1",

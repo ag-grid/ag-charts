@@ -1,9 +1,9 @@
 ---
-title: "Radar Series"
+title: 'Radar Series'
 enterprise: true
 ---
 
-**Radar** series (sometimes called a *Spider chart*) represent a dataset in a form of a line or area drawn over a radial grid.
+**Radar** series (sometimes called a _Spider chart_) represent a dataset in a form of a line or area drawn over a radial grid.
 It can be very useful when you need to compare some datasets across **multiple categories**.
 
 ## Radar Line
@@ -13,11 +13,13 @@ To plot a basic Radar Line we need an array of data, where every item will have 
 A minimal radar line series configuration will look like:
 
 ```js
-series: [{
-    type: 'radar-line',
-    angleKey: 'subject',
-    radiusKey: 'grade',
-}]
+series: [
+    {
+        type: 'radar-line',
+        angleKey: 'subject',
+        radiusKey: 'grade',
+    },
+];
 ```
 
 {% chartExampleRunner title="Basic Radar Line" name="basic-radar-line" type="generated" options="{ \"enterprise\": true }" /%}
@@ -63,7 +65,7 @@ Please see the API reference for more polar axes style options.
 
 ### API Reference
 
-{/*  TODO: replace with usual api reference component  */}
+{/_ TODO: replace with usual api reference component _/}
 
 ```ts
 /** Configuration for Radar Line series. */

@@ -1,5 +1,5 @@
 ---
-title: "Pie and Doughnut Series"
+title: 'Pie and Doughnut Series'
 ---
 
 Pie series are useful for illustrating the numerical proportion of data values. The sectors in a pie series show the contribution of individual values to the whole.
@@ -13,10 +13,12 @@ To plot a basic pie all we need is an array of values that will determine the an
 A minimal pie series configuration is shown below:
 
 ```js
-series: [{
-    type: 'pie',
-    angleKey: 'value'
-}]
+series: [
+    {
+        type: 'pie',
+        angleKey: 'value',
+    },
+];
 ```
 
 This results in the chart shown below. Note that [tooltips](/charts-tooltips/) show the absolute value of each pie sector.
@@ -27,8 +29,8 @@ This results in the chart shown below. Note that [tooltips](/charts-tooltips/) s
 
 We support two types of label related to individual sectors:
 
-- Call-out labels: displayed adjacent to each sector with a joining line (configured via `calloutLabelKey`, `calloutLabel` and `calloutLabelLine` options).
-- Sector labels: displayed inside each sector (configured via `sectorLabelKey` and `sectorLabel` options).
+-   Call-out labels: displayed adjacent to each sector with a joining line (configured via `calloutLabelKey`, `calloutLabel` and `calloutLabelLine` options).
+-   Sector labels: displayed inside each sector (configured via `sectorLabelKey` and `sectorLabel` options).
 
 Additionally legend labels and tooltips are derived from the call-out label options.
 
@@ -49,16 +51,16 @@ series: [{
 
 This example demonstrates:
 
-- Use of `legendItemKey`, enabling:
-  - Labels for use in the legend.
-- Use of `calloutLabelKey`, enabling:
-  - Display of a per-sector callout label.
-  - A fallback label for use in the legend if `legendItemKey` is not provided.
-  - Tooltips on segment hover including the callout label and sector value.
-- Use of `sectorLabelKey` and `sectorLabel`, enabling:
-  - Display of a per-sector inside label.
-  - Some sector labels are not displayed, where the sector is too small to fit the label text.
-- Individual sectors can be toggled on and off via the legend.
+-   Use of `legendItemKey`, enabling:
+    -   Labels for use in the legend.
+-   Use of `calloutLabelKey`, enabling:
+    -   Display of a per-sector callout label.
+    -   A fallback label for use in the legend if `legendItemKey` is not provided.
+    -   Tooltips on segment hover including the callout label and sector value.
+-   Use of `sectorLabelKey` and `sectorLabel`, enabling:
+    -   Display of a per-sector inside label.
+    -   Some sector labels are not displayed, where the sector is too small to fit the label text.
+-   Individual sectors can be toggled on and off via the legend.
 
 {% chartExampleRunner title="Pie Chart with Labels" name="pie-labels" type="generated" /%}
 
@@ -85,12 +87,14 @@ Please check the [API reference](#api-reference) below to learn more about `call
 Let's say we have the data for both the market share of mobile operating systems and the level of user satisfaction with each OS. We could represent the satisfaction level as the radius of a sector using the `radiusKey` config like so:
 
 ```js
-series: [{
-    type: 'pie',
-    calloutLabelKey: 'os',
-    angleKey: 'share',
-    radiusKey: 'satisfaction'
-}]
+series: [
+    {
+        type: 'pie',
+        calloutLabelKey: 'os',
+        angleKey: 'share',
+        radiusKey: 'satisfaction',
+    },
+];
 ```
 
 A pie chart where sectors have different radii is also known as a **rose chart**.
@@ -102,12 +106,14 @@ A pie chart where sectors have different radii is also known as a **rose chart**
 Pie series can be used to create a doughnut chart by using the `innerRadiusOffset` config.
 
 ```js
-series: [{
-    type: 'pie',
-    calloutLabelKey: 'os',
-    angleKey: 'share',
-    innerRadiusOffset: -70
-}]
+series: [
+    {
+        type: 'pie',
+        calloutLabelKey: 'os',
+        angleKey: 'share',
+        innerRadiusOffset: -70,
+    },
+];
 ```
 
 The config specifies the offset value from the maximum pie radius which all pie sectors use by default (the maximum pie series radius is determined automatically by the chart depending on the chart's dimensions). `-70` in the snippet above means the inner radius of the series should be 70 pixels smaller than the maximum radius.
@@ -189,8 +195,8 @@ series: [
         type: 'pie',
         legendItemKey: 'os',
         showInLegend: false,
-    }
-]
+    },
+];
 ```
 
 In the example below, we match the series with a `legendItemKey` of `'os'` comparing the market share of each operating system in two different years.

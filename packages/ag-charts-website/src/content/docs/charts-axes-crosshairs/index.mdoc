@@ -1,5 +1,5 @@
 ---
-title: "Crosshairs"
+title: 'Crosshairs'
 enterprise: true
 ---
 
@@ -14,14 +14,14 @@ To enable the crosshair feature for a given axis, use the `crosshair` property o
 
 ```js
 axes: [
-  {
-    type: "number",
-    position: "left",
-    crosshair: {
-      enabled: true,
+    {
+        type: 'number',
+        position: 'left',
+        crosshair: {
+            enabled: true,
+        },
     },
-  },
-]
+];
 ```
 
 {% chartExampleRunner title="Enabling Crosshairs" name="enabling-crosshairs" type="generated" options="{ \"enterprise\": true }" /%}
@@ -34,14 +34,14 @@ This default behaviour can be modified by using the crosshair `snap` option. Whe
 
 ```js
 axes: [
-  {
-    type: "number",
-    position: "bottom",
-    crosshair: {
-      snap: false,
+    {
+        type: 'number',
+        position: 'bottom',
+        crosshair: {
+            snap: false,
+        },
     },
-  },
-]
+];
 ```
 
 {% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" options="{ \"enterprise\": true }" /%}
@@ -84,6 +84,7 @@ crosshair: {
   }
 }
 ```
+
 {% chartExampleRunner title="Crosshair Label Offset" name="crosshair-label-offset" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Crosshair Label Format
@@ -114,18 +115,18 @@ crosshair: {
 },
 ```
 
-- The `renderer` is a callback function which receives the axis `value` and its `fractionDigits` used for formatting the value at the crosshair position.
-- It returns an object with the `text` value as well as style attributes including `color`, `backgroundColor` and `opacity` for the crosshair label:
+-   The `renderer` is a callback function which receives the axis `value` and its `fractionDigits` used for formatting the value at the crosshair position.
+-   It returns an object with the `text` value as well as style attributes including `color`, `backgroundColor` and `opacity` for the crosshair label:
 
 ```js
 const labelRenderer = ({ value, fractionDigits }) => {
-  return {
-    text: value.toFixed(fractionDigits),
-    color: "aliceBlue",
-    backgroundColor: "darkBlue",
-    opacity: 0.8,
-  }
-}
+    return {
+        text: value.toFixed(fractionDigits),
+        color: 'aliceBlue',
+        backgroundColor: 'darkBlue',
+        opacity: 0.8,
+    };
+};
 ```
 
 {% chartExampleRunner title="Crosshair Default Label With Custom Renderer" name="crosshair-default-label-custom-renderer" type="generated" options="{ \"enterprise\": true }" /%}
@@ -146,13 +147,13 @@ Then modify the style definitions in a stylesheet file:
 
 ```css
 .custom-crosshair-label {
-  border-radius: 15px;
+    border-radius: 15px;
 }
 ```
 
 This is shown in the example below. Note that:
 
-- The default label template is used and the style definitions are overriden in the styles.css file.
+-   The default label template is used and the style definitions are overriden in the styles.css file.
 
 {% chartExampleRunner title="Crosshair Default Label With Custom CSS" name="crosshair-default-label-custom-css" type="generated" options="{ \"enterprise\": true }" /%}
 
@@ -162,9 +163,9 @@ Alternatively, the `renderer` function could return a `string` representing HTML
 
 ```js
 const labelRenderer = ({ value, fractionDigits }) => {
-  return `<div class="custom-crosshair-label custom-crosshair-label-arrow">
-            ${value.toFixed(fractionDigits)}</div>`
-}
+    return `<div class="custom-crosshair-label custom-crosshair-label-arrow">
+            ${value.toFixed(fractionDigits)}</div>`;
+};
 ```
 
 The `renderer` function receives a single object with the axis `value` and `fractionDigits`.
@@ -173,15 +174,15 @@ The effect of applying the `renderer` from the snippet above can be seen in the 
 
 Note that:
 
-- The structure of the returned DOM is up to you.
-- The elements have custom CSS class attributes, but the default class names can also be used so that the label gets the default styling.
-- The styles for the elements are defined in the external styles.css file.
+-   The structure of the returned DOM is up to you.
+-   The elements have custom CSS class attributes, but the default class names can also be used so that the label gets the default styling.
+-   The styles for the elements are defined in the external styles.css file.
 
 {% chartExampleRunner title="Crosshair Custom Label" name="crosshair-custom-label" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 
-{/*  TODO: replace with api reference component  */}
+{/_ TODO: replace with api reference component _/}
 
 ```ts
 interface AgCrosshairOptions {
@@ -237,4 +238,4 @@ interface AgCrosshairLabelRendererResult {
 }
 ```
 
-{/*  <interface-documentation interfaceName="AgCrosshairOptions" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>  */}
+{/_ <interface-documentation interfaceName="AgCrosshairOptions" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation> _/}

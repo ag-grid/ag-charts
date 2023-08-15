@@ -1,5 +1,5 @@
 ---
-title: "Context Menu"
+title: 'Context Menu'
 enterprise: true
 ---
 
@@ -25,14 +25,14 @@ In the example below, there is one extra action called "Say hello" that will out
 
 ```ts
 contextMenu: {
-  extraActions: [
-    {
-      label: "Say hello",
-      action: ({ datum, event }: AgContextMenuActionParams) => {
-        console.log(`Hello ${datum?.value ?? "world"}`)
-      },
-    },
-  ]
+    extraActions: [
+        {
+            label: 'Say hello',
+            action: ({ datum, event }: AgContextMenuActionParams) => {
+                console.log(`Hello ${datum?.value ?? 'world'}`);
+            },
+        },
+    ];
 }
 ```
 
@@ -40,23 +40,23 @@ contextMenu: {
 
 ## API Reference
 
-{/*  TODO: replace with usual api reference component  */}
+{/_ TODO: replace with usual api reference component _/}
 
 ```ts
 interface AgContextMenuOptions {
-  enabled?: boolean
-  extraActions?: Array<AgContextMenuAction>
+    enabled?: boolean;
+    extraActions?: Array<AgContextMenuAction>;
 }
 
 type AgContextMenuAction = {
-  label: string
-  action: (params: AgContextMenuActionParams) => void
-}
+    label: string;
+    action: (params: AgContextMenuActionParams) => void;
+};
 
 type AgContextMenuActionParams = {
-  datum?: any
-  event: MouseEvent
-}
+    datum?: any;
+    event: MouseEvent;
+};
 ```
 
-{/*  <interface-documentation interfaceName="AgContextMenuOptions" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation>  */}
+{/_ <interface-documentation interfaceName="AgContextMenuOptions" config="{ "showSnippets": false, "lookupRoot": "charts-api" }"></interface-documentation> _/}
