@@ -9,6 +9,7 @@ const devFiles = getDevFiles();
     <main class="page-margin container">
         <h1>Dev files ({devFiles.length})</h1>
         <p><code>props.file</code> gets the file contents, but is not shown here.</p>
+        <p>Git SHA: {import.meta.env.COMMIT_HASH}</p>
         <table>
             <thead>
                 <th>No.</th>
