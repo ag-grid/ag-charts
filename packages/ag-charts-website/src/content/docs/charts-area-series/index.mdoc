@@ -41,11 +41,11 @@ Tooltips will be shown on hover, which in this case show percentage values witho
 
 The series are designed to work with all kinds of data and are unaware of the nature of the values. So we additionally provide a `tooltipRenderer` to add the `%` suffix. After this change, the tooltips will change like so:
 
-<div style="display: flex; justify-content: center;">
-    <image-caption src="default-area-tooltip.png" alt="Default Area Tooltip" width="256px" constrained="true">Before</image-caption>
-    <div style="margin: auto 0;">--></div>
-    <image-caption src="custom-area-tooltip.png" alt="Custom Area Tooltip" width="256px" constrained="true">After</image-caption>
-</div>
+{% flex alignItems="center" justifyContent="center" %}
+{% imageCaption pageName="charts-area-series" imageName="default-area-tooltip.png" alt="Default Area Tooltip" width="256px" constrained=true %}Before{% /imageCaption %}
+-->
+{% imageCaption pageName="charts-area-series" imageName="custom-area-tooltip.png" alt="Custom Area Tooltip" width="256px" constrained=true %}After{% /imageCaption %}
+{% /flex %}
 
 The final result can be seen in the example below.
 
