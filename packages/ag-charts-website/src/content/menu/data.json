@@ -43,6 +43,7 @@
             {
                 "title": "Axes",
                 "items": [
+                    { "title": "Axis Overview", "path": "charts-axes" },
                     { "title": "Axis Types", "path": "charts-axes-types" },
                     { "title": "Axis Ticks", "path": "charts-axes-ticks" },
                     { "title": "Axis Domain", "path": "charts-axes-domain" },
