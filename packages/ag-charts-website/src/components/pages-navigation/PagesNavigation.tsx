@@ -281,25 +281,24 @@ export function PagesNavigation({
         setSeriesIsActive(false);
     };
 
-    const [isMobile, setIsMobile] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(true);
+    const [navOpen, setNavOpen] = useState(true);
 
     useEffect(() => {
         if (window.innerWidth > 992) {
-            setMobileMenuOpen(true);
+            setNavOpen(true);
         }
 
         document.querySelector('#top-bar-docs-button').addEventListener('click', () => {
-            setMobileMenuOpen(!mobileMenuOpen);
+            setNavOpen(!navOpen);
         });
 
         window.addEventListener('resize', () => {
-            setMobileMenuOpen(window.innerWidth > 992);
+            setNavOpen(window.innerWidth > 992);
         });
-    }, [mobileMenuOpen]);
+    }, [navOpen]);
 
     return (
-        <Collapsible id={'sadsadsadsa'} isOpen={mobileMenuOpen}>
+        <Collapsible id={'sadsadsadsa'} isOpen={navOpen}>
             <aside className={classnames(styles.nav, 'font-size-responsive')}>
                 <MainPagesNavigation
                     menuData={menuData}
