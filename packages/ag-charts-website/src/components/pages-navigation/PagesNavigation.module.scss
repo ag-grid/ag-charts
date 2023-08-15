@@ -1,13 +1,16 @@
 @use '../../design-system' as *;
 
-.nav {
+:global(#docs-nav-collapser) {
     $top-bar-height: 58px;
 
     --menu-width: min(30vw, 320px);
     --font-size: var(--font-size-medium);
 
-    padding-top: $size-4;
     border-bottom: 1px solid var(--border-color);
+
+    &[aria-hidden='true'] {
+        border-bottom-color: transparent;
+    }
 
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
         @include page-horizontal-margins();
@@ -18,37 +21,37 @@
 
         flex-shrink: 0;
         width: var(--menu-width);
+        height: auto !important;
         margin-right: var(--right-margin);
         border-right: solid 1px var(--bright-blue-gray);
-
-        @supports (position: sticky) {
-            position: sticky;
-            top: $top-bar-height;
-            height: calc(100vh - #{$top-bar-height});
-            overflow: hidden;
-            overflow-y: auto;
-        }
-    }
-}
-
-// Force #docs-nav-collapser to be open for larger screens
-:global(#docs-nav-collapser) {
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        height: auto !important;
+        border-bottom: none;
         overflow: visible !important;
 
         > div {
             display: block !important;
         }
+
+        @supports (position: sticky) {
+            position: sticky;
+            top: $top-bar-height;
+            height: calc(100vh - #{$top-bar-height}) !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+    }
+}
+
+.nav {
+    padding-top: $size-4;
+    padding-bottom: $size-4;
+
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        padding-bottom: $size-7;
     }
 }
 
 .navInner {
     margin-bottom: 0 !important;
-
-    &:last-child {
-        padding-bottom: $size-7;
-    }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         margin-left: var(--horizontal-margin);
