@@ -18,6 +18,7 @@ export type Style = {
     strokeWidth?: number;
     fillOpacity?: number;
     strokeOpacity?: number;
+    size?: number;
     visible?: boolean;
 };
 
@@ -60,6 +61,7 @@ export function getMarkerConfig<ExtraParams extends {}>({
         highlighted && highlightStyle.strokeWidth !== undefined
             ? highlightStyle.strokeWidth
             : markerStyle.strokeWidth ?? 1;
+    const strokeOpacity = markerStyle.strokeOpacity ?? seriesStyle.strokeOpacity;
 
     let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
     if (formatter) {
@@ -79,8 +81,9 @@ export function getMarkerConfig<ExtraParams extends {}>({
         fill: format?.fill ?? fill,
         stroke: format?.stroke ?? stroke,
         strokeWidth: format?.strokeWidth ?? strokeWidth,
+        size: format?.size ?? datum.point?.size ?? markerStyle.size,
         fillOpacity,
-        strokeOpacity: seriesStyle.strokeOpacity,
+        strokeOpacity,
     };
 }
 

@@ -48,11 +48,11 @@ import { normaliseGroupTo } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import {
-    AreaSeriesTag,
     type AreaPathPoint,
+    type AreaPathDatum,
+    AreaSeriesTag,
     areaAnimateEmptyUpdateReady,
     areaAnimateReadyUpdate,
-    type AreaPathDatum,
 } from './areaUtil';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
@@ -323,9 +323,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         const context: AreaSeriesNodeDataContext = {
             itemId,
             fillData,
+            strokeData,
             labelData,
             nodeData: markerData,
-            strokeData,
         };
 
         const fillPoints = fillData.points;
