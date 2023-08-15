@@ -33,11 +33,19 @@
 
 .navInner {
     margin-bottom: 0 !important;
-    margin-left: $size-3 !important;
-    margin-right: $size-3;
 
     &:last-child {
         padding-bottom: $size-7;
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        margin-left: var(--horizontal-margin);
+        margin-right: $size-3;
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        margin-left: $size-3;
+        margin-right: $size-3;
     }
 }
 
