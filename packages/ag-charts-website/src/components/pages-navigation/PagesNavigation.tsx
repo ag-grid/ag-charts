@@ -284,27 +284,19 @@ export function PagesNavigation({
         setSeriesIsActive(false);
     };
 
-    const [navOpen, setNavOpen] = useState(true);
+    const [navOpen, setNavOpen] = useState(false);
 
     useEffect(() => {
+        const docsButtonEl = document.querySelector('#top-bar-docs-button');
+
         const docsButtonHandler = () => {
             setNavOpen(!navOpen);
         };
 
-        const windowResizeHandler = () => {
-            setNavOpen(window.innerWidth > DOCS_NAV_MEDIUM_BREAKPOINT);
-        };
-
-        if (window.innerWidth > DOCS_NAV_MEDIUM_BREAKPOINT) {
-            setNavOpen(true);
-        }
-
-        document.querySelector('#top-bar-docs-button').addEventListener('click', docsButtonHandler);
-        window.addEventListener('resize', windowResizeHandler);
+        docsButtonEl.addEventListener('click', docsButtonHandler);
 
         return () => {
-            document.querySelector('#top-bar-docs-button').removeEventListener('click', docsButtonHandler);
-            window.removeEventListener('resize', windowResizeHandler);
+            docsButtonEl.removeEventListener('click', docsButtonHandler);
         };
     }, [navOpen]);
 

@@ -31,6 +31,18 @@
     }
 }
 
+// Force #docs-nav-collapser to be open for larger screens
+:global(#docs-nav-collapser) {
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        height: auto !important;
+        overflow: visible !important;
+
+        > div {
+            display: block !important;
+        }
+    }
+}
+
 .navInner {
     margin-bottom: 0 !important;
 
