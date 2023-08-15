@@ -88,11 +88,10 @@ export const getExampleFileUrl = ({
     );
 };
 
+/**
+ * Get image url on docs page
+ */
 export const getImageUrl = ({ pageName, imageName }: { pageName: string; imageName: string }) => {
-    let parentDirs = '';
-    for (let x = 0; x < SITE_BASE_URL_SEGMENTS; x++) {
-        parentDirs = parentDirs + '../';
-    }
-    // From the `public/docs` folder
-    return pathJoin(parentDirs, 'docs', pageName, imageName);
+    // Go up a directory to account for the framework path in the url
+    return pathJoin('../', 'docs', pageName, imageName);
 };
