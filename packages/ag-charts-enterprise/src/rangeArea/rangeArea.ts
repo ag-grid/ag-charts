@@ -289,14 +289,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             yLow: number
         ): [_ModuleSupport.AreaPathPoint & { size: number }, _ModuleSupport.AreaPathPoint & { size: number }] => {
             const x = xScale.convert(xValue) + xOffset;
-            const yHighValue = Math.max(yHigh, yLow);
-            const yLowValue = Math.min(yLow, yHigh);
-            const yHighCoordinate = yScale.convert(yHighValue, { strict: false });
-            const yLowCoordinate = yScale.convert(yLowValue, { strict: false });
+            const yHighCoordinate = yScale.convert(yHigh, { strict: false });
+            const yLowCoordinate = yScale.convert(yLow, { strict: false });
 
             return [
-                { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, yValue: yHighValue },
-                { x, y: yLowCoordinate, size: this.marker.size, itemId: `low`, yValue: yLowValue },
+                { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, yValue: yHigh },
+                { x, y: yLowCoordinate, size: this.marker.size, itemId: `low`, yValue: yLow },
             ];
         };
 
@@ -329,6 +327,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             const yLowTrailingValue = values[yLowTrailingIndex];
 
             const points = createCoordinates(xValue, yHighValue, yLowValue);
+
+            const isInverted = yLowValue > yHighValue;
             points.forEach(({ x, y, size, itemId, yValue }) => {
                 // marker data
                 markerData.push({
@@ -358,10 +358,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                     itemId,
                     datum,
                     x,
-                    y: y + (itemId === 'low' ? +10 : -10),
+                    y: y + ((itemId === 'low' && !isInverted) || (itemId === 'high' && isInverted) ? 10 : -10),
                     text: labelText,
                     textAlign: 'center',
-                    textBaseline: itemId === 'low' ? 'top' : 'bottom',
+                    textBaseline:
+                        (itemId === 'low' && !isInverted) || (itemId === 'high' && isInverted) ? 'top' : 'bottom',
                 });
             });
 
@@ -522,6 +523,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
     ): RangeAreaLabelDatum[] | undefined {
         const labelItems = labelData.filter((ld) => ld.datum === highlightedItem.datum);
         return labelItems.length > 0 ? labelItems : undefined;
+    }
+
+    protected getHighlightData(
+        nodeData: RangeAreaMarkerDatum[],
+        highlightedItem: RangeAreaMarkerDatum
+    ): RangeAreaMarkerDatum[] | undefined {
+        const highlightItems = nodeData.filter((nodeDatum) => nodeDatum.datum === highlightedItem.datum);
+        return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
     getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): string {

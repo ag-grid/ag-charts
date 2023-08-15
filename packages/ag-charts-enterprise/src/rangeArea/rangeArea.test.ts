@@ -165,6 +165,23 @@ describe('Chart', () => {
         await compare();
     });
 
+    it(`should render a range-area chart with some inverted high and low values`, async () => {
+        const invertedDataIndices = [2, 5, 9];
+
+        const options: AgChartOptions = {
+            ...RANGE_AREA_OPTIONS,
+            data: CATEGORY_DATA.map((datum, index) => ({
+                ...datum,
+                low: invertedDataIndices.includes(index) ? datum.high : datum.low,
+                high: invertedDataIndices.includes(index) ? datum.low : datum.high,
+            })),
+        };
+        prepareTestOptions(options as any);
+
+        chart = AgEnterpriseCharts.create(options);
+        await compare();
+    });
+
     it(`should render a range-area chart with missing and invalid y values`, async () => {
         const invalidDataIndices = [2, 5, 9];
         const options: AgChartOptions = {
