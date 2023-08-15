@@ -687,6 +687,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected _series: Series[] = [];
     set series(values: Series[]) {
         this.removeAllSeries();
+        this.seriesLayerManager.setSeriesCount(values.length);
         values.forEach((series) => this.addSeries(series));
     }
     get series(): Series[] {
