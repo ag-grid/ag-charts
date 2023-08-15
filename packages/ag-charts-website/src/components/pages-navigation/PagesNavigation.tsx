@@ -6,8 +6,11 @@ import type { Framework, MenuData } from '@ag-grid-types';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { Collapsible } from '@components/Collapsible';
 import type { MenuItem } from '@ag-grid-types';
+import breakpoints from '@design-system/breakpoint.module.scss';
 
 const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
+
+const DOCS_NAV_MEDIUM_BREAKPOINT = parseInt(breakpoints['site-header-small'], 10);
 
 function toElementId(str: string) {
     return 'menu-' + str.toLowerCase().replace('&', '').replace('/', '').replaceAll(' ', '-');
@@ -281,24 +284,32 @@ export function PagesNavigation({
         setSeriesIsActive(false);
     };
 
-    const [navOpen, setNavOpen] = useState(false);
+    const [navOpen, setNavOpen] = useState(true);
 
     useEffect(() => {
-        if (window.innerWidth > 992) {
+        const docsButtonHandler = () => {
+            setNavOpen(!navOpen);
+        };
+
+        const windowResizeHandler = () => {
+            setNavOpen(window.innerWidth > DOCS_NAV_MEDIUM_BREAKPOINT);
+        };
+
+        if (window.innerWidth > DOCS_NAV_MEDIUM_BREAKPOINT) {
             setNavOpen(true);
         }
 
-        document.querySelector('#top-bar-docs-button').addEventListener('click', () => {
-            setNavOpen(!navOpen);
-        });
+        document.querySelector('#top-bar-docs-button').addEventListener('click', docsButtonHandler);
+        window.addEventListener('resize', windowResizeHandler);
 
-        window.addEventListener('resize', () => {
-            setNavOpen(window.innerWidth > 992);
-        });
+        return () => {
+            document.querySelector('#top-bar-docs-button').removeEventListener('click', docsButtonHandler);
+            window.removeEventListener('resize', windowResizeHandler);
+        };
     }, [navOpen]);
 
     return (
-        <Collapsible id={'sadsadsadsa'} isOpen={navOpen}>
+        <Collapsible id={'docs-nav-collapser'} isOpen={navOpen}>
             <aside className={classnames(styles.nav, 'font-size-responsive')}>
                 <MainPagesNavigation
                     menuData={menuData}
