@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import classnames from 'classnames';
 import styles from './PagesNavigation.module.scss';
 import { Icon } from '@components/icon/Icon';
@@ -6,8 +6,11 @@ import type { Framework, MenuData } from '@ag-grid-types';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { Collapsible } from '@components/Collapsible';
 import type { MenuItem } from '@ag-grid-types';
+import breakpoints from '@design-system/breakpoint.module.scss';
 
 const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
+
+const DOCS_NAV_MEDIUM_BREAKPOINT = parseInt(breakpoints['site-header-small'], 10);
 
 function toElementId(str: string) {
     return 'menu-' + str.toLowerCase().replace('&', '').replace('/', '').replaceAll(' ', '-');
@@ -281,25 +284,43 @@ export function PagesNavigation({
         setSeriesIsActive(false);
     };
 
+    const [navOpen, setNavOpen] = useState(false);
+
+    useEffect(() => {
+        const docsButtonEl = document.querySelector('#top-bar-docs-button');
+
+        const docsButtonHandler = () => {
+            setNavOpen(!navOpen);
+        };
+
+        docsButtonEl.addEventListener('click', docsButtonHandler);
+
+        return () => {
+            docsButtonEl.removeEventListener('click', docsButtonHandler);
+        };
+    }, [navOpen]);
+
     return (
-        <aside className={classnames(styles.nav, 'font-size-responsive')}>
-            <MainPagesNavigation
-                menuData={menuData}
-                framework={framework}
-                activeMenuItem={activeMenuItem}
-                activeLevel1MenuItem={activeLevel1MenuItem}
-                setActiveLevel1MenuItem={setActiveLevel1MenuItem}
-                onMenuToggle={onMenuToggle}
-            />
-            <SeriesPagesNavigation
-                menuData={menuData}
-                framework={framework}
-                activeMenuItem={activeMenuItem}
-                activeLevel1MenuItem={activeLevel1MenuItem}
-                setActiveLevel1MenuItem={setActiveLevel1MenuItem}
-                seriesIsActive={seriesIsActive}
-                onMenuToggle={onMenuToggle}
-            />
-        </aside>
+        <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
+            <aside className={classnames(styles.nav, 'font-size-responsive')}>
+                <MainPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeLevel1MenuItem={activeLevel1MenuItem}
+                    setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                    onMenuToggle={onMenuToggle}
+                />
+                <SeriesPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeLevel1MenuItem={activeLevel1MenuItem}
+                    setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                    seriesIsActive={seriesIsActive}
+                    onMenuToggle={onMenuToggle}
+                />
+            </aside>
+        </Collapsible>
     );
 }
