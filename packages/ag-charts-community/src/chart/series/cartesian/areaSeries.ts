@@ -373,7 +373,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
                         point,
                         fill: marker.fill ?? seriesFill,
                         stroke: marker.stroke ?? seriesStroke,
-                        strokeWidth: marker.strokeWidth ?? this.getStrokeWidth(this.strokeWidth, { itemId }),
+                        strokeWidth: marker.strokeWidth ?? this.getStrokeWidth(this.strokeWidth),
                     });
                 }
 
@@ -725,7 +725,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             lineDashOffset: this.lineDashOffset,
             strokeOpacity: this.strokeOpacity,
             shadow: this.shadow,
-            strokeWidth: (itemId: string) => this.getStrokeWidth(this.strokeWidth, { itemId }),
+            strokeWidth: () => this.getStrokeWidth(this.strokeWidth),
         };
 
         const { size, formatter } = marker;
@@ -777,7 +777,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             lineDashOffset: this.lineDashOffset,
             strokeOpacity: this.strokeOpacity,
             shadow: this.shadow,
-            strokeWidth: (itemId: string) => this.getStrokeWidth(this.strokeWidth, { itemId }),
+            strokeWidth: () => this.getStrokeWidth(this.strokeWidth),
         };
 
         areaAnimateReadyUpdate({ contextData, paths, styles });

@@ -424,7 +424,6 @@ export abstract class CartesianSeries<
         const {
             highlightSelection,
             highlightLabelSelection,
-            _contextNodeData: contextNodeData,
             opts: { hasMarkers, hasHighlightedLabels },
         } = this;
 
@@ -433,9 +432,8 @@ export abstract class CartesianSeries<
         this.contentGroup.visible = visible;
         this.highlightGroup.visible = visible && !!seriesHighlighted;
 
-        const subGroupOpacities = this.subGroups.map((_, index) => {
-            const { itemId } = contextNodeData[index];
-            return this.getOpacity({ itemId });
+        const subGroupOpacities = this.subGroups.map(() => {
+            return this.getOpacity();
         });
 
         if (hasMarkers) {

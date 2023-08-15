@@ -270,7 +270,6 @@ export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
 };
 
 const NO_HIGHLIGHT = 'no-highlight';
-const PEER_HIGHLIGHTED = 'peer-highlighted';
 const OTHER_HIGHLIGHTED = 'other-highlighted';
 
 export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext> extends Observable {
@@ -552,7 +551,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     // Produce data joins and update selection's nodes using node data.
     abstract update(opts: { seriesRect?: BBox }): Promise<void>;
 
-    protected getOpacity(datum?: { itemId?: any }): number {
+    protected getOpacity(): number {
         const {
             highlightStyle: {
                 series: { dimOpacity = 1, enabled = true },
@@ -564,18 +563,17 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
             return defaultOpacity;
         }
 
-        switch (this.isItemIdHighlighted(datum)) {
+        switch (this.isItemIdHighlighted()) {
             case NO_HIGHLIGHT:
             case 'highlighted':
                 return defaultOpacity;
-            case PEER_HIGHLIGHTED:
             case OTHER_HIGHLIGHTED:
             default:
                 return dimOpacity;
         }
     }
 
-    protected getStrokeWidth(defaultStrokeWidth: number, datum?: { itemId?: any }): number {
+    protected getStrokeWidth(defaultStrokeWidth: number): number {
         const {
             highlightStyle: {
                 series: { strokeWidth, enabled = true },
@@ -587,21 +585,18 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
             return defaultStrokeWidth;
         }
 
-        switch (this.isItemIdHighlighted(datum)) {
+        switch (this.isItemIdHighlighted()) {
             case 'highlighted':
                 return strokeWidth;
             case NO_HIGHLIGHT:
             case OTHER_HIGHLIGHTED:
-            case PEER_HIGHLIGHTED:
                 return defaultStrokeWidth;
         }
     }
 
-    protected isItemIdHighlighted(datum?: {
-        itemId?: any;
-    }): 'highlighted' | 'other-highlighted' | 'peer-highlighted' | 'no-highlight' {
+    protected isItemIdHighlighted(): 'highlighted' | 'other-highlighted' | 'no-highlight' {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const { series, itemId } = highlightedDatum ?? {};
+        const { series } = highlightedDatum ?? {};
         const highlighting = series != null;
 
         if (!highlighting) {
@@ -612,17 +607,6 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         if (series !== this) {
             // Highlighting active, this series not highlighted.
             return OTHER_HIGHLIGHTED;
-        }
-
-        if (itemId === undefined) {
-            // Series doesn't use itemIds - so no further refinement needed, series is highlighted.
-            return 'highlighted';
-        }
-
-        if (datum && highlightedDatum !== datum && itemId !== datum.itemId) {
-            // A peer (in same Series instance) sub-series has highlight active, but this sub-series
-            // does not.
-            return PEER_HIGHLIGHTED;
         }
 
         return 'highlighted';
