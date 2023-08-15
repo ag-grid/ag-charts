@@ -501,7 +501,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 lineDash,
                 lineDashOffset,
                 fillShadow: shadow,
-                strokeWidth: this.getStrokeWidth(this.strokeWidth, datum),
+                strokeWidth: this.getStrokeWidth(this.strokeWidth),
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

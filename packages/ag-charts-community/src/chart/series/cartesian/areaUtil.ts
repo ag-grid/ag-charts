@@ -37,7 +37,7 @@ interface AreaSeriesStyleOptions {
     lineDash?: number[];
     lineDashOffset: number;
     strokeOpacity: number;
-    strokeWidth: (itemId: string) => number;
+    strokeWidth: () => number;
     shadow?: DropShadow;
 }
 
@@ -88,10 +88,10 @@ export function areaAnimateEmptyUpdateReady<
         shadow,
     } = styles;
 
-    contextData.forEach(({ fillData, strokeData, itemId }, seriesIdx) => {
+    contextData.forEach(({ fillData, strokeData }, seriesIdx) => {
         const [fill, stroke] = paths[seriesIdx];
 
-        const seriesStrokeWidth = strokeWidth(itemId);
+        const seriesStrokeWidth = strokeWidth();
 
         const duration = ctx.animationManager?.defaultOptions.duration ?? 1000;
         const markerDuration = 200;
@@ -295,10 +295,10 @@ export function areaAnimateReadyUpdate<
         shadow,
     } = styles;
 
-    contextData.forEach(({ strokeData, fillData, itemId }, seriesIdx) => {
+    contextData.forEach(({ strokeData, fillData }, seriesIdx) => {
         const [fill, stroke] = paths[seriesIdx];
 
-        const seriesStrokeWidth = strokeWidth(itemId);
+        const seriesStrokeWidth = strokeWidth();
 
         // Stroke
         stroke.stroke = seriesStroke;

@@ -66,7 +66,7 @@ export function getMarkerConfig<ExtraParams extends {}>({
     let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
     if (formatter) {
         format = callbackCache.call(formatter as any, {
-            datum,
+            datum: datum.datum,
             fill,
             stroke,
             strokeWidth,
