@@ -290,10 +290,10 @@ export function PagesNavigation({
             setNavOpen(!navOpen);
         };
 
-        docsButtonEl.addEventListener('click', docsButtonHandler);
+        docsButtonEl?.addEventListener('click', docsButtonHandler);
 
         return () => {
-            docsButtonEl.removeEventListener('click', docsButtonHandler);
+            docsButtonEl?.removeEventListener('click', docsButtonHandler);
         };
     }, [navOpen]);
 
