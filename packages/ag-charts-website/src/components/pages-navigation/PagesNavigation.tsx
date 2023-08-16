@@ -6,11 +6,8 @@ import type { Framework, MenuData } from '@ag-grid-types';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { Collapsible } from '@components/Collapsible';
 import type { MenuItem } from '@ag-grid-types';
-import breakpoints from '@design-system/breakpoint.module.scss';
 
 const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
-
-const DOCS_NAV_MEDIUM_BREAKPOINT = parseInt(breakpoints['site-header-small'], 10);
 
 function toElementId(str: string) {
     return 'menu-' + str.toLowerCase().replace('&', '').replace('/', '').replaceAll(' ', '-');
