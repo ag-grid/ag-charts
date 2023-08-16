@@ -122,9 +122,10 @@
 button.sectionHeader,
 a.sectionHeader {
     width: 100%;
-    padding-top: $size-half;
-    padding-bottom: $size-half;
+    padding-top: $size-half !important;
+    padding-bottom: $size-half !important;
     margin-top: 0;
+    font-size: var(--font-size-medium);
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-normal);
     color: var(--text-color) !important;
@@ -188,8 +189,8 @@ a.sectionHeader {
     --first-indent-size: 12px;
     --indent-size: 12px;
 
-    line-height: var(--line-height-tight);
     font-size: var(--font-size-small);
+    margin-bottom: $size-half !important;
 
     ul a,
     ul .groupLabel {
