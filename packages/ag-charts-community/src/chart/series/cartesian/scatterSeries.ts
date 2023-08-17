@@ -26,7 +26,7 @@ import type {
 } from '../../agChartOptions';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
-import { diff } from '../../data/processors';
+import { createDatumId, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
@@ -334,11 +334,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         }
 
         const data = enabled ? nodeData : [];
-        return markerSelection.update(
-            data,
-            undefined,
-            (datum) => `${datum.xValue}___${datum.yValue}___${datum.label.text}`
-        );
+        return markerSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
     protected async updateMarkerNodes(opts: {
@@ -628,24 +624,24 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
         markerSelections.forEach((markerSelection) => {
             markerSelection.each((marker, datum, index) => {
-                const datumId = `${datum.xValue}___${datum.yValue}___${datum.label.text}`;
+                const datumId = this.getDatumId(datum);
                 const cleanup = index === markerSelection.nodes().length - 1;
 
                 const markerFormat = this.animateFormatter(marker, datum);
                 const size = markerFormat?.size ?? datum.point.size ?? 0;
 
-                let from = 0;
-                let to = 0;
-
-                if (removedIds[datumId]) {
-                    from = size;
-                } else if (addedIds[datumId]) {
-                    to = size;
-                    marker.translationX = datum.point.x;
-                    marker.translationY = datum.point.y;
-                }
-
                 if (removedIds[datumId] || addedIds[datumId]) {
+                    let from = 0;
+                    let to = 0;
+
+                    if (removedIds[datumId]) {
+                        from = size;
+                    } else if (addedIds[datumId]) {
+                        to = size;
+                        marker.translationX = datum.point.x;
+                        marker.translationY = datum.point.y;
+                    }
+
                     this.ctx.animationManager?.animate(`${this.id}_waiting-update-ready_${marker.id}`, {
                         from,
                         to,
@@ -724,6 +720,10 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         }
 
         return format;
+    }
+
+    getDatumId(datum: ScatterNodeDatum) {
+        return createDatumId([`${datum.xValue}`, `${datum.yValue}`, datum.label.text]);
     }
 
     protected isLabelEnabled() {
