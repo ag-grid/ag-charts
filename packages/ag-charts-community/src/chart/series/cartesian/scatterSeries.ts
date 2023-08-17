@@ -601,16 +601,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    animateReadyUpdate({ markerSelections }: { markerSelections: Array<Selection<Marker, ScatterNodeDatum>> }) {
-        markerSelections.forEach((markerSelection) => {
-            this.resetMarkers(markerSelection);
-        });
-    }
-
-    animateReadyHighlightMarkers(markerSelection: Selection<Marker, ScatterNodeDatum>) {
-        this.resetMarkers(markerSelection);
-    }
-
     animateWaitingUpdateReady({ markerSelections }: { markerSelections: Array<Selection<Marker, ScatterNodeDatum>> }) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
