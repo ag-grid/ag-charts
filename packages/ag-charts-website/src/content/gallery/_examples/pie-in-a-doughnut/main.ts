@@ -1,4 +1,4 @@
-import { AgChart, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-community';
+import { AgEnterpriseCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
 import { getData2020, getData2022 } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US', {
@@ -87,4 +87,4 @@ const options: AgPolarChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgEnterpriseCharts.create(options);

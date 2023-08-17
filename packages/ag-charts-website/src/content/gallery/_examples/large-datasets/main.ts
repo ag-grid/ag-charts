@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCartesianSeriesOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 const count = 100_000;
@@ -71,5 +71,5 @@ const options: AgCartesianChartOptions = {
     series,
 };
 
-const chart = AgChart.create(options);
+const chart = AgEnterpriseCharts.create(options);
 (window as any).chart = chart;
