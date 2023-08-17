@@ -66,7 +66,6 @@ export default defineMarkdocConfig({
             attributes: {
                 interfaceName: { type: String },
                 framework: { type: String },
-                overrideSrc: { type: String },
                 names: { type: String },
                 exclude: { type: String },
                 wrapNamesAt: { type: String },

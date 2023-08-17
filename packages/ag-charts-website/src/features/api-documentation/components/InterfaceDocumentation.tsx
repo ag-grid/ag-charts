@@ -17,7 +17,6 @@ import type { FunctionComponent } from 'react';
 export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationProps> = ({
     interfaceName,
     framework,
-    overrideSrc,
     names = '',
     exclude = '',
     wrapNamesAt = null,
@@ -25,9 +24,9 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
     codeLookup,
     config = {},
 }) => {
-    let codeSrcProvided = [interfaceName];
+    const codeSrcProvided = [interfaceName];
     let namesArr = [];
-    let excludeArr = exclude && exclude.length > 0 ? JSON.parse(exclude) : [];
+    const excludeArr = exclude && exclude.length > 0 ? JSON.parse(exclude) : [];
 
     if (names && names.length) {
         namesArr = JSON.parse(names);
@@ -79,18 +78,7 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
         return <Code code={escapedLines} keepMarkup={true} />;
     }
 
-    let props = {};
-    let overrides = {};
-    let interfaceOverrides = {};
-    if (overrideSrc) {
-        overrides = {}; // TODO: getJsonFromFile(nodes, undefined, overrideSrc);
-        interfaceOverrides = overrides[interfaceName];
-        if (!interfaceOverrides) {
-            throw new Error(
-                `overrideSrc:${overrideSrc} provided but does not contain expected section named: '${interfaceName}'!`
-            );
-        }
-    }
+    const props = {};
 
     const typeProps = Object.entries(li.type);
     sortAndFilterProperties(typeProps, framework).forEach(([k, v]) => {
@@ -106,12 +94,12 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
         ) {
             const docs = (li.docs && formatJsDocString(li.docs[k])) || '';
             if (!docs.includes('@deprecated')) {
-                props[propNameOnly] = { description: docs || v, ...interfaceOverrides[propNameOnly] };
+                props[propNameOnly] = { description: docs || v };
             }
         }
     });
 
-    let orderedProps = {};
+    const orderedProps = {};
     const ordered = Object.entries(props).sort(([, v1], [, v2]) => {
         // Put required props at the top as likely to be the most important
         if ((v1 as ChildDocEntry).isRequired == (v2 as ChildDocEntry).isRequired) {
@@ -133,7 +121,6 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
             meta: {
                 displayName: interfaceName,
                 description,
-                ...interfaceOverrides.meta,
             },
         },
     };

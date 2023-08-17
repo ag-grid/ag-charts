@@ -240,7 +240,6 @@ export interface ApiDocumentationProps {
 export interface InterfaceDocumentationProps {
     interfaceName: string;
     framework: Framework;
-    overrideSrc: string;
     names: string;
     exclude: string;
     wrapNamesAt: string;
