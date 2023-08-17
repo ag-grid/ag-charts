@@ -48,13 +48,13 @@ export function registerSeries(
         addSeriesPaletteFactory(seriesType, paletteFactory);
     }
     if (stackable) {
-        STACKABLE_SERIES_TYPES.add(seriesType);
+        addStackableSeriesType(seriesType);
     }
     if (groupable) {
-        GROUPABLE_SERIES_TYPES.add(seriesType);
+        addGroupableSeriesType(seriesType);
     }
     if (stackedByDefault) {
-        STACKED_BY_DEFAULT_SERIES_TYPES.add(seriesType);
+        addStackedByDefaultSeriesType(seriesType);
     }
 
     registerChartSeriesType(seriesType, chartType);
@@ -95,4 +95,16 @@ export function isGroupableSeries(seriesType: string) {
 
 export function isSeriesStackedByDefault(seriesType: string) {
     return STACKED_BY_DEFAULT_SERIES_TYPES.has(seriesType);
+}
+
+export function addGroupableSeriesType(seriesType: string) {
+    GROUPABLE_SERIES_TYPES.add(seriesType);
+}
+
+export function addStackableSeriesType(seriesType: string) {
+    STACKABLE_SERIES_TYPES.add(seriesType);
+}
+
+export function addStackedByDefaultSeriesType(seriesType: string) {
+    STACKED_BY_DEFAULT_SERIES_TYPES.add(seriesType);
 }

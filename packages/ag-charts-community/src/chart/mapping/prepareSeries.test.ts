@@ -1,71 +1,113 @@
 import { describe, expect, test } from '@jest/globals';
 import 'jest-canvas-mock';
 import { groupSeriesByType, processSeriesOptions } from './prepareSeries';
-import type { AgColumnSeriesOptions, AgLineSeriesOptions } from '../agChartOptions';
+import { addGroupableSeriesType, addStackableSeriesType, addStackedByDefaultSeriesType } from '../factory/seriesTypes';
 
-const colSeriesIPhone: AgColumnSeriesOptions = {
-    type: 'column',
+import type { AgColumnSeriesOptions, AgLineSeriesOptions, AgAreaSeriesOptions } from '../agChartOptions';
+
+function switchSeriesType(
+    type: 'column' | 'line' | 'area',
+    series: AgColumnSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions
+): AgColumnSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions {
+    return {
+        ...series,
+        type,
+    };
+}
+
+const baseSeriesIPhone = {
     xKey: 'quarter',
     yKey: 'iphone',
-    yName: 'Iphone',
+    yName: 'IPhone',
 };
-const lineSeriesMac: AgLineSeriesOptions = {
-    type: 'line',
+const baseSeriesMac = {
     xKey: 'quarter',
     yKey: 'mac',
     yName: 'Mac',
 };
-const colSeriesMac: AgColumnSeriesOptions = {
-    type: 'column',
-    xKey: 'quarter',
-    yKey: 'mac',
-    yName: 'Mac',
-};
-const lineSeriesIPhone: AgLineSeriesOptions = {
-    type: 'line',
-    xKey: 'quarter',
-    yKey: 'iphone',
-    yName: 'iPhone',
-};
-const colSeriesWearables: AgColumnSeriesOptions = {
-    type: 'column',
+const baseSeriesWearables = {
     xKey: 'quarter',
     yKey: 'wearables',
     yName: 'Wearables',
 };
-const colSeriesServices: AgColumnSeriesOptions = {
-    type: 'column',
+const baseSeriesServices = {
     xKey: 'quarter',
     yKey: 'services',
     yName: 'Services',
 };
 
-const seriesOptions: Array<AgColumnSeriesOptions | AgLineSeriesOptions> = [
+const colSeriesIPhone = switchSeriesType('column', baseSeriesIPhone);
+const colSeriesMac = switchSeriesType('column', baseSeriesMac);
+const colSeriesWearables = switchSeriesType('column', baseSeriesWearables);
+const colSeriesServices = switchSeriesType('column', baseSeriesServices);
+const lineSeriesIPhone = switchSeriesType('line', baseSeriesIPhone);
+const lineSeriesMac = switchSeriesType('line', baseSeriesMac);
+const areaSeriesIPhone = switchSeriesType('area', baseSeriesIPhone);
+const areaSeriesMac = switchSeriesType('area', baseSeriesMac);
+const areaSeriesWearables = switchSeriesType('area', baseSeriesWearables);
+const areaSeriesServices = switchSeriesType('area', baseSeriesServices);
+
+const seriesOptions: Array<AgColumnSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions> = [
     {
         ...colSeriesIPhone,
         fill: 'pink',
         showInLegend: true,
-    },
+    } as AgColumnSeriesOptions,
     lineSeriesMac,
     {
         ...colSeriesMac,
         fill: 'red',
         showInLegend: false,
-    },
+    } as AgColumnSeriesOptions,
     lineSeriesIPhone,
     {
         ...colSeriesWearables,
         showInLegend: true,
         grouped: true,
-    },
+    } as AgColumnSeriesOptions,
     {
         ...colSeriesServices,
         showInLegend: false,
         grouped: true,
+    } as AgColumnSeriesOptions,
+];
+
+const areas = [areaSeriesIPhone, areaSeriesMac, areaSeriesWearables, areaSeriesServices];
+const lines = [lineSeriesIPhone, lineSeriesMac];
+const columns = [colSeriesIPhone, colSeriesMac, colSeriesWearables, colSeriesServices];
+const rangeColumns = [
+    {
+        type: 'range-column',
+        xKey: 'date',
+        yLowKey: 'low',
+        yHighKey: 'high',
+    },
+    {
+        type: 'range-column',
+        xKey: 'date',
+        yLowKey: 'low2',
+        yHighKey: 'high2',
+    },
+];
+
+const nightingales = [
+    {
+        type: 'nightingale',
+        angleKey: 'product',
+        radiusKey: 'A sales',
+    },
+    {
+        type: 'nightingale',
+        angleKey: 'product',
+        radiusKey: 'B sales',
     },
 ];
 
 describe('transform series options', () => {
+    beforeEach(() => {
+        console.warn = jest.fn();
+    });
+
     test('groupSeriesByType', () => {
         const result = groupSeriesByType(seriesOptions);
 
@@ -79,7 +121,7 @@ describe('transform series options', () => {
                     "type": "column",
                     "xKey": "quarter",
                     "yKey": "iphone",
-                    "yName": "Iphone",
+                    "yName": "IPhone",
                   },
                 ],
                 "type": "ungrouped",
@@ -114,7 +156,7 @@ describe('transform series options', () => {
                     "type": "line",
                     "xKey": "quarter",
                     "yKey": "iphone",
-                    "yName": "iPhone",
+                    "yName": "IPhone",
                   },
                 ],
                 "type": "ungrouped",
@@ -144,258 +186,560 @@ describe('transform series options', () => {
         `);
     });
 
-    test('processSeriesOptions', () => {
-        const result = processSeriesOptions({}, seriesOptions);
+    describe('#processSeriesOptions', () => {
+        describe('Stacking and grouping configuration combinations', () => {
+            const seriesTypes = {
+                area: { stackable: true, groupable: false, stackedByDefault: false },
+                column: { stackable: true, groupable: true, stackedByDefault: false },
+                line: { stackable: false, groupable: false, stackedByDefault: false },
+                nightingale: { stackable: true, groupable: true, stackedByDefault: true },
+                'range-column': { stackable: false, groupable: true, stackedByDefault: false },
+            };
 
-        expect(result).toMatchInlineSnapshot(`
-            [
-              {
-                "fill": "pink",
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 0,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": true,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "iphone",
-                "yName": "Iphone",
-              },
-              {
-                "fill": "red",
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 1,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": false,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "mac",
-                "yName": "Mac",
-              },
-              {
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 2,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": true,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "wearables",
-                "yName": "Wearables",
-              },
-              {
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 3,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": false,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "services",
-                "yName": "Services",
-              },
-              {
-                "type": "line",
-                "xKey": "quarter",
-                "yKey": "mac",
-                "yName": "Mac",
-              },
-              {
-                "type": "line",
-                "xKey": "quarter",
-                "yKey": "iphone",
-                "yName": "iPhone",
-              },
-            ]
-        `);
-    });
+            const stackingSeriesOptions: Record<keyof typeof seriesTypes, Array<any>> = {
+                area: areas,
+                column: columns,
+                line: lines,
+                nightingale: nightingales,
+                'range-column': rangeColumns,
+            };
 
-    test('processSeriesOptions with grouped columns', () => {
-        const result = processSeriesOptions(
-            {},
-            seriesOptions.map((s) => (s.type === 'column' ? { ...s, grouped: true } : s))
-        );
+            Object.entries(seriesTypes).forEach(([seriesType, { stackable, groupable, stackedByDefault }]) => {
+                if (stackable) {
+                    addStackableSeriesType(seriesType);
+                }
+                if (groupable) {
+                    addGroupableSeriesType(seriesType);
+                }
+                if (stackedByDefault) {
+                    addStackedByDefaultSeriesType(seriesType);
+                }
+            });
 
-        expect(result).toMatchInlineSnapshot(`
-            [
-              {
-                "fill": "pink",
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 0,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": true,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "iphone",
-                "yName": "Iphone",
-              },
-              {
-                "fill": "red",
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 1,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": false,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "mac",
-                "yName": "Mac",
-              },
-              {
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 2,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": true,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "wearables",
-                "yName": "Wearables",
-              },
-              {
-                "grouped": true,
-                "seriesGrouping": {
-                  "groupCount": 4,
-                  "groupIndex": 3,
-                  "stackCount": 0,
-                  "stackIndex": 0,
-                },
-                "showInLegend": false,
-                "stacked": false,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "services",
-                "yName": "Services",
-              },
-              {
-                "type": "line",
-                "xKey": "quarter",
-                "yKey": "mac",
-                "yName": "Mac",
-              },
-              {
-                "type": "line",
-                "xKey": "quarter",
-                "yKey": "iphone",
-                "yName": "iPhone",
-              },
-            ]
-        `);
-    });
+            beforeEach(() => {
+                console.warn = jest.fn();
+            });
 
-    test('processSeriesOptions with stacked columns', () => {
-        const result = processSeriesOptions(
-            {},
-            seriesOptions.map((s) => (s.type === 'column' ? { ...s, stacked: true, grouped: undefined } : s))
-        );
+            it.each(Object.keys(seriesTypes))(
+                `should handle options stacked property 'true' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, stacked: true }))
+                    );
+                    const groupable = seriesTypes[sType].groupable;
+                    const stackable = seriesTypes[sType].stackable;
+                    const stacked = stackable;
+                    const grouped = !stacked && groupable;
+                    result.forEach((s) => {
+                        if (stackable) {
+                            expect(s.stacked).toBe(stacked);
+                            expect(s.grouped).toBe(grouped);
+                        } else {
+                            expect(console.warn).toBeCalled();
+                        }
+                    });
+                }
+            );
 
-        expect(result).toMatchInlineSnapshot(`
-            [
-              {
-                "fill": "pink",
-                "grouped": false,
-                "seriesGrouping": {
-                  "groupCount": 1,
-                  "groupIndex": 0,
-                  "stackCount": 4,
-                  "stackIndex": 0,
+            it.each(Object.keys(seriesTypes))(
+                `should handle options stacked property 'false' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, stacked: false }))
+                    );
+                    const groupable = seriesTypes[sType].groupable;
+                    const stackable = seriesTypes[sType].stackable;
+                    const stacked = false;
+                    const grouped = !stacked && groupable;
+                    result.forEach((s) => {
+                        if (stackable) {
+                            expect(s.stacked).toBe(stacked);
+                            expect(s.grouped).toBe(grouped);
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options omitted stacked property appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, stacked: undefined }))
+                    );
+                    const stackable = seriesTypes[sType].stackable;
+                    const groupable = seriesTypes[sType].groupable;
+                    const stacked = seriesTypes[sType].stackedByDefault;
+                    const grouped = !stacked && groupable;
+
+                    result.forEach((s) => {
+                        if (groupable || stackable) {
+                            expect(s.stacked).toBe(stacked);
+                            expect(s.grouped).toBe(grouped);
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options grouped property 'true' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: true }))
+                    );
+                    const groupable = seriesTypes[sType].groupable;
+                    const stacked = !groupable;
+                    const grouped = groupable;
+                    result.forEach((s) => {
+                        if (groupable) {
+                            expect(s.stacked).toBe(stacked);
+                            expect(s.grouped).toBe(grouped);
+                        } else {
+                            expect(console.warn).toBeCalled();
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options grouped property 'false' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: false }))
+                    );
+                    const groupable = seriesTypes[sType].groupable;
+                    const stackable = seriesTypes[sType].stackable;
+                    const stacked = stackable && seriesTypes[sType].stackedByDefault;
+                    const grouped = false;
+                    result.forEach((s) => {
+                        if (groupable) {
+                            expect(s.stacked).toBe(stacked);
+                            expect(s.grouped).toBe(grouped);
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options omitted grouped property appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: undefined }))
+                    );
+
+                    const groupable = seriesTypes[sType].groupable;
+                    const stackable = seriesTypes[sType].stackable;
+                    const stacked = seriesTypes[sType].stackedByDefault;
+                    const grouped = groupable ? !stacked : false;
+
+                    result.forEach((s) => {
+                        if (groupable || stackable) {
+                            expect(s.stacked).toBe(stacked);
+                            expect(s.grouped).toBe(grouped);
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options grouped property 'true', stacked property 'true' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: true, stacked: true }))
+                    );
+
+                    const stackable = seriesTypes[sType].stackable;
+                    const groupable = seriesTypes[sType].groupable;
+                    const stacked = stackable;
+                    const grouped = !stacked;
+
+                    result.forEach((s) => {
+                        if (groupable || stackable) {
+                            expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        }
+                        if (!groupable) {
+                            expect(console.warn).toBeCalled();
+                        }
+                        if (!stackable) {
+                            expect(console.warn).toBeCalled();
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options grouped property 'false', stacked property 'false' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: false, stacked: false }))
+                    );
+
+                    const stacked = false;
+                    const grouped = false;
+
+                    result.forEach((s) => {
+                        expect(s.grouped).toBe(grouped);
+                        expect(s.stacked).toBe(stacked);
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options grouped property 'true', stacked property 'false' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: true, stacked: false }))
+                    );
+
+                    const stackable = seriesTypes[sType].stackable;
+                    const groupable = seriesTypes[sType].groupable;
+                    const stacked = false;
+                    const grouped = groupable;
+
+                    result.forEach((s) => {
+                        if (groupable || stackable) {
+                            expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        }
+                        if (!groupable) {
+                            expect(console.warn).toBeCalled();
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options grouped property 'false', stacked property 'true' appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: false, stacked: true }))
+                    );
+
+                    const groupable = seriesTypes[sType].groupable;
+                    const stackable = seriesTypes[sType].stackable;
+                    const stacked = stackable;
+                    const grouped = false;
+
+                    result.forEach((s) => {
+                        if (groupable || stackable) {
+                            expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        }
+                        if (!stackable) {
+                            expect(console.warn).toBeCalled();
+                        }
+                    });
+                }
+            );
+
+            it.each(Object.keys(seriesTypes))(
+                `should handle options omitted grouped and stacked properties appropriately`,
+                (seriesType) => {
+                    const sType = seriesType as keyof typeof seriesTypes;
+                    const sOptions = stackingSeriesOptions[sType];
+                    const result: typeof sOptions = processSeriesOptions(
+                        {},
+                        sOptions.map((s) => ({ ...s, grouped: undefined, stacked: undefined }))
+                    );
+
+                    const groupable = seriesTypes[sType].groupable;
+                    const stackable = seriesTypes[sType].stackable;
+                    const stacked = seriesTypes[sType].stackedByDefault;
+                    const grouped = groupable ? !stacked : false;
+
+                    result.forEach((s) => {
+                        if (groupable || stackable) {
+                            expect(s.stacked).toBe(stacked);
+                            expect(s.grouped).toBe(grouped);
+                        }
+                    });
+                }
+            );
+        });
+        test('processSeriesOptions', () => {
+            const result = processSeriesOptions({}, seriesOptions);
+
+            expect(result).toMatchInlineSnapshot(`
+              [
+                {
+                  "fill": "pink",
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 0,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": true,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
                 },
-                "showInLegend": true,
-                "stacked": true,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "iphone",
-                "yName": "Iphone",
-              },
-              {
-                "fill": "red",
-                "grouped": false,
-                "seriesGrouping": {
-                  "groupCount": 1,
-                  "groupIndex": 0,
-                  "stackCount": 4,
-                  "stackIndex": 1,
+                {
+                  "fill": "red",
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 1,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": false,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
                 },
-                "showInLegend": false,
-                "stacked": true,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "mac",
-                "yName": "Mac",
-              },
-              {
-                "grouped": false,
-                "seriesGrouping": {
-                  "groupCount": 1,
-                  "groupIndex": 0,
-                  "stackCount": 4,
-                  "stackIndex": 2,
+                {
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 2,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": true,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "wearables",
+                  "yName": "Wearables",
                 },
-                "showInLegend": true,
-                "stacked": true,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "wearables",
-                "yName": "Wearables",
-              },
-              {
-                "grouped": false,
-                "seriesGrouping": {
-                  "groupCount": 1,
-                  "groupIndex": 0,
-                  "stackCount": 4,
-                  "stackIndex": 3,
+                {
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 3,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": false,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "services",
+                  "yName": "Services",
                 },
-                "showInLegend": false,
-                "stacked": true,
-                "type": "column",
-                "xKey": "quarter",
-                "yKey": "services",
-                "yName": "Services",
-              },
-              {
-                "type": "line",
-                "xKey": "quarter",
-                "yKey": "mac",
-                "yName": "Mac",
-              },
-              {
-                "type": "line",
-                "xKey": "quarter",
-                "yKey": "iphone",
-                "yName": "iPhone",
-              },
-            ]
-        `);
+                {
+                  "type": "line",
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "type": "line",
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+              ]
+          `);
+        });
+
+        test('processSeriesOptions with grouped columns', () => {
+            const result = processSeriesOptions(
+                {},
+                seriesOptions.map((s) => (s.type === 'column' ? { ...s, grouped: true } : s))
+            );
+
+            expect(result).toMatchInlineSnapshot(`
+              [
+                {
+                  "fill": "pink",
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 0,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": true,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+                {
+                  "fill": "red",
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 1,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": false,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 2,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": true,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "wearables",
+                  "yName": "Wearables",
+                },
+                {
+                  "grouped": true,
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupIndex": 3,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": false,
+                  "stacked": false,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "services",
+                  "yName": "Services",
+                },
+                {
+                  "type": "line",
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "type": "line",
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+              ]
+          `);
+        });
+
+        test('processSeriesOptions with stacked columns', () => {
+            const result = processSeriesOptions(
+                {},
+                seriesOptions.map((s) => (s.type === 'column' ? { ...s, stacked: true, grouped: undefined } : s))
+            );
+
+            expect(result).toMatchInlineSnapshot(`
+              [
+                {
+                  "fill": "pink",
+                  "grouped": false,
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 0,
+                  },
+                  "showInLegend": true,
+                  "stacked": true,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+                {
+                  "fill": "red",
+                  "grouped": false,
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 1,
+                  },
+                  "showInLegend": false,
+                  "stacked": true,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "grouped": false,
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 2,
+                  },
+                  "showInLegend": true,
+                  "stacked": true,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "wearables",
+                  "yName": "Wearables",
+                },
+                {
+                  "grouped": false,
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 3,
+                  },
+                  "showInLegend": false,
+                  "stacked": true,
+                  "type": "column",
+                  "xKey": "quarter",
+                  "yKey": "services",
+                  "yName": "Services",
+                },
+                {
+                  "type": "line",
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "type": "line",
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+              ]
+          `);
+        });
     });
 });

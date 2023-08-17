@@ -90,13 +90,35 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
         const stackable = isStackableSeries(sType);
         const stackedByDefault = isSeriesStackedByDefault(sType);
 
-        if (groupable || stackable) {
-            const grouped = groupable ? series.grouped ?? (!series.stacked && !stackedByDefault) : false;
-            const stacked = stackable ? series.stacked ?? (!series.grouped && stackedByDefault) : false;
-            return { ...series, stacked, grouped };
+        if (series.grouped && !groupable) {
+            Logger.warn(`unexpected grouping of series type: ${sType}`);
         }
 
-        return series;
+        if (series.stacked && !stackable) {
+            Logger.warn(`unexpected stacking of series type: ${sType}`);
+        }
+
+        if (!groupable && !stackable) {
+            return series;
+        }
+
+        let stacked = false;
+        let grouped = false;
+        if (series.stacked === undefined && series.grouped === undefined) {
+            stacked = stackable && stackedByDefault;
+            grouped = groupable && !stacked;
+        } else if (series.stacked === undefined) {
+            stacked = stackable && stackedByDefault && !(series.grouped && groupable);
+            grouped = groupable && !stacked && !!series.grouped;
+        } else if (series.grouped === undefined) {
+            stacked = stackable && series.stacked;
+            grouped = groupable && !stacked;
+        } else {
+            stacked = stackable && series.stacked;
+            grouped = groupable && !stacked && series.grouped;
+        }
+
+        return { ...series, stacked, grouped };
     });
 
     const grouped = groupSeriesByType(preprocessed);
@@ -150,16 +172,6 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
     for (const group of grouped) {
         const seriesType = String(group.opts[0].type);
-        const { grouped, stacked } = group.opts[0] as any;
-        const groupable = isGroupableSeries(seriesType);
-        const stackable = isStackableSeries(seriesType);
-        if (stacked && !stackable) {
-            Logger.warn(`unexpected stacking of series type: ${seriesType}`);
-        }
-        if (grouped && !groupable) {
-            Logger.warn(`unexpected grouping of series type: ${seriesType}`);
-        }
-
         if (isGroupableSeries(seriesType) || isStackableSeries(seriesType)) {
             result.push(...addSeriesGroupingMeta(group));
         } else {
