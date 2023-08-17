@@ -8,8 +8,8 @@ import {
     setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -66,7 +66,7 @@ describe('Chart', () => {
 
     it(`should render placeholder chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();

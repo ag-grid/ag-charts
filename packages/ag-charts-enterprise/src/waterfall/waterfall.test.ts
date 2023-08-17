@@ -8,8 +8,8 @@ import {
     setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -119,7 +119,7 @@ describe('Chart', () => {
 
     it(`should render a waterfall-column chart as expected`, async () => {
         const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -127,7 +127,7 @@ describe('Chart', () => {
 
     it(`should render a waterfall-bar chart as expected`, async () => {
         const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'waterfall-bar') };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -139,7 +139,7 @@ describe('Chart', () => {
             ...WATERFALL_COLUMN_OPTIONS,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -152,7 +152,7 @@ describe('Chart', () => {
             ...WATERFALL_BAR_OPTIONS,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -165,7 +165,7 @@ describe('Chart', () => {
             data: DATA_WITH_MISSING_INVALID_VALUES,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -179,7 +179,7 @@ describe('Chart', () => {
             data: DATA_WITH_MISSING_INVALID_VALUES,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();

@@ -8,8 +8,8 @@ import {
     setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -65,7 +65,7 @@ describe('Radar Area Chart', () => {
 
     it(`should render polar chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -79,7 +79,7 @@ describe('Radar Area Chart', () => {
                 { type: 'radius-number', shape: 'circle' },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -98,7 +98,7 @@ describe('Radar Area Chart', () => {
                 { type: 'radius-number' },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();

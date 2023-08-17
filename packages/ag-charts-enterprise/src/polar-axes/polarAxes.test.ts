@@ -8,8 +8,8 @@ import {
     setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -86,7 +86,7 @@ describe('Polar Axes', () => {
 
     it(`should render polar axes as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS, series: RADAR_AREA_SERIES };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -100,7 +100,7 @@ describe('Polar Axes', () => {
                 { type: 'radius-number', title: { text: 'Skill Score' } },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -115,7 +115,7 @@ describe('Polar Axes', () => {
                 { type: 'radius-number', shape: 'circle' },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -144,7 +144,7 @@ describe('Polar Axes', () => {
                 { type: 'radius-number' },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -172,7 +172,7 @@ describe('Polar Axes', () => {
                 { type: 'radius-number' },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -201,7 +201,7 @@ describe('Polar Axes', () => {
                 { type: 'radius-number', shape: 'circle' },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -231,7 +231,7 @@ describe('Polar Axes', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -262,7 +262,7 @@ describe('Polar Axes', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -307,7 +307,7 @@ describe('Polar Axes', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -353,7 +353,7 @@ describe('Polar Axes', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -371,7 +371,7 @@ describe('Polar Axes', () => {
                 { type: 'radius-number', title: { text: 'Skill Score' } },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -389,7 +389,7 @@ describe('Polar Axes', () => {
                 { type: 'radius-number', title: { text: 'Skill Score' } },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
