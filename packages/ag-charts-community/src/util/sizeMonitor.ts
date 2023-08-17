@@ -12,10 +12,13 @@ export class SizeMonitor {
     private static elements = new Map<HTMLElement, Entry>();
     private static resizeObserver: any;
     private static ready = false;
+    private static documentReady = false;
+    private static readyEventFn?: EventListener;
+    private static queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
     private static pollerHandler?: number;
 
-    static init() {
+    static init(document: Document) {
         if (typeof ResizeObserver !== 'undefined') {
             this.resizeObserver = new ResizeObserver((entries: any) => {
                 for (const entry of entries) {
@@ -34,12 +37,39 @@ export class SizeMonitor {
         }
 
         this.ready = true;
+
+        this.documentReady = document.readyState !== 'loading';
+        if (this.documentReady) return;
+
+        // Add DOMContentLoaded listener so we can check if the main document is ready again, and
+        // if it is then attach any queued requests for resize monitoring.
+        //
+        // If we attach before ent.readyState !== 'loading', then additional incorrect resize events
+        // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
+        // document to be loaded irons out this browser quirk.
+        this.readyEventFn = () => {
+            const newState = document.readyState !== 'loading';
+            const oldState = this.documentReady;
+            this.documentReady = newState;
+            if (!newState) return;
+            if (newState === oldState) return;
+
+            for (const [el, cb] of this.queuedObserveRequests) {
+                this.observe(el, cb);
+            }
+            this.queuedObserveRequests.length = 0;
+        };
+        document.addEventListener('DOMContentLoaded', this.readyEventFn);
     }
 
     private static destroy() {
         if (this.pollerHandler != null) {
             clearInterval(this.pollerHandler);
             this.pollerHandler = undefined;
+        }
+        if (this.readyEventFn) {
+            document.removeEventListener('DOMContentLoaded', this.readyEventFn);
+            this.readyEventFn = undefined;
         }
         this.resizeObserver?.disconnect();
         this.resizeObserver = undefined;
@@ -58,12 +88,18 @@ export class SizeMonitor {
     // Only a single callback is supported.
     static observe(element: HTMLElement, cb: OnSizeChange) {
         if (!this.ready) {
-            this.init();
+            this.init(element.ownerDocument);
         }
+        if (!this.documentReady) {
+            this.queuedObserveRequests.push([element, cb]);
+            return;
+        }
+
         this.unobserve(element, false);
         if (this.resizeObserver) {
             this.resizeObserver.observe(element);
         }
+
         this.elements.set(element, { cb });
 
         // Ensure first size callback happens synchronously.
@@ -75,6 +111,8 @@ export class SizeMonitor {
             this.resizeObserver.unobserve(element);
         }
         this.elements.delete(element);
+
+        this.queuedObserveRequests = this.queuedObserveRequests.filter(([el]) => el === element);
 
         if (cleanup && this.elements.size === 0) {
             this.destroy();

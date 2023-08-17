@@ -146,14 +146,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     @ActionOnSet<Chart>({
         newValue(value) {
-            this.resize(value);
+            this.resize(value, undefined, 'width option');
         },
     })
     width?: number;
 
     @ActionOnSet<Chart>({
         newValue(value) {
-            this.resize(undefined, value);
+            this.resize(undefined, value, 'height option');
         },
     })
     height?: number;
@@ -177,7 +177,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (!this._lastAutoSize) {
                 return;
             }
-            this.resize();
+            this.resize(undefined, undefined, 'autoSize option');
         } else {
             style.display = 'inline-block';
             style.width = 'auto';
@@ -305,7 +305,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.debug = false;
 
         SizeMonitor.observe(this.element, (size) => {
-            const { width, height } = size;
+            let { width, height } = size;
+            width = Math.floor(width);
+            height = Math.floor(height);
 
             if (!this.autoSize) {
                 return;
@@ -321,7 +323,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
 
             this._lastAutoSize = [width, height];
-            this.resize();
+            this.resize(undefined, undefined, 'SizeMonitor');
         });
         // eslint-disable-next-line sonarjs/no-duplicate-string
         this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect));
@@ -813,10 +815,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private resize(width?: number, height?: number) {
+    private resize(width?: number, height?: number, source?: string) {
         width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : this.scene.canvas.width);
         height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : this.scene.canvas.height);
-        this.log('Chart.resize()', { width, height });
+        this.log(`Chart.resize() from ${source}`, { width, height });
         if (!width || !height || !Number.isFinite(width) || !Number.isFinite(height)) return;
 
         if (this.scene.resize(width, height)) {
