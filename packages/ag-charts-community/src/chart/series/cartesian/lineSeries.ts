@@ -517,6 +517,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
         contextData: Array<LineContext>;
         paths: Array<Array<Path>>;
     }) {
+        const { extendLine, findPointOnLine } = this;
+
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
 
@@ -565,11 +567,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                     nodeData.forEach((datum, index) => {
                         if (nodeLengths[index] <= length) {
                             // Draw/move the full segment if past the end of this segment
-                            if (datum.point.moveTo) {
-                                linePath.moveTo(datum.point.x, datum.point.y);
-                            } else {
-                                linePath.lineTo(datum.point.x, datum.point.y);
-                            }
+                            extendLine(linePath, datum.point);
                         } else if (index > 0 && nodeLengths[index - 1] < length) {
                             // Draw/move partial line if in between the start and end of this segment
                             const start = nodeData[index - 1].point;
@@ -579,14 +577,9 @@ export class LineSeries extends CartesianSeries<LineContext> {
                             const remainingLength = nodeLengths[index] - length;
                             const ratio = (segmentLength - remainingLength) / segmentLength;
 
-                            const x = (1 - ratio) * start.x + ratio * end.x;
-                            const y = (1 - ratio) * start.y + ratio * end.y;
+                            const { x, y } = findPointOnLine(start, end, ratio);
 
-                            if (datum.point.moveTo) {
-                                linePath.moveTo(x, y);
-                            } else {
-                                linePath.lineTo(x, y);
-                            }
+                            extendLine(linePath, { x, y, moveTo: datum.point.moveTo });
                         }
                     });
 
@@ -597,11 +590,11 @@ export class LineSeries extends CartesianSeries<LineContext> {
             markerSelections[contextDataIndex].each((marker, datum, index) => {
                 const delay = lineLength > 0 ? (nodeLengths[index] / lineLength) * duration : 0;
                 const format = this.animateMarkerFormatter(datum);
-                const size = datum.point?.size ?? 0;
+                const to = format?.size ?? datum.point?.size ?? 0;
 
                 this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready_${marker.id}`, {
                     ...animationOptions,
-                    to: format?.size ?? size,
+                    to,
                     delay,
                     duration: markerDuration,
                     onUpdate(size) {
@@ -1014,11 +1007,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             linePath.clear({ trackChanges: true });
 
             nodeData.forEach((datum) => {
-                if (datum.point.moveTo) {
-                    linePath.moveTo(datum.point.x, datum.point.y);
-                } else {
-                    linePath.lineTo(datum.point.x, datum.point.y);
-                }
+                this.extendLine(linePath, datum.point);
             });
 
             lineNode.checkPathDirty();
