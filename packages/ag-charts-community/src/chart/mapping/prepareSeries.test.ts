@@ -187,7 +187,7 @@ describe('transform series options', () => {
     });
 
     describe('#processSeriesOptions', () => {
-        describe('Stacking and grouping configuration combinations', () => {
+        describe('Stacking and grouping configuration combinations, should handle options', () => {
             const seriesTypes = {
                 area: { stackable: true, groupable: false, stackedByDefault: false },
                 column: { stackable: true, groupable: true, stackedByDefault: false },
@@ -221,7 +221,7 @@ describe('transform series options', () => {
             });
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options stacked property 'true' appropriately`,
+                `stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -234,18 +234,26 @@ describe('transform series options', () => {
                     const stacked = stackable;
                     const grouped = !stacked && groupable;
                     result.forEach((s) => {
-                        if (stackable) {
-                            expect(s.stacked).toBe(stacked);
+                        if (groupable || stackable) {
                             expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
                         } else {
-                            expect(console.warn).toBeCalled();
+                            expect(s.grouped).toBe(undefined);
+                            expect(s.stacked).toBe(true);
+                        }
+                        if (!stackable) {
+                            expect(console.warn).toHaveBeenCalledWith(
+                                `AG Charts - unexpected stacking of series type: ${sType}`
+                            );
+                        } else {
+                            expect(console.warn).not.toHaveBeenCalled();
                         }
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options stacked property 'false' appropriately`,
+                `stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -258,16 +266,20 @@ describe('transform series options', () => {
                     const stacked = false;
                     const grouped = !stacked && groupable;
                     result.forEach((s) => {
-                        if (stackable) {
-                            expect(s.stacked).toBe(stacked);
+                        if (groupable || stackable) {
                             expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(undefined);
+                            expect(s.stacked).toBe(false);
                         }
+                        expect(console.warn).not.toHaveBeenCalled();
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options omitted stacked property appropriately`,
+                `omitted stacked property for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -276,22 +288,26 @@ describe('transform series options', () => {
                         {},
                         sOptions.map((s) => ({ ...s, stacked: undefined }))
                     );
-                    const stackable = seriesTypes[sType].stackable;
                     const groupable = seriesTypes[sType].groupable;
+                    const stackable = seriesTypes[sType].stackable;
                     const stacked = seriesTypes[sType].stackedByDefault;
                     const grouped = !stacked && groupable;
 
                     result.forEach((s) => {
                         if (groupable || stackable) {
-                            expect(s.stacked).toBe(stacked);
                             expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(undefined);
+                            expect(s.stacked).toBe(undefined);
                         }
+                        expect(console.warn).not.toHaveBeenCalled();
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options grouped property 'true' appropriately`,
+                `grouped property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -300,21 +316,31 @@ describe('transform series options', () => {
                         sOptions.map((s) => ({ ...s, grouped: true }))
                     );
                     const groupable = seriesTypes[sType].groupable;
-                    const stacked = !groupable;
+                    const stackable = seriesTypes[sType].stackable;
+                    const stackedByDefault = seriesTypes[sType].stackedByDefault;
+                    const stacked = !groupable && stackedByDefault;
                     const grouped = groupable;
                     result.forEach((s) => {
-                        if (groupable) {
-                            expect(s.stacked).toBe(stacked);
+                        if (groupable || stackable) {
                             expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
                         } else {
-                            expect(console.warn).toBeCalled();
+                            expect(s.grouped).toBe(true);
+                            expect(s.stacked).toBe(undefined);
+                        }
+                        if (!groupable) {
+                            expect(console.warn).toHaveBeenCalledWith(
+                                `AG Charts - unexpected grouping of series type: ${sType}`
+                            );
+                        } else {
+                            expect(console.warn).not.toHaveBeenCalled();
                         }
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options grouped property 'false' appropriately`,
+                `grouped property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -324,19 +350,24 @@ describe('transform series options', () => {
                     );
                     const groupable = seriesTypes[sType].groupable;
                     const stackable = seriesTypes[sType].stackable;
-                    const stacked = stackable && seriesTypes[sType].stackedByDefault;
+                    const stackedByDefault = seriesTypes[sType].stackedByDefault;
+                    const stacked = stackable && stackedByDefault;
                     const grouped = false;
                     result.forEach((s) => {
-                        if (groupable) {
-                            expect(s.stacked).toBe(stacked);
+                        if (groupable || stackable) {
                             expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(false);
+                            expect(s.stacked).toBe(undefined);
                         }
+                        expect(console.warn).not.toHaveBeenCalled();
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options omitted grouped property appropriately`,
+                `omitted grouped property for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -352,15 +383,19 @@ describe('transform series options', () => {
 
                     result.forEach((s) => {
                         if (groupable || stackable) {
-                            expect(s.stacked).toBe(stacked);
                             expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(undefined);
+                            expect(s.stacked).toBe(undefined);
                         }
+                        expect(console.warn).not.toHaveBeenCalled();
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options grouped property 'true', stacked property 'true' appropriately`,
+                `grouped property 'true', stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -378,19 +413,30 @@ describe('transform series options', () => {
                         if (groupable || stackable) {
                             expect(s.grouped).toBe(grouped);
                             expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(true);
+                            expect(s.stacked).toBe(true);
                         }
-                        if (!groupable) {
-                            expect(console.warn).toBeCalled();
-                        }
-                        if (!stackable) {
-                            expect(console.warn).toBeCalled();
+                        if (groupable && stackable) {
+                            expect(console.warn).not.toHaveBeenCalled();
+                        } else {
+                            if (!groupable) {
+                                expect(console.warn).toHaveBeenCalledWith(
+                                    `AG Charts - unexpected grouping of series type: ${sType}`
+                                );
+                            }
+                            if (!stackable) {
+                                expect(console.warn).toHaveBeenCalledWith(
+                                    `AG Charts - unexpected stacking of series type: ${sType}`
+                                );
+                            }
                         }
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options grouped property 'false', stacked property 'false' appropriately`,
+                `grouped property 'false', stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -405,12 +451,13 @@ describe('transform series options', () => {
                     result.forEach((s) => {
                         expect(s.grouped).toBe(grouped);
                         expect(s.stacked).toBe(stacked);
+                        expect(console.warn).not.toHaveBeenCalled();
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options grouped property 'true', stacked property 'false' appropriately`,
+                `grouped property 'true', stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -428,16 +475,23 @@ describe('transform series options', () => {
                         if (groupable || stackable) {
                             expect(s.grouped).toBe(grouped);
                             expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(true);
+                            expect(s.stacked).toBe(false);
                         }
                         if (!groupable) {
-                            expect(console.warn).toBeCalled();
+                            expect(console.warn).toHaveBeenCalledWith(
+                                `AG Charts - unexpected grouping of series type: ${sType}`
+                            );
+                        } else {
+                            expect(console.warn).not.toHaveBeenCalled();
                         }
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options grouped property 'false', stacked property 'true' appropriately`,
+                `grouped property 'false', stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -455,16 +509,23 @@ describe('transform series options', () => {
                         if (groupable || stackable) {
                             expect(s.grouped).toBe(grouped);
                             expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(false);
+                            expect(s.stacked).toBe(true);
                         }
                         if (!stackable) {
-                            expect(console.warn).toBeCalled();
+                            expect(console.warn).toHaveBeenCalledWith(
+                                `AG Charts - unexpected stacking of series type: ${sType}`
+                            );
+                        } else {
+                            expect(console.warn).not.toHaveBeenCalled();
                         }
                     });
                 }
             );
 
             it.each(Object.keys(seriesTypes))(
-                `should handle options omitted grouped and stacked properties appropriately`,
+                `omitted grouped and stacked properties for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -480,9 +541,13 @@ describe('transform series options', () => {
 
                     result.forEach((s) => {
                         if (groupable || stackable) {
-                            expect(s.stacked).toBe(stacked);
                             expect(s.grouped).toBe(grouped);
+                            expect(s.stacked).toBe(stacked);
+                        } else {
+                            expect(s.grouped).toBe(undefined);
+                            expect(s.stacked).toBe(undefined);
                         }
+                        expect(console.warn).not.toHaveBeenCalled();
                     });
                 }
             );
