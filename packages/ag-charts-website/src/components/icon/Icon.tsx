@@ -96,6 +96,7 @@ const CHARTS_ICON_MAP = {
     chartsIcicle: CarbonIcon.ChartClusterBar,
     chartsFunnel: CarbonIcon.Filter,
     chartsPyramid: CarbonIcon.UpToTop,
+    chartsBullet: CarbonIcon.ChartBullet,
 };
 
 export const ICON_MAP = {

@@ -317,6 +317,13 @@
             "icon": "chartsPyramid",
             "enterprise": true,
             "examples": []
+        },
+        {
+            "title": "Bullet",
+            "name": "Bullet",
+            "icon": "chartsBullet",
+            "enterprise": true,
+            "examples": []
         }
     ]
 }

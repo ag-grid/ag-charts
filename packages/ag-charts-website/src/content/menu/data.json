@@ -231,6 +231,12 @@
                         "icon": "chartsPyramid",
                         "path": "charts-pyramid-series",
                         "isEnterprise": true
+                    },
+                    {
+                        "title": "Bullet",
+                        "icon": "chartsBullet",
+                        "path": "charts-bullet-series",
+                        "isEnterprise": true
                     }
                 ]
             }
