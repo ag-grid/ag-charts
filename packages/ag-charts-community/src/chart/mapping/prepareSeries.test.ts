@@ -187,7 +187,7 @@ describe('transform series options', () => {
     });
 
     describe('#processSeriesOptions', () => {
-        describe('Stacking and grouping configuration combinations, should handle options', () => {
+        describe('Stacking and grouping configuration combinations', () => {
             const seriesTypes = {
                 area: { stackable: true, groupable: false, stackedByDefault: false },
                 column: { stackable: true, groupable: true, stackedByDefault: false },
@@ -221,7 +221,7 @@ describe('transform series options', () => {
             });
 
             it.each(Object.keys(seriesTypes))(
-                `stacked property 'true' for series type [%s] appropriately`,
+                `handle stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -253,7 +253,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `stacked property 'false' for series type [%s] appropriately`,
+                `handle stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -279,7 +279,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `omitted stacked property for series type [%s] appropriately`,
+                `handle omitted stacked property for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -307,7 +307,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `grouped property 'true' for series type [%s] appropriately`,
+                `handle grouped property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -340,7 +340,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `grouped property 'false' for series type [%s] appropriately`,
+                `handle grouped property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -367,7 +367,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `omitted grouped property for series type [%s] appropriately`,
+                `handle omitted grouped property for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -395,7 +395,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `grouped property 'true', stacked property 'true' for series type [%s] appropriately`,
+                `handle grouped property 'true', stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -436,7 +436,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `grouped property 'false', stacked property 'false' for series type [%s] appropriately`,
+                `handle grouped property 'false', stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -457,7 +457,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `grouped property 'true', stacked property 'false' for series type [%s] appropriately`,
+                `handle grouped property 'true', stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -491,7 +491,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `grouped property 'false', stacked property 'true' for series type [%s] appropriately`,
+                `handle grouped property 'false', stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
@@ -525,7 +525,7 @@ describe('transform series options', () => {
             );
 
             it.each(Object.keys(seriesTypes))(
-                `omitted grouped and stacked properties for series type [%s] appropriately`,
+                `handle omitted grouped and stacked properties for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
                     const sOptions = stackingSeriesOptions[sType];
