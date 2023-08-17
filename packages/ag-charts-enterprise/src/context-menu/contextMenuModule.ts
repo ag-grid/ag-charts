@@ -10,6 +10,11 @@ export const ContextMenuModule: _ModuleSupport.Module = {
     chartTypes: ['cartesian', 'polar', 'hierarchy'],
     optionsKey: 'contextMenu',
     instanceConstructor: ContextMenu,
+    themeTemplate: {
+        contextMenu: {
+            enabled: true,
+        },
+    },
 };
 
 export function _registerDefaultAction(

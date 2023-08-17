@@ -9,8 +9,8 @@ import {
     setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -185,7 +185,7 @@ describe('Chart', () => {
 
     it(`should render a range-column chart as expected`, async () => {
         const options: AgChartOptions = { ...RANGE_COLUMN_OPTIONS };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -193,7 +193,7 @@ describe('Chart', () => {
 
     it(`should render a range-bar chart as expected`, async () => {
         const options: AgChartOptions = { ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'range-bar') };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -208,7 +208,7 @@ describe('Chart', () => {
                 high: datum.low,
             })),
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -224,7 +224,7 @@ describe('Chart', () => {
                 high: datum.low,
             })),
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -245,7 +245,7 @@ describe('Chart', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -267,7 +267,7 @@ describe('Chart', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -288,7 +288,7 @@ describe('Chart', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -310,7 +310,7 @@ describe('Chart', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
+        prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();

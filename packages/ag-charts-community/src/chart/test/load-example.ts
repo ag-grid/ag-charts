@@ -3,12 +3,14 @@ import { Logger } from '../../util/logger';
 
 const filters = [
     /.*AgChart\.(update|create)/,
+    /.*AgEnterpriseCharts\.(update|create)/,
     /.* container: .*/,
     /.*setInterval.*/,
     /.*setTimeout.*/,
     /^Object\.defineProperty/,
     /^exports\./,
     /^const ag_charts_community_1 =/,
+    /^const ag_charts_enterprise_1 =/,
     /^const data_1 =/,
 ];
 

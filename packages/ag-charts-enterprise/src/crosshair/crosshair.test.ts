@@ -17,8 +17,8 @@ import {
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
     hoverAction,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -287,7 +287,7 @@ describe('Crosshair', () => {
     for (const TEST_CASE of CASES) {
         it(`should follow mouse pointer on series hover`, async () => {
             const options: AgChartOptions = TEST_CASE;
-            prepareTestOptions(options);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgEnterpriseCharts.create(options);
             await waitForChartStability(chart);
@@ -297,7 +297,7 @@ describe('Crosshair', () => {
 
         it(`should snap to the closest highlighted node datum`, async () => {
             const options: AgChartOptions = applyCrosshairSnap(TEST_CASE, true);
-            prepareTestOptions(options);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgEnterpriseCharts.create(options);
             await waitForChartStability(chart);
@@ -307,7 +307,7 @@ describe('Crosshair', () => {
 
         it(`should layout correctly with series area padding`, async () => {
             const options: AgChartOptions = TEST_CASE;
-            prepareTestOptions(options);
+            prepareEnterpriseTestOptions(options);
             options.seriesAreaPadding = {
                 left: 100,
                 right: 100,

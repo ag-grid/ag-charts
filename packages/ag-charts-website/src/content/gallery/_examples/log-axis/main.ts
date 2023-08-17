@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 const formatter = new Intl.NumberFormat();
@@ -53,7 +53,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgEnterpriseCharts.create(options);
 
 function useNumberAxis() {
     options.subtitle = {
@@ -70,7 +70,7 @@ function useNumberAxis() {
             fontSize: 10,
         },
     };
-    AgChart.update(chart, options);
+    AgEnterpriseCharts.update(chart, options);
 }
 
 function useLogAxis() {
@@ -88,5 +88,5 @@ function useLogAxis() {
             fontSize: 10,
         },
     };
-    AgChart.update(chart, options);
+    AgEnterpriseCharts.update(chart, options);
 }

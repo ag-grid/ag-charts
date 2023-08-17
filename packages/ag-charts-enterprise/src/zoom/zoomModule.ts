@@ -7,4 +7,7 @@ export const ZoomModule: _ModuleSupport.Module = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     instanceConstructor: Zoom,
+    themeTemplate: {
+        zoom: { enabled: true },
+    },
 };

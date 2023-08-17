@@ -9,8 +9,8 @@ import {
     scrollAction,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -42,7 +42,7 @@ describe('Zoom', () => {
 
     beforeEach(async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareTestOptions(options);
+        prepareEnterpriseTestOptions(options);
         cx = options.width! / 2;
         cy = options.height! / 2;
 

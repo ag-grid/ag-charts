@@ -1,4 +1,4 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgCartesianSeriesTooltipRendererParams, AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 function tooltipRenderer(params: AgCartesianSeriesTooltipRendererParams) {
@@ -121,4 +121,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgEnterpriseCharts.create(options);

@@ -7,4 +7,9 @@ export const AnimationModule: _ModuleSupport.Module = {
     packageType: 'enterprise',
     chartTypes: ['cartesian', 'polar'],
     instanceConstructor: Animation,
+    themeTemplate: {
+        animation: {
+            enabled: true,
+        },
+    },
 };

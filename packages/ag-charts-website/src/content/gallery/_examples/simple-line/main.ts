@@ -1,10 +1,10 @@
 import {
     AgCartesianSeriesTooltipRendererParams,
-    AgChart,
+    AgEnterpriseCharts,
     AgChartOptions,
     AgTooltipRendererResult,
     time,
-} from 'ag-charts-community';
+} from 'ag-charts-enterprise';
 import { getData } from './data';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US');
@@ -92,4 +92,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgEnterpriseCharts.create(options);

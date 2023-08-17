@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, Marker } from 'ag-charts-community';
+import { AgEnterpriseCharts, AgChartOptions, Marker } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 var markerSize = 10;
@@ -129,7 +129,7 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgEnterpriseCharts.create(options);
 
 function heartFactory() {
     class Heart extends Marker {

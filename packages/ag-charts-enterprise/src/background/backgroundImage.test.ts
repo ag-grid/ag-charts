@@ -7,9 +7,8 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
     extractImageData,
-    deproxy,
-    prepareTestOptions,
 } from 'ag-charts-community-test';
+import { prepareEnterpriseTestOptions } from '../test/utils';
 import { BackgroundImage } from './backgroundImage';
 
 expect.extend({ toMatchImageSnapshot });
@@ -186,7 +185,7 @@ describe('backgroundImage', () => {
                     },
                 },
             };
-            prepareTestOptions(options);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgChart.create(options);
 
@@ -208,7 +207,7 @@ describe('backgroundImage', () => {
                     },
                 },
             };
-            prepareTestOptions(options);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgChart.create(options);
 

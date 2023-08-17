@@ -91,7 +91,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.reposition();
         };
 
-        if (IntersectionObserver) {
+        if (typeof IntersectionObserver !== 'undefined') {
             // Detect when the chart becomes invisible and hide the context menu as well.
             const observer = new IntersectionObserver(
                 (entries) => {
@@ -108,7 +108,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.intersectionObserver = observer;
         }
 
-        if (MutationObserver) {
+        if (typeof MutationObserver !== 'undefined') {
             const observer = new MutationObserver(() => {
                 if (this.menuElement && this.element.contains(this.menuElement)) {
                     this.reposition();
