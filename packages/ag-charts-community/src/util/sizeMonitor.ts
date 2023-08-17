@@ -39,20 +39,27 @@ export class SizeMonitor {
         this.ready = true;
 
         this.documentReady = document.readyState !== 'loading';
-        if (!this.documentReady) {
-            this.readyEventFn = () => {
-                const newState = document.readyState !== 'loading';
-                const oldState = this.documentReady;
-                this.documentReady = newState;
-                if (newState !== oldState && newState) {
-                    for (const [el, cb] of this.queuedObserveRequests) {
-                        this.observe(el, cb);
-                    }
-                    this.queuedObserveRequests.length = 0;
-                }
-            };
-            document.addEventListener('DOMContentLoaded', this.readyEventFn);
-        }
+        if (this.documentReady) return;
+
+        // Add DOMContentLoaded listener so we can check if the main document is ready again, and
+        // if it is then attach any queued requests for resize monitoring.
+        //
+        // If we attach before ent.readyState !== 'loading', then additional incorrect resize events
+        // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
+        // document to be loaded irons out this browser quirk.
+        this.readyEventFn = () => {
+            const newState = document.readyState !== 'loading';
+            const oldState = this.documentReady;
+            this.documentReady = newState;
+            if (!newState) return;
+            if (newState === oldState) return;
+
+            for (const [el, cb] of this.queuedObserveRequests) {
+                this.observe(el, cb);
+            }
+            this.queuedObserveRequests.length = 0;
+        };
+        document.addEventListener('DOMContentLoaded', this.readyEventFn);
     }
 
     private static destroy() {
