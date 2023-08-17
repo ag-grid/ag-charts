@@ -196,7 +196,7 @@ describe('transform series options', () => {
                 'range-column': { stackable: false, groupable: true, stackedByDefault: false },
             };
 
-            const stackingSeriesOptions: Record<keyof typeof seriesTypes, Array<any>> = {
+            const seriesOptionsMap: Record<keyof typeof seriesTypes, Array<any>> = {
                 area: areas,
                 column: columns,
                 line: lines,
@@ -224,7 +224,7 @@ describe('transform series options', () => {
                 `handle stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, stacked: true }))
@@ -256,7 +256,7 @@ describe('transform series options', () => {
                 `handle stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, stacked: false }))
@@ -282,7 +282,7 @@ describe('transform series options', () => {
                 `handle omitted stacked property for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
 
                     const result: typeof sOptions = processSeriesOptions(
                         {},
@@ -310,7 +310,7 @@ describe('transform series options', () => {
                 `handle grouped property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: true }))
@@ -343,7 +343,7 @@ describe('transform series options', () => {
                 `handle grouped property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: false }))
@@ -370,7 +370,7 @@ describe('transform series options', () => {
                 `handle omitted grouped property for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: undefined }))
@@ -398,7 +398,7 @@ describe('transform series options', () => {
                 `handle grouped property 'true', stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: true, stacked: true }))
@@ -439,7 +439,7 @@ describe('transform series options', () => {
                 `handle grouped property 'false', stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: false, stacked: false }))
@@ -460,7 +460,7 @@ describe('transform series options', () => {
                 `handle grouped property 'true', stacked property 'false' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: true, stacked: false }))
@@ -494,7 +494,7 @@ describe('transform series options', () => {
                 `handle grouped property 'false', stacked property 'true' for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: false, stacked: true }))
@@ -528,7 +528,7 @@ describe('transform series options', () => {
                 `handle omitted grouped and stacked properties for series type [%s] appropriately`,
                 (seriesType) => {
                     const sType = seriesType as keyof typeof seriesTypes;
-                    const sOptions = stackingSeriesOptions[sType];
+                    const sOptions = seriesOptionsMap[sType];
                     const result: typeof sOptions = processSeriesOptions(
                         {},
                         sOptions.map((s) => ({ ...s, grouped: undefined, stacked: undefined }))
