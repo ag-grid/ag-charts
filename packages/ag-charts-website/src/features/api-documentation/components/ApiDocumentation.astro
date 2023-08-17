@@ -1,0 +1,9 @@
+---
+import { ApiDocumentation } from './ApiDocumentation';
+import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
+
+const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
+const source = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+---
+
+<ApiDocumentation client:load interfaceLookup={interfaceLookup} source={source} {...Astro.props} />
