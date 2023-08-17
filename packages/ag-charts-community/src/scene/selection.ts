@@ -131,14 +131,13 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         });
 
         // Reset map of datum ids to node indices while filtering out any removed, undefined, nodes
-        let newIndex = 0;
-
         const datumNodeIndices = this._datumNodeIndices.entries();
         const nodeIndexDatums = new Map();
         for (const [datumId, nodeIndex] of datumNodeIndices) {
             nodeIndexDatums.set(nodeIndex, datumId);
         }
 
+        let newIndex = 0;
         this._nodes = this._nodes.filter((node, index) => {
             if (node === undefined) return false;
             const datumId = nodeIndexDatums.get(index);
