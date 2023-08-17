@@ -4,6 +4,8 @@ import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
 
 const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
 const source = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+const { config: configString, ...props } = Astro.props;
+const config = configString ? JSON.parse(configString) : undefined;
 ---
 
-<ApiDocumentation client:load interfaceLookup={interfaceLookup} source={source} {...Astro.props} />
+<ApiDocumentation client:load interfaceLookup={interfaceLookup} source={source} config={config} {...props} />
