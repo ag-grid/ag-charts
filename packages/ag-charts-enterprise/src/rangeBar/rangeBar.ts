@@ -411,8 +411,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 datum,
                 cumulativeValue: 0,
                 xValue: xDatum,
-                yLowValue,
-                yHighValue,
+                yLowValue: rawLowValue,
+                yHighValue: rawHighValue,
                 yLowKey,
                 yHighKey,
                 xKey,
@@ -614,12 +614,11 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             xKey,
             yLowKey,
             yHighKey,
-            axes,
             ctx: { callbackCache },
         } = this;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
 
         if (!xKey || !yLowKey || !yHighKey || !xAxis || !yAxis) {
             return '';
