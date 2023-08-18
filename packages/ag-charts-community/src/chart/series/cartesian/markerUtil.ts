@@ -88,14 +88,14 @@ export function getMarkerConfig<ExtraParams extends {}>({
 }
 
 export function updateMarker({ node, config }: { node: Marker; config: MarkerConfig }) {
-    const { point, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, visible = true, customMarker } = config;
+    const { point, size, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, visible = true, customMarker } = config;
 
     node.fill = fill;
     node.stroke = stroke;
     node.strokeWidth = strokeWidth ?? 1;
     node.fillOpacity = fillOpacity ?? 1;
     node.strokeOpacity = strokeOpacity ?? 1;
-    node.size = point.size;
+    node.size = size ?? point.size;
 
     node.translationX = point.x;
     node.translationY = point.y;
