@@ -12,14 +12,13 @@
         "outputPath": "packages/ag-charts-community/dist",
         "main": "packages/ag-charts-community/src/main.ts",
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
+        "rollupConfig": "packages/ag-charts-community/rollup.config.cjs",
         "assets": [
           { "input": "./", "glob": "LICENSE.*", "output": "./" },
           { "input": "../../", "glob": "README.*", "output": "./" }
         ],
         "project": "packages/ag-charts-community/package.json",
         "compiler": "tsc",
-        "updateBuildableProjectDepsInPackageJson": true,
-        "buildableProjectDepsInPackageJsonType": "dependencies",
         "format": ["cjs"],
         "generateExportsField": true
       },

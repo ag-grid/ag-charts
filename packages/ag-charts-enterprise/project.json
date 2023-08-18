@@ -16,8 +16,6 @@
         "assets": [{ "input": "./", "glob": "LICENSE.*", "output": "./" }],
         "project": "packages/ag-charts-enterprise/package.json",
         "compiler": "tsc",
-        "updateBuildableProjectDepsInPackageJson": true,
-        "buildableProjectDepsInPackageJsonType": "dependencies",
         "format": ["cjs"],
         "generateExportsField": true
       },
