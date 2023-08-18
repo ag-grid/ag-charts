@@ -19,6 +19,15 @@ export default defineMarkdocConfig({
         },
     },
     tags: {
+        /**
+         * External link that opens in a new tab
+         */
+        externalLink: {
+            render: component('./src/components/ExternalLink.astro'),
+            attributes: {
+                href: { type: String, required: true },
+            },
+        },
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),
             attributes: {
