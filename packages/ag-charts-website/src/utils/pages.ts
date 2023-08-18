@@ -119,6 +119,9 @@ export function getNewFrameworkPath({
     return path.replace(`/${currentFramework}`, `/${newFramework}`);
 }
 
+/**
+ * Get Dev File URL for referencing on the front end
+ */
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
     return pathJoin(SITE_BASE_URL, DEV_FILE_BASE_PATH, filePath);
 };

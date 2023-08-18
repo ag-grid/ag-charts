@@ -1,0 +1,18 @@
+---
+import { InterfaceDocumentation } from './InterfaceDocumentation';
+import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
+
+const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
+const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+
+const { config: configString, ...props } = Astro.props;
+const config = configString ? JSON.parse(configString) : undefined;
+---
+
+<InterfaceDocumentation
+    client:load
+    interfaceLookup={interfaceLookup}
+    codeLookup={codeLookup}
+    config={config}
+    {...props}
+/>
