@@ -3,7 +3,31 @@ import prism from './src/astro/plugins/prism';
 
 export default defineMarkdocConfig({
     extends: [prism()],
+    functions: {
+        isFramework: {
+            transform(parameters, context) {
+                const pageFramework = context.variables?.framework;
+                const [framework] = Object.values(parameters);
+                return framework === pageFramework;
+            },
+        },
+        isNotJavascriptFramework: {
+            transform(_, context) {
+                const pageFramework = context.variables?.framework;
+                return pageFramework !== 'javascript';
+            },
+        },
+    },
     tags: {
+        /**
+         * External link that opens in a new tab
+         */
+        externalLink: {
+            render: component('./src/components/ExternalLink.astro'),
+            attributes: {
+                href: { type: String, required: true },
+            },
+        },
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),
             attributes: {
@@ -53,7 +77,6 @@ export default defineMarkdocConfig({
             attributes: {
                 interfaceName: { type: String },
                 framework: { type: String },
-                overrideSrc: { type: String },
                 section: { type: String },
                 names: { type: String },
                 exclude: { type: String },

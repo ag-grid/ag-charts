@@ -142,7 +142,7 @@ export interface Config {
         interfaces: {
             [key: string]: InterfaceEntry;
         };
-        htmlLookup: {
+        htmlLookup?: {
             [key: string]: Record<string, string>;
         };
     };
@@ -229,11 +229,10 @@ type CodeLookup = Record<string, any>;
 export interface ApiDocumentationProps {
     pageName?: string;
     framework: Framework;
-    source?: string;
-    sources?: string[];
     section?: string;
     names?: string;
     interfaceLookup: InterfaceLookup;
+    codeLookup: CodeLookup;
     config?: Config;
 }
 
