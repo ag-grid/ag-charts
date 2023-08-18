@@ -9,20 +9,12 @@ import { Section } from './Section';
  */
 export const ApiDocumentation: FunctionComponent<ApiDocumentationProps> = ({
     framework,
-    source,
-    sources,
     section,
     names = '',
+    codeLookup,
     interfaceLookup,
     config = {} as Config,
 }) => {
-    if (source) {
-        sources = [source];
-    }
-
-    if (!sources || sources.length < 1) {
-        return null;
-    }
     let namesArr = [];
     if (names && names.length) {
         namesArr = JSON.parse(names);
@@ -30,38 +22,16 @@ export const ApiDocumentation: FunctionComponent<ApiDocumentationProps> = ({
         config = { hideMore: true, overrideBottomMargin: '1rem', ...config };
     }
 
-    // TODO
-    // const propertiesFromFiles = sources.map((s) => getJsonFromFile(nodes, pageName, s));
-    const propertiesFromFiles = [];
-
-    // const configs = propertiesFromFiles.map((p) => p['_config_']);
-    // propertiesFromFiles.forEach((p) => delete p['_config_']);
-
-    let codeLookup = {};
-    let codeSrcProvided = [];
-    // configs.forEach((c) => {
-    //     if (c == undefined) {
-    //         console.warn(`_config_ property missing from source ${source || (sources || []).join()}.`);
-    //         return;
-    //     }
-    //     if (c.codeSrc) {
-    //         codeSrcProvided = [...codeSrcProvided, c.codeSrc];
-    //         codeLookup = { ...codeLookup, ...getJsonFromFile(nodes, undefined, c.codeSrc) };
-    //     }
-
-    //     if (c.suppressMissingPropCheck) {
-    //         config = { ...config, suppressMissingPropCheck: true };
-    //     }
-    // });
-
     const lookups = { codeLookup, interfaces: interfaceLookup };
     for (const ignoreName of config.suppressTypes ?? []) {
         delete interfaceLookup[ignoreName];
     }
-    config = { ...config, lookups, codeSrcProvided };
+    config = { ...config, lookups };
 
+    const { _config_, ...codeLookupWithoutConfig } = codeLookup;
+    const propertiesFromCodeLookup = [codeLookupWithoutConfig];
     if (section == null) {
-        const properties: DocEntryMap = mergeObjects(propertiesFromFiles);
+        const properties: DocEntryMap = mergeObjects(propertiesFromCodeLookup);
 
         const entries = Object.entries(properties);
         if (!config.suppressSort) {
@@ -75,19 +45,16 @@ export const ApiDocumentation: FunctionComponent<ApiDocumentationProps> = ({
         ));
     }
 
-    const keys = section.split('.');
-    const processed = keys.reduce(
-        (current, key) =>
-            current.map((x) => {
-                const prop = x[key];
-                if (!prop) {
-                    //console.warn(`Could not find a prop ${key} under source ${source} and section ${section}!`)
-                    throw new Error(`Could not find a prop ${key} under source ${source} and section ${section}!`);
-                }
-                return prop;
-            }),
-        propertiesFromFiles
-    );
+    const keys = section?.split('.');
+    const processed = keys?.reduce((current, key) => {
+        return current.map((x) => {
+            const prop = x[key];
+            if (!prop) {
+                throw new Error(`Could not find a prop ${key} under codeLookup and section ${section}!`);
+            }
+            return prop;
+        });
+    }, propertiesFromCodeLookup);
     const properties = mergeObjects(processed);
 
     return (

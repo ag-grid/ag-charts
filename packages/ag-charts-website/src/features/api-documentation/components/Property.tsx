@@ -41,11 +41,11 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
 
     if (
         !gridParams &&
-        config.codeSrcProvided.length > 0 &&
+        config.codeSrcProvided?.length > 0 &&
         !(config.suppressMissingPropCheck || definition.overrideMissingPropCheck)
     ) {
         throw new Error(
-            `We could not find a type for "${id}" -> "${name}" from the code sources ${config.codeSrcProvided.join()}. Has this property been removed from the source code / or is there a typo?`
+            `We could not find a type for "${id}" -> "${name}" from the code sources ${config.codeSrcProvided?.join()}. Has this property been removed from the source code / or is there a typo?`
         );
     }
 
