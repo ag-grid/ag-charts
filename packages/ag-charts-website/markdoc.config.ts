@@ -3,6 +3,21 @@ import prism from './src/astro/plugins/prism';
 
 export default defineMarkdocConfig({
     extends: [prism()],
+    functions: {
+        isFramework: {
+            transform(parameters, context) {
+                const pageFramework = context.variables?.framework;
+                const [framework] = Object.values(parameters);
+                return framework === pageFramework;
+            },
+        },
+        isNotJavascriptFramework: {
+            transform(_, context) {
+                const pageFramework = context.variables?.framework;
+                return pageFramework !== 'javascript';
+            },
+        },
+    },
     tags: {
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),

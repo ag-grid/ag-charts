@@ -10,20 +10,20 @@ We expose the APIs for triggering download via the `AgChart` class:
 
 {% apiDocumentation section="AgChart" names="[\"download\", \"getImageDataURL\"]" config="{ \"showSnippets\": false, \"suppressTypes\": [\"AgChartInstance\", \"AgChartOptions\", \"DeepPartial\"] }" /%}
 
-<framework-specific-section frameworks="react">
-| The `AgChartInstance` can be obtained using a React `Ref` to our `&lt;AgChartsReact />` tag, which
-| exposes a `chart` property.
-</framework-specific-section>
+{% if isFramework("react") %}
+The `AgChartInstance` can be obtained using a React `Ref` to our `<AgChartsReact />` tag, which
+exposes a `chart` property.
+{% /if %}
 
-<framework-specific-section frameworks="angular">
-| The `AgChartInstance` can be obtained using an Angular `@ViewChild` decorator to reference our `AgChartsAngular` tag, which
-| exposes a `chart` property.
-</framework-specific-section>
+{% if isFramework("angular") %}
+The `AgChartInstance` can be obtained using an Angular `@ViewChild` decorator to reference our `AgChartsAngular` tag, which
+exposes a `chart` property.
+{% /if %}
 
-<framework-specific-section frameworks="vue">
-| The `AgChartInstance` can be obtained using the Vue `$refs` component property to reference our `AgChartsVue` tag, which
-| exposes a `chart` property.
-</framework-specific-section>
+{% if isFramework("vue") %}
+The `AgChartInstance` can be obtained using the Vue `$refs` component property to reference our `AgChartsVue` tag, which
+exposes a `chart` property.
+{% /if %}
 
 This example demonstrates:
 
