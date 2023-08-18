@@ -19,6 +19,13 @@
         "update": {}
       }
     },
+    "pack": {
+      "executor": "nx:noop",
+      "dependsOn": ["^pack"],
+      "configurations": {
+        "production": {}
+      }
+    },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
