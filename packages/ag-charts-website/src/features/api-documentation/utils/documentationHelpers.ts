@@ -1,9 +1,5 @@
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
-
-// TODO
-const getTypeLink = (type) => {
-    return type;
-};
+import { getTypeLink } from './getTypeLinks';
 
 export const inferType = (value: any): string | null => {
     if (value == null) {
