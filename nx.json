@@ -12,7 +12,11 @@
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s"
     ],
-    "tsDeclarations": [{ "dependentTasksOutputFiles": "**/*.d.ts" }],
+    "tsDeclarations": [
+      {
+        "dependentTasksOutputFiles": "**/*.d.ts"
+      }
+    ],
     "tsDefaults": [
       "{projectRoot}/package.json",
       "{projectRoot}/src/**/*",

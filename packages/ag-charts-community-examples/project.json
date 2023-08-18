@@ -12,7 +12,8 @@
         "outputPath": "dist/packages/ag-charts-community-examples",
         "main": "packages/ag-charts-community-examples/src/index.ts",
         "tsConfig": "packages/ag-charts-community-examples/tsconfig.lib.json",
-        "assets": []
+        "assets": [],
+        "updateBuildableProjectDepsInPackageJson": true
       }
     },
     "lint": {
