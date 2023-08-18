@@ -12,14 +12,18 @@
         "outputPath": "dist/packages/ag-charts-community-examples",
         "main": "packages/ag-charts-community-examples/src/index.ts",
         "tsConfig": "packages/ag-charts-community-examples/tsconfig.lib.json",
-        "assets": []
+        "assets": [],
+        "updateBuildableProjectDepsInPackageJson": true
       }
     },
     "lint": {
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-community-examples/**/*.ts"],
+        "lintFilePatterns": [
+          "packages/ag-charts-community-examples/**/*.ts",
+          "packages/ag-charts-community-examples/package.json"
+        ],
         "eslintConfig": "packages/ag-charts-community-examples/.eslintrc.json"
       },
       "configurations": {
