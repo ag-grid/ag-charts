@@ -54,7 +54,7 @@
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-community/**/*.ts"],
+        "lintFilePatterns": ["packages/ag-charts-community/**/*.ts", "packages/ag-charts-community/package.json"],
         "eslintConfig": "packages/ag-charts-community/.eslintrc.json"
       },
       "configurations": {
