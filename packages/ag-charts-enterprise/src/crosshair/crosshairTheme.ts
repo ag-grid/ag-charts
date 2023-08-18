@@ -1,6 +1,6 @@
 export const AXIS_CROSSHAIR_THEME = {
     crosshair: {
-        enabled: false,
+        enabled: true,
         snap: true,
         stroke: 'rgb(195, 195, 195)',
         strokeWidth: 1,
@@ -9,6 +9,11 @@ export const AXIS_CROSSHAIR_THEME = {
         lineDashOffset: 0,
         label: {
             enabled: true,
+        },
+    },
+    category: {
+        crosshair: {
+            enabled: false,
         },
     },
 };
