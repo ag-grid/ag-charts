@@ -1,9 +1,9 @@
-import type { AgDropShadowOptions } from '../../options/chartOptions';
+import type { AgChartLabelOptions, AgDropShadowOptions } from '../../options/chartOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesLabelFormatterParams, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
 
 export interface AgRangeBarSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;
@@ -52,11 +52,17 @@ export interface AgRangeBarSeriesTooltip extends AgSeriesTooltip {
     renderer?: (params: AgRangeBarSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
-export interface AgRangeBarSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
+export interface AgRangeBarSeriesLabelOptions extends AgChartLabelOptions {
+    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
+    formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string;
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
     padding?: PixelSize;
+}
+
+export interface AgRangeBarSeriesLabelFormatterParams extends AgCartesianSeriesLabelFormatterParams {
+    itemId: string;
 }
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
