@@ -1,14 +1,17 @@
+!dist/
+
 node_modules
 src
 tools
-coverage
-.docker
 .eslint*
 .npmignore
 .prettierignore
-gulpfile.js
-jest.*.js
+.swcrc
+jest.*
 tsconfig.*
+project.json
+rollup.*
 
 dist/**/*.test.*
 *.map
+*.tgz
