@@ -3,17 +3,6 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
         output = [output];
     }
 
-    const rename = (name, format) => {
-        // Workaround @nx/rollup:rollup package.json update assuming entry point is named 'index'.
-        // name = name.replace('[name]', 'index');
-
-        // if (format === 'esm') {
-        //     name = name.replace('.js', '.mjs');
-        // }
-
-        return name;
-    };
-
     const result = {
         ...config,
         output: [
@@ -21,8 +10,8 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
                 ...opts,
                 format,
                 name,
-                entryFileNames: rename(entryFileNames, format),
-                chunkFileNames: rename(chunkFileNames, format),
+                entryFileNames,
+                chunkFileNames,
                 sourcemap: true,
             })),
         ],
