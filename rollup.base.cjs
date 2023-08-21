@@ -33,8 +33,8 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
         result.output.push({
             ...opts,
             name,
-            entryFileNames: 'index.umd.js',
-            chunkFileNames: 'index.umd.js',
+            entryFileNames: entryFileNames.replace('cjs', 'umd'),
+            chunkFileNames: chunkFileNames.replace('cjs', 'umd'),
             sourcemap: true,
             format: 'umd',
             ...umd,

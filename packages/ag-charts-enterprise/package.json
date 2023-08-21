@@ -3,13 +3,12 @@
   "version": "9.0.0",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/main.cjs.js",
-  "module": "./dist/main.esm.js",
-  "types": "./dist/src/main.d.ts",
+  "types": "./dist/main.cjs.d.ts",
   "exports": {
     ".": {
       "import": "./dist/main.esm.js",
       "require": "./dist/main.cjs.js",
-      "types": "./dist/src/main.d.ts"
+      "types": "./dist/main.cjs.d.ts"
     }
   },
   "private": true,
