@@ -10,7 +10,6 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
-    SeriesNodePickMode,
     valueProperty,
     trailingValueProperty,
     keyProperty,
@@ -152,7 +151,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             hasMarkers: true,
             pathsPerSeries: 2,
