@@ -60,7 +60,8 @@ export interface AgRangeAreaSeriesLabelOptions extends AgChartLabelOptions {
 }
 
 export interface AgRangeAreaSeriesLabelFormatterParams extends AgCartesianSeriesLabelFormatterParams {
-    itemId: string;
+    /** The Id to distinguish the type of datum. This can be `low` or `high`. */
+    readonly itemId: string;
 }
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';

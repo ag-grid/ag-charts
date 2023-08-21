@@ -29,7 +29,7 @@ export interface AgRangeBarSeriesFormat {
 
 export interface AgRangeBarSeriesTooltipRendererParams
     extends Omit<AgCartesianSeriesTooltipRendererParams, 'yKey' | 'yValue'> {
-    /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
+    /** The Id to distinguish the type of datum. This can be `low` or `high`. */
     itemId: string;
 
     /** yKey as specified on series options. */
@@ -62,7 +62,8 @@ export interface AgRangeBarSeriesLabelOptions extends AgChartLabelOptions {
 }
 
 export interface AgRangeBarSeriesLabelFormatterParams extends AgCartesianSeriesLabelFormatterParams {
-    itemId: string;
+    /** The Id to distinguish the type of datum. This can be `low` or `high`. */
+    readonly itemId: string;
 }
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';

@@ -327,7 +327,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             const points = createCoordinates(xValue, yHighValue, yLowValue);
 
             const isInverted = yLowValue > yHighValue;
-            points.forEach(({ x, y, size, itemId, yValue }) => {
+            points.forEach(({ x, y, size, itemId = '', yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,
