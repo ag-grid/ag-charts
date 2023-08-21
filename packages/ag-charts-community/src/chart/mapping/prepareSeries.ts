@@ -91,11 +91,11 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
         const stackedByDefault = isSeriesStackedByDefault(sType);
 
         if (series.grouped && !groupable) {
-            Logger.warn(`unexpected grouping of series type: ${sType}`);
+            Logger.warnOnce(`unsupported grouping of series type: ${sType}`);
         }
 
         if (series.stacked && !stackable) {
-            Logger.warn(`unexpected stacking of series type: ${sType}`);
+            Logger.warnOnce(`unsupported stacking of series type: ${sType}`);
         }
 
         if (!groupable && !stackable) {
