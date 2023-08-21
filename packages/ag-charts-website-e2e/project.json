@@ -5,7 +5,7 @@
   "projectType": "application",
   "targets": {
     "e2e": {
-      "executor": "@nrwl/cypress:cypress",
+      "executor": "@nx/cypress:cypress",
       "options": {
         "cypressConfig": "packages/ag-charts-website-e2e/cypress.config.ts",
         "devServerTarget": "ag-charts-website:dev",
@@ -16,7 +16,10 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-website-e2e/**/*.{js,ts}"],
+        "lintFilePatterns": [
+          "packages/ag-charts-website-e2e/**/*.{js,ts}",
+          "packages/ag-charts-website-e2e/package.json"
+        ],
         "eslintConfig": "packages/ag-charts-website-e2e/.eslintrc.json"
       }
     }

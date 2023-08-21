@@ -1,5 +1,8 @@
 name: CI
 
+env:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+
 on:
     push:
         branches: [latest]
