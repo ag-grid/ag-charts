@@ -44,7 +44,7 @@ To skip the `nx` cache use `--skip-nx-cache`.
 
 ## Troubleshooting
 
-### Yarn/NPM install of ` canvas` fails on `node-gyp` compile step (M1/M2 processor).
+### Yarn/NPM install of `canvas` fails on `node-gyp` compile step (M1/M2 processor).
 
 Try installing `cairo` and other dependencies using Homebrew:
 
