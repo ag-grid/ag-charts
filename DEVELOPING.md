@@ -41,3 +41,13 @@ To skip the `nx` cache use `--skip-nx-cache`.
 | `nx build ag-charts-website -c production`         | Run the website build for production env                   |
 | `nx preview ag-charts-website -c production`       | Preview the static website build for production env        |
 | `nx generate-gallery-thumbnails ag-charts-website` | Generate gallery thumbnails in `public/gallery/thumbnails` |
+
+## Troubleshooting
+
+### Yarn/NPM install of ` canvas` fails on `node-gyp` compile step (M1/M2 processor).
+
+Try installing `cairo` and other dependencies using Homebrew:
+
+```bash
+$ brew install pkg-config cairo pango libpng jpeg giflib librsvg
+```
