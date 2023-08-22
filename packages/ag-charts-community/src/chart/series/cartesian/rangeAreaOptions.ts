@@ -34,14 +34,14 @@ export interface AgRangeAreaSeriesTooltipRendererParams
 
     /** yKey as specified on series options. */
     readonly yLowKey: string;
-    /** yValue as read from series data via the yKey property. */
+    /** yLowValue as read from series data via the yLowKey property. */
     readonly yLowValue?: any;
     /** yLowName as specified on series options. */
     readonly yLowName?: string;
 
     /** yKey as specified on series options. */
     readonly yHighKey: string;
-    /** yValue as read from series data via the yKey property. */
+    /** yHighValue as read from series data via the yHighKey property. */
     readonly yHighValue?: any;
     /** yHighName as specified on series options. */
     readonly yHighName?: string;
@@ -62,6 +62,10 @@ export interface AgRangeAreaSeriesLabelOptions extends AgChartLabelOptions {
 export interface AgRangeAreaSeriesLabelFormatterParams extends AgCartesianSeriesLabelFormatterParams {
     /** The Id to distinguish the type of datum. This can be `low` or `high`. */
     readonly itemId: string;
+    /** yLowValue as read from series data via the yLowKey property. */
+    readonly yLowValue?: any;
+    /** yHighValue as read from series data via the yHighKey property. */
+    readonly yHighValue?: any;
 }
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';

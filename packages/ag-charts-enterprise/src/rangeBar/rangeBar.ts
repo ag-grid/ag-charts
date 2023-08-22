@@ -458,7 +458,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText({ itemId: 'low', value: yLowValue }),
+            text: this.getLabelText({ itemId: 'low', value: yLowValue, yLowValue, yHighValue }),
             itemId: 'low',
             datum,
             series,
@@ -468,7 +468,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText({ itemId: 'high', value: yHighValue }),
+            text: this.getLabelText({ itemId: 'high', value: yHighValue, yLowValue, yHighValue }),
             itemId: 'high',
             datum,
             series,
@@ -484,7 +484,17 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return [yLowLabel, yHighLabel];
     }
 
-    private getLabelText({ itemId, value }: { itemId: string; value: any }) {
+    private getLabelText({
+        itemId,
+        value,
+        yLowValue,
+        yHighValue,
+    }: {
+        itemId: string;
+        value: any;
+        yLowValue: any;
+        yHighValue: any;
+    }) {
         const {
             id: seriesId,
             label: { formatter },
@@ -496,6 +506,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 value: isNumber(value) ? value : undefined,
                 seriesId,
                 itemId,
+                yLowValue,
+                yHighValue,
             });
         }
         return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
