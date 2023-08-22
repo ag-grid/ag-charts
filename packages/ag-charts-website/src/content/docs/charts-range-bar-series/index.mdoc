@@ -22,6 +22,69 @@ series: [
 
 {% chartExampleRunner title="Basic Range Column" name="basic-range-column" type="generated" options="{ \"enterprise\": true }" /%}
 
+## Range Column Labels
+
+It's possible to add labels to the range columns, by adding the following to the series config:
+
+```js
+label: {
+}
+```
+
+By default, a label will be shown for the `yHighKey` value and `yLowKey` value of each column.
+
+In the snippet below, a label formatter is used to return the integer part of the data value to display as the column labels.
+
+-   The params object passed into the formatter includes an `itemId` which can be used to identify whether the value is a `high` or a `low` value:
+
+```js
+label: {
+    formatter: ({ itemId, value }) => {
+        return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
+    };
+}
+```
+
+The formatter above creates labels as seen in the provided example:
+{% chartExampleRunner title="Range Column Label" name="range-column-labels" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Multiple Range Column Series
+
+It is possible to combine multiple range column series into a single chart.
+
+Note that in the example below we:
+
+-   Set the category axis `groupPaddingInner` to `0` to close the gap between the two series
+-   Use `yName` to control the text that the legend displays
+-   Use `yLowName` and `yHighName` to control the text that the tooltip displays
+
+{% chartExampleRunner title="Multiple Range Column Series" name="multiple-range-columns" type="generated" options="{ \"enterprise\": true }" /%}
+
+{% note %}
+It's not possible to stack multiple range series.
+{% /note %}
+
+## Missing Data
+
+Sometimes data for certain items or time periods might be missing.
+
+The chart handles such cases based on whether the `xKey` or `yKey` value of a data point is missing or invalid.
+
+The `yLowKey` and `yHighKey` values of a data point are invalid if they are `+/-Infinity`, `null`, `undefined` or not a number. A data point with an invalid `yLowKey` or `yHighKey` value will be rendered as a gap in the series.
+
+The chart handles missing `xKey` values depending on the X-axis type:
+
+-   For continuous X axes (either a `'time'` or `'number'` axis), the `xKey` value of a data point is invalid if it’s `+/-Infinity`, `null`, `undefined` or `NaN`. In this case the data point will be skipped altogether.
+-   For category X axes the data point will not be skipped. It will be rendered as a category along the X axis.
+
+The following example demonstrates how missing data is handled for a continuous X axis type (time axis):
+
+-   Initially there is no missing data, all values are valid for their associated axes.
+-   Click the Missing Y values button and note that if either of the Y low or high values are missing, the data point is rendered as a gap in the chart.
+-   Click the Missing X value button and note that a missing X value on a continuous X axis is skipped.
+
+{% chartExampleRunner title="Range Column Missing Data" name="range-column-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
+
 ## Range Bar
 
 To create a basic Range Bar chart, use the `range-bar` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
