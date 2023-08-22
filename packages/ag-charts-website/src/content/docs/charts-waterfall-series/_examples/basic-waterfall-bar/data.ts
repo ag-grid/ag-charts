@@ -1,7 +1,7 @@
 export function getData() {
     return [
         {
-            source: 'Income \nTax',
+            source: 'Income\nTax',
             amount: 185,
         },
         {
@@ -13,15 +13,15 @@ export function getData() {
             amount: 134,
         },
         {
-            source: 'Corp \nTax',
+            source: 'Corp\nTax',
             amount: 55,
         },
         {
-            source: 'Council \nTax',
+            source: 'Council\nTax',
             amount: 34,
         },
         {
-            source: 'Social \nProtection',
+            source: 'Social\nProtection',
             amount: -252,
         },
         {
@@ -37,7 +37,7 @@ export function getData() {
             amount: -65,
         },
         {
-            source: 'Debt \nInterest',
+            source: 'Debt\nInterest',
             amount: -63,
         },
         {
