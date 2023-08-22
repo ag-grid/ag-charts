@@ -14,7 +14,7 @@ const options: AgChartOptions = {
             xName: 'Date',
             yLowKey: 'low',
             yHighKey: 'high',
-        } as any,
+        },
     ],
 };
 

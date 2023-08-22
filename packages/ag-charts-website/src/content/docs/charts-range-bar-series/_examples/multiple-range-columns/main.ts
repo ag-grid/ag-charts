@@ -30,7 +30,7 @@ const options: AgChartOptions = {
                         : `+${(yHighValue - yLowValue).toFixed(0)}`;
                 },
             },
-        } as any,
+        },
         {
             type: 'range-column',
             xKey: 'date',
@@ -50,7 +50,7 @@ const options: AgChartOptions = {
                         : `-${(yHighValue - yLowValue).toFixed(0)}`;
                 },
             },
-        } as any,
+        },
         {
             type: 'line',
             xKey: 'date',

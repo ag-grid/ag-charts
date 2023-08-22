@@ -19,7 +19,7 @@ const options: AgChartOptions = {
                     return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
                 }
             }
-        } as any,
+        },
     ],
 };
 
