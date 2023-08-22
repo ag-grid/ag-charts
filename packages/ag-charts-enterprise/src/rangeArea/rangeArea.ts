@@ -347,7 +347,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                 // label data
                 let labelText;
                 if (label.formatter) {
-                    labelText = callbackCache.call(label.formatter, { value: yValue, seriesId: this.id, itemId }) ?? '';
+                    labelText =
+                        callbackCache.call(label.formatter, {
+                            value: yValue,
+                            seriesId: this.id,
+                            itemId,
+                            yLowValue,
+                            yHighValue,
+                        }) ?? '';
                 } else {
                     labelText = isNumber(yValue) ? Number(yValue).toFixed(2) : String(yValue);
                 }
