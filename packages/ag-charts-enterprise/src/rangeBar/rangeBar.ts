@@ -1,7 +1,7 @@
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgRangeBarSeriesFormat,
     AgRangeBarSeriesFormatterParams,
+    AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -107,7 +107,7 @@ class RangeBarSeriesTooltip extends _ModuleSupport.SeriesTooltip {
 
 class RangeBarSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams & { itemId: string }) => string = undefined;
+    formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string = undefined;
 
     @Validate(OPT_RANGE_BAR_LABEL_PLACEMENT)
     placement: AgRangeBarSeriesLabelPlacement = 'inside';

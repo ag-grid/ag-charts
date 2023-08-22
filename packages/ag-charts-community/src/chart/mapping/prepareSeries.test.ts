@@ -2,6 +2,7 @@ import { describe, expect, test } from '@jest/globals';
 import 'jest-canvas-mock';
 import { groupSeriesByType, processSeriesOptions } from './prepareSeries';
 import { addGroupableSeriesType, addStackableSeriesType, addStackedByDefaultSeriesType } from '../factory/seriesTypes';
+import { clearDoOnceFlags } from '../../util/function';
 
 import type { AgColumnSeriesOptions, AgLineSeriesOptions, AgAreaSeriesOptions } from '../agChartOptions';
 
@@ -106,6 +107,7 @@ const nightingales = [
 describe('transform series options', () => {
     beforeEach(() => {
         console.warn = jest.fn();
+        clearDoOnceFlags();
     });
 
     test('groupSeriesByType', () => {
@@ -243,7 +245,7 @@ describe('transform series options', () => {
                         }
                         if (!stackable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unexpected stacking of series type: ${sType}`
+                                `AG Charts - unsupported stacking of series type: ${sType}`
                             );
                         } else {
                             expect(console.warn).not.toHaveBeenCalled();
@@ -330,7 +332,7 @@ describe('transform series options', () => {
                         }
                         if (!groupable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unexpected grouping of series type: ${sType}`
+                                `AG Charts - unsupported grouping of series type: ${sType}`
                             );
                         } else {
                             expect(console.warn).not.toHaveBeenCalled();
@@ -422,12 +424,12 @@ describe('transform series options', () => {
                         } else {
                             if (!groupable) {
                                 expect(console.warn).toHaveBeenCalledWith(
-                                    `AG Charts - unexpected grouping of series type: ${sType}`
+                                    `AG Charts - unsupported grouping of series type: ${sType}`
                                 );
                             }
                             if (!stackable) {
                                 expect(console.warn).toHaveBeenCalledWith(
-                                    `AG Charts - unexpected stacking of series type: ${sType}`
+                                    `AG Charts - unsupported stacking of series type: ${sType}`
                                 );
                             }
                         }
@@ -481,7 +483,7 @@ describe('transform series options', () => {
                         }
                         if (!groupable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unexpected grouping of series type: ${sType}`
+                                `AG Charts - unsupported grouping of series type: ${sType}`
                             );
                         } else {
                             expect(console.warn).not.toHaveBeenCalled();
@@ -515,7 +517,7 @@ describe('transform series options', () => {
                         }
                         if (!stackable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unexpected stacking of series type: ${sType}`
+                                `AG Charts - unsupported stacking of series type: ${sType}`
                             );
                         } else {
                             expect(console.warn).not.toHaveBeenCalled();

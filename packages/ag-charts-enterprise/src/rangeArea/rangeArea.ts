@@ -1,10 +1,10 @@
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
     AgRangeAreaSeriesTooltipRendererParams,
+    AgRangeAreaSeriesLabelFormatterParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
@@ -92,7 +92,7 @@ class RangeAreaSeriesTooltip extends _ModuleSupport.SeriesTooltip {
 
 class RangeAreaSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams & { itemId?: string }) => string = undefined;
+    formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string = undefined;
 
     @Validate(OPT_RANGE_AREA_LABEL_PLACEMENT)
     placement: AgRangeAreaSeriesLabelPlacement = 'inside';
@@ -327,7 +327,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             const points = createCoordinates(xValue, yHighValue, yLowValue);
 
             const isInverted = yLowValue > yHighValue;
-            points.forEach(({ x, y, size, itemId, yValue }) => {
+            points.forEach(({ x, y, size, itemId = '', yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,

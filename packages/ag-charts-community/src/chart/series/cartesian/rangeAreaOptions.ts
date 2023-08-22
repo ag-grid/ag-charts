@@ -1,9 +1,9 @@
-import type { AgDropShadowOptions } from '../../options/chartOptions';
+import type { AgChartLabelOptions, AgDropShadowOptions } from '../../options/chartOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle, AgSeriesMarker } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesLabelFormatterParams, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
 
 export interface AgRangeAreaSeriesMarkerFormatterParams<DatumType> {
     readonly datum: DatumType;
@@ -52,9 +52,16 @@ export interface AgRangeAreaSeriesTooltip extends AgSeriesTooltip {
     renderer?: (params: AgRangeAreaSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
-export interface AgRangeAreaSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
+export interface AgRangeAreaSeriesLabelOptions extends AgChartLabelOptions {
+    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
+    formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string;
     /** Padding in pixels between the label and the edge of the marker. */
     padding?: PixelSize;
+}
+
+export interface AgRangeAreaSeriesLabelFormatterParams extends AgCartesianSeriesLabelFormatterParams {
+    /** The Id to distinguish the type of datum. This can be `low` or `high`. */
+    readonly itemId: string;
 }
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
