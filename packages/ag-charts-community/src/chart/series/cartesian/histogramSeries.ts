@@ -7,7 +7,7 @@ import { SeriesTooltip, Series, SeriesNodePickMode, valueProperty, keyProperty }
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
 import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { toTooltipHtml } from '../../tooltip/tooltip';
@@ -83,6 +83,8 @@ interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
 }
 
 type HistogramAggregation = NonNullable<AgHistogramSeriesOptions['aggregation']>;
+
+type HistogramAnimationData = CartesianAnimationData<SeriesNodeDataContext<HistogramNodeDatum>, Rect>;
 
 class HistogramSeriesTooltip extends SeriesTooltip {
     @Validate(OPT_FUNCTION)
@@ -585,13 +587,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         return legendData;
     }
 
-    animateEmptyUpdateReady({
-        datumSelections,
-        labelSelections,
-    }: {
-        datumSelections: Array<Selection<Rect, HistogramNodeDatum>>;
-        labelSelections: Array<Selection<Text, HistogramNodeDatum>>;
-    }) {
+    animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
 
@@ -640,7 +636,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         });
     }
 
-    animateReadyUpdate({ datumSelections }: { datumSelections: Array<Selection<Rect, HistogramNodeDatum>> }) {
+    animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });
@@ -650,20 +646,14 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({ datumSelections }: { datumSelections: Array<Selection<Rect, HistogramNodeDatum>> }) {
+    animateReadyResize({ datumSelections }: HistogramAnimationData) {
         this.ctx.animationManager?.reset();
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });
     }
 
-    animateWaitingUpdateReady({
-        datumSelections,
-        labelSelections,
-    }: {
-        datumSelections: Array<Selection<Rect, HistogramNodeDatum>>;
-        labelSelections: Array<Selection<Text, HistogramNodeDatum>>;
-    }) {
+    animateWaitingUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 

@@ -1,12 +1,10 @@
 import type { Selection } from '../../../scene/selection';
 import type { DropShadow } from '../../../scene/dropShadow';
-import type { BBox } from '../../../scene/bbox';
 import type { CategoryLegendDatum } from '../../legendDatum';
-import type { Path } from '../../../scene/shape/path';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesTooltip, keyProperty, valueProperty, groupAccumulativeValueProperty } from '../series';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
     CartesianSeries,
     CartesianSeriesMarker,
@@ -96,6 +94,8 @@ type AreaSeriesNodeDataContext = SeriesNodeDataContext<MarkerSelectionDatum, Lab
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
 };
+
+type AreaAnimationData = CartesianAnimationData<AreaSeriesNodeDataContext>;
 
 export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
     static className = 'AreaSeries';
@@ -703,19 +703,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         ];
     }
 
-    animateEmptyUpdateReady({
-        markerSelections,
-        labelSelections,
-        contextData,
-        paths,
-        seriesRect,
-    }: {
-        markerSelections: Array<Selection<Marker, MarkerSelectionDatum>>;
-        labelSelections: Array<Selection<Text, LabelSelectionDatum>>;
-        contextData: Array<AreaSeriesNodeDataContext>;
-        paths: Array<Array<Path>>;
-        seriesRect?: BBox;
-    }) {
+    animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths, seriesRect }: AreaAnimationData) {
         const { id: seriesId, ctx, xKey = '', yKey = '', marker } = this;
         const styles = {
             stroke: this.stroke,
@@ -762,13 +750,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         });
     }
 
-    animateReadyUpdate({
-        contextData,
-        paths,
-    }: {
-        contextData: Array<AreaSeriesNodeDataContext>;
-        paths: Array<Array<Path>>;
-    }) {
+    animateReadyUpdate({ contextData, paths }: AreaAnimationData) {
         const styles = {
             stroke: this.stroke,
             fill: this.fill,

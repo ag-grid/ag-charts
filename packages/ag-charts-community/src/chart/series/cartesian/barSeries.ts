@@ -14,7 +14,7 @@ import {
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
 import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -82,6 +82,8 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
     readonly strokeWidth: number;
     readonly label?: BarNodeLabelDatum;
 }
+
+type BarAnimationData = CartesianAnimationData<SeriesNodeDataContext<BarNodeDatum>, Rect>;
 
 enum BarSeriesNodeTag {
     Bar,
@@ -658,13 +660,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         return legendData;
     }
 
-    animateEmptyUpdateReady({
-        datumSelections,
-        labelSelections,
-    }: {
-        datumSelections: Array<Selection<Rect, BarNodeDatum>>;
-        labelSelections: Array<Selection<Text, BarNodeDatum>>;
-    }) {
+    animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
 
@@ -723,20 +719,14 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({ datumSelections }: { datumSelections: Array<Selection<Rect, BarNodeDatum>> }) {
+    animateReadyResize({ datumSelections }: BarAnimationData) {
         this.ctx.animationManager?.reset();
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });
     }
 
-    animateWaitingUpdateReady({
-        datumSelections,
-        labelSelections,
-    }: {
-        datumSelections: Array<Selection<Rect, BarNodeDatum>>;
-        labelSelections: Array<Selection<Text, BarNodeDatum>>;
-    }) {
+    animateWaitingUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 

@@ -96,7 +96,7 @@ export class CartesianSeriesNodeDoubleClickEvent<
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting';
 type CartesianAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize';
 class CartesianStateMachine extends StateMachine<CartesianAnimationState, CartesianAnimationEvent> {}
-interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any>, N extends Node = Group> {
+export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any>, N extends Node = Group> {
     datumSelections: Array<NodeDataSelection<N, C>>;
     markerSelections: Array<NodeDataSelection<Marker, C>>;
     labelSelections: Array<LabelDataSelection<Text, C>>;
@@ -795,14 +795,7 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
-    protected animateEmptyUpdateReady(_data: {
-        datumSelections: Array<NodeDataSelection<N, C>>;
-        markerSelections: Array<NodeDataSelection<Marker, C>>;
-        labelSelections: Array<LabelDataSelection<Text, C>>;
-        contextData: Array<C>;
-        paths: Array<Array<Path>>;
-        seriesRect?: BBox;
-    }) {
+    protected animateEmptyUpdateReady(_data: CartesianAnimationData<C, N>) {
         // Override point for sub-classes.
     }
 
