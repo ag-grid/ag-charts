@@ -597,7 +597,13 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    animateWaitingUpdateReady({ markerSelections }: { markerSelections: Array<Selection<Marker, ScatterNodeDatum>> }) {
+    animateWaitingUpdateReady({
+        markerSelections,
+        labelSelections,
+    }: {
+        markerSelections: Array<Selection<Marker, ScatterNodeDatum>>;
+        labelSelections: Array<Selection<Text, ScatterNodeDatum>>;
+    }) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
@@ -621,6 +627,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         const removedIds = zipObject(diff.removed);
 
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const labelDuration = 200;
 
         markerSelections.forEach((markerSelection) => {
             markerSelection.each((marker, datum, index) => {
@@ -675,6 +682,33 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                             },
                         }
                     );
+                }
+            });
+        });
+
+        labelSelections.forEach((labelSelection) => {
+            labelSelection.each((label, datum) => {
+                const datumId = this.getDatumId(datum);
+
+                if (addedIds[datumId]) {
+                    this.ctx.animationManager?.animate(`${this.id}_waiting-update-ready_${label.id}`, {
+                        from: 0,
+                        to: 1,
+                        delay: duration,
+                        duration: labelDuration,
+                        onUpdate: (opacity) => {
+                            label.opacity = opacity;
+                        },
+                    });
+                } else if (removedIds[datumId]) {
+                    this.ctx.animationManager?.animate(`${this.id}_waiting-update-ready_${label.id}`, {
+                        from: 1,
+                        to: 0,
+                        duration: labelDuration,
+                        onUpdate: (opacity) => {
+                            label.opacity = opacity;
+                        },
+                    });
                 }
             });
         });
