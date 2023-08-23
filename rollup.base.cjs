@@ -12,7 +12,7 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
                 name,
                 entryFileNames,
                 chunkFileNames,
-                sourcemap: true,
+                sourcemap: process.env.NX_TASK_TARGET_CONFIGURATION !== 'production',
             })),
         ],
     };
@@ -24,7 +24,7 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
             name,
             entryFileNames: entryFileNames.replace('cjs', 'umd'),
             chunkFileNames: chunkFileNames.replace('cjs', 'umd'),
-            sourcemap: true,
+            sourcemap: process.env.NX_TASK_TARGET_CONFIGURATION !== 'production',
             format: 'umd',
             ...umd,
         });
