@@ -156,6 +156,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     property: K;
     invalidValue?: any;
     missingValue?: any;
+    separateNegative?: boolean;
     validation?: (value: any, datum: any) => boolean;
     processor?: () => ProcessorFn;
 };

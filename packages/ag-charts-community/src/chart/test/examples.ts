@@ -1129,6 +1129,56 @@ export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
     ],
 };
 
+export const STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: AgCartesianChartOptions = {
+    title: {
+        text: "Apple's revenue by product category",
+    },
+    subtitle: {
+        text: 'in billion U.S. dollars',
+    },
+    data: DATA_BROWSER_MARKET_SHARE,
+    series: [
+        {
+            type: 'column',
+            xKey: 'year',
+            yKey: 'ie',
+            yName: 'IE',
+            stacked: true,
+        },
+        {
+            type: 'column',
+            xKey: 'year',
+            yKey: 'firefox',
+            yName: 'FireFox',
+            stacked: true,
+        },
+        {
+            type: 'column',
+            xKey: 'year',
+            yKey: 'safari',
+            yName: 'Safari',
+            stacked: true,
+        },
+        {
+            type: 'column',
+            xKey: 'year',
+            yKey: 'chrome',
+            yName: 'Chrome',
+            stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
 export const GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     title: {
         text: "Apple's revenue by product category",

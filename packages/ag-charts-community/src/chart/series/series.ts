@@ -188,7 +188,10 @@ export function groupAccumulativeValueProperty<K>(
     sum: 'current' | 'last' = 'current',
     opts: Partial<DatumPropertyDefinition<K>> & { groupId: string }
 ) {
-    return [valueProperty(scope, propName, continuous, opts), accumulateGroup(scope, opts.groupId, mode, sum)];
+    return [
+        valueProperty(scope, propName, continuous, opts),
+        accumulateGroup(scope, opts.groupId, mode, sum, opts.separateNegative),
+    ];
 }
 
 export class SeriesNodeBaseClickEvent<Datum extends { datum: any }> implements TypedEvent {

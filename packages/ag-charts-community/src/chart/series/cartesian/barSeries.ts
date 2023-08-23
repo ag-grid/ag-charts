@@ -209,11 +209,13 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     id: `yValue-end`,
                     invalidValue: null,
                     groupId: stackGroupName,
+                    separateNegative: true,
                 }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
                     id: `yValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingName,
+                    separateNegative: true,
                 }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
