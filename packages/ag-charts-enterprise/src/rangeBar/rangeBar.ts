@@ -36,6 +36,15 @@ const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 
 const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
     OPTIONAL(v, ctx, (v: any) => RANGE_BAR_LABEL_PLACEMENTS.includes(v));
 
+const DEFAULT_DIRECTION_KEYS = {
+    [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
+    [_ModuleSupport.ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
+};
+const DEFAULT_DIRECTION_NAMES = {
+    [ChartAxisDirection.X]: ['xName'],
+    [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
+};
+
 type Bounds = {
     x: number;
     y: number;
@@ -165,6 +174,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
+            directionKeys: DEFAULT_DIRECTION_KEYS,
+            directionNames: DEFAULT_DIRECTION_NAMES,
         });
     }
 

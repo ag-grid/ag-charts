@@ -56,6 +56,8 @@ interface SeriesOpts {
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
+    directionKeys: { [key in ChartAxisDirection]?: string[] };
+    directionNames: { [key in ChartAxisDirection]?: string[] };
 }
 
 const DEFAULT_DIRECTION_KEYS: { [key in ChartAxisDirection]?: string[] } = {
@@ -134,26 +136,36 @@ export abstract class CartesianSeries<
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
 
-    protected constructor(
-        opts: Partial<SeriesOpts> & {
-            moduleCtx: ModuleContext;
-            pickModes?: SeriesNodePickMode[];
-        }
-    ) {
+    protected constructor({
+        pathsPerSeries = 1,
+        hasMarkers = false,
+        hasHighlightedLabels = false,
+        pathsZIndexSubOrderOffset = [],
+        directionKeys = DEFAULT_DIRECTION_KEYS,
+        directionNames = DEFAULT_DIRECTION_NAMES,
+        moduleCtx,
+        pickModes,
+    }: Partial<SeriesOpts> & {
+        moduleCtx: ModuleContext;
+        pickModes?: SeriesNodePickMode[];
+    }) {
+        const opts = {
+            pathsPerSeries,
+            hasMarkers,
+            hasHighlightedLabels,
+            pathsZIndexSubOrderOffset,
+            directionKeys,
+            directionNames,
+            moduleCtx,
+            pickModes,
+        };
+
         super({
             ...opts,
             useSeriesGroupLayer: true,
-            directionKeys: DEFAULT_DIRECTION_KEYS,
-            directionNames: DEFAULT_DIRECTION_NAMES,
         });
 
-        const {
-            pathsPerSeries = 1,
-            hasMarkers = false,
-            hasHighlightedLabels = false,
-            pathsZIndexSubOrderOffset = [],
-        } = opts;
-        this.opts = { pathsPerSeries, hasMarkers, hasHighlightedLabels, pathsZIndexSubOrderOffset };
+        this.opts = opts;
 
         this.animationState = new CartesianStateMachine('empty', {
             empty: {

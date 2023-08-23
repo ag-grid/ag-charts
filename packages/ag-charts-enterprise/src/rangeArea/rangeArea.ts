@@ -35,6 +35,15 @@ const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside'
 const OPT_RANGE_AREA_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
     OPTIONAL(v, ctx, (v: any) => RANGE_AREA_LABEL_PLACEMENTS.includes(v));
 
+const DEFAULT_DIRECTION_KEYS = {
+    [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
+    [_ModuleSupport.ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
+};
+const DEFAULT_DIRECTION_NAMES = {
+    [ChartAxisDirection.X]: ['xName'],
+    [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
+};
+
 type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     text: string;
     textAlign: CanvasTextAlign;
@@ -154,6 +163,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             hasHighlightedLabels: true,
             hasMarkers: true,
             pathsPerSeries: 2,
+            directionKeys: DEFAULT_DIRECTION_KEYS,
+            directionNames: DEFAULT_DIRECTION_NAMES,
         });
     }
 
