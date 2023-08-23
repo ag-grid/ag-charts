@@ -36,7 +36,7 @@ import type {
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
-import { SORT_DOMAIN_GROUPS, diff } from '../../data/processors';
+import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
@@ -664,7 +664,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         datumSelections: Array<Selection<Rect, HistogramNodeDatum>>;
         labelSelections: Array<Selection<Text, HistogramNodeDatum>>;
     }) {
-        const { processedData } = this;
+        const { processedData, getDatumId } = this;
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
@@ -691,14 +691,17 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             })
         );
 
-        const addedIds: { [key: string]: boolean } = {};
-        diff.added.forEach((d: string[]) => {
-            addedIds[d.join('_')] = true;
-        });
-        const removedIds: { [key: string]: boolean } = {};
-        diff.removed.forEach((d: string[]) => {
-            removedIds[d.join('_')] = true;
-        });
+        // Zip an array into an object of keys with a given value
+        const zipObject = (props: Array<any>, value = true) => {
+            const zipped: { [key: string]: boolean } = {};
+            for (let i = 0; i < props.length; i++) {
+                zipped[`${props[i]}`] = value;
+            }
+            return zipped;
+        };
+
+        const addedIds = zipObject(diff.added);
+        const removedIds = zipObject(diff.removed);
 
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum) => {
@@ -711,11 +714,11 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                 let delay = diff.removed.length > 0 ? sectionDuration : 0;
                 let cleanup = false;
 
-                const datumId = datum.domain.join('_');
+                const datumId = getDatumId(datum);
                 const contextY = startingY;
                 const contextHeight = 0;
 
-                if (datumId !== undefined && addedIds[datumId] !== undefined) {
+                if (addedIds[datumId]) {
                     props = [
                         { from: datum.x, to: datum.x },
                         { from: datum.width, to: datum.width },
@@ -723,7 +726,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                         { from: contextHeight, to: datum.height },
                     ];
                     delay += sectionDuration;
-                } else if (datumId !== undefined && removedIds[datumId] !== undefined) {
+                } else if (removedIds[datumId]) {
                     props = [
                         { from: rect.x, to: datum.x },
                         { from: rect.width, to: datum.width },
@@ -779,6 +782,10 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             rect.width = datum.width;
             rect.height = datum.height;
         });
+    }
+
+    getDatumId(datum: HistogramNodeDatum) {
+        return createDatumId(datum.domain.map((d) => `${d}`));
     }
 
     protected isLabelEnabled() {
