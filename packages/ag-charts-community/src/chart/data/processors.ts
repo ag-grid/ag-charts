@@ -163,17 +163,18 @@ export function normalisePropertyTo(
     };
 }
 
-function buildGroupAccFn(mode: 'normal' | 'trailing') {
+function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
     return () => () => (values: any[], valueIndexes: number[]) => {
         // Datum scope.
-        let acc = 0;
+        const acc = [0, 0];
         for (const valueIdx of valueIndexes) {
             const currentVal = values[valueIdx];
+            const accIndex = currentVal < 0 && separateNegative ? 0 : 1;
             if (typeof currentVal !== 'number' || isNaN(currentVal)) continue;
 
-            if (mode === 'normal') acc += currentVal;
-            values[valueIdx] = acc;
-            if (mode === 'trailing') acc += currentVal;
+            if (mode === 'normal') acc[accIndex] += currentVal;
+            values[valueIdx] = acc[accIndex];
+            if (mode === 'trailing') acc[accIndex] += currentVal;
         }
     };
 }
@@ -218,14 +219,15 @@ export function accumulateGroup(
     scope: ScopeProvider,
     matchGroupId: string,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
-    sum: 'current' | 'last'
+    sum: 'current' | 'last',
+    separateNegative = false
 ): GroupValueProcessorDefinition<any, any> {
     let adjust;
     if (mode.startsWith('window')) {
         const modeParam = mode.endsWith('-trailing') ? 'trailing' : 'normal';
         adjust = memo({ mode: modeParam, sum }, buildGroupWindowAccFn);
     } else {
-        adjust = memo(mode as 'normal' | 'trailing', buildGroupAccFn);
+        adjust = memo({ mode: mode as 'normal' | 'trailing', separateNegative }, buildGroupAccFn);
     }
 
     return {

@@ -70,6 +70,13 @@ const EXAMPLES: Record<string, TestCase> = {
             seriesTypes: repeat('bar', 4),
         }),
     },
+    STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: {
+        options: examples.STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS,
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('column', 4),
+        }),
+    },
     GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
         options: examples.GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
         assertions: cartesianChartAssertions({
