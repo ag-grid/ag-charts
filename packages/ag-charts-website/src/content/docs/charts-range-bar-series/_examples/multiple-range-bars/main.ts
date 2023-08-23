@@ -1,0 +1,104 @@
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { getData } from './data';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    title: {
+        text: 'Smartphone Production Cost Vs Retail Price',
+    },
+    subtitle: {
+        text: 'Production cost range vs retail price range of top-selling phone brands on the market in 2023',
+        spacing: 30
+    },
+        footnote: {
+        text: 'Costs include essential components like core processors, display, memory, and camera module but exclude marketing, research, distribution, staff, accessories, packaging, and software.',
+        spacing: 30
+    },
+    series: [
+        {
+            type: 'range-bar',
+            xKey: 'smartphone',
+            xName: 'Smartphone',
+            yLowKey: 'lowCost',
+            yHighKey: 'highCost',
+            yLowName: 'Lowest Cost',
+            yHighName: 'Highest Cost',
+            yName: 'Production Cost Range',
+            fill: '#D1C0A8',
+            stroke: '#D1C0A8',
+        },
+        {
+            type: 'range-bar',
+            xKey: 'smartphone',
+            xName: 'Smartphone',
+            yLowKey: 'lowRetail',
+            yHighKey: 'highRetail',
+            yLowName: 'Lowest Price',
+            yHighName: 'Highest Price',
+            yName: 'Retail Price Range',
+            fill: '#205C37',
+            stroke: '#205C37',
+        },
+        {
+            type: 'scatter',
+            yKey: 'smartphone',
+            xKey: 'profitMargin',
+            xName: 'Profil Margin',
+            yName: 'Profit Margin %',
+            sizeKey: 'profitMargin',
+            labelKey: 'profitMargin',
+            label: {
+                formatter: ({value}) => `${(+value).toFixed(0)}%`
+            },
+            marker: {
+                // fill: '#5c2045',
+                // stroke: '#5c2045',
+                stroke: '#205C37',
+                fill: '#ced1a8',
+                strokeWidth: 1,
+                maxSize: 50,
+                size: 15
+            },
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'left',
+            keys: ['smartphone'],
+            groupPaddingInner: 0,
+            paddingInner: 0.9,
+            paddingOuter: 0.8,
+        },
+        {
+            type: 'number',
+            position: 'top',
+            keys: ['profitMargin'],
+            label: {
+                formatter: ({ value }) => `${value}%`,
+            },
+            line: {
+                width: 0,
+            },
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
+            label: {
+                formatter: ({ value }) =>
+                    `${(+value).toLocaleString('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        maximumFractionDigits: 0,
+                    })}`,
+            },
+            line: {
+                width: 0,
+            },
+        },
+    ],
+};
+
+AgEnterpriseCharts.create(options);

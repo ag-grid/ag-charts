@@ -98,6 +98,18 @@ series: [
 
 {% chartExampleRunner title="Basic Range Bar" name="basic-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
 
+## Multiple Range Bar Series
+
+It is possible to combine multiple range bar series into a single chart.
+
+Note that in the example below we:
+
+-   Set the category axis `groupPaddingInner` to `0` to close the gap between the two series
+-   Use `yName` to control the text that the legend displays
+-   Use `yLowName` and `yHighName` to control the text that the tooltip displays
+
+{% chartExampleRunner title="Multiple Range Bar Series" name="multiple-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
+
 ## API Reference
 
 {% interfaceDocumentation interfaceName="AgRangeBarSeriesOptions" config="{ \"showSnippets\": false }" /%}
