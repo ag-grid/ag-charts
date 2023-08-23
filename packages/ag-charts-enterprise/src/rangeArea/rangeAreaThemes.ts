@@ -8,6 +8,7 @@ export const RANGE_AREA_SERIES_THEME = {
     fillOpacity: 0.7,
     marker: {
         enabled: false,
+        fillOpacity: 1,
     },
     label: {
         enabled: false,
