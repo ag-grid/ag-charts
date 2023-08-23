@@ -268,12 +268,9 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 continue;
             }
 
-            let text;
+            let text = labelKey ? String(values[labelDataIdx]) : yDatum;
             if (label.formatter) {
-                text = callbackCache.call(label.formatter, { value: yDatum, seriesId, datum });
-            }
-            if (text === undefined) {
-                text = labelKey ? String(values[labelDataIdx]) : '';
+                text = callbackCache.call(label.formatter, { value: text, seriesId, datum });
             }
 
             const size = HdpiCanvas.getTextSize(text, font);
