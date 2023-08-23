@@ -149,9 +149,15 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Range Bar / Column",
+                        "title": "Range Bar",
                         "icon": "chartsRange",
                         "path": "charts-range-bar-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Range Column",
+                        "icon": "chartsRange",
+                        "path": "charts-range-column-series",
                         "isEnterprise": true
                     },
                     {

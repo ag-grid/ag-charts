@@ -1,18 +1,18 @@
 ---
-title: 'Range Bar Series'
+title: 'Range Column Series'
 enterprise: true
 ---
 
-A Range Bar series displays both the high and low values within the data using bars. This series type is used to monitor how consistent or variable the data is.
+A Range Column series displays both the high and low values within the data using columns. This series type is used to monitor how consistent or variable the data is.
 
-## Range Bar
+## Range Column
 
-To create a basic Range Bar chart, use the `range-bar` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
+To create a basic Range Column chart, use the `range-column` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
 
 ```js
 series: [
     {
-        type: 'range-bar',
+        type: 'range-column',
         xKey: 'date',
         yLowKey: 'low',
         yHighKey: 'high',
@@ -20,20 +20,20 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Basic Range Bar" name="basic-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Basic Range Column" name="basic-range-column" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Range Bar Labels
+## Range Column Labels
 
-It's possible to add labels to the range bars, by adding the following to the series config:
+It's possible to add labels to the range columns, by adding the following to the series config:
 
 ```js
 label: {
 }
 ```
 
-By default, a label will be shown for the `yHighKey` value and `yLowKey` value of each bar.
+By default, a label will be shown for the `yHighKey` value and `yLowKey` value of each column.
 
-In the snippet below, a label formatter is used to return the integer part of the data value to display as the bar labels.
+In the snippet below, a label formatter is used to return the integer part of the data value to display as the column labels.
 
 -   The params object passed into the formatter includes an `itemId` which can be used to identify whether the value is a `high` or a `low` value:
 
@@ -46,11 +46,11 @@ label: {
 ```
 
 The formatter above creates labels as seen in the provided example:
-{% chartExampleRunner title="Range Bar Label" name="range-bar-labels" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Range Column Label" name="range-column-labels" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Multiple Range Bar Series
+## Multiple Range Column Series
 
-It is possible to combine multiple range bar series into a single chart.
+It is possible to combine multiple range column series into a single chart.
 
 Note that in the example below we:
 
@@ -58,7 +58,7 @@ Note that in the example below we:
 -   Use `yName` to control the text that the legend displays
 -   Use `yLowName` and `yHighName` to control the text that the tooltip displays
 
-{% chartExampleRunner title="Multiple Range Bar Series" name="multiple-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Multiple Range Column Series" name="multiple-range-columns" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Missing Data
 
@@ -79,7 +79,7 @@ The following example demonstrates how missing data is handled for a continuous 
 -   Click the Missing Y values button and note that if either of the Y low or high values are missing, the data point is rendered as a gap in the chart.
 -   Click the Missing X value button and note that a missing X value on a continuous X axis is skipped.
 
-{% chartExampleRunner title="Range Bar Missing Data" name="range-bar-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Range Column Missing Data" name="range-column-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 
