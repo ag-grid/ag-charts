@@ -25,6 +25,7 @@ import {
     predicateWithMessage,
     OPT_STRING,
 } from '../../../util/validation';
+import { zipObject } from '../../../util/zip';
 import type {
     AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
@@ -687,17 +688,8 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             })
         );
 
-        // Zip an array into an object of keys with a given value
-        const zipObject = (props: Array<any>, value = true) => {
-            const zipped: { [key: string]: boolean } = {};
-            for (let i = 0; i < props.length; i++) {
-                zipped[`${props[i]}`] = value;
-            }
-            return zipped;
-        };
-
-        const addedIds = zipObject(diff.added);
-        const removedIds = zipObject(diff.removed);
+        const addedIds = zipObject(diff.added, true);
+        const removedIds = zipObject(diff.removed, true);
 
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum) => {

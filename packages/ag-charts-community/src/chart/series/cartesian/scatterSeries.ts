@@ -18,6 +18,7 @@ import { HdpiCanvas } from '../../../canvas/hdpiCanvas';
 import type { Marker } from '../../marker/marker';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_FUNCTION, OPT_STRING, OPT_NUMBER_ARRAY, COLOR_STRING_ARRAY, Validate } from '../../../util/validation';
+import { zipObject } from '../../../util/zip';
 import type {
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesTooltipRendererParams,
@@ -611,17 +612,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             return;
         }
 
-        // Zip an array into an object of keys with a given value
-        const zipObject = (props: Array<any>, value = true) => {
-            const zipped: { [key: string]: boolean } = {};
-            for (let i = 0; i < props.length; i++) {
-                zipped[`${props[i]}`] = value;
-            }
-            return zipped;
-        };
-
-        const addedIds = zipObject(diff.added);
-        const removedIds = zipObject(diff.removed);
+        const addedIds = zipObject(diff.added, true);
+        const removedIds = zipObject(diff.removed, true);
 
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;

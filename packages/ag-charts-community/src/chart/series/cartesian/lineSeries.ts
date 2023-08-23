@@ -21,6 +21,7 @@ import { toTooltipHtml } from '../../tooltip/tooltip';
 import { interpolate } from '../../../util/string';
 import { Label } from '../../label';
 import { sanitizeHtml } from '../../../util/sanitize';
+import { zipObject } from '../../../util/zip';
 import type { Marker } from '../../marker/marker';
 import { NUMBER, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, OPT_COLOR_STRING, Validate } from '../../../util/validation';
 import type {
@@ -659,15 +660,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
             return;
         }
 
-        // Zip an array into an object of keys with a given value
-        const zipObject = (props: Array<any>, value = true) => {
-            const zipped: { [key: string]: boolean } = {};
-            for (let i = 0; i < props.length; i++) {
-                zipped[`${props[i]}`] = value;
-            }
-            return zipped;
-        };
-
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
             const { path: linePath } = lineNode;
@@ -678,10 +670,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
             });
 
             // Zip diff arrays into keyed objects for O(1) access
-            const addedIds = zipObject(diff.added);
-            const addedIndices = zipObject(diff.addedIndices);
-            const removedIds = zipObject(diff.removed);
-            const removedIndices = zipObject(diff.removedIndices);
+            const addedIds = zipObject(diff.added, true);
+            const addedIndices = zipObject(diff.addedIndices, true);
+            const removedIds = zipObject(diff.removed, true);
+            const removedIndices = zipObject(diff.removedIndices, true);
 
             // Find the first and last nodes that already existed and were not just added, removed nodes will not
             // appear in `nodeData` so do not need to be filtered out

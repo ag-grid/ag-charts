@@ -34,6 +34,7 @@ import {
     OPT_STRING,
     OPT_COLOR_STRING,
 } from '../../../util/validation';
+import { zipObject } from '../../../util/zip';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type {
@@ -747,17 +748,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
-        // Zip an array into an object of keys with a given value
-        const zipObject = (props: Array<any>, value = true) => {
-            const zipped: { [key: string]: boolean } = {};
-            for (let i = 0; i < props.length; i++) {
-                zipped[`${props[i]}`] = value;
-            }
-            return zipped;
-        };
-
-        const addedIds = zipObject(diff.added);
-        const removedIds = zipObject(diff.removed);
+        const addedIds = zipObject(diff.added, true);
+        const removedIds = zipObject(diff.removed, true);
 
         const rectThrottleGroup = `${this.id}_${Math.random()}`;
         const labelThrottleGroup = `${this.id}_${Math.random()}`;
