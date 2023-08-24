@@ -4,7 +4,7 @@ import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '.
 import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeBaseClickEvent } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { getMarker } from '../../marker/util';
@@ -36,6 +36,8 @@ interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly label: MeasuredLabel;
     readonly fill: string | undefined;
 }
+
+type ScatterAnimationData = CartesianAnimationData<SeriesNodeDataContext<ScatterNodeDatum>, any>;
 
 class ScatterSeriesLabel extends Label {
     @Validate(OPT_FUNCTION)
@@ -551,13 +553,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         return legendData;
     }
 
-    animateEmptyUpdateReady({
-        markerSelections,
-        labelSelections,
-    }: {
-        markerSelections: Array<Selection<Marker, ScatterNodeDatum>>;
-        labelSelections: Array<Selection<Text, ScatterNodeDatum>>;
-    }) {
+    animateEmptyUpdateReady({ markerSelections, labelSelections }: ScatterAnimationData) {
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
 
@@ -595,13 +591,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    animateWaitingUpdateReady({
-        markerSelections,
-        labelSelections,
-    }: {
-        markerSelections: Array<Selection<Marker, ScatterNodeDatum>>;
-        labelSelections: Array<Selection<Text, ScatterNodeDatum>>;
-    }) {
+    animateWaitingUpdateReady({ markerSelections, labelSelections }: ScatterAnimationData) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
