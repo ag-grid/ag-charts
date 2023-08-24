@@ -55,7 +55,6 @@ export function getRectConfig<
     highlightStyle,
     formatter,
     seriesId,
-    stackGroup,
     ctx: { callbackCache },
     ...opts
 }: {
@@ -65,7 +64,6 @@ export function getRectConfig<
     highlightStyle: SeriesItemHighlightStyle;
     formatter?: (params: Params & ExtraParams) => AgBarSeriesFormat;
     seriesId: string;
-    stackGroup?: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
     const itemFill = isHighlighted ? highlightStyle.fill ?? style.fill : style.fill;
@@ -84,7 +82,6 @@ export function getRectConfig<
             strokeWidth: itemStrokeWidth,
             highlighted: isHighlighted,
             seriesId,
-            stackGroup,
             ...opts,
         });
     }
