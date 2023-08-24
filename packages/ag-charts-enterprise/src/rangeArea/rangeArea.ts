@@ -665,7 +665,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             lineDashOffset: this.lineDashOffset,
             strokeOpacity: this.strokeOpacity,
             shadow: this.shadow,
-            strokeWidth: () => this.getStrokeWidth(this.strokeWidth),
+            strokeWidth: this.getStrokeWidth(this.strokeWidth),
         };
 
         const { size, formatter } = marker;
@@ -729,7 +729,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             lineDashOffset: this.lineDashOffset,
             strokeOpacity: this.strokeOpacity,
             shadow: this.shadow,
-            strokeWidth: () => this.getStrokeWidth(this.strokeWidth),
+            strokeWidth: this.getStrokeWidth(this.strokeWidth),
         };
 
         areaAnimateReadyUpdate({ contextData, paths, styles });
