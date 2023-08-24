@@ -40,6 +40,12 @@ export default defineMarkdocConfig({
         note: {
             render: component('./src/components/alert/Note'),
         },
+        warning: {
+            render: component('./src/components/alert/Warning'),
+            attributes: {
+                title: { type: String },
+            },
+        },
         imageCaption: {
             render: component('./src/components/image/ImageCaption'),
             attributes: {
