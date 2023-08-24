@@ -5,6 +5,10 @@ export const RANGE_AREA_DEFAULTS: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'left',
+            crosshair: {
+                enabled: true,
+                snap: false,
+            },
         },
         {
             type: 'category',
