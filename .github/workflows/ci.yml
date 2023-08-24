@@ -65,6 +65,8 @@ jobs:
                   path: |
                       node_modules/
                       packages/*/node_modules/
+                      !node_modules/.cache/
+                      !packages/*/node_modules/.cache/
                   key: node_modules-${{hashFiles('yarn.lock')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
@@ -80,6 +82,9 @@ jobs:
               with:
                   node-version: '18'
                   cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+
+            - name: Purge Nx cache of old entries
+              run: find node_modules/.cache/nx -maxdepth 1 -mtime +7 -exec rm -rf '{}' \;
 
             - name: yarn install
               if: steps.cache.outputs.cache-hit != 'true'
@@ -148,6 +153,8 @@ jobs:
                   path: |
                       node_modules/
                       packages/*/node_modules/
+                      !node_modules/.cache/
+                      !packages/*/node_modules/.cache/
                   key: node_modules-${{hashFiles('yarn.lock')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
