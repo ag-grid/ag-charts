@@ -20,9 +20,6 @@
         "generateExportsField": true
       },
       "configurations": {
-        "watch": {
-          "compiler": "swc"
-        },
         "production": {
           "format": ["cjs", "esm"]
         }
