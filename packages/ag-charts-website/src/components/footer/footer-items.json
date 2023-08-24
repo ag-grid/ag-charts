@@ -44,7 +44,7 @@
         "links": [
             {
                 "name": "About",
-                "url": "/about"
+                "url": "https://ag-grid.com/about/"
             },
             {
                 "name": "Blog",
