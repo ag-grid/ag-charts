@@ -38,7 +38,7 @@ export default defineMarkdocConfig({
             },
         },
         note: {
-            render: component('./src/components/Note'),
+            render: component('./src/components/alert/Note'),
             attributes: {
                 disableMarkdown: { type: Boolean },
             },
