@@ -236,6 +236,14 @@ export interface ApiDocumentationProps {
     config?: Config;
 }
 
+export interface JsObjectViewProps {
+    interfaceName: string;
+    breadcrumbs?: string[];
+    interfaceLookup: InterfaceLookup;
+    codeLookup: CodeLookup;
+    config?: Config;
+}
+
 export interface InterfaceDocumentationProps {
     interfaceName: string;
     framework: Framework;
