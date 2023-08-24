@@ -101,9 +101,6 @@ export class SizeMonitor {
         }
 
         this.elements.set(element, { cb });
-
-        // Ensure first size callback happens synchronously.
-        this.checkClientSize(element, { cb });
     }
 
     static unobserve(element: HTMLElement, cleanup = true) {

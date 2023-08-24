@@ -818,7 +818,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private resize(width?: number, height?: number, source?: string) {
         width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : this.scene.canvas.width);
         height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : this.scene.canvas.height);
-        this.log(`Chart.resize() from ${source}`, { width, height });
+        this.log(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
         if (!width || !height || !Number.isFinite(width) || !Number.isFinite(height)) return;
 
         if (this.scene.resize(width, height)) {
