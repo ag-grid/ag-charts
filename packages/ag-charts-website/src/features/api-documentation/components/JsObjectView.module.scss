@@ -9,17 +9,31 @@ $indent: 24px;
 }
 
 .expandableSnippet pre > code {
-    background-image: none;
+    --code-line-height: calc(28 / 16);
 
-    code {
-        color: var(--code-text-color);
-    }
+    line-height: var(--code-line-height);
+    background-size: 1px calc(1em * var(--code-line-height) * 2);
 }
 
 .jsonProperty {
     position: relative;
-    margin-top: $size-half;
-    margin-bottom: $size-half;
+}
+
+.jsonProperty .jsonProperty {
+    &::before {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 2px;
+        top: 12px;
+        left: -34px;
+        background-color: var(--platinum-gray);
+    }
+}
+
+.type-nested-object::before,
+.expandable::before {
+    width: 12px !important;
 }
 
 .type-nested-object > .jsonProperty {
@@ -55,11 +69,15 @@ $indent: 24px;
 
 .expanderBar {
     position: absolute;
-    width: 2px;
-    bottom: 1px;
+    width: 8px;
+    bottom: 12px;
     left: -12px;
-    top: 17px;
-    background: var(--bright-blue-gray);
+    top: 19px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: var(--platinum-gray);
+    border-top-width: 0;
+    border-right-width: 0;
 }
 
 .propertyName {
