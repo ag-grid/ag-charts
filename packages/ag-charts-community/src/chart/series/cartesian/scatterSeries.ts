@@ -591,6 +591,13 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
+    animateReadyResize({ markerSelections }: ScatterAnimationData) {
+        this.ctx.animationManager.reset();
+        markerSelections.forEach((markerSelection) => {
+            this.resetMarkers(markerSelection);
+        });
+    }
+
     animateWaitingUpdateReady({ markerSelections, labelSelections }: ScatterAnimationData) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
@@ -636,6 +643,9 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                         onUpdate(size) {
                             marker.size = size;
                         },
+                        onStop: () => {
+                            if (cleanup) this.resetMarkers(markerSelection);
+                        },
                         onComplete: () => {
                             if (cleanup) this.resetMarkers(markerSelection);
                         },
@@ -655,6 +665,9 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                                 marker.size = size;
                                 marker.translationX = x;
                                 marker.translationY = y;
+                            },
+                            onStop: () => {
+                                if (cleanup) this.resetMarkers(markerSelection);
                             },
                             onComplete: () => {
                                 if (cleanup) this.resetMarkers(markerSelection);
