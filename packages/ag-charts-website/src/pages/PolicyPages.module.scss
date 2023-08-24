@@ -131,7 +131,7 @@
 
 :global(.ot-sdk-show-settings) {
     appearance: none !important;
-
+    display: inline-block;
     font-size: var(--font-size) !important;
     padding: 0.5em 1em !important;
     letter-spacing: 0.025em !important;
