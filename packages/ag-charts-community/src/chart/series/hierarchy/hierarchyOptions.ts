@@ -6,8 +6,6 @@ import type { AgTreemapSeriesOptions } from './treemapOptions';
 export type AgHierarchySeriesOptions = AgTreemapSeriesOptions;
 
 export interface AgHierarchyChartOptions extends AgBaseChartOptions {
-    /** If specified overrides the default series type. */
-    type?: 'treemap';
     data?: any;
     /** Series configurations. */
     series?: AgHierarchySeriesOptions[];
