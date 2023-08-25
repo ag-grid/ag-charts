@@ -13,6 +13,8 @@ export const RANGE_AREA_SERIES_THEME = {
     },
     label: {
         enabled: false,
+        placement: 'outside',
+        padding: 10,
         fontStyle: undefined,
         fontWeight: undefined,
         fontSize: 12,
