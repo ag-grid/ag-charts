@@ -66,6 +66,8 @@ type WaterfallContext = _ModuleSupport.SeriesNodeDataContext<WaterfallNodeDatum>
     pointData?: WaterfallNodePointDatum[];
 };
 
+type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<WaterfallContext, _Scene.Rect>;
+
 class WaterfallSeriesNodeBaseClickEvent extends _ModuleSupport.CartesianSeriesNodeBaseClickEvent<any> {
     readonly labelKey?: string;
 
@@ -179,10 +181,7 @@ interface TotalMeta {
     axisLabel: any;
 }
 
-export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
-    _ModuleSupport.SeriesNodeDataContext<any>,
-    _Scene.Rect
-> {
+export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<WaterfallContext, _Scene.Rect> {
     static className = 'WaterfallBarSeries';
     static type: 'waterfall-bar' | 'waterfall-column' = 'waterfall-bar' as const;
 
@@ -834,18 +833,7 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
 
     protected toggleSeriesItem(): void {}
 
-    animateEmptyUpdateReady({
-        datumSelections,
-        labelSelections,
-        contextData,
-        paths,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, WaterfallNodeDatum>>;
-        labelSelections: Array<_Scene.Selection<_Scene.Text, WaterfallNodeDatum>>;
-        contextData: Array<WaterfallContext>;
-        paths: Array<Array<_Scene.Path>>;
-        seriesRect?: _Scene.BBox;
-    }) {
+    animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
@@ -939,35 +927,19 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateReadyUpdate(data: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, WaterfallNodeDatum>>;
-        contextData: Array<WaterfallContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        this.reset(data);
+    animateReadyUpdate(data: WaterfallAnimationData) {
+        this.resetSelectionRectsAndPaths(data);
     }
 
     animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize(data: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, WaterfallNodeDatum>>;
-        contextData: Array<WaterfallContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        this.reset(data);
+    animateReadyResize(data: WaterfallAnimationData) {
+        this.resetSelectionRectsAndPaths(data);
     }
 
-    reset({
-        datumSelections,
-        contextData,
-        paths,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, WaterfallNodeDatum>>;
-        contextData: Array<WaterfallContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
+    resetSelectionRectsAndPaths({ datumSelections, contextData, paths }: WaterfallAnimationData) {
         this.resetConnectorLinesPath({ contextData, paths });
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
