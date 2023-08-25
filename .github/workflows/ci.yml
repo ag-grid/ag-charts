@@ -83,9 +83,6 @@ jobs:
                   node-version: '18'
                   cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
 
-            - name: Purge Nx cache of old entries
-              run: find node_modules/.cache/nx -maxdepth 1 -mtime +7 -exec rm -rf '{}' \;
-
             - name: yarn install
               if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
@@ -131,6 +128,17 @@ jobs:
               id: test_count
               run: |
                   echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+
+            - name: Purge Nx cache of old entries
+              if: success()
+              run: |
+                  find node_modules/.cache/nx -maxdepth 1 -mtime +7 -exec rm -rf '{}' \;
+
+                  accessed=$(find node_modules/.cache/nx -maxdepth 1 -atime -10 | wc -l)
+                  not_accessed=$(find node_modules/.cache/nx -maxdepth 1 -atime +10 | wc -l)
+                  total=$(find node_modules/.cache/nx -maxdepth 1 | wc -l)
+
+                  echo "${accessed}/${not_accessed}/${total}"
 
     test:
         runs-on: ubuntu-latest
