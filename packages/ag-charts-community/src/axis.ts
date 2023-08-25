@@ -536,7 +536,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        this.setTickCount(this.tick.count);
+        this.setTickCount();
 
         scale.nice = nice;
         scale.update();
@@ -601,7 +601,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
 
         const continuous = scale instanceof ContinuousScale;
-        const maxIterations = tick.count || !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
+        const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
@@ -669,7 +669,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale, label, tick } = this;
         const continuous = scale instanceof ContinuousScale;
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
-        const filterTicks = !(continuous && this.tick.count === undefined) && index !== 0 && avoidLabelCollisions;
+        const filterTicks = !continuous && index !== 0 && avoidLabelCollisions;
         const autoRotate = label.autoRotate === true && label.rotation === undefined;
 
         const strategies: TickStrategy[] = [];
@@ -732,21 +732,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
 
         const continuous = scale instanceof ContinuousScale;
-        const maxIterations = tick.count || !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
+        const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
-        let tickCount = tick.count ?? (continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount);
+        let tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
 
         const regenerateTicks =
             tick.interval === undefined &&
             tick.values === undefined &&
-            tick.count === undefined &&
             tickCount > minTickCount &&
             (continuous || tickGenerationType === TickGenerationType.FILTER);
 
         let unchanged = true;
         while (unchanged && index <= maxIterations) {
             const prevTicks = tickData.rawTicks;
-            tickCount = tick.count ?? (continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount);
+            tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
 
             const { rawTicks, ticks, labelCount } = this.getTicks({
                 tickGenerationType,

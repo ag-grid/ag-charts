@@ -1,5 +1,4 @@
 import { BBox } from '../../scene/bbox';
-import { DeprecatedAndRenamedTo } from '../../util/deprecation';
 import {
     Validate,
     BOOLEAN,
@@ -196,9 +195,6 @@ export class Tooltip {
 
     @Validate(NUMBER(0))
     delay: number = 0;
-
-    @DeprecatedAndRenamedTo('range', (value) => (value ? 'nearest' : 'exact'))
-    tracking?: boolean;
 
     @Validate(INTERACTION_RANGE)
     range: InteractionRange = 'nearest';

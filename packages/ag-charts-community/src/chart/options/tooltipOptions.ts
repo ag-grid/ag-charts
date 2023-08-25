@@ -7,8 +7,6 @@ export interface AgChartTooltipOptions {
     showArrow?: boolean;
     /** A class name to be added to the tooltip element of the chart. */
     class?: string;
-    /** @deprecated since v7.2.0 (ag-grid v29.2.0) If true, for series with markers the tooltip will be shown to the closest marker. */
-    tracking?: boolean;
     /** Range from a point that triggers the tooltip to show. */
     range?: InteractionRange;
     /** The position of the tooltip. */

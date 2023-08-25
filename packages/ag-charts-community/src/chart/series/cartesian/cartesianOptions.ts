@@ -294,11 +294,6 @@ export interface AgAxisCategoryTickOptions extends AgAxisBaseTickOptions {}
 export interface AgAxisNumberTickOptions extends AgAxisBaseTickOptions {
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: number;
-    /** A hint of how many ticks to use across an axis.
-     * The axis is not guaranteed to use exactly this number of ticks, but will try to use a number of ticks that is close to the number given.
-     * @deprecated since v7.1.0 (ag-grid v29.1.0) Use tick.interval or tick.minSpacing and tick.maxSpacing instead.
-     */
-    count?: number;
     /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored.
      */
     interval?: number;
