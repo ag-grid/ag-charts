@@ -335,9 +335,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             const yHighTrailingValue = values[yHighTrailingIndex];
             const yLowTrailingValue = values[yLowTrailingIndex];
 
-            const points = createCoordinates(xValue, yHighValue, yLowValue);
+            const invalidRange = yHighValue == null || yLowValue == null;
+            const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue);
 
-            const isInverted = yLowValue > yHighValue;
+            const inverted = yLowValue > yHighValue;
             points.forEach(({ x, y, size, itemId = '', yValue }) => {
                 // marker data
                 markerData.push({
@@ -374,11 +375,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                     itemId,
                     datum,
                     x,
-                    y: y + ((itemId === 'low' && !isInverted) || (itemId === 'high' && isInverted) ? 10 : -10),
+                    y: y + ((itemId === 'low' && !inverted) || (itemId === 'high' && inverted) ? 10 : -10),
                     text: labelText,
                     textAlign: 'center',
-                    textBaseline:
-                        (itemId === 'low' && !isInverted) || (itemId === 'high' && isInverted) ? 'top' : 'bottom',
+                    textBaseline: (itemId === 'low' && !inverted) || (itemId === 'high' && inverted) ? 'top' : 'bottom',
                 });
             });
 
@@ -387,19 +387,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             const windowYHigh = [yHighTrailingValue, yHighValue];
             const windowYLow = [yLowTrailingValue, yLowValue];
 
-            if (windowX.some((v) => v == null)) {
+            const invalidYValues = windowYHigh.some((v) => v == null) || windowYLow.some((v) => v == null);
+            const invalidXValues = windowX.some((v) => v == null);
+
+            if (invalidXValues) {
                 lastXValue = xValue;
                 return;
             }
-            if (windowYHigh.some((v) => v == null) || windowYLow.some((v) => v == null)) {
+            if (invalidYValues) {
                 windowYHigh[0] = null;
                 windowYHigh[1] = null;
                 windowYLow[0] = null;
                 windowYLow[1] = null;
             }
 
-            const trailingCoordinates = createCoordinates(lastXValue, +windowYHigh[0], +windowYLow[0]!);
-            const currentCoordinates = createCoordinates(xValue, +windowYHigh[1], +windowYLow[1]!);
+            const trailingCoordinates = createCoordinates(lastXValue, +windowYHigh[0], +windowYLow[0]);
+            const currentCoordinates = createCoordinates(xValue, +windowYHigh[1], +windowYLow[1]);
 
             const highPoints = [trailingCoordinates[0], currentCoordinates[0]];
             const lowPoints = [trailingCoordinates[1], currentCoordinates[1]];
@@ -409,7 +412,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             fillLowPoints.push(...lowPoints);
 
             // stroke data
-            if (yHighTrailingValue == null || yHighValue == null || yLowTrailingValue == null || yLowValue == null) {
+            if (invalidYValues) {
                 strokeHighPoints.push(moveTo);
                 strokeLowPoints.push(moveTo);
             } else {
