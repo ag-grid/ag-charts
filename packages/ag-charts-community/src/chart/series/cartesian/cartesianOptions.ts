@@ -62,6 +62,19 @@ export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
 }
 
 export interface AgCartesianChartOptions extends AgBaseChartOptions {
+    /** If specified overrides the default series type. */
+    type?:
+        | 'line'
+        | 'bar'
+        | 'column'
+        | 'area'
+        | 'scatter'
+        | 'histogram'
+        | 'heatmap'
+        | 'waterfall-bar'
+        | 'waterfall-column'
+        | 'range-bar'
+        | 'range-column';
     /** Axis configurations. */
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
