@@ -134,8 +134,8 @@ jobs:
               run: |
                   find node_modules/.cache/nx -maxdepth 1 -mtime +7 -exec rm -rf '{}' \;
 
-                  accessed=$(find node_modules/.cache/nx -maxdepth 1 -atime -10 | wc -l)
-                  not_accessed=$(find node_modules/.cache/nx -maxdepth 1 -atime +10 | wc -l)
+                  accessed=$(find node_modules/.cache/nx -maxdepth 1 -mtime -10 | wc -l)
+                  not_accessed=$(find node_modules/.cache/nx -maxdepth 1 -mtime +10 | wc -l)
                   total=$(find node_modules/.cache/nx -maxdepth 1 | wc -l)
 
                   echo "${accessed}/${not_accessed}/${total}"
