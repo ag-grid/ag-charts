@@ -13,7 +13,7 @@ import {
     type JsonUnionType,
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
-import { convertMarkdown, formatJsDocString } from '../utils/documentationHelpers';
+import { formatJsDocString } from '../utils/documentationHelpers';
 
 const DEFAULT_JSON_NODES_EXPANDED = false;
 
@@ -99,12 +99,7 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({ model, closeWith = ';', pa
                 );
             })
             .filter((v) => !!v);
-        return (
-            <>
-                {maybeRenderModelDocumentation(model, config)}
-                {propertiesRendering}
-            </>
-        );
+        return <>{propertiesRendering}</>;
     } else if (model.type === 'union') {
         return <>{renderUnion(model, closeWith, path, config)}</>;
     }
@@ -265,7 +260,6 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
 
     const { deprecated } = meta;
     const { tsType } = desc;
-    const formattedDocumentation = formatPropertyDocumentation(meta, config);
 
     let propertyRendering;
     let collapsePropertyRendering;
@@ -306,8 +300,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             console.warn(`AG Docs - unhandled sub-type: ${desc['type']}`);
     }
 
-    const expandable = !!collapsePropertyRendering || formattedDocumentation.length > 0;
-    const inlineDocumentation = desc.type === 'function' || !collapsePropertyRendering;
+    const expandable = !!collapsePropertyRendering;
     return (
         <div
             className={classnames(
@@ -330,64 +323,9 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             {(!isJSONNodeExpanded || needsClosingSemi) && (
                 <span className={classnames('token', 'punctuation')}>; </span>
             )}
-            {maybeRenderPropertyDocumentation(meta, inlineDocumentation && isJSONNodeExpanded, config)}
         </div>
     );
 };
-
-function maybeRenderPropertyDocumentation(
-    meta: Omit<JsonModel['properties'][number], 'desc'>,
-    isDocumentationExpanded: boolean,
-    config: Config
-): React.ReactNode {
-    if (!isDocumentationExpanded) {
-        return;
-    }
-
-    const formattedDocumentation = formatPropertyDocumentation(meta, config);
-    if (formattedDocumentation.length === 0) {
-        return;
-    }
-
-    const renderedDocs = convertMarkdown(formattedDocumentation.join('\n'));
-    if (!renderedDocs || renderedDocs?.trim().length === 0) {
-        return;
-    }
-
-    return (
-        <>
-            <div
-                className={classnames('token', 'comment', styles.jsdocExpandable)}
-                onClick={(e) => e.stopPropagation()}
-                dangerouslySetInnerHTML={{ __html: convertMarkdown(formattedDocumentation.join('\n')) }}
-                role="presentation"
-            ></div>
-        </>
-    );
-}
-
-function maybeRenderModelDocumentation(model: JsonModel | JsonFunction, config: Config): React.ReactNode {
-    const formattedDocumentation = formatModelDocumentation(model, config);
-    if (formattedDocumentation.length === 0) {
-        return;
-    }
-
-    const renderedDocs = convertMarkdown(formattedDocumentation.join('\n'));
-    if (!renderedDocs || renderedDocs?.trim().length === 0) {
-        return;
-    }
-
-    return (
-        <>
-            <div
-                className={classnames('token', 'comment', styles.jsdocExpandable)}
-                onClick={(e) => e.stopPropagation()}
-                dangerouslySetInnerHTML={{ __html: convertMarkdown(formattedDocumentation.join('\n')) }}
-                role="presentation"
-            ></div>
-        </>
-    );
-}
 
 function renderJsonNodeExpander(isExpanded: boolean) {
     return <Icon name="chevronRight" svgClasses={classnames(styles.expander, isExpanded && styles.active)} />;
@@ -438,7 +376,6 @@ function renderNestedObject(
     return (
         <>
             <span className={classnames('token', 'punctuation')}>{' { '}</span>
-            {maybeRenderPropertyDocumentation(meta, true, config)}
             <div className={styles.jsonObject} role="presentation">
                 <ModelSnippet model={desc.model} config={config} path={path}></ModelSnippet>
             </div>
@@ -474,7 +411,6 @@ function renderArrayType(
         case 'nested-object':
             arrayElementRendering = (
                 <>
-                    {maybeRenderPropertyDocumentation(meta, true, config)}
                     <span className={classnames('token', 'punctuation')}>{'{ '}</span>
                     <div className={styles.jsonObject} role="presentation">
                         <ModelSnippet
@@ -490,7 +426,6 @@ function renderArrayType(
         case 'union':
             arrayElementRendering = (
                 <>
-                    {maybeRenderPropertyDocumentation(meta, true, config)}
                     <ModelSnippet
                         model={desc.elements}
                         closeWith={''}
@@ -554,7 +489,6 @@ function renderFunction(desc: JsonFunction, path: string[], config: Config) {
     const singleParameter = paramEntries.length === 1;
     return (
         <>
-            {maybeRenderModelDocumentation(desc, config)}
             <span className={classnames('token', 'punctuation')}>(</span>
             <div className={styles.jsonObject} role="presentation">
                 {paramEntries.map(([prop, model], idx) => (
