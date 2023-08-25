@@ -32,10 +32,10 @@
         "parallel": true,
         "commands": [
           {
-            "command": "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build ; done"
+            "command": "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build --configuration watch ; done"
           },
           {
-            "command": "nx run ag-charts-website:dev"
+            "command": "nx run ag-charts-website:dev --configuration watch"
           }
         ]
       }
