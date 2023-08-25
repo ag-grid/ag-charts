@@ -37,7 +37,7 @@ interface AreaSeriesStyleOptions {
     lineDash?: number[];
     lineDashOffset: number;
     strokeOpacity: number;
-    strokeWidth: () => number;
+    strokeWidth: number;
     shadow?: DropShadow;
 }
 
@@ -66,7 +66,7 @@ export function areaAnimateEmptyUpdateReady<
     getFormatterParams,
     ctx,
 }: {
-    markerSelections: Array<Selection<Marker, MarkerNodeDatum>>;
+    markerSelections: Array<Selection<Marker, MarkerNodeDatum> | undefined>;
     labelSelections: Array<Selection<Text, LabelNodeDatum>>;
     contextData: Array<ContextDatum>;
     paths: Array<Array<Path>>;
@@ -91,8 +91,6 @@ export function areaAnimateEmptyUpdateReady<
     contextData.forEach(({ fillData, strokeData }, seriesIdx) => {
         const [fill, stroke] = paths[seriesIdx];
 
-        const seriesStrokeWidth = strokeWidth();
-
         const duration = ctx.animationManager?.defaultOptions.duration ?? 1000;
         const markerDuration = 200;
 
@@ -112,7 +110,7 @@ export function areaAnimateEmptyUpdateReady<
             stroke.pointerEvents = PointerEvents.None;
 
             stroke.stroke = seriesStroke;
-            stroke.strokeWidth = seriesStrokeWidth;
+            stroke.strokeWidth = strokeWidth;
             stroke.strokeOpacity = strokeOpacity;
             stroke.lineDash = lineDash;
             stroke.lineDashOffset = lineDashOffset;
@@ -170,7 +168,7 @@ export function areaAnimateEmptyUpdateReady<
             fill.fill = seriesFill;
             fill.fillOpacity = fillOpacity;
             fill.strokeOpacity = strokeOpacity;
-            fill.strokeWidth = seriesStrokeWidth;
+            fill.strokeWidth = strokeWidth;
             fill.lineDash = lineDash;
             fill.lineDashOffset = lineDashOffset;
             fill.fillShadow = shadow;
@@ -230,7 +228,7 @@ export function areaAnimateEmptyUpdateReady<
             });
         }
 
-        markerSelections[seriesIdx].each((marker, datum) => {
+        markerSelections[seriesIdx]?.each((marker, datum) => {
             const delay = seriesRect?.width ? (datum.point.x / seriesRect.width) * duration : 0;
             const format = areaAnimateFormatter<MarkerNodeDatum, FormatterParams, Formatter>({
                 datum,
@@ -238,11 +236,10 @@ export function areaAnimateEmptyUpdateReady<
                 formatter,
                 getFormatterParams,
             });
-            const size = datum.point?.size ?? 0;
 
             ctx.animationManager?.animate<number>(`${seriesId}_empty-update-ready_${marker.id}`, {
                 ...animationOptions,
-                to: format?.size ?? size,
+                to: format?.size ?? datum.point?.size ?? 0,
                 delay,
                 duration: markerDuration,
                 onUpdate(size) {
@@ -298,11 +295,9 @@ export function areaAnimateReadyUpdate<
     contextData.forEach(({ strokeData, fillData }, seriesIdx) => {
         const [fill, stroke] = paths[seriesIdx];
 
-        const seriesStrokeWidth = strokeWidth();
-
         // Stroke
         stroke.stroke = seriesStroke;
-        stroke.strokeWidth = seriesStrokeWidth;
+        stroke.strokeWidth = strokeWidth;
         stroke.strokeOpacity = strokeOpacity;
         stroke.lineDash = lineDash;
         stroke.lineDashOffset = lineDashOffset;
@@ -324,11 +319,10 @@ export function areaAnimateReadyUpdate<
         stroke.checkPathDirty();
 
         // Fill
-
         fill.fill = seriesFill;
         fill.fillOpacity = fillOpacity;
         fill.strokeOpacity = strokeOpacity;
-        fill.strokeWidth = seriesStrokeWidth;
+        fill.strokeWidth = strokeWidth;
         fill.lineDash = lineDash;
         fill.lineDashOffset = lineDashOffset;
         fill.fillShadow = shadow;
@@ -341,6 +335,107 @@ export function areaAnimateReadyUpdate<
 
         fill.path.closePath();
         fill.checkPathDirty();
+    });
+}
+
+export function areaResetMarkersAndPaths<
+    MarkerNodeDatum extends MarkerDatum,
+    LabelNodeDatum extends Readonly<Point>,
+    FillDatum extends AreaPathDatum,
+    StrokeDatum extends AreaPathDatum,
+    ContextDatum extends SeriesNodeDataContext<MarkerNodeDatum, LabelNodeDatum> & {
+        fillData: FillDatum;
+        strokeData: StrokeDatum;
+    },
+    FormatterParams extends Omit<AgCartesianSeriesMarkerFormatterParams<MarkerNodeDatum>, 'yKey' | 'yValue'>,
+    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined
+>({
+    markerSelections,
+    labelSelections,
+    contextData,
+    paths,
+    styles,
+    formatter,
+    getFormatterParams,
+    ctx,
+}: {
+    markerSelections: Array<Selection<Marker, MarkerNodeDatum> | undefined>;
+    labelSelections: Array<Selection<Text, LabelNodeDatum>>;
+    contextData: Array<ContextDatum>;
+    paths: Array<Array<Path>>;
+    styles: AreaSeriesStyleOptions;
+    formatter?: Formatter;
+    getFormatterParams: (datum: MarkerNodeDatum) => FormatterParams;
+    ctx: ModuleContext;
+}) {
+    const {
+        stroke: seriesStroke,
+        fill: seriesFill,
+        fillOpacity,
+        lineDash,
+        lineDashOffset,
+        strokeOpacity,
+        strokeWidth,
+        shadow,
+    } = styles;
+
+    contextData.forEach(({ strokeData, fillData }, seriesIdx) => {
+        const [fill, stroke] = paths[seriesIdx];
+
+        // Stroke
+        stroke.stroke = seriesStroke;
+        stroke.strokeWidth = strokeWidth;
+        stroke.strokeOpacity = strokeOpacity;
+        stroke.lineDash = lineDash;
+        stroke.lineDashOffset = lineDashOffset;
+
+        stroke.path.clear({ trackChanges: true });
+
+        let moveTo = true;
+        strokeData.points.forEach((point) => {
+            if (point.yValue === undefined || isNaN(point.x) || isNaN(point.y)) {
+                moveTo = true;
+            } else if (moveTo) {
+                stroke.path.moveTo(point.x, point.y);
+                moveTo = false;
+            } else {
+                stroke.path.lineTo(point.x, point.y);
+            }
+        });
+
+        stroke.checkPathDirty();
+
+        // Fill
+        fill.fill = seriesFill;
+        fill.fillOpacity = fillOpacity;
+        fill.strokeOpacity = strokeOpacity;
+        fill.strokeWidth = strokeWidth;
+        fill.lineDash = lineDash;
+        fill.lineDashOffset = lineDashOffset;
+        fill.fillShadow = shadow;
+
+        fill.path.clear({ trackChanges: true });
+
+        fillData.points.forEach((point) => {
+            fill.path.lineTo(point.x, point.y);
+        });
+
+        fill.path.closePath();
+        fill.checkPathDirty();
+
+        markerSelections[seriesIdx]?.cleanup().each((marker, datum) => {
+            const format = areaAnimateFormatter<MarkerNodeDatum, FormatterParams, Formatter>({
+                datum,
+                ctx,
+                formatter,
+                getFormatterParams,
+            });
+            marker.size = format?.size ?? datum.point?.size ?? 0;
+        });
+
+        labelSelections[seriesIdx].each((label) => {
+            label.opacity = 1;
+        });
     });
 }
 

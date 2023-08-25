@@ -723,7 +723,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     animateReadyResize({ datumSelections }: BarAnimationData) {
-        this.ctx.animationManager?.reset();
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });

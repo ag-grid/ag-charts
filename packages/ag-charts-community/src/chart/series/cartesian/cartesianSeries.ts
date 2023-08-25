@@ -266,23 +266,22 @@ export abstract class CartesianSeries<
         await this.updateSelections(seriesHighlighted, visible);
         await this.updateNodes(seriesHighlighted, visible);
 
-        if (resize) {
-            this.animationState.transition('resize', {
-                datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
-                markerSelections: this.subGroups.map(({ markerSelection }) => markerSelection),
-                contextData: this._contextNodeData,
-                paths: this.subGroups.map(({ paths }) => paths),
-            });
-        }
-
-        this.animationState.transition('update', {
+        const animationData: CartesianAnimationData<C, N> = {
             datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
-            markerSelections: this.subGroups.map(({ markerSelection }) => markerSelection),
+            markerSelections: this.subGroups
+                .filter(({ markerSelection }) => markerSelection !== undefined)
+                .map(({ markerSelection }) => markerSelection!),
             labelSelections: this.subGroups.map(({ labelSelection }) => labelSelection),
             contextData: this._contextNodeData,
             paths: this.subGroups.map(({ paths }) => paths),
             seriesRect,
-        });
+        };
+
+        if (resize) {
+            this.animationState.transition('resize', animationData);
+        }
+
+        this.animationState.transition('update', animationData);
     }
 
     protected async updateSelections(seriesHighlighted: boolean | undefined, anySeriesItemEnabled: boolean) {
@@ -815,12 +814,7 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
-    protected animateReadyResize(_data: {
-        datumSelections: Array<NodeDataSelection<N, C>>;
-        markerSelections: Array<NodeDataSelection<Marker, C>>;
-        contextData: Array<C>;
-        paths: Array<Array<Path>>;
-    }) {
+    protected animateReadyResize(_data: CartesianAnimationData<C, N>) {
         // Override point for sub-classes.
     }
 

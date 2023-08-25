@@ -51,6 +51,7 @@ import {
     AreaSeriesTag,
     areaAnimateEmptyUpdateReady,
     areaAnimateReadyUpdate,
+    areaResetMarkersAndPaths,
 } from './areaUtil';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
@@ -704,6 +705,42 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
     }
 
     animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths, seriesRect }: AreaAnimationData) {
+        const { seriesId, styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
+        areaAnimateEmptyUpdateReady({
+            markerSelections,
+            labelSelections,
+            contextData,
+            paths,
+            seriesRect,
+            styles,
+            seriesId,
+            ctx,
+            formatter,
+            getFormatterParams,
+        });
+    }
+
+    animateReadyUpdate({ contextData, paths }: AreaAnimationData) {
+        const { styles } = this.getAnimationOptions();
+        areaAnimateReadyUpdate({ contextData, paths, styles });
+    }
+
+    animateReadyResize({ contextData, markerSelections, labelSelections, paths }: AreaAnimationData) {
+        const { styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
+
+        areaResetMarkersAndPaths({
+            contextData,
+            markerSelections,
+            labelSelections,
+            paths,
+            styles,
+            ctx,
+            formatter,
+            getFormatterParams,
+        });
+    }
+
+    getAnimationOptions() {
         const { id: seriesId, ctx, xKey = '', yKey = '', marker } = this;
         const styles = {
             stroke: this.stroke,
@@ -713,7 +750,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             lineDashOffset: this.lineDashOffset,
             strokeOpacity: this.strokeOpacity,
             shadow: this.shadow,
-            strokeWidth: () => this.getStrokeWidth(this.strokeWidth),
+            strokeWidth: this.getStrokeWidth(this.strokeWidth),
         };
 
         const { size, formatter } = marker;
@@ -736,33 +773,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             };
         };
 
-        areaAnimateEmptyUpdateReady({
-            markerSelections,
-            labelSelections,
-            contextData,
-            paths,
-            seriesRect,
-            styles,
-            seriesId,
-            ctx,
-            formatter,
-            getFormatterParams,
-        });
-    }
-
-    animateReadyUpdate({ contextData, paths }: AreaAnimationData) {
-        const styles = {
-            stroke: this.stroke,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
-            strokeOpacity: this.strokeOpacity,
-            shadow: this.shadow,
-            strokeWidth: () => this.getStrokeWidth(this.strokeWidth),
-        };
-
-        areaAnimateReadyUpdate({ contextData, paths, styles });
+        return { seriesId, styles, ctx, formatter, getFormatterParams };
     }
 
     protected isLabelEnabled() {

@@ -563,7 +563,6 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected animateReadyResize() {
-        this.ctx.animationManager?.reset();
         this.resetSectors();
     }
 

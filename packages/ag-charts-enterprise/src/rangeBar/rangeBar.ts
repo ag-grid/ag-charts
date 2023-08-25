@@ -81,6 +81,8 @@ interface RangeBarNodeDatum
 
 type RangeBarContext = _ModuleSupport.SeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
+type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<RangeBarContext, _Scene.Rect>;
+
 class RangeBarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<RangeBarNodeDatum> {
     readonly xKey: string;
     readonly yLowKey: string;
@@ -125,10 +127,7 @@ class RangeBarSeriesLabel extends _Scene.Label {
     padding: number = 6;
 }
 
-export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
-    _ModuleSupport.SeriesNodeDataContext<any>,
-    _Scene.Rect
-> {
+export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarContext, _Scene.Rect> {
     static className = 'RangeBarSeries';
     static type: 'range-bar' | 'range-column' = 'range-bar' as const;
 
@@ -606,8 +605,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected async updateLabelSelection(opts: {
-        labelData: RangeBarNodeDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, RangeBarNodeDatum>;
+        labelData: RangeBarNodeLabelDatum[];
+        labelSelection: RangeBarAnimationData['labelSelections'][number];
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -749,17 +748,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return legendData;
     }
 
-    animateEmptyUpdateReady({
-        datumSelections,
-        labelSelections,
-        contextData,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>>;
-        labelSelections: Array<_Scene.Selection<_Scene.Text, RangeBarNodeDatum>>;
-        contextData: Array<RangeBarContext>;
-        paths: Array<Array<_Scene.Path>>;
-        seriesRect?: _Scene.BBox;
-    }) {
+    animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
 
         contextData.forEach((_, contextDataIndex) => {
@@ -768,7 +757,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>, duration: number) {
+    protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number], duration: number) {
         datumSelection.each((rect, datum) => {
             this.ctx.animationManager?.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
@@ -791,7 +780,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, RangeBarNodeDatum>, duration: number) {
+    protected animateLabels(labelSelection: RangeBarAnimationData['labelSelections'][number], duration: number) {
         labelSelection.each((label) => {
             this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
                 from: 0,
@@ -805,30 +794,19 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateReadyUpdate({
-        datumSelections,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>>;
-        contextData: Array<RangeBarContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        datumSelections.forEach((datumSelection) => {
-            this.resetSelectionRects(datumSelection);
-        });
+    animateReadyUpdate({ datumSelections }: RangeBarAnimationData) {
+        this.resetSelections(datumSelections);
     }
 
-    animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>) {
+    animateReadyHighlight(highlightSelection: RangeBarAnimationData['datumSelections'][number]) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({
-        datumSelections,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>>;
-        contextData: Array<RangeBarContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        this.ctx.animationManager?.reset();
+    animateReadyResize({ datumSelections }: RangeBarAnimationData) {
+        this.resetSelections(datumSelections);
+    }
+
+    resetSelections(datumSelections: RangeBarAnimationData['datumSelections']) {
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });

@@ -824,6 +824,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (this.scene.resize(width, height)) {
             this.disablePointer();
+            this.animationManager.reset();
             this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true });
         }
     }
