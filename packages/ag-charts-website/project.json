@@ -20,7 +20,10 @@
         "port": 4600,
         "host": true
       },
-      "dependsOn": ["^build", "^interface-metadata", "^interface-docs"]
+      "dependsOn": ["^build", "^interface-metadata", "^interface-docs"],
+      "configurations": {
+        "watch": {}
+      }
     },
     "preview": {
       "dependsOn": [

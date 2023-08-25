@@ -20,6 +20,9 @@
         "generateExportsField": true
       },
       "configurations": {
+        "watch": {
+          "tsConfig": "packages/ag-charts-enterprise/tsconfig.watch.json"
+        },
         "production": {
           "format": ["cjs", "esm"]
         }

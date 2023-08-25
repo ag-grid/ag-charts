@@ -22,7 +22,6 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
     if (format === 'cjs') {
         result.output.push({
             ...opts,
-            cache: false,
             name,
             entryFileNames: entryFileNames.replace('cjs', 'umd'),
             chunkFileNames: chunkFileNames.replace('cjs', 'umd'),
