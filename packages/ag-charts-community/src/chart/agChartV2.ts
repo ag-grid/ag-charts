@@ -29,6 +29,8 @@ import { getJsonApplyOptions } from './chartOptions';
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
 
+type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
+
 export interface DownloadOptions extends ImageDataUrlOptions {
     /** Name of downloaded image file. Defaults to `image`.  */
     fileName?: string;
@@ -332,16 +334,12 @@ abstract class AgChartInternal {
         throw new Error(`AG Charts - couldn't apply configuration, check type of options: ${options['type']}`);
     }
 
-    private static async updateDelta(
-        chart: Chart,
-        processedOptions: Partial<AgChartOptions>,
-        userOptions: AgChartOptions
-    ) {
+    private static async updateDelta(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions) {
         if (processedOptions.type == null) {
             processedOptions = {
                 ...processedOptions,
                 type: chart.processedOptions.type ?? optionsType(processedOptions),
-            } as Partial<AgChartOptions>;
+            };
         }
 
         await chart.awaitUpdateCompletion();
@@ -359,7 +357,7 @@ function debug(message?: any, ...optionalParams: any[]): void {
     }
 }
 
-function applyChartOptions(chart: Chart, processedOptions: Partial<AgChartOptions>, userOptions: AgChartOptions): void {
+function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions): void {
     const completeOptions = jsonMerge([chart.processedOptions ?? {}, processedOptions], noDataCloneMergeOptions);
     const modulesChanged = applyModules(chart, completeOptions);
 

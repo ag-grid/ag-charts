@@ -27,9 +27,9 @@ import { addSeriesPaletteFactory, getSeriesDefaults, getSeriesPaletteFactory } f
 type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
 
 export function optionsType(input: {
-    type?: AgChartOptions['type'];
+    type?: SeriesOptions['type'];
     series?: { type?: SeriesOptionsTypes['type'] }[];
-}): NonNullable<AgChartOptions['type']> {
+}): NonNullable<SeriesOptions['type']> {
     return input.type ?? input.series?.[0]?.type ?? 'line';
 }
 
@@ -126,7 +126,6 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
     sanityCheckOptions(options);
 
     // Determine type and ensure it's explicit in the options config.
-    const userSuppliedOptionsType = options.type;
     const type = optionsType(options);
 
     const globalTooltipPositionOptions = options.tooltip?.position ?? {};
@@ -179,8 +178,6 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
             let type = defaultSeriesType;
             if (s.type) {
                 type = s.type;
-            } else if (isSeriesOptionType(userSuppliedOptionsType)) {
-                type = userSuppliedOptionsType;
             }
 
             const mergedSeries = mergeSeriesOptions(s, type, seriesThemes, globalTooltipPositionOptions);

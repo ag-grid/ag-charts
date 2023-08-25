@@ -49,6 +49,7 @@ import type { ModuleContext } from '../util/moduleContext';
 import { DataController } from './data/dataController';
 import { SeriesStateManager } from './series/seriesStateManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import type { SeriesOptionsTypes } from './mapping/defaults';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
@@ -96,7 +97,7 @@ function initialiseSpecialOverrides(opts: Partial<SpecialOverrides>): SpecialOve
 export abstract class Chart extends Observable implements AgChartInstance {
     readonly id = createId(this);
 
-    processedOptions: AgChartOptions = {};
+    processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
     userOptions: AgChartOptions = {};
     queuedUserOptions: AgChartOptions[] = [];
 

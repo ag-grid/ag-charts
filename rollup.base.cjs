@@ -5,6 +5,7 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
 
     const result = {
         ...config,
+        cache: false,
         output: [
             ...output.map(({ entryFileNames, chunkFileNames, format, ...opts }) => ({
                 ...opts,
@@ -21,6 +22,7 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
     if (format === 'cjs') {
         result.output.push({
             ...opts,
+            cache: false,
             name,
             entryFileNames: entryFileNames.replace('cjs', 'umd'),
             chunkFileNames: chunkFileNames.replace('cjs', 'umd'),
