@@ -96,7 +96,7 @@ function initialiseSpecialOverrides(opts: Partial<SpecialOverrides>): SpecialOve
 export abstract class Chart extends Observable implements AgChartInstance {
     readonly id = createId(this);
 
-    processedOptions: AgChartOptions = {};
+    processedOptions: AgChartOptions & { type?: string } = {};
     userOptions: AgChartOptions = {};
     queuedUserOptions: AgChartOptions[] = [];
 

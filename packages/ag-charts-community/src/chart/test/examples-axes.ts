@@ -10,7 +10,6 @@ import * as data from './data-axes';
 import * as examples from './examples';
 
 export const CATEGORY_AXIS_BASIC_EXAMPLE: AgChartOptions = {
-    type: 'column',
     data: data.DATA_COUNTRY_DIETARY_STATS,
     axes: [
         { type: 'category', position: 'bottom' },
@@ -45,7 +44,6 @@ export const CATEGORY_AXIS_BASIC_EXAMPLE: AgChartOptions = {
 };
 
 export const CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE: AgChartOptions = {
-    type: 'column',
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DAY_OF_YEAR,
     axes: [
         { type: 'category', position: 'bottom' },
@@ -108,7 +106,6 @@ export const TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE: AgCartesianChartOptions = {
 };
 
 export const NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE: AgChartOptions = {
-    type: 'line',
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DAY_OF_YEAR,
     axes: [
         { type: 'number', position: 'bottom' },
