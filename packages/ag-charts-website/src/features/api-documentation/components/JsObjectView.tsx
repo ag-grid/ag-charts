@@ -16,6 +16,7 @@ import { Icon } from '@components/icon/Icon';
 import { formatJsDocString } from '../utils/documentationHelpers';
 
 const DEFAULT_JSON_NODES_EXPANDED = false;
+const HIDE_TYPES = true;
 
 type Config = {
     includeDeprecated?: boolean;
@@ -188,8 +189,13 @@ function renderUnionNestedObject(
                     ) : (
                         <span className={classnames('token', 'operator')}> ... </span>
                     )}
-                    <span className={classnames('token', 'punctuation')}>{' }: '}</span>
-                    <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
+                    <span className={classnames('token', 'punctuation')}>{' }'}</span>
+                    {!HIDE_TYPES && (
+                        <>
+                            {': '}
+                            <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
+                        </>
+                    )}
                     {!last && (
                         <span className={classnames('token', 'operator')}>
                             {' '}
@@ -221,8 +227,13 @@ function renderUnionNestedObject(
                 ) : (
                     <span className={classnames('token', 'operator')}> ... </span>
                 )}
-                <span className={classnames('token', 'punctuation')}>{'}: '}</span>
-                <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
+                <span className={classnames('token', 'punctuation')}>{'}'}</span>
+                {!HIDE_TYPES && (
+                    <>
+                        {': '}
+                        <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
+                    </>
+                )}
                 {!last && (
                     <span className={classnames('token', 'operator')}>
                         {' '}
@@ -348,8 +359,12 @@ function renderPropertyDeclaration(
                 {propName}
             </span>
             {!required && <span className={classnames('token', 'operator')}>?</span>}
-            <span className={classnames('token', 'operator')}>: </span>
-            {tsType && <span className={classnames('token', 'builtin')}>{tsType}</span>}
+            {!HIDE_TYPES && (
+                <>
+                    <span className={classnames('token', 'operator')}>: </span>
+                    {tsType && <span className={classnames('token', 'builtin')}>{tsType}</span>}
+                </>
+            )}
         </>
     );
 }
@@ -359,12 +374,12 @@ function renderPrimitiveType(desc: JsonPrimitiveProperty) {
         return (
             <>
                 <span className={classnames('token', 'comment')}>/* {desc.aliasType} */</span>
-                <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
+                {!HIDE_TYPES && <span className={classnames('token', 'builtin')}>{desc.tsType}</span>}
             </>
         );
     }
 
-    return <span className={classnames('token', 'builtin')}>{desc.tsType}</span>;
+    return HIDE_TYPES ? null : <span className={classnames('token', 'builtin')}>{desc.tsType}</span>;
 }
 
 function renderNestedObject(
@@ -464,12 +479,16 @@ function renderCollapsedFunction(desc: JsonFunction) {
     const paramEntries = Object.entries(desc.parameters);
     return (
         <>
-            <span className={classnames('token', 'punctuation')}>(</span>
+            <span className={classnames('token', 'punctuation')}> (</span>
             {paramEntries.map(([name, type], idx) => (
                 <Fragment key={name}>
                     <span className={classnames('token', 'name')}>{name}</span>
-                    <span className={classnames('token', 'punctuation')}>: </span>
-                    <span className={classnames('token', 'builtin')}>{type.desc.tsType}</span>
+                    {!HIDE_TYPES && (
+                        <>
+                            <span className={classnames('token', 'punctuation')}>: </span>
+                            <span className={classnames('token', 'builtin')}>{type.desc.tsType}</span>
+                        </>
+                    )}
                     {idx + 1 < paramEntries.length && <span className={classnames('token', 'punctuation')}>, </span>}
                 </Fragment>
             ))}
@@ -489,7 +508,7 @@ function renderFunction(desc: JsonFunction, path: string[], config: Config) {
     const singleParameter = paramEntries.length === 1;
     return (
         <>
-            <span className={classnames('token', 'punctuation')}>(</span>
+            <span className={classnames('token', 'punctuation')}> (</span>
             <div className={styles.jsonObject} role="presentation">
                 {paramEntries.map(([prop, model], idx) => (
                     <Fragment key={prop}>
