@@ -29,7 +29,7 @@ import { getJsonApplyOptions } from './chartOptions';
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
 
-type ProcessedOptions = Partial<AgChartOptions> & { type?: string };
+type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
 export interface DownloadOptions extends ImageDataUrlOptions {
     /** Name of downloaded image file. Defaults to `image`.  */
