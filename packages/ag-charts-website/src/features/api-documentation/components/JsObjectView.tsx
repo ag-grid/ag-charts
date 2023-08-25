@@ -17,6 +17,7 @@ import { formatJsDocString } from '../utils/documentationHelpers';
 
 const DEFAULT_JSON_NODES_EXPANDED = false;
 const HIDE_TYPES = true;
+const DEFAULT_ENDING_PUNCTUATION = ',';
 
 type Config = {
     includeDeprecated?: boolean;
@@ -79,7 +80,12 @@ interface ModelSnippetParams {
     config: Config;
 }
 
-const ModelSnippet: React.FC<ModelSnippetParams> = ({ model, closeWith = ';', path, config = {} }) => {
+const ModelSnippet: React.FC<ModelSnippetParams> = ({
+    model,
+    closeWith = DEFAULT_ENDING_PUNCTUATION,
+    path,
+    config = {},
+}) => {
     if (model.type === 'model') {
         const propertiesRendering = Object.entries(model.properties)
             .map(([propName, propInfo]) => {
@@ -95,6 +101,7 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({ model, closeWith = ';', pa
                         desc={desc}
                         meta={propInfo}
                         path={path}
+                        closeWith={closeWith}
                         config={config}
                     />
                 );
@@ -181,7 +188,7 @@ function renderUnionNestedObject(
                             true,
                             'unionTypeProperty'
                         )}
-                    {!isExpanded && <span className={classnames('token', 'punctuation')}>; </span>}
+                    {!isExpanded && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
                     {isExpanded ? (
                         <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
                             <ModelSnippet model={desc.model} config={config} path={unionPath}></ModelSnippet>
@@ -253,6 +260,7 @@ interface PropertySnippetParams {
     forceInitiallyExpanded?: boolean;
     needsClosingSemi?: boolean;
     path: string[];
+    closeWith: string;
     config: Config;
 }
 
@@ -263,6 +271,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     forceInitiallyExpanded,
     needsClosingSemi = true,
     path,
+    closeWith,
     config,
 }) => {
     const propPath = path.concat(propName);
@@ -302,7 +311,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             needsClosingSemi = simpleUnion;
             break;
         case 'function':
-            propertyRendering = isJSONNodeExpanded ? renderFunction(desc, propPath, config) : null;
+            propertyRendering = isJSONNodeExpanded ? renderFunction(desc, propPath, closeWith, config) : null;
             collapsePropertyRendering = renderCollapsedFunction(desc);
             renderTsType = isSimpleFunction(desc);
             break;
@@ -332,7 +341,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                 </span>
             )}
             {(!isJSONNodeExpanded || needsClosingSemi) && (
-                <span className={classnames('token', 'punctuation')}>; </span>
+                <span className={classnames('token', 'punctuation')}>{closeWith}</span>
             )}
         </div>
     );
@@ -499,7 +508,7 @@ function renderCollapsedFunction(desc: JsonFunction) {
     );
 }
 
-function renderFunction(desc: JsonFunction, path: string[], config: Config) {
+function renderFunction(desc: JsonFunction, path: string[], closeWith: string, config: Config) {
     if (isSimpleFunction(desc)) {
         return null;
     }
@@ -520,6 +529,7 @@ function renderFunction(desc: JsonFunction, path: string[], config: Config) {
                             config={config}
                             forceInitiallyExpanded={singleParameter}
                             needsClosingSemi={false}
+                            closeWith={closeWith}
                         ></PropertySnippet>
                         {idx + 1 < paramEntries.length && (
                             <span className={classnames('token', 'punctuation')}>, </span>
