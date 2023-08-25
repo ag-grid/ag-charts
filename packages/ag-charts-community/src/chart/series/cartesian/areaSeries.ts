@@ -726,7 +726,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
     }
 
     animateReadyResize({ contextData, markerSelections, labelSelections, paths }: AreaAnimationData) {
-        this.ctx.animationManager?.reset();
         const { styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
 
         areaResetMarkersAndPaths({

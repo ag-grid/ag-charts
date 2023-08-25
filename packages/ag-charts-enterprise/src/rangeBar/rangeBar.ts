@@ -805,30 +805,19 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateReadyUpdate({
-        datumSelections,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>>;
-        contextData: Array<RangeBarContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        datumSelections.forEach((datumSelection) => {
-            this.resetSelectionRects(datumSelection);
-        });
+    animateReadyUpdate(data: { datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>> }) {
+        this.resetSelections(data);
     }
 
     animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({
-        datumSelections,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>>;
-        contextData: Array<RangeBarContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        this.ctx.animationManager?.reset();
+    animateReadyResize(data: { datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>> }) {
+        this.resetSelections(data);
+    }
+
+    resetSelections({ datumSelections }: { datumSelections: Array<_Scene.Selection<_Scene.Rect, RangeBarNodeDatum>> }) {
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });

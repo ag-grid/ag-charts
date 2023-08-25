@@ -939,26 +939,27 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateReadyUpdate({
-        datumSelections,
-        contextData,
-        paths,
-    }: {
+    animateReadyUpdate(data: {
         datumSelections: Array<_Scene.Selection<_Scene.Rect, WaterfallNodeDatum>>;
         contextData: Array<WaterfallContext>;
         paths: Array<Array<_Scene.Path>>;
     }) {
-        this.resetConnectorLinesPath({ contextData, paths });
-        datumSelections.forEach((datumSelection) => {
-            this.resetSelectionRects(datumSelection);
-        });
+        this.reset(data);
     }
 
     animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({
+    animateReadyResize(data: {
+        datumSelections: Array<_Scene.Selection<_Scene.Rect, WaterfallNodeDatum>>;
+        contextData: Array<WaterfallContext>;
+        paths: Array<Array<_Scene.Path>>;
+    }) {
+        this.reset(data);
+    }
+
+    reset({
         datumSelections,
         contextData,
         paths,
@@ -967,7 +968,6 @@ export class WaterfallBarSeries extends _ModuleSupport.CartesianSeries<
         contextData: Array<WaterfallContext>;
         paths: Array<Array<_Scene.Path>>;
     }) {
-        this.ctx.animationManager?.reset();
         this.resetConnectorLinesPath({ contextData, paths });
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);

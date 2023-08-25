@@ -736,7 +736,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     animateReadyResize() {
-        this.ctx.animationManager?.reset();
         this.resetMarkersAndPaths();
     }
 
