@@ -367,7 +367,7 @@ function renderPropertyDeclaration(
                 {expandable && renderJsonNodeExpander(isExpanded)}
                 {propName}
             </span>
-            {!required && <span className={classnames('token', 'operator')}>?</span>}
+            {!required && <span className={classnames('token', 'optional')}>?</span>}
             {!HIDE_TYPES && (
                 <>
                     <span className={classnames('token', 'operator')}>: </span>
