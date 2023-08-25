@@ -20,8 +20,6 @@ export type AgPolarSeriesOptions =
 export type AgPolarAxisOptions = AgAngleCategoryAxisOptions | AgRadiusNumberAxisOptions;
 
 export interface AgPolarChartOptions extends AgBaseChartOptions {
-    /** If specified overrides the default series type. */
-    type?: 'pie' | 'radar-line' | 'radar-area' | 'radial-column' | 'nightingale';
     /** Series configurations. */
     series?: AgPolarSeriesOptions[];
     /** Configuration for the chart legend. */
