@@ -230,7 +230,7 @@ export interface ApiDocumentationProps {
     pageName?: string;
     framework: Framework;
     section?: string;
-    names?: string;
+    names?: string[];
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
     config?: Config;
@@ -247,9 +247,15 @@ export interface JsObjectViewProps {
 export interface InterfaceDocumentationProps {
     interfaceName: string;
     framework: Framework;
-    names: string;
-    exclude: string;
-    wrapNamesAt: string;
+    /**
+     * Property names to include
+     */
+    names?: string[];
+    /**
+     * Property names to exclude
+     */
+    exclude?: string[];
+    wrapNamesAt?: string;
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
     config: Config;

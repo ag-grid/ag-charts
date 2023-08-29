@@ -19,19 +19,16 @@ import Error = types.Error;
 export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationProps> = ({
     interfaceName,
     framework,
-    names = '',
-    exclude = '',
+    names = [],
+    exclude = [],
     wrapNamesAt = null,
     interfaceLookup,
     codeLookup,
     config = {},
 }) => {
     const codeSrcProvided = [interfaceName];
-    let namesArr = [];
-    const excludeArr = exclude && exclude.length > 0 ? JSON.parse(exclude) : [];
 
     if (names && names.length) {
-        namesArr = JSON.parse(names);
         config = { overrideBottomMargin: '1rem', ...config };
     }
 
@@ -76,7 +73,7 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
             ...writeAllInterfaces(interfacesToWrite.slice(0, 1), framework, {
                 lineBetweenProps: config.lineBetweenProps ?? true,
                 hideName: config.hideName,
-                exclude: excludeArr,
+                exclude,
                 applyOptionalOrdering: true,
             })
         );
@@ -95,8 +92,8 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
         // as this is what is listed in the doc-interfaces.AUTO.json file
         propNameOnly = propNameOnly.split('(')[0];
         if (
-            (namesArr.length === 0 || namesArr.includes(propNameOnly)) &&
-            (excludeArr.length == 0 || !excludeArr.includes(propNameOnly))
+            (names.length === 0 || names.includes(propNameOnly)) &&
+            (exclude.length == 0 || !exclude.includes(propNameOnly))
         ) {
             const docs = (li.docs && formatJsDocString(li.docs[k])) || '';
             if (!docs.includes('@deprecated')) {
