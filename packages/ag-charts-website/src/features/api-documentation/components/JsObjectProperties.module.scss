@@ -2,5 +2,10 @@
 
 .container {
     display: flex;
-    gap: $size-2;
+    gap: $size-4;
+
+    > div:first-child {
+        width: min(50%, 540px);
+        flex-shrink: 0;
+    }
 }
