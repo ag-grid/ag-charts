@@ -30,7 +30,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
 
     const docsConfig: Config = {
         ...config,
-        description: selectedPropName ? `Filter: ${selectedPropName}` : 'All properties',
+        description: '',
         lookups: {
             codeLookup,
             interfaces: interfaceLookup,
