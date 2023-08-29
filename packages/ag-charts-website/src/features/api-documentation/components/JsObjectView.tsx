@@ -244,10 +244,12 @@ function UnionNestedObject({
                     {!isExpanded && (
                         <PropertyDeclaration
                             propName={discriminatorProp}
+                            path={path}
                             tsType={discriminatorType}
                             propDesc={discriminator}
                             isExpanded={isExpanded}
                             expandable={true}
+                            toggleExpand={onClick}
                             style="unionTypeProperty"
                         />
                     )}
@@ -340,13 +342,11 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     const propPath = path.concat(propName);
     const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config);
     const [isJSONNodeExpanded, setJSONNodeExpanded] = useState(expandedInitially);
-    const { onSelection } = useContext(SelectionContext);
-    const onClick = () => {
+    const toggleExpand = () => {
         if (!expandable) {
             return;
         }
 
-        onSelection && onSelection({ type: 'property', propName, path });
         setJSONNodeExpanded((expanded) => !expanded);
     };
 
@@ -363,16 +363,16 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
         case 'array':
             propertyRendering = <ArrayType desc={desc} path={propPath} config={config} />;
             collapsePropertyRendering = desc.elements.type !== 'primitive' && (
-                <>
+                <span onClick={toggleExpand}>
                     <span className={classnames('token', 'punctuation')}> {'['.repeat(desc.depth)}</span>
                     <span className={classnames('token', 'operator')}> ... </span>
                     <span className={classnames('token', 'punctuation')}>{']'.repeat(desc.depth)}</span>
-                </>
+                </span>
             );
             break;
         case 'nested-object':
-            propertyRendering = <NestedObject desc={desc} meta={meta} path={propPath} config={config} />;
-            collapsePropertyRendering = <CollapsedNestedObject desc={desc} />;
+            propertyRendering = <NestedObject desc={desc} path={propPath} config={config} />;
+            collapsePropertyRendering = <CollapsedNestedObject toggleExpand={toggleExpand} />;
             break;
         case 'union':
             const simpleUnion = isSimpleUnion(desc);
@@ -403,16 +403,17 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                 deprecated && styles.deprecated,
                 styles['type-' + desc.type]
             )}
-            onClick={onClick}
             role="presentation"
         >
             {
                 <PropertyDeclaration
                     propName={propName}
+                    path={propPath}
                     tsType={renderTsType ? tsType : null}
                     propDesc={meta}
                     isExpanded={isJSONNodeExpanded}
                     expandable={expandable}
+                    toggleExpand={toggleExpand}
                 />
             }
             {!isJSONNodeExpanded && collapsePropertyRendering ? (
@@ -429,32 +430,51 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     );
 };
 
-function JsonNodeExpander({ isExpanded }: { isExpanded: boolean }) {
-    return <Icon name="chevronRight" svgClasses={classnames(styles.expander, isExpanded && styles.active)} />;
+function JsonNodeExpander({ toggleExpand, isExpanded }: { toggleExpand?: () => void; isExpanded: boolean }) {
+    return (
+        <Icon
+            name="chevronRight"
+            svgClasses={classnames(styles.expander, isExpanded && styles.active)}
+            onClick={toggleExpand}
+        />
+    );
 }
 
 function PropertyDeclaration({
     propName,
+    path,
     tsType,
     propDesc,
     isExpanded,
     expandable,
+    toggleExpand,
     style = 'propertyName',
 }: {
     propName: string;
+    path: string[];
     tsType: string | null;
     propDesc: { required: boolean };
     isExpanded: boolean;
     expandable: boolean;
+    toggleExpand: () => void;
     style?: string;
 }) {
+    const { onSelection } = useContext(SelectionContext);
+    const toggleSelection = () => {
+        if (!expandable) {
+            return;
+        }
+
+        onSelection && onSelection({ type: 'property', propName, path });
+    };
+
     const { required } = propDesc;
     return (
         <>
             {isExpanded && <div className={styles.expanderBar}></div>}
             <span className={classnames('token', 'name', styles[style])}>
-                {expandable && <JsonNodeExpander isExpanded={isExpanded} />}
-                {propName}
+                {expandable && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
+                <span onClick={toggleSelection}>{propName}</span>
             </span>
             {!required && <span className={classnames('token', 'optional')}>?</span>}
             {!HIDE_TYPES && (
@@ -480,17 +500,7 @@ function PrimitiveType({ desc }: { desc: JsonPrimitiveProperty }) {
     return HIDE_TYPES ? null : <span className={classnames('token', 'builtin')}>{desc.tsType}</span>;
 }
 
-function NestedObject({
-    desc,
-    meta,
-    path,
-    config,
-}: {
-    desc: JsonObjectProperty;
-    meta: Omit<JsonModel['properties'][number], 'desc'>;
-    path: string[];
-    config: Config;
-}) {
+function NestedObject({ desc, path, config }: { desc: JsonObjectProperty; path: string[]; config: Config }) {
     return (
         <>
             <span className={classnames('token', 'punctuation')}>{' { '}</span>
@@ -502,13 +512,13 @@ function NestedObject({
     );
 }
 
-function CollapsedNestedObject({ desc }: { desc: JsonObjectProperty }) {
+function CollapsedNestedObject({ toggleExpand }: { toggleExpand: () => void }) {
     return (
-        <>
+        <span onClick={toggleExpand}>
             <span className={classnames('token', 'punctuation')}>{' {'}</span>
             <span className={classnames('token', 'operator')}> ... </span>
             <span className={classnames('token', 'punctuation')}>{'}'}</span>
-        </>
+        </span>
     );
 }
 
