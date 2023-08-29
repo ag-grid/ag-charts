@@ -1,6 +1,6 @@
 import type { Series } from '../series/series';
 import { AreaSeries } from '../series/cartesian/areaSeries';
-import { BarSeries, ColumnSeries } from '../series/cartesian/barSeries';
+import { BarSeries } from '../series/cartesian/barSeries';
 import { HistogramSeries } from '../series/cartesian/histogramSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
 import { ScatterSeries } from '../series/cartesian/scatterSeries';
@@ -10,11 +10,11 @@ import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/module';
 import type { ModuleContext } from '../../util/moduleContext';
+import type { AgBarSeriesOptions, AgChartOptions } from '../agChartOptions';
 
 const BUILT_IN_SERIES_FACTORIES: Record<string, SeriesConstructor> = {
     area: AreaSeries,
     bar: BarSeries,
-    column: ColumnSeries,
     histogram: HistogramSeries,
     line: LineSeries,
     pie: PieSeries,
@@ -26,9 +26,12 @@ const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
 const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
-const STACKABLE_SERIES_TYPES = new Set(['bar', 'column', 'area']);
-const GROUPABLE_SERIES_TYPES = new Set(['bar', 'column']);
+const STACKABLE_SERIES_TYPES = new Set(['bar', 'area']);
+const GROUPABLE_SERIES_TYPES = new Set(['bar']);
 const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
+const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: AgChartOptions) => boolean> = {
+    bar: (opts) => (opts.series?.[0] as AgBarSeriesOptions)?.direction !== 'horizontal',
+};
 
 export function registerSeries(
     seriesType: string,
@@ -39,7 +42,8 @@ export function registerSeries(
     paletteFactory: SeriesPaletteFactory | undefined,
     stackable: boolean | undefined,
     groupable: boolean | undefined,
-    stackedByDefault: boolean | undefined
+    stackedByDefault: boolean | undefined,
+    swapDefaultAxesCondition: ((opts: AgChartOptions) => boolean) | undefined
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
@@ -55,6 +59,9 @@ export function registerSeries(
     }
     if (stackedByDefault) {
         addStackedByDefaultSeriesType(seriesType);
+    }
+    if (swapDefaultAxesCondition) {
+        addSwapDefaultAxesCondition(seriesType, swapDefaultAxesCondition);
     }
 
     registerChartSeriesType(seriesType, chartType);
@@ -107,4 +114,18 @@ export function addStackableSeriesType(seriesType: string) {
 
 export function addStackedByDefaultSeriesType(seriesType: string) {
     STACKED_BY_DEFAULT_SERIES_TYPES.add(seriesType);
+}
+
+export function addSwapDefaultAxesCondition(seriesType: string, predicate: (opts: AgChartOptions) => boolean) {
+    SWAP_DEFAULT_AXES_CONDITIONS[seriesType] = predicate;
+}
+
+export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
+    const { type } = opts.series?.[0] ?? {};
+
+    if (type != null && SWAP_DEFAULT_AXES_CONDITIONS[type]) {
+        return SWAP_DEFAULT_AXES_CONDITIONS[type](opts);
+    }
+
+    return false;
 }

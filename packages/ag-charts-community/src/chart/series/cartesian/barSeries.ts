@@ -33,6 +33,7 @@ import {
     OPTIONAL,
     OPT_STRING,
     OPT_COLOR_STRING,
+    STRING_UNION,
 } from '../../../util/validation';
 import { zipObject } from '../../../util/zip';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -106,7 +107,7 @@ class BarSeriesTooltip extends SeriesTooltip {
 
 export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatum>, Rect> {
     static className = 'BarSeries';
-    static type: 'bar' | 'column' = 'bar' as const;
+    static type = 'bar' as const;
 
     readonly label = new BarSeriesLabel();
 
@@ -144,6 +145,9 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
     @Validate(OPT_STRING)
     yName?: string = undefined;
+
+    @Validate(STRING_UNION('vertical', 'horizontal'))
+    direction: 'vertical' | 'horizontal' = 'vertical';
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -904,23 +908,16 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     protected getBarDirection() {
+        if (this.direction === 'vertical') {
+            return ChartAxisDirection.Y;
+        }
         return ChartAxisDirection.X;
     }
 
     protected getCategoryDirection() {
+        if (this.direction === 'vertical') {
+            return ChartAxisDirection.X;
+        }
         return ChartAxisDirection.Y;
-    }
-}
-
-export class ColumnSeries extends BarSeries {
-    static type = 'column' as const;
-    static className = 'ColumnSeries';
-
-    protected getBarDirection() {
-        return ChartAxisDirection.Y;
-    }
-
-    protected getCategoryDirection() {
-        return ChartAxisDirection.X;
     }
 }

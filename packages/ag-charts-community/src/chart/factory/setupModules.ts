@@ -29,7 +29,8 @@ export function setupModules() {
                 m.paletteFactory,
                 m.stackable,
                 m.groupable,
-                m.stackedByDefault
+                m.stackedByDefault,
+                m.swapDefaultAxesCondition
             );
         }
 
