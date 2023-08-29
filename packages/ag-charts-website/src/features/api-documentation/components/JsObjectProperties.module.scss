@@ -1,0 +1,6 @@
+@use '../../../design-system' as *;
+
+.container {
+    display: flex;
+    gap: $size-2;
+}

@@ -1,4 +1,4 @@
-import { Fragment, useState, type FunctionComponent } from 'react';
+import { Fragment, useState, type FunctionComponent, createContext, useContext } from 'react';
 import type { JsObjectViewProps } from '../types';
 import classnames from 'classnames';
 import styles from './JsObjectView.module.scss';
@@ -13,6 +13,8 @@ import {
     type JsonUnionType,
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
+
+const SelectionContext = createContext<{ onSelection?: JsObjectViewProps['onSelection'] }>({});
 
 const DEFAULT_JSON_NODES_EXPANDED = false;
 const HIDE_TYPES = true;
@@ -39,6 +41,7 @@ interface ModelSnippetWithBreadcrumbsParams {
     breadcrumbs?: string[];
     model: JsonModel;
     config: Config;
+    onSelection?: JsObjectViewProps['onSelection'];
 }
 
 export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
@@ -47,6 +50,7 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
     codeLookup,
     interfaceLookup,
     config = {},
+    onSelection,
 }) => {
     const model = buildModel(interfaceName, interfaceLookup, codeLookup);
 
@@ -54,7 +58,14 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
         <div className={styles.expandableSnippet} role="presentation">
             <pre className={classnames('code', 'language-ts')}>
                 <code className={'language-ts'}>
-                    <ModelSnippetWithBreadcrumbs breadcrumbs={breadcrumbs} model={model} config={config} />
+                    <SelectionContext.Provider value={{ onSelection }}>
+                        <ModelSnippetWithBreadcrumbs
+                            breadcrumbs={breadcrumbs}
+                            model={model}
+                            config={config}
+                            onSelection={onSelection}
+                        />
+                    </SelectionContext.Provider>
                 </code>
             </pre>
         </div>
@@ -214,12 +225,17 @@ function UnionNestedObject({
         discriminator && discriminator.desc.type === 'primitive' ? discriminator.desc.tsType : null;
     const unionPath = path.concat(`[${discriminatorType || index}]`);
     const expandedInitially = isExpandedInitially(discriminatorType || String(index), unionPath, config);
+    const { onSelection } = useContext(SelectionContext);
     const [isExpanded, setExpanded] = useState(expandedInitially);
+    const onClick = () => {
+        onSelection && onSelection({ type: 'unionNestedObject', path });
+        setExpanded((expanded) => !expanded);
+    };
 
     if (discriminatorType) {
         return (
             <Fragment key={discriminatorType}>
-                <span onClick={() => setExpanded(!isExpanded)} className={styles.expandable}>
+                <span onClick={onClick} className={styles.expandable}>
                     {isExpanded && <div className={styles.expanderBar}></div>}
                     <span className={classnames('token', 'punctuation')}>
                         {isExpanded && <JsonNodeExpander isExpanded={isExpanded} />}
@@ -264,7 +280,7 @@ function UnionNestedObject({
 
     return (
         <Fragment key={index}>
-            <span onClick={() => setExpanded(!isExpanded)} className={styles.expandable}>
+            <span onClick={onClick} className={styles.expandable}>
                 {isExpanded && <div className={styles.expanderBar}></div>}
                 <span className={classnames('token', 'punctuation')}>
                     {<JsonNodeExpander isExpanded={isExpanded} />}
@@ -324,6 +340,15 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     const propPath = path.concat(propName);
     const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config);
     const [isJSONNodeExpanded, setJSONNodeExpanded] = useState(expandedInitially);
+    const { onSelection } = useContext(SelectionContext);
+    const onClick = () => {
+        if (!expandable) {
+            return;
+        }
+
+        onSelection && onSelection({ type: 'property', propName, path });
+        setJSONNodeExpanded((expanded) => !expanded);
+    };
 
     const { deprecated } = meta;
     const { tsType } = desc;
@@ -378,7 +403,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                 deprecated && styles.deprecated,
                 styles['type-' + desc.type]
             )}
-            onClick={() => (expandable ? setJSONNodeExpanded(!isJSONNodeExpanded) : null)}
+            onClick={onClick}
             role="presentation"
         >
             {

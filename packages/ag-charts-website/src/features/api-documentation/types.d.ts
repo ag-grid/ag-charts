@@ -236,8 +236,24 @@ export interface ApiDocumentationProps {
     config?: Config;
 }
 
+export interface OnSelectionValue {
+    type: 'property' | 'unionNestedObject';
+    propName?: string;
+    path: string[];
+}
+
 export interface JsObjectViewProps {
     interfaceName: string;
+    breadcrumbs?: string[];
+    interfaceLookup: InterfaceLookup;
+    codeLookup: CodeLookup;
+    config?: Config;
+    onSelection?: (value: OnSelectionValue) => void;
+}
+
+export interface JsObjectPropertiesViewProps {
+    interfaceName: string;
+    framework: Framework;
     breadcrumbs?: string[];
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
