@@ -1,16 +1,6 @@
-import type { AgAreaSeriesOptions } from '../series/cartesian/areaOptions';
-import type { AgBarSeriesOptions, AgColumnSeriesOptions } from '../series/cartesian/barOptions';
-import type { AgCartesianSeriesTheme, AgCartesianThemeOptions } from '../series/cartesian/cartesianOptions';
-import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
-import type { AgLineSeriesOptions } from '../series/cartesian/lineOptions';
-import type { AgScatterSeriesOptions } from '../series/cartesian/scatterOptions';
-import type {
-    AgHierarchySeriesOptions,
-    AgHierarchySeriesTheme,
-    AgHierarchyThemeOptions,
-} from '../series/hierarchy/hierarchyOptions';
-import type { AgPieSeriesOptions } from '../series/polar/pieOptions';
-import type { AgPolarSeriesTheme, AgPolarThemeOptions } from '../series/polar/polarOptions';
+import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianOptions';
+import type { AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
+import type { AgPolarSeriesOptions } from '../series/polar/polarOptions';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -48,32 +38,7 @@ export interface AgChartTheme extends AgChartThemeOptions {
     baseTheme?: AgChartThemeName;
 }
 
-export interface AgChartThemeOverrides {
-    /** Specifies defaults for all cartesian charts (used for bar, column, histogram, line, scatter and area series) */
-    cartesian?: AgCartesianThemeOptions<AgCartesianSeriesTheme>;
-    /** Specifies defaults for column charts. */
-    column?: AgCartesianThemeOptions<AgColumnSeriesOptions>;
-    /** Specifies defaults for bar charts. */
-    bar?: AgCartesianThemeOptions<AgBarSeriesOptions>;
-    /** Specifies defaults for line charts. */
-    line?: AgCartesianThemeOptions<AgLineSeriesOptions>;
-    /** Specifies defaults for area charts. */
-    area?: AgCartesianThemeOptions<AgAreaSeriesOptions>;
-    /** Specifies defaults for scatter/bubble charts. */
-    scatter?: AgCartesianThemeOptions<AgScatterSeriesOptions>;
-    /** Specifies defaults for histogram charts. */
-    histogram?: AgCartesianThemeOptions<AgHistogramSeriesOptions>;
-
-    /** Specifies defaults for all polar charts (used for pie series) */
-    polar?: AgPolarThemeOptions<AgPolarSeriesTheme>;
-    /** Specifies defaults for pie/doughnut charts. */
-    pie?: AgPolarThemeOptions<AgPieSeriesOptions>;
-
-    /** Specifies defaults for all hierarchy charts (used for treemap series) */
-    hierarchy?: AgHierarchyThemeOptions<AgHierarchySeriesTheme>;
-    /** Specifies defaults for all treemap charts. */
-    treemap?: AgHierarchyThemeOptions<AgHierarchySeriesOptions>;
-
-    /** Specifies defaults for all chart types. Be careful to only use properties that apply to all chart types here. For example, don't specify `navigator` configuration here as navigators are only available in cartesian charts. */
-    common?: any;
-}
+type SeriesOptionTypes = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
+export type AgChartThemeOverrides = {
+    [K in NonNullable<SeriesOptionTypes['type']>]: SeriesOptionTypes & { type: K };
+};
