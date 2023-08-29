@@ -104,7 +104,7 @@ class RangeAreaSeriesLabel extends _Scene.Label {
     formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string = undefined;
 
     @Validate(OPT_RANGE_AREA_LABEL_PLACEMENT)
-    placement: AgRangeAreaSeriesLabelPlacement = 'inside';
+    placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
     @Validate(OPT_NUMBER(0))
     padding: number = 6;
@@ -274,14 +274,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const {
-            yLowKey = '',
-            yHighKey = '',
-            xKey = '',
-            processedData,
-            label,
-            ctx: { callbackCache },
-        } = this;
+        const { yLowKey = '', yHighKey = '', xKey = '', processedData } = this;
 
         const itemId = `${yLowKey}-${yHighKey}`;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -357,29 +350,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                 });
 
                 // label data
-                let labelText;
-                if (label.formatter) {
-                    labelText =
-                        callbackCache.call(label.formatter, {
-                            value: yValue,
-                            seriesId: this.id,
-                            itemId,
-                            yLowValue,
-                            yHighValue,
-                        }) ?? '';
-                } else {
-                    labelText = isNumber(yValue) ? Number(yValue).toFixed(2) : String(yValue);
-                }
-                labelData.push({
-                    series: this,
+                const labelDatum: RangeAreaLabelDatum = this.createLabelData({
+                    point: { x, y },
+                    value: yValue,
+                    yLowValue,
+                    yHighValue,
                     itemId,
+                    inverted,
                     datum,
-                    x,
-                    y: y + ((itemId === 'low' && !inverted) || (itemId === 'high' && inverted) ? 10 : -10),
-                    text: labelText,
-                    textAlign: 'center',
-                    textBaseline: (itemId === 'low' && !inverted) || (itemId === 'high' && inverted) ? 'top' : 'bottom',
+                    series: this,
                 });
+                labelData.push(labelDatum);
             });
 
             // Handle data in pairs of current and next x and y values
@@ -433,6 +414,77 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         }
 
         return [context];
+    }
+
+    private createLabelData({
+        point,
+        value,
+        yLowValue,
+        yHighValue,
+        itemId,
+        inverted,
+        datum,
+        series,
+    }: {
+        point: _Scene.Point;
+        value: any;
+        yLowValue: any;
+        yHighValue: any;
+        itemId: string;
+        inverted: boolean;
+        datum: any;
+        series: RangeAreaSeries;
+    }): RangeAreaLabelDatum {
+        const { placement, padding = 10 } = this.label;
+
+        const actualItemId = inverted ? (itemId === 'low' ? 'high' : 'low') : itemId;
+        const direction =
+            (placement === 'outside' && actualItemId === 'high') || (placement === 'inside' && actualItemId === 'low')
+                ? -1
+                : 1;
+
+        const labelPadding = padding * direction;
+        const labelDatum: RangeAreaLabelDatum = {
+            x: point.x,
+            y: point.y + labelPadding,
+            textAlign: 'center',
+            textBaseline: direction === -1 ? 'bottom' : 'top',
+            text: this.getLabelText({ itemId, value, yLowValue, yHighValue }),
+            itemId,
+            datum,
+            series,
+        };
+
+        return labelDatum;
+    }
+
+    private getLabelText({
+        itemId,
+        value,
+        yLowValue,
+        yHighValue,
+    }: {
+        itemId: string;
+        value: any;
+        yLowValue: any;
+        yHighValue: any;
+    }) {
+        const {
+            id: seriesId,
+            label: { formatter },
+            ctx: { callbackCache },
+        } = this;
+        let labelText;
+        if (formatter) {
+            labelText = callbackCache.call(formatter, {
+                value: isNumber(value) ? value : undefined,
+                seriesId,
+                itemId,
+                yLowValue,
+                yHighValue,
+            });
+        }
+        return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));
     }
 
     protected isPathOrSelectionDirty(): boolean {
