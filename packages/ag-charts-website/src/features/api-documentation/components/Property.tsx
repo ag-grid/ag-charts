@@ -29,7 +29,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
     const idName = `reference-${id}-${name}`;
     let description = '';
     let isObject = false;
-    let gridParams = config.gridOpProp;
+    const gridParams = config.gridOpProp;
 
     useEffect(() => {
         const hashId = location.hash.slice(1); // Remove the '#' symbol
@@ -115,7 +115,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         showAdditionalDetails = showAdditionalDetails || !!config.lookups?.htmlLookup[name];
     }
 
-    let propertyType = getPropertyType(type, config);
+    const propertyType = getPropertyType(type, config);
     const typeUrl = isObject
         ? `#reference-${id}.${name}`
         : propertyType !== 'Function'
