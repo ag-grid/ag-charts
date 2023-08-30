@@ -9,7 +9,7 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'range-column',
+            type: 'range-bar',
             xKey: 'date',
             xName: 'Date',
             yLowKey: 'low',

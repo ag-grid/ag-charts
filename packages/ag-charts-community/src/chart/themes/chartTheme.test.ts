@@ -62,7 +62,7 @@ describe('ChartTheme', () => {
                         // },
                     },
                     series: {
-                        column: {
+                        bar: {
                             label: {
                                 enabled: true,
                                 color: 'yellow',
@@ -92,7 +92,7 @@ describe('ChartTheme', () => {
             data,
             series: [
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v1',
                     yName: 'Reliability',
@@ -101,7 +101,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v2',
                     yName: 'Ease of use',
@@ -110,7 +110,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v3',
                     yName: 'Performance',
@@ -119,7 +119,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v4',
                     yName: 'Price',
@@ -128,7 +128,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v5',
                     yName: 'Market share',
@@ -190,7 +190,7 @@ describe('ChartTheme', () => {
             const fills = ['red', 'green', 'blue', 'red', 'green'];
             const strokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 0; i < 5; i++) {
-                expect(chart.series[i].type).toBe('column');
+                expect(chart.series[i].type).toBe('bar');
                 expect((chart.series[i] as BarSeries).fill).toEqual(fills[i]);
                 expect((chart.series[i] as BarSeries).stroke).toEqual(strokes[i]);
                 expect((chart.series[i] as BarSeries).label.enabled).toBe(true);
@@ -314,7 +314,7 @@ describe('ChartTheme', () => {
                         fill: 'red',
                     },
                     series: {
-                        column: {
+                        bar: {
                             label: {
                                 enabled: true,
                                 color: 'blue',
@@ -351,7 +351,7 @@ describe('ChartTheme', () => {
             data,
             series: [
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v1',
                     yName: 'Reliability',
@@ -360,7 +360,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v2',
                     yName: 'Ease of use',
@@ -369,7 +369,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v3',
                     yName: 'Performance',
@@ -378,7 +378,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v4',
                     yName: 'Price',
@@ -387,7 +387,7 @@ describe('ChartTheme', () => {
                     },
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v5',
                     yName: 'Market share',
@@ -433,7 +433,7 @@ describe('ChartTheme', () => {
             const fills = ['red', 'green', 'blue', 'red', 'green'];
             const strokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 0; i < 5; i++) {
-                expect(chart.series[i].type).toBe('column');
+                expect(chart.series[i].type).toBe('bar');
                 expect((chart.series[i] as BarSeries).fill).toEqual(fills[i]);
                 expect((chart.series[i] as BarSeries).stroke).toEqual(strokes[i]);
                 expect((chart.series[i] as BarSeries).label.enabled).toBe(true);
@@ -791,7 +791,7 @@ describe('ChartTheme', () => {
             overrides: {
                 common: {
                     series: {
-                        column: {
+                        bar: {
                             strokeWidth: 10,
                         },
                         line: {
@@ -804,7 +804,7 @@ describe('ChartTheme', () => {
                 },
                 cartesian: {
                     series: {
-                        column: {
+                        bar: {
                             strokeWidth: 13,
                         },
                         line: {
@@ -815,7 +815,7 @@ describe('ChartTheme', () => {
                         },
                     },
                 },
-                column: {
+                bar: {
                     series: {
                         strokeWidth: 16,
                     },
@@ -838,13 +838,13 @@ describe('ChartTheme', () => {
             data,
             series: [
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v1',
                     yName: 'Reliability',
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'label',
                     yKey: 'v2',
                     yName: 'Ease of use',
@@ -870,8 +870,8 @@ describe('ChartTheme', () => {
             await waitForChartStability(chart);
             const { series } = chart;
 
-            expect(series[0].type).toEqual('column');
-            expect(series[1].type).toEqual('column');
+            expect(series[0].type).toEqual('bar');
+            expect(series[1].type).toEqual('bar');
             expect(series[2].type).toEqual('line');
             expect(series[3].type).toEqual('area');
             expect((series[0] as BarSeries).strokeWidth).toEqual(16);

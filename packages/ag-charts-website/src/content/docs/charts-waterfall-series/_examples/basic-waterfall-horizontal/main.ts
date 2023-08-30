@@ -12,16 +12,12 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'waterfall-column',
+            type: 'waterfall',
+            direction: 'horizontal',
             xKey: 'source',
             xName: 'Source',
             yKey: 'amount',
             yName: 'Amount',
-            totals: [
-                { totalType: 'total', index: 4, axisLabel: 'Total \nRevenue' },
-                { totalType: 'subtotal', index: 10, axisLabel: 'Total \nExpenditure' },
-                { totalType: 'total', index: 10, axisLabel: 'Borrowing' },
-            ],
         },
     ],
 };

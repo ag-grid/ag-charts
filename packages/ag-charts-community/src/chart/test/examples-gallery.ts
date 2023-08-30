@@ -31,23 +31,23 @@ export const EXAMPLES: Record<string, TestCase> = {
     },
     SIMPLE_COLUMN_CHART_EXAMPLE: {
         options: examples.SIMPLE_COLUMN_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
     },
     GROUPED_COLUMN_EXAMPLE: {
         options: examples.GROUPED_COLUMN_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 7) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 7) }),
     },
     STACKED_COLUMN_GRAPH_EXAMPLE: {
         options: examples.STACKED_COLUMN_GRAPH_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 5) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 5) }),
     },
     ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: {
         options: examples.ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 6) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 6) }),
     },
     COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: {
         options: examples.COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 2) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 2) }),
     },
     SIMPLE_PIE_CHART_EXAMPLE: {
         options: examples.SIMPLE_PIE_CHART_EXAMPLE,
@@ -111,11 +111,11 @@ export const EXAMPLES: Record<string, TestCase> = {
     },
     GROUPED_CATEGORY_AXIS_EXAMPLE: {
         options: examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['groupedCategory', 'number'], seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['groupedCategory', 'number'], seriesTypes: ['bar'] }),
     },
     CROSS_LINES_EXAMPLE: {
         options: examples.CROSS_LINES_EXAMPLE,
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 2) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 2) }),
     },
     ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS: {
         options: examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,

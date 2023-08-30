@@ -54,6 +54,7 @@ describe('AgChartsAngularComponent', () => {
             series: [
                 {
                     type: 'bar',
+                    direction: 'horizontal',
                     xKey: 'type',
                     yKey: 'earnings',
                 },

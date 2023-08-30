@@ -18,6 +18,7 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'range-bar',
+            direction: 'horizontal',
             xKey: 'smartphone',
             xName: 'Smartphone',
             yLowKey: 'lowCost',
@@ -30,6 +31,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'range-bar',
+            direction: 'horizontal',
             xKey: 'smartphone',
             xName: 'Smartphone',
             yLowKey: 'lowRetail',

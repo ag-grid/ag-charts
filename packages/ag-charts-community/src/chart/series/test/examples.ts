@@ -39,7 +39,7 @@ export const COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'iphone',
             label: { formatter: columnSeriesLabelFormatter },
@@ -57,7 +57,7 @@ export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'iphone',
             yName: 'iPhone',
@@ -65,7 +65,7 @@ export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'mac',
             yName: 'Mac',
@@ -73,7 +73,7 @@ export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'ipad',
             yName: 'iPad',
@@ -81,7 +81,7 @@ export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'wearables',
             yName: 'Wearables',
@@ -89,7 +89,7 @@ export const STACKED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'services',
             yName: 'Services',
@@ -109,35 +109,35 @@ export const GROUPED_COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
     data: DATA_APPLE_REVENUE_BY_PRODUCT.slice(0, 3),
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'iphone',
             yName: 'iPhone',
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'mac',
             yName: 'Mac',
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'ipad',
             yName: 'iPad',
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'wearables',
             yName: 'Wearables',
             label: { formatter: columnSeriesLabelFormatter },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'quarter',
             yKey: 'services',
             yName: 'Services',
@@ -157,6 +157,7 @@ export const BAR_SERIES_LABELS: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'iphone',
             label: { formatter: columnSeriesLabelFormatter },
@@ -175,6 +176,7 @@ export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'iphone',
             yName: 'iPhone',
@@ -183,6 +185,7 @@ export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'mac',
             yName: 'Mac',
@@ -191,6 +194,7 @@ export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'ipad',
             yName: 'iPad',
@@ -199,6 +203,7 @@ export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'wearables',
             yName: 'Wearables',
@@ -207,6 +212,7 @@ export const STACKED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'services',
             yName: 'Services',
@@ -227,6 +233,7 @@ export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'iphone',
             yName: 'iPhone',
@@ -234,6 +241,7 @@ export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'mac',
             yName: 'Mac',
@@ -241,6 +249,7 @@ export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'ipad',
             yName: 'iPad',
@@ -248,6 +257,7 @@ export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'wearables',
             yName: 'Wearables',
@@ -255,6 +265,7 @@ export const GROUPED_BAR_SERIES_LABELS: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'quarter',
             yKey: 'services',
             yName: 'Services',
@@ -619,7 +630,7 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
     },
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'women',
             yName: 'Women',
@@ -630,7 +641,7 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'men',
             yName: 'Men',
@@ -703,7 +714,7 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'women',
             yName: 'Women',
@@ -714,7 +725,7 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'men',
             yName: 'Men',

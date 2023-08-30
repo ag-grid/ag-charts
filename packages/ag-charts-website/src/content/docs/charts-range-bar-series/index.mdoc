@@ -7,12 +7,12 @@ A Range Bar/Column series displays both the high and low values within the data 
 
 ## Range Column
 
-To create a basic Range Column chart, use the `range-column` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
+To create a basic Range Column chart, use the `range-bar` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
 
 ```js
 series: [
     {
-        type: 'range-column',
+        type: 'range-bar',
         xKey: 'date',
         yLowKey: 'low',
         yHighKey: 'high',
@@ -20,7 +20,7 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Basic Range Column" name="basic-range-column" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Basic Range Column" name="basic-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Range Column Labels
 
@@ -46,7 +46,7 @@ label: {
 ```
 
 The formatter above creates labels as seen in the provided example:
-{% chartExampleRunner title="Range Column Label" name="range-column-labels" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Range Column Label" name="range-bar-labels" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Multiple Range Column Series
 
@@ -58,7 +58,7 @@ Note that in the example below we:
 -   Use `yName` to control the text that the legend displays
 -   Use `yLowName` and `yHighName` to control the text that the tooltip displays
 
-{% chartExampleRunner title="Multiple Range Column Series" name="multiple-range-columns" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Multiple Range Column Series" name="multiple-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Missing Data
 
@@ -79,16 +79,17 @@ The following example demonstrates how missing data is handled for a continuous 
 -   Click the Missing Y values button and note that if either of the Y low or high values are missing, the data point is rendered as a gap in the chart.
 -   Click the Missing X value button and note that a missing X value on a continuous X axis is skipped.
 
-{% chartExampleRunner title="Range Column Missing Data" name="range-column-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Range Column Missing Data" name="range-bar-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Range Bar
 
-To create a basic Range Bar chart, use the `range-bar` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
+To create a basic Range Bar chart, use the `range-bar` series type and specify the `direction`, `xKey`, `yLowKey` and `yHighKey` properties:
 
 ```js
 series: [
     {
         type: 'range-bar',
+        direction: 'horizontal',
         xKey: 'date',
         yLowKey: 'low',
         yHighKey: 'high',
@@ -96,7 +97,7 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Basic Range Bar" name="basic-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Basic Range Bar" name="basic-range-bar-horizontal" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Multiple Range Bar Series
 

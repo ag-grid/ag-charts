@@ -154,7 +154,7 @@ describe('Chart', () => {
         ],
         series: [
             {
-                type: 'range-column',
+                type: 'range-bar',
                 xKey: 'date',
                 yLowKey: 'low',
                 yHighKey: 'high',
@@ -173,17 +173,17 @@ describe('Chart', () => {
         (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    function switchSeriesType<T>(opts: T, type: 'range-bar' | 'range-column'): T {
+    function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {
         return {
             ...opts,
             series: opts['series']?.map((s) => ({
                 ...s,
-                type,
+                direction,
             })),
         };
     }
 
-    it(`should render a range-column chart as expected`, async () => {
+    it(`should render a range-bar chart as expected`, async () => {
         const options: AgChartOptions = { ...RANGE_COLUMN_OPTIONS };
         prepareEnterpriseTestOptions(options as any);
 
@@ -191,15 +191,15 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a range-bar chart as expected`, async () => {
-        const options: AgChartOptions = { ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'range-bar') };
+    it(`should render a horizontal range-bar chart as expected`, async () => {
+        const options: AgChartOptions = { ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal') };
         prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
     });
 
-    it(`should render a range-column chart with inverted high and low values`, async () => {
+    it(`should render a range-bar chart with inverted high and low values`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: RANGE_COLUMN_OPTIONS.data.map((datum: { date: string; high: number; low: number }) => ({
@@ -214,8 +214,8 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a range-bar chart with inverted high and low values`, async () => {
-        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'range-bar');
+    it(`should render a horizontal range-bar chart with inverted high and low values`, async () => {
+        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: RANGE_BAR_OPTIONS.data.map((datum: { date: string; high: number; low: number }) => ({
@@ -230,7 +230,7 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a range-column chart with a time x-axis`, async () => {
+    it(`should render a range-bar chart with a time x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
@@ -251,8 +251,8 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a range-bar chart with a time y-axis`, async () => {
-        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'range-bar');
+    it(`should render a horizontal range-bar chart with a time y-axis`, async () => {
+        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
@@ -273,7 +273,7 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a range-column chart with a number x-axis`, async () => {
+    it(`should render a range-bar chart with a number x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
@@ -294,8 +294,8 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a range-bar chart with a number y-axis`, async () => {
-        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'range-bar');
+    it(`should render a horizontal range-bar chart with a number y-axis`, async () => {
+        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
