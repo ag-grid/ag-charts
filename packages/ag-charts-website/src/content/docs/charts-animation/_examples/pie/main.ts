@@ -25,6 +25,7 @@ const options: AgChartOptions = {
       sectorLabel: {
         color: "white",
         fontWeight: "bold",
+        formatter: ({ sectorLabelValue }) => sectorLabelValue ? `${Math.round(parseFloat(sectorLabelValue) * 100) / 100}` : '',
       },
     },
   ],
