@@ -1,6 +1,6 @@
 import type { AgCartesianChartOptions } from 'ag-charts-community';
 
-export const WATERFALL_BAR_DEFAULTS: AgCartesianChartOptions = {
+export const WATERFALL_DEFAULTS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'category',

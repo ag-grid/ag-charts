@@ -130,7 +130,7 @@ class RangeBarSeriesLabel extends _Scene.Label {
 
 export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarContext, _Scene.Rect> {
     static className = 'RangeBarSeries';
-    static type: 'range-bar' | 'range-bar' = 'range-bar' as const;
+    static type = 'range-bar' as const;
 
     readonly label = new RangeBarSeriesLabel();
 

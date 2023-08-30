@@ -75,7 +75,7 @@ export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 /** Configuration for RangeBar series. */
 export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     /** Configuration for the RangeBar series. */
-    type: 'range';
+    type: 'range-bar';
     /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
     direction?: 'horizontal' | 'vertical';
     /** The key to use to retrieve x-values from the data. */
