@@ -228,7 +228,7 @@ function UnionNestedObject({
     const [isExpanded, setExpanded] = useState(expandedInitially);
     const { onSelection } = useContext(SelectionContext);
     const toggleSelection = () => {
-        onSelection && onSelection({ type: 'unionNestedObject', index, path, data: desc });
+        onSelection && onSelection({ type: 'unionNestedObject', index, path, model: desc });
     };
     const toggleExpand = () => {
         setExpanded((expanded) => !expanded);
@@ -346,7 +346,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     const [isJSONNodeExpanded, setJSONNodeExpanded] = useState(expandedInitially);
     const { onSelection } = useContext(SelectionContext);
     const toggleSelection = () => {
-        onSelection && onSelection({ type: 'property', propName, path, data: desc });
+        onSelection && onSelection({ type: 'property', propName, path, model: meta });
     };
     const toggleExpand = () => {
         if (!expandable) {

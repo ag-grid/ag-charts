@@ -1,41 +1,24 @@
 import { useCallback, type FunctionComponent, useState } from 'react';
 import { JsObjectView } from './JsObjectView';
 import styles from './JsObjectProperties.module.scss';
-import type { Config, JsObjectPropertiesViewProps, OnSelectionValue } from '../types';
-import { InterfaceDocumentation } from './InterfaceDocumentation';
+import type { Config, JsObjectPropertiesViewProps, JsObjectSelection } from '../types';
+import { JsObjectDetails } from './JsObjectDetails';
 
 export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewProps> = ({
     interfaceName,
-    framework,
     breadcrumbs = [],
     codeLookup,
     interfaceLookup,
     config = {} as Config,
+    framework,
 }) => {
-    const [selectedPropName, setSelectedPropName] = useState<string>();
+    const [selection, setSelection] = useState<JsObjectSelection>();
     const onSelection = useCallback(
-        ({ propName, path }: OnSelectionValue) => {
-            // Only support top level selections
-            if (path.length === 0 && propName) {
-                if (selectedPropName === propName) {
-                    setSelectedPropName(undefined);
-                } else {
-                    setSelectedPropName(propName);
-                }
-            }
+        (data: JsObjectSelection) => {
+            setSelection(data);
         },
-        [selectedPropName]
+        [selection]
     );
-    const names = selectedPropName ? [selectedPropName] : [];
-
-    const docsConfig: Config = {
-        ...config,
-        description: '',
-        lookups: {
-            codeLookup,
-            interfaces: interfaceLookup,
-        },
-    };
     return (
         <div className={styles.container}>
             <JsObjectView
@@ -47,14 +30,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
                 onSelection={onSelection}
             />
 
-            <InterfaceDocumentation
-                interfaceName={interfaceName}
-                framework={framework}
-                names={names}
-                interfaceLookup={interfaceLookup}
-                codeLookup={codeLookup}
-                config={docsConfig}
-            />
+            {selection ? <JsObjectDetails selection={selection} framework={framework} /> : 'TODO: No selection'}
         </div>
     );
 };

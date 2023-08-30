@@ -98,6 +98,12 @@
     }
 }
 
+.parentProperties {
+    font-weight: var(--font-weight-normal);
+    color: var(--secondary-text-color);
+    line-break: anywhere;
+}
+
 .metaList {
     display: flex;
     flex-wrap: wrap;

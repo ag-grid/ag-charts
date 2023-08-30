@@ -237,19 +237,21 @@ export interface ApiDocumentationProps {
     config?: Config;
 }
 
-export type OnSelectionValue =
-    | {
-          type: 'property';
-          propName: string;
-          path: string[];
-          data: JsonProperty;
-      }
-    | {
-          type: 'unionNestedObject';
-          index: number;
-          path: string[];
-          data: JsonProperty;
-      };
+export interface JsObjectSelectionProperty {
+    type: 'property';
+    propName: string;
+    path: string[];
+    model: JsonModelProperty;
+}
+
+export interface JsObjectSelectionUnionNestedObject {
+    type: 'unionNestedObject';
+    index: number;
+    path: string[];
+    model: JsonObjectProperty;
+}
+
+export type JsObjectSelection = JsObjectSelectionProperty | JsObjectSelectionUnionNestedObject;
 
 export interface JsObjectViewProps {
     interfaceName: string;
@@ -267,6 +269,7 @@ export interface JsObjectPropertiesViewProps {
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
     config?: Config;
+    framework: Framework;
 }
 
 export interface InterfaceDocumentationProps {
