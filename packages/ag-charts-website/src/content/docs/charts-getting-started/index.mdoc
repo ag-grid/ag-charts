@@ -58,10 +58,10 @@ const options = {
         left: 40
     },
     series: [
-        { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-        { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-        { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-        { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
     ],
     legend: {
         spacing: 40
@@ -147,10 +147,10 @@ export default class ChartExample extends Component {
                     left: 40,
                 },
                 series: [
-                    { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-                    { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-                    { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-                    { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+                    { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+                    { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+                    { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+                    { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
                 ],
                 legend: { spacing: 40 },
             },
@@ -230,10 +230,10 @@ export class AppComponent {
                 text: 'Based on a sample size of 200 respondents',
             },
             series: [
-                { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
-                { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-                { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-                { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
             ],
         };
     }
@@ -338,10 +338,10 @@ export class AppModule {
                       left: 40,
                     },
                     series: [
-                      { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-                      { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-                      { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-                      { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+                      { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+                      { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+                      { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+                      { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
                     ],
                     legend: { spacing: 40 },
                 },
@@ -859,10 +859,10 @@ agCharts.AgChart.create({
     data: data,
     container: document.getElementById('myChart'),
     series: [
-        { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-        { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-        { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-        { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+        { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
     ],
 });
 ```
@@ -879,10 +879,10 @@ constructor() {
     this.options = {
         data: this.data,
         series: [
-            { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-            { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-            { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-            { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+            { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+            { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+            { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+            { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
         ],
     };
 }
@@ -898,10 +898,10 @@ constructor(props) {
         options: {
             data: this.data,
             series: [
-                { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-                { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-                { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-                { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+                { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
             ],
         }
     }
@@ -940,10 +940,10 @@ data() {
         },
       ],
       series: [
-          { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-          { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-          { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-          { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+          { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+          { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+          { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+          { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
       ],
     },
   };
@@ -968,28 +968,28 @@ agCharts.AgChart.create({
     container: document.getElementById('myChart'),
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q1',
             stacked: true,
 +            label: {},
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q2',
             stacked: true,
 +            label: {},
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q3',
             stacked: true,
 +            label: {},
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q4',
             stacked: true,
@@ -1008,28 +1008,28 @@ constructor() {
         data: this.data,
         series: [
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q1',
                 stacked: true,
 +                label: {},
             },
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q2',
                 stacked: true,
 +                label: {},
             },
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q3',
                 stacked: true,
 +                label: {},
             },
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q4',
                 stacked: true,
@@ -1051,28 +1051,28 @@ constructor(props) {
             data: this.data,
             series: [
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q1',
                     stacked: true,
 +                    label: {},
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q2',
                     stacked: true,
 +                    label: {},
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q3',
                     stacked: true,
 +                    label: {},
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q4',
                     stacked: true,
@@ -1115,28 +1115,28 @@ data() {
       ],
       series: [
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q1',
           stacked: true,
 +          label: {},
         },
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q2',
           stacked: true,
 +          label: {},
         },
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q3',
           stacked: true,
 +          label: {},
         },
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q4',
           stacked: true,
@@ -1170,28 +1170,28 @@ agCharts.AgChart.create({
 +    },
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q1',
             stacked: true,
             label: {},
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q2',
             stacked: true,
             label: {},
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q3',
             stacked: true,
             label: {},
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'beverage',
             yKey: 'Q4',
             stacked: true,
@@ -1218,28 +1218,28 @@ constructor() {
 +        },
         series: [
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q1',
                 stacked: true,
                 label: {},
             },
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q2',
                 stacked: true,
                 label: {},
             },
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q3',
                 stacked: true,
                 label: {},
             },
             {
-                type: 'column',
+                type: 'bar',
                 xKey: 'beverage',
                 yKey: 'Q4',
                 stacked: true,
@@ -1270,28 +1270,28 @@ constructor(props) {
 +              },
             series: [
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q1',
                     stacked: true,
                     label: {},
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q2',
                     stacked: true,
                     label: {},
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q3',
                     stacked: true,
                     label: {},
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'beverage',
                     yKey: 'Q4',
                     stacked: true,
@@ -1343,28 +1343,28 @@ data() {
 +      },
       series: [
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q1',
           stacked: true,
           label: {},
         },
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q2',
           stacked: true,
           label: {},
         },
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q3',
           stacked: true,
           label: {},
         },
         {
-          type: 'column',
+          type: 'bar',
           xKey: 'beverage',
           yKey: 'Q4',
           stacked: true,

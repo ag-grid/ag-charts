@@ -44,31 +44,31 @@ const options: AgChartOptions = {
   ],
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "naturalGas",
       yName: "Natural gas",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "coal",
       yName: "Coal",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "primaryOil",
       yName: "Primary oil",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "petroleum",
       yName: "Petroleum",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "manufacturedFuels",
       yName: "Manufactured fuels",

@@ -12,7 +12,7 @@ const options: AgChartOptions = {
   data: getData(),
   series: [
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'iphone',
     },

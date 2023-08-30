@@ -12,7 +12,7 @@ const options: AgChartOptions = {
       strokes: ["#19A0AA", "#F15F36"],
     },
     overrides: {
-      column: {
+      bar: {
         series: {
           highlightStyle: {
             series: {
@@ -34,13 +34,13 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       yKey: "menDelta",
       yName: "Male",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       yKey: "womenDelta",
       yName: "Female",

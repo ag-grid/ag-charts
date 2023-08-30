@@ -38,7 +38,7 @@ const options: AgChartOptions = {
   ],
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       tooltip: { renderer: renderer },
       yKey: "sweaters",
@@ -46,7 +46,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       tooltip: { renderer: renderer },
       yKey: "hats",

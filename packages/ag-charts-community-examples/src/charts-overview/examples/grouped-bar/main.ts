@@ -36,12 +36,14 @@ const options: AgChartOptions = {
   series: [
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "type",
       yKey: "total",
       yName: "Annual growth in total pay",
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "type",
       yKey: "regular",
       yName: "Annual growth in regular pay",

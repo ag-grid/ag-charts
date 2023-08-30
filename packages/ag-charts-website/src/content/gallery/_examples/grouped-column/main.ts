@@ -7,7 +7,7 @@ const options: AgChartOptions = {
     data: getData(),
     theme: {
         overrides: {
-            column: {
+            bar: {
                 series: {
                     strokeWidth: 0,
                     highlightStyle: {
@@ -32,13 +32,13 @@ const options: AgChartOptions = {
         text: 'Source: Office for National Statistics',
     },
     series: [
-        { type: 'column', xKey: 'year', yKey: '16-24' },
-        { type: 'column', xKey: 'year', yKey: '25-34' },
-        { type: 'column', xKey: 'year', yKey: '35-44' },
-        { type: 'column', xKey: 'year', yKey: '45-54' },
-        { type: 'column', xKey: 'year', yKey: '55-64' },
-        { type: 'column', xKey: 'year', yKey: '65-74' },
-        { type: 'column', xKey: 'year', yKey: '75+' },
+        { type: 'bar', xKey: 'year', yKey: '16-24' },
+        { type: 'bar', xKey: 'year', yKey: '25-34' },
+        { type: 'bar', xKey: 'year', yKey: '35-44' },
+        { type: 'bar', xKey: 'year', yKey: '45-54' },
+        { type: 'bar', xKey: 'year', yKey: '55-64' },
+        { type: 'bar', xKey: 'year', yKey: '65-74' },
+        { type: 'bar', xKey: 'year', yKey: '75+' },
     ],
     axes: [
         {

@@ -44,7 +44,7 @@ data: [
 ];
 ```
 
-Notice that when we set the `yName` of the `'column'` series:
+Notice that when we set the `yName` of the `'bar'` series:
 
 -   The tooltip title is visible when `yName` config is set, and hidden when the `yName` is reset.
 -   The `yName` changes are reflected in the legend as well.
@@ -180,7 +180,7 @@ Let's say we wanted to remove the digits after the decimal point from the values
 ```js
 series: [
     {
-        type: 'column',
+        type: 'bar',
         tooltip: {
             renderer: function (params) {
                 return `

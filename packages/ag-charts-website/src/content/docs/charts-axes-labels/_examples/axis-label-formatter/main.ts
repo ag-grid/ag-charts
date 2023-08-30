@@ -9,7 +9,7 @@ const options: AgChartOptions = {
   ],
   series: [
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'os',
       yKey: 'share',
     },

@@ -5,7 +5,7 @@ const options: AgChartOptions = {
   container: document.getElementById('myChart'),
   theme: {
     overrides: {
-      column: {
+      bar: {
         axes: {
           category: {
             groupPaddingInner: 0,
@@ -23,31 +23,31 @@ const options: AgChartOptions = {
   data: getData(),
   series: [
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'iphone',
       yName: 'iPhone',
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'mac',
       yName: 'Mac',
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'ipad',
       yName: 'iPad',
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'wearables',
       yName: 'Wearables',
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'services',
       yName: 'Services',

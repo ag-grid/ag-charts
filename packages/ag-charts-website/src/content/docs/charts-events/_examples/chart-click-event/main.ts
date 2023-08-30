@@ -20,7 +20,7 @@ const options: AgChartOptions = {
   ],
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       yKey: "units",
     },

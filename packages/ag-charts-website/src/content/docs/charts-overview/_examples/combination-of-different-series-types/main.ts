@@ -11,7 +11,7 @@ const options: AgChartOptions = {
       strokes: ["#c16068", "#a2bf8a", "#80a0c3"],
     },
     overrides: {
-      column: { series: { strokeWidth: 0 } },
+      bar: { series: { strokeWidth: 0 } },
       line: { series: { strokeWidth: 5, marker: { enabled: false } } },
     },
   },
@@ -26,13 +26,13 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "male",
       yName: "Male cattle",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "female",
       yName: "Female cattle",

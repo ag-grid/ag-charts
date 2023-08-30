@@ -9,7 +9,7 @@ const options: AgCartesianChartOptions = {
   ],
   series: [
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'os',
       yKey: 'share',
     },

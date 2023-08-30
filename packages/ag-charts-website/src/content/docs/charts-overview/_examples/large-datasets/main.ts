@@ -42,7 +42,7 @@ const series: AgCartesianSeriesOptions[] = [
   },
   {
     data: getData(count),
-    type: "column",
+    type: "bar",
     xKey: "time",
     yKey: "value",
     yName: "Column",
@@ -63,7 +63,7 @@ const options: AgCartesianChartOptions = {
           line: highlightTheme,
           scatter: highlightTheme,
           area: highlightTheme,
-          column: highlightTheme,
+          bar: highlightTheme,
         },
       },
     },
