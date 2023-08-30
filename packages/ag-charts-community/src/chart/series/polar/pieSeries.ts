@@ -192,8 +192,8 @@ export class DoughnutInnerCircle {
     fillOpacity? = 1;
 }
 
-type PieAnimationState = 'empty' | 'ready' | 'waiting';
-type PieAnimationEvent = 'update' | 'updateData';
+type PieAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+type PieAnimationEvent = 'update' | 'updateData' | 'clear';
 class PieStateMachine extends StateMachine<PieAnimationState, PieAnimationEvent> {}
 
 export class PieSeries extends PolarSeries<PieNodeDatum> {
@@ -364,7 +364,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             empty: {
                 update: {
                     target: 'ready',
-                    action: () => this.animateEmptyUpdateReady(),
+                    action: (data) => this.animateEmptyUpdateReady(data),
                 },
             },
             ready: {
@@ -375,11 +375,20 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 updateData: {
                     target: 'waiting',
                 },
+                clear: {
+                    target: 'clearing',
+                },
             },
             waiting: {
                 update: {
                     target: 'ready',
                     action: () => this.animateWaitingUpdateReady(),
+                },
+            },
+            clearing: {
+                update: {
+                    target: 'empty',
+                    action: () => this.animateClearingUpdateEmpty(),
                 },
             },
         });
@@ -461,7 +470,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         this.dataModel = dataModel;
         this.processedData = processedData;
 
-        this.animationState.transition('updateData');
+        if (processedData?.reduced?.diff?.added.length > 0 && processedData?.reduced?.diff?.removed.length > 0) {
+            this.animationState.transition('clear');
+        } else {
+            this.animationState.transition('updateData');
+        }
     }
 
     maybeRefreshNodeData() {
@@ -1646,13 +1659,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    animateEmptyUpdateReady() {
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+    animateEmptyUpdateReady(data?: { duration: number }) {
+        const duration = data?.duration ?? this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
 
         const rotation = Math.PI / -2 + toRadians(this.rotation);
 
-        const sectors = this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
+        const sectors = this.sortSectorsByData(this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector));
         sectors.forEach((sector, index) => {
             const datum: PieNodeDatum = sector.datum;
             const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
@@ -1852,6 +1865,44 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                     label.opacity = opacity;
                 },
             });
+        });
+    }
+
+    animateClearingUpdateEmpty() {
+        const updateDuration = (this.ctx.animationManager?.defaultOptions.duration ?? 1000) / 2;
+        const clearDuration = 200;
+
+        const sectors = this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
+        sectors.forEach((sector, index) => {
+            const cleanup = index === sectors.length - 1;
+            this.ctx.animationManager.animate(`${this.id}_animate-ready-clear_${sector.id}`, {
+                duration: clearDuration,
+                from: 1,
+                to: 0,
+                ease: easing.easeOut,
+                onUpdate(opacity) {
+                    sector.opacity = opacity;
+                },
+                onComplete: () => {
+                    sector.opacity = 1;
+                    if (cleanup) {
+                        this.resetSectors();
+                        this.animationState.transition('update', { duration: updateDuration });
+                    }
+                },
+            });
+        });
+
+        this.calloutLabelSelection.each((label) => {
+            label.opacity = 0;
+        });
+
+        this.sectorLabelSelection.each((label) => {
+            label.opacity = 0;
+        });
+
+        this.innerLabelsSelection.each((label) => {
+            label.opacity = 0;
         });
     }
 
