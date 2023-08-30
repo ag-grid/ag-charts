@@ -57,6 +57,7 @@ import type { Has } from '../../../util/types';
 import type { DataController } from '../../data/dataController';
 import type { DataModel } from '../../data/dataModel';
 import { diff } from '../../data/processors';
+import { zipObject } from '../../../util/zip';
 
 class PieSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -1741,64 +1742,56 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             datumIndices[datumId] = index;
         });
 
+        const addedIds = zipObject(diff.added, true);
+        const removedIds = zipObject(diff.removed, true);
+
+        const sortedSectors = [...sectors].sort((a, b) => {
+            const aId = this.getDatumId(a.datum);
+            const bId = this.getDatumId(b.datum);
+
+            if (removedIds[aId] && removedIds[bId]) return 0;
+            if (removedIds[aId]) return 1;
+            if (removedIds[bId]) return -1;
+            return 0;
+        });
+
         sectors.forEach((sector, index) => {
             const { datum } = sector;
             const datumId = this.getDatumId(datum);
-
-            const isAdded = diff.added.includes(datumId);
-            const isRemoved = diff.removed.includes(datumId);
-
             const cleanup = index === sectors.length - 1;
+            const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
+            const replacement = sortedSectors[index];
 
-            let formatIndex = datumIndices[datumId] ?? index;
-            if (isRemoved) formatIndex = diff.removedIndices[diff.removed.findIndex((d: string) => d === datumId)];
-            const format = this.getSectorFormat(datum.datum, datum.itemId, formatIndex, false);
+            let startAngleFrom = sector.startAngle;
+            let startAngleTo = replacement.datum.startAngle;
+            let endAngleFrom = sector.endAngle;
+            let endAngleTo = replacement.datum.endAngle;
+            let fillFrom = sector.fill ?? format.fill;
+            let fillTo = format.fill;
 
-            let props = [
-                { from: sector.startAngle, to: datum.startAngle },
-                { from: sector.endAngle, to: datum.endAngle },
-                { from: sector.fill ?? format.fill, to: format.fill },
-            ];
-
-            if (isRemoved) {
-                // Find, by the earlier indices, the nearest sector that still exists previous to this removed sector.
-                // Then transition both angles of this sector to that sectors end position, if it exists, else to
-                // the starting point of the pie.
-                let previousExistingIndex = -1;
-                const removedIndex = diff.removedIndices[diff.removed.findIndex((d: string) => d === datumId)];
-                for (let i = removedIndex - 1; i >= 0; i--) {
-                    if (!diff.removedIndices.includes(i)) {
-                        previousExistingIndex = diff.updatedIndices.findIndex((ui: number) => ui === i);
-                        break;
-                    }
-                }
-                const previousSector = sectors[previousExistingIndex];
-                const previousEndAngle = previousSector?.datum.endAngle ?? rotation;
-
-                props = [
-                    { from: datum.startAngle, to: previousEndAngle },
-                    { from: datum.endAngle, to: previousEndAngle },
-                    { from: format.fill, to: format.fill },
-                ];
-            } else if (isAdded) {
+            if (index >= sectors.length - diff.removed.length) {
+                startAngleTo = Math.PI * 1.5;
+                endAngleTo = startAngleTo;
+            } else if (addedIds[datumId]) {
                 const previousSector = sectors[index - 1];
                 const previousEndAngle = previousSector?.endAngle ?? rotation;
 
-                props = [
-                    { from: previousEndAngle, to: datum.startAngle },
-                    { from: previousEndAngle, to: datum.endAngle },
-                    { from: format.fill, to: format.fill },
-                ];
+                startAngleFrom = previousEndAngle;
+                startAngleTo = datum.startAngle;
+                endAngleFrom = previousEndAngle;
+                endAngleTo = datum.endAngle;
+                fillFrom = format.fill;
+                fillTo = format.fill;
             }
 
-            props.push(
+            const props = [
+                { from: startAngleFrom, to: startAngleTo },
+                { from: endAngleFrom, to: endAngleTo },
+                { from: fillFrom, to: fillTo },
                 { from: sector.stroke ?? format.stroke, to: format.stroke },
                 { from: sector.strokeWidth, to: format.strokeWidth },
-                { from: sector.fillOpacity, to: format.fillOpacity }
-            );
-
-            // All sectors must be visible while animating, including removed ones, these are hidden in `resetSectors()`
-            sector.visible = true;
+                { from: sector.fillOpacity, to: format.fillOpacity },
+            ];
 
             this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${sector.id}`, props, {
                 duration,
@@ -1815,6 +1808,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                     if (cleanup) this.resetSectors();
                 },
             });
+
+            // All sectors must be visible while animating, including removed ones, these are hidden in `resetSectors()`
+            sector.visible = true;
         });
 
         this.highlightSelection.selectByTag<Sector>(PieNodeTag.Sector).forEach((sector) => {
