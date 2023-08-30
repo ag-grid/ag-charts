@@ -8,7 +8,7 @@ import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
 import type { Text } from '../../../scene/shape/text';
 import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
     CartesianSeries,
     CartesianSeriesMarker,
@@ -33,7 +33,7 @@ import type {
     AgCartesianSeriesMarkerFormat,
 } from '../../agChartOptions';
 import type { UngroupedDataItem } from '../../data/dataModel';
-import { diff } from '../../data/processors';
+import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
@@ -67,6 +67,8 @@ class LineSeriesTooltip extends SeriesTooltip {
 }
 
 type LineContext = SeriesNodeDataContext<LineNodeDatum>;
+type LineAnimationData = CartesianAnimationData<LineContext>;
+
 export class LineSeries extends CartesianSeries<LineContext> {
     static className = 'LineSeries';
     static type = 'line' as const;
@@ -309,7 +311,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             markerSelection.clear();
         }
 
-        return markerSelection.update(nodeData, undefined, (datum) => `${datum.xValue}`);
+        return markerSelection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
     protected async updateMarkerNodes(opts: {
@@ -507,17 +509,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         return legendData;
     }
 
-    animateEmptyUpdateReady({
-        markerSelections,
-        labelSelections,
-        contextData,
-        paths,
-    }: {
-        markerSelections: Array<Selection<Marker, LineNodeDatum>>;
-        labelSelections: Array<Selection<Text, LineNodeDatum>>;
-        contextData: Array<LineContext>;
-        paths: Array<Array<Path>>;
-    }) {
+    animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths }: LineAnimationData) {
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
 
@@ -626,36 +618,21 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    animateReadyUpdate(data: {
-        markerSelections: Array<Selection<Marker, LineNodeDatum>>;
-        contextData: Array<LineContext>;
-        paths: Array<Array<Path>>;
-    }) {
-        this.resetMarkersAndPaths(data);
+    animateReadyUpdate(animationData: LineAnimationData) {
+        this.resetMarkersAndPaths(animationData);
     }
 
-    animateReadyResize(data: {
-        markerSelections: Array<Selection<Marker, LineNodeDatum>>;
-        contextData: Array<LineContext>;
-        paths: Array<Array<Path>>;
-    }) {
-        this.resetMarkersAndPaths(data);
+    animateReadyResize(animationData: LineAnimationData) {
+        this.resetMarkersAndPaths(animationData);
     }
 
-    animateWaitingUpdateReady({
-        markerSelections,
-        contextData,
-        paths,
-    }: {
-        markerSelections: Array<Selection<Marker, LineNodeDatum>>;
-        contextData: Array<LineContext>;
-        paths: Array<Array<Path>>;
-    }) {
-        const { processedData, extendLine, findPointOnLine } = this;
+    animateWaitingUpdateReady(animationData: LineAnimationData) {
+        const { markerSelections, contextData, paths } = animationData;
+        const { processedData, extendLine, findPointOnLine, getDatumId } = this;
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            this.resetMarkersAndPaths({ markerSelections, contextData, paths });
+            this.resetMarkersAndPaths(animationData);
             return;
         }
 
@@ -665,7 +642,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
             const markerNodes: { [keyof: string]: Marker } = {};
             markerSelections[contextDataIndex].each((marker, datum) => {
-                markerNodes[`${datum.xValue}`] = marker;
+                markerNodes[getDatumId(datum)] = marker;
             });
 
             // Zip diff arrays into keyed objects for O(1) access
@@ -681,14 +658,14 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
             if (diff.added.length > 0) {
                 for (let i = 0; i < nodeData.length; i++) {
-                    if (!addedIds[`${nodeData[i].xValue}`]) {
+                    if (!addedIds[getDatumId(nodeData[i])]) {
                         firstExistingIndex = i;
                         break;
                     }
                 }
 
                 for (let i = nodeData.length - 1; i >= 0; i--) {
-                    if (!addedIds[`${nodeData[i].xValue}`]) {
+                    if (!addedIds[getDatumId(nodeData[i])]) {
                         lastExistingIndex = i;
                         break;
                     }
@@ -720,7 +697,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
             const removedMarkers: Array<Marker> = [];
             markerSelections[contextDataIndex].each((marker) => {
-                if (removedIds[`${marker.datum.xValue}`]) {
+                if (removedIds[getDatumId(marker.datum)]) {
                     removedMarkers.push(marker);
                 }
             });
@@ -765,7 +742,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
                     // Animate out nodes that were removed before the first node
                     const first = nodeData[0];
-                    const firstDatumId = `${first.xValue}`;
+                    const firstDatumId = getDatumId(first);
                     for (let i = 0; i < removedBefore.length; i++) {
                         const removed = removedBefore[i];
                         const { x, y } = findPointOnLine(removed, first.point, ratio);
@@ -789,7 +766,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                     for (let index = 0; index < nodeData.length; index++) {
                         const datum = nodeData[index];
                         const { point } = datum;
-                        const datumId = `${datum.xValue}`;
+                        const datumId = getDatumId(datum);
                         const prevPoint = index > 0 ? nodeData[index - 1].point : undefined;
 
                         const existingIndex = existingPointsPathMap.get(index);
@@ -890,7 +867,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                             let addedBetweenCount = 1;
 
                             for (let i = index - 1; i > 0; i--) {
-                                if (!addedIds[`${nodeData[i].xValue}`]) {
+                                if (!addedIds[getDatumId(nodeData[i])]) {
                                     startPoint = nodeData[i].point;
                                     startIndex = i;
                                     break;
@@ -900,7 +877,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                             }
 
                             for (let i = index + 1; i < nodeData.length; i++) {
-                                if (!addedIds[`${nodeData[i].xValue}`]) {
+                                if (!addedIds[getDatumId(nodeData[i])]) {
                                     endPoint = nodeData[i].point;
                                     endIndex = i;
                                     break;
@@ -947,7 +924,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
                     // Animate out nodes that were removed after the last node
                     const last = nodeData[nodeData.length - 1];
-                    const lastDatumId = `${last.xValue}`;
+                    const lastDatumId = getDatumId(last);
                     for (let i = 0; i < removedAfter.length; i++) {
                         const removed = removedAfter[i];
                         const { x, y } = findPointOnLine(removed, last.point, ratio);
@@ -971,21 +948,13 @@ export class LineSeries extends CartesianSeries<LineContext> {
                     lineNode.checkPathDirty();
                 },
                 onComplete: () => {
-                    this.resetMarkersAndPaths({ markerSelections, contextData, paths });
+                    this.resetMarkersAndPaths(animationData);
                 },
             });
         });
     }
 
-    resetMarkersAndPaths({
-        markerSelections,
-        contextData,
-        paths,
-    }: {
-        markerSelections: Array<Selection<Marker, LineNodeDatum>>;
-        contextData: Array<LineContext>;
-        paths: Array<Array<Path>>;
-    }) {
+    resetMarkersAndPaths({ markerSelections, contextData, paths }: LineAnimationData) {
         markerSelections.forEach((markerSelection) => {
             markerSelection.cleanup();
         });
@@ -1068,6 +1037,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
         const x = a.x + distance * (b.x - a.x);
         const y = a.y + distance * (b.y - a.y);
         return { x, y };
+    }
+
+    private getDatumId(datum: LineNodeDatum) {
+        return `${datum.xValue}`;
     }
 
     protected isLabelEnabled() {
