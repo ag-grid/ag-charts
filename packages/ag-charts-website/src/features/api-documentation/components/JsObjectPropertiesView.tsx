@@ -16,7 +16,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     const onSelection = useCallback(
         ({ propName, path }: OnSelectionValue) => {
             // Only support top level selections
-            if ((path.length === 0 && propName) || (path.length === 1 && path[0] === propName)) {
+            if (path.length === 0 && propName) {
                 if (selectedPropName === propName) {
                     setSelectedPropName(undefined);
                 } else {

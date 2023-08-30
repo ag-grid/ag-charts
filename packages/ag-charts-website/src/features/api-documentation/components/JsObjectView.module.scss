@@ -83,6 +83,7 @@ $indent: 24px;
 .propertyName {
     position: relative;
     color: var(--property-color);
+    cursor: pointer;
 
     .expander {
         position: absolute;

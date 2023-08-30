@@ -225,31 +225,33 @@ function UnionNestedObject({
         discriminator && discriminator.desc.type === 'primitive' ? discriminator.desc.tsType : null;
     const unionPath = path.concat(`[${discriminatorType || index}]`);
     const expandedInitially = isExpandedInitially(discriminatorType || String(index), unionPath, config);
-    const { onSelection } = useContext(SelectionContext);
     const [isExpanded, setExpanded] = useState(expandedInitially);
-    const onClick = () => {
-        onSelection && onSelection({ type: 'unionNestedObject', path });
+    const { onSelection } = useContext(SelectionContext);
+    const toggleSelection = () => {
+        onSelection && onSelection({ type: 'unionNestedObject', index, path, data: desc });
+    };
+    const toggleExpand = () => {
         setExpanded((expanded) => !expanded);
     };
 
     if (discriminatorType) {
         return (
             <Fragment key={discriminatorType}>
-                <span onClick={onClick} className={styles.expandable}>
+                <span className={styles.expandable}>
                     {isExpanded && <div className={styles.expanderBar}></div>}
                     <span className={classnames('token', 'punctuation')}>
-                        {isExpanded && <JsonNodeExpander isExpanded={isExpanded} />}
+                        {isExpanded && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
                         {' { '}
                     </span>
                     {!isExpanded && (
                         <PropertyDeclaration
                             propName={discriminatorProp}
-                            path={path}
                             tsType={discriminatorType}
                             propDesc={discriminator}
                             isExpanded={isExpanded}
                             expandable={true}
-                            toggleExpand={onClick}
+                            toggleExpand={toggleExpand}
+                            toggleSelection={toggleSelection}
                             style="unionTypeProperty"
                         />
                     )}
@@ -282,10 +284,10 @@ function UnionNestedObject({
 
     return (
         <Fragment key={index}>
-            <span onClick={onClick} className={styles.expandable}>
+            <span className={styles.expandable}>
                 {isExpanded && <div className={styles.expanderBar}></div>}
                 <span className={classnames('token', 'punctuation')}>
-                    {<JsonNodeExpander isExpanded={isExpanded} />}
+                    {<JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
                     {' {'}
                 </span>
                 {isExpanded ? (
@@ -342,6 +344,10 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     const propPath = path.concat(propName);
     const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config);
     const [isJSONNodeExpanded, setJSONNodeExpanded] = useState(expandedInitially);
+    const { onSelection } = useContext(SelectionContext);
+    const toggleSelection = () => {
+        onSelection && onSelection({ type: 'property', propName, path, data: desc });
+    };
     const toggleExpand = () => {
         if (!expandable) {
             return;
@@ -408,12 +414,12 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             {
                 <PropertyDeclaration
                     propName={propName}
-                    path={propPath}
                     tsType={renderTsType ? tsType : null}
                     propDesc={meta}
                     isExpanded={isJSONNodeExpanded}
                     expandable={expandable}
                     toggleExpand={toggleExpand}
+                    toggleSelection={toggleSelection}
                 />
             }
             {!isJSONNodeExpanded && collapsePropertyRendering ? (
@@ -430,7 +436,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     );
 };
 
-function JsonNodeExpander({ toggleExpand, isExpanded }: { toggleExpand?: () => void; isExpanded: boolean }) {
+function JsonNodeExpander({ toggleExpand, isExpanded }: { toggleExpand: () => void; isExpanded: boolean }) {
     return (
         <Icon
             name="chevronRight"
@@ -442,32 +448,23 @@ function JsonNodeExpander({ toggleExpand, isExpanded }: { toggleExpand?: () => v
 
 function PropertyDeclaration({
     propName,
-    path,
     tsType,
     propDesc,
     isExpanded,
     expandable,
     toggleExpand,
+    toggleSelection,
     style = 'propertyName',
 }: {
     propName: string;
-    path: string[];
     tsType: string | null;
     propDesc: { required: boolean };
     isExpanded: boolean;
     expandable: boolean;
     toggleExpand: () => void;
+    toggleSelection: () => void;
     style?: string;
 }) {
-    const { onSelection } = useContext(SelectionContext);
-    const toggleSelection = () => {
-        if (!expandable) {
-            return;
-        }
-
-        onSelection && onSelection({ type: 'property', propName, path });
-    };
-
     const { required } = propDesc;
     return (
         <>
