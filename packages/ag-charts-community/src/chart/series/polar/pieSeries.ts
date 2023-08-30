@@ -1932,6 +1932,18 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 sector.startAngle = datum.startAngle;
                 sector.endAngle = datum.endAngle;
             });
+
+        this.calloutLabelSelection.each((label, _, index) => {
+            label.visible = this.seriesItemEnabled[index];
+        });
+
+        this.sectorLabelSelection.each((label, _, index) => {
+            label.visible = this.seriesItemEnabled[index];
+        });
+
+        this.innerLabelsSelection.each((label, _, index) => {
+            label.visible = this.seriesItemEnabled[index];
+        });
     }
 
     getDatumId(datum: PieNodeDatum) {
