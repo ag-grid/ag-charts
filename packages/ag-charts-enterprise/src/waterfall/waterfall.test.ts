@@ -64,7 +64,7 @@ describe('Chart', () => {
         ],
         series: [
             {
-                type: 'waterfall-column',
+                type: 'waterfall',
                 xKey: 'year',
                 yKey: 'spending',
                 item: {
@@ -107,17 +107,17 @@ describe('Chart', () => {
         (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    function switchSeriesType<T>(opts: T, type: 'waterfall-bar' | 'waterfall-column'): T {
+    function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {
         return {
             ...opts,
             series: opts['series']?.map((s) => ({
                 ...s,
-                type,
+                direction,
             })),
         };
     }
 
-    it(`should render a waterfall-column chart as expected`, async () => {
+    it(`should render a waterfall chart as expected`, async () => {
         const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
         prepareEnterpriseTestOptions(options as any);
 
@@ -125,15 +125,15 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a waterfall-bar chart as expected`, async () => {
-        const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'waterfall-bar') };
+    it(`should render a horizontal waterfall chart as expected`, async () => {
+        const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal') };
         prepareEnterpriseTestOptions(options as any);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
     });
 
-    it(`should render a waterfall-column chart with total and subtotal columns`, async () => {
+    it(`should render a waterfall chart with total and subtotal columns`, async () => {
         const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series;
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
@@ -145,8 +145,8 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a waterfall-bar chart with total and subtotal bars`, async () => {
-        const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'waterfall-bar');
+    it(`should render a horizontal waterfall chart with total and subtotal bars`, async () => {
+        const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal');
         const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series[0];
         const options: AgChartOptions = {
             ...WATERFALL_BAR_OPTIONS,
@@ -158,7 +158,7 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a waterfall-column chart with missing and invalid values`, async () => {
+    it(`should render a waterfall chart with missing and invalid values`, async () => {
         const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series;
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
@@ -171,8 +171,8 @@ describe('Chart', () => {
         await compare();
     });
 
-    it(`should render a waterfall-bar chart with missing and invalid values`, async () => {
-        const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'waterfall-bar');
+    it(`should render a horizontal waterfall chart with missing and invalid values`, async () => {
+        const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal');
         const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series[0];
         const options: AgChartOptions = {
             ...WATERFALL_BAR_OPTIONS,

@@ -12,7 +12,7 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'waterfall-column',
+            type: 'waterfall',
             xKey: 'source',
             xName: 'Source',
             yKey: 'amount',

@@ -25,7 +25,7 @@ const options: AgChartOptions = {
   ],
   series: [
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'country',
       yKey: 'gdp',
       showInLegend: false,

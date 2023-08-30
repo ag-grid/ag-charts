@@ -43,6 +43,7 @@ const options: AgChartOptions = {
   series: [
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "type",
       yKey: "ownerOccupied",
       yName: "Owner occupied",
@@ -50,6 +51,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "type",
       yKey: "privateRented",
       yName: "Private rented",
@@ -57,6 +59,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "type",
       yKey: "localAuthority",
       yName: "Local authority",
@@ -64,6 +67,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "type",
       yKey: "housingAssociation",
       yName: "Housing association",

@@ -12,7 +12,7 @@ var myTheme: AgChartTheme = {
         fontSize: 24,
       },
       series: {
-        column: {
+        bar: {
           label: {
             enabled: true,
             color: "black",
@@ -43,11 +43,11 @@ const options: AgChartOptions = {
     { label: "Windows", v1: 2.8, v2: 1.908, v3: 7.48, v4: 5.29, v5: 8.8 },
   ],
   series: [
-    { type: "column", xKey: "label", yKey: "v1", stacked: true, yName: "Reliability" },
-    { type: "column", xKey: "label", yKey: "v2", stacked: true, yName: "Ease of use" },
-    { type: "column", xKey: "label", yKey: "v3", stacked: true, yName: "Performance" },
-    { type: "column", xKey: "label", yKey: "v4", stacked: true, yName: "Price" },
-    { type: "column", xKey: "label", yKey: "v5", stacked: true, yName: "Market share" },
+    { type: "bar", xKey: "label", yKey: "v1", stacked: true, yName: "Reliability" },
+    { type: "bar", xKey: "label", yKey: "v2", stacked: true, yName: "Ease of use" },
+    { type: "bar", xKey: "label", yKey: "v3", stacked: true, yName: "Performance" },
+    { type: "bar", xKey: "label", yKey: "v4", stacked: true, yName: "Price" },
+    { type: "bar", xKey: "label", yKey: "v5", stacked: true, yName: "Market share" },
   ],
 }
 

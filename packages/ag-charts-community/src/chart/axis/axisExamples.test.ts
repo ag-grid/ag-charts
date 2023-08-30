@@ -62,15 +62,15 @@ const EXAMPLES: Record<string, TestCase> = {
     ...mixinDerivedCases({
         BASIC_CATEGORY_AXIS: {
             options: axesExamples.CATEGORY_AXIS_BASIC_EXAMPLE,
-            assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 3) }),
+            assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 3) }),
         },
         BASIC_CATEGORY_UNIFORM_AXIS: {
             options: axesExamples.CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE,
-            assertions: cartesianChartAssertions({ seriesTypes: ['column'] }),
+            assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
         },
         GROUPED_CATEGORY_AXIS: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['groupedCategory', 'number'], seriesTypes: ['column'] }),
+            assertions: cartesianChartAssertions({ axisTypes: ['groupedCategory', 'number'], seriesTypes: ['bar'] }),
         },
         BASIC_TIME_AXIS: {
             options: axesExamples.TIME_AXIS_BASIC_EXAMPLE,
@@ -130,14 +130,14 @@ const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
         assertions: cartesianChartAssertions({
             axisTypes: ['category', 'number', 'number'],
-            seriesTypes: ['column', 'column', 'line'],
+            seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN,
         assertions: cartesianChartAssertions({
             axisTypes: ['category', 'number', 'number'],
-            seriesTypes: ['column', 'column', 'line'],
+            seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     AREA_CHART_NO_SERIES: {
@@ -171,7 +171,7 @@ const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
     },
     CATEGORY_AXIS_TICK_VALUES: {
         options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('column', 7) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 7) }),
     },
 };
 
@@ -186,7 +186,7 @@ const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
     },
     AXIS_TICK_MIN_MAX_SPACING: {
         options: axesExamples.AXIS_TICK_MIN_MAX_SPACING,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('column', 7) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 7) }),
     },
 };
 
@@ -196,14 +196,14 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
             options: axesExamples.GRDILINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
                 axisTypes: ['category', 'number'],
-                seriesTypes: repeat('column', 3),
+                seriesTypes: repeat('bar', 3),
             }),
         },
         GROUPED_CATEGORY_AXIS_GRDILINE_TICKLINE_CLIPPING: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_GRDILINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
                 axisTypes: ['groupedCategory', 'number'],
-                seriesTypes: ['column'],
+                seriesTypes: ['bar'],
             }),
         },
     }),
@@ -212,7 +212,7 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
 function switchToColumn<T>(opts: T): T {
     return {
         ...opts,
-        series: opts['series']?.map((s) => ({ ...s, type: 'column' })),
+        series: opts['series']?.map((s) => ({ ...s, type: 'bar', direction: 'vertical' })),
         axes: opts['axes']?.map((a) => ({ ...a, position: a.position === 'left' ? 'bottom' : 'left' })),
     };
 }
@@ -251,23 +251,23 @@ const EXAMPLES_LABEL_AUTO_WRAPPING: Record<string, TestCase> = {
     },
     COLUMN_CHART_EXAMPLE: {
         options: applyAutoWrapping(switchToColumn(examples.BAR_CHART_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
     },
     GROUPED_COLUMN_CHART_EXAMPLE: {
         options: applyAutoWrapping(switchToColumn(examples.GROUPED_BAR_CHART_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 2) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 2) }),
     },
     STACKED_COLUMN_CHART_EXAMPLE: {
         options: applyAutoWrapping(switchToColumn(examples.STACKED_BAR_CHART_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 4) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 4) }),
     },
     ONE_HUNDRED_PERCENT_STACKED_COLUMN_EXAMPLE: {
         options: applyAutoWrapping(switchToColumn(examples.ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('column', 3) }),
+        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 3) }),
     },
     COLUMN_CHART_WITH_LABELS_EXAMPLE: {
         options: applyAutoWrapping(switchToColumn(examples.BAR_CHART_WITH_LABELS_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
     },
     SIMPLE_LINE_CHART_EXAMPLE: {
         options: applyAutoWrapping(examples.SIMPLE_LINE_CHART_EXAMPLE, 80),

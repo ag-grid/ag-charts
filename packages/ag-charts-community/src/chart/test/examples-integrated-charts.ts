@@ -65,7 +65,7 @@ const BASE_THEME: AgChartTheme = {
                     text: 'Medals by Age',
                 },
             },
-            column: {
+            bar: {
                 axes: {
                     category: {
                         label: {
@@ -344,7 +344,7 @@ const COLUMN_BASIC: AgCartesianChartOptions = {
     ],
     series: [
         {
-            type: 'column',
+            type: 'bar',
             grouped: true,
             stacked: false,
             xKey: 'age',
@@ -353,7 +353,7 @@ const COLUMN_BASIC: AgCartesianChartOptions = {
             yName: 'Gold',
         },
         {
-            type: 'column',
+            type: 'bar',
             grouped: true,
             stacked: false,
             xKey: 'age',
@@ -362,7 +362,7 @@ const COLUMN_BASIC: AgCartesianChartOptions = {
             yName: 'Silver',
         },
         {
-            type: 'column',
+            type: 'bar',
             grouped: true,
             stacked: false,
             xKey: 'age',
@@ -387,7 +387,7 @@ const COLUMN_STACKED: AgCartesianChartOptions = {
     ],
     series: [
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: true,
             xKey: 'age',
@@ -396,7 +396,7 @@ const COLUMN_STACKED: AgCartesianChartOptions = {
             yName: 'Gold',
         },
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: true,
             xKey: 'age',
@@ -405,7 +405,7 @@ const COLUMN_STACKED: AgCartesianChartOptions = {
             yName: 'Silver',
         },
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: true,
             xKey: 'age',
@@ -431,7 +431,7 @@ const COLUMN_STACKED_NORMALISED: AgCartesianChartOptions = {
     ],
     series: [
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: true,
             normalizedTo: 100,
@@ -441,7 +441,7 @@ const COLUMN_STACKED_NORMALISED: AgCartesianChartOptions = {
             yName: 'Gold',
         },
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: true,
             normalizedTo: 100,
@@ -451,7 +451,7 @@ const COLUMN_STACKED_NORMALISED: AgCartesianChartOptions = {
             yName: 'Silver',
         },
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: true,
             normalizedTo: 100,
@@ -478,6 +478,7 @@ const BAR_BASIC: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: true,
             stacked: false,
             xKey: 'age',
@@ -487,6 +488,7 @@ const BAR_BASIC: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: true,
             stacked: false,
             xKey: 'age',
@@ -496,6 +498,7 @@ const BAR_BASIC: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: true,
             stacked: false,
             xKey: 'age',
@@ -521,6 +524,7 @@ const BAR_STACKED: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: true,
             xKey: 'age',
@@ -530,6 +534,7 @@ const BAR_STACKED: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: true,
             xKey: 'age',
@@ -539,6 +544,7 @@ const BAR_STACKED: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: true,
             xKey: 'age',
@@ -565,6 +571,7 @@ const BAR_STACKED_NORMALISED: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: true,
             normalizedTo: 100,
@@ -575,6 +582,7 @@ const BAR_STACKED_NORMALISED: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: true,
             normalizedTo: 100,
@@ -585,6 +593,7 @@ const BAR_STACKED_NORMALISED: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: true,
             normalizedTo: 100,
@@ -1082,7 +1091,7 @@ const COMBO_LINE: AgCartesianChartOptions = {
     ],
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'age',
             yKey: 'gold',
             yName: 'Gold',
@@ -1090,7 +1099,7 @@ const COMBO_LINE: AgCartesianChartOptions = {
             grouped: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'age',
             yKey: 'silver',
             yName: 'Silver',
@@ -1137,7 +1146,7 @@ const COMBO_AREA: AgCartesianChartOptions = {
             stacked: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'age',
             yKey: 'bronze',
             yName: 'Bronze',
@@ -1317,6 +1326,7 @@ const CROSSFILTER_BAR: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: false,
             xKey: 'handset',
@@ -1331,6 +1341,7 @@ const CROSSFILTER_BAR: AgCartesianChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             grouped: false,
             stacked: false,
             xKey: 'handset',
@@ -1422,7 +1433,7 @@ const CROSSFILTER_COLUMN: AgCartesianChartOptions = {
     ],
     series: [
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: false,
             xKey: 'quarter',
@@ -1437,7 +1448,7 @@ const CROSSFILTER_COLUMN: AgCartesianChartOptions = {
             listeners: {},
         },
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             stacked: false,
             xKey: 'quarter',

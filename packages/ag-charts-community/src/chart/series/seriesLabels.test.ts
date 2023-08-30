@@ -22,20 +22,20 @@ expect.extend({ toMatchImageSnapshot });
 const EXAMPLES: Record<string, TestCase> = {
     COLUMN_SERIES_LABELS: {
         options: examples.COLUMN_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['bar'] }),
     },
     STACKED_COLUMN_SERIES_LABELS: {
         options: examples.STACKED_COLUMN_SERIES_LABELS,
         assertions: cartesianChartAssertions({
             axisTypes: ['number', 'category'],
-            seriesTypes: repeat('column', 5),
+            seriesTypes: repeat('bar', 5),
         }),
     },
     GROUPED_COLUMN_SERIES_LABELS: {
         options: examples.GROUPED_COLUMN_SERIES_LABELS,
         assertions: cartesianChartAssertions({
             axisTypes: ['number', 'category'],
-            seriesTypes: repeat('column', 5),
+            seriesTypes: repeat('bar', 5),
         }),
     },
     BAR_SERIES_LABELS: {
@@ -115,14 +115,14 @@ const EXAMPLES: Record<string, TestCase> = {
         options: examples.LINE_COLUMN_COMBO_SERIES_LABELS,
         assertions: cartesianChartAssertions({
             axisTypes: ['category', 'number', 'number'],
-            seriesTypes: ['column', 'column', 'line'],
+            seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     AREA_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.AREA_COLUMN_COMBO_SERIES_LABELS,
         assertions: cartesianChartAssertions({
             axisTypes: ['category', 'number', 'number'],
-            seriesTypes: ['area', 'column', 'column'],
+            seriesTypes: ['area', 'bar', 'bar'],
         }),
     },
     HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: {

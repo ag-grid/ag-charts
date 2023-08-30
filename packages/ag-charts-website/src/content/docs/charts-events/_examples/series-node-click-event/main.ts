@@ -20,7 +20,7 @@ const options: AgChartOptions = {
       yKey: "high",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       yKey: "low",
     },

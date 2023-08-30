@@ -1,5 +1,5 @@
 import type { AgAreaSeriesOptions } from '../series/cartesian/areaOptions';
-import type { AgBarSeriesOptions, AgColumnSeriesOptions } from '../series/cartesian/barOptions';
+import type { AgBarSeriesOptions } from '../series/cartesian/barOptions';
 import type { AgCartesianSeriesTheme, AgCartesianThemeOptions } from '../series/cartesian/cartesianOptions';
 import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesOptions } from '../series/cartesian/lineOptions';
@@ -51,8 +51,6 @@ export interface AgChartTheme extends AgChartThemeOptions {
 export interface AgChartThemeOverrides {
     /** Specifies defaults for all cartesian charts (used for bar, column, histogram, line, scatter and area series) */
     cartesian?: AgCartesianThemeOptions<AgCartesianSeriesTheme>;
-    /** Specifies defaults for column charts. */
-    column?: AgCartesianThemeOptions<AgColumnSeriesOptions>;
     /** Specifies defaults for bar charts. */
     bar?: AgCartesianThemeOptions<AgBarSeriesOptions>;
     /** Specifies defaults for line charts. */

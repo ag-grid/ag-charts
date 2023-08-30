@@ -11,7 +11,7 @@ const options: AgChartOptions = {
       strokes: ["#330066", "#99CCFF"],
     },
     overrides: {
-      column: {
+      bar: {
         legend: {
           position: "bottom",
         },
@@ -48,13 +48,13 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       yKey: "menDelta",
       yName: "Male",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       yKey: "womenDelta",
       yName: "Female",

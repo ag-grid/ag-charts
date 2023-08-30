@@ -346,9 +346,6 @@ export class ChartTheme {
             },
         },
         series: {
-            column: {
-                ...ChartTheme.getBarSeriesDefaults(),
-            },
             bar: {
                 ...ChartTheme.getBarSeriesDefaults(),
             },

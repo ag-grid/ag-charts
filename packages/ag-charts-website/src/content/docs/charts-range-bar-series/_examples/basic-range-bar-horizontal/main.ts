@@ -5,11 +5,12 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Range Column',
+        text: 'Range Bar - Horizontal',
     },
     series: [
         {
-            type: 'range-column',
+            type: 'range-bar',
+            direction: 'horizontal',
             xKey: 'date',
             xName: 'Date',
             yLowKey: 'low',

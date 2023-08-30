@@ -20,8 +20,8 @@ const options: AgCartesianChartOptions = {
     },
   ],
   series: [
-    { type: "column", xKey: "month", stacked: true, yKey: "value1" },
-    { type: "column", xKey: "month", stacked: true, yKey: "hats_made" },
+    { type: "bar", xKey: "month", stacked: true, yKey: "value1" },
+    { type: "bar", xKey: "month", stacked: true, yKey: "hats_made" },
   ],
 }
 

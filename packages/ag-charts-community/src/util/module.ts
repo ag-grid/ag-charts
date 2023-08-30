@@ -3,6 +3,7 @@ import type { Series } from '../chart/series/series';
 import type { ChartLegend } from '../chart/legendDatum';
 import type { JsonApplyParams } from './json';
 import type { AxisContext, ModuleContext, ModuleContextWithParent } from './moduleContext';
+import type { AgChartOptions } from '../chart/agChartOptions';
 
 export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
 export type SeriesConstructor = new (moduleContext: ModuleContext) => Series<any>;
@@ -81,6 +82,7 @@ export interface SeriesModule extends BaseModule {
     stackable?: boolean;
     groupable?: boolean;
     stackedByDefault?: boolean;
+    swapDefaultAxesCondition?: (opts: AgChartOptions) => boolean;
 }
 
 export type Module<M extends ModuleInstance = ModuleInstance> =

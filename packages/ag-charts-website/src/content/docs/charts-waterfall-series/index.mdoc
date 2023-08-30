@@ -7,19 +7,19 @@ Waterfall series show how positive and negative data values accumulate, using ba
 
 ## Waterfall Column
 
-To create a basic waterfall column chart, use the `waterfall-column` series type and specify the `xKey` and `yKey` properties:
+To create a basic waterfall column chart, use the `waterfall` series type and specify the `xKey` and `yKey` properties:
 
 ```js
 series: [
     {
-        type: 'waterfall-column',
+        type: 'waterfall',
         xKey: 'date',
         yKey: 'amount',
     },
 ];
 ```
 
-{% chartExampleRunner title="Basic Waterfall Column" name="basic-waterfall-column" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Basic Waterfall Column" name="basic-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
 {% note %}
 Waterfall series are designed to display only a single waterfall series in a given chart. Waterfall series should be used with a [Category](../charts-axes-types/category) axis.
@@ -37,7 +37,7 @@ Use `totalType` in the configuration with values `total` or `subtotal` to determ
 ```js
 series: [
     {
-        type: 'waterfall-column',
+        type: 'waterfall',
         xKey: 'date',
         yKey: 'amount',
         totals: [
@@ -51,7 +51,7 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Waterfall Column Total and Subtotal" name="waterfall-column-total-subtotal" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Waterfall Column Total and Subtotal" name="waterfall-total-subtotal" type="generated" options="{ \"enterprise\": true }" /%}
 
 {% note %}
 The `axisLabel` property value must be unique because it is used as a category value on the category axis.
@@ -69,7 +69,7 @@ If the legend is enabled, the `name` property in these configuration objects wil
 ```js
 series: [
     {
-        type: 'waterfall-column',
+        type: 'waterfall',
         xKey: 'date',
         yKey: 'amount',
         typeKey: 'datumType',
@@ -84,7 +84,7 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Waterfall Column Customisation" name="waterfall-column-customisation" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Waterfall Column Customisation" name="waterfall-customisation" type="generated" options="{ \"enterprise\": true }" /%}
 
 ### Connector Lines
 
@@ -93,7 +93,7 @@ The connector lines can be customised using the `line` property.
 ```js
 series: [
     {
-        type: 'waterfall-column',
+        type: 'waterfall',
         xKey: 'date',
         yKey: 'amount',
         line: {
@@ -105,14 +105,14 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Waterfall Column Connector Lines" name="waterfall-column-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Waterfall Column Connector Lines" name="waterfall-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
 
 To remove the connector lines, set `line.enabled` to `false`:
 
 ```js
 series: [
     {
-        type: 'waterfall-column',
+        type: 'waterfall',
         xKey: 'date',
         yKey: 'amount',
         line: {
@@ -130,19 +130,20 @@ The legend item label can be configured using the `name` property in the item co
 
 ## Waterfall Bar
 
-To create a basic waterfall bar chart, use the `waterfall-bar` series type and specify the `xKey` and `yKey` properties:
+To create a basic waterfall bar chart, use the `waterfall` series type and specify the `direction`, `xKey` and `yKey` properties:
 
 ```js
 series: [
     {
-        type: 'waterfall-bar',
+        type: 'waterfall',
+        direction: 'horizontal',
         xKey: 'date',
         yKey: 'amount',
     },
 ];
 ```
 
-{% chartExampleRunner title="Basic Waterfall Bar" name="basic-waterfall-bar" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Basic Waterfall Bar" name="basic-waterfall-horizontal" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

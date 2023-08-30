@@ -9,7 +9,7 @@ import type {
     AgAreaSeriesOptions,
     AgCartesianChartOptions,
     InteractionRange,
-    AgColumnSeriesOptions,
+    AgBarSeriesOptions,
     AgLineSeriesOptions,
     AgPieSeriesOptions,
     AgPolarChartOptions,
@@ -312,8 +312,8 @@ describe('Chart', () => {
     describe(`Column Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,
-            seriesOptions: <AgColumnSeriesOptions>{
-                type: 'column',
+            seriesOptions: <AgBarSeriesOptions>{
+                type: 'bar',
                 data: datasets.economy.data,
                 xKey: datasets.economy.categoryKey,
                 yKey: datasets.economy.valueKey,
@@ -431,7 +431,7 @@ describe('Chart', () => {
         it('Column Chart should render correctly after update', async () => {
             await testDataUpdate({
                 seriesOptions: {
-                    type: 'column',
+                    type: 'bar',
                     xKey: datasets.economy.categoryKey,
                     yKey: datasets.economy.valueKey,
                 },

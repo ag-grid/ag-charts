@@ -783,7 +783,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 }
 
                 const seriesKeys = series.getKeys(direction);
-                const newAxis = this.findMatchingAxis(directionAxes, series.getKeys(direction));
+                const newAxis = this.findMatchingAxis(directionAxes, seriesKeys);
                 if (!newAxis) {
                     Logger.warn(
                         `no matching axis for direction [${direction}] and keys [${seriesKeys}]; check series and axes configuration.`

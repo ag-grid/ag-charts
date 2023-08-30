@@ -136,7 +136,7 @@ const OPTIONS: AgCartesianChartOptions = {
             label: { enabled: true },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'women',
             yName: 'Women',
@@ -145,7 +145,7 @@ const OPTIONS: AgCartesianChartOptions = {
             label: { enabled: true },
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'men',
             yName: 'Men',

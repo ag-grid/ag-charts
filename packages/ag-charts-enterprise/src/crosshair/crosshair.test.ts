@@ -7,10 +7,10 @@ import type {
     AgCartesianAxisOptions,
     AgBarSeriesOptions,
     AgAreaSeriesOptions,
-    AgColumnSeriesOptions,
+    _ModuleSupport,
 } from 'ag-charts-community';
 
-import { AgEnterpriseCharts, _ModuleSupport } from '../main';
+import { AgEnterpriseCharts } from '../main';
 import {
     waitForChartStability,
     setupMockCanvas,
@@ -158,7 +158,7 @@ const SIMPLE_LINE_OPTIONS: AgCartesianChartOptions = {
 const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: CATEGORY_AXIS_OPTIONS,
-    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'column' })) as AgColumnSeriesOptions[],
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar' })) as AgBarSeriesOptions[],
 };
 
 const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
@@ -169,19 +169,24 @@ const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
 const STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SIMPLE_AXIS_OPTIONS,
-    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'column', stacked: true })) as AgColumnSeriesOptions[],
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: true })) as AgBarSeriesOptions[],
 };
 
 const GROUPED_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: CATEGORY_AXIS_OPTIONS,
-    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'column', stacked: false })) as AgColumnSeriesOptions[],
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: false })) as AgBarSeriesOptions[],
 };
 
 const STACKED_BAR_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SIMPLE_AXIS_OPTIONS,
-    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: true })) as AgBarSeriesOptions[],
+    series: BASE_OPTIONS.series?.map((s) => ({
+        ...s,
+        type: 'bar',
+        direction: 'horizontal',
+        stacked: true,
+    })) as AgBarSeriesOptions[],
 };
 
 const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
@@ -204,7 +209,12 @@ const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
             crosshair: CROSSHAIR_OPTIONS,
         },
     ],
-    series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: false })) as AgBarSeriesOptions[],
+    series: BASE_OPTIONS.series?.map((s) => ({
+        ...s,
+        type: 'bar',
+        direction: 'horizontal',
+        stacked: false,
+    })) as AgBarSeriesOptions[],
 };
 
 const STACKED_AREA_OPTIONS: AgCartesianChartOptions = {

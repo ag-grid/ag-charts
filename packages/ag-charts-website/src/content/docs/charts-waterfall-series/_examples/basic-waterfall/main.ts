@@ -12,16 +12,11 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'waterfall-column',
+            type: 'waterfall',
             xKey: 'source',
             xName: 'Source',
             yKey: 'amount',
             yName: 'Amount',
-            line: {
-                strokeWidth: 4,
-                stroke: '#7290C4',
-                lineDash: [4, 2],
-            },
         },
     ],
 };

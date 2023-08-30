@@ -25,6 +25,7 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'type',
             yKey: 'earnings',
         },

@@ -22,7 +22,7 @@ export const CATEGORY_AXIS_BASIC_EXAMPLE: AgChartOptions = {
             yKey: 'sugar',
             yName: 'Sugar',
             grouped: true,
-            type: 'column',
+            type: 'bar',
         },
         {
             xKey: 'country',
@@ -30,7 +30,7 @@ export const CATEGORY_AXIS_BASIC_EXAMPLE: AgChartOptions = {
             yKey: 'fat',
             yName: 'Fat',
             grouped: true,
-            type: 'column',
+            type: 'bar',
         },
         {
             xKey: 'country',
@@ -38,7 +38,7 @@ export const CATEGORY_AXIS_BASIC_EXAMPLE: AgChartOptions = {
             yKey: 'weight',
             yName: 'Weight',
             grouped: true,
-            type: 'column',
+            type: 'bar',
         },
     ],
 };
@@ -55,7 +55,7 @@ export const CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE: AgChartOptions = {
             xName: 'Day',
             yKey: 'likes',
             yName: 'Likes',
-            type: 'column',
+            type: 'bar',
         },
     ],
 };

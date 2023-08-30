@@ -4,7 +4,7 @@ import {
   AgCartesianSeriesOptions,
   AgCartesianSeriesTooltipRendererParams,
   AgChart,
-  AgColumnSeriesOptions,
+  AgBarSeriesOptions,
   AgLineSeriesOptions,
 } from "ag-charts-community"
 import { getData } from "./data"
@@ -16,8 +16,8 @@ function tooltipRenderer(params: AgCartesianSeriesTooltipRendererParams) {
   }
 }
 
-const WOMEN: AgColumnSeriesOptions = {
-  type: "column",
+const WOMEN: AgBarSeriesOptions = {
+  type: "bar",
   xKey: "year",
   yKey: "women",
   yName: "Women",
@@ -28,8 +28,8 @@ const WOMEN: AgColumnSeriesOptions = {
   },
 }
 
-const MEN: AgColumnSeriesOptions = {
-  type: "column",
+const MEN: AgBarSeriesOptions = {
+  type: "bar",
   xKey: "year",
   yKey: "men",
   yName: "Men",
@@ -55,15 +55,15 @@ const PORTIONS: AgLineSeriesOptions = {
 }
 
 const COLUMN_AND_LINE: AgCartesianSeriesOptions[] = [
-  { ...WOMEN, type: "column" },
-  { ...MEN, type: "column" },
+  { ...WOMEN, type: "bar" },
+  { ...MEN, type: "bar" },
   { ...PORTIONS, type: "line" },
 ]
 
 const AREA_AND_COLUMN: AgCartesianSeriesOptions[] = [
   { ...PORTIONS, type: "area" },
-  { ...WOMEN, type: "column" },
-  { ...MEN, type: "column" },
+  { ...WOMEN, type: "bar" },
+  { ...MEN, type: "bar" },
 ]
 
 const options: AgCartesianChartOptions = {

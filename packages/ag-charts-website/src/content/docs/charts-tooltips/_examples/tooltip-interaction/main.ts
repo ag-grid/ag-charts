@@ -29,7 +29,7 @@ const options: AgCartesianChartOptions = {
   ],
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       yKey: "sweaters",
       yName: "Sweaters Made",

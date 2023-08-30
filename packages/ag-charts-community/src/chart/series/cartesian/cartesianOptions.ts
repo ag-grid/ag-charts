@@ -19,7 +19,7 @@ import type { AgSeriesTooltipRendererParams } from '../../options/tooltipOptions
 import type { CssColor, PixelSize, Ratio } from '../../options/types';
 import type { AgSeriesMarker, AgSeriesMarkerFormatterParams } from '../seriesOptions';
 import type { AgAreaSeriesOptions } from './areaOptions';
-import type { AgBarSeriesOptions, AgColumnSeriesOptions } from './barOptions';
+import type { AgBarSeriesOptions } from './barOptions';
 import type { AgHistogramSeriesOptions } from './histogramOptions';
 import type { AgLineSeriesOptions } from './lineOptions';
 import type { AgScatterSeriesOptions } from './scatterOptions';
@@ -34,7 +34,6 @@ export type AgCartesianSeriesOptions =
     | AgScatterSeriesOptions
     | AgAreaSeriesOptions
     | AgBarSeriesOptions
-    | AgColumnSeriesOptions
     | AgHistogramSeriesOptions
     | AgHeatmapSeriesOptions
     | AgWaterfallSeriesOptions
@@ -167,7 +166,7 @@ export interface AgCartesianThemeOptions<S = AgCartesianSeriesTheme> extends AgB
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
     /** Series configurations. */
-    series?: S;
+    series?: Partial<S>;
     /** Configuration for the chart legend. */
     legend?: AgCartesianChartLegendOptions;
     /** Configuration for the chart navigator. */
@@ -192,12 +191,11 @@ export interface AgCartesianAxesTheme {
 }
 
 export interface AgCartesianSeriesTheme {
-    line?: AgLineSeriesOptions;
-    scatter?: AgScatterSeriesOptions;
-    area?: AgAreaSeriesOptions;
-    bar?: AgBarSeriesOptions;
-    column?: AgColumnSeriesOptions;
-    histogram?: AgHistogramSeriesOptions;
+    line?: Partial<AgLineSeriesOptions>;
+    scatter?: Partial<AgScatterSeriesOptions>;
+    area?: Partial<AgAreaSeriesOptions>;
+    bar?: Partial<AgBarSeriesOptions>;
+    histogram?: Partial<AgHistogramSeriesOptions>;
 }
 
 export interface AgNumberAxisThemeOptions

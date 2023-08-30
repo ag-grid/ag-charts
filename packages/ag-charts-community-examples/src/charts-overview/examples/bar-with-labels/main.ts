@@ -17,6 +17,7 @@ const options: AgChartOptions = {
   series: [
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "job",
       yKey: "change",
       fill: "rgba(0, 117, 163, 0.9)",

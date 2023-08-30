@@ -12,7 +12,8 @@ const options: AgChartOptions = {
     },
     series:[
         {
-            type: 'range-column',
+            type: 'range-bar',
+            direction: 'horizontal',
             xKey: 'date',
             xName: 'Date',
             yLowKey: 'start',
@@ -32,7 +33,8 @@ const options: AgChartOptions = {
             },
         },
         {
-            type: 'range-column',
+            type: 'range-bar',
+            direction: 'horizontal',
             xKey: 'date',
             xName: 'Date',
             yLowKey: 'loss',

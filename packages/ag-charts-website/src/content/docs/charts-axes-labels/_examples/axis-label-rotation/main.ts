@@ -5,7 +5,7 @@ const options: AgCartesianChartOptions = {
   container: document.getElementById('myChart'),
   data: getData(),
   series: [{
-    type: 'column',
+    type: 'bar',
     xKey: 'year',
     yKey: 'value',
   }],

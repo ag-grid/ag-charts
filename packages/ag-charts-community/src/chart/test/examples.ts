@@ -126,7 +126,7 @@ export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgChartOptions = {};
                 yName: 'Total Winnings',
                 showInLegend: false,
                 grouped: true,
-                type: 'column',
+                type: 'bar',
             },
         ],
         title: {
@@ -809,7 +809,7 @@ export const COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     data: DATA_MEAN_SEA_LEVEL,
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'time',
             yKey: 'mm',
             showInLegend: false,
@@ -838,7 +838,7 @@ export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     data: DATA_REVENUE,
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'date',
             yKey: 'value',
         },
@@ -866,28 +866,28 @@ export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'mac',
             yName: 'Mac',
             stacked: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'ipad',
             yName: 'iPad',
             stacked: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'wearables',
             yName: 'Wearables',
             stacked: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'services',
             yName: 'Services',
@@ -916,25 +916,25 @@ export const GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
     data: DATA_APPLE_REVENUE_BY_PRODUCT,
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'mac',
             yName: 'Mac',
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'ipad',
             yName: 'iPad',
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'wearables',
             yName: 'Wearables',
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'iphone',
             yKey: 'services',
             yName: 'Services',
@@ -961,6 +961,7 @@ export const BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'time',
             yKey: 'mm',
             showInLegend: false,
@@ -989,6 +990,7 @@ export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'date',
             yKey: 'value',
         },
@@ -1019,7 +1021,7 @@ export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
     ],
     series: [
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             xKey: 'Created',
             yKey: 'IncidentID',
@@ -1055,7 +1057,7 @@ export const COLUMN_SINGLE_DATE_TIME_AXIS: AgCartesianChartOptions = {
     ],
     series: [
         {
-            type: 'column',
+            type: 'bar',
             grouped: false,
             xKey: 'Created',
             yKey: 'IncidentID',
@@ -1089,6 +1091,7 @@ export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'mac',
             yName: 'Mac',
@@ -1096,6 +1099,7 @@ export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'ipad',
             yName: 'iPad',
@@ -1103,6 +1107,7 @@ export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'wearables',
             yName: 'Wearables',
@@ -1110,6 +1115,7 @@ export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'services',
             yName: 'Services',
@@ -1139,28 +1145,28 @@ export const STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: AgCartesianChartO
     data: DATA_BROWSER_MARKET_SHARE,
     series: [
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'ie',
             yName: 'IE',
             stacked: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'firefox',
             yName: 'FireFox',
             stacked: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'safari',
             yName: 'Safari',
             stacked: true,
         },
         {
-            type: 'column',
+            type: 'bar',
             xKey: 'year',
             yKey: 'chrome',
             yName: 'Chrome',
@@ -1190,24 +1196,28 @@ export const GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'mac',
             yName: 'Mac',
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'ipad',
             yName: 'iPad',
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'wearables',
             yName: 'Wearables',
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'services',
             yName: 'Services',
@@ -1236,24 +1246,28 @@ export const TRUNCATED_LEGEND_ITEMS: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'mac',
             yName: 'Mac',
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'ipad',
             yName: 'iPad',
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'wearables',
             yName: 'Wearables long legend item text',
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'iphone',
             yKey: 'services',
             yName: 'Services another long legend item text',
@@ -1270,7 +1284,7 @@ export const TRUNCATED_LEGEND_ITEMS: AgCartesianChartOptions = {
 
 export const CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS = (
     data: any[],
-    seriesType: 'line' | 'bar' | 'column' | 'area' | 'scatter' | 'histogram'
+    seriesType: 'line' | 'bar' | 'area' | 'scatter' | 'histogram'
 ): AgCartesianChartOptions => {
     return {
         data,

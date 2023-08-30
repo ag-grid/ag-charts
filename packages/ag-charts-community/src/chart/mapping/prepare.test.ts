@@ -111,14 +111,14 @@ const EXAMPLES: Record<string, TestCase> = {
 const COMBO_CHART_EXAMPLE: AgCartesianChartOptions = {
     series: [
         { type: 'line', yKey: 'test2' },
-        { type: 'column', yKey: 'test' },
+        { type: 'bar', yKey: 'test' },
         { type: 'area', yKey: 'test3' },
     ],
     theme: {
         baseTheme: {
             baseTheme: 'ag-default',
             overrides: {
-                column: { series: { label: { enabled: true } } },
+                bar: { series: { label: { enabled: true } } },
                 line: { series: { label: { enabled: true } } },
                 area: { series: { label: { enabled: true } } },
             },
@@ -130,7 +130,7 @@ const COMBO_CHART_EXAMPLE: AgCartesianChartOptions = {
 const COMPLEX_THEME_SCENARIO: AgCartesianChartOptions = {
     series: [
         { type: 'line', yKey: 'test2' },
-        { type: 'column', yKey: 'test' },
+        { type: 'bar', yKey: 'test' },
         { type: 'area', yKey: 'test3' },
         { type: 'area', yKey: 'test4', label: {} },
     ],
@@ -149,7 +149,7 @@ const COMPLEX_THEME_SCENARIO: AgCartesianChartOptions = {
                         number: { title: { _enabledFromTheme: true, enabled: false } },
                     },
                 },
-                column: { series: { label: { enabled: false, _enabledFromTheme: true } } },
+                bar: { series: { label: { enabled: false, _enabledFromTheme: true } } },
                 line: { series: { label: { enabled: true, _enabledFromTheme: true } } },
             },
         } as any,
@@ -314,7 +314,7 @@ describe('prepare', () => {
             const preparedOptions = prepareOptions(options);
 
             expect(preparedOptions.series?.length).toEqual(3);
-            expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'column', 'area']);
+            expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'bar', 'area']);
             expect(preparedOptions.series?.map((s) => s.label?.enabled)).toEqual([true, true, true]);
         });
 
@@ -329,7 +329,7 @@ describe('prepare', () => {
             expect(preparedOptions.axes?.map((a) => a.type)).toEqual(['time', 'time', 'number', 'number']);
             expect(preparedOptions.axes?.map((a) => a.title?.enabled)).toEqual([false, true, false, true]);
             expect(preparedOptions.series?.length).toEqual(4);
-            expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'column', 'area', 'area']);
+            expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'bar', 'area', 'area']);
             expect(preparedOptions.series?.map((s) => s.label?.enabled)).toEqual([true, false, false, true]);
         });
 

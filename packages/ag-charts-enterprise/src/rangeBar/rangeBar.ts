@@ -28,6 +28,7 @@ const {
     CategoryAxis,
     SMALLEST_KEY_INTERVAL,
     calculateStep,
+    STRING_UNION,
 } = _ModuleSupport;
 const { toTooltipHtml, ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -94,7 +95,7 @@ class RangeBarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClic
         yHighKey: string,
         nativeEvent: MouseEvent,
         datum: RangeBarNodeDatum,
-        series: RangeBarSeries | RangeColumnSeries
+        series: RangeBarSeries
     ) {
         super(nativeEvent, datum, series);
         this.xKey = xKey;
@@ -129,7 +130,7 @@ class RangeBarSeriesLabel extends _Scene.Label {
 
 export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarContext, _Scene.Rect> {
     static className = 'RangeBarSeries';
-    static type: 'range-bar' | 'range-column' = 'range-bar' as const;
+    static type = 'range-bar' as const;
 
     readonly label = new RangeBarSeriesLabel();
 
@@ -213,6 +214,9 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
     @Validate(OPT_STRING)
     yName?: string = undefined;
+
+    @Validate(STRING_UNION('vertical', 'horizontal'))
+    direction: 'vertical' | 'horizontal' = 'vertical';
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
     async processData(dataController: _ModuleSupport.DataController) {
@@ -457,7 +461,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         yLowValue: number;
         yHighValue: number;
         datum: any;
-        series: RangeBarSeries | RangeColumnSeries;
+        series: RangeBarSeries;
     }): RangeBarNodeLabelDatum[] {
         const { placement, padding } = this.label;
 
@@ -758,22 +762,34 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     }
 
     protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number], duration: number) {
+        const horizontal = this.direction === 'horizontal';
         datumSelection.each((rect, datum) => {
             this.ctx.animationManager?.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
                 [
-                    { from: datum.nodeMidPoint?.x ?? 0, to: datum.x },
-                    { from: 0, to: datum.width },
+                    {
+                        from: (horizontal ? datum.nodeMidPoint?.x : datum.nodeMidPoint?.y) ?? 0,
+                        to: horizontal ? datum.x : datum.y,
+                    },
+                    { from: 0, to: horizontal ? datum.width : datum.height },
                 ],
                 {
                     duration,
                     ease: _ModuleSupport.Motion.easeOut,
-                    onUpdate([x, width]) {
-                        rect.x = x;
-                        rect.width = width;
+                    onUpdate([val, widthOrHeight]) {
+                        if (horizontal) {
+                            rect.x = val;
+                            rect.width = widthOrHeight;
 
-                        rect.y = datum.y;
-                        rect.height = datum.height;
+                            rect.y = datum.y;
+                            rect.height = datum.height;
+                        } else {
+                            rect.y = val;
+                            rect.height = widthOrHeight;
+
+                            rect.x = datum.x;
+                            rect.width = datum.width;
+                        }
                     },
                 }
             );
@@ -826,50 +842,20 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     }
 
     protected getBarDirection() {
-        return ChartAxisDirection.X;
+        if (this.direction === 'horizontal') {
+            return ChartAxisDirection.X;
+        }
+        return ChartAxisDirection.Y;
     }
 
     protected getCategoryDirection() {
-        return ChartAxisDirection.Y;
+        if (this.direction === 'horizontal') {
+            return ChartAxisDirection.Y;
+        }
+        return ChartAxisDirection.X;
     }
 
     getBandScalePadding() {
         return { inner: 0.2, outer: 0.3 };
-    }
-}
-
-export class RangeColumnSeries extends RangeBarSeries {
-    static className = 'RangeColumnSeries';
-    static type = 'range-column' as const;
-
-    protected getBarDirection() {
-        return ChartAxisDirection.Y;
-    }
-
-    protected getCategoryDirection() {
-        return ChartAxisDirection.X;
-    }
-
-    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>, duration: number) {
-        datumSelection.each((rect, datum) => {
-            this.ctx.animationManager?.animateMany(
-                `${this.id}_empty-update-ready_${rect.id}`,
-                [
-                    { from: datum.nodeMidPoint?.y ?? 0, to: datum.y },
-                    { from: 0, to: datum.height },
-                ],
-                {
-                    duration,
-                    ease: _ModuleSupport.Motion.easeOut,
-                    onUpdate([y, height]) {
-                        rect.y = y;
-                        rect.height = height;
-
-                        rect.x = datum.x;
-                        rect.width = datum.width;
-                    },
-                }
-            );
-        });
     }
 }

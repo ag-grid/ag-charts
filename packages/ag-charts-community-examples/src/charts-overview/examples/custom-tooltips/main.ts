@@ -30,7 +30,7 @@ const options: AgChartOptions = {
   data: getData(),
   theme: {
     overrides: {
-      column: {
+      bar: {
         series: {
           strokeWidth: 0,
           tooltip: {
@@ -53,56 +53,56 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "largeHousehold",
       yName: "Large household appliances",
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "smallHousehold",
       yName: "Small household appliances",
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "itTelecomms",
       yName: "IT and telecomms equipment",
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "consumer",
       yName: "Consumer equipment",
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "tools",
       yName: "Electrical and electronic tools",
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "displays",
       yName: "Display equipment",
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "cooling",
       yName: "Cooling appliances containing refrigerants",
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "quarter",
       yKey: "gasLampsLed",
       yName: "Gas discharge lamps and LED light sources",

@@ -27,32 +27,32 @@ expect.extend({ toMatchImageSnapshot });
 
 const buildLogAxisTestCase = (data: any[]): TestCase => {
     return {
-        options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'column'),
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['column'] }),
+        options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'bar'),
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['bar'] }),
     };
 };
 
 const EXAMPLES: Record<string, TestCase> = {
     COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
         options: examples.COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
     },
     COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: {
         options: examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
     },
     STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
         options: examples.STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
         assertions: cartesianChartAssertions({
             axisTypes: ['number', 'number'],
-            seriesTypes: repeat('column', 4),
+            seriesTypes: repeat('bar', 4),
         }),
     },
     GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
         options: examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
         assertions: cartesianChartAssertions({
             axisTypes: ['number', 'number'],
-            seriesTypes: repeat('column', 4),
+            seriesTypes: repeat('bar', 4),
         }),
     },
     BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
@@ -74,7 +74,7 @@ const EXAMPLES: Record<string, TestCase> = {
         options: examples.STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS,
         assertions: cartesianChartAssertions({
             axisTypes: ['category', 'number'],
-            seriesTypes: repeat('column', 4),
+            seriesTypes: repeat('bar', 4),
         }),
     },
     GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
@@ -90,11 +90,11 @@ const EXAMPLES: Record<string, TestCase> = {
     COLUMN_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
     COLUMN_SINGLE_DATE_CATEGORY_AXIS: {
         options: examples.COLUMN_SINGLE_DATE_CATEGORY_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['bar'] }),
     },
     COLUMN_SINGLE_DATE_TIME_AXIS: {
         options: examples.COLUMN_SINGLE_DATE_TIME_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['column'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
     },
 };
 

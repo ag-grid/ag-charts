@@ -1,1 +1,1 @@
-export { RangeBarModule, RangeColumnModule } from './rangeBarModule';
+export { RangeBarModule } from './rangeBarModule';

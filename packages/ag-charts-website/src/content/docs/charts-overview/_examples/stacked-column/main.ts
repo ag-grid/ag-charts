@@ -28,7 +28,7 @@ const options: AgChartOptions = {
       strokes: ["#4086a4", "#b1a235", "#6c8a2b", "#a03e24", "#af5517"],
     },
     overrides: {
-      column: {
+      bar: {
         series: {
           strokeWidth: 0,
           highlightStyle: {
@@ -53,7 +53,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "station",
       yKey: "early",
       stacked: true,
@@ -61,7 +61,7 @@ const options: AgChartOptions = {
       tooltip,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "station",
       yKey: "morningPeak",
       yName: "Morning peak",
@@ -69,7 +69,7 @@ const options: AgChartOptions = {
       tooltip,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "station",
       yKey: "interPeak",
       yName: "Between peak",
@@ -77,7 +77,7 @@ const options: AgChartOptions = {
       tooltip,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "station",
       yKey: "afternoonPeak",
       yName: "Afternoon peak",
@@ -85,7 +85,7 @@ const options: AgChartOptions = {
       tooltip,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "station",
       yKey: "evening",
       yName: "Evening",

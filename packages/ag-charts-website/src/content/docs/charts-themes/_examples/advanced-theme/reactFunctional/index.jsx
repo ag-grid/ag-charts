@@ -15,21 +15,21 @@ const Chart1 = () => {
     data: data,
     series: [
       {
-        type: "column",
+        type: "bar",
         xKey: "label",
         yKey: "v1",
         stacked: true,
         yName: "Reliability",
       },
       {
-        type: "column",
+        type: "bar",
         xKey: "label",
         yKey: "v2",
         stacked: true,
         yName: "Ease of use",
       },
       {
-        type: "column",
+        type: "bar",
         xKey: "label",
         yKey: "v3",
         stacked: true,
@@ -96,7 +96,7 @@ var myTheme = {
             shape: "circle",
           },
         },
-        column: {
+        bar: {
           label: {
             enabled: true,
             color: "white",

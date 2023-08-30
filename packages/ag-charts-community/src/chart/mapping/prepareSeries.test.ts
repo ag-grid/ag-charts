@@ -4,16 +4,16 @@ import { groupSeriesByType, processSeriesOptions } from './prepareSeries';
 import { addGroupableSeriesType, addStackableSeriesType, addStackedByDefaultSeriesType } from '../factory/seriesTypes';
 import { clearDoOnceFlags } from '../../util/function';
 
-import type { AgColumnSeriesOptions, AgLineSeriesOptions, AgAreaSeriesOptions } from '../agChartOptions';
+import type { AgBarSeriesOptions, AgLineSeriesOptions, AgAreaSeriesOptions } from '../agChartOptions';
 
 function switchSeriesType(
-    type: 'column' | 'line' | 'area',
-    series: AgColumnSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions
-): AgColumnSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions {
+    type: 'bar' | 'line' | 'area',
+    series: AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions
+): AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions {
     return {
         ...series,
         type,
-    };
+    } as any;
 }
 
 const baseSeriesIPhone = {
@@ -37,10 +37,10 @@ const baseSeriesServices = {
     yName: 'Services',
 };
 
-const colSeriesIPhone = switchSeriesType('column', baseSeriesIPhone);
-const colSeriesMac = switchSeriesType('column', baseSeriesMac);
-const colSeriesWearables = switchSeriesType('column', baseSeriesWearables);
-const colSeriesServices = switchSeriesType('column', baseSeriesServices);
+const colSeriesIPhone = switchSeriesType('bar', baseSeriesIPhone);
+const colSeriesMac = switchSeriesType('bar', baseSeriesMac);
+const colSeriesWearables = switchSeriesType('bar', baseSeriesWearables);
+const colSeriesServices = switchSeriesType('bar', baseSeriesServices);
 const lineSeriesIPhone = switchSeriesType('line', baseSeriesIPhone);
 const lineSeriesMac = switchSeriesType('line', baseSeriesMac);
 const areaSeriesIPhone = switchSeriesType('area', baseSeriesIPhone);
@@ -48,29 +48,29 @@ const areaSeriesMac = switchSeriesType('area', baseSeriesMac);
 const areaSeriesWearables = switchSeriesType('area', baseSeriesWearables);
 const areaSeriesServices = switchSeriesType('area', baseSeriesServices);
 
-const seriesOptions: Array<AgColumnSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions> = [
+const seriesOptions: Array<AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions> = [
     {
         ...colSeriesIPhone,
         fill: 'pink',
         showInLegend: true,
-    } as AgColumnSeriesOptions,
+    } as AgBarSeriesOptions,
     lineSeriesMac,
     {
         ...colSeriesMac,
         fill: 'red',
         showInLegend: false,
-    } as AgColumnSeriesOptions,
+    } as AgBarSeriesOptions,
     lineSeriesIPhone,
     {
         ...colSeriesWearables,
         showInLegend: true,
         grouped: true,
-    } as AgColumnSeriesOptions,
+    } as AgBarSeriesOptions,
     {
         ...colSeriesServices,
         showInLegend: false,
         grouped: true,
-    } as AgColumnSeriesOptions,
+    } as AgBarSeriesOptions,
 ];
 
 const areas = [areaSeriesIPhone, areaSeriesMac, areaSeriesWearables, areaSeriesServices];
@@ -78,13 +78,13 @@ const lines = [lineSeriesIPhone, lineSeriesMac];
 const columns = [colSeriesIPhone, colSeriesMac, colSeriesWearables, colSeriesServices];
 const rangeColumns = [
     {
-        type: 'range-column',
+        type: 'range-bar',
         xKey: 'date',
         yLowKey: 'low',
         yHighKey: 'high',
     },
     {
-        type: 'range-column',
+        type: 'range-bar',
         xKey: 'date',
         yLowKey: 'low2',
         yHighKey: 'high2',
@@ -120,7 +120,7 @@ describe('transform series options', () => {
                   {
                     "fill": "pink",
                     "showInLegend": true,
-                    "type": "column",
+                    "type": "bar",
                     "xKey": "quarter",
                     "yKey": "iphone",
                     "yName": "IPhone",
@@ -144,7 +144,7 @@ describe('transform series options', () => {
                   {
                     "fill": "red",
                     "showInLegend": false,
-                    "type": "column",
+                    "type": "bar",
                     "xKey": "quarter",
                     "yKey": "mac",
                     "yName": "Mac",
@@ -168,7 +168,7 @@ describe('transform series options', () => {
                   {
                     "grouped": true,
                     "showInLegend": true,
-                    "type": "column",
+                    "type": "bar",
                     "xKey": "quarter",
                     "yKey": "wearables",
                     "yName": "Wearables",
@@ -176,7 +176,7 @@ describe('transform series options', () => {
                   {
                     "grouped": true,
                     "showInLegend": false,
-                    "type": "column",
+                    "type": "bar",
                     "xKey": "quarter",
                     "yKey": "services",
                     "yName": "Services",
@@ -192,18 +192,18 @@ describe('transform series options', () => {
         describe('Stacking and grouping configuration combinations', () => {
             const seriesTypes = {
                 area: { stackable: true, groupable: false, stackedByDefault: false },
-                column: { stackable: true, groupable: true, stackedByDefault: false },
+                bar: { stackable: true, groupable: true, stackedByDefault: false },
                 line: { stackable: false, groupable: false, stackedByDefault: false },
                 nightingale: { stackable: true, groupable: true, stackedByDefault: true },
-                'range-column': { stackable: false, groupable: true, stackedByDefault: false },
+                'range-bar': { stackable: false, groupable: true, stackedByDefault: false },
             };
 
             const seriesOptionsMap: Record<keyof typeof seriesTypes, Array<any>> = {
                 area: areas,
-                column: columns,
+                bar: columns,
                 line: lines,
                 nightingale: nightingales,
-                'range-column': rangeColumns,
+                'range-bar': rangeColumns,
             };
 
             Object.entries(seriesTypes).forEach(([seriesType, { stackable, groupable, stackedByDefault }]) => {
@@ -558,255 +558,255 @@ describe('transform series options', () => {
             const result = processSeriesOptions({}, seriesOptions);
 
             expect(result).toMatchInlineSnapshot(`
-              [
-                {
-                  "fill": "pink",
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 0,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                [
+                  {
+                    "fill": "pink",
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 0,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": true,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "iphone",
+                    "yName": "IPhone",
                   },
-                  "showInLegend": true,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "iphone",
-                  "yName": "IPhone",
-                },
-                {
-                  "fill": "red",
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 1,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                  {
+                    "fill": "red",
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 1,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": false,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "mac",
+                    "yName": "Mac",
                   },
-                  "showInLegend": false,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "mac",
-                  "yName": "Mac",
-                },
-                {
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 2,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                  {
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 2,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": true,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "wearables",
+                    "yName": "Wearables",
                   },
-                  "showInLegend": true,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "wearables",
-                  "yName": "Wearables",
-                },
-                {
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 3,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                  {
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 3,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": false,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "services",
+                    "yName": "Services",
                   },
-                  "showInLegend": false,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "services",
-                  "yName": "Services",
-                },
-                {
-                  "type": "line",
-                  "xKey": "quarter",
-                  "yKey": "mac",
-                  "yName": "Mac",
-                },
-                {
-                  "type": "line",
-                  "xKey": "quarter",
-                  "yKey": "iphone",
-                  "yName": "IPhone",
-                },
-              ]
-          `);
+                  {
+                    "type": "line",
+                    "xKey": "quarter",
+                    "yKey": "mac",
+                    "yName": "Mac",
+                  },
+                  {
+                    "type": "line",
+                    "xKey": "quarter",
+                    "yKey": "iphone",
+                    "yName": "IPhone",
+                  },
+                ]
+            `);
         });
 
         test('processSeriesOptions with grouped columns', () => {
             const result = processSeriesOptions(
                 {},
-                seriesOptions.map((s) => (s.type === 'column' ? { ...s, grouped: true } : s))
+                seriesOptions.map((s) => (s.type === 'bar' ? { ...s, grouped: true } : s))
             );
 
             expect(result).toMatchInlineSnapshot(`
-              [
-                {
-                  "fill": "pink",
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 0,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                [
+                  {
+                    "fill": "pink",
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 0,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": true,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "iphone",
+                    "yName": "IPhone",
                   },
-                  "showInLegend": true,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "iphone",
-                  "yName": "IPhone",
-                },
-                {
-                  "fill": "red",
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 1,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                  {
+                    "fill": "red",
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 1,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": false,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "mac",
+                    "yName": "Mac",
                   },
-                  "showInLegend": false,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "mac",
-                  "yName": "Mac",
-                },
-                {
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 2,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                  {
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 2,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": true,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "wearables",
+                    "yName": "Wearables",
                   },
-                  "showInLegend": true,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "wearables",
-                  "yName": "Wearables",
-                },
-                {
-                  "grouped": true,
-                  "seriesGrouping": {
-                    "groupCount": 4,
-                    "groupIndex": 3,
-                    "stackCount": 0,
-                    "stackIndex": 0,
+                  {
+                    "grouped": true,
+                    "seriesGrouping": {
+                      "groupCount": 4,
+                      "groupIndex": 3,
+                      "stackCount": 0,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": false,
+                    "stacked": false,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "services",
+                    "yName": "Services",
                   },
-                  "showInLegend": false,
-                  "stacked": false,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "services",
-                  "yName": "Services",
-                },
-                {
-                  "type": "line",
-                  "xKey": "quarter",
-                  "yKey": "mac",
-                  "yName": "Mac",
-                },
-                {
-                  "type": "line",
-                  "xKey": "quarter",
-                  "yKey": "iphone",
-                  "yName": "IPhone",
-                },
-              ]
-          `);
+                  {
+                    "type": "line",
+                    "xKey": "quarter",
+                    "yKey": "mac",
+                    "yName": "Mac",
+                  },
+                  {
+                    "type": "line",
+                    "xKey": "quarter",
+                    "yKey": "iphone",
+                    "yName": "IPhone",
+                  },
+                ]
+            `);
         });
 
         test('processSeriesOptions with stacked columns', () => {
             const result = processSeriesOptions(
                 {},
-                seriesOptions.map((s) => (s.type === 'column' ? { ...s, stacked: true, grouped: undefined } : s))
+                seriesOptions.map((s) => (s.type === 'bar' ? { ...s, stacked: true, grouped: undefined } : s))
             );
 
             expect(result).toMatchInlineSnapshot(`
-              [
-                {
-                  "fill": "pink",
-                  "grouped": false,
-                  "seriesGrouping": {
-                    "groupCount": 1,
-                    "groupIndex": 0,
-                    "stackCount": 4,
-                    "stackIndex": 0,
+                [
+                  {
+                    "fill": "pink",
+                    "grouped": false,
+                    "seriesGrouping": {
+                      "groupCount": 1,
+                      "groupIndex": 0,
+                      "stackCount": 4,
+                      "stackIndex": 0,
+                    },
+                    "showInLegend": true,
+                    "stacked": true,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "iphone",
+                    "yName": "IPhone",
                   },
-                  "showInLegend": true,
-                  "stacked": true,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "iphone",
-                  "yName": "IPhone",
-                },
-                {
-                  "fill": "red",
-                  "grouped": false,
-                  "seriesGrouping": {
-                    "groupCount": 1,
-                    "groupIndex": 0,
-                    "stackCount": 4,
-                    "stackIndex": 1,
+                  {
+                    "fill": "red",
+                    "grouped": false,
+                    "seriesGrouping": {
+                      "groupCount": 1,
+                      "groupIndex": 0,
+                      "stackCount": 4,
+                      "stackIndex": 1,
+                    },
+                    "showInLegend": false,
+                    "stacked": true,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "mac",
+                    "yName": "Mac",
                   },
-                  "showInLegend": false,
-                  "stacked": true,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "mac",
-                  "yName": "Mac",
-                },
-                {
-                  "grouped": false,
-                  "seriesGrouping": {
-                    "groupCount": 1,
-                    "groupIndex": 0,
-                    "stackCount": 4,
-                    "stackIndex": 2,
+                  {
+                    "grouped": false,
+                    "seriesGrouping": {
+                      "groupCount": 1,
+                      "groupIndex": 0,
+                      "stackCount": 4,
+                      "stackIndex": 2,
+                    },
+                    "showInLegend": true,
+                    "stacked": true,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "wearables",
+                    "yName": "Wearables",
                   },
-                  "showInLegend": true,
-                  "stacked": true,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "wearables",
-                  "yName": "Wearables",
-                },
-                {
-                  "grouped": false,
-                  "seriesGrouping": {
-                    "groupCount": 1,
-                    "groupIndex": 0,
-                    "stackCount": 4,
-                    "stackIndex": 3,
+                  {
+                    "grouped": false,
+                    "seriesGrouping": {
+                      "groupCount": 1,
+                      "groupIndex": 0,
+                      "stackCount": 4,
+                      "stackIndex": 3,
+                    },
+                    "showInLegend": false,
+                    "stacked": true,
+                    "type": "bar",
+                    "xKey": "quarter",
+                    "yKey": "services",
+                    "yName": "Services",
                   },
-                  "showInLegend": false,
-                  "stacked": true,
-                  "type": "column",
-                  "xKey": "quarter",
-                  "yKey": "services",
-                  "yName": "Services",
-                },
-                {
-                  "type": "line",
-                  "xKey": "quarter",
-                  "yKey": "mac",
-                  "yName": "Mac",
-                },
-                {
-                  "type": "line",
-                  "xKey": "quarter",
-                  "yKey": "iphone",
-                  "yName": "IPhone",
-                },
-              ]
-          `);
+                  {
+                    "type": "line",
+                    "xKey": "quarter",
+                    "yKey": "mac",
+                    "yName": "Mac",
+                  },
+                  {
+                    "type": "line",
+                    "xKey": "quarter",
+                    "yKey": "iphone",
+                    "yName": "IPhone",
+                  },
+                ]
+            `);
         });
     });
 });

@@ -20,7 +20,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "male",
       yName: "Male cattle",
@@ -28,7 +28,7 @@ const options: AgChartOptions = {
       strokeWidth: 0,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "female",
       yName: "Female cattle",

@@ -106,9 +106,6 @@ export class DarkTheme extends ChartTheme {
                     bar: {
                         ...seriesLabelDefaults,
                     },
-                    column: {
-                        ...seriesLabelDefaults,
-                    },
                     histogram: {
                         ...seriesLabelDefaults,
                     },
@@ -120,9 +117,6 @@ export class DarkTheme extends ChartTheme {
                 ...chartAxesDefaults,
                 series: {
                     bar: {
-                        ...seriesLabelDefaults,
-                    },
-                    column: {
                         ...seriesLabelDefaults,
                     },
                     histogram: {

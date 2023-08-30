@@ -15,6 +15,7 @@ const options: AgChartOptions = {
   series: [
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "quarter",
       yKey: "iphone",
       yName: "iPhone",
@@ -25,6 +26,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "quarter",
       yKey: "mac",
       yName: "Mac",
@@ -35,6 +37,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "quarter",
       yKey: "ipad",
       yName: "iPad",
@@ -45,6 +48,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "quarter",
       yKey: "wearables",
       yName: "Wearables",
@@ -54,6 +58,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "quarter",
       yKey: "services",
       yName: "Services",

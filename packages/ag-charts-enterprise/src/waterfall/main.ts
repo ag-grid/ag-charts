@@ -1,1 +1,1 @@
-export { WaterfallBarModule, WaterfallColumnModule } from './waterfallModule';
+export { WaterfallModule } from './waterfallModule';

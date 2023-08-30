@@ -29,7 +29,7 @@ const options: AgChartOptions = {
   container: document.body,
   theme: {
     overrides: {
-      column: {
+      bar: {
         series: {
           highlightStyle: {
             item: {
@@ -56,10 +56,10 @@ const options: AgChartOptions = {
     text: "Based on a sample size of 200 respondents",
   },
   series: [
-    { type: 'column', xKey: 'beverage', yKey: 'Q1', stacked: true },
-    { type: 'column', xKey: 'beverage', yKey: 'Q2', stacked: true },
-    { type: 'column', xKey: 'beverage', yKey: 'Q3', stacked: true },
-    { type: 'column', xKey: 'beverage', yKey: 'Q4', stacked: true },
+    { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+    { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+    { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+    { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
   ],
 }
 

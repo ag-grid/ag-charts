@@ -19,7 +19,7 @@ const options: AgChartOptions = {
       ],
     },
     overrides: {
-      column: {
+      bar: {
         series: {
           strokeWidth: 0,
           highlightStyle: {
@@ -41,7 +41,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "type",
       yKey: "white",
       yName: "White",
@@ -49,7 +49,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "type",
       yKey: "mixed",
       yName: "Mixed",
@@ -57,7 +57,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "type",
       yKey: "asian",
       yName: "Asian",
@@ -65,7 +65,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "type",
       yKey: "black",
       yName: "Black",
@@ -73,7 +73,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "type",
       yKey: "chinese",
       yName: "Chinese",
@@ -81,7 +81,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "type",
       yKey: "other",
       yName: "Other",

@@ -38,28 +38,28 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "beverage",
       yKey: "Q1",
       stacked: true,
       label: {},
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "beverage",
       yKey: "Q2",
       stacked: true,
       label: {},
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "beverage",
       yKey: "Q3",
       stacked: true,
       label: {},
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "beverage",
       yKey: "Q4",
       stacked: true,

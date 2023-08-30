@@ -18,7 +18,7 @@ const options: AgChartOptions = {
   data: getData(),
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "NAQ1",
       yName: "Q1 - North America",
@@ -27,7 +27,7 @@ const options: AgChartOptions = {
       fill: "#f3622d",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "NAQ2",
       yName: "Q2 - North America",
@@ -36,7 +36,7 @@ const options: AgChartOptions = {
       fill: "#fba71b",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "NAQ3",
       yName: "Q3 - North America",
@@ -45,7 +45,7 @@ const options: AgChartOptions = {
       fill: "#57b757",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "NAQ4",
       yName: "Q4 - North America",
@@ -54,7 +54,7 @@ const options: AgChartOptions = {
       fill: "#41a9c9",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "EURQ1",
       yName: "Q1 - Europe",
@@ -63,7 +63,7 @@ const options: AgChartOptions = {
       showInLegend: false,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "EURQ2",
       yName: "Q2 - Europe",
@@ -72,7 +72,7 @@ const options: AgChartOptions = {
       showInLegend: false,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "EURQ3",
       yName: "Q3 - Europe",
@@ -81,7 +81,7 @@ const options: AgChartOptions = {
       showInLegend: false,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "EURQ4",
       yName: "Q4 - Europe",
@@ -90,7 +90,7 @@ const options: AgChartOptions = {
       showInLegend: false,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "ASIAQ1",
       yName: "Q1 - Asia",
@@ -99,7 +99,7 @@ const options: AgChartOptions = {
       showInLegend: false,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "ASIAQ2",
       yName: "Q2 - Asia",
@@ -108,7 +108,7 @@ const options: AgChartOptions = {
       showInLegend: false,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "ASIAQ3",
       yName: "Q3 - Asia",
@@ -117,7 +117,7 @@ const options: AgChartOptions = {
       showInLegend: false,
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "year",
       yKey: "ASIAQ4",
       yName: "Q4 - Asia",

@@ -28,10 +28,10 @@ const options: AgChartOptions = {
   data: data,
   container: document.getElementById("myChart"),
   series: [
-    { type: "column", xKey: "beverage", yKey: "Q1", stacked: true },
-    { type: "column", xKey: "beverage", yKey: "Q2", stacked: true },
-    { type: "column", xKey: "beverage", yKey: "Q3", stacked: true },
-    { type: "column", xKey: "beverage", yKey: "Q4", stacked: true },
+    { type: "bar", xKey: "beverage", yKey: "Q1", stacked: true },
+    { type: "bar", xKey: "beverage", yKey: "Q2", stacked: true },
+    { type: "bar", xKey: "beverage", yKey: "Q3", stacked: true },
+    { type: "bar", xKey: "beverage", yKey: "Q4", stacked: true },
   ],
 }
 

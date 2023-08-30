@@ -12,7 +12,7 @@ const options: AgChartOptions = {
   data: getData(),
   series: [
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'iphone',
       yName: 'iPhone',
@@ -20,7 +20,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'mac',
       yName: 'Mac',
@@ -28,7 +28,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'ipad',
       yName: 'iPad',
@@ -36,7 +36,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'wearables',
       yName: 'Wearables',
@@ -44,7 +44,7 @@ const options: AgChartOptions = {
       stacked: true,
     },
     {
-      type: 'column',
+      type: 'bar',
       xKey: 'quarter',
       yKey: 'services',
       yName: 'Services',

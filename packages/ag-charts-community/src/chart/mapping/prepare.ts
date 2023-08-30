@@ -12,6 +12,7 @@ import {
     DEFAULT_CARTESIAN_CHART_OVERRIDES,
     DEFAULT_BAR_CHART_OVERRIDES,
     DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES,
+    swapAxes,
 } from './defaults';
 import type { JsonMergeOptions } from '../../util/json';
 import { jsonMerge, DELETE, jsonWalk } from '../../util/json';
@@ -22,7 +23,12 @@ import { Logger } from '../../util/logger';
 import type { SeriesPaletteFactory } from '../../util/module';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
-import { addSeriesPaletteFactory, getSeriesDefaults, getSeriesPaletteFactory } from '../factory/seriesTypes';
+import {
+    addSeriesPaletteFactory,
+    getSeriesDefaults,
+    getSeriesPaletteFactory,
+    isDefaultAxisSwapNeeded,
+} from '../factory/seriesTypes';
 
 type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
 
@@ -162,6 +168,10 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
         defaultOverrides = DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES;
     } else if (isAgCartesianChartOptions(options)) {
         defaultOverrides = DEFAULT_CARTESIAN_CHART_OVERRIDES;
+    }
+
+    if (isDefaultAxisSwapNeeded(options)) {
+        defaultOverrides = swapAxes(defaultOverrides);
     }
 
     removeDisabledOptions<T>(options);
@@ -311,7 +321,6 @@ const singleSeriesPaletteFactory: SeriesPaletteFactory = ({ takeColors }) => {
 };
 addSeriesPaletteFactory('area', singleSeriesPaletteFactory);
 addSeriesPaletteFactory('bar', singleSeriesPaletteFactory);
-addSeriesPaletteFactory('column', singleSeriesPaletteFactory);
 addSeriesPaletteFactory('histogram', singleSeriesPaletteFactory);
 addSeriesPaletteFactory('scatter', (params) => {
     const { fill, stroke } = singleSeriesPaletteFactory(params);

@@ -35,6 +35,7 @@ const options: AgChartOptions = {
   series: [
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "area",
       yKey: "usedInLast3Months",
       yName: "Used in last 3 months",
@@ -43,6 +44,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "area",
       yKey: "usedOver3MonthsAgo",
       yName: "Used over 3 months ago",
@@ -51,6 +53,7 @@ const options: AgChartOptions = {
     },
     {
       type: "bar",
+      direction: "horizontal",
       xKey: "area",
       yKey: "neverUsed",
       yName: "Never used",

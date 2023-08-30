@@ -15,8 +15,8 @@ import { RadialColumnModule } from './polar-series/radial-column/main';
 import { RadarLineModule } from './polar-series/radar-line/main';
 import { RadarAreaModule } from './polar-series/radar-area/main';
 import { ZoomModule } from './zoom/main';
-import { WaterfallBarModule, WaterfallColumnModule } from './waterfall/main';
-import { RangeBarModule, RangeColumnModule } from './rangeBar/main';
+import { WaterfallModule } from './waterfall/main';
+import { RangeBarModule } from './rangeBar/main';
 import { RangeAreaModule } from './rangeArea/rangeAreaModule';
 
 export * from 'ag-charts-community';
@@ -33,10 +33,8 @@ _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
 _ModuleSupport.registerModule(RadialColumnModule);
 _ModuleSupport.registerModule(RadiusNumberAxisModule);
-_ModuleSupport.registerModule(WaterfallBarModule);
-_ModuleSupport.registerModule(WaterfallColumnModule);
+_ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(RangeBarModule);
-_ModuleSupport.registerModule(RangeColumnModule);
 _ModuleSupport.registerModule(RangeAreaModule);
 _ModuleSupport.registerModule(ZoomModule);
 

@@ -71,7 +71,7 @@ describe('update', () => {
                     },
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'profit',
                     fill: 'lime',
@@ -116,7 +116,7 @@ describe('update', () => {
                     },
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'profit',
                     fill: 'lime',
@@ -162,7 +162,7 @@ describe('update', () => {
                     marker: {},
                 },
                 {
-                    type: 'column',
+                    type: 'bar',
                     xKey: 'month',
                     yKey: 'profit',
                     fill: 'lime',
@@ -202,7 +202,7 @@ describe('update', () => {
                     },
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'profit',
                     fill: 'lime',
@@ -227,14 +227,14 @@ describe('update', () => {
                     },
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'profit',
                     fill: 'lime',
                     stacked: true,
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'foobar',
                     fill: 'cyan',
@@ -276,13 +276,13 @@ describe('update', () => {
                     },
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'profit',
                     fill: 'lime',
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'foobar',
                     fill: 'cyan',
@@ -301,14 +301,14 @@ describe('update', () => {
             data: revenueProfitData,
             series: [
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'profit',
                     stacked: true,
                     fill: 'lime',
                 },
                 {
-                    type: 'column', // have to specify type explicitly here
+                    type: 'bar', // have to specify type explicitly here
                     xKey: 'month',
                     yKey: 'foobar',
                     stacked: true,

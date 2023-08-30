@@ -21,14 +21,14 @@ const options: AgCartesianChartOptions = {
   ],
   series: [
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       stacked: true,
       yKey: "value1",
       yName: "Sweaters Made",
     },
     {
-      type: "column",
+      type: "bar",
       xKey: "month",
       stacked: true,
       yKey: "hats_made",
