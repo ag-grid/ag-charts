@@ -7,5 +7,10 @@ module.exports = (config) => {
                 'ag-charts-community': 'agCharts',
             },
         },
+        all: {
+            globals: {
+                'ag-charts-community': 'agCharts',
+            },
+        },
     });
 };

@@ -46,12 +46,12 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 
 export const getChartScriptPath = (sitePrefix?: string) => {
     const sitePrefixUrl = sitePrefix ? sitePrefix : '';
-    return pathJoin(sitePrefixUrl, '/dev/ag-charts-community/dist/main.umd.js');
+    return pathJoin(sitePrefixUrl, '/dev/ag-charts-community/dist/main.cjs.js');
 };
 
 export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
     const sitePrefixUrl = sitePrefix ? sitePrefix : '';
-    return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/main.umd.js');
+    return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/main.cjs.js');
 };
 
 export const getPublicFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {

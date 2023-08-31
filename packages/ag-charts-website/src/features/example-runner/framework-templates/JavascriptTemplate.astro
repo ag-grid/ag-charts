@@ -67,16 +67,22 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
     <body>
         <Fragment set:html={indexFragment} />
 
+        <script is:inline src="https://unpkg.com/browser-cjs/require.js"></script>
         <script
             is:inline
             define:vars={{
                 appLocation,
+                chartScriptPath,
+                isEnterprise,
+                chartScriptEnterprisePath,
             }}
         >
             window.__basePath = appLocation;
+            window.agCharts = require(chartScriptPath);
+            if (isEnterprise) {
+                window.agChartsEnterprise = require(chartScriptEnterprisePath);
+            }
         </script>
-        <script src={chartScriptPath}></script>
-        {isEnterprise && <script src={chartScriptEnterprisePath} />}
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <Styles
             baseUrl={appLocation}

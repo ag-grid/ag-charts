@@ -1,4 +1,4 @@
-module.exports = function buildConfig(name, { output, input, ...config }, { umd = {} } = {}) {
+module.exports = function buildConfig(name, { output, input, ...config }, { umd = {}, all = {} } = {}) {
     if (!Array.isArray(output)) {
         output = [output];
     }
@@ -17,6 +17,7 @@ module.exports = function buildConfig(name, { output, input, ...config }, { umd 
                 entryFileNames,
                 chunkFileNames: `lib/_[hash].[format]`,
                 sourcemap: process.env.NX_TASK_TARGET_CONFIGURATION !== 'production',
+                ...all,
             })),
         ],
     };
@@ -30,6 +31,7 @@ module.exports = function buildConfig(name, { output, input, ...config }, { umd 
             chunkFileNames: chunkFileNames.replace('cjs', 'umd'),
             sourcemap: process.env.NX_TASK_TARGET_CONFIGURATION !== 'production',
             format: 'umd',
+            ...all,
             ...umd,
         });
     }
