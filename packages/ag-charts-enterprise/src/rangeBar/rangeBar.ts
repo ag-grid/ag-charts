@@ -30,7 +30,7 @@ const {
     calculateStep,
     STRING_UNION,
 } = _ModuleSupport;
-const { toTooltipHtml, ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
+const { ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
 
 const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
