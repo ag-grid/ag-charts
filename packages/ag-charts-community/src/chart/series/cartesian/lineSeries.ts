@@ -1,4 +1,3 @@
-import type { Path } from '../../../scene/shape/path';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Selection } from '../../../scene/selection';
 import type { SeriesNodeDatum, SeriesNodeDataContext } from '../series';
@@ -33,7 +32,7 @@ import type {
     AgCartesianSeriesMarkerFormat,
 } from '../../agChartOptions';
 import type { UngroupedDataItem } from '../../data/dataModel';
-import { createDatumId, diff } from '../../data/processors';
+import { diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
@@ -154,7 +153,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         this.dataModel = dataModel;
         this.processedData = processedData;
 
-        this.animationState.transition('updateData');
+        this.checkAnimationUpdateDataTransition();
     }
 
     getDomain(direction: ChartAxisDirection): any[] {
@@ -509,7 +508,9 @@ export class LineSeries extends CartesianSeries<LineContext> {
         return legendData;
     }
 
-    animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths }: LineAnimationData) {
+    animateEmptyUpdateReady(animationData: LineAnimationData) {
+        const { markerSelections, labelSelections, contextData, paths } = animationData;
+
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
 
@@ -533,6 +534,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             lineNode.fill = undefined;
             lineNode.lineJoin = 'round';
             lineNode.pointerEvents = PointerEvents.None;
+            lineNode.opacity = 1;
 
             lineNode.stroke = this.stroke;
             lineNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
@@ -541,7 +543,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             lineNode.lineDash = this.lineDash;
             lineNode.lineDashOffset = this.lineDashOffset;
 
-            const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+            const duration = animationData.duration ?? this.ctx.animationManager?.defaultOptions.duration ?? 1000;
             const markerDuration = 200;
 
             const animationOptions = {
@@ -591,6 +593,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 const delay = lineLength > 0 ? (nodeLengths[index] / lineLength) * duration : 0;
                 const format = this.animateMarkerFormatter(datum);
                 const size = datum.point?.size ?? 0;
+                marker.opacity = 1;
 
                 this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready_${marker.id}`, {
                     ...animationOptions,
@@ -954,11 +957,46 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    resetMarkersAndPaths({ markerSelections, contextData, paths }: LineAnimationData) {
-        markerSelections.forEach((markerSelection) => {
-            markerSelection.cleanup();
-        });
+    protected animateClearingUpdateEmpty(animationData: LineAnimationData) {
+        const { markerSelections, labelSelections, contextData, paths } = animationData;
 
+        const updateDuration = (this.ctx.animationManager?.defaultOptions.duration ?? 1000) / 2;
+        const clearDuration = 200;
+
+        contextData.forEach((_, contextDataIndex) => {
+            const [lineNode] = paths[contextDataIndex];
+            const { path: linePath } = lineNode;
+            const pathPoints = linePath.getPoints();
+
+            labelSelections.forEach((labelSelection) => {
+                labelSelection.each((label) => {
+                    label.opacity = 0;
+                });
+            });
+
+            this.ctx.animationManager.animate(`${this.id}_animate-clearing-update-empty`, {
+                from: 1,
+                to: 0,
+                duration: clearDuration,
+                onUpdate(opacity) {
+                    lineNode.opacity = opacity;
+                    markerSelections.forEach((markerSelection) => {
+                        markerSelection.each((marker, _, index) => {
+                            marker.opacity = opacity;
+                            marker.translationX = pathPoints[index]?.x;
+                            marker.translationY = pathPoints[index]?.y;
+                        });
+                    });
+                },
+                onComplete: () => {
+                    this.resetMarkersAndPaths(animationData);
+                    this.animationState.transition('update', { ...animationData, duration: updateDuration });
+                },
+            });
+        });
+    }
+
+    resetMarkersAndPaths({ markerSelections, contextData, paths }: LineAnimationData) {
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
 
@@ -982,11 +1020,15 @@ export class LineSeries extends CartesianSeries<LineContext> {
             });
 
             lineNode.checkPathDirty();
+        });
 
-            markerSelections[contextDataIndex].each((marker, datum) => {
+        markerSelections.forEach((markerSelection) => {
+            markerSelection.cleanup().each((marker, datum) => {
                 const format = this.animateMarkerFormatter(datum);
                 const size = datum.point?.size ?? 0;
                 marker.size = format?.size ?? size;
+                marker.translationX = datum.point.x;
+                marker.translationY = datum.point.y;
             });
         });
     }
