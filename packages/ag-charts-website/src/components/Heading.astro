@@ -1,0 +1,18 @@
+---
+import { Icon } from './icon/Icon';
+
+interface Props {
+    level: number;
+    id: string;
+}
+
+const { level, id } = Astro.props;
+const Heading = `h${level}`;
+---
+
+<Heading id={id}>
+    <slot />
+    <a href={`#${id}`} class="docs-header-icon">
+        <Icon name="link" />
+    </a>
+</Heading>
