@@ -134,9 +134,9 @@ type PropertyIdentifiers = {
     /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
     scopes?: string[];
     /** Unique id for a property definition within the scope(s) provided. */
+    /** Tuples of [scope, id] that match this definition. */
+    ids?: [string, string][];
     id?: string;
-    /** Alternative unique ids for the property. */
-    idAliases?: string[];
     /** Optional group a property belongs to, for cross-scope combination. */
     groupId?: string;
 };
@@ -144,8 +144,8 @@ type PropertyIdentifiers = {
 type PropertySelectors = {
     /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
     matchScopes?: string[];
-    /** Unique id for a property definition within the scope(s) provided. */
-    matchIds?: string[];
+    /** Tuples of [scope, id] that match this definition. */
+    matchIds?: [string, string][];
     /** Optional group a property belongs to, for cross-scope combination. */
     matchGroupIds?: string[];
 };
@@ -161,7 +161,9 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     processor?: () => ProcessorFn;
 };
 
-type InternalDefinition = { index: number };
+type InternalDefinition = {
+    index: number;
+};
 
 type InternalDatumPropertyDefinition<K> = DatumPropertyDefinition<K> &
     InternalDefinition & {
@@ -191,26 +193,20 @@ export type GroupValueProcessorDefinition<D, K extends keyof D & string> = Prope
         adjust: () => () => (values: D[K][], indexes: number[]) => void;
     };
 
-export type PropertyValueProcessorDefinition<D> = {
-    id?: string;
-    scopes?: string[];
+export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
     type: 'property-value-processor';
     property: PropertyId<keyof D & string>;
     adjust: () => (processedData: ProcessedData<D>, valueIndex: number) => void;
 };
 
-export type ReducerOutputPropertyDefinition<R> = {
-    id?: string;
-    scopes?: string[];
+export type ReducerOutputPropertyDefinition<R> = PropertyIdentifiers & {
     type: 'reducer';
     property: string;
     initialValue?: R;
     reducer: () => (acc: R, next: UngroupedDataItem<any, any>) => R;
 };
 
-export type ProcessorOutputPropertyDefinition<R> = {
-    id?: string;
-    scopes?: string[];
+export type ProcessorOutputPropertyDefinition<R> = PropertyIdentifiers & {
     type: 'processor';
     property: string;
     calculate: (data: ProcessedData<any>) => R;
@@ -291,18 +287,13 @@ export class DataModel<
                 }
             }
         };
-        const verifyMatchScopes = ({ matchScopes }: { matchScopes?: string[] }) => {
-            for (const matchScope of matchScopes ?? []) {
-                if (!this.values.some((def) => def.scopes?.includes(matchScope))) {
-                    throw new Error(
-                        `AG Charts - internal config error: matchGroupIds properties must match defined groups (${matchScope}).`
-                    );
-                }
-            }
-        };
-        const verifyMatchIds = ({ matchIds }: { matchIds?: string[] }) => {
+        const verifyMatchIds = ({ matchIds }: { matchIds?: [string, string][] }) => {
             for (const matchId of matchIds ?? []) {
-                if (!this.values.some((def) => def.id === matchId)) {
+                if (
+                    !this.values.some((def) =>
+                        def.ids?.some(([scope, id]) => scope === matchId[0] && id === matchId[1])
+                    )
+                ) {
                     throw new Error(
                         `AG Charts - internal config error: matchGroupIds properties must match defined groups (${matchId}).`
                     );
@@ -313,7 +304,6 @@ export class DataModel<
         for (const def of [...this.groupProcessors, ...this.aggregates]) {
             verifyMatchIds(def);
             verifyMatchGroupId(def);
-            verifyMatchScopes(def);
         }
     }
 
@@ -322,7 +312,7 @@ export class DataModel<
         searchId: string,
         type: PropertyDefinition<any>['type'] = 'value'
     ): { type: typeof type; index: number; def: PropertyDefinition<any> } | never {
-        const { index, def } = this.resolveProcessedDataDefById(scope, searchId, type) ?? {};
+        const { index, def } = this.resolveProcessedDataDefById(scope, searchId) ?? {};
         return { type, index, def };
     }
 
@@ -331,40 +321,29 @@ export class DataModel<
         searchId: string | RegExp,
         type: PropertyDefinition<any>['type'] = 'value'
     ): { type: typeof type; index: number; def: PropertyDefinition<any> }[] | never {
-        return this.resolveProcessedDataDefsById(scope, searchId, type).map(({ index, def }) => ({ type, index, def }));
+        return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ type, index, def }));
     }
 
     resolveProcessedDataDefById(
         scope: ScopeProvider,
-        searchId: string,
-        type: PropertyDefinition<any>['type'] = 'value'
+        searchId: string
     ): { index: number; def: PropertyDefinition<any> } | never {
-        return this.resolveProcessedDataDefsById(scope, searchId, type)[0];
+        return this.resolveProcessedDataDefsById(scope, searchId)[0];
     }
 
     resolveProcessedDataDefsById(
-        scope: ScopeProvider,
-        searchId: RegExp | string,
-        type: PropertyDefinition<any>['type'] = 'value'
+        searchScope: ScopeProvider,
+        searchId: RegExp | string
     ): { index: number; def: PropertyDefinition<any> }[] | never {
         const { keys, values, aggregates, groupProcessors, reducers } = this;
 
         const match = (prop: PropertyDefinition<any> & InternalDefinition) => {
-            const { id, scopes, type } = prop;
+            const { ids, scopes } = prop;
 
-            if (id == null) return false;
-            if (scope != null && !scopes?.includes(scope.id)) return false;
+            if (ids == null) return false;
+            if (searchScope != null && !scopes?.some((scope) => scope === searchScope.id)) return false;
 
-            const ids = [id];
-            if (type === 'key' || type === 'value') {
-                ids.push(...(prop.idAliases ?? []));
-            }
-
-            if (typeof searchId === 'string') {
-                return ids.indexOf(searchId) >= 0;
-            }
-
-            return ids.some((id) => searchId.test(id));
+            return ids.some(([scope, id]) => scope === searchScope.id && id === searchId);
         };
 
         const allDefs: (PropertyDefinition<any> & InternalDefinition)[][] = [
@@ -383,7 +362,7 @@ export class DataModel<
             return result;
         }
 
-        throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}, ${type}]`);
+        throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
     }
 
     getDomain(
@@ -487,24 +466,25 @@ export class DataModel<
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
-    private valueGroupIdxLookup({ matchGroupIds, matchIds, matchScopes }: PropertySelectors) {
+    private valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
         return this.values
             .map((def, index) => ({ def, index }))
             .filter(({ def }) => {
                 if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) {
                     return false;
                 }
-                if (matchIds && (def.id == null || !matchIds.includes(def.id))) {
-                    return false;
-                }
-                return !(matchScopes && (def.scopes == null || !matchScopes.some((s) => def.scopes?.includes(s))));
+                return !(
+                    matchIds &&
+                    (def.ids == null ||
+                        !matchIds.some(([matchScope, matchId]) =>
+                            def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
+                        ))
+                );
             })
             .map(({ index }) => index);
     }
 
-    private valueIdxLookup(scopes: string[], prop: PropertyId<any>) {
-        let result;
-
+    private valueIdxLookup(scopes: string[], prop: PropertyId<string>) {
         const noScopesToMatch = scopes == null || scopes.length === 0;
         const scopeMatch = (compareTo?: string[]) => {
             const anyScope = compareTo == null;
@@ -516,18 +496,24 @@ export class DataModel<
             return compareTo?.some((s) => scopes.includes(s));
         };
 
-        if (typeof prop === 'string') {
-            result = this.values.findIndex((def) => scopeMatch(def.scopes) && def.property === prop);
-        } else {
-            result = this.values.findIndex((def) => scopeMatch(def.scopes) && def.id === prop.id);
-        }
+        const propId = typeof prop === 'string' ? prop : prop.id;
+        const idMatch = ([scope, id]: [string, string]) => {
+            return scopeMatch([scope]) && id === propId;
+        };
+
+        const result = this.values.findIndex((def) => {
+            return (
+                scopeMatch(def.scopes) &&
+                (def.ids?.some((id) => idMatch(id)) || def.property === propId || def.id === propId)
+            );
+        });
 
         if (result >= 0) {
             return result;
         }
 
         throw new Error(
-            `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scope(s) ${JSON.stringify(
+            `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scopes(s) ${JSON.stringify(
                 scopes
             )}`
         );
