@@ -17,8 +17,6 @@ import {
 } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { getMarker } from '../../marker/util';
-import { toTooltipHtml } from '../../tooltip/tooltip';
-import { interpolate } from '../../../util/string';
 import { Label } from '../../label';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { zipObject } from '../../../util/zip';
@@ -409,7 +407,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
         }
 
         const { xName, yName, tooltip, marker, id: seriesId } = this;
-        const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
         const { datum, xValue, yValue } = nodeDatum;
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
@@ -442,33 +439,18 @@ export class LineSeries extends CartesianSeries<LineContext> {
             content,
         };
 
-        if (tooltipFormat || tooltipRenderer) {
-            const params = {
-                datum,
-                xKey,
-                xValue,
-                xName,
-                yKey,
-                yValue,
-                yName,
-                title,
-                color,
-                seriesId,
-            };
-            if (tooltipFormat) {
-                return toTooltipHtml(
-                    {
-                        content: interpolate(tooltipFormat, params),
-                    },
-                    defaults
-                );
-            }
-            if (tooltipRenderer) {
-                return toTooltipHtml(tooltipRenderer(params), defaults);
-            }
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yKey,
+            yValue,
+            yName,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): ChartLegendDatum[] {

@@ -33,7 +33,7 @@ const {
     checkCrisp,
     updateLabel,
 } = _ModuleSupport;
-const { toTooltipHtml, ContinuousScale, Rect } = _Scene;
+const { ContinuousScale, Rect } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
 
 const WATERFALL_LABEL_PLACEMENTS: AgWaterfallSeriesLabelPlacement[] = ['start', 'end', 'inside'];
@@ -736,8 +736,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
         const { fill, strokeWidth, name, formatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
 
-        const tooltipRenderer = itemTooltip.renderer ?? this.tooltip.renderer;
-
         let format: any | undefined = undefined;
 
         if (formatter) {
@@ -773,25 +771,22 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             backgroundColor: color,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yKey,
-                    yValue,
-                    yName,
-                    color,
-                    seriesId,
-                    itemId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return this.tooltip.toTooltipHtml(
+            defaults,
+            {
+                datum,
+                xKey,
+                xValue,
+                xName,
+                yKey,
+                yValue,
+                yName,
+                color,
+                seriesId,
+                itemId,
+            },
+            itemTooltip
+        );
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {

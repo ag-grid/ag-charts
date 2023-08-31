@@ -24,8 +24,8 @@ const {
     valueProperty,
 } = _ModuleSupport;
 
-const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker, toTooltipHtml } = _Scene;
-const { extent, interpolateString, isNumberEqual, sanitizeHtml, toFixed } = _Util;
+const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
+const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
 class RadarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -446,7 +446,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
 
         const { angleName, radiusName, tooltip, marker, id: seriesId } = this;
-        const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
         const { datum, angleValue, radiusValue } = nodeDatum;
         const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
         const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
@@ -479,33 +478,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             content,
         };
 
-        if (tooltipFormat || tooltipRenderer) {
-            const params = {
-                datum,
-                angleKey,
-                angleValue,
-                angleName,
-                radiusKey,
-                radiusValue,
-                radiusName,
-                title,
-                color,
-                seriesId,
-            };
-            if (tooltipFormat) {
-                return toTooltipHtml(
-                    {
-                        content: interpolateString(tooltipFormat, params),
-                    },
-                    defaults
-                );
-            }
-            if (tooltipRenderer) {
-                return toTooltipHtml(tooltipRenderer(params), defaults);
-            }
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            angleKey,
+            angleValue,
+            angleName,
+            radiusKey,
+            radiusValue,
+            radiusName,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): _ModuleSupport.ChartLegendDatum[] {

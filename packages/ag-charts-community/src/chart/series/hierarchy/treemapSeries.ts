@@ -3,7 +3,6 @@ import { Label } from '../../label';
 import type { SeriesNodeDatum } from '../series';
 import { SeriesTooltip, HighlightStyle, SeriesNodeBaseClickEvent } from '../series';
 import { HierarchySeries } from './hierarchySeries';
-import { toTooltipHtml } from '../../tooltip/tooltip';
 import { Group } from '../../../scene/group';
 import { Text } from '../../../scene/shape/text';
 import { Rect } from '../../../scene/shape/rect';
@@ -909,7 +908,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
             ctx: { callbackCache },
         } = this;
         const { datum } = nodeDatum;
-        const { renderer: tooltipRenderer } = tooltip;
 
         const title: string | undefined = nodeDatum.depth ? datum[labelKey] : datum[labelKey] ?? rootName;
         let content = '';
@@ -942,28 +940,21 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
             content,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum: nodeDatum.datum,
-                    parent: nodeDatum.parent?.datum,
-                    depth: nodeDatum.depth,
-                    sizeKey,
-                    labelKey,
-                    colorKey,
-                    title,
-                    color,
-                    seriesId,
-                }),
-                defaults
-            );
-        }
-
-        if (!title && !content) {
+        if (!tooltip.renderer && !tooltip.format && !title && !content) {
             return '';
         }
 
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum: nodeDatum.datum,
+            parent: nodeDatum.parent?.datum,
+            depth: nodeDatum.depth,
+            sizeKey,
+            labelKey,
+            colorKey,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): ChartLegendDatum[] {

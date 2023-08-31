@@ -18,7 +18,6 @@ import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesi
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { toTooltipHtml } from '../../tooltip/tooltip';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -566,7 +565,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         }
 
         const { xName, yName, fill, stroke, tooltip, formatter, id: seriesId, stackGroup } = this;
-        const { renderer: tooltipRenderer } = tooltip;
         const strokeWidth = this.getStrokeWidth(this.strokeWidth);
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
@@ -597,26 +595,19 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             content,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yKey,
-                    yValue,
-                    yName,
-                    color,
-                    title,
-                    seriesId,
-                    stackGroup,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yKey,
+            yValue,
+            yName,
+            color,
+            title,
+            seriesId,
+            stackGroup,
+        });
     }
 
     getLegendData(): ChartLegendDatum[] {

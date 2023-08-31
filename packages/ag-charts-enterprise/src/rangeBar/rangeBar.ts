@@ -649,9 +649,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
-        const { fill, strokeWidth, formatter, tooltip: itemTooltip } = this;
-
-        const tooltipRenderer = itemTooltip.renderer ?? this.tooltip.renderer;
+        const { fill, strokeWidth, formatter, tooltip } = this;
 
         let format: any | undefined = undefined;
 
@@ -695,29 +693,22 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             backgroundColor: color,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yLowKey,
-                    yLowValue,
-                    yLowName,
-                    yHighKey,
-                    yHighValue,
-                    yHighName,
-                    yName,
-                    color,
-                    seriesId,
-                    itemId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yLowKey,
+            yLowValue,
+            yLowName,
+            yHighKey,
+            yHighValue,
+            yHighName,
+            yName,
+            color,
+            seriesId,
+            itemId,
+        });
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {

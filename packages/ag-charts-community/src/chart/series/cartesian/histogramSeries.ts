@@ -10,7 +10,6 @@ import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { toTooltipHtml } from '../../tooltip/tooltip';
 import ticks, { tickStep } from '../../../util/ticks';
 import { sanitizeHtml } from '../../../util/sanitize';
 import {
@@ -509,7 +508,6 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         }
 
         const { xName, yName, fill: color, tooltip, aggregation, id: seriesId } = this;
-        const { renderer: tooltipRenderer } = tooltip;
         const {
             aggregatedValue,
             frequency,
@@ -529,30 +527,23 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             content,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum: {
-                        data: nodeDatum.datum,
-                        aggregatedValue: nodeDatum.aggregatedValue,
-                        domain: nodeDatum.domain,
-                        frequency: nodeDatum.frequency,
-                    },
-                    xKey,
-                    xValue: domain,
-                    xName,
-                    yKey,
-                    yValue: aggregatedValue,
-                    yName,
-                    color,
-                    title,
-                    seriesId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum: {
+                data: nodeDatum.datum,
+                aggregatedValue: nodeDatum.aggregatedValue,
+                domain: nodeDatum.domain,
+                frequency: nodeDatum.frequency,
+            },
+            xKey,
+            xValue: domain,
+            xName,
+            yKey,
+            yValue: aggregatedValue,
+            yName,
+            color,
+            title,
+            seriesId,
+        });
     }
 
     getLegendData(): ChartLegendDatum[] {

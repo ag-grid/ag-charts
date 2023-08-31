@@ -24,7 +24,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, InteractionRange } from '../agChartOptions';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
-import { TooltipPosition } from '../tooltip/tooltip';
+import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { ModuleContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
@@ -32,6 +32,7 @@ import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
+import { interpolate } from '../../util/string';
 
 /**
  * Processed series datum used in node selections,
@@ -267,6 +268,27 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> {
     interaction?: SeriesTooltipInteraction = new SeriesTooltipInteraction();
 
     readonly position: TooltipPosition = new TooltipPosition();
+
+    toTooltipHtml(
+        defaults: AgTooltipRendererResult,
+        params: P,
+        overrides?: Partial<{ format: string; renderer: (params: P) => string | AgTooltipRendererResult }>
+    ) {
+        const formatFn = overrides?.format ?? this.format;
+        const rendererFn = overrides?.renderer ?? this.renderer;
+        if (formatFn) {
+            return toTooltipHtml(
+                {
+                    content: interpolate(formatFn, params),
+                },
+                defaults
+            );
+        }
+        if (rendererFn) {
+            return toTooltipHtml(rendererFn(params), defaults);
+        }
+        return toTooltipHtml(defaults);
+    }
 }
 
 export class SeriesTooltipInteraction {

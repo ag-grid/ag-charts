@@ -19,7 +19,7 @@ const {
     OPT_NUMBER_ARRAY,
     OPT_COLOR_STRING,
 } = _ModuleSupport;
-const { Rect, Label, toTooltipHtml } = _Scene;
+const { Rect, Label } = _Scene;
 const { ContinuousScale, ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
@@ -457,29 +457,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             content,
         };
 
-        const { renderer: tooltipRenderer } = tooltip;
-
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yKey,
-                    yValue,
-                    yName,
-                    labelKey,
-                    labelName,
-                    title,
-                    color,
-                    seriesId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yKey,
+            yValue,
+            yName,
+            labelKey,
+            labelName,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): any[] {

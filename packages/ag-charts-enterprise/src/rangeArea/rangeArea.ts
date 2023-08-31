@@ -28,7 +28,7 @@ const {
     areaAnimateReadyUpdate,
     AreaSeriesTag,
 } = _ModuleSupport;
-const { getMarker, toTooltipHtml, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
+const { getMarker, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
 const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside', 'outside'];
@@ -609,13 +609,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             return '';
         }
 
-        const { xName, yLowName, yHighName, yName, id: seriesId } = this;
+        const { xName, yLowName, yHighName, yName, id: seriesId, fill, tooltip } = this;
 
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
-
-        const { fill, tooltip: itemTooltip } = this;
-
-        const tooltipRenderer = itemTooltip.renderer ?? this.tooltip.renderer;
 
         const color = fill ?? 'gray';
 
@@ -641,29 +637,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             backgroundColor: color,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yLowKey,
-                    yLowValue,
-                    yLowName,
-                    yHighKey,
-                    yHighValue,
-                    yHighName,
-                    yName,
-                    color,
-                    seriesId,
-                    itemId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yLowKey,
+            yLowValue,
+            yLowName,
+            yHighKey,
+            yHighValue,
+            yHighName,
+            yName,
+            color,
+            seriesId,
+            itemId,
+        });
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {

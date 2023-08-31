@@ -26,7 +26,6 @@ import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
 import { Caption } from '../../../caption';
 import { PolarSeries } from './polarSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { toTooltipHtml } from '../../tooltip/tooltip';
 import { isPointInSector, boxCollidesSector } from '../../../util/sector';
 import {
     BOOLEAN,
@@ -1516,7 +1515,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             id: seriesId,
         } = this;
 
-        const { renderer: tooltipRenderer } = tooltip;
         const {
             datum,
             angleValue,
@@ -1534,29 +1532,22 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             content,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    angleKey,
-                    angleValue,
-                    angleName,
-                    radiusKey,
-                    radiusValue,
-                    radiusName,
-                    calloutLabelKey,
-                    calloutLabelName,
-                    sectorLabelKey,
-                    sectorLabelName,
-                    title,
-                    color,
-                    seriesId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            angleKey,
+            angleValue,
+            angleName,
+            radiusKey,
+            radiusValue,
+            radiusName,
+            calloutLabelKey,
+            calloutLabelName,
+            sectorLabelKey,
+            sectorLabelName,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): ChartLegendDatum[] {

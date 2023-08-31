@@ -27,8 +27,8 @@ const {
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Selection, Text, toTooltipHtml } = _Scene;
-const { interpolateString, isNumber, normalizeAngle360, sanitizeHtml } = _Util;
+const { Group, Selection, Text } = _Scene;
+const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -602,7 +602,6 @@ export abstract class RadialColumnSeriesBase<
 
         const angleString = xAxis.formatDatum(angleValue);
         const radiusString = yAxis.formatDatum(radiusValue);
-        const processedYValue = nodeDatum.radiusValue;
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${angleString}: ${radiusString}`);
 
@@ -611,7 +610,6 @@ export abstract class RadialColumnSeriesBase<
             backgroundColor: fill,
             content,
         };
-        const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
         const { callbackCache } = this.ctx;
 
         const format = formatter
@@ -627,34 +625,18 @@ export abstract class RadialColumnSeriesBase<
               })
             : undefined;
 
-        if (tooltipFormat || tooltipRenderer) {
-            const params = {
-                datum,
-                angleKey,
-                angleName,
-                angleValue,
-                radiusKey,
-                radiusName,
-                radiusValue,
-                processedYValue,
-                color: format?.fill ?? fill,
-                title,
-                seriesId,
-            };
-            if (tooltipFormat) {
-                return toTooltipHtml(
-                    {
-                        content: interpolateString(tooltipFormat, params),
-                    },
-                    defaults
-                );
-            }
-            if (tooltipRenderer) {
-                return toTooltipHtml(tooltipRenderer(params), defaults);
-            }
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            angleKey,
+            angleName,
+            angleValue,
+            radiusKey,
+            radiusName,
+            radiusValue,
+            color: format?.fill ?? fill,
+            title,
+            seriesId,
+        });
     }
 
     getLegendData(): _ModuleSupport.ChartLegendDatum[] {
