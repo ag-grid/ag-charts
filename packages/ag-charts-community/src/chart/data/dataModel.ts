@@ -513,7 +513,7 @@ export class DataModel<
         }
 
         throw new Error(
-            `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scopes(s) ${JSON.stringify(
+            `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scope(s) ${JSON.stringify(
                 scopes
             )}`
         );
