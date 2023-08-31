@@ -51,7 +51,7 @@
         "output": "dist/packages/ag-charts-community/doc-interfaces.AUTO.json"
       }
     },
-    "lint": {
+    "lint-eslint": {
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
@@ -62,6 +62,19 @@
         "fix": {
           "fix": true
         }
+      }
+    },
+    "lint-circular": {
+      "executor": "nx:run-script",
+      "options": {
+          "script": "lint:circular"
+      }
+    },
+    "lint": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint-eslint", "lint-circular"],
+      "configurations": {
+        "fix": {}
       }
     },
     "test": {
