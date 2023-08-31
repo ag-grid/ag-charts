@@ -1,6 +1,6 @@
 import type { AgChartBackgroundImage } from '../background/backgroundOptions';
 import type { AgBaseChartListeners } from './eventOptions';
-import type { AgChartTheme } from './themeOptions';
+import type { AgBaseChartTheme } from './themeOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextWrap } from './types';
 
@@ -88,9 +88,9 @@ export interface AgChartHighlightOptions {
 }
 
 /** Configuration common to all charts.  */
-export interface AgBaseChartOptions {
+export interface AgBaseChartOptions<TData = any[]> {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
-    data?: any[];
+    data?: TData;
     /** The element to place the rendered chart into.<br/><strong>Important:</strong> make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default). */
     container?: HTMLElement | null;
     /** The width of the chart in pixels. */
@@ -118,35 +118,7 @@ export interface AgBaseChartOptions {
     /** Configuration for the chart highlighting. */
     highlight?: AgChartHighlightOptions;
     /** Theme to use for rendering of the chart. Specify an inbuilt theme name, or provide an `AgChartTheme` instance to customise. */
-    theme?: string | AgChartTheme;
+    theme?: string | AgBaseChartTheme<AgBaseChartOptions>;
     /** HTML overlays */
     overlays?: AgChartOverlaysOptions;
-}
-
-export interface AgChartLabelOptions {
-    /** Whether or not the labels should be shown. */
-    enabled?: boolean;
-    /** The font style to use for the labels. */
-    fontStyle?: FontStyle;
-    /** The font weight to use for the labels. */
-    fontWeight?: FontWeight;
-    /** The font size in pixels to use for the labels. */
-    fontSize?: FontSize;
-    /** The font family to use for the labels. */
-    fontFamily?: FontFamily;
-    /** The colour to use for the labels. */
-    color?: CssColor;
-}
-
-export interface AgDropShadowOptions {
-    /** Whether or not the shadow is visible. */
-    enabled?: boolean;
-    /** The colour of the shadow. */
-    color?: CssColor;
-    /** The horizontal offset in pixels for the shadow. */
-    xOffset?: PixelSize;
-    /** The vertical offset in pixels for the shadow. */
-    yOffset?: PixelSize;
-    /** The radius of the shadow's blur, given in pixels. */
-    blur?: PixelSize;
 }

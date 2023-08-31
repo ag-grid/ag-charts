@@ -1,4 +1,4 @@
-import type { AgChartLabelOptions } from '../../options/chartOptions';
+import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type {
     AgSeriesTooltip,
