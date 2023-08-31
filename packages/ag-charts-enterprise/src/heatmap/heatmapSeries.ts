@@ -19,7 +19,7 @@ const {
     OPT_NUMBER_ARRAY,
     OPT_COLOR_STRING,
 } = _ModuleSupport;
-const { Rect, Label, toTooltipHtml } = _Scene;
+const { Rect, Label } = _Scene;
 const { ContinuousScale, ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
@@ -53,11 +53,6 @@ export class HeatmapSeriesNodeClickEvent extends HeatmapSeriesNodeBaseClickEvent
 
 export class HeatmapSeriesNodeDoubleClickEvent extends HeatmapSeriesNodeBaseClickEvent {
     readonly type = 'nodeDoubleClick';
-}
-
-class HeatmapSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgHeatmapSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
 }
 
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
@@ -113,7 +108,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat = undefined;
 
-    readonly tooltip: HeatmapSeriesTooltip = new HeatmapSeriesTooltip();
+    readonly tooltip = new _ModuleSupport.SeriesTooltip<AgHeatmapSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -462,29 +457,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             content,
         };
 
-        const { renderer: tooltipRenderer } = tooltip;
-
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yKey,
-                    yValue,
-                    yName,
-                    labelKey,
-                    labelName,
-                    title,
-                    color,
-                    seriesId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yKey,
+            yValue,
+            yName,
+            labelKey,
+            labelName,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): any[] {

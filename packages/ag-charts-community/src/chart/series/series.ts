@@ -7,22 +7,24 @@ import { createId } from '../../util/id';
 import { checkDatum } from '../../util/value';
 import {
     BOOLEAN,
-    OPT_BOOLEAN,
-    OPT_NUMBER,
-    OPT_COLOR_STRING,
     INTERACTION_RANGE,
+    OPT_BOOLEAN,
+    OPT_COLOR_STRING,
+    OPT_FUNCTION,
+    OPT_NUMBER,
+    OPT_STRING,
     STRING,
     Validate,
 } from '../../util/validation';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Layers } from '../layers';
-import type { SizedPoint, Point } from '../../scene/point';
+import type { Point, SizedPoint } from '../../scene/point';
 import type { BBox } from '../../scene/bbox';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import type { InteractionRange } from '../agChartOptions';
+import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, InteractionRange } from '../agChartOptions';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
-import { TooltipPosition } from '../tooltip/tooltip';
+import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { ModuleContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
@@ -30,6 +32,7 @@ import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
+import { interpolate } from '../../util/string';
 
 /**
  * Processed series datum used in node selections,
@@ -249,16 +252,43 @@ export class HighlightStyle {
     readonly text = new TextHighlightStyle();
 }
 
-export class SeriesTooltip {
+export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
     @Validate(OPT_BOOLEAN)
     showArrow?: boolean = undefined;
 
+    @Validate(OPT_FUNCTION)
+    renderer?: (params: P) => string | AgTooltipRendererResult = undefined;
+
+    @Validate(OPT_STRING)
+    format?: string = undefined;
+
     interaction?: SeriesTooltipInteraction = new SeriesTooltipInteraction();
 
     readonly position: TooltipPosition = new TooltipPosition();
+
+    toTooltipHtml(
+        defaults: AgTooltipRendererResult,
+        params: P,
+        overrides?: Partial<{ format: string; renderer: (params: P) => string | AgTooltipRendererResult }>
+    ) {
+        const formatFn = overrides?.format ?? this.format;
+        const rendererFn = overrides?.renderer ?? this.renderer;
+        if (formatFn) {
+            return toTooltipHtml(
+                {
+                    content: interpolate(formatFn, params),
+                },
+                defaults
+            );
+        }
+        if (rendererFn) {
+            return toTooltipHtml(rendererFn(params), defaults);
+        }
+        return toTooltipHtml(defaults);
+    }
 }
 
 export class SeriesTooltipInteraction {
@@ -321,7 +351,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
 
-    abstract tooltip: SeriesTooltip;
+    abstract tooltip: SeriesTooltip<any>;
 
     protected _data?: any[] = undefined;
     set data(input: any[] | undefined) {

@@ -24,8 +24,8 @@ const {
     valueProperty,
 } = _ModuleSupport;
 
-const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker, toTooltipHtml } = _Scene;
-const { extent, interpolateString, isNumberEqual, sanitizeHtml, toFixed } = _Util;
+const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
+const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
 class RadarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -69,13 +69,6 @@ class RadarSeriesLabel extends _Scene.Label {
     formatter?: (params: AgRadarSeriesLabelFormatterParams) => string = undefined;
 }
 
-class RadarSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgPieSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-    @Validate(OPT_STRING)
-    format?: string = undefined;
-}
-
 export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     @Validate(OPT_FUNCTION)
     @_Scene.SceneChangeDetection({ redraw: _Scene.RedrawType.MAJOR })
@@ -102,7 +95,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
     protected nodeData: RadarNodeDatum[] = [];
 
-    tooltip: RadarSeriesTooltip = new RadarSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgPieSeriesTooltipRendererParams>();
 
     /**
      * The key of the numeric field to use to determine the angle (for example,
@@ -453,7 +446,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
 
         const { angleName, radiusName, tooltip, marker, id: seriesId } = this;
-        const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
         const { datum, angleValue, radiusValue } = nodeDatum;
         const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
         const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
@@ -486,33 +478,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             content,
         };
 
-        if (tooltipFormat || tooltipRenderer) {
-            const params = {
-                datum,
-                angleKey,
-                angleValue,
-                angleName,
-                radiusKey,
-                radiusValue,
-                radiusName,
-                title,
-                color,
-                seriesId,
-            };
-            if (tooltipFormat) {
-                return toTooltipHtml(
-                    {
-                        content: interpolateString(tooltipFormat, params),
-                    },
-                    defaults
-                );
-            }
-            if (tooltipRenderer) {
-                return toTooltipHtml(tooltipRenderer(params), defaults);
-            }
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            angleKey,
+            angleValue,
+            angleName,
+            radiusKey,
+            radiusValue,
+            radiusName,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): _ModuleSupport.ChartLegendDatum[] {

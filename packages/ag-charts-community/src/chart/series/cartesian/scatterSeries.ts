@@ -8,7 +8,6 @@ import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesi
 import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeBaseClickEvent } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { getMarker } from '../../marker/util';
-import { toTooltipHtml } from '../../tooltip/tooltip';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
@@ -68,11 +67,6 @@ class ScatterSeriesNodeDoubleClickEvent extends ScatterSeriesNodeBaseClickEvent 
     readonly type = 'nodeDoubleClick';
 }
 
-class ScatterSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgScatterSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<ScatterNodeDatum>> {
     static className = 'ScatterSeries';
     static type = 'scatter' as const;
@@ -124,7 +118,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
     colorScale = new ColorScale();
 
-    readonly tooltip: ScatterSeriesTooltip = new ScatterSeriesTooltip();
+    readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -496,31 +490,22 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             content,
         };
 
-        const { renderer: tooltipRenderer } = tooltip;
-
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yKey,
-                    yValue,
-                    yName,
-                    sizeKey,
-                    sizeName,
-                    labelKey,
-                    labelName,
-                    title,
-                    color,
-                    seriesId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yKey,
+            yValue,
+            yName,
+            sizeKey,
+            sizeName,
+            labelKey,
+            labelName,
+            title,
+            color,
+            seriesId,
+        });
     }
 
     getLegendData(): ChartLegendDatum[] {

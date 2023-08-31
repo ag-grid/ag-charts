@@ -1,12 +1,12 @@
 import type {
-    AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
+    AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
     AgRangeAreaSeriesTooltipRendererParams,
-    AgRangeAreaSeriesLabelFormatterParams,
+    AgTooltipRendererResult,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
@@ -28,7 +28,7 @@ const {
     areaAnimateReadyUpdate,
     AreaSeriesTag,
 } = _ModuleSupport;
-const { getMarker, toTooltipHtml, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
+const { getMarker, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
 const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside', 'outside'];
@@ -94,11 +94,6 @@ export class RangeAreaSeriesNodeDoubleClickEvent extends RangeAreaSeriesNodeBase
     readonly type = 'nodeDoubleClick';
 }
 
-class RangeAreaSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgRangeAreaSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 class RangeAreaSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string = undefined;
@@ -125,7 +120,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
     readonly marker = new RangeAreaSeriesMarker();
     readonly label = new RangeAreaSeriesLabel();
 
-    tooltip: RangeAreaSeriesTooltip = new RangeAreaSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
 
     shadow?: _Scene.DropShadow = undefined;
 
@@ -614,13 +609,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             return '';
         }
 
-        const { xName, yLowName, yHighName, yName, id: seriesId } = this;
+        const { xName, yLowName, yHighName, yName, id: seriesId, fill, tooltip } = this;
 
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
-
-        const { fill, tooltip: itemTooltip } = this;
-
-        const tooltipRenderer = itemTooltip.renderer ?? this.tooltip.renderer;
 
         const color = fill ?? 'gray';
 
@@ -646,29 +637,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             backgroundColor: color,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yLowKey,
-                    yLowValue,
-                    yLowName,
-                    yHighKey,
-                    yHighValue,
-                    yHighName,
-                    yName,
-                    color,
-                    seriesId,
-                    itemId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yLowKey,
+            yLowValue,
+            yLowName,
+            yHighKey,
+            yHighValue,
+            yHighName,
+            yName,
+            color,
+            seriesId,
+            itemId,
+        });
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {

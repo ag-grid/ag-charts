@@ -13,9 +13,7 @@ import {
 } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { getMarker } from '../../marker/util';
-import { toTooltipHtml } from '../../tooltip/tooltip';
 import { extent } from '../../../util/array';
-import { interpolate } from '../../../util/string';
 import type { Text } from '../../../scene/shape/text';
 import { Label } from '../../label';
 import { sanitizeHtml } from '../../../util/sanitize';
@@ -83,14 +81,6 @@ class AreaSeriesLabel extends Label {
     formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
 }
 
-class AreaSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-
-    @Validate(OPT_STRING)
-    format?: string = undefined;
-}
-
 type AreaSeriesNodeDataContext = SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> & {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
@@ -102,7 +92,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
     static className = 'AreaSeries';
     static type = 'area' as const;
 
-    tooltip: AreaSeriesTooltip = new AreaSeriesTooltip();
+    tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
     readonly marker = new CartesianSeriesMarker();
 
@@ -599,7 +589,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         if (!(xKey && yKey) || !(xAxis && yAxis && isNumber(yValue)) || !dataModel) {
             return '';
         }
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
 
         const {
             size,
@@ -611,7 +600,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
 
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
-        const processedYValue = this.processedData?.data[nodeDatum.index]?.values[0][yRawIndex];
         const title = sanitizeHtml(yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
@@ -642,36 +630,19 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             backgroundColor: color,
             content,
         };
-        const { renderer: tooltipRenderer, format: tooltipFormat } = tooltip;
 
-        if (tooltipFormat || tooltipRenderer) {
-            const params = {
-                datum,
-                xKey,
-                xName,
-                xValue,
-                yKey,
-                yValue,
-                processedYValue,
-                yName,
-                color,
-                title,
-                seriesId,
-            };
-            if (tooltipFormat) {
-                return toTooltipHtml(
-                    {
-                        content: interpolate(tooltipFormat, params),
-                    },
-                    defaults
-                );
-            }
-            if (tooltipRenderer) {
-                return toTooltipHtml(tooltipRenderer(params), defaults);
-            }
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xName,
+            xValue,
+            yKey,
+            yValue,
+            yName,
+            color,
+            title,
+            seriesId,
+        });
     }
 
     getLegendData(): CategoryLegendDatum[] {

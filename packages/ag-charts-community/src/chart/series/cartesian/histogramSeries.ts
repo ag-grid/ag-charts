@@ -10,7 +10,6 @@ import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { toTooltipHtml } from '../../tooltip/tooltip';
 import ticks, { tickStep } from '../../../util/ticks';
 import { sanitizeHtml } from '../../../util/sanitize';
 import {
@@ -87,18 +86,13 @@ type HistogramAggregation = NonNullable<AgHistogramSeriesOptions['aggregation']>
 
 type HistogramAnimationData = CartesianAnimationData<SeriesNodeDataContext<HistogramNodeDatum>, Rect>;
 
-class HistogramSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgHistogramSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<HistogramNodeDatum>, Rect> {
     static className = 'HistogramSeries';
     static type = 'histogram' as const;
 
     readonly label = new HistogramSeriesLabel();
 
-    tooltip: HistogramSeriesTooltip = new HistogramSeriesTooltip();
+    tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams>();
 
     @Validate(OPT_COLOR_STRING)
     fill?: string = undefined;
@@ -514,7 +508,6 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         }
 
         const { xName, yName, fill: color, tooltip, aggregation, id: seriesId } = this;
-        const { renderer: tooltipRenderer } = tooltip;
         const {
             aggregatedValue,
             frequency,
@@ -534,30 +527,23 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             content,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum: {
-                        data: nodeDatum.datum,
-                        aggregatedValue: nodeDatum.aggregatedValue,
-                        domain: nodeDatum.domain,
-                        frequency: nodeDatum.frequency,
-                    },
-                    xKey,
-                    xValue: domain,
-                    xName,
-                    yKey,
-                    yValue: aggregatedValue,
-                    yName,
-                    color,
-                    title,
-                    seriesId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum: {
+                data: nodeDatum.datum,
+                aggregatedValue: nodeDatum.aggregatedValue,
+                domain: nodeDatum.domain,
+                frequency: nodeDatum.frequency,
+            },
+            xKey,
+            xValue: domain,
+            xName,
+            yKey,
+            yValue: aggregatedValue,
+            yName,
+            color,
+            title,
+            seriesId,
+        });
     }
 
     getLegendData(): ChartLegendDatum[] {

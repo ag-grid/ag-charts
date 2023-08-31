@@ -30,7 +30,7 @@ const {
     calculateStep,
     STRING_UNION,
 } = _ModuleSupport;
-const { toTooltipHtml, ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
+const { ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
 
 const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
@@ -112,11 +112,6 @@ export class RangeBarSeriesNodeDoubleClickEvent extends RangeBarSeriesNodeBaseCl
     readonly type = 'nodeDoubleClick';
 }
 
-class RangeBarSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgRangeBarSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 class RangeBarSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string = undefined;
@@ -134,7 +129,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
     readonly label = new RangeBarSeriesLabel();
 
-    tooltip: RangeBarSeriesTooltip = new RangeBarSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRangeBarSeriesTooltipRendererParams>();
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgRangeBarSeriesFormatterParams<any>) => AgRangeBarSeriesFormat = undefined;
@@ -654,9 +649,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
-        const { fill, strokeWidth, formatter, tooltip: itemTooltip } = this;
-
-        const tooltipRenderer = itemTooltip.renderer ?? this.tooltip.renderer;
+        const { fill, strokeWidth, formatter, tooltip } = this;
 
         let format: any | undefined = undefined;
 
@@ -700,29 +693,22 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             backgroundColor: color,
         };
 
-        if (tooltipRenderer) {
-            return toTooltipHtml(
-                tooltipRenderer({
-                    datum,
-                    xKey,
-                    xValue,
-                    xName,
-                    yLowKey,
-                    yLowValue,
-                    yLowName,
-                    yHighKey,
-                    yHighValue,
-                    yHighName,
-                    yName,
-                    color,
-                    seriesId,
-                    itemId,
-                }),
-                defaults
-            );
-        }
-
-        return toTooltipHtml(defaults);
+        return tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yLowKey,
+            yLowValue,
+            yLowName,
+            yHighKey,
+            yHighValue,
+            yHighName,
+            yName,
+            color,
+            seriesId,
+            itemId,
+        });
     }
 
     getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
