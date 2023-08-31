@@ -329,7 +329,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
 
-    abstract tooltip: InstanceType<typeof SeriesTooltip<any>>;
+    abstract tooltip: SeriesTooltip<any>;
 
     protected _data?: any[] = undefined;
     set data(input: any[] | undefined) {
