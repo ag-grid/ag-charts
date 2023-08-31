@@ -943,6 +943,9 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 onComplete: () => {
                     this.resetMarkersAndPaths(animationData);
                 },
+                onStop: () => {
+                    this.resetMarkersAndPaths(animationData);
+                },
             });
         });
     }
