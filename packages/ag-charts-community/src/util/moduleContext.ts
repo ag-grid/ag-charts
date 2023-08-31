@@ -11,7 +11,7 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
-import type { Scene } from '../integrated-charts-scene';
+import type { Scene } from '../scene/scene';
 import type { CallbackCache } from './callbackCache';
 
 export interface ModuleContext {

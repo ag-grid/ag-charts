@@ -1,9 +1,7 @@
 import type { AgCartesianChartOptions, AgChartOptions } from '../agChartOptions';
 import { NumberAxis } from '../axis/numberAxis';
 import { CategoryAxis } from '../axis/categoryAxis';
-import { isAgCartesianChartOptions } from './prepare';
-
-export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
+import { isAgCartesianChartOptions } from './types';
 
 export const DEFAULT_CARTESIAN_CHART_OVERRIDES: AgCartesianChartOptions = {
     axes: [

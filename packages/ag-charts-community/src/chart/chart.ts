@@ -49,7 +49,7 @@ import type { ModuleContext } from '../util/moduleContext';
 import { DataController } from './data/dataController';
 import { SeriesStateManager } from './series/seriesStateManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesOptionsTypes } from './mapping/defaults';
+import type { SeriesOptionsTypes } from './mapping/types';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 

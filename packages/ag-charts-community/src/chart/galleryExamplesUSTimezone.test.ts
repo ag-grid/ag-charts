@@ -8,7 +8,7 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgChartOptions } from './agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
-import { isAgCartesianChartOptions } from './mapping/prepare';
+import { isAgCartesianChartOptions } from './mapping/types';
 import {
     waitForChartStability,
     IMAGE_SNAPSHOT_DEFAULTS,

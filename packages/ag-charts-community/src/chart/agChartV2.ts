@@ -11,15 +11,14 @@ import type { Chart, SpecialOverrides } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
 import type { TypedEventListener } from '../util/observable';
 import { jsonDiff, jsonMerge, jsonApply } from '../util/json';
+import { prepareOptions, noDataCloneMergeOptions } from './mapping/prepare';
 import {
-    prepareOptions,
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     optionsType,
-    noDataCloneMergeOptions,
-} from './mapping/prepare';
-import type { SeriesOptionsTypes } from './mapping/defaults';
+    type SeriesOptionsTypes,
+} from './mapping/types';
 import { windowValue } from '../util/window';
 import type { AxisOptionModule, Module, RootModule } from '../util/module';
 import { Logger } from '../util/logger';

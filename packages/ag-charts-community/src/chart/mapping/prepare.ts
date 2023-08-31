@@ -1,13 +1,10 @@
 import type {
     AgChartOptions,
-    AgHierarchyChartOptions,
-    AgPolarChartOptions,
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartThemePalette,
     AgTooltipPositionOptions,
 } from '../agChartOptions';
-import type { SeriesOptionsTypes } from './defaults';
 import {
     DEFAULT_CARTESIAN_CHART_OVERRIDES,
     DEFAULT_BAR_CHART_OVERRIDES,
@@ -29,71 +26,16 @@ import {
     getSeriesPaletteFactory,
     isDefaultAxisSwapNeeded,
 } from '../factory/seriesTypes';
-
-type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
-
-export function optionsType(input: {
-    type?: SeriesOptions['type'];
-    series?: { type?: SeriesOptionsTypes['type'] }[];
-}): NonNullable<SeriesOptions['type']> {
-    return input.type ?? input.series?.[0]?.type ?? 'line';
-}
-
-export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {
-    const specifiedType = optionsType(input);
-    if (specifiedType == null) {
-        return true;
-    }
-
-    if ((specifiedType as string) === 'cartesian') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
-    }
-
-    return CHART_TYPES.isCartesian(specifiedType);
-}
-
-export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHierarchyChartOptions {
-    const specifiedType = optionsType(input);
-    if (specifiedType == null) {
-        return false;
-    }
-
-    if ((specifiedType as string) === 'hierarchy') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
-    }
-
-    return CHART_TYPES.isHierarchy(specifiedType);
-}
-
-export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarChartOptions {
-    const specifiedType = optionsType(input);
-    if (specifiedType == null) {
-        return false;
-    }
-
-    if ((specifiedType as string) === 'polar') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
-    }
-
-    return CHART_TYPES.isPolar(specifiedType);
-}
-
-function isSeriesOptionType(input?: string): input is NonNullable<SeriesOptionsTypes['type']> {
-    if (input == null) {
-        return false;
-    }
-    return CHART_TYPES.has(input);
-}
-
-function isAxisOptionType(input?: string): input is NonNullable<AxesOptionsTypes>['type'] {
-    if (input == null) {
-        return false;
-    }
-    return AXIS_TYPES.has(input);
-}
+import {
+    type AxesOptionsTypes,
+    type SeriesOptionsTypes,
+    isAgCartesianChartOptions,
+    isAgHierarchyChartOptions,
+    isAgPolarChartOptions,
+    isAxisOptionType,
+    isSeriesOptionType,
+    optionsType,
+} from './types';
 
 function countArrayElements<T extends any[] | any[][]>(input: T): number {
     let count = 0;
