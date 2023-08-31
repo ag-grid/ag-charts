@@ -100,18 +100,13 @@ class BarSeriesLabel extends Label {
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
 
-class BarSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgBarSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatum>, Rect> {
     static className = 'BarSeries';
     static type = 'bar' as const;
 
     readonly label = new BarSeriesLabel();
 
-    tooltip: BarSeriesTooltip = new BarSeriesTooltip();
+    tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
 
     @Validate(OPT_COLOR_STRING)
     fill: string = '#c16068';

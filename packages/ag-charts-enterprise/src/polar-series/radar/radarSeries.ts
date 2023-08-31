@@ -69,13 +69,6 @@ class RadarSeriesLabel extends _Scene.Label {
     formatter?: (params: AgRadarSeriesLabelFormatterParams) => string = undefined;
 }
 
-class RadarSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgPieSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-    @Validate(OPT_STRING)
-    format?: string = undefined;
-}
-
 export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     @Validate(OPT_FUNCTION)
     @_Scene.SceneChangeDetection({ redraw: _Scene.RedrawType.MAJOR })
@@ -102,7 +95,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
     protected nodeData: RadarNodeDatum[] = [];
 
-    tooltip: RadarSeriesTooltip = new RadarSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgPieSeriesTooltipRendererParams>();
 
     /**
      * The key of the numeric field to use to determine the angle (for example,

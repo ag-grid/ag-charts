@@ -83,14 +83,6 @@ class AreaSeriesLabel extends Label {
     formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
 }
 
-class AreaSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-
-    @Validate(OPT_STRING)
-    format?: string = undefined;
-}
-
 type AreaSeriesNodeDataContext = SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> & {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
@@ -102,7 +94,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
     static className = 'AreaSeries';
     static type = 'area' as const;
 
-    tooltip: AreaSeriesTooltip = new AreaSeriesTooltip();
+    tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
     readonly marker = new CartesianSeriesMarker();
 

@@ -168,11 +168,6 @@ class PieSeriesCalloutLine {
     strokeWidth: number = 1;
 }
 
-class PieSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgPieSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 export class PieTitle extends Caption {
     @Validate(BOOLEAN)
     showInLegend = false;
@@ -227,7 +222,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
     calloutLine = new PieSeriesCalloutLine();
 
-    tooltip: PieSeriesTooltip = new PieSeriesTooltip();
+    tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
 
     set data(input: any[] | undefined) {
         this._data = input;

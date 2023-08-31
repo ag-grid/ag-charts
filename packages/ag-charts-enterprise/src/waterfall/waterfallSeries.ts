@@ -93,11 +93,6 @@ export class WaterfallSeriesNodeDoubleClickEvent extends WaterfallSeriesNodeBase
     readonly type = 'nodeDoubleClick';
 }
 
-class WaterfallSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 class WaterfallSeriesItemTooltip {
     @Validate(OPT_FUNCTION)
     renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
@@ -192,7 +187,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
     readonly line = new WaterfallSeriesConnectorLine();
 
-    tooltip: WaterfallSeriesTooltip = new WaterfallSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 
     set data(input: any[] | undefined) {
         this._data = input;

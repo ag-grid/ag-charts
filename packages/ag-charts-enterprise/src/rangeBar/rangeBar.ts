@@ -112,11 +112,6 @@ export class RangeBarSeriesNodeDoubleClickEvent extends RangeBarSeriesNodeBaseCl
     readonly type = 'nodeDoubleClick';
 }
 
-class RangeBarSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgRangeBarSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 class RangeBarSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string = undefined;
@@ -134,7 +129,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
     readonly label = new RangeBarSeriesLabel();
 
-    tooltip: RangeBarSeriesTooltip = new RangeBarSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRangeBarSeriesTooltipRendererParams>();
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgRangeBarSeriesFormatterParams<any>) => AgRangeBarSeriesFormat = undefined;

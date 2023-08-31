@@ -59,13 +59,6 @@ class LineSeriesLabel extends Label {
     formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
 }
 
-class LineSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-    @Validate(OPT_STRING)
-    format?: string = undefined;
-}
-
 type LineContext = SeriesNodeDataContext<LineNodeDatum>;
 export class LineSeries extends CartesianSeries<LineContext> {
     static className = 'LineSeries';
@@ -93,7 +86,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     @Validate(NUMBER(0, 1))
     strokeOpacity: number = 1;
 
-    tooltip: LineSeriesTooltip = new LineSeriesTooltip();
+    tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: ModuleContext) {
         super({

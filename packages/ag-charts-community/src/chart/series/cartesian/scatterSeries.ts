@@ -68,11 +68,6 @@ class ScatterSeriesNodeDoubleClickEvent extends ScatterSeriesNodeBaseClickEvent 
     readonly type = 'nodeDoubleClick';
 }
 
-class ScatterSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgScatterSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<ScatterNodeDatum>> {
     static className = 'ScatterSeries';
     static type = 'scatter' as const;
@@ -124,7 +119,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
     colorScale = new ColorScale();
 
-    readonly tooltip: ScatterSeriesTooltip = new ScatterSeriesTooltip();
+    readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: ModuleContext) {
         super({

@@ -56,11 +56,6 @@ interface TreemapNodeDatum extends SeriesNodeDatum {
     children: TreemapNodeDatum[];
 }
 
-class TreemapSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgTreemapSeriesTooltipRendererParams<any>) => string | AgTooltipRendererResult = undefined;
-}
-
 class TreemapSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
     readonly labelKey: string;
     readonly sizeKey?: string;
@@ -268,7 +263,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
 
     labelShadow = new DropShadow();
 
-    readonly tooltip = new TreemapSeriesTooltip();
+    readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
     readonly highlightStyle = new TreemapHighlightStyle();
 

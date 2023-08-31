@@ -87,18 +87,13 @@ type HistogramAggregation = NonNullable<AgHistogramSeriesOptions['aggregation']>
 
 type HistogramAnimationData = CartesianAnimationData<SeriesNodeDataContext<HistogramNodeDatum>, Rect>;
 
-class HistogramSeriesTooltip extends SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgHistogramSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<HistogramNodeDatum>, Rect> {
     static className = 'HistogramSeries';
     static type = 'histogram' as const;
 
     readonly label = new HistogramSeriesLabel();
 
-    tooltip: HistogramSeriesTooltip = new HistogramSeriesTooltip();
+    tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams>();
 
     @Validate(OPT_COLOR_STRING)
     fill?: string = undefined;

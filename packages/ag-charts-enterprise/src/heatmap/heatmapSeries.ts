@@ -55,11 +55,6 @@ export class HeatmapSeriesNodeDoubleClickEvent extends HeatmapSeriesNodeBaseClic
     readonly type = 'nodeDoubleClick';
 }
 
-class HeatmapSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgHeatmapSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.SeriesNodeDataContext<any>,
     _Scene.Rect
@@ -113,7 +108,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat = undefined;
 
-    readonly tooltip: HeatmapSeriesTooltip = new HeatmapSeriesTooltip();
+    readonly tooltip = new _ModuleSupport.SeriesTooltip<AgHeatmapSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({

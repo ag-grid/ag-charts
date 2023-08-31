@@ -1,12 +1,12 @@
 import type {
-    AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
+    AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
     AgRangeAreaSeriesTooltipRendererParams,
-    AgRangeAreaSeriesLabelFormatterParams,
+    AgTooltipRendererResult,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
@@ -94,11 +94,6 @@ export class RangeAreaSeriesNodeDoubleClickEvent extends RangeAreaSeriesNodeBase
     readonly type = 'nodeDoubleClick';
 }
 
-class RangeAreaSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgRangeAreaSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-}
-
 class RangeAreaSeriesLabel extends _Scene.Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string = undefined;
@@ -125,7 +120,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
     readonly marker = new RangeAreaSeriesMarker();
     readonly label = new RangeAreaSeriesLabel();
 
-    tooltip: RangeAreaSeriesTooltip = new RangeAreaSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
 
     shadow?: _Scene.DropShadow = undefined;
 

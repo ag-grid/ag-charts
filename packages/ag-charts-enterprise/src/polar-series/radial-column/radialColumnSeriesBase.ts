@@ -79,13 +79,6 @@ class RadialColumnSeriesLabel extends _Scene.Label {
     formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
 }
 
-class RadialColumnSeriesTooltip extends _ModuleSupport.SeriesTooltip {
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: AgRadialColumnSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
-    @Validate(OPT_STRING)
-    format?: string = undefined;
-}
-
 type RadialColumnAnimationState = 'empty' | 'ready';
 type RadialColumnAnimationEvent = 'update' | 'resize';
 class RadialColumnStateMachine extends _ModuleSupport.StateMachine<
@@ -106,7 +99,7 @@ export abstract class RadialColumnSeriesBase<
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 
-    tooltip: RadialColumnSeriesTooltip = new RadialColumnSeriesTooltip();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>();
 
     @Validate(STRING)
     angleKey = '';
