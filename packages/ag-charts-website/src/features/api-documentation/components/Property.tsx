@@ -17,6 +17,7 @@ import { formatJson } from '../utils/formatJson';
 import { Icon } from '@components/icon/Icon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { getInterfaceName } from '../utils/getInterfaceName';
+import { LinkIcon } from '@components/link-icon/LinkIcon';
 
 function isCallSig(gridProp: InterfaceEntry): gridProp is ICallSignature {
     return gridProp && gridProp.meta && gridProp.meta.isCallSignature;
@@ -159,9 +160,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                         onClick={() => setExpanded(!isExpanded)}
                         dangerouslySetInnerHTML={{ __html: displayNameSplit }}
                     ></span>
-                    <a href={`#${idName}`} className="docs-header-icon">
-                        <Icon name="link" />
-                    </a>
+                    <LinkIcon href={`#${idName}`} />
                 </h6>
 
                 <div className={styles.metaList}>
