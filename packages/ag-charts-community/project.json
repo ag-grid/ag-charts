@@ -67,7 +67,7 @@
     "lint-circular": {
       "executor": "nx:run-script",
       "options": {
-          "script": "lint:circular"
+        "script": "lint:circular"
       }
     },
     "lint": {
