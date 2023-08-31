@@ -161,28 +161,6 @@ const menuEntry = await getEntry('menu', 'data');
             }
         }
 
-        :global(.docs-header-icon) {
-            position: relative;
-            padding-left: 0;
-            margin-left: $size-1;
-            font-size: inherit;
-            opacity: 0;
-            transition: opacity 0.33s ease-in-out;
-
-            &:hover {
-                opacity: 1 !important;
-            }
-
-            :global(svg) {
-                position: relative;
-                width: 0.85em;
-                height: 0.85em;
-                top: -0.1em;
-                visibility: visible;
-                fill: var(--azure-blue);
-            }
-        }
-
         enterprise-icon::after {
             @extend %enterprise-icon;
 

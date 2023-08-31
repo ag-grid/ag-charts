@@ -1,5 +1,5 @@
 ---
-import { Icon } from './icon/Icon';
+import { LinkIcon } from './link-icon/LinkIcon';
 
 interface Props {
     level: number;
@@ -12,7 +12,5 @@ const Heading = `h${level}`;
 
 <Heading id={id}>
     <slot />
-    <a href={`#${id}`} class="docs-header-icon">
-        <Icon name="link" />
-    </a>
+    <LinkIcon href={`#${id}`} />
 </Heading>
