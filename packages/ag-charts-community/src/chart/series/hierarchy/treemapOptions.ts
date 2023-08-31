@@ -1,5 +1,6 @@
-import type { AgChartLabelOptions, AgDropShadowOptions } from '../../agChartOptions';
+import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
+import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, DataValue, Opacity, PixelSize, TextWrap } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';

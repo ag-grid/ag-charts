@@ -1,12 +1,10 @@
-import type { AgChartLabelOptions } from '../../agChartOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
+import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
-import type {
-    AgCartesianSeriesLabelFormatterParams,
-    AgCartesianSeriesMarker,
-    AgCartesianSeriesTooltipRendererParams,
-} from './cartesianOptions';
+import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
 
 export interface AgScatterSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
     /** sizeKey as specified on series options. */

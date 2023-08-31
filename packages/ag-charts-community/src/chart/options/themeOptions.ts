@@ -1,16 +1,16 @@
 import type { AgAreaSeriesOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesOptions } from '../series/cartesian/barOptions';
-import type { AgCartesianSeriesTheme, AgCartesianThemeOptions } from '../series/cartesian/cartesianOptions';
+import type { AgCartesianSeriesTheme, AgBaseCartesianThemeOptions } from '../series/cartesian/cartesianOptions';
 import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesOptions } from '../series/cartesian/lineOptions';
 import type { AgScatterSeriesOptions } from '../series/cartesian/scatterOptions';
 import type {
     AgHierarchySeriesOptions,
     AgHierarchySeriesTheme,
-    AgHierarchyThemeOptions,
+    AgBaseHierarchyThemeOptions,
 } from '../series/hierarchy/hierarchyOptions';
 import type { AgPieSeriesOptions } from '../series/polar/pieOptions';
-import type { AgPolarSeriesTheme, AgPolarThemeOptions } from '../series/polar/polarOptions';
+import type { AgPolarSeriesTheme, AgBasePolarThemeOptions } from '../series/polar/polarOptions';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -31,15 +31,15 @@ export interface AgChartThemePalette {
     strokes: string[];
 }
 
-export interface AgChartThemeOptions {
+export interface AgBaseChartThemeOptions<T> {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
-    overrides?: AgChartThemeOverrides;
+    overrides?: AgBaseChartThemeOverrides<T>;
 }
 
 /** This object is used to define the configuration for a custom chart theme. */
-export interface AgChartTheme extends AgChartThemeOptions {
+export interface AgBaseChartTheme<T> extends AgBaseChartThemeOptions<T> {
     /**
      * The name of the theme to base your theme on. Your custom theme will inherit all of the configuration from
      * the base theme, allowing you to override just the settings you wish to change using the `overrides` config (see
@@ -48,29 +48,29 @@ export interface AgChartTheme extends AgChartThemeOptions {
     baseTheme?: AgChartThemeName;
 }
 
-export interface AgChartThemeOverrides {
+export interface AgBaseChartThemeOverrides<T> {
     /** Specifies defaults for all cartesian charts (used for bar, column, histogram, line, scatter and area series) */
-    cartesian?: AgCartesianThemeOptions<AgCartesianSeriesTheme>;
+    cartesian?: AgBaseCartesianThemeOptions<AgCartesianSeriesTheme> & T;
     /** Specifies defaults for bar charts. */
-    bar?: AgCartesianThemeOptions<AgBarSeriesOptions>;
+    bar?: AgBaseCartesianThemeOptions<AgBarSeriesOptions> & T;
     /** Specifies defaults for line charts. */
-    line?: AgCartesianThemeOptions<AgLineSeriesOptions>;
+    line?: AgBaseCartesianThemeOptions<AgLineSeriesOptions> & T;
     /** Specifies defaults for area charts. */
-    area?: AgCartesianThemeOptions<AgAreaSeriesOptions>;
+    area?: AgBaseCartesianThemeOptions<AgAreaSeriesOptions> & T;
     /** Specifies defaults for scatter/bubble charts. */
-    scatter?: AgCartesianThemeOptions<AgScatterSeriesOptions>;
+    scatter?: AgBaseCartesianThemeOptions<AgScatterSeriesOptions> & T;
     /** Specifies defaults for histogram charts. */
-    histogram?: AgCartesianThemeOptions<AgHistogramSeriesOptions>;
+    histogram?: AgBaseCartesianThemeOptions<AgHistogramSeriesOptions> & T;
 
     /** Specifies defaults for all polar charts (used for pie series) */
-    polar?: AgPolarThemeOptions<AgPolarSeriesTheme>;
+    polar?: AgBasePolarThemeOptions<AgPolarSeriesTheme> & T;
     /** Specifies defaults for pie/doughnut charts. */
-    pie?: AgPolarThemeOptions<AgPieSeriesOptions>;
+    pie?: AgBasePolarThemeOptions<AgPieSeriesOptions> & T;
 
     /** Specifies defaults for all hierarchy charts (used for treemap series) */
-    hierarchy?: AgHierarchyThemeOptions<AgHierarchySeriesTheme>;
+    hierarchy?: AgBaseHierarchyThemeOptions<AgHierarchySeriesTheme> & T;
     /** Specifies defaults for all treemap charts. */
-    treemap?: AgHierarchyThemeOptions<AgHierarchySeriesOptions>;
+    treemap?: AgBaseHierarchyThemeOptions<AgHierarchySeriesOptions> & T;
 
     /** Specifies defaults for all chart types. Be careful to only use properties that apply to all chart types here. For example, don't specify `navigator` configuration here as navigators are only available in cartesian charts. */
     common?: any;

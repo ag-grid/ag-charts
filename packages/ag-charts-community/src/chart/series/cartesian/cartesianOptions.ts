@@ -1,4 +1,3 @@
-import type { AgBaseChartOptions, AgChartLabelOptions } from '../../agChartOptions';
 import type { AgAnimationOptions } from '../../interaction/animationOptions';
 import type {
     AgAxisBaseTickOptions,
@@ -15,9 +14,7 @@ import type {
 } from '../../options/crossLineOptions';
 import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
 import type { AgNavigatorOptions } from '../../options/navigatorOptions';
-import type { AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
-import type { CssColor, PixelSize, Ratio } from '../../options/types';
-import type { AgSeriesMarker, AgSeriesMarkerFormatterParams } from '../seriesOptions';
+import type { PixelSize, Ratio } from '../../options/types';
 import type { AgAreaSeriesOptions } from './areaOptions';
 import type { AgBarSeriesOptions } from './barOptions';
 import type { AgHistogramSeriesOptions } from './histogramOptions';
@@ -25,19 +22,7 @@ import type { AgLineSeriesOptions } from './lineOptions';
 import type { AgScatterSeriesOptions } from './scatterOptions';
 import type { AgZoomOptions } from '../../options/zoomOptions';
 import type { AgCrosshairOptions } from '../../options/crosshairOptions';
-import type { AgHeatmapSeriesOptions } from './heatmapOptions';
-import type { AgWaterfallSeriesOptions } from './waterfallOptions';
-import type { AgRangeBarSeriesOptions } from './rangeBarOptions';
-
-export type AgCartesianSeriesOptions =
-    | AgLineSeriesOptions
-    | AgScatterSeriesOptions
-    | AgAreaSeriesOptions
-    | AgBarSeriesOptions
-    | AgHistogramSeriesOptions
-    | AgHeatmapSeriesOptions
-    | AgWaterfallSeriesOptions
-    | AgRangeBarSeriesOptions;
+import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions<AgCartesianAxisLabelOptions> {
@@ -60,7 +45,7 @@ export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     autoRotateAngle?: number;
 }
 
-export interface AgCartesianChartOptions extends AgBaseChartOptions {
+export interface AgBaseCartesianChartOptions {
     /** Axis configurations. */
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
@@ -162,7 +147,7 @@ export interface AgCartesianAxisThemeOptions<T> {
     left?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
 }
 
-export interface AgCartesianThemeOptions<S = AgCartesianSeriesTheme> extends AgBaseChartOptions {
+export interface AgBaseCartesianThemeOptions<S = AgCartesianSeriesTheme> {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
     /** Series configurations. */
@@ -231,55 +216,6 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     position?: AgCrossLineLabelPosition;
     /** The rotation of the crossLine label in degrees. */
     rotation?: number;
-}
-
-export interface AgCartesianSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
-    /** xKey as specified on series options. */
-    readonly xKey: string;
-    /** xValue as read from series data via the xKey property. */
-    readonly xValue?: any;
-    /** xName as specified on series options. */
-    readonly xName?: string;
-
-    /** yKey as specified on series options. */
-    readonly yKey: string;
-    /** yValue as read from series data via the yKey property. */
-    readonly yValue?: any;
-    /** yName as specified on series options. */
-    readonly yName?: string;
-}
-
-export interface AgCartesianSeriesMarkerFormatterParams<DatumType> extends AgSeriesMarkerFormatterParams<DatumType> {
-    xKey: string;
-    yKey: string;
-}
-
-export interface AgCartesianSeriesMarkerFormat {
-    fill?: CssColor;
-    stroke?: CssColor;
-    strokeWidth?: PixelSize;
-    size?: PixelSize;
-}
-
-export type AgCartesianSeriesMarkerFormatter<DatumType> = (
-    params: AgCartesianSeriesMarkerFormatterParams<DatumType>
-) => AgCartesianSeriesMarkerFormat | undefined;
-
-export interface AgCartesianSeriesMarker<DatumType> extends AgSeriesMarker {
-    /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: AgCartesianSeriesMarkerFormatter<DatumType>;
-}
-
-export interface AgCartesianSeriesLabelFormatterParams {
-    /** The ID of the series. */
-    readonly seriesId: string;
-    /** The value of yKey as specified on series options. */
-    readonly value: any;
-}
-
-export interface AgCartesianSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string;
 }
 
 export interface AgCartesianChartLegendOptions extends AgChartBaseLegendOptions {
