@@ -1,9 +1,10 @@
-import type { AgDropShadowOptions } from '../../agChartOptions';
+import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 
 export interface AgHistogramSeriesLabelOptions extends AgCartesianSeriesLabelOptions {}
 

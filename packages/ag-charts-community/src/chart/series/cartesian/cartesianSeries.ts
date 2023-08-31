@@ -93,8 +93,8 @@ export class CartesianSeriesNodeDoubleClickEvent<
     readonly type = 'nodeDoubleClick';
 }
 
-type CartesianAnimationState = 'empty' | 'ready' | 'waiting';
-type CartesianAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize';
+type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+type CartesianAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize' | 'clear';
 class CartesianStateMachine extends StateMachine<CartesianAnimationState, CartesianAnimationEvent> {}
 export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any>, N extends Node = Group> {
     datumSelections: Array<NodeDataSelection<N, C>>;
@@ -103,6 +103,7 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
     contextData: Array<C>;
     paths: Array<Array<Path>>;
     seriesRect?: BBox;
+    duration?: number;
 }
 
 export abstract class CartesianSeries<
@@ -194,11 +195,20 @@ export abstract class CartesianSeries<
                     target: 'ready',
                     action: (data) => this.animateReadyResize(data),
                 },
+                clear: {
+                    target: 'clearing',
+                },
             },
             waiting: {
                 update: {
                     target: 'ready',
                     action: (data) => this.animateWaitingUpdateReady(data),
+                },
+            },
+            clearing: {
+                update: {
+                    target: 'empty',
+                    action: (data) => this.animateClearingUpdateEmpty(data),
                 },
             },
         });
@@ -266,21 +276,10 @@ export abstract class CartesianSeries<
         await this.updateSelections(seriesHighlighted, visible);
         await this.updateNodes(seriesHighlighted, visible);
 
-        const animationData: CartesianAnimationData<C, N> = {
-            datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
-            markerSelections: this.subGroups
-                .filter(({ markerSelection }) => markerSelection !== undefined)
-                .map(({ markerSelection }) => markerSelection!),
-            labelSelections: this.subGroups.map(({ labelSelection }) => labelSelection),
-            contextData: this._contextNodeData,
-            paths: this.subGroups.map(({ paths }) => paths),
-            seriesRect,
-        };
-
+        const animationData = this.getAnimationData(seriesRect);
         if (resize) {
             this.animationState.transition('resize', animationData);
         }
-
         this.animationState.transition('update', animationData);
     }
 
@@ -816,6 +815,35 @@ export abstract class CartesianSeries<
 
     protected animateReadyResize(_data: CartesianAnimationData<C, N>) {
         // Override point for sub-classes.
+    }
+
+    protected animateClearingUpdateEmpty(_data: CartesianAnimationData<C, N>) {
+        // Override point for sub-classes.
+    }
+
+    protected checkAnimationUpdateDataTransition() {
+        const diff = this.processedData?.reduced?.diff;
+
+        if (diff?.added.length > 0 && diff?.removed.length > 0) {
+            this.animationState.transition('clear', this.getAnimationData());
+        } else {
+            this.animationState.transition('updateData');
+        }
+    }
+
+    private getAnimationData(seriesRect?: BBox) {
+        const animationData: CartesianAnimationData<C, N> = {
+            datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
+            markerSelections: this.subGroups
+                .filter(({ markerSelection }) => markerSelection !== undefined)
+                .map(({ markerSelection }) => markerSelection!),
+            labelSelections: this.subGroups.map(({ labelSelection }) => labelSelection),
+            contextData: this._contextNodeData,
+            paths: this.subGroups.map(({ paths }) => paths),
+            seriesRect,
+        };
+
+        return animationData;
     }
 
     protected abstract updateLabelSelection(opts: {

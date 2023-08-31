@@ -2,7 +2,7 @@ import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
 export interface AgHeatmapSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;

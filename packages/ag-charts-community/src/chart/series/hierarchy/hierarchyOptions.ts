@@ -1,11 +1,10 @@
-import type { AgBaseChartOptions } from '../../agChartOptions';
 import type { AgContextMenuOptions } from '../../options/contextOptions';
 import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
 import type { AgTreemapSeriesOptions } from './treemapOptions';
 
 export type AgHierarchySeriesOptions = AgTreemapSeriesOptions;
 
-export interface AgHierarchyChartOptions extends AgBaseChartOptions {
+export interface AgBaseHierarchyChartOptions {
     data?: any;
     /** Series configurations. */
     series?: AgHierarchySeriesOptions[];
@@ -14,7 +13,7 @@ export interface AgHierarchyChartOptions extends AgBaseChartOptions {
     contextMenu?: AgContextMenuOptions;
 }
 
-export interface AgHierarchyThemeOptions<S = AgHierarchySeriesTheme> extends AgBaseChartOptions {
+export interface AgBaseHierarchyThemeOptions<S = AgHierarchySeriesTheme> {
     /** Series configurations. */
     series?: S;
     /** Configuration for the chart legend. */

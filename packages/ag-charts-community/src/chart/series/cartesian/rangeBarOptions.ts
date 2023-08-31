@@ -1,9 +1,11 @@
-import type { AgChartLabelOptions, AgDropShadowOptions } from '../../options/chartOptions';
+import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
+import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
-import type { AgCartesianSeriesLabelFormatterParams, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
 
 export interface AgRangeBarSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;

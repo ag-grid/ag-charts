@@ -1,8 +1,6 @@
-import type { AgBaseChartOptions } from '../../agChartOptions';
 import type { AgAnimationOptions } from '../../interaction/animationOptions';
 import type { AgContextMenuOptions } from '../../options/contextOptions';
 import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
-import type { AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
 import type { AgPieSeriesOptions, AgPieSeriesTheme } from './pieOptions';
 import type { AgAngleCategoryAxisOptions } from '../../options/polarAxisOptions';
 import type { AgRadiusNumberAxisOptions } from '../../options/radiusAxisOptions';
@@ -19,7 +17,7 @@ export type AgPolarSeriesOptions =
     | AgNightingaleSeriesOptions;
 export type AgPolarAxisOptions = AgAngleCategoryAxisOptions | AgRadiusNumberAxisOptions;
 
-export interface AgPolarChartOptions extends AgBaseChartOptions {
+export interface AgBasePolarChartOptions {
     /** Series configurations. */
     series?: AgPolarSeriesOptions[];
     /** Configuration for the chart legend. */
@@ -31,7 +29,7 @@ export interface AgPolarChartOptions extends AgBaseChartOptions {
     axes?: AgPolarAxisOptions[];
 }
 
-export interface AgPolarThemeOptions<S = AgPolarSeriesTheme> extends AgBaseChartOptions {
+export interface AgBasePolarThemeOptions<S = AgPolarSeriesTheme> {
     /** Series configurations. */
     series?: S;
     /** Configuration for the chart legend. */
@@ -45,20 +43,4 @@ export interface AgPolarSeriesTheme {
 export interface AgPolarChartLegendOptions extends AgChartBaseLegendOptions {
     /** Whether or not to show the legend. The legend is shown by default. */
     enabled?: boolean;
-}
-
-export interface AgPolarSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
-    /** angleKey as specified on series options. */
-    readonly angleKey: string;
-    /** angleValue as read from series data via the angleKey property. */
-    readonly angleValue?: any;
-    /** angleName as specified on series options. */
-    readonly angleName?: string;
-
-    /** radiusKey as specified on series options. */
-    readonly radiusKey?: string;
-    /** radiusValue as read from series data via the radiusKey property. */
-    readonly radiusValue?: any;
-    /** radiusName as specified on series options. */
-    readonly radiusName?: string;
 }

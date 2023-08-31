@@ -2,11 +2,9 @@ import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
-import type {
-    AgCartesianSeriesLabelOptions,
-    AgCartesianSeriesMarker,
-    AgCartesianSeriesTooltipRendererParams,
-} from './cartesianOptions';
+import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 
 /** Configuration for line series. */
 export interface AgLineSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {

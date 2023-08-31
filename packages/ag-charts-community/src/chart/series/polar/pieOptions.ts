@@ -1,5 +1,6 @@
-import type { AgChartLabelOptions, AgDropShadowOptions } from '../../agChartOptions';
+import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
+import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type {
     CssColor,
@@ -12,7 +13,7 @@ import type {
     Ratio,
 } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgPolarSeriesTooltipRendererParams } from './polarOptions';
+import type { AgPolarSeriesTooltipRendererParams } from './polarTooltipOptions';
 
 export interface AgPieSeriesTheme extends Omit<AgPieSeriesOptions, 'innerLabels'> {
     innerLabels?: AgDoughnutInnerLabelThemeOptions;
