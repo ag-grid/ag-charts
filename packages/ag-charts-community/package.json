@@ -6,9 +6,32 @@
   "types": "./dist/main.cjs.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/main.esm.js",
       "require": "./dist/main.cjs.js",
       "types": "./dist/src/main.d.ts"
+    },
+    "./module-support": {
+      "require": "./dist/module-support.cjs.js",
+      "types": "./dist/src/module-support.d.ts"
+    },
+    "./scale-support": {
+      "require": "./dist/scale-support.cjs.js",
+      "types": "./dist/src/scale-support.d.ts"
+    },
+    "./scene-support": {
+      "require": "./dist/scene-support.cjs.js",
+      "types": "./dist/src/scene-support.d.ts"
+    },
+    "./test-support": {
+      "require": "./dist/test-support.cjs.js",
+      "types": "./dist/src/test-support.d.ts"
+    },
+    "./theme-support": {
+      "require": "./dist/theme-support.cjs.js",
+      "types": "./dist/src/theme-support.d.ts"
+    },
+    "./util-support": {
+      "require": "./dist/util-support.cjs.js",
+      "types": "./dist/src/util-support.d.ts"
     }
   },
   "scripts": {

@@ -8,10 +8,10 @@ export { VERSION } from './version';
 export { Marker } from './chart/marker/marker';
 
 // Undocumented APIs used by Integrated Charts.
-export * as _Scene from './integrated-charts-scene';
-export * as _Theme from './integrated-charts-theme';
-export * as _Scale from './sparklines-scale';
-export * as _Util from './sparklines-util';
+export * as _Scene from './scene-support';
+export * as _Theme from './theme-support';
+export * as _Scale from './scale-support';
+export * as _Util from './util-support';
 
 // Undocumented APIs used by Enterprise Modules.
 export * as _ModuleSupport from './module-support';

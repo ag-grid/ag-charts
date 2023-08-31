@@ -18,6 +18,11 @@
     "paths": {
       "ag-charts-build-tools": ["plugins/ag-charts-build-tools/src/index.ts"],
       "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],
+      "ag-charts-community/module-support": ["packages/ag-charts-community/src/module-support.ts"],
+      "ag-charts-community/scene-support": ["packages/ag-charts-community/src/scene-support.ts"],
+      "ag-charts-community/scale-support": ["packages/ag-charts-community/src/scale-support.ts"],
+      "ag-charts-community/theme-support": ["packages/ag-charts-community/src/theme-support.ts"],
+      "ag-charts-community/util-support": ["packages/ag-charts-community/src/util-support.ts"],
       "ag-charts-community-examples": ["packages/ag-charts-community-examples/src/index.ts"],
       "ag-charts-community-test": ["packages/ag-charts-community/src/main-test.ts"],
       "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"]

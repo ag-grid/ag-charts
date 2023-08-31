@@ -1,10 +1,13 @@
-module.exports = function buildConfig(name, { output, ...config }, { umd = {} } = {}) {
+module.exports = function buildConfig(name, { output, input, ...config }, { umd = {} } = {}) {
     if (!Array.isArray(output)) {
         output = [output];
     }
 
+    const multiModule = Object.keys(input).length > 1;
+
     const result = {
         ...config,
+        input,
         cache: false,
         output: [
             ...output.map(({ entryFileNames, chunkFileNames, format, ...opts }) => ({
@@ -12,14 +15,14 @@ module.exports = function buildConfig(name, { output, ...config }, { umd = {} } 
                 format,
                 name,
                 entryFileNames,
-                chunkFileNames,
+                chunkFileNames: `lib/_[hash].[format]`,
                 sourcemap: process.env.NX_TASK_TARGET_CONFIGURATION !== 'production',
             })),
         ],
     };
 
     const { entryFileNames, chunkFileNames, format, ...opts } = result.output[0];
-    if (format === 'cjs') {
+    if (format === 'cjs' && !multiModule) {
         result.output.push({
             ...opts,
             name,

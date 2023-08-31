@@ -11,6 +11,14 @@
       "options": {
         "outputPath": "packages/ag-charts-community/dist",
         "main": "packages/ag-charts-community/src/main.ts",
+        "additionalEntryPoints": [
+          "packages/ag-charts-community/src/module-support.ts",
+          "packages/ag-charts-community/src/scene-support.ts",
+          "packages/ag-charts-community/src/scale-support.ts",
+          "packages/ag-charts-community/src/theme-support.ts",
+          "packages/ag-charts-community/src/util-support.ts"
+        ],
+        "external": ["canvas"],
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
         "rollupConfig": "packages/ag-charts-community/rollup.config.cjs",
         "assets": [
@@ -20,7 +28,8 @@
         "project": "packages/ag-charts-community/package.json",
         "compiler": "tsc",
         "format": ["cjs"],
-        "generateExportsField": true
+        "generateExportsField": true,
+        "skipTypeField": false
       },
       "configurations": {
         "watch": {
