@@ -1,6 +1,6 @@
 import type { AgChartLabelOptions, AgDropShadowOptions } from '../../options/chartOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesLabelFormatterParams, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
@@ -47,11 +47,6 @@ export interface AgRangeBarSeriesTooltipRendererParams
     readonly yHighName?: string;
 }
 
-export interface AgRangeBarSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgRangeBarSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
-}
-
 export interface AgRangeBarSeriesLabelOptions extends AgChartLabelOptions {
     /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
     formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string;
@@ -95,7 +90,7 @@ export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOp
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgRangeBarSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the range series items when they are hovered over. */

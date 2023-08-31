@@ -1,10 +1,6 @@
 import type { AgChartLabelOptions } from '../../options/chartOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type {
-    AgSeriesTooltip,
-    AgSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-} from '../../options/tooltipOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
@@ -40,7 +36,7 @@ export interface AgBaseRadialColumnSeriesOptions<DatumType = any> extends AgBase
     /** Configuration for the labels shown on top of data points. */
     label?: AgRadialColumnSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgRadialColumnSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
     /** A formatter function for adjusting the styling of the radial columns. */
@@ -80,12 +76,6 @@ export interface AgRadialColumnSeriesLabelFormatterParams {
 export interface AgRadialColumnSeriesLabelOptions extends AgChartLabelOptions {
     /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
     formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string;
-}
-
-export interface AgRadialColumnSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgRadialColumnSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
-    format?: string;
 }
 
 export interface AgRadialColumnSeriesFormatterParams<DatumType> {

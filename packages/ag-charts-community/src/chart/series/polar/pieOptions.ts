@@ -1,6 +1,6 @@
 import type { AgChartLabelOptions, AgDropShadowOptions } from '../../agChartOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type {
     CssColor,
     FontFamily,
@@ -57,13 +57,8 @@ export interface AgPieSeriesFormat {
     strokeWidth?: PixelSize;
 }
 
-export interface AgPieSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgPieSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
-}
-
 export interface AgPieTitleOptions {
-    /** Whether or not the text should be shown. */
+    /** Whether the text should be shown. */
     enabled?: boolean;
     /** The text to display. */
     text?: string;
@@ -79,7 +74,7 @@ export interface AgPieTitleOptions {
     color?: CssColor;
     /** Spacing added to help position the text. */
     spacing?: number;
-    /** Whether or not the title text should be shown in the legend. */
+    /** Whether the title text should be shown in the legend. */
     showInLegend?: boolean;
 }
 
@@ -178,7 +173,7 @@ export interface AgPieSeriesOptions<DatumType = any> extends AgBaseSeriesOptions
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgPieSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams>;
     /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
     innerLabels?: AgDoughnutInnerLabel[];
     /** Configuration for the area inside the series, only visible when rendering a doughnut chart by using innerRadiusOffset or innerRadiusRatio */

@@ -30,11 +30,6 @@ export interface AgWaterfallSeriesTooltipRendererParams extends AgCartesianSerie
     itemId: string;
 }
 
-export interface AgWaterfallSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
-}
-
 export interface AgWaterfallSeriesItemTooltip {
     /** Function used to create the content for tooltips. */
     renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
@@ -81,7 +76,7 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgWaterfallSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the waterfall series items when they are hovered over. */

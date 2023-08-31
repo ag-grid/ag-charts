@@ -1,5 +1,5 @@
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
@@ -7,12 +7,6 @@ import type {
     AgCartesianSeriesMarker,
     AgCartesianSeriesTooltipRendererParams,
 } from './cartesianOptions';
-
-export interface AgLineSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgCartesianSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
-    format?: string;
-}
 
 /** Configuration for line series. */
 export interface AgLineSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
@@ -41,7 +35,7 @@ export interface AgLineSeriesOptions<DatumType = any> extends AgBaseSeriesOption
     /** Configuration for the labels shown on top of data points. */
     label?: AgCartesianSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgLineSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

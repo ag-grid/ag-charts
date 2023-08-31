@@ -1,6 +1,6 @@
 import type { AgChartLabelOptions, AgDropShadowOptions } from '../../options/chartOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle, AgSeriesMarker } from '../seriesOptions';
 import type { AgCartesianSeriesLabelFormatterParams, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
@@ -45,11 +45,6 @@ export interface AgRangeAreaSeriesTooltipRendererParams
     readonly yHighValue?: any;
     /** yHighName as specified on series options. */
     readonly yHighName?: string;
-}
-
-export interface AgRangeAreaSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgRangeAreaSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgRangeAreaSeriesLabelOptions extends AgChartLabelOptions {
@@ -113,7 +108,7 @@ export interface AgRangeAreaSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgRangeAreaSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }
