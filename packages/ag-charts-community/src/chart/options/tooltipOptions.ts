@@ -49,8 +49,8 @@ export interface AgSeriesTooltipRendererParams {
     readonly seriesId: string;
 }
 
-export interface AgSeriesTooltip {
-    /** Whether or not to show tooltips when the series are hovered over. */
+export interface AgSeriesTooltip<P extends AgSeriesTooltipRendererParams> {
+    /** Whether to show tooltips when the series are hovered over. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
     showArrow?: boolean;
@@ -58,6 +58,10 @@ export interface AgSeriesTooltip {
     position?: AgTooltipPositionOptions;
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
+    /** Function used to create the content for tooltips. */
+    renderer?: (params: P) => string | AgTooltipRendererResult;
+    /** String used to format the tooltip content. */
+    format?: string;
 }
 
 export interface AgSeriesTooltipInteraction {

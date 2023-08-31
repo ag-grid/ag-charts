@@ -1,6 +1,6 @@
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgChartLabelOptions } from '../../options/labelOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
@@ -16,11 +16,6 @@ export interface AgScatterSeriesTooltipRendererParams extends AgCartesianSeriesT
     readonly labelKey?: string;
     /** labelName as specified on series options. */
     readonly labelName?: string;
-}
-
-export interface AgScatterSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgScatterSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgScatterSeriesLabelFormatterParams<DatumType> extends AgCartesianSeriesLabelFormatterParams {
@@ -65,7 +60,7 @@ export interface AgScatterSeriesOptions<DatumType = any> extends AgBaseSeriesOpt
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
     title?: string;
     /** Series-specific tooltip configuration.  */
-    tooltip?: AgScatterSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

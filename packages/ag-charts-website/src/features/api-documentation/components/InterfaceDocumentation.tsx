@@ -10,6 +10,8 @@ import {
 import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
 import { Section } from './Section';
 import type { FunctionComponent } from 'react';
+import { types } from 'sass';
+import Error = types.Error;
 
 /**
  * This generates tabulated interface documentation based on information in JSON files.
@@ -55,6 +57,10 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
     config = { ...config, lookups, codeSrcProvided, hideHeader };
 
     const li = interfaceLookup[interfaceName];
+
+    if (!li) {
+        throw new Error(`Failed to find interface: ${interfaceName}`);
+    }
 
     if (config.asCode) {
         const interfacesToWrite = getInterfacesToWrite(interfaceName, interfaceName, config);

@@ -1,6 +1,6 @@
 import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
@@ -33,11 +33,6 @@ export interface AgBarSeriesFormat {
 
 export interface AgBarSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
     readonly stackGroup?: string;
-}
-
-export interface AgBarSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgBarSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 /** Configuration for bar series. */
@@ -82,7 +77,7 @@ export interface AgBarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions
     /** Configuration for the labels shown on bars. */
     label?: AgBarSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgBarSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgBarSeriesFormatterParams<DatumType>) => AgBarSeriesFormat;
     /** A map of event names to event listeners. */
