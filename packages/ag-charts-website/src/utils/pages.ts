@@ -1,4 +1,5 @@
 import type { CollectionEntry } from 'astro:content';
+import glob from 'glob';
 import { TYPESCRIPT_INTERNAL_FRAMEWORKS, SITE_BASE_URL, DEV_FILE_BASE_PATH } from '../constants';
 import type { InternalFramework, Library } from '@ag-grid-types';
 import { getIsDev } from './env';
@@ -34,15 +35,9 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-community/interfaces.AUTO.json': 'dist/packages/ag-charts-community/interfaces.AUTO.json',
     'ag-charts-community/doc-interfaces.AUTO.json': 'dist/packages/ag-charts-community/doc-interfaces.AUTO.json',
 
-    'ag-charts-community/dist/ag-charts-community.cjs.js': 'packages/ag-charts-community/dist/main.cjs.js',
-    'ag-charts-enterprise/dist/ag-charts-enterprise.cjs.js': 'packages/ag-charts-enterprise/dist/main.cjs.js',
-    'ag-charts-community/dist/ag-charts-community.umd.js': 'packages/ag-charts-community/dist/main.umd.js',
-    'ag-charts-enterprise/dist/ag-charts-enterprise.umd.js': 'packages/ag-charts-enterprise/dist/main.umd.js',
-    'ag-charts-community/dist/main.cjs.js.map': 'packages/ag-charts-community/dist/main.cjs.js.map',
-    'ag-charts-enterprise/dist/main.cjs.js.map': 'packages/ag-charts-enterprise/dist/main.cjs.js.map',
-    'ag-charts-community/dist/main.umd.js.map': 'packages/ag-charts-community/dist/main.umd.js.map',
-    'ag-charts-enterprise/dist/main.umd.js.map': 'packages/ag-charts-enterprise/dist/main.umd.js.map',
-    'ag-charts-react/main.js': 'packages/ag-charts-react/dist/index.js',
+    'ag-charts-community/dist/**': 'packages/ag-charts-community/dist/**/*.{cjs,js,map}',
+    'ag-charts-enterprise/dist/**': 'packages/ag-charts-enterprise/dist/**/*.{cjs,js,map}',
+    'ag-charts-react/main.js': 'packages/ag-charts-react/dist/index.cjs.js',
 
     'ag-charts-vue/main.js': 'packages/ag-charts-vue/main.js',
     'ag-charts-vue/lib/AgChartsVue.js': 'packages/ag-charts-vue/lib/AgChartsVue.js',
@@ -51,12 +46,12 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 
 export const getChartScriptPath = (sitePrefix?: string) => {
     const sitePrefixUrl = sitePrefix ? sitePrefix : '';
-    return pathJoin(sitePrefixUrl, '/dev/ag-charts-community/dist/ag-charts-community.umd.js');
+    return pathJoin(sitePrefixUrl, '/dev/ag-charts-community/dist/main.umd.js');
 };
 
 export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
     const sitePrefixUrl = sitePrefix ? sitePrefix : '';
-    return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/ag-charts-enterprise.umd.js');
+    return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/main.umd.js');
 };
 
 export const getPublicFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
@@ -169,8 +164,7 @@ export const getBoilerPlateUrl = ({
  * Get dev files for local development
  */
 export function getDevFiles(): DevFileRoute[] {
-    const files = Object.keys(DEV_FILE_PATH_MAP).map((filePath) => {
-        const sourceFilePath = DEV_FILE_PATH_MAP[filePath];
+    const files = Object.entries(DEV_FILE_PATH_MAP).map(([filePath, sourceFilePath]) => {
         const fullFilePath = pathJoin(getRootUrl().pathname, sourceFilePath);
 
         return {
@@ -179,14 +173,37 @@ export function getDevFiles(): DevFileRoute[] {
         };
     });
 
-    return files.map(({ filePath, fullFilePath }) => {
-        return {
+    const result = [];
+
+    for (const [filePath, sourceFilePath] of Object.entries(DEV_FILE_PATH_MAP)) {
+        const fullFilePath = pathJoin(getRootUrl().pathname, sourceFilePath);
+        if (fullFilePath.includes('**')) {
+            const pathPrefix = filePath.substring(0, filePath.indexOf('**'));
+            const sourcePrefix = fullFilePath.substring(0, fullFilePath.indexOf('**'));
+
+            const matches = glob.sync(fullFilePath);
+            if (matches.length === 0) throw new Error(`No files match the glob ${fullFilePath}`);
+
+            for (const globFile of matches) {
+                const relativeFile = globFile.replace(sourcePrefix, '');
+
+                result.push({
+                    params: { filePath: `${pathPrefix}${relativeFile}` },
+                    props: { fullFilePath: globFile },
+                });
+            }
+            continue;
+        }
+
+        result.push({
             params: {
                 filePath,
             },
             props: {
                 fullFilePath,
             },
-        };
-    });
+        });
+    }
+
+    return result;
 }

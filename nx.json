@@ -24,7 +24,7 @@
       "tsDeclarations",
       "sharedGlobals"
     ],
-    "sharedGlobals": ["{workspaceRoot}/rollup.*.js", "{workspaceRoot}/tsconfig.*.json"]
+    "sharedGlobals": ["{workspaceRoot}/rollup.*.cjs", "{workspaceRoot}/tsconfig.*.json"]
   },
   "targetDefaults": {
     "build": {

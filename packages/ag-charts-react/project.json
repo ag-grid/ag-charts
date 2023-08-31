@@ -28,6 +28,7 @@
             "output": "."
           }
         ],
+        "format": ["cjs", "esm"],
         "updateBuildableProjectDepsInPackageJson": true
       }
     },
