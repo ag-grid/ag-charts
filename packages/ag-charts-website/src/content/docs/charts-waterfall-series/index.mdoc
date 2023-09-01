@@ -3,147 +3,157 @@ title: 'Waterfall Series'
 enterprise: true
 ---
 
-Waterfall series show how positive and negative data values accumulate, using bars that rise or fall, resembling a cascading waterfall.
+A waterfall series shows the cumulative effect of sequential positive or negative data values. It utilises rising and
+falling bars to create a cascading waterfall effect.
 
-## Waterfall Column
+## Simple Waterfall
 
-To create a basic waterfall column chart, use the `waterfall` series type and specify the `xKey` and `yKey` properties:
+The waterfall series is designed to display a single series and is created using the `waterfall` series type.
 
 ```js
 series: [
     {
         type: 'waterfall',
-        xKey: 'date',
+        xKey: 'financials',
         yKey: 'amount',
     },
 ];
 ```
 
-{% chartExampleRunner title="Basic Waterfall Column" name="basic-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
+The `xKey` defines categories for the [Category Axis](/charts-axes-types/#category), and `yKey` supplies numerical values
+for the [Number Axis](/charts-axes-types/#number).
+
+The following example shows a simple waterfall series using default options.
+
+{% chartExampleRunner title="" name="simple-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
 {% note %}
-Waterfall series are designed to display only a single waterfall series in a given chart. Waterfall series should be used with a [Category](../charts-axes-types/category) axis.
+Legend toggling is disabled in waterfall series to avoid misleading or incorrect data representation.
 {% /note %}
 
 ## Total / Subtotal Values
 
-Total shows the cumulative value from `0` to the current data position, while subtotal shows the cumulative value from the previous total or subtotal value to the current position.
-Total and subtotal values are calculated automatically based on previous items in the data array and help to break down the cumulative effect of multiple changes at any point in the data.
+Adding 'Total' and 'Subtotal' values at specific points in a waterfall chart can make the data easier to interpret. These
+values are automatically calculated based on the following criteria:
 
-To add total and subtotal values at a specific position in the chart, add the configuration to the `totals` array on the series options object.
+- **Total Value**: Accumulates all values from the starting point (zero) up to the current point.
+- **Subtotal Value**: Begins at the last 'Total' or 'Subtotal' and sums up to the current point.
 
-Use `totalType` in the configuration with values `total` or `subtotal` to determine whether to display a total or subtotal value after the data object at the specified index:
+'Total' and 'Subtotal' values are added to `totals` array within the `series` options object.
 
 ```js
 series: [
     {
         type: 'waterfall',
-        xKey: 'date',
+        xKey: 'financials',
         yKey: 'amount',
         totals: [
-            {
-                totalType: 'subtotal',
-                index: 4,
-                axisLabel: 'Subtotal 1',
-            },
+             { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
+             { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
+             { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
         ],
     },
 ];
 ```
 
-{% chartExampleRunner title="Waterfall Column Total and Subtotal" name="waterfall-total-subtotal" type="generated" options="{ \"enterprise\": true }" /%}
+In this configuration:
 
-{% note %}
-The `axisLabel` property value must be unique because it is used as a category value on the category axis.
-{% /note %}
+- `totalType` specifies whether the value is a 'Total' or 'Subtotal'.
+- `index` determines the position in the data after which the total or subtotal will appear.
+- `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](/charts-axes-types/#category).
+
+Note the following in the example:
+
+- 'Total Revenue' and 'Total Expenditure' use `totalType: 'subtotal'` to introduce subtotals.
+- 'Total Borrowing' uses `totalType: 'total'` to indicate an overall total.
+
+{% chartExampleRunner title="" name="total-subtotal-values" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Customisation
 
-### Positive, Negative and Total Items
+### Series Items
 
-The positive and negative data values can be customised using `series.item.positive` and `series.item.negative` options, respectively.
-Total and subtotal values can be customised using the `series.item.total` options object.
-
-If the legend is enabled, the `name` property in these configuration objects will be used as the label for the legend item.
+Series items can be customised via the `item` configuration object.
 
 ```js
 series: [
     {
         type: 'waterfall',
-        xKey: 'date',
+        xKey: 'financials',
         yKey: 'amount',
-        typeKey: 'datumType',
         item: {
-            total: {
-                name: 'Total / Subtotal',
-                fill: '#EE6666',
-                stroke: '#EE6666',
+                positive: {
+                    fill: '#4A90E2',
+                    stroke: '#4A90E2',
+                },
+                negative: {
+                    fill: '#FF6B6B',
+                    stroke: '#FF6B6B',
+                },
+                total: {
+                    name: 'Total / Subtotal',
+                    fill: '#7D7D7D',
+                    stroke: '#7D7D7D',
+                },
             },
-        },
-    },
 ];
 ```
 
-{% chartExampleRunner title="Waterfall Column Customisation" name="waterfall-customisation" type="generated" options="{ \"enterprise\": true }" /%}
+In the `item` configuration:
+
+- `positive` and `negative` change Positive/Negative series items.
+- `total` changes Total/Subtotal series items.
+
+Note that the `total` series item also contains a `name` property to change the total name to 'Total / Subtotal' in the
+total legend item and tooltips.
+
+The example below demonstrates these series item customisations.
+
+{% chartExampleRunner title="" name="customising-series-items" type="generated" options="{ \"enterprise\": true }" /%}
 
 ### Connector Lines
 
-The connector lines can be customised using the `line` property.
+Connector lines between the bars can be customised using the `line` property.
 
 ```js
 series: [
     {
         type: 'waterfall',
-        xKey: 'date',
+        xKey: 'financials',
         yKey: 'amount',
         line: {
             strokeWidth: 4,
-            stroke: '#7290C4',
-            lineDash: [4, 2],
+            stroke: 'red',
         },
     },
 ];
 ```
 
-{% chartExampleRunner title="Waterfall Column Connector Lines" name="waterfall-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
+To remove the connector lines, set `line.enabled` to `false`.
 
-To remove the connector lines, set `line.enabled` to `false`:
+The following example shows a simple waterfall series with `red` connector lines between the bars.
 
-```js
-series: [
-    {
-        type: 'waterfall',
-        xKey: 'date',
-        yKey: 'amount',
-        line: {
-            enabled: false,
-        },
-    },
-];
-```
+{% chartExampleRunner title="" name="customising-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Legend
+## Horizontal Waterfall
 
-The legend shows items for positive, negative, and total/subtotal values. However, these items are not toggleable.
-
-The legend item label can be configured using the `name` property in the item configuration objects.
-
-## Waterfall Bar
-
-To create a basic waterfall bar chart, use the `waterfall` series type and specify the `direction`, `xKey` and `yKey` properties:
+To show a horizontal waterfall series, set `direction: 'horizontal'` as shown below:
 
 ```js
 series: [
     {
         type: 'waterfall',
         direction: 'horizontal',
-        xKey: 'date',
+        xKey: 'financials',
         yKey: 'amount',
     },
 ];
 ```
 
-{% chartExampleRunner title="Basic Waterfall Bar" name="basic-waterfall-horizontal" type="generated" options="{ \"enterprise\": true }" /%}
+When `direction: 'horizontal'` is set, the roles of `xKey` and `yKey` are inverted. `xKey` will define
+categories on the  y-axis, while `yKey` will represent numerical values along the x-axis.
+
+{% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

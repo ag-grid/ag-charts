@@ -13,14 +13,13 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'waterfall',
-            xKey: 'source',
-            xName: 'Source',
+            xKey: 'financials',
+            xName: 'Financials',
             yKey: 'amount',
             yName: 'Amount',
             line: {
                 strokeWidth: 4,
-                stroke: '#7290C4',
-                lineDash: [4, 2],
+                stroke: 'red',
             },
         },
     ],
