@@ -36,8 +36,8 @@ Legend toggling is disabled in waterfall series to avoid misleading or incorrect
 Adding 'Total' and 'Subtotal' values at specific points in a waterfall chart can make the data easier to interpret. These
 values are automatically calculated based on the following criteria:
 
-- **Total Value**: Accumulates all values from the starting point (zero) up to the current point.
-- **Subtotal Value**: Begins at the last 'Total' or 'Subtotal' and sums up to the current point.
+-   **Total Value**: Accumulates all values from the starting point (zero) up to the current point.
+-   **Subtotal Value**: Begins at the last 'Total' or 'Subtotal' and sums up to the current point.
 
 'Total' and 'Subtotal' values are added to `totals` array within the `series` options object.
 
@@ -48,9 +48,9 @@ series: [
         xKey: 'financials',
         yKey: 'amount',
         totals: [
-             { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
-             { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
-             { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
+            { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
+            { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
+            { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
         ],
     },
 ];
@@ -58,14 +58,14 @@ series: [
 
 In this configuration:
 
-- `totalType` specifies whether the value is a 'Total' or 'Subtotal'.
-- `index` determines the position in the data after which the total or subtotal will appear.
-- `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](/charts-axes-types/#category).
+-   `totalType` specifies whether the value is a 'Total' or 'Subtotal'.
+-   `index` determines the position in the data after which the total or subtotal will appear.
+-   `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](/charts-axes-types/#category).
 
 Note the following in the example:
 
-- 'Total Revenue' and 'Total Expenditure' use `totalType: 'subtotal'` to introduce subtotals.
-- 'Total Borrowing' uses `totalType: 'total'` to indicate an overall total.
+-   'Total Revenue' and 'Total Expenditure' use `totalType: 'subtotal'` to introduce subtotals.
+-   'Total Borrowing' uses `totalType: 'total'` to indicate an overall total.
 
 {% chartExampleRunner title="" name="total-subtotal-values" type="generated" options="{ \"enterprise\": true }" /%}
 
@@ -101,8 +101,8 @@ series: [
 
 In the `item` configuration:
 
-- `positive` and `negative` change Positive/Negative series items.
-- `total` changes Total/Subtotal series items.
+-   `positive` and `negative` change Positive/Negative series items.
+-   `total` changes Total/Subtotal series items.
 
 Note that the `total` series item also contains a `name` property to change the total name to 'Total / Subtotal' in the
 total legend item and tooltips.
@@ -151,7 +151,7 @@ series: [
 ```
 
 When `direction: 'horizontal'` is set, the roles of `xKey` and `yKey` are inverted. `xKey` will define
-categories on the  y-axis, while `yKey` will represent numerical values along the x-axis.
+categories on the y-axis, while `yKey` will represent numerical values along the x-axis.
 
 {% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
