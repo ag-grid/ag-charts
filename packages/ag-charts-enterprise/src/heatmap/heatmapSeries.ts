@@ -158,7 +158,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         this.processedData = processedData;
 
         if (colorKey) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue', 'value').index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
             colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx];
             colorScale.range = colorRange;
             colorScale.update();

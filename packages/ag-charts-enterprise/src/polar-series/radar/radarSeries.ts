@@ -278,8 +278,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             return [];
         }
 
-        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`, 'value').index;
-        const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`, 'value').index;
+        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`).index;
+        const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index;
         const axisInnerRadius = this.getAxisInnerRadius();
 
         const { label, marker, id: seriesId } = this;
