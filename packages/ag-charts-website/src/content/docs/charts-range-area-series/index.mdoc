@@ -5,9 +5,9 @@ enterprise: true
 
 A Range Area series shows an area between high and low data values. It's used to monitor data consistency or variability.
 
-## Range Area
+## Simple Range Area
 
-To create a basic Range Area chart, use the `range-area` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
+To create a Range Area chart, use the `range-area` series type:
 
 ```js
 series: [
@@ -20,7 +20,85 @@ series: [
 ];
 ```
 
+In the snippet the `xKey` retrieves X axis data, while `yLowKey` and `yHighKey` are used to retrieve the range of values for the Y axis.
+
 {% chartExampleRunner title="Basic Range Area" name="basic-range-area" type="generated" options="{ \"enterprise\": true }" /%}
+
+{% note %}
+Even though Range Area series support markers, they are turned off by default for this series type.
+{% /note %}
+
+To enable markers, add this to the series config:
+
+```js
+series: [{
+    ...
+    marker: {
+        enabled: true
+    }
+}]
+```
+
+## Labels
+
+It's possible to add labels to the range area:
+
+```js
+label: {
+    enabled: true;
+}
+```
+
+By default, a label will be shown for the `yHighKey` value and `yLowKey` value of each data point.
+
+Additional label customisations can be made using the `series.label` options.
+
+In the following snippet, a label formatter is utilised to display the integer part of the data value as the labels.
+
+```js
+label: {
+    formatter: ({ itemId, value }) => {
+        return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
+    };
+}
+```
+
+Note that the params object passed into the formatter includes an `itemId` which can be used to identify whether the value is a `high` or a `low` value.
+
+The formatter above creates labels as seen in the provided example:
+{% chartExampleRunner title="Range Area Label" name="range-area-labels" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Multiple Range Area Series
+
+It is possible to combine multiple range area series into a single chart.
+
+Note that in the example below we:
+
+-   Use `yName` to control the text that the legend displays
+-   Use `yLowName` and `yHighName` to control the text that the tooltip displays
+
+{% chartExampleRunner title="Multiple Range Area Series" name="multiple-range-areas" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Missing Data
+
+Sometimes data for certain items or time periods might be missing.
+
+The chart handles such cases based on whether the `xKey` or `yKey` value of a data point is missing or invalid.
+
+The `yLowKey` and `yHighKey` values of a data point are invalid if they are `+/-Infinity`, `null`, `undefined` or not a number. A data point with an invalid `yLowKey` or `yHighKey` value will be rendered as a gap in the series.
+
+The chart handles missing `xKey` values depending on the X-axis type:
+
+-   For continuous X axes (either a `'time'` or `'number'` axis), the `xKey` value of a data point is invalid if it’s `+/-Infinity`, `null`, `undefined` or `NaN`. In this case the data point will be skipped altogether.
+-   For category X axes the data point will not be skipped. It will be rendered as a category along the X axis.
+
+The following example demonstrates how missing data is handled for a continuous X axis type (time axis):
+
+-   Initially there is no missing data, all values are valid for their associated axes.
+-   Click the Missing Y values button and note that if either of the Y low or high values are missing, the data point is rendered as a gap in the chart.
+-   Click the Missing X value button and note that a missing X value on a continuous X axis is skipped.
+
+{% chartExampleRunner title="Range Area Missing Data" name="range-area-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 
