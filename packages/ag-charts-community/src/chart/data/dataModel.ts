@@ -343,7 +343,10 @@ export class DataModel<
             if (ids == null) return false;
             if (searchScope != null && !scopes?.some((scope) => scope === searchScope.id)) return false;
 
-            return ids.some(([scope, id]) => scope === searchScope.id && id === searchId);
+            return ids.some(
+                ([scope, id]) =>
+                    scope === searchScope.id && (typeof searchId === 'string' ? id === searchId : searchId.test(id))
+            );
         };
 
         const allDefs: (PropertyDefinition<any> & InternalDefinition)[][] = [
