@@ -309,19 +309,17 @@ export class DataModel<
 
     resolveProcessedDataIndexById(
         scope: ScopeProvider,
-        searchId: string,
-        type: PropertyDefinition<any>['type'] = 'value'
-    ): { type: typeof type; index: number; def: PropertyDefinition<any> } | never {
+        searchId: string
+    ): { index: number; def: PropertyDefinition<any> } | never {
         const { index, def } = this.resolveProcessedDataDefById(scope, searchId) ?? {};
-        return { type, index, def };
+        return { index, def };
     }
 
     resolveProcessedDataIndicesById(
         scope: ScopeProvider,
-        searchId: string | RegExp,
-        type: PropertyDefinition<any>['type'] = 'value'
-    ): { type: typeof type; index: number; def: PropertyDefinition<any> }[] | never {
-        return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ type, index, def }));
+        searchId: string | RegExp
+    ): { index: number; def: PropertyDefinition<any> }[] | never {
+        return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ index, def }));
     }
 
     resolveProcessedDataDefById(
@@ -376,7 +374,7 @@ export class DataModel<
     ): any[] | ContinuousDomain<number> | [] {
         let matches;
         try {
-            matches = this.resolveProcessedDataIndicesById(scope, searchId, type);
+            matches = this.resolveProcessedDataIndicesById(scope, searchId);
         } catch (e: any) {
             if (typeof searchId !== 'string' && /didn't find property definition/.test(e.message)) return [];
             throw e;
@@ -476,12 +474,11 @@ export class DataModel<
                 if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) {
                     return false;
                 }
-                return !(
-                    matchIds &&
-                    (def.ids == null ||
-                        !matchIds.some(([matchScope, matchId]) =>
-                            def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
-                        ))
+                if (!matchIds) return true;
+                if (def.ids == null) return false;
+
+                return matchIds.some(([matchScope, matchId]) =>
+                    def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
                 );
             })
             .map(({ index }) => index);

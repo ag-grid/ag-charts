@@ -362,7 +362,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 : // Handle high-volume bar charts gracefully.
                   groupScale.rawBandwidth;
 
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`, 'key').index;
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
