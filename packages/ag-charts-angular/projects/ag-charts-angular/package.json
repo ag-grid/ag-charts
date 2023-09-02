@@ -20,7 +20,7 @@
   "peerDependencies": {
     "@angular/common": ">=12.0.0",
     "@angular/core": ">=12.0.0",
-    "ag-charts-community": "*"
+    "ag-charts-community": "9.0.0-beta.5"
   },
   "dependencies": {
     "tslib": "^2.3.0"

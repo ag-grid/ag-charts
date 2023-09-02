@@ -194,7 +194,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         if (!processedData || !dataModel) return [];
 
         const id = direction === ChartAxisDirection.X ? `xValue` : `yValue`;
-        const dataDef = dataModel.resolveProcessedDataDefById(this, id, 'value');
+        const dataDef = dataModel.resolveProcessedDataDefById(this, id);
         const domain = dataModel.getDomain(this, id, 'value', processedData);
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
             return domain;

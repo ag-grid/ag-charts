@@ -330,7 +330,9 @@ abstract class AgChartInternal {
             return new PolarChart(specialOverrides, transferableResource);
         }
 
-        throw new Error(`AG Charts - couldn't apply configuration, check type of options: ${options['type']}`);
+        throw new Error(
+            `AG Charts - couldn't apply configuration, check options are correctly structured and series types are specified`
+        );
     }
 
     private static async updateDelta(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions) {

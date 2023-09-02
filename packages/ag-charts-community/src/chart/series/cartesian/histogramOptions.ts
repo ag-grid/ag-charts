@@ -1,19 +1,15 @@
-import type { AgDropShadowOptions } from '../../agChartOptions';
+import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 
 export interface AgHistogramSeriesLabelOptions extends AgCartesianSeriesLabelOptions {}
 
 export interface AgHistogramSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
     datum: AgHistogramBinDatum<any>;
-}
-
-export interface AgHistogramSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgHistogramSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgHistogramBinDatum<DatumType> {
@@ -61,7 +57,7 @@ export interface AgHistogramSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** Configuration for the labels shown on bars. */
     label?: AgHistogramSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgHistogramSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

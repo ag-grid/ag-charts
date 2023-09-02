@@ -1,8 +1,14 @@
-import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
 import prism from './src/astro/plugins/prism';
 
 export default defineMarkdocConfig({
     extends: [prism()],
+    nodes: {
+        heading: {
+            ...nodes.heading, // Preserve default anchor link generation
+            render: component('./src/components/Heading.astro'),
+        },
+    },
     functions: {
         isFramework: {
             transform(parameters, context) {

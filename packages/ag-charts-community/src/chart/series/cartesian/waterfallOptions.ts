@@ -1,9 +1,10 @@
-import type { AgDropShadowOptions } from '../../options/chartOptions';
+import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions, AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 
 export interface AgWaterfallSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;
@@ -28,11 +29,6 @@ export interface AgWaterfallSeriesFormat {
 export interface AgWaterfallSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
     /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemId: string;
-}
-
-export interface AgWaterfallSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgWaterfallSeriesItemTooltip {
@@ -81,7 +77,7 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgWaterfallSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the waterfall series items when they are hovered over. */

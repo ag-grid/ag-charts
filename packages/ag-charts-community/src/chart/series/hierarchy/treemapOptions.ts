@@ -1,6 +1,7 @@
-import type { AgChartLabelOptions, AgDropShadowOptions } from '../../agChartOptions';
+import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgChartLabelOptions } from '../../options/labelOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, DataValue, Opacity, PixelSize, TextWrap } from '../../options/types';
 import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -28,11 +29,6 @@ export interface AgTreemapSeriesTooltipRendererParams<DatumType> {
     title?: string;
     /** The ID of the series. */
     seriesId: string;
-}
-
-export interface AgTreemapSeriesTooltip<DatumType> extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgTreemapSeriesTooltipRendererParams<DatumType>) => string | AgTooltipRendererResult;
 }
 
 export interface AgTreemapSeriesLabelFormatterParams<DatumType> {
@@ -115,7 +111,7 @@ export interface AgTreemapSeriesOptions<DatumType = any> extends AgBaseSeriesOpt
     /** The tile's stroke width. */
     tileStrokeWidth?: number;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgTreemapSeriesTooltip<DatumType>;
+    tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<DatumType>>;
     /**
      * The amount of padding in pixels inside of each treemap tile.
      * Default: `20`

@@ -1,5 +1,5 @@
-import type { AgChartLabelOptions } from '../../options/chartOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
+import type { AgChartLabelOptions } from '../../options/labelOptions';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialColumnSeriesFormat,
@@ -14,7 +14,7 @@ export interface AgNightingaleSeriesOptions<DatumType = any> extends AgBaseRadia
     /** Configuration for the labels shown on top of data points. */
     label?: AgNightingaleSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgNightingaleSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgNightingaleSeriesTooltipRendererParams>;
     /** A formatter function for adjusting the styling of the nightingale sectors. */
     formatter?: (params: AgNightingaleSeriesFormatterParams<DatumType>) => AgNightingaleSeriesFormat;
 }
@@ -26,12 +26,6 @@ export interface AgNightingaleSeriesLabelFormatterParams extends AgRadialColumnS
 export interface AgNightingaleSeriesLabelOptions extends AgChartLabelOptions {
     /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
     formatter?: (params: AgNightingaleSeriesLabelFormatterParams) => string;
-}
-
-export interface AgNightingaleSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgNightingaleSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
-    format?: string;
 }
 
 export interface AgNightingaleSeriesFormatterParams<DatumType> extends AgRadialColumnSeriesFormatterParams<DatumType> {}

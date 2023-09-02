@@ -8,6 +8,7 @@ import styles from './ApiDocumentation.module.scss';
 import { Icon } from '@components/icon/Icon';
 import { ObjectCodeSample } from './ObjectCodeSample';
 import type { FunctionComponent } from 'react';
+import { LinkIcon } from '@components/link-icon/LinkIcon';
 
 export const Section: FunctionComponent<SectionProps> = ({
     framework,
@@ -47,9 +48,7 @@ export const Section: FunctionComponent<SectionProps> = ({
                 {!config.hideHeader && (
                     <HeaderTag id={`reference-${id}`} style={{ position: 'relative' }}>
                         {displayName}
-                        <a href={`#reference-${id}`} className="docs-header-icon">
-                            <Icon name="link" />
-                        </a>
+                        <LinkIcon href={`#reference-${id}`} />
                     </HeaderTag>
                 )}
                 <Breadcrumbs breadcrumbs={breadcrumbs} />

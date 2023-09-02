@@ -55,7 +55,7 @@
     "@types/pngjs": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-community": "*",
+    "ag-charts-community": "9.0.0-beta.5",
     "canvas": "^2.10.2",
     "eslint": "^6.8.0",
     "glob": "8.0.3",
@@ -79,7 +79,7 @@
     "@jest/globals": "29.6.1"
   },
   "dependencies": {
-    "ag-charts-community": "*"
+    "ag-charts-community": "9.0.0-beta.5"
   },
   "publishConfig": {
     "access": "public"

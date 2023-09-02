@@ -2,7 +2,7 @@ import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, PixelSize } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
 export interface AgHeatmapSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;
@@ -28,11 +28,6 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
     readonly labelKey?: string;
     /** labelName as specified on series options. */
     readonly labelName?: string;
-}
-
-export interface AgHeatmapSeriesTooltip extends AgSeriesTooltip {
-    /** Function used to create the content for tooltips. */
-    renderer?: (params: AgHeatmapSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 export interface AgHeatmapSeriesLabelOptions extends AgTooltipRendererResult {}
@@ -72,7 +67,7 @@ export interface AgHeatmapSeriesOptions<DatumType = any> extends AgBaseSeriesOpt
     /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgHeatmapSeriesFormatterParams<DatumType>) => AgHeatmapSeriesFormat;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgHeatmapSeriesTooltip;
+    tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }
