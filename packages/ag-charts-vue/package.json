@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-vue",
   "description": "AG Charts Vue Component",
-  "version": "9.0.0",
+  "version": "9.0.0-beta.5",
   "author": "Sean Landsman <sean@thelandsmans.com>",
   "license": "MIT",
   "main": "main.js",
@@ -45,6 +45,6 @@
     "vue-property-decorator": "^7.2.0 || ^8.0.0 || ^9.1.2"
   },
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   }
 }

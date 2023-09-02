@@ -1,9 +1,9 @@
 {
   "name": "ag-charts-react",
-  "version": "9.0.0",
+  "version": "9.0.0-beta.6",
   "description": "AG Charts React Component",
-  "main": "main.js",
-  "module": "./dist/index.js",
+  "main": "./dist/index.esm.js",
+  "module": "./dist/index.esm.js",
   "type": "module",
   "types": "./dist/src/index.d.ts",
   "repository": {
@@ -101,6 +101,6 @@
     ]
   },
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   }
 }
