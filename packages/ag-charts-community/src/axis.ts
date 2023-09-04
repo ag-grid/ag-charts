@@ -41,7 +41,7 @@ import { AxisLine } from './chart/axis/axisLine';
 import type { AxisTitle } from './chart/axis/axisTitle';
 import type { TickCount, TickInterval } from './chart/axis/axisTick';
 import { AxisTick } from './chart/axis/axisTick';
-import type { ChartAxis, BoundSeries } from './chart/chartAxis';
+import type { ChartAxis, BoundSeries, ChartAxisLabel } from './chart/chartAxis';
 import type { AnimationManager } from './chart/interaction/animationManager';
 import type { InteractionEvent } from './chart/interaction/interactionManager';
 import * as easing from './motion/easing';
@@ -454,7 +454,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return new AxisTick();
     }
 
-    protected createLabel(): AxisLabel {
+    protected createLabel(): ChartAxisLabel {
         return new AxisLabel();
     }
 
@@ -814,8 +814,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return labelData;
     }
 
-    private getAutoRotation(labelOveralap: boolean): number {
-        return labelOveralap ? normalizeAngle360(toRadians(this.label.autoRotateAngle)) : 0;
+    private getAutoRotation(labelOverlap: boolean): number {
+        return labelOverlap ? normalizeAngle360(toRadians(this.label.autoRotateAngle ?? 0)) : 0;
     }
 
     private getTicks({

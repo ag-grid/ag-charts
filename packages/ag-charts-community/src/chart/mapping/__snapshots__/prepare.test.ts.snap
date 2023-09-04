@@ -22,7 +22,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "#3f7cbf",
         "fontFamily": "Impact, Charcoal, Sans-Serif",
@@ -71,7 +70,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "#3f7cbf",
         "fontFamily": "Impact, Charcoal, Sans-Serif",
@@ -492,7 +490,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "female",
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -538,7 +535,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "exportedTonnes",
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -961,7 +957,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -1621,7 +1616,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -2280,7 +2274,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -2323,7 +2316,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -2553,7 +2545,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -2597,7 +2588,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -3072,7 +3062,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -3651,7 +3640,6 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -3938,7 +3926,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -4440,7 +4427,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -4486,7 +4472,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -4761,7 +4746,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -5120,7 +5104,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -5485,7 +5468,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -6097,7 +6079,6 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -6141,7 +6122,6 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -6424,7 +6404,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -7602,7 +7581,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -7646,7 +7624,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -8134,7 +8111,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -8864,7 +8840,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -9293,7 +9268,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -9854,7 +9828,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -9902,7 +9875,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -10392,7 +10364,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -10849,7 +10820,6 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -10893,7 +10863,6 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -11674,7 +11643,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -11717,7 +11685,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -11989,7 +11956,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -12664,7 +12630,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -13142,7 +13107,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -13646,7 +13610,6 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",
@@ -13690,7 +13653,6 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
         },
       ],
       "label": {
-        "autoRotate": false,
         "avoidCollisions": true,
         "color": "rgb(87, 87, 87)",
         "fontFamily": "Verdana, sans-serif",

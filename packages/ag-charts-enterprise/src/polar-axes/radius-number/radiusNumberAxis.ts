@@ -12,6 +12,7 @@ const {
     LESS_THAN,
     NUMBER,
     NUMBER_OR_NAN,
+    OPT_BOOLEAN,
     Validate,
 } = _ModuleSupport;
 const { LinearScale } = _Scale;
@@ -22,6 +23,14 @@ class RadiusNumberAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, n
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
     @Default(NaN)
     maxSpacing: number = NaN;
+}
+
+class RadiusNumberAxisLabel extends _ModuleSupport.AxisLabel {
+    @Validate(OPT_BOOLEAN)
+    autoRotate: boolean | undefined = undefined;
+
+    @Validate(NUMBER(-360, 360))
+    autoRotateAngle: number = 335;
 }
 
 export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
@@ -199,5 +208,9 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
             }
         });
         super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0, sideFlag: -1 });
+    }
+
+    protected createLabel() {
+        return new RadiusNumberAxisLabel();
     }
 }
