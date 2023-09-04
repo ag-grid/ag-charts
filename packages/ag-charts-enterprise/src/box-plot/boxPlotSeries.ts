@@ -1,5 +1,5 @@
 import type { AgCartesianSeriesTooltipRendererParams } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const {
     CartesianSeries,
@@ -12,27 +12,33 @@ const {
     SeriesTooltip,
     Validate,
     valueProperty,
-    updateRect,
 } = _ModuleSupport;
+
+enum GroupTags {
+    Box,
+    Whisker,
+    Cap,
+}
 
 interface BoxPlotNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_Scene.Point> {
     readonly index: number;
     readonly xValue: number;
     readonly yValue: number;
-    // readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
+
+    readonly minValue: number;
+    readonly q1Value: number;
+    readonly medianValue: number;
+    readonly q3Value: number;
+    readonly maxValue: number;
 
     readonly fill: string;
     readonly stroke: string;
     readonly strokeWidth: number;
-    // readonly label?: BarNodeLabelDatum;
 }
 
-export class BoxPlotSeries extends CartesianSeries<
-    _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>,
-    _Scene.Rect
-> {
+export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>> {
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -88,17 +94,12 @@ export class BoxPlotSeries extends CartesianSeries<
     fill: string = '#c16068';
 
     @Validate(OPT_COLOR_STRING)
-    stroke: string = '#874349';
+    stroke: string = '#333';
 
     @Validate(NUMBER(0))
-    strokeWidth: number = 1;
+    strokeWidth: number = 3;
 
     tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
-
-    /**
-     * Used to get the position of bars within each group.
-     */
-    private groupScale = new _Scale.BandScale<string>();
 
     getBandScalePadding() {
         return { inner: 0.2, outer: 0.3 };
@@ -114,17 +115,7 @@ export class BoxPlotSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey = '', fill, stroke, strokeWidth, groupScale, processedData, ctx } = this;
-
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-        groupScale.domain = domain;
-
-        // eslint-disable-next-line no-console
-        console.log({ xAxis, yAxis, groupIndex, groupScale });
+        const { yKey = '', fill, stroke, strokeWidth, processedData } = this;
 
         const context: _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum> = {
             itemId: yKey,
@@ -165,10 +156,17 @@ export class BoxPlotSeries extends CartesianSeries<
                 xKey: '',
                 xValue: 0,
                 yKey,
-                yValue,
+                // yValue,
                 fill,
                 stroke,
                 strokeWidth,
+
+                yValue: Math.round(yAxis.scale.convert(yValue, { strict: false })),
+                minValue: Math.round(xAxis.scale.convert(minValue, { strict: false })),
+                q1Value: Math.round(xAxis.scale.convert(q1Value, { strict: false })),
+                medianValue: Math.round(xAxis.scale.convert(medianValue, { strict: false })),
+                q3Value: Math.round(xAxis.scale.convert(q3Value, { strict: false })),
+                maxValue: Math.round(xAxis.scale.convert(maxValue, { strict: false })),
             };
 
             context.nodeData.push(nodeData);
@@ -224,10 +222,6 @@ export class BoxPlotSeries extends CartesianSeries<
         }
     }
 
-    protected nodeFactory() {
-        return new _Scene.Rect();
-    }
-
     getLegendData(): _ModuleSupport.ChartLegendDatum[] {
         return [];
     }
@@ -243,7 +237,7 @@ export class BoxPlotSeries extends CartesianSeries<
 
     protected async updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
-        datumSelection: _Scene.Selection<_Scene.Rect, BoxPlotNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Group, BoxPlotNodeDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -251,27 +245,54 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     protected async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<_Scene.Rect, BoxPlotNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Group, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection } = opts;
-        datumSelection.each((rect, datum) => {
-            const config: _ModuleSupport.RectConfig = {
-                fill: datum.fill,
-                stroke: datum.stroke,
-                strokeWidth: datum.strokeWidth,
-                fillOpacity: 1,
-                strokeOpacity: 1,
-                lineDash: [],
-                lineDashOffset: 0,
-            };
 
-            rect.x = datum.x;
-            rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
+        datumSelection.each((group, datum) => {
+            const selection = _Scene.Selection.select(group, _Scene.Rect);
+            const boxes = selection.selectByTag<_Scene.Rect>(GroupTags.Box);
+            const whiskers = selection.selectByTag<_Scene.Line>(GroupTags.Whisker);
+            const caps = selection.selectByTag<_Scene.Line>(GroupTags.Cap);
 
-            updateRect({ rect, config });
+            // TODO cleanup; preferably with generic methods
+            boxes[0].x = datum.q1Value;
+            boxes[0].y = datum.yValue;
+            boxes[0].width = datum.medianValue - datum.q1Value + datum.strokeWidth;
+            boxes[0].height = datum.height;
+
+            boxes[1].x = datum.medianValue;
+            boxes[1].y = datum.yValue;
+            boxes[1].width = datum.q3Value - datum.medianValue;
+            boxes[1].height = datum.height;
+
+            caps[0].x1 = caps[0].x2 = datum.minValue;
+            caps[1].x1 = caps[1].x2 = datum.maxValue;
+            caps[0].y1 = caps[1].y1 = datum.yValue + datum.height * 0.25;
+            caps[0].y2 = caps[1].y2 = datum.yValue + datum.height * 0.75;
+
+            whiskers[0].x1 = datum.minValue;
+            whiskers[0].x2 = datum.q1Value;
+            whiskers[1].x1 = datum.q3Value;
+            whiskers[1].x2 = datum.maxValue;
+            whiskers[0].y1 = whiskers[0].y2 = whiskers[1].y1 = whiskers[1].y2 = datum.yValue + datum.height * 0.5;
+
+            boxes[0].fill = boxes[1].fill = datum.fill;
+            boxes[0].stroke =
+                boxes[1].stroke =
+                whiskers[0].stroke =
+                whiskers[1].stroke =
+                caps[0].stroke =
+                caps[1].stroke =
+                    datum.stroke;
+            boxes[0].strokeWidth =
+                boxes[1].strokeWidth =
+                whiskers[0].strokeWidth =
+                whiskers[1].strokeWidth =
+                caps[0].strokeWidth =
+                caps[1].strokeWidth =
+                    datum.strokeWidth;
         });
     }
 
@@ -288,5 +309,22 @@ export class BoxPlotSeries extends CartesianSeries<
     }) {
         const { labelData, labelSelection } = opts;
         return labelSelection.update(labelData);
+    }
+
+    protected nodeFactory() {
+        const group = new _Scene.Group({ layer: true });
+        const nodes = [
+            new _Scene.Rect(),
+            new _Scene.Rect(),
+            new _Scene.Line(),
+            new _Scene.Line(),
+            new _Scene.Line(),
+            new _Scene.Line(),
+        ];
+        nodes[0].tag = nodes[1].tag = GroupTags.Box;
+        nodes[2].tag = nodes[3].tag = GroupTags.Whisker;
+        nodes[4].tag = nodes[5].tag = GroupTags.Cap;
+        group.append(nodes);
+        return group;
     }
 }
