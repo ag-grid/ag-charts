@@ -145,7 +145,7 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Range Bar / Column",
+                        "title": "Range Bar",
                         "icon": "chartsRange",
                         "path": "range-bar-series",
                         "isEnterprise": true
