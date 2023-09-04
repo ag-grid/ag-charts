@@ -35,9 +35,7 @@ const options: AgChartOptions = {
     ]
 };
 
-
 let chart = AgEnterpriseCharts.create(options);
-
 
 function missingYValues() {
   const data = getData();
@@ -47,7 +45,6 @@ function missingYValues() {
 
   AgEnterpriseCharts.update(chart, options);
 }
-
 
 function missingXValue() {
   const data = getData();
