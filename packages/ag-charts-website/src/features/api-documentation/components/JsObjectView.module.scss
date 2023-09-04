@@ -19,16 +19,14 @@ $indent: 24px;
     position: relative;
 }
 
-.jsonProperty .jsonProperty {
-    &::before {
-        content: '';
-        position: absolute;
-        width: 24px;
-        height: 2px;
-        top: 12px;
-        left: -34px;
-        background-color: var(--platinum-gray);
-    }
+.jsonProperty .jsonProperty::before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    top: 12px;
+    left: -34px;
+    background-color: var(--platinum-gray);
 }
 
 .type-nested-object::before,
