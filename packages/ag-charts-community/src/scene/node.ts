@@ -313,9 +313,10 @@ export abstract class Node extends ChangeDetectable {
     @SceneChangeDetection({ type: 'transform' })
     translationY: number = 0;
 
-    constructor({ isVirtual }: { isVirtual?: boolean } = {}) {
+    constructor({ isVirtual, tag }: { isVirtual?: boolean; tag?: number } = {}) {
         super();
         this.isVirtual = isVirtual ?? false;
+        this.tag = tag ?? NaN;
     }
 
     containsPoint(_x: number, _y: number): boolean {

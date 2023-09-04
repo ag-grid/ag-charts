@@ -11,8 +11,8 @@ export class Range extends Shape {
         strokeWidth: 1,
     };
 
-    constructor() {
-        super();
+    constructor({ tag }: { tag?: number } = {}) {
+        super({ tag });
         this.restoreOwnStyles();
     }
 

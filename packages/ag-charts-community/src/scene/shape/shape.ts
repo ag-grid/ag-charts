@@ -15,30 +15,6 @@ const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((.*?)deg,\s*(.*?)\s*\)$/i;
 
 export abstract class Shape extends Node {
     /**
-     * Creates a light-weight instance of the given shape (that serves as a template).
-     * The created instance only stores the properites set on the instance itself
-     * and the rest of the properties come via the prototype chain from the template.
-     * This can greatly reduce memory usage in cases where one has many similar shapes,
-     * for example, circles of different size, position and color. The exact memory usage
-     * reduction will depend on the size of the template and the number of own properties
-     * set on its lightweight instances, but will typically be around an order of magnitude
-     * or more.
-     *
-     * Note: template shapes are not supposed to be part of the scene graph (they should not
-     * have a parent).
-     *
-     * @param template
-     */
-    static createInstance<T extends Shape>(template: T): T {
-        const shape = Object.create(template);
-        shape._setParent(undefined);
-        shape.id = template.id + '-Instance-' + String(++template.lastInstanceId);
-        return shape;
-    }
-
-    private lastInstanceId = 0;
-
-    /**
      * Defaults for style properties. Note that properties that affect the position
      * and shape of the node are not considered style properties, for example:
      * `x`, `y`, `width`, `height`, `radius`, `rotation`, etc.
@@ -61,6 +37,13 @@ export abstract class Shape extends Node {
         }
     );
 
+    setStyles<T>(this: T, styles: { [K in keyof T]?: T[K] }) {
+        const keys = Object.keys(styles) as (keyof T)[];
+        for (const key of keys) {
+            this[key] = styles[key] ?? this[key];
+        }
+    }
+
     /**
      * Restores the default styles introduced by this subclass.
      */
@@ -71,35 +54,10 @@ export abstract class Shape extends Node {
         // getOwnPropertyNames is about 2.5 times faster than
         // for..in with the hasOwnProperty check and in this
         // case, where most properties are inherited, can be
-        // more then an order of magnitude faster.
+        // more than an order of magnitude faster.
         for (let i = 0, n = keys.length; i < n; i++) {
             const key = keys[i];
             (this as any)[key] = styles[key];
-        }
-    }
-
-    protected restoreAllStyles() {
-        const styles = (this.constructor as any).defaultStyles;
-
-        for (const property in styles) {
-            (this as any)[property] = styles[property];
-        }
-    }
-
-    /**
-     * Restores the base class default styles that have been overridden by this subclass.
-     */
-    protected restoreOverriddenStyles() {
-        const styles = (this.constructor as any).defaultStyles;
-        const protoStyles = Object.getPrototypeOf(styles);
-
-        for (const property in styles) {
-            if (
-                Object.prototype.hasOwnProperty.call(styles, property) &&
-                Object.prototype.hasOwnProperty.call(protoStyles, property)
-            ) {
-                (this as any)[property] = styles[property];
-            }
         }
     }
 

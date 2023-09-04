@@ -45,15 +45,6 @@ interface BoxPlotNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
 }
 
 export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>> {
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({
-            moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            pathsPerSeries: 1,
-            hasHighlightedLabels: true,
-        });
-    }
-
     @Validate(OPT_STRING)
     xKey?: string = undefined;
 
@@ -119,8 +110,52 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
 
     tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
-    getBandScalePadding() {
-        return { inner: 0.2, outer: 0.3 };
+    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+        super({
+            moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pathsPerSeries: 1,
+            hasHighlightedLabels: true,
+        });
+    }
+
+    async processData(dataController: _ModuleSupport.DataController): Promise<void> {
+        const { yKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
+
+        if (!yKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
+
+        const { dataModel, processedData } = await dataController.request(this.id, data, {
+            props: [
+                keyProperty(this, yKey, false, { id: `yValue` }),
+                valueProperty(this, minKey, true, { id: `minValue` }),
+                valueProperty(this, q1Key, true, { id: `q1Value` }),
+                valueProperty(this, medianKey, true, { id: `medianValue` }),
+                valueProperty(this, q3Key, true, { id: `q3Value` }),
+                valueProperty(this, maxKey, true, { id: `maxValue` }),
+            ],
+            dataVisible: this.visible,
+        });
+
+        this.dataModel = dataModel;
+        this.processedData = processedData;
+    }
+
+    getDomain(direction: _ModuleSupport.ChartAxisDirection) {
+        const { processedData, dataModel } = this;
+        if (!(processedData && dataModel)) return [];
+
+        if (direction === ChartAxisDirection.X) {
+            const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
+            const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
+
+            return this.fixNumericExtent(
+                [Math.min(...minValues), Math.max(...maxValues)],
+                this.axes[ChartAxisDirection.X]
+            );
+        } else {
+            const yValueIndex = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
+            return processedData.domain.keys[yValueIndex];
+        }
     }
 
     async createNodeData() {
@@ -166,6 +201,10 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
             const q3Value = values[q3ValueIndex];
             const maxValue = values[maxValueIndex];
 
+            if (minValue > q1Value || q1Value > medianValue || medianValue > q3Value || q3Value > maxValue) {
+                return;
+            }
+
             const nodeData: BoxPlotNodeDatum = {
                 index: dataIndex,
                 datum: seriesDatum,
@@ -196,46 +235,6 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
         return [context];
     }
 
-    async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        const { yKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
-
-        if (!yKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
-
-        const { dataModel, processedData } = await dataController.request(this.id, data, {
-            props: [
-                keyProperty(this, yKey, false, { id: `yValue` }),
-                valueProperty(this, minKey, true, { id: `minValue` }),
-                valueProperty(this, q1Key, true, { id: `q1Value` }),
-                valueProperty(this, medianKey, true, { id: `medianValue` }),
-                valueProperty(this, q3Key, true, { id: `q3Value` }),
-                valueProperty(this, maxKey, true, { id: `maxValue` }),
-            ],
-            dataVisible: this.visible,
-        });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
-    }
-
-    // @ts-ignore
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
-        if (!(processedData && dataModel)) return [];
-
-        if (direction === ChartAxisDirection.X) {
-            const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
-            const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
-
-            return this.fixNumericExtent(
-                [Math.min(...minValues), Math.max(...maxValues)],
-                this.axes[ChartAxisDirection.X]
-            );
-        } else {
-            const yValueIndex = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-            return processedData.domain.keys[yValueIndex];
-        }
-    }
-
     getLegendData(): _ModuleSupport.ChartLegendDatum[] {
         return [];
     }
@@ -255,24 +254,31 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        return datumSelection.update(
-            data.filter(
-                (datum) =>
-                    datum.minValue <= datum.q1Value &&
-                    datum.q1Value <= datum.medianValue &&
-                    datum.medianValue <= datum.q3Value &&
-                    datum.q3Value <= datum.maxValue
-            )
-        );
+        return datumSelection.update(data);
     }
 
     protected async updateDatumNodes(opts: {
         datumSelection: _Scene.Selection<_Scene.Group, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection } = opts;
+        opts.datumSelection.each((group, datum) => {
+            const {
+                bandwidth,
+                minValue,
+                q1Value,
+                medianValue,
+                q3Value,
+                maxValue,
+                yValue,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            } = datum;
 
-        datumSelection.each((group, datum) => {
             const selection = _Scene.Selection.select(group, _Scene.Rect);
             const [outline] = selection.selectByTag<_Scene.Rect>(GroupTags.Outline);
             const boxes = selection.selectByTag<_Scene.Rect>(GroupTags.Box);
@@ -280,51 +286,63 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
             const whiskers = selection.selectByTag<_Scene.Line>(GroupTags.Whisker);
             const caps = selection.selectByTag<_Scene.Line>(GroupTags.Cap);
 
-            // TODO cleanup; preferably with generic methods
-            outline.x = datum.q1Value;
-            outline.y = datum.yValue;
-            outline.width = datum.q3Value - datum.q1Value;
-            outline.height = datum.bandwidth;
+            outline.setStyles({ x: q1Value, y: yValue, width: q3Value - q1Value, height: bandwidth });
 
-            boxes[0].x = datum.q1Value;
-            boxes[0].y = datum.yValue;
-            boxes[0].width = Math.round(datum.medianValue - datum.q1Value + datum.strokeWidth / 2);
-            boxes[0].height = datum.bandwidth;
+            boxes[0].setStyles({
+                x: q1Value,
+                y: yValue,
+                width: Math.round(medianValue - q1Value + strokeWidth / 2),
+                height: bandwidth,
+            });
 
-            boxes[1].x = Math.round(datum.medianValue - datum.strokeWidth / 2);
-            boxes[1].y = datum.yValue;
-            boxes[1].width = Math.floor(datum.q3Value - datum.medianValue + datum.strokeWidth / 2);
-            boxes[1].height = datum.bandwidth;
+            boxes[1].setStyles({
+                x: Math.round(medianValue - strokeWidth / 2),
+                y: yValue,
+                width: Math.floor(q3Value - medianValue + strokeWidth / 2),
+                height: bandwidth,
+            });
 
-            median.x1 = median.x2 = datum.medianValue;
-            median.y1 = datum.yValue + datum.strokeWidth;
-            median.y2 = datum.yValue + datum.bandwidth - datum.strokeWidth;
+            median.setStyles({
+                x: medianValue,
+                y1: yValue + strokeWidth,
+                y2: yValue + bandwidth - strokeWidth,
+            });
 
-            caps[0].x1 = caps[0].x2 = datum.minValue;
-            caps[1].x1 = caps[1].x2 = datum.maxValue;
-            caps[0].y1 = caps[1].y1 = datum.yValue + datum.bandwidth * 0.25;
-            caps[0].y2 = caps[1].y2 = datum.yValue + datum.bandwidth * 0.75;
+            const capSize = 0.5;
+            const capY1 = yValue + bandwidth * capSize * 0.5;
+            const capY2 = yValue + bandwidth * capSize * 1.5;
 
-            whiskers[0].x1 = Math.round(datum.minValue + datum.strokeWidth / 2);
-            whiskers[0].x2 = datum.q1Value;
-            whiskers[1].x1 = datum.q3Value;
-            whiskers[1].x2 = Math.round(datum.maxValue - datum.strokeWidth / 2);
-            whiskers[0].y1 = whiskers[0].y2 = whiskers[1].y1 = whiskers[1].y2 = datum.yValue + datum.bandwidth * 0.5;
+            caps[0].setStyles({ x: minValue, y1: capY1, y2: capY2 });
+            caps[1].setStyles({ x: maxValue, y1: capY1, y2: capY2 });
 
-            outline.fillOpacity = 0;
+            whiskers[0].setStyles({
+                x1: Math.round(minValue + strokeWidth / 2),
+                x2: q1Value,
+                y: yValue + bandwidth * 0.5,
+            });
 
-            boxes[0].fill = boxes[1].fill = datum.fill;
-            boxes[0].fillOpacity = boxes[1].fillOpacity = datum.fillOpacity;
-            boxes[0].strokeWidth = boxes[1].strokeWidth = datum.strokeWidth * 2;
-            boxes[0].strokeOpacity = boxes[1].strokeOpacity = 0;
+            whiskers[1].setStyles({
+                x1: q3Value,
+                x2: Math.round(maxValue - strokeWidth / 2),
+                y: yValue + bandwidth * 0.5,
+            });
 
-            // elements with stroke
+            // fill only elements
+            for (const element of boxes) {
+                element.fill = fill;
+                element.fillOpacity = fillOpacity;
+                element.strokeWidth = strokeWidth * 2;
+                element.strokeOpacity = 0;
+            }
+
+            // stroke only elements
             for (const element of [outline, median, ...whiskers, ...caps]) {
-                element.stroke = datum.stroke;
-                element.strokeWidth = datum.strokeWidth;
-                element.strokeOpacity = datum.strokeOpacity;
-                element.lineDash = datum.lineDash;
-                element.lineDashOffset = datum.lineDashOffset;
+                element.fillOpacity = 0;
+                element.stroke = stroke;
+                element.strokeWidth = strokeWidth;
+                element.strokeOpacity = strokeOpacity;
+                element.lineDash = lineDash;
+                element.lineDashOffset = lineDashOffset;
             }
         });
     }
@@ -346,23 +364,20 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
 
     protected nodeFactory() {
         const group = new _Scene.Group({ layer: true });
-        const nodes = [
-            new _Scene.Rect(),
-            new _Scene.Rect(),
-            new _Scene.Rect(),
-            new _Scene.Line(),
-            new _Scene.Line(),
-            new _Scene.Line(),
-            new _Scene.Line(),
-            new _Scene.Line(),
-        ];
-        // TODO move tags to Shape constructor?
-        nodes[0].tag = nodes[1].tag = GroupTags.Box;
-        nodes[2].tag = GroupTags.Outline;
-        nodes[3].tag = GroupTags.Median;
-        nodes[4].tag = nodes[5].tag = GroupTags.Whisker;
-        nodes[6].tag = nodes[7].tag = GroupTags.Cap;
-        group.append(nodes);
+        group.append([
+            new _Scene.Rect({ tag: GroupTags.Box }),
+            new _Scene.Rect({ tag: GroupTags.Box }),
+            new _Scene.Rect({ tag: GroupTags.Outline }),
+            new _Scene.Line({ tag: GroupTags.Median }),
+            new _Scene.Line({ tag: GroupTags.Whisker }),
+            new _Scene.Line({ tag: GroupTags.Whisker }),
+            new _Scene.Line({ tag: GroupTags.Cap }),
+            new _Scene.Line({ tag: GroupTags.Cap }),
+        ]);
         return group;
+    }
+
+    getBandScalePadding() {
+        return { inner: 0.2, outer: 0.3 };
     }
 }
