@@ -30,7 +30,7 @@ import type {
     AgCartesianSeriesMarkerFormat,
 } from '../../agChartOptions';
 import type { UngroupedDataItem } from '../../data/dataModel';
-import { diff } from '../../data/processors';
+import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
@@ -127,11 +127,22 @@ export class LineSeries extends CartesianSeries<LineContext> {
         const isContinuousX = xAxis?.scale instanceof ContinuousScale;
         const isContinuousY = yAxis?.scale instanceof ContinuousScale;
 
-        const props: any[] = [
-            keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
+        const props: any[] = [];
+
+        // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
+        // They must be identified this way when animated to ensure they can be tracked when their y-value
+        // is updated. If this is a static chart, we can instead not bother with identifying datums and
+        // automatically garbage collect the marker selection.
+        if (this.ctx.animationManager.skipAnimations) {
+            this.markerSelectionGarbageCollection = true;
+        } else {
+            props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
+        }
+
+        props.push(
             valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-            valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined }),
-        ];
+            valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
+        );
 
         if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
             props.push(diff(this.processedData));
@@ -301,7 +312,11 @@ export class LineSeries extends CartesianSeries<LineContext> {
             markerSelection.clear();
         }
 
-        return markerSelection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
+        return markerSelection.update(
+            nodeData,
+            undefined,
+            this.markerSelectionGarbageCollection ? undefined : (datum) => this.getDatumId(datum)
+        );
     }
 
     protected async updateMarkerNodes(opts: {
@@ -1057,7 +1072,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
     }
 
     private getDatumId(datum: LineNodeDatum) {
-        return `${datum.xValue}`;
+        if (this.ctx.animationManager.skipAnimations) return '';
+        return createDatumId([`${datum.xValue}`]);
     }
 
     protected isLabelEnabled() {
