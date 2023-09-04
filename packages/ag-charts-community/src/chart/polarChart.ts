@@ -8,6 +8,7 @@ import type { SeriesNodeDatum } from './series/series';
 import { PieSeries } from './series/polar/pieSeries';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { PolarAxis } from './axis/polarAxis';
+import { Layers } from './layers';
 
 export class PolarChart extends Chart {
     static className = 'PolarChart';
@@ -17,6 +18,7 @@ export class PolarChart extends Chart {
 
     constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
         super(specialOverrides, resources);
+        this.axisGroup.zIndex = Layers.AXIS_FOREGROUND_ZINDEX;
     }
 
     async performLayout() {

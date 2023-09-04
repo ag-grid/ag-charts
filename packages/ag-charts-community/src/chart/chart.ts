@@ -242,6 +242,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
     protected readonly dataService: DataService;
+    protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
     protected readonly callbackCache: CallbackCache;
     protected readonly seriesStateManager: SeriesStateManager;
@@ -266,6 +267,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // (before first layout is performed).
         root.visible = false;
         root.append(this.seriesRoot);
+
+        this.axisGridGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
+        root.appendChild(this.axisGridGroup);
 
         this.axisGroup = new Group({ name: 'Axes', layer: true, zIndex: Layers.AXIS_ZINDEX });
         root.appendChild(this.axisGroup);
@@ -670,13 +674,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
     set axes(values: ChartAxis[]) {
         const removedAxes = new Set<ChartAxis>();
         this._axes.forEach((axis) => {
-            axis.detachAxis(this.axisGroup);
+            axis.detachAxis(this.axisGroup, this.axisGridGroup);
             removedAxes.add(axis);
         });
         // make linked axes go after the regular ones (simulates stable sort by `linkedTo` property)
         this._axes = values.filter((a) => !a.linkedTo).concat(values.filter((a) => a.linkedTo));
         this._axes.forEach((axis) => {
-            axis.attachAxis(this.axisGroup);
+            axis.attachAxis(this.axisGroup, this.axisGridGroup);
             removedAxes.delete(axis);
         });
         this.zoomManager.updateAxes(this._axes);

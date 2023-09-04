@@ -18,7 +18,7 @@ export interface BoundSeries {
 
 export interface ChartAxis {
     addModule(module: any): void;
-    attachAxis(node: Node): void;
+    attachAxis(axisGroup: Node, gridGroup: Node): void;
     boundSeries: BoundSeries[];
     calculatePadding(min: number, _max: number): [number, number];
     clipGrid(x: number, y: number, width: number, height: number): void;
@@ -27,7 +27,7 @@ export interface ChartAxis {
     crossLines?: any[];
     dataDomain: any[];
     destroy(): void;
-    detachAxis(node: Node): void;
+    detachAxis(naxisGroup: Node, gridGroup: Node): void;
     direction: ChartAxisDirection;
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;
