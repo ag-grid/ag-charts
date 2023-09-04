@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgBarSeriesOptions, AgChart } from 'ag-charts-community'
+import { AgCartesianChartOptions, AgChart } from 'ag-charts-community'
 import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
