@@ -1,4 +1,5 @@
 import type { Framework } from '@ag-grid-types';
+import type { JsonProperty } from './utils/model';
 
 interface MetaTag {
     displayName: string;
@@ -230,18 +231,59 @@ export interface ApiDocumentationProps {
     pageName?: string;
     framework: Framework;
     section?: string;
-    names?: string;
+    names?: string[];
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
     config?: Config;
 }
 
+export interface JsObjectSelectionProperty {
+    type: 'property';
+    propName: string;
+    path: string[];
+    model: JsonModelProperty;
+}
+
+export interface JsObjectSelectionUnionNestedObject {
+    type: 'unionNestedObject';
+    index: number;
+    path: string[];
+    model: JsonObjectProperty;
+}
+
+export type JsObjectSelection = JsObjectSelectionProperty | JsObjectSelectionUnionNestedObject;
+
+export interface JsObjectViewProps {
+    interfaceName: string;
+    breadcrumbs?: string[];
+    interfaceLookup: InterfaceLookup;
+    codeLookup: CodeLookup;
+    config?: Config;
+    onSelection?: (value: OnSelectionValue) => void;
+}
+
+export interface JsObjectPropertiesViewProps {
+    interfaceName: string;
+    framework: Framework;
+    breadcrumbs?: string[];
+    interfaceLookup: InterfaceLookup;
+    codeLookup: CodeLookup;
+    config?: Config;
+    framework: Framework;
+}
+
 export interface InterfaceDocumentationProps {
     interfaceName: string;
     framework: Framework;
-    names: string;
-    exclude: string;
-    wrapNamesAt: string;
+    /**
+     * Property names to include
+     */
+    names?: string[];
+    /**
+     * Property names to exclude
+     */
+    exclude?: string[];
+    wrapNamesAt?: string;
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
     config: Config;

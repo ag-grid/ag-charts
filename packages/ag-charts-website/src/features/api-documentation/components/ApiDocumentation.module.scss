@@ -15,6 +15,7 @@
 
 .apiReferenceOuter {
     container-type: inline-size;
+    width: 100%;
 
     + .apiReferenceOuter {
         margin-top: -1px;
@@ -95,6 +96,12 @@
         position: absolute;
         bottom: -0.125em;
     }
+}
+
+.parentProperties {
+    font-weight: var(--font-weight-normal);
+    color: var(--secondary-text-color);
+    line-break: anywhere;
 }
 
 .metaList {

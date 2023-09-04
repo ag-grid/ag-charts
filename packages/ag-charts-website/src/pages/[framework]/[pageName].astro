@@ -95,6 +95,17 @@ const menuEntry = await getEntry('menu', 'data');
             }
         }
     }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        &:hover .docs-header-icon {
+            opacity: 0.5;
+        }
+    }
 </style>
 
 <style lang="scss">
@@ -105,6 +116,7 @@ const menuEntry = await getEntry('menu', 'data');
 
         display: flex;
         justify-content: space-between;
+        width: 100%;
 
         @media screen and (max-width: $breakpoint-docs-nav-medium) {
             @include page-horizontal-margins();
@@ -147,17 +159,6 @@ const menuEntry = await getEntry('menu', 'data');
 
             @media screen and (min-width: 1600px) {
                 padding-right: calc(50vw - $max-page-width / 2);
-            }
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            &:hover :global(.docs-header-icon) {
-                opacity: 0.5;
             }
         }
 

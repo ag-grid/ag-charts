@@ -1,5 +1,3 @@
-!dist/
-
 node_modules
 src
 tools
@@ -15,3 +13,6 @@ rollup.*
 dist/**/*.test.*
 *.map
 *.tgz
+
+!dist/
+!dist/src

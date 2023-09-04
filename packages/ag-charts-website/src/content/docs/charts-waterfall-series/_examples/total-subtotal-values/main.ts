@@ -13,10 +13,15 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'waterfall',
-            xKey: 'source',
-            xName: 'Source',
+            xKey: 'financials',
+            xName: 'Financials',
             yKey: 'amount',
             yName: 'Amount',
+            totals: [
+                { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
+                { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
+                { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
+            ],
         },
     ],
 };

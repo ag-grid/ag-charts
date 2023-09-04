@@ -1,47 +1,47 @@
 export function getData() {
     return [
         {
-            source: 'Income \nTax',
+            financials: 'Income\nTax',
             amount: 185,
         },
         {
-            source: 'VAT',
+            financials: 'VAT',
             amount: 145,
         },
         {
-            source: 'NI',
+            financials: 'NI',
             amount: 134,
         },
         {
-            source: 'Corp \nTax',
+            financials: 'Corp\nTax',
             amount: 55,
         },
         {
-            source: 'Council \nTax',
+            financials: 'Council\nTax',
             amount: 34,
         },
         {
-            source: 'Social \nProtection',
+            financials: 'Social\nProtection',
             amount: -252,
         },
         {
-            source: 'Health',
+            financials: 'Health',
             amount: -155,
         },
         {
-            source: 'Education',
+            financials: 'Education',
             amount: -112,
         },
         {
-            source: 'Defence',
+            financials: 'Defence',
             amount: -65,
         },
         {
-            source: 'Debt \nInterest',
+            financials: 'Debt\nInterest',
             amount: -63,
         },
         {
-            source: 'Housing',
+            financials: 'Housing',
             amount: -31,
         },
     ];

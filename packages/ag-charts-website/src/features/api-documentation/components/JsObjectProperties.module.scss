@@ -1,0 +1,21 @@
+@use '../../../design-system' as *;
+
+.container {
+    display: flex;
+    gap: $size-4;
+
+    > div:first-child {
+        $sticky-offset: $site-header-height + $size-4;
+
+        position: sticky;
+        top: $sticky-offset;
+        max-height: calc(100vh - #{$sticky-offset + $size-4});
+        width: min(50%, 540px);
+        flex-shrink: 0;
+        overflow-y: auto;
+
+        pre {
+            max-height: 100%;
+        }
+    }
+}

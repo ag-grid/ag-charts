@@ -37,6 +37,7 @@ pre.code {
     --important-color: #e90;
     --class-name-color: #2b91af;
     --property-color: #0a2c80;
+    --optional-color: var(--cerise-pink);
 
     position: relative;
     margin: 0 0 $size-2;
@@ -211,6 +212,10 @@ code[class*='language-css'] {
 .token.regex,
 .token.entity {
     color: var(--property-color);
+}
+
+.token.optional {
+    color: var(--optional-color);
 }
 
 .language-css .token.property {

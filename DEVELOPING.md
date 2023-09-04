@@ -44,6 +44,20 @@ To skip the `nx` cache use `--skip-nx-cache`.
 
 ## Troubleshooting
 
+### MacOS Development Machine Setup
+
+Recommended machine setup:
+
+-   Install [Homebrew](https://brew.sh/) as a package manager.
+-   Install NVM to manage Node.js version:
+    ```bash
+    brew install nvm
+    ```
+-   Install Node.js 18:
+    ```
+    nvm install 18
+    ```
+
 ### Yarn/NPM install of `canvas` fails on `node-gyp` compile step (M1/M2 processor).
 
 Try installing `cairo` and other dependencies using Homebrew:

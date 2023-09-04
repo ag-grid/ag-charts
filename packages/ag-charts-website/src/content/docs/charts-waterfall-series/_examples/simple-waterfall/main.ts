@@ -13,9 +13,8 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'waterfall',
-            direction: 'horizontal',
-            xKey: 'source',
-            xName: 'Source',
+            xKey: 'financials',
+            xName: 'Financials',
             yKey: 'amount',
             yName: 'Amount',
         },

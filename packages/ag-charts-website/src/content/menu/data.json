@@ -21,6 +21,7 @@
             {
                 "title": "API",
                 "items": [
+                    { "title": "Options Reference", "path": "charts-options" },
                     { "title": "Create/Update", "path": "charts-api-create-update" },
                     { "title": "Download", "path": "charts-api-download" },
                     { "title": "Events", "path": "charts-events" }

@@ -145,7 +145,7 @@ export const Section: FunctionComponent<SectionProps> = ({
         <div className={styles.apiReferenceOuter}>
             {header}
             <table
-                className={classnames(styles.reference, styles.apiReference)}
+                className={classnames(styles.reference, styles.apiReference, 'no-zebra')}
                 style={config.overrideBottomMargin ? { marginBottom: config.overrideBottomMargin } : {}}
             >
                 <colgroup>

@@ -114,6 +114,7 @@ export class DataController {
             const diff = jsonDiff(existing, prop) ?? {};
             delete diff['scopes'];
             delete diff['id'];
+            delete diff['ids'];
 
             return Object.keys(diff).length === 0;
         };
@@ -123,23 +124,21 @@ export class DataController {
                 ...opts[0],
                 props: opts.reduce((result, next) => {
                     for (const prop of next.props) {
-                        const match = result.find(propMatch(prop));
+                        if (prop.id != null) {
+                            prop.ids ??= [];
+                            prop.scopes?.forEach((scope) => prop.ids?.push([scope, prop.id!]));
+                        }
 
+                        const match = result.find(propMatch(prop));
                         if (!match) {
                             result.push(prop);
                             continue;
                         }
 
                         match.scopes ??= [];
-                        match.scopes.push(...(prop.scopes ?? []), ...(next.scopes ?? []));
-
-                        if (match.id === prop.id || prop.id == null) continue;
+                        match.scopes.push(...(prop.scopes ?? []));
                         if (match.type !== 'key' && match.type !== 'value') continue;
-
-                        match.idAliases ??= [];
-                        if (match.idAliases.indexOf(prop.id) < 0) {
-                            match.idAliases.push(prop.id);
-                        }
+                        match.ids?.push(...(prop.ids ?? []));
                     }
 
                     return result;
