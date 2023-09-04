@@ -1,8 +1,8 @@
-import type { AgCartesianSeriesTooltipRendererParams, AgDropShadowOptions } from '../../agChartOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type { AxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
-import type { SeriesTooltip } from '../series';
+import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 
 export interface AgBoxPlotSeriesOptions<DatumType = any>
     extends AgBaseSeriesOptions<DatumType>,
@@ -21,8 +21,6 @@ export interface AgBoxPlotSeriesOptions<DatumType = any>
     normalizedTo?: number;
     /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
     legendItemName?: string;
-    /** Configuration for the shadow used behind the chart series. */
-    shadow?: AgDropShadowOptions;
 
     minKey?: string;
     minName?: string;
@@ -38,7 +36,7 @@ export interface AgBoxPlotSeriesOptions<DatumType = any>
     /** Configuration for the labels shown on columns. */
     // label?: AgColumnSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: SeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     // formatter?: (params: AgColumnSeriesFormatterParams<DatumType>) => AgColumnSeriesFormat;
 
