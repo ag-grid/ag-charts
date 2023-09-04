@@ -261,7 +261,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { axisCtx } = this;
         const { datum, xKey = '', yKey = '', aggregatedValue, series, cumulativeValue, nodeMidPoint } = activeHighlight;
         const halfBandwidth = axisCtx.scaleBandwidth() / 2;
-        if (aggregatedValue !== undefined && series.yAxis.id === axisCtx.axisId) {
+        if (aggregatedValue !== undefined && series.axes.y.id === axisCtx.axisId) {
             return { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth };
         }
 
