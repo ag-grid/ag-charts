@@ -20,13 +20,12 @@ enum GroupTags {
     Cap,
 }
 
-interface BoxPlotNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_Scene.Point> {
+interface BoxPlotNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly index: number;
     readonly xValue: number;
-    readonly yValue: number;
-    readonly width: number;
-    readonly height: number;
+    readonly bandwidth: number;
 
+    readonly yValue: number;
     readonly minValue: number;
     readonly q1Value: number;
     readonly medianValue: number;
@@ -138,29 +137,18 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
             const q3Value = values[q3ValueIndex];
             const maxValue = values[maxValueIndex];
 
-            const low = Math.round(xAxis.scale.convert(minValue, { strict: false }));
-            const high = Math.round(xAxis.scale.convert(maxValue, { strict: false }));
-
-            // eslint-disable-next-line no-console
-            console.log(dataIndex, yValue, [minValue, q1Value, medianValue, q3Value, maxValue], { low, high });
-
             const nodeData: BoxPlotNodeDatum = {
                 index: dataIndex,
                 datum: seriesDatum,
                 series: this,
                 itemId: yKey,
-                width: high - low,
-                height: yAxis.scale.bandwidth ?? 0,
-                x: low,
-                y: Math.round(yAxis.scale.convert(yValue)),
                 xKey: '',
                 xValue: 0,
                 yKey,
-                // yValue,
                 fill,
                 stroke,
                 strokeWidth,
-
+                bandwidth: yAxis.scale.bandwidth ?? 0,
                 yValue: Math.round(yAxis.scale.convert(yValue, { strict: false })),
                 minValue: Math.round(xAxis.scale.convert(minValue, { strict: false })),
                 q1Value: Math.round(xAxis.scale.convert(q1Value, { strict: false })),
@@ -172,29 +160,22 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
             context.nodeData.push(nodeData);
         });
 
-        // eslint-disable-next-line no-console
-        console.log('createNodeData', context);
         return [context];
     }
 
     async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        // eslint-disable-next-line no-console
-        console.log('processData');
         const { yKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
 
         if (!yKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
 
-        // eslint-disable-next-line no-console
-        console.log(yKey, data);
-
         const { dataModel, processedData } = await dataController.request(this.id, data, {
             props: [
-                keyProperty(this, yKey, false, { id: `yValue` }), // Raw value pass-through.
-                valueProperty(this, minKey, true, { id: `minValue` }), // Raw value pass-through.
-                valueProperty(this, q1Key, true, { id: `q1Value` }), // Raw value pass-through.
-                valueProperty(this, medianKey, true, { id: `medianValue` }), // Raw value pass-through.
-                valueProperty(this, q3Key, true, { id: `q3Value` }), // Raw value pass-through.
-                valueProperty(this, maxKey, true, { id: `maxValue` }), // Raw value pass-through.
+                keyProperty(this, yKey, false, { id: `yValue` }),
+                valueProperty(this, minKey, true, { id: `minValue` }),
+                valueProperty(this, q1Key, true, { id: `q1Value` }),
+                valueProperty(this, medianKey, true, { id: `medianValue` }),
+                valueProperty(this, q3Key, true, { id: `q3Value` }),
+                valueProperty(this, maxKey, true, { id: `maxValue` }),
             ],
             dataVisible: this.visible,
         });
@@ -268,23 +249,23 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
             boxes[0].x = datum.q1Value;
             boxes[0].y = datum.yValue;
             boxes[0].width = datum.medianValue - datum.q1Value + datum.strokeWidth;
-            boxes[0].height = datum.height;
+            boxes[0].height = datum.bandwidth;
 
             boxes[1].x = datum.medianValue;
             boxes[1].y = datum.yValue;
             boxes[1].width = datum.q3Value - datum.medianValue;
-            boxes[1].height = datum.height;
+            boxes[1].height = datum.bandwidth;
 
             caps[0].x1 = caps[0].x2 = datum.minValue;
             caps[1].x1 = caps[1].x2 = datum.maxValue;
-            caps[0].y1 = caps[1].y1 = datum.yValue + datum.height * 0.25;
-            caps[0].y2 = caps[1].y2 = datum.yValue + datum.height * 0.75;
+            caps[0].y1 = caps[1].y1 = datum.yValue + datum.bandwidth * 0.25;
+            caps[0].y2 = caps[1].y2 = datum.yValue + datum.bandwidth * 0.75;
 
             whiskers[0].x1 = datum.minValue;
             whiskers[0].x2 = datum.q1Value;
             whiskers[1].x1 = datum.q3Value;
             whiskers[1].x2 = datum.maxValue;
-            whiskers[0].y1 = whiskers[0].y2 = whiskers[1].y1 = whiskers[1].y2 = datum.yValue + datum.height * 0.5;
+            whiskers[0].y1 = whiskers[0].y2 = whiskers[1].y1 = whiskers[1].y2 = datum.yValue + datum.bandwidth * 0.5;
 
             boxes[0].fill = boxes[1].fill = datum.fill;
             boxes[0].stroke =
