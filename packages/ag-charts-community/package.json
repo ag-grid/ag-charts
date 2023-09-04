@@ -1,14 +1,14 @@
 {
   "name": "ag-charts-community",
-  "version": "9.0.0-beta.5",
+  "version": "9.0.0-beta.6",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
-  "main": "./dist/ag-charts-community.cjs.js",
-  "types": "./dist/ag-charts-community.cjs.d.ts",
+  "main": "./dist/main.cjs.js",
+  "types": "./dist/main.cjs.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/ag-charts-community.esm.js",
-      "require": "./dist/ag-charts-community.cjs.js",
-      "types": "./dist/src/ag-charts-community.d.ts"
+      "import": "./dist/main.esm.js",
+      "require": "./dist/main.cjs.js",
+      "types": "./dist/src/main.d.ts"
     }
   },
   "scripts": {

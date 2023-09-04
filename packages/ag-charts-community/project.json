@@ -11,7 +11,6 @@
       "options": {
         "outputPath": "packages/ag-charts-community/dist",
         "main": "packages/ag-charts-community/src/main.ts",
-        "outputFileName": "ag-charts-community",
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
         "rollupConfig": "packages/ag-charts-community/rollup.config.cjs",
         "assets": [
@@ -20,7 +19,7 @@
         ],
         "project": "packages/ag-charts-community/package.json",
         "compiler": "tsc",
-        "format": ["cjs", "esm"],
+        "format": ["cjs"],
         "generateExportsField": true
       },
       "configurations": {

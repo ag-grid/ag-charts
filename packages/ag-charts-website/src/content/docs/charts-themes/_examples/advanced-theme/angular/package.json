@@ -3,6 +3,6 @@
   "description": "NOTE: This package.json file is solely used by Plunker to look up type definitions.",
   "dependencies": {
     "@angular/core": "*",
-    "ag-charts-community": "9.0.0-beta.1"
+    "ag-charts-community": "9.0.0-beta.6"
   }
 }

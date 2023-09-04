@@ -5,7 +5,7 @@
     "module": "commonjs",
     "types": ["jest", "node"],
     "paths": {
-      "ag-charts-community": ["../../dist/packages/ag-charts-community/ag-charts-community.cjs"]
+      "ag-charts-community": ["../../dist/packages/ag-charts-community/main.cjs"]
     }
   },
   "include": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/test/**", "src/**/*.d.ts"]
