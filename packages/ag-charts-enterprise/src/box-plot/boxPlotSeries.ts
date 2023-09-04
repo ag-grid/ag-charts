@@ -241,7 +241,15 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        return datumSelection.update(data);
+        return datumSelection.update(
+            data.filter(
+                (datum) =>
+                    datum.minValue < datum.q1Value &&
+                    datum.q1Value < datum.medianValue &&
+                    datum.medianValue < datum.q3Value &&
+                    datum.q3Value < datum.maxValue
+            )
+        );
     }
 
     protected async updateDatumNodes(opts: {
