@@ -1,5 +1,5 @@
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
-import { AgChart, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, AgChart } from 'ag-charts-community';
 
 import { AnimationModule } from './animation/main';
 import { BackgroundModule } from './background/main';
@@ -9,7 +9,6 @@ import { GradientLegendModule } from './gradient-legend/main';
 import { HeatmapModule } from './heatmap/main';
 import { AngleCategoryAxisModule } from './polar-axes/angle-category/main';
 import { RadiusNumberAxisModule } from './polar-axes/radius-number/main';
-export { RadiusNumberAxisModule } from './polar-axes/radius-number/radiusNumberAxisModule';
 import { NightingaleModule } from './polar-series/nightingale/main';
 import { RadialColumnModule } from './polar-series/radial-column/main';
 import { RadarLineModule } from './polar-series/radar-line/main';
@@ -18,12 +17,17 @@ import { ZoomModule } from './zoom/main';
 import { WaterfallModule } from './waterfall/main';
 import { RangeBarModule } from './rangeBar/main';
 import { RangeAreaModule } from './rangeArea/rangeAreaModule';
+import { LicenseManager } from './license/licenseManager';
+import { BoxPlotModule } from './box-plot/boxPlotModule';
+
+export { RadiusNumberAxisModule } from './polar-axes/radius-number/radiusNumberAxisModule';
 
 export * from 'ag-charts-community';
 
 _ModuleSupport.registerModule(AngleCategoryAxisModule);
 _ModuleSupport.registerModule(AnimationModule);
 _ModuleSupport.registerModule(BackgroundModule);
+_ModuleSupport.registerModule(BoxPlotModule);
 _ModuleSupport.registerModule(ContextMenuModule);
 _ModuleSupport.registerModule(CrosshairModule);
 _ModuleSupport.registerModule(GradientLegendModule);
@@ -37,8 +41,6 @@ _ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(RangeBarModule);
 _ModuleSupport.registerModule(RangeAreaModule);
 _ModuleSupport.registerModule(ZoomModule);
-
-import { LicenseManager } from './license/licenseManager';
 
 export class AgEnterpriseCharts {
     public static create(options: AgChartOptions): AgChartInstance {
