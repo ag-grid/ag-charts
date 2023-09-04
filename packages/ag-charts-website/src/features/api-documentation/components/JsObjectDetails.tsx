@@ -14,10 +14,6 @@ function JsObjectDetailsContainer({ children }: { children: ReactNode }) {
     return (
         <div className={styles.apiReferenceOuter}>
             <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                <colgroup>
-                    <col></col>
-                    <col></col>
-                </colgroup>
                 <tbody>{children}</tbody>
             </table>
         </div>
