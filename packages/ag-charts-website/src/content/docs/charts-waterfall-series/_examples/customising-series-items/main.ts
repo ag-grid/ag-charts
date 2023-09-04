@@ -28,8 +28,8 @@ const options: AgChartOptions = {
                 },
                 total: {
                     name: 'Total / Subtotal',
-                    fill: '#7D7D7D',
-                    stroke: '#7D7D7D',
+                    fill: '#404066',
+                    stroke: '#404066',
                 },
             },
             totals: [
