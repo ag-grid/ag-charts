@@ -20,7 +20,7 @@ series: [
 ];
 ```
 
-The `xKey` defines categories for the [Category Axis](/charts-axes-types/#category), and `yKey` supplies numerical values
+The `xKey` defines categories for the [Category Axis](/charts-axes-types/#category), and the `yKey` supplies numerical values
 for the [Number Axis](/charts-axes-types/#number).
 
 The following example shows a simple waterfall series using default options.
@@ -39,7 +39,7 @@ values are automatically calculated based on the following criteria:
 -   **Total Value**: Accumulates all values from the starting point (zero) up to the current point.
 -   **Subtotal Value**: Begins at the last 'Total' or 'Subtotal' and sums up to the current point.
 
-'Total' and 'Subtotal' values are added to `totals` array within the `series` options object.
+'Total' and 'Subtotal' values are added to the `totals` array within the `series` options object.
 
 ```js
 series: [
@@ -150,8 +150,8 @@ series: [
 ];
 ```
 
-When `direction: 'horizontal'` is set, the roles of `xKey` and `yKey` are inverted. `xKey` will define
-categories on the y-axis, while `yKey` will represent numerical values along the x-axis.
+When `direction: 'horizontal'` is set, the roles of `xKey` and `yKey` are inverted. `xKey` will define categories on the
+y-axis, while `yKey` will represent numerical values along the x-axis.
 
 {% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
