@@ -19,7 +19,7 @@ export abstract class Shape extends Node {
      * and shape of the node are not considered style properties, for example:
      * `x`, `y`, `width`, `height`, `radius`, `rotation`, etc.
      * Can be used to reset to the original styling after some custom styling
-     * has been applied (using the `restoreOwnStyles` and `restoreAllStyles` methods).
+     * has been applied (using the `restoreOwnStyles` method).
      * These static defaults are meant to be inherited by subclasses.
      */
     protected static defaultStyles = Object.assign(
@@ -40,7 +40,7 @@ export abstract class Shape extends Node {
     setStyles<T>(this: T, styles: { [K in keyof T]?: T[K] }) {
         const keys = Object.keys(styles) as (keyof T)[];
         for (const key of keys) {
-            this[key] = styles[key] ?? this[key];
+            (this as any)[key] = styles[key];
         }
     }
 

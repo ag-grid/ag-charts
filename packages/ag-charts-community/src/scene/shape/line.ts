@@ -1,6 +1,6 @@
 import { Shape } from './shape';
 import { BBox } from '../bbox';
-import type { RenderContext } from '../node';
+import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 
 export class Line extends Shape {
@@ -11,8 +11,8 @@ export class Line extends Shape {
         strokeWidth: 1,
     });
 
-    constructor({ tag }: { tag?: number } = {}) {
-        super({ tag });
+    constructor(opts: NodeOptions = {}) {
+        super(opts);
         this.restoreOwnStyles();
     }
 

@@ -280,8 +280,8 @@ export class BoxPlotSeries extends CartesianSeries<_ModuleSupport.SeriesNodeData
             } = datum;
 
             const selection = _Scene.Selection.select(group, _Scene.Rect);
-            const [outline] = selection.selectByTag<_Scene.Rect>(GroupTags.Outline);
             const boxes = selection.selectByTag<_Scene.Rect>(GroupTags.Box);
+            const [outline] = selection.selectByTag<_Scene.Rect>(GroupTags.Outline);
             const [median] = selection.selectByTag<_Scene.Line>(GroupTags.Median);
             const whiskers = selection.selectByTag<_Scene.Line>(GroupTags.Whisker);
             const caps = selection.selectByTag<_Scene.Line>(GroupTags.Cap);
