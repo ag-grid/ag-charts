@@ -151,7 +151,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     linkedTo?: Axis<any, any>;
     includeInvisibleDomains: boolean = false;
 
-    readonly axisGroup = new Group({ name: `${this.id}-axis`, zIndex: 10000 });
+    readonly axisGroup = new Group({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
 
     protected lineNode = this.axisGroup.appendChild(new Line());
     protected readonly tickLineGroup = this.axisGroup.appendChild(
