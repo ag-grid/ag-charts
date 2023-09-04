@@ -10,14 +10,12 @@ import { Section } from './Section';
 export const ApiDocumentation: FunctionComponent<ApiDocumentationProps> = ({
     framework,
     section,
-    names = '',
+    names = [],
     codeLookup,
     interfaceLookup,
     config = {} as Config,
 }) => {
-    let namesArr = [];
     if (names && names.length) {
-        namesArr = JSON.parse(names);
         // Hide more links when properties included by name or use the value from config if its set
         config = { hideMore: true, overrideBottomMargin: '1rem', ...config };
     }
@@ -63,7 +61,7 @@ export const ApiDocumentation: FunctionComponent<ApiDocumentationProps> = ({
             title={keys[keys.length - 1]}
             properties={properties}
             config={{ ...config, isSubset: true }}
-            names={namesArr}
+            names={names}
         />
     );
 };

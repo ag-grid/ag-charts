@@ -1,5 +1,8 @@
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { getTypeLink } from './getTypeLinks';
+import type { Framework } from '@ag-grid-types';
+import type { PropertyType } from '../types';
+import type { JsonModelProperty } from './model';
 
 export const inferType = (value: any): string | null => {
     if (value == null) {
@@ -16,7 +19,7 @@ export const inferType = (value: any): string | null => {
 /**
  * Converts a subset of Markdown so that it can be used in JSON files.
  */
-export const convertMarkdown = (content, framework) =>
+export const convertMarkdown = (content: string, framework: Framework) =>
     content
         .replace(/`(.*?)`/g, '<code>$1</code>')
         .replace(
@@ -37,7 +40,7 @@ export function escapeGenericCode(lines) {
     return escapedLines;
 }
 
-export function getTypeUrl(type, framework) {
+export function getTypeUrl(type: string | PropertyType, framework: Framework): string | null {
     if (typeof type === 'string') {
         if (type.includes('|')) {
             const linkedTypes = type
@@ -61,7 +64,7 @@ export function getTypeUrl(type, framework) {
     return getExamplePageUrl({ path: getTypeLink(type), framework });
 }
 
-export function getLinkedType(type, framework) {
+export function getLinkedType(type: string | PropertyType, framework: Framework) {
     if (!Array.isArray(type)) {
         type = [type];
     }
@@ -196,6 +199,24 @@ export function removeDefaultValue(docString) {
     const defaultReg = /(\n\s+\*)?(<br>)? Default:.*<\/code>/g;
 
     return docString.replace(defaultReg, '');
+}
+
+export function getFormattedDefaultValue({ model, description }: { model: JsonModelProperty; description: string }) {
+    let defaultValue = model.default;
+    if (description != null && !defaultValue) {
+        const defaultReg = / Default: <code>(.*)<\/code>/;
+        defaultValue = description.match(defaultReg)?.length === 2 ? description.match(defaultReg)![1] : undefined;
+    }
+
+    const formattedDefaultValue = Array.isArray(defaultValue)
+        ? '[' +
+          defaultValue.map((v, i) => {
+              return i === 0 ? `"${v}"` : ` "${v}"`;
+          }) +
+          ']'
+        : defaultValue;
+
+    return formattedDefaultValue;
 }
 
 export function formatJsDocString(docString) {
@@ -431,4 +452,19 @@ export function getLongestNameLength(nameWithBreaks) {
     const splitNames = nameWithBreaks.split(/<br(.*)\/>/);
     splitNames.sort((a, b) => (a.length > b.length ? 1 : -1));
     return splitNames[0].length;
+}
+
+/**
+ * Split display name on capital letter, add <wbr> to improve text splitting across lines
+ */
+export function splitName(name: string) {
+    if (!name) {
+        return name;
+    }
+    return name
+        .split(/(?=[A-Z])/)
+        .reverse()
+        .reduce((acc, cv) => {
+            return `${cv}<wbr />` + acc;
+        });
 }

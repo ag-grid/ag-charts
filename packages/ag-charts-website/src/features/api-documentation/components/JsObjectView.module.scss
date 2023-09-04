@@ -1,0 +1,114 @@
+@use '../../../design-system/' as *;
+
+$indent: 24px;
+
+// Ignore padding & remove border if within tabbed container
+:global(.tabs-outer) .expandableSnippet pre:global(.code) {
+    margin: -$size-2;
+    border: none;
+}
+
+.expandableSnippet pre > code {
+    --code-line-height: calc(28 / 16);
+
+    line-height: var(--code-line-height);
+    background-size: 1px calc(1em * var(--code-line-height) * 2);
+}
+
+.jsonProperty {
+    position: relative;
+}
+
+.jsonProperty .jsonProperty::before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    top: 12px;
+    left: -34px;
+    background-color: var(--platinum-gray);
+}
+
+.type-nested-object::before,
+.expandable::before {
+    width: 12px !important;
+}
+
+.type-nested-object > .jsonProperty {
+    padding-left: $indent;
+}
+
+.jsonObjectUnion,
+.jsonObject {
+    padding-left: $indent;
+}
+
+.deprecated {
+    text-decoration: line-through;
+}
+
+.expandable {
+    cursor: pointer;
+}
+
+.unexpandable {
+    cursor: default;
+}
+
+.expander {
+    --icon-size: 1em;
+
+    transition: transform $default-transition-timing;
+
+    &.active {
+        transform: rotate(90deg);
+    }
+}
+
+.expanderBar {
+    position: absolute;
+    width: 8px;
+    bottom: 12px;
+    left: -12px;
+    top: 19px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: var(--platinum-gray);
+    border-top-width: 0;
+    border-right-width: 0;
+}
+
+.propertyName {
+    position: relative;
+    color: var(--property-color);
+    cursor: pointer;
+
+    .expander {
+        position: absolute;
+        left: -18px;
+        top: 3px;
+    }
+}
+
+.jsonUnionItem {
+    position: relative;
+
+    .expander {
+        position: absolute;
+        left: -18px;
+        top: 3px;
+        font-weight: normal;
+    }
+}
+
+.unionTypeProperty {
+    color: var(--property-color);
+}
+
+.jsdocExpandable {
+    font-size: var(--font-size-medium);
+    font-family: $font-family;
+    padding: $size-half 10px $size-half;
+    white-space: normal;
+    cursor: text;
+}

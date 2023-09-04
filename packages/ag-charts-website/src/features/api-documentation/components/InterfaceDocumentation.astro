@@ -5,8 +5,10 @@ import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
 const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
 const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
 
-const { config: configString, ...props } = Astro.props;
+const { config: configString, names: namesString, exclude: excludeString, ...props } = Astro.props;
 const config = configString ? JSON.parse(configString) : undefined;
+const names = namesString ? JSON.parse(namesString) : undefined;
+const exclude = excludeString ? JSON.parse(excludeString) : undefined;
 ---
 
 <InterfaceDocumentation
@@ -14,5 +16,7 @@ const config = configString ? JSON.parse(configString) : undefined;
     interfaceLookup={interfaceLookup}
     codeLookup={codeLookup}
     config={config}
+    names={names}
+    exclude={exclude}
     {...props}
 />
