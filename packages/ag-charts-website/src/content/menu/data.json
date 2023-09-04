@@ -3,7 +3,7 @@
         "items": [
             {
                 "title": "Getting Started",
-                "path": "charts-getting-started"
+                "path": "getting-started"
             },
             {
                 "title": "Building & Tooling",
@@ -21,22 +21,22 @@
             {
                 "title": "API",
                 "items": [
-                    { "title": "Options Reference", "path": "charts-options" },
-                    { "title": "Create/Update", "path": "charts-api-create-update" },
-                    { "title": "Download", "path": "charts-api-download" },
-                    { "title": "Events", "path": "charts-events" }
+                    { "title": "Options Reference", "path": "options" },
+                    { "title": "Create/Update", "path": "api-create-update" },
+                    { "title": "Download", "path": "api-download" },
+                    { "title": "Events", "path": "events" }
                 ]
             },
             {
                 "title": "Layout & Styling",
                 "items": [
-                    { "title": "Layout", "path": "charts-layout" },
-                    { "title": "Themes", "path": "charts-themes" },
-                    { "title": "Overlays", "path": "charts-overlays" },
-                    { "title": "Background", "path": "charts-background" },
+                    { "title": "Layout", "path": "layout" },
+                    { "title": "Themes", "path": "themes" },
+                    { "title": "Overlays", "path": "overlays" },
+                    { "title": "Background", "path": "background" },
                     {
                         "title": "Background Image",
-                        "path": "charts-background-image",
+                        "path": "background-image",
                         "isEnterprise": true
                     }
                 ]
@@ -44,43 +44,43 @@
             {
                 "title": "Axes",
                 "items": [
-                    { "title": "Axis Overview", "path": "charts-axes" },
-                    { "title": "Axis Types", "path": "charts-axes-types" },
-                    { "title": "Axis Ticks", "path": "charts-axes-ticks" },
-                    { "title": "Axis Domain", "path": "charts-axes-domain" },
-                    { "title": "Axis Labels", "path": "charts-axes-labels" },
-                    { "title": "Grid Lines", "path": "charts-axes-grid-lines" },
-                    { "title": "Secondary Axes", "path": "charts-axes-secondary" }
+                    { "title": "Axis Overview", "path": "axes" },
+                    { "title": "Axis Types", "path": "axes-types" },
+                    { "title": "Axis Ticks", "path": "axes-ticks" },
+                    { "title": "Axis Domain", "path": "axes-domain" },
+                    { "title": "Axis Labels", "path": "axes-labels" },
+                    { "title": "Grid Lines", "path": "axes-grid-lines" },
+                    { "title": "Secondary Axes", "path": "axes-secondary" }
                 ]
             },
             {
                 "title": "Features",
                 "items": [
-                    { "title": "Legend", "path": "charts-legend" },
-                    { "title": "Series Markers", "path": "charts-markers" },
-                    { "title": "Series Highlighting", "path": "charts-series-highlighting" },
-                    { "title": "Tooltips", "path": "charts-tooltips" },
-                    { "title": "Formatters", "path": "charts-formatters" },
-                    { "title": "Cross lines", "path": "charts-axes-cross-lines" },
-                    { "title": "Navigator", "path": "charts-navigator" },
+                    { "title": "Legend", "path": "legend" },
+                    { "title": "Series Markers", "path": "markers" },
+                    { "title": "Series Highlighting", "path": "series-highlighting" },
+                    { "title": "Tooltips", "path": "tooltips" },
+                    { "title": "Formatters", "path": "formatters" },
+                    { "title": "Cross lines", "path": "axes-cross-lines" },
+                    { "title": "Navigator", "path": "navigator" },
                     {
                         "title": "Crosshairs",
-                        "path": "charts-axes-crosshairs",
+                        "path": "axes-crosshairs",
                         "isEnterprise": true
                     },
                     {
                         "title": "Context Menu",
-                        "path": "charts-context-menu",
+                        "path": "context-menu",
                         "isEnterprise": true
                     },
                     {
                         "title": "Zoom",
-                        "path": "charts-zoom",
+                        "path": "zoom",
                         "isEnterprise": true
                     },
                     {
                         "title": "Animation",
-                        "path": "charts-animation",
+                        "path": "animation",
                         "isEnterprise": true
                     }
                 ]
@@ -94,149 +94,144 @@
                 "items": [
                     {
                         "title": "Bar",
-                        "icon": "chartsBar",
-                        "path": "charts-bar-series"
-                    },
-                    {
-                        "title": "Column",
                         "icon": "chartsColumn",
-                        "path": "charts-column-series"
+                        "path": "bar-series"
                     },
                     {
                         "title": "Line",
                         "icon": "chartsLine",
-                        "path": "charts-line-series"
+                        "path": "line-series"
                     },
                     {
                         "title": "Area",
                         "icon": "chartsArea",
-                        "path": "charts-area-series"
+                        "path": "area-series"
                     },
                     {
                         "title": "Scatter",
                         "icon": "chartsScatter",
-                        "path": "charts-scatter-series"
+                        "path": "scatter-series"
                     },
                     {
                         "title": "Bubble",
                         "icon": "chartsBubble",
-                        "path": "charts-bubble-series"
+                        "path": "bubble-series"
                     },
                     {
                         "title": "Pie",
                         "icon": "chartsPie",
-                        "path": "charts-pie-series"
+                        "path": "pie-series"
                     },
                     {
                         "title": "Donut",
                         "icon": "chartsDonut",
-                        "path": "charts-donut-series"
+                        "path": "donut-series"
                     },
                     {
                         "title": "Combination",
                         "icon": "chartsCombination",
-                        "path": "charts-combination-series"
+                        "path": "combination-series"
                     },
                     {
                         "title": "Histogram",
                         "icon": "chartsHistogram",
-                        "path": "charts-histogram-series",
+                        "path": "histogram-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Heatmap",
                         "icon": "chartsHeatmap",
-                        "path": "charts-heatmap-series",
+                        "path": "heatmap-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Range Bar / Column",
                         "icon": "chartsRange",
-                        "path": "charts-range-bar-series",
+                        "path": "range-bar-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Range Area",
                         "icon": "chartsRange",
-                        "path": "charts-range-area-series",
+                        "path": "range-area-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Box Plot",
                         "icon": "chartsBoxPlot",
-                        "path": "charts-box-series",
+                        "path": "box-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Error Bar",
                         "icon": "chartsErrorBar",
-                        "path": "charts-error-series",
+                        "path": "error-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Waterfall",
                         "icon": "chartsWaterfall",
-                        "path": "charts-waterfall-series",
+                        "path": "waterfall-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Radar",
                         "icon": "chartsRadar",
-                        "path": "charts-radar-series",
+                        "path": "radar-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Nightingale",
                         "icon": "chartsNightingale",
-                        "path": "charts-nightingale-series",
+                        "path": "nightingale-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Radial Column",
                         "icon": "chartsRadialColumn",
-                        "path": "charts-radial-column-series",
+                        "path": "radial-column-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Radial Bar",
                         "icon": "chartsRadialBar",
-                        "path": "charts-radial-bar-series",
+                        "path": "radial-bar-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Treemap",
                         "icon": "chartsTreemap",
-                        "path": "charts-treemap-series",
+                        "path": "treemap-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Sunburst",
                         "icon": "chartsSunburst",
-                        "path": "charts-sunburst-series",
+                        "path": "sunburst-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Icicle",
                         "icon": "chartsIcicle",
-                        "path": "charts-icicle-series",
+                        "path": "icicle-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Funnel",
                         "icon": "chartsFunnel",
-                        "path": "charts-funnel-series",
+                        "path": "funnel-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Pyramid",
                         "icon": "chartsPyramid",
-                        "path": "charts-pyramid-series",
+                        "path": "pyramid-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Bullet",
                         "icon": "chartsBullet",
-                        "path": "charts-bullet-series",
+                        "path": "bullet-series",
                         "isEnterprise": true
                     }
                 ]

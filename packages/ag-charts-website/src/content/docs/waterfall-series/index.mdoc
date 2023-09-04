@@ -3,12 +3,12 @@ title: 'Waterfall Series'
 enterprise: true
 ---
 
-A waterfall series shows the cumulative effect of sequential positive or negative data values. It utilises rising and
+A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and
 falling bars to create a cascading waterfall effect.
 
 ## Simple Waterfall
 
-The waterfall series is designed to display a single series and is created using the `waterfall` series type.
+The Waterfall Series is designed to display a single series and is created using the `waterfall` series type.
 
 ```js
 series: [
@@ -20,21 +20,21 @@ series: [
 ];
 ```
 
-The `xKey` defines categories for the [Category Axis](/charts-axes-types/#category), and the `yKey` supplies numerical values
-for the [Number Axis](/charts-axes-types/#number).
+The `xKey` defines categories for the [Category Axis](/charts-axes-types/#category), and the `yKey` supplies numerical
+values for the [Number Axis](/charts-axes-types/#number).
 
-The following example shows a simple waterfall series using default options.
+The following example shows a Simple Waterfall Series using default options.
 
 {% chartExampleRunner title="Simple Waterfall" name="simple-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
 {% note %}
-Legend toggling is disabled in waterfall series to avoid misleading or incorrect data representation.
+Legend toggling is disabled in Waterfall Series to avoid misleading or incorrect data representation.
 {% /note %}
 
 ## Total / Subtotal Values
 
-Adding **Total** and **Subtotal** values at specific points in a waterfall chart can make the data easier to interpret. These
-values are automatically calculated based on the following criteria:
+Adding **Total** and **Subtotal** values at specific points in a Waterfall Series can make the data easier to interpret.
+These values are automatically calculated based on the following criteria:
 
 -   **Total**: Accumulates all values from the starting point (zero) up to the current point.
 -   **Subtotal**: Begins at the last **Total** or **Subtotal** and sums up to the current point.
@@ -82,20 +82,20 @@ series: [
         xKey: 'financials',
         yKey: 'amount',
         item: {
-                positive: {
-                    fill: '#4A90E2',
-                    stroke: '#4A90E2',
-                },
-                negative: {
-                    fill: '#FF6B6B',
-                    stroke: '#FF6B6B',
-                },
-                total: {
-                    name: 'Total / Subtotal',
-                     fill: '#505080',
-                     stroke: '#505080',
-                },
+            positive: {
+                fill: '#4A90E2',
+                stroke: '#4A90E2',
             },
+            negative: {
+                fill: '#FF6B6B',
+                stroke: '#FF6B6B',
+            },
+            total: {
+                name: 'Total / Subtotal',
+                fill: '#404066',
+                stroke: '#404066',
+            },
+        },
 ];
 ```
 
@@ -137,7 +137,7 @@ The following example shows a simple waterfall series with `red` connector lines
 
 ## Horizontal Waterfall
 
-To show a horizontal waterfall series, set `direction: 'horizontal'` as shown below:
+To show a Horizontal Waterfall Series, set `direction: 'horizontal'`.
 
 ```js
 series: [
@@ -150,7 +150,7 @@ series: [
 ];
 ```
 
-When `direction: 'horizontal'` the `xKey` will define categories on the y-axis, while the `yKey` will represent numerical
+When the `direction` is `'horizontal'` the `xKey` will define categories on the y-axis, while the `yKey` will represent numerical
 values along the x-axis.
 
 {% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" options="{ \"enterprise\": true }" /%}

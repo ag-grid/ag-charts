@@ -40,32 +40,32 @@ const data = [
 ];
 
 const options = {
-    container: document.getElementById('myChart'),
-    data: data,
-    title: {
-        text: 'Beverage Expenses'
-    },
-    subtitle: {
-        text: 'per quarter'
-    },
-    footnote: {
-        text: 'Based on a sample size of 200 respondents'
-    },
-    padding: {
-        top: 40,
-        right: 40,
-        bottom: 40,
-        left: 40
-    },
-    series: [
-        { type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
-        { type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
-        { type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
-        { type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
-    ],
-    legend: {
-        spacing: 40
-    },
+container: document.getElementById('myChart'),
+data: data,
+title: {
+text: 'Beverage Expenses'
+},
+subtitle: {
+text: 'per quarter'
+},
+footnote: {
+text: 'Based on a sample size of 200 respondents'
+},
+padding: {
+top: 40,
+right: 40,
+bottom: 40,
+left: 40
+},
+series: [
+{ type: 'bar', xKey: 'beverage', yKey: 'Q1', stacked: true },
+{ type: 'bar', xKey: 'beverage', yKey: 'Q2', stacked: true },
+{ type: 'bar', xKey: 'beverage', yKey: 'Q3', stacked: true },
+{ type: 'bar', xKey: 'beverage', yKey: 'Q4', stacked: true },
+],
+legend: {
+spacing: 40
+},
 };
 
 agCharts.AgChart.create(options);
@@ -107,29 +107,29 @@ import React, { Component } from 'react';
 import { AgChartsReact } from 'ag-charts-react';
 
 export default class ChartExample extends Component {
-    data = [
-        {
-            beverage: 'Coffee',
-            Q1: 700,
-            Q2: 600,
-            Q3: 560,
-            Q4: 450
-        },
-        {
-            beverage: 'Tea',
-            Q1: 520,
-            Q2: 450,
-            Q3: 380,
-            Q4: 270
-        },
-        {
-            beverage: 'Milk',
-            Q1: 200,
-            Q2: 190,
-            Q3: 170,
-            Q4: 180
-        },
-    ];
+data = [
+{
+beverage: 'Coffee',
+Q1: 700,
+Q2: 600,
+Q3: 560,
+Q4: 450
+},
+{
+beverage: 'Tea',
+Q1: 520,
+Q2: 450,
+Q3: 380,
+Q4: 270
+},
+{
+beverage: 'Milk',
+Q1: 200,
+Q2: 190,
+Q3: 170,
+Q4: 180
+},
+];
 
     constructor(props) {
         super(props);
@@ -188,11 +188,11 @@ import { Component } from '@angular/core';
 import { AgChartOptions } from 'ag-charts-community';
 
 @Component({
-    selector: 'my-app',
-    templateUrl: './app.component.html'
+selector: 'my-app',
+templateUrl: './app.component.html'
 })
 export class AppComponent {
-    public options: AgChartOptions;
+public options: AgChartOptions;
 
     beverageSpending = [
         {
@@ -278,6 +278,7 @@ export class AppModule {
 
 {% if isFramework("vue") %}
 <tabs>
+
 <div tabs-links="true">
 <open-in-cta type="codesandbox" href="https://codesandbox.io/s/ag-charts-vue-hello-world-cfoehv" />
 </div>
@@ -536,7 +537,7 @@ Finally, let's add the component definition to our template. Edit `app/app.compo
 {% if isFramework("react") %}
 In this article we will walk through the necessary steps to add AG Charts to an existing React project and produce your first charts.
 
-##  Add AG Charts to Your Project
+## Add AG Charts to Your Project
 
 For the purposes of this tutorial, we are going to scaffold a React app with [create-react-app](https://github.com/facebook/create-react-app).
 
@@ -723,6 +724,7 @@ By default, the chart displays a legend when there is more than one series prese
 The chart legend uses the `yKey` for the series, which in this case is `'spending'`. This can be renamed using the `yName` property.
 
 {% if isFramework("javascript") %}
+
 ```diff
 agCharts.AgChart.create({
     data: data,
@@ -737,9 +739,11 @@ agCharts.AgChart.create({
 +    },
 });
 ```
+
 {% /if %}
 
 {% if isFramework("angular") %}
+
 ```diff
 constructor() {
     this.options = {
@@ -755,9 +759,11 @@ constructor() {
     };
 }
 ```
+
 {% /if %}
 
 {% if isFramework("react") %}
+
 ```diff
 constructor(props) {
     super(props);
@@ -776,10 +782,12 @@ constructor(props) {
         }
     }
 }
-````
+```
+
 {% /if %}
 
 {% if isFramework("vue") %}
+
 ```diff
 data() {
   return {
@@ -813,7 +821,7 @@ data() {
     },
   };
 }
-````
+```
 
 {% /if %}
 
@@ -874,6 +882,7 @@ This time, let's choose another series type to plot the data: stacked columns. H
 {% /if %}
 
 {% if isFramework("angular") %}
+
 ```ts
 constructor() {
     this.options = {
@@ -887,9 +896,11 @@ constructor() {
     };
 }
 ```
+
 {% /if %}
 
 {% if isFramework("react") %}
+
 ```
 constructor(props) {
     super(props);
@@ -908,10 +919,12 @@ constructor(props) {
 
 }
 
-````
+```
+
 {% /if %}
 
 {% if isFramework("vue") %}
+
 ```js
 data() {
   return {
@@ -948,7 +961,7 @@ data() {
     },
   };
 }
-````
+```
 
 {% /if %}
 
@@ -1002,6 +1015,7 @@ agCharts.AgChart.create({
 {% /if %}
 
 {% if isFramework("angular") %}
+
 ```diff
 constructor() {
     this.options = {
@@ -1039,9 +1053,11 @@ constructor() {
     };
 }
 ```
+
 {% /if %}
 
 {% if isFramework("react") %}
+
 ```diff
 constructor(props) {
     super(props);
@@ -1082,10 +1098,12 @@ constructor(props) {
         }
     }
 }
-````
+```
+
 {% /if %}
 
 {% if isFramework("vue") %}
+
 ```diff
 data() {
   return {
@@ -1146,7 +1164,7 @@ data() {
     },
   };
 }
-````
+```
 
 {% /if %}
 
@@ -1155,6 +1173,7 @@ data() {
 If we then want to add a title and subtitle to the chart, we can simply add this to our chart config:
 
 {% if isFramework("javascript") %}
+
 ```diff
 agCharts.AgChart.create({
     data: data,
@@ -1200,9 +1219,11 @@ agCharts.AgChart.create({
     ],
 });
 ```
+
 {% /if %}
 
 {% if isFramework("angular") %}
+
 ```diff
 constructor() {
     this.options = {
@@ -1249,9 +1270,11 @@ constructor() {
     };
 }
 ```
+
 {% /if %}
 
 {% if isFramework("react") %}
+
 ```diff
 constructor(props) {
     super(props);
@@ -1301,10 +1324,12 @@ constructor(props) {
         }
     }
 }
-````
+```
+
 {% /if %}
 
 {% if isFramework("vue") %}
+
 ```diff
 data() {
   return {
@@ -1374,7 +1399,7 @@ data() {
     },
   };
 }
-````
+```
 
 {% /if %}
 
@@ -1405,6 +1430,7 @@ agCharts.AgChart.create(options);
 {% /if %}
 
 {% if isFramework("angular") %}
+
 ## Compatible Versions
 
 The table below gives the ranges of compatible versions of AG Charts with Angular versions.
