@@ -262,7 +262,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             };
         };
 
-        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
             props.push(diff(this.processedData, false));
         }
 
@@ -575,7 +575,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
 
         let startingY = 0;
@@ -587,7 +587,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
 
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum) => {
-                this.ctx.animationManager?.animateMany(
+                this.ctx.animationManager.animateMany(
                     `${this.id}_empty-update-ready_${rect.id}`,
                     [
                         { from: startingY, to: datum.y },
@@ -610,7 +610,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
 
         labelSelections.forEach((labelSelection) => {
             labelSelection.each((label) => {
-                this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay: duration,
@@ -650,7 +650,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             return;
         }
 
-        const totalDuration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const totalDuration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
 
         let sectionDuration = totalDuration;
@@ -704,7 +704,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                     cleanup = true;
                 }
 
-                this.ctx.animationManager?.animateMany(`${this.id}_waiting-update-ready_${rect.id}`, props, {
+                this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${rect.id}`, props, {
                     disableInteractions: true,
                     delay,
                     duration: sectionDuration,
@@ -727,7 +727,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             labelSelection.each((label) => {
                 label.opacity = 0;
 
-                this.ctx.animationManager?.animate(`${this.id}_waiting-update-ready_${label.id}`, {
+                this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay: totalDuration,

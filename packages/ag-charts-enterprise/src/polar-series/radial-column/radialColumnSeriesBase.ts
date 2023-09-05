@@ -530,7 +530,7 @@ export abstract class RadialColumnSeriesBase<
 
         const { labelSelection } = this;
 
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
         const labelDelay = duration;
 
@@ -539,7 +539,7 @@ export abstract class RadialColumnSeriesBase<
         this.animateItemsShapes();
 
         labelSelection.each((label) => {
-            this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
                 from: 0,
                 to: 1,
                 delay: labelDelay,

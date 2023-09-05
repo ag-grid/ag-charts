@@ -446,7 +446,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         if (legendItemKey) {
             extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
         }
-        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
 
@@ -1646,7 +1646,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     }
 
     animateEmptyUpdateReady(data?: { duration: number }) {
-        const duration = data?.duration ?? this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = data?.duration ?? this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
 
         const rotation = Math.PI / -2 + toRadians(this.rotation);
@@ -1662,7 +1662,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             sector.strokeWidth = format.strokeWidth!;
             sector.fillOpacity = format.fillOpacity!;
 
-            this.ctx.animationManager?.animateMany<number>(
+            this.ctx.animationManager.animateMany<number>(
                 `${this.id}_empty-update-ready_${sector.id}`,
                 [
                     { from: rotation, to: datum.startAngle },
@@ -1690,7 +1690,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         };
 
         this.calloutLabelSelection.each((label) => {
-            this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1699,7 +1699,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
 
         this.sectorLabelSelection.each((label) => {
-            this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1708,7 +1708,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
 
         this.innerLabelsSelection.each((label) => {
-            this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1730,7 +1730,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             return;
         }
 
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
         const rotation = Math.PI / -2 + toRadians(this.rotation);
         const sectors = groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
@@ -1844,7 +1844,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         this.calloutLabelSelection.each((label) => {
             label.opacity = 0;
-            this.ctx.animationManager?.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1854,7 +1854,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         this.sectorLabelSelection.each((label) => {
             label.opacity = 0;
-            this.ctx.animationManager?.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1864,7 +1864,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         this.innerLabelsSelection.each((label) => {
             label.opacity = 0;
-            this.ctx.animationManager?.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1874,7 +1874,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     }
 
     animateClearingUpdateEmpty() {
-        const updateDuration = (this.ctx.animationManager?.defaultOptions.duration ?? 1000) / 2;
+        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
         const clearDuration = 200;
 
         const sectors = this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector);

@@ -4,6 +4,8 @@ import type { AnimationControls, AnimationOptions as BaseAnimationOptions, Drive
 import { animate as baseAnimate } from '../../motion/animate';
 import { Logger } from '../../util/logger';
 
+const DEFAULT_DURATION = 1000;
+
 type AnimationId = string;
 type AnimationEventType = 'animation-frame';
 
@@ -247,6 +249,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.throttles[throttleId] = now;
 
         return this.animateMany(id, props, { ...opts, onStop });
+    }
+
+    public defaultDuration() {
+        return this.defaultOptions.duration ?? DEFAULT_DURATION;
     }
 
     private createDriver(id: AnimationId, disableInteractions?: boolean): Driver {
