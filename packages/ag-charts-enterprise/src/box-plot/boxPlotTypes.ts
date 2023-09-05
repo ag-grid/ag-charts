@@ -1,10 +1,8 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 export interface BoxPlotNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
-    readonly index: number;
-    readonly xValue: number;
     readonly bandwidth: number;
 
-    readonly yValue: number;
+    readonly xValue: number;
     readonly minValue: number;
     readonly q1Value: number;
     readonly medianValue: number;

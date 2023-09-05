@@ -28,9 +28,6 @@ export class BoxPlotSeries extends CartesianSeries<
     xName?: string = undefined;
 
     @Validate(OPT_STRING)
-    yKey?: string = undefined;
-
-    @Validate(OPT_STRING)
     yName?: string = undefined;
 
     @Validate(OPT_STRING)
@@ -96,13 +93,13 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        const { yKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
 
-        if (!yKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
+        if (!xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
 
         const { dataModel, processedData } = await dataController.request(this.id, data, {
             props: [
-                keyProperty(this, yKey, false, { id: `yValue` }),
+                keyProperty(this, xKey, false, { id: `xValue` }),
                 valueProperty(this, minKey, true, { id: `minValue` }),
                 valueProperty(this, q1Key, true, { id: `q1Value` }),
                 valueProperty(this, medianKey, true, { id: `medianValue` }),
@@ -129,8 +126,8 @@ export class BoxPlotSeries extends CartesianSeries<
                 this.axes[ChartAxisDirection.X]
             );
         } else {
-            const yValueIndex = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-            return processedData.domain.keys[yValueIndex];
+            const { index } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+            return processedData.domain.keys[index];
         }
     }
 
@@ -146,7 +143,7 @@ export class BoxPlotSeries extends CartesianSeries<
         }
 
         const {
-            yKey = '',
+            xKey = '',
             fill,
             fillOpacity,
             stroke,
@@ -157,13 +154,13 @@ export class BoxPlotSeries extends CartesianSeries<
         } = this;
 
         const context: _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum> = {
-            itemId: yKey,
+            itemId: xKey,
             nodeData: [],
             labelData: [],
         };
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [
-            'yValue',
+            'xValue',
             'minValue',
             'q1Value',
             `medianValue`,
@@ -171,8 +168,8 @@ export class BoxPlotSeries extends CartesianSeries<
             `maxValue`,
         ]);
 
-        this.processedData?.data.forEach(({ datum, keys, values }, index) => {
-            const { yValue, minValue, q1Value, medianValue, q3Value, maxValue } =
+        this.processedData?.data.forEach(({ datum, keys, values }) => {
+            const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
                 dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
 
             if (minValue > q1Value || q1Value > medianValue || medianValue > q3Value || q3Value > maxValue) {
@@ -181,14 +178,13 @@ export class BoxPlotSeries extends CartesianSeries<
 
             const nodeData: BoxPlotNodeDatum = {
                 series: this,
-                itemId: yKey,
-                xKey: '',
-                xValue: 0,
-                bandwidth: yAxis.scale.bandwidth ?? 0,
-                ...this.convertValuesToScaleByDefs(defs, { yValue, minValue, q1Value, medianValue, q3Value, maxValue }),
+                itemId: xKey,
                 datum,
-                index,
-                yKey,
+                xKey,
+                yKey: '',
+                yValue: 0,
+                bandwidth: yAxis.scale.bandwidth ?? 0,
+                ...this.convertValuesToScaleByDefs(defs, { xValue, minValue, q1Value, medianValue, q3Value, maxValue }),
                 fill,
                 fillOpacity,
                 stroke,

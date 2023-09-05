@@ -26,13 +26,13 @@ export class BoxPlotGroup extends _Scene.Group {
 
     updateDatumStyles(datum: BoxPlotNodeDatum) {
         const {
-            bandwidth,
+            yValue,
             minValue,
             q1Value,
             medianValue,
             q3Value,
             maxValue,
-            yValue,
+            bandwidth,
             fill,
             fillOpacity,
             stroke,
