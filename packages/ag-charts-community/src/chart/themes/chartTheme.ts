@@ -82,7 +82,6 @@ export class ChartTheme {
                 rotation: undefined,
                 color: 'rgb(87, 87, 87)',
                 formatter: undefined,
-                autoRotate: false,
                 avoidCollisions: true,
             },
             line: {

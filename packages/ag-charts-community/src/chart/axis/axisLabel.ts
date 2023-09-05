@@ -14,9 +14,9 @@ import {
 } from '../../util/validation';
 import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../chart/agChartOptions';
 import { Default } from '../../util/default';
-import type { Flag } from '../../chart/label';
+import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 
-export class AxisLabel {
+export class AxisLabel implements ChartAxisLabel {
     @Validate(BOOLEAN)
     enabled = true;
 
@@ -75,19 +75,6 @@ export class AxisLabel {
     rotation?: number = undefined;
 
     /**
-     * If specified and axis labels may collide, they are rotated to reduce collisions. If the
-     * `rotation` property is specified, it takes precedence.
-     */
-    @Validate(OPT_BOOLEAN)
-    autoRotate: boolean | undefined = undefined;
-
-    /**
-     * Rotation angle to use when autoRotate is applied.
-     */
-    @Validate(NUMBER(-360, 360))
-    autoRotateAngle: number = 335;
-
-    /**
      * Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide.
      */
     @Validate(BOOLEAN)
@@ -114,7 +101,7 @@ export class AxisLabel {
      * -1 = left (default)
      * 1 = right
      */
-    getSideFlag(): Flag {
+    getSideFlag(): ChartAxisLabelFlipFlag {
         return this.mirrored ? 1 : -1;
     }
 

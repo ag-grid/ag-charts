@@ -1,7 +1,6 @@
 import type { Node } from '../scene/node';
 import type { BBox } from '../scene/bbox';
-import type { AgCartesianAxisPosition } from './agChartOptions';
-import type { Flag } from './label';
+import type { AgCartesianAxisPosition, AgAxisLabelFormatterParams, FontStyle, FontWeight } from './agChartOptions';
 import type { AxisLayout } from './layout/layoutService';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { Scale } from '../scale/scale';
@@ -15,6 +14,8 @@ export interface BoundSeries {
     type: string;
     visible: boolean;
 }
+
+export type ChartAxisLabelFlipFlag = 1 | -1;
 
 export interface ChartAxis {
     addModule(module: any): void;
@@ -38,7 +39,7 @@ export interface ChartAxis {
     inRangeEx(x: number, width?: number, tolerance?: number): -1 | 0 | 1;
     isModuleEnabled(module: any): boolean;
     keys: string[];
-    label: { getSideFlag(): Flag };
+    label: ChartAxisLabel;
     linkedTo?: ChartAxis;
     maxThickness: number;
     nice: boolean;
@@ -54,6 +55,30 @@ export interface ChartAxis {
     type: string;
     update(primaryTickCount?: number): number | undefined;
     updateScale(): void;
-    updatePosition(position: { rotation: number; sideFlag: Flag }): void;
+    updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
     visibleRange: number[];
+}
+
+export interface ChartAxisLabel {
+    autoRotate?: boolean;
+    autoRotateAngle?: number;
+    autoWrap?: boolean;
+    avoidCollisions: boolean;
+    color?: string;
+    enabled: boolean;
+    fontFamily: string;
+    fontSize: number;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    format?: string;
+    formatter?: (params: AgAxisLabelFormatterParams) => string;
+    getFont(): string;
+    getSideFlag(): ChartAxisLabelFlipFlag;
+    maxHeight?: number;
+    maxWidth?: number;
+    minSpacing: number;
+    mirrored: boolean;
+    padding: number;
+    parallel: boolean;
+    rotation?: number;
 }

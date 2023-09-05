@@ -55,11 +55,15 @@ series: [
 ],
 axes: [
     { type: 'angle-category', shape: 'circle', label: { ... } },
-    { type: 'radius-number', gridStyle: [{ ... }] },
+    { type: 'radius-number', shape: 'circle', gridStyle: [{ ... }] },
 ]
 ```
 
 {% chartExampleRunner title="Polar Axes" name="polar-axes" type="generated" options="{ \"enterprise\": true }" /%}
+
+Use `label.orientation` property to change the orientation of polar axis labels by providing one of the options: `fixed`, `parallel` or `perpendicular`. The next example demonstrates how this property works:
+
+{% chartExampleRunner title="Polar Axis Label Orientation" name="polar-axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
 
 Please see the API reference for more details.
 
@@ -68,3 +72,9 @@ Please see the API reference for more details.
 {% interfaceDocumentation interfaceName="AgRadarLineSeriesOptions" config="{ \"showSnippets\": false }" /%}
 
 {% interfaceDocumentation interfaceName="AgRadarAreaSeriesOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgAngleCategoryAxisOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgAngleCategoryAxisLabelOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgRadiusNumberAxisOptions" config="{ \"showSnippets\": false }" /%}

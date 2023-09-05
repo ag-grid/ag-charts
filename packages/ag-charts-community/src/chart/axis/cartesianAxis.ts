@@ -8,6 +8,7 @@ import { assignJsonApplyConstructedArray } from '../chartOptions';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { TickInterval } from './axisTick';
+import { CartesianAxisLabel } from './cartesianAxisLabel';
 
 export abstract class CartesianAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
@@ -67,5 +68,9 @@ export abstract class CartesianAxis<
 
     protected assignCrossLineArrayConstructor(crossLines: CrossLine[]) {
         assignJsonApplyConstructedArray(crossLines, CartesianCrossLine);
+    }
+
+    protected createLabel() {
+        return new CartesianAxisLabel();
     }
 }

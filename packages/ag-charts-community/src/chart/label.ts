@@ -5,6 +5,7 @@ import { normalizeAngle360, toRadians } from '../util/angle';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import type { PointLabelDatum } from '../util/labelPlacement';
+import type { ChartAxisLabelFlipFlag } from './chartAxis';
 
 export class Label {
     @Validate(BOOLEAN)
@@ -29,13 +30,18 @@ export class Label {
         return getFont(this);
     }
 }
-export type Flag = 1 | -1;
+
 export function calculateLabelRotation(opts: {
     rotation?: number;
     parallel?: boolean;
     regularFlipRotation?: number;
     parallelFlipRotation?: number;
-}): { configuredRotation: number; defaultRotation: number; parallelFlipFlag: Flag; regularFlipFlag: Flag } {
+}): {
+    configuredRotation: number;
+    defaultRotation: number;
+    parallelFlipFlag: ChartAxisLabelFlipFlag;
+    regularFlipFlag: ChartAxisLabelFlipFlag;
+} {
     const { parallelFlipRotation = 0, regularFlipRotation = 0 } = opts;
     const configuredRotation = opts.rotation ? normalizeAngle360(toRadians(opts.rotation)) : 0;
     const parallelFlipFlag =
@@ -63,8 +69,8 @@ export function getLabelSpacing(minSpacing: number, rotated?: boolean): number {
 export function getTextBaseline(
     parallel: boolean,
     labelRotation: number,
-    sideFlag: Flag,
-    parallelFlipFlag: Flag
+    sideFlag: ChartAxisLabelFlipFlag,
+    parallelFlipFlag: ChartAxisLabelFlipFlag
 ): CanvasTextBaseline {
     if (parallel && !labelRotation) {
         if (sideFlag * parallelFlipFlag === -1) {
@@ -80,8 +86,8 @@ export function getTextAlign(
     parallel: boolean,
     labelRotation: number,
     labelAutoRotation: number,
-    sideFlag: Flag,
-    regularFlipFlag: Flag
+    sideFlag: ChartAxisLabelFlipFlag,
+    regularFlipFlag: ChartAxisLabelFlipFlag
 ): CanvasTextAlign {
     const labelRotated = labelRotation > 0 && labelRotation <= Math.PI;
     const labelAutoRotated = labelAutoRotation > 0 && labelAutoRotation <= Math.PI;
