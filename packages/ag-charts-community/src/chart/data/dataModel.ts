@@ -325,17 +325,6 @@ export class DataModel<
         return this.resolveProcessedDataDefsById(scope, searchId)[0];
     }
 
-    resolveProcessedDataDefByIds<T extends string>(
-        scope: ScopeProvider,
-        searchIds: T[]
-    ): [T, ...ProcessedDataDef[]][] | never {
-        const defs: [T, ...ProcessedDataDef[]][] = [];
-        for (const searchId of searchIds) {
-            defs.push([searchId, ...this.resolveProcessedDataDefsById(scope, searchId)]);
-        }
-        return defs;
-    }
-
     resolveProcessedDataDefsByIds<T extends string>(
         scope: ScopeProvider,
         searchIds: T[]
