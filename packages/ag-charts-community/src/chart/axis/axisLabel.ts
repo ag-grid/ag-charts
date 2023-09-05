@@ -14,8 +14,7 @@ import {
 } from '../../util/validation';
 import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../chart/agChartOptions';
 import { Default } from '../../util/default';
-import type { Flag } from '../../chart/label';
-import type { ChartAxisLabel } from '../chartAxis';
+import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 
 export class AxisLabel implements ChartAxisLabel {
     @Validate(BOOLEAN)
@@ -102,7 +101,7 @@ export class AxisLabel implements ChartAxisLabel {
      * -1 = left (default)
      * 1 = right
      */
-    getSideFlag(): Flag {
+    getSideFlag(): ChartAxisLabelFlipFlag {
         return this.mirrored ? 1 : -1;
     }
 

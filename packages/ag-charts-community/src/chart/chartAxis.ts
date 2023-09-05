@@ -15,6 +15,8 @@ export interface BoundSeries {
     visible: boolean;
 }
 
+export type ChartAxisLabelFlipFlag = 1 | -1;
+
 export interface ChartAxis {
     addModule(module: any): void;
     attachAxis(axisGroup: Node, gridGroup: Node): void;
@@ -53,7 +55,7 @@ export interface ChartAxis {
     type: string;
     update(primaryTickCount?: number): number | undefined;
     updateScale(): void;
-    updatePosition(position: { rotation: number; sideFlag: -1 | 1 }): void;
+    updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
     visibleRange: number[];
 }
 
@@ -71,7 +73,7 @@ export interface ChartAxisLabel {
     format?: string;
     formatter?: (params: AgAxisLabelFormatterParams) => string;
     getFont(): string;
-    getSideFlag(): -1 | 1;
+    getSideFlag(): ChartAxisLabelFlipFlag;
     maxHeight?: number;
     maxWidth?: number;
     minSpacing: number;

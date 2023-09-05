@@ -24,7 +24,6 @@ import type { AgAxisCaptionFormatterParams, AgAxisGridStyle, TextWrap } from './
 import { LogScale } from './scale/logScale';
 import { extent } from './util/array';
 import { ChartAxisDirection } from './chart/chartAxisDirection';
-import type { Flag } from './chart/label';
 import {
     calculateLabelRotation,
     calculateLabelBBox,
@@ -41,7 +40,7 @@ import { AxisLine } from './chart/axis/axisLine';
 import type { AxisTitle } from './chart/axis/axisTitle';
 import type { TickCount, TickInterval } from './chart/axis/axisTick';
 import { AxisTick } from './chart/axis/axisTick';
-import type { ChartAxis, BoundSeries, ChartAxisLabel } from './chart/chartAxis';
+import type { ChartAxis, BoundSeries, ChartAxisLabel, ChartAxisLabelFlipFlag } from './chart/chartAxis';
 import type { AnimationManager } from './chart/interaction/animationManager';
 import type { InteractionEvent } from './chart/interaction/interactionManager';
 import * as easing from './motion/easing';
@@ -569,7 +568,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         parallelFlipRotation: number;
         regularFlipRotation: number;
         labelX: number;
-        sideFlag: Flag;
+        sideFlag: ChartAxisLabelFlipFlag;
     }): {
         tickData: TickData;
         primaryTickCount?: number;
@@ -994,11 +993,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         rotation: number;
         parallelFlipRotation: number;
         regularFlipRotation: number;
-        sideFlag: Flag;
+        sideFlag: ChartAxisLabelFlipFlag;
     }) {
         const anySeriesActive = this.isAnySeriesActive();
         this.crossLines?.forEach((crossLine) => {
-            crossLine.sideFlag = -sideFlag as Flag;
+            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
             if (crossLine instanceof CartesianCrossLine) {
                 crossLine.label.parallel = crossLine.label.parallel ?? this.label.parallel;
@@ -1009,7 +1008,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected updateTickLines(sideFlag: Flag) {
+    protected updateTickLines(sideFlag: ChartAxisLabelFlipFlag) {
         const { tick } = this;
         this.tickLineGroupSelection.each((line) => {
             line.strokeWidth = tick.width;
@@ -1059,7 +1058,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    updatePosition({ rotation, sideFlag }: { rotation: number; sideFlag: Flag }) {
+    updatePosition({ rotation, sideFlag }: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }) {
         const { crossLineGroup, axisGroup, gridGroup, translation, gridLineGroupSelection, gridPadding, gridLength } =
             this;
         const translationX = Math.floor(translation.x);
@@ -1127,7 +1126,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.gridLineGroupSelection = gridLineGroupSelection;
     }
 
-    protected updateGridLines(sideFlag: Flag) {
+    protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
         const { gridStyle, tick, gridPadding, gridLength } = this;
         if (gridLength === 0 || gridStyle.length === 0) {
             return;
@@ -1234,7 +1233,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         lineNode.visible = true;
     }
 
-    protected updateTitle({ anyTickVisible, sideFlag }: { anyTickVisible: boolean; sideFlag: Flag }): void {
+    protected updateTitle({
+        anyTickVisible,
+        sideFlag,
+    }: {
+        anyTickVisible: boolean;
+        sideFlag: ChartAxisLabelFlipFlag;
+    }): void {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
         const {
             rotation,
