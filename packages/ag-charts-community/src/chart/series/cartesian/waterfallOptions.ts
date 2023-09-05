@@ -62,14 +62,7 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** Configuration of total and subtotal values. */
     totals?: WaterfallSeriesTotalMeta[];
     /** Configuration used for the waterfall series item types. */
-    item: {
-        /** Configuration for the negative series items. */
-        negative?: AgWaterfallSeriesItemOptions<DatumType>;
-        /** Configuration for the positive series items. */
-        positive?: AgWaterfallSeriesItemOptions<DatumType>;
-        /** Configuration for the total and subtotal series items. */
-        total?: AgWaterfallSeriesItemOptions<DatumType>;
-    };
+    item: AgWaterfallSeriesItem<DatumType>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
@@ -78,6 +71,15 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the waterfall series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
+}
+
+export interface AgWaterfallSeriesItem<DatumType> {
+    /** Configuration for the negative series items. */
+    negative?: AgWaterfallSeriesItemOptions<DatumType>;
+    /** Configuration for the positive series items. */
+    positive?: AgWaterfallSeriesItemOptions<DatumType>;
+    /** Configuration for the total and subtotal series items. */
+    total?: AgWaterfallSeriesItemOptions<DatumType>;
 }
 
 export interface WaterfallSeriesTotalMeta {
