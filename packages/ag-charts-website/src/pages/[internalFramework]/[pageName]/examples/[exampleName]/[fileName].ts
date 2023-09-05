@@ -4,6 +4,7 @@ import { getIsDev } from '@utils/env';
 import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
 import type { InternalFramework } from '@ag-grid-types';
 import { getDocExampleFiles } from '@features/docs/utils/pageData';
+import { fileNameToMimeType } from '@utils/fileNameToMimeType';
 
 interface Params {
     internalFramework: InternalFramework;
@@ -47,7 +48,10 @@ export async function get({ params }: { params: Params }) {
     const file = files && files[fileName];
     const body = file ? file : createErrorBody({ availableFiles: files });
 
-    return {
-        body,
-    };
+    const response = new Response(body, {
+        headers: {
+            'Content-Type': fileNameToMimeType(fileName),
+        },
+    });
+    return response;
 }
