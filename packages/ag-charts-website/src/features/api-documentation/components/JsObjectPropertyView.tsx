@@ -93,7 +93,6 @@ function PrimitivePropertyView({
     framework: Framework;
 }) {
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
-    // TODO: cater for model.type === 'primitive' case
     const propertyType = getPropertyType(
         (model as any).type === 'primitive' ? (model as any).tsType : model.desc.tsType
     );
