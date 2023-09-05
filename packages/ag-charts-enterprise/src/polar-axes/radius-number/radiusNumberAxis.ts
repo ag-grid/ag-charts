@@ -101,8 +101,9 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
             .filter((tick) => tick !== domainTop) // Prevent outer tick being drawn behind polar line
             .sort((a, b) => b - a); // Apply grid styles starting from the largest arc
 
-        const topRadius = scale.range[0];
-        const getRadius = (tick: number) => topRadius - scale.convert(tick);
+        const maxRadius = scale.range[0];
+        const minRadius = maxRadius * this.innerRadiusRatio;
+        const getRadius = (tick: number) => maxRadius - scale.convert(tick) + minRadius;
 
         const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
             const style = gridStyle[index % gridStyle.length];
