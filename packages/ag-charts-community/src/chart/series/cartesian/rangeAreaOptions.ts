@@ -72,11 +72,11 @@ export interface AgRangeAreaSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** Configuration for the RangeArea series. */
     type?: 'range-area';
     /** The key to use to retrieve x-values from the data. */
-    xKey?: string;
+    xKey: string;
     /** The key to use to retrieve y-low-values from the data. */
-    yLowKey?: string;
+    yLowKey: string;
     /** The key to use to retrieve y-high-values from the data. */
-    yHighKey?: string;
+    yHighKey: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** A human-readable description of the y-low-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
