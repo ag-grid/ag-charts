@@ -13,6 +13,7 @@ import {
     type JsonUnionType,
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
+import { getUnionPathInfo } from '../utils/modelPath';
 
 const SelectionContext = createContext<{ onSelection?: JsObjectViewProps['onSelection'] }>({});
 
@@ -219,16 +220,23 @@ function UnionNestedObject({
     path: string[];
     config: Config;
 }) {
-    const discriminatorProp = 'type';
-    const discriminator = desc.model.properties[discriminatorProp];
-    const discriminatorType =
-        discriminator && discriminator.desc.type === 'primitive' ? discriminator.desc.tsType : null;
-    const unionPath = path.concat(`[${discriminatorType || index}]`);
+    const { pathItem, discriminatorType, discriminatorProp, discriminator } = getUnionPathInfo({
+        model: desc.model,
+        index,
+    });
+    const unionPath = path.concat(pathItem);
     const expandedInitially = isExpandedInitially(discriminatorType || String(index), unionPath, config);
     const [isExpanded, setExpanded] = useState(expandedInitially);
     const { onSelection } = useContext(SelectionContext);
     const toggleSelection = () => {
-        onSelection && onSelection({ type: 'unionNestedObject', index, path, model: desc });
+        onSelection &&
+            onSelection({
+                type: 'unionNestedObject',
+                index,
+                // NOTE: Not passing in `unionPath`, as selection should handle how to determine the path
+                path,
+                model: desc,
+            });
     };
     const toggleExpand = () => {
         setExpanded((expanded) => !expanded);
@@ -533,11 +541,7 @@ function ArrayType({ desc, path, config }: { desc: JsonArray; path: string[]; co
                 <>
                     <span className={classnames('token', 'punctuation')}>{'{ '}</span>
                     <div className={styles.jsonObject} role="presentation">
-                        <ModelSnippet
-                            model={desc.elements.model}
-                            path={path.concat('[]')}
-                            config={config}
-                        ></ModelSnippet>
+                        <ModelSnippet model={desc.elements.model} path={path} config={config}></ModelSnippet>
                     </div>
                     <span className={classnames('token', 'punctuation')}>{'}'}</span>
                 </>
@@ -546,12 +550,7 @@ function ArrayType({ desc, path, config }: { desc: JsonArray; path: string[]; co
         case 'union':
             arrayElementRendering = (
                 <>
-                    <ModelSnippet
-                        model={desc.elements}
-                        closeWith={''}
-                        path={path.concat('[]')}
-                        config={config}
-                    ></ModelSnippet>
+                    <ModelSnippet model={desc.elements} closeWith={''} path={path} config={config}></ModelSnippet>
                 </>
             );
             break;

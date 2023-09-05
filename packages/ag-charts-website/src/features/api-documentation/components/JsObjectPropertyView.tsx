@@ -12,6 +12,8 @@ import type { JsObjectSelection, JsObjectSelectionProperty, JsObjectSelectionUni
 import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonUnionType } from '../utils/model';
 import { getPropertyType } from '../utils/getPropertyType';
 import type { Framework } from '@ag-grid-types';
+import { createUnionNestedObjectPathItemRegex, getUnionPathInfo } from '../utils/modelPath';
+import { Fragment } from 'react';
 
 interface Props {
     selection: JsObjectSelection;
@@ -19,17 +21,44 @@ interface Props {
     parentName?: string;
 }
 
+function HeadingPath({ name, path }: { name: string; path: string[] }) {
+    const lastDot = name ? '.' : '';
+    const regex = createUnionNestedObjectPathItemRegex();
+    return (
+        path.length > 0 && (
+            <span className={styles.parentProperties}>
+                {path.map((pathItem, index) => {
+                    const arrayDiscriminatorMatches = regex.exec(pathItem);
+                    const [_, preValue, value, postValue] = arrayDiscriminatorMatches || [];
+                    // Only show separator `.` at the front, when not the first and not an array discriminator afterwards
+                    const separator = index !== 0 && !arrayDiscriminatorMatches ? '.' : '';
+
+                    return (
+                        <Fragment key={`${pathItem}-${index}`}>
+                            {separator}
+                            {!arrayDiscriminatorMatches && <>{pathItem}</>}
+                            {arrayDiscriminatorMatches && (
+                                <>
+                                    {preValue}
+                                    <span className={styles.unionDiscriminator}>{value}</span>
+                                    {postValue}
+                                </>
+                            )}
+                        </Fragment>
+                    );
+                })}
+                {lastDot}
+            </span>
+        )
+    );
+}
+
 function NameHeading({ id, name, path }: { id: string; name: string; path: string[] }) {
     const displayNameSplit = splitName(name);
-    const lastDot = name ? '.' : '';
+
     return (
         <h6 id={id} className={classnames(styles.name, 'side-menu-exclude')}>
-            {path.length > 0 && (
-                <span className={styles.parentProperties}>
-                    {path.join('.')}
-                    {lastDot}
-                </span>
-            )}
+            <HeadingPath name={name} path={path} />
             <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>
             <a href={`#${id}`} className="docs-header-icon">
                 <Icon name="link" />
@@ -126,14 +155,13 @@ function NestedObjectProperties({
     properties: JsonModel['properties'];
     framework: Framework;
 }) {
-    const path = parentPath.concat(parentName);
     return (
         <>
             {Object.entries(properties).map(([propName, model]) => {
                 const selection: JsObjectSelectionProperty = {
                     type: 'property',
                     propName,
-                    path,
+                    path: parentPath,
                     model,
                 };
                 return (
@@ -168,6 +196,7 @@ function NestedObjectPropertyView({
     const {
         model: { properties },
     } = model.desc as JsonObjectProperty;
+    const nestedObjectPropertiesPath = name ? path.concat(name) : path;
 
     return (
         <>
@@ -185,7 +214,12 @@ function NestedObjectPropertyView({
                     <div className={styles.actions}></div>
                 </td>
             </tr>
-            <NestedObjectProperties parentName={name} properties={properties} parentPath={path} framework={framework} />
+            <NestedObjectProperties
+                parentName={name}
+                properties={properties}
+                parentPath={nestedObjectPropertiesPath}
+                framework={framework}
+            />
         </>
     );
 }
@@ -235,7 +269,6 @@ function NestedArrayProperties({
     framework: Framework;
 }) {
     const { type } = elements;
-    const path = parentPath.concat(parentName);
 
     if (type === 'primitive') {
         return (
@@ -244,7 +277,7 @@ function NestedArrayProperties({
                 model={parentModel}
                 name={parentName}
                 framework={framework}
-                path={path}
+                path={parentPath}
             />
         );
     } else if (type === 'nested-object') {
@@ -290,6 +323,7 @@ function ArrayPropertyView({
     const description = convertMarkdown(formattedDocumentation, framework);
     const propertyType = getPropertyType(model.desc.tsType);
     const { elements } = model.desc as JsonArray;
+    const nestedArrayPropertiesPath = name ? path.concat(name) : path;
 
     return (
         <>
@@ -310,7 +344,7 @@ function ArrayPropertyView({
             <NestedArrayProperties
                 parentId={id}
                 parentName={name}
-                parentPath={path}
+                parentPath={nestedArrayPropertiesPath}
                 parentModel={model}
                 elements={elements}
                 framework={framework}
@@ -380,25 +414,30 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
         const id = `reference-${path}-${index}`;
         const propertyType = model.type;
         const name = parentName!;
-        const nestedPath = path.concat(`${index}`);
 
         if (propertyType === 'primitive') {
-            return <PrimitivePropertyView id={id} model={model} name={name} framework={framework} path={nestedPath} />;
+            return <PrimitivePropertyView id={id} model={model} name={name} framework={framework} path={path} />;
         } else if (propertyType === 'nested-object') {
             const nestedObjectModel = {
                 desc: model,
             } as JsonModelProperty;
+
+            const { pathItem } = getUnionPathInfo({
+                model: model.model,
+                index,
+            });
+            const nestedObjectPath = path.concat(pathItem);
             return (
                 <NestedObjectPropertyView
                     id={id}
                     name={name}
-                    path={nestedPath}
+                    path={nestedObjectPath}
                     model={nestedObjectModel}
                     framework={framework}
                 />
             );
         } else if (propertyType === 'array') {
-            return <ArrayPropertyView id={id} name={name} path={nestedPath} model={model} framework={framework} />;
+            return <ArrayPropertyView id={id} name={name} path={path} model={model} framework={framework} />;
         }
     }
 

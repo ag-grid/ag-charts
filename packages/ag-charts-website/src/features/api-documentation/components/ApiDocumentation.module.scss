@@ -104,6 +104,10 @@
     line-break: anywhere;
 }
 
+.unionDiscriminator {
+    color: var(--code-text-color);
+}
+
 .metaList {
     display: flex;
     flex-wrap: wrap;
