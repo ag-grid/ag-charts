@@ -29,9 +29,11 @@ const {
     SMALLEST_KEY_INTERVAL,
     calculateStep,
     STRING_UNION,
+    Motion,
+    diff,
 } = _ModuleSupport;
 const { ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
-const { sanitizeHtml, isNumber, extent } = _Util;
+const { sanitizeHtml, isNumber, extent, zipObject } = _Util;
 
 const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
@@ -222,12 +224,18 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         const isContinuousX = this.getCategoryAxis()?.scale instanceof ContinuousScale;
         const isContinuousY = this.getValueAxis()?.scale instanceof ContinuousScale;
 
+        const animationProp = [];
+        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
+            animationProp.push(diff(this.processedData));
+        }
+
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
                 valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
+                ...animationProp,
             ],
             groupByKeys: true,
             dataVisible: this.visible,
@@ -239,6 +247,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
             y: Infinity,
         };
+
+        this.animationState.transition('updateData');
     }
 
     getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -526,13 +536,15 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         return new Rect();
     }
 
+    datumSelectionGarbageCollection = false;
+
     protected async updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        return datumSelection.update(data);
+        return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
     protected async updateDatumNodes(opts: {
@@ -748,7 +760,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     }
 
     protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number], duration: number) {
-        const horizontal = this.direction === 'horizontal';
+        const horizontal = this.getBarDirection() === ChartAxisDirection.X;
         datumSelection.each((rect, datum) => {
             this.ctx.animationManager?.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
@@ -779,6 +791,125 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
                     },
                 }
             );
+        });
+    }
+
+    animateWaitingUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
+        const { processedData } = this;
+        const diff = processedData?.reduced?.diff;
+
+        if (!diff?.changed) {
+            datumSelections.forEach((datumSelection) => {
+                this.resetSelectionRects(datumSelection);
+            });
+            return;
+        }
+
+        const totalDuration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const labelDuration = totalDuration / 5;
+
+        let sectionDuration = totalDuration;
+        if (diff.added.length > 0 || diff.removed.length > 0) {
+            sectionDuration = Math.floor(totalDuration / 2);
+        }
+
+        const addedIds = zipObject(diff.added, true);
+        const removedIds = zipObject(diff.removed, true);
+
+        const rectThrottleGroup = `${this.id}_${Math.random()}`;
+        const labelThrottleGroup = `${this.id}_${Math.random()}`;
+
+        const horizontal = this.getBarDirection() === ChartAxisDirection.X;
+
+        datumSelections.forEach((datumSelection) => {
+            datumSelection.each((rect, datum, index) => {
+                let props = [
+                    { from: rect.x, to: datum.x },
+                    { from: rect.width, to: datum.width },
+                    { from: rect.y, to: datum.y },
+                    { from: rect.height, to: datum.height },
+                ];
+                const duration = sectionDuration;
+                const cleanup = index === datumSelection.nodes().length - 1;
+
+                let startX = datum.x;
+                let endX = datum.x;
+                let startWidth = datum.width;
+                let endWidth = datum.width;
+                let startY = datum.nodeMidPoint?.y ?? 0;
+                let endY = datum.y;
+                let startHeight = 0;
+                let endHeight = datum.height;
+
+                if (horizontal) {
+                    startX = datum.nodeMidPoint?.x ?? 0;
+                    endX = datum.x;
+                    startWidth = 0;
+                    endWidth = datum.width;
+                    startY = datum.y;
+                    endY = datum.y;
+                    startHeight = datum.height;
+                    endHeight = datum.height;
+                }
+
+                const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
+                const isRemoved = datum.xValue !== undefined && removedIds[datum.xValue] !== undefined;
+
+                if (isAdded) {
+                    props = [
+                        { from: startX, to: endX },
+                        { from: startWidth, to: endWidth },
+                        { from: startY, to: endY },
+                        { from: startHeight, to: endHeight },
+                    ];
+                } else if (isRemoved) {
+                    props = [
+                        { from: endX, to: startX },
+                        { from: endWidth, to: startWidth },
+                        { from: endY, to: startY },
+                        { from: endHeight, to: startHeight },
+                    ];
+                }
+
+                this.ctx.animationManager?.animateManyWithThrottle(
+                    `${this.id}_waiting-update-ready_${rect.id}`,
+                    props,
+                    {
+                        duration,
+                        ease: Motion.easeOut,
+                        throttleId: `${this.id}_rects`,
+                        throttleGroup: rectThrottleGroup,
+                        onUpdate([x, width, y, height]) {
+                            rect.x = x;
+                            rect.width = width;
+                            rect.y = y;
+                            rect.height = height;
+                        },
+                        onComplete() {
+                            if (cleanup) datumSelection.cleanup();
+                        },
+                        onStop() {
+                            if (cleanup) datumSelection.cleanup();
+                        },
+                    }
+                );
+            });
+        });
+
+        labelSelections.forEach((labelSelection) => {
+            labelSelection.each((label) => {
+                this.ctx.animationManager?.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
+                    from: 0,
+                    to: 1,
+                    delay: totalDuration,
+                    duration: labelDuration,
+                    throttleId: `${this.id}_labels`,
+                    throttleGroup: labelThrottleGroup,
+                    onUpdate: (opacity) => {
+                        label.opacity = opacity;
+                    },
+                });
+            });
         });
     }
 
@@ -821,6 +952,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             rect.width = datum.width;
             rect.height = datum.height;
         });
+    }
+
+    private getDatumId(datum: RangeBarNodeDatum) {
+        return `${datum.xValue}`;
     }
 
     protected isLabelEnabled() {
