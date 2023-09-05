@@ -1733,7 +1733,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
         const labelDuration = 200;
         const rotation = Math.PI / -2 + toRadians(this.rotation);
-        const sectors = this.sortSectorsByData(groupSelection.selectByTag<Sector>(PieNodeTag.Sector));
+        const sectors = groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
 
         const datumIndices: { [key: string]: number } = {};
         processedData?.data.forEach((d, index) => {
@@ -1744,7 +1744,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         const addedIds = zipObject(diff.added, true);
         const removedIds = zipObject(diff.removed, true);
 
-        const sortedSectors = [...sectors].sort((a, b) => {
+        // Copy sectors and shift removed sectors to the end
+        const shiftedSectors = [...sectors].sort((a, b) => {
             const aId = this.getDatumId(a.datum);
             const bId = this.getDatumId(b.datum);
 
@@ -1754,17 +1755,35 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             return 0;
         });
 
-        sectors.forEach((sector, index) => {
+        const sectorDatumIds = sectors.map((s) => this.getDatumId(s.datum));
+        const sectorsByDatum = zipObject(sectorDatumIds, sectors);
+
+        // Sort datum ids into the order they were prior to the change
+        const sortedDatumIds: Array<string> = [];
+        let ai = 0;
+        let ri = 0;
+        let ui = 0;
+        for (let i = 0; i < sectors.length; i++) {
+            if (diff.addedIndices[ai] === i) {
+                sortedDatumIds.push(diff.added[ai++]);
+            } else if (diff.removedIndices[ri] === i) {
+                sortedDatumIds.push(diff.removed[ri++]);
+            } else if (diff.updatedIndices[ui] === i) {
+                sortedDatumIds.push(diff.updated[ui++]);
+            }
+        }
+
+        sortedDatumIds.forEach((datumId, index) => {
+            const sector = sectorsByDatum[datumId];
             const { datum } = sector;
-            const datumId = this.getDatumId(datum);
             const cleanup = index === sectors.length - 1;
             const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
-            const replacement = sortedSectors[index];
+            const replacement = shiftedSectors[index];
 
             let startAngleFrom = sector.startAngle;
-            let startAngleTo = replacement.datum.startAngle;
+            let startAngleTo = diff.removed.length > 0 ? replacement.datum.startAngle : datum.startAngle;
             let endAngleFrom = sector.endAngle;
-            let endAngleTo = replacement.datum.endAngle;
+            let endAngleTo = diff.removed.length > 0 ? replacement.datum.endAngle : datum.endAngle;
             let fillFrom = sector.fill ?? format.fill;
             let fillTo = format.fill;
 
@@ -1772,7 +1791,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 startAngleTo = Math.PI * 1.5;
                 endAngleTo = startAngleTo;
             } else if (addedIds[datumId]) {
-                const previousSector = sectors[index - 1];
+                const previousSector = sectorsByDatum[sortedDatumIds[index - 1]];
                 const previousEndAngle = previousSector?.endAngle ?? rotation;
 
                 startAngleFrom = previousEndAngle;
