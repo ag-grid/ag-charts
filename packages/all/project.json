@@ -10,7 +10,10 @@
     },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "configurations": {
+        "fix": {}
+      }
     },
     "test": {
       "executor": "nx:noop",
