@@ -1,13 +1,7 @@
 import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
-import type {
-    AnimationControls,
-    AnimationOptions as BaseAnimationOptions,
-    Driver,
-    TweenControls,
-    TweenOptions,
-} from '../../motion/animate';
-import { animate as baseAnimate, tween } from '../../motion/animate';
+import type { AnimationControls, AnimationOptions as BaseAnimationOptions, Driver } from '../../motion/animate';
+import { animate as baseAnimate } from '../../motion/animate';
 import { Logger } from '../../util/logger';
 
 type AnimationId = string;
@@ -253,16 +247,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.throttles[throttleId] = now;
 
         return this.animateMany(id, props, { ...opts, onStop });
-    }
-
-    public tween<T>(opts: TweenOptions<T>): TweenControls<T> {
-        const id = `tween-${btoa(JSON.stringify(opts))}`;
-        const optsExtra = {
-            ...opts,
-            driver: this.createDriver(id),
-        };
-
-        return tween(optsExtra);
     }
 
     private createDriver(id: AnimationId, disableInteractions?: boolean): Driver {
