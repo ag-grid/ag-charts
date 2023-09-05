@@ -1230,7 +1230,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         lineNode.y2 = requestedRange[1];
         lineNode.strokeWidth = this.line.width;
         lineNode.stroke = this.line.color;
-        lineNode.visible = true;
+        lineNode.visible = this.line.enabled;
     }
 
     protected updateTitle({

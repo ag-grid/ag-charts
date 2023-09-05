@@ -1,6 +1,9 @@
-import { Validate, NUMBER, OPT_COLOR_STRING } from '../../util/validation';
+import { Validate, BOOLEAN, NUMBER, OPT_COLOR_STRING } from '../../util/validation';
 
 export class AxisLine {
+    @Validate(BOOLEAN)
+    enabled = true;
+
     @Validate(NUMBER(0))
     width: number = 1;
 
