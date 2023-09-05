@@ -29,15 +29,11 @@ export interface AgBasePolarChartOptions {
     axes?: AgPolarAxisOptions[];
 }
 
-export interface AgBasePolarThemeOptions<S = AgPolarSeriesTheme> {
+export interface AgBasePolarThemeOptions<S> {
     /** Series configurations. */
-    series?: S;
+    series?: S extends { type?: 'pie' } ? AgPieSeriesTheme : S;
     /** Configuration for the chart legend. */
     legend?: AgPolarChartLegendOptions;
-}
-
-export interface AgPolarSeriesTheme {
-    pie?: AgPieSeriesTheme;
 }
 
 export interface AgPolarChartLegendOptions extends AgChartBaseLegendOptions {

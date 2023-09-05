@@ -15,11 +15,6 @@ import type {
 import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
 import type { AgNavigatorOptions } from '../../options/navigatorOptions';
 import type { PixelSize, Ratio } from '../../options/types';
-import type { AgAreaSeriesOptions } from './areaOptions';
-import type { AgBarSeriesOptions } from './barOptions';
-import type { AgHistogramSeriesOptions } from './histogramOptions';
-import type { AgLineSeriesOptions } from './lineOptions';
-import type { AgScatterSeriesOptions } from './scatterOptions';
 import type { AgZoomOptions } from '../../options/zoomOptions';
 import type { AgCrosshairOptions } from '../../options/crosshairOptions';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
@@ -147,7 +142,7 @@ export interface AgCartesianAxisThemeOptions<T> {
     left?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
 }
 
-export interface AgBaseCartesianThemeOptions<S = AgCartesianSeriesTheme> {
+export interface AgBaseCartesianThemeOptions<S> {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
     /** Series configurations. */
@@ -173,14 +168,6 @@ export interface AgCartesianAxesTheme {
     groupedCategory?: AgGroupedCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to time axes. */
     time?: AgTimeAxisThemeOptions;
-}
-
-export interface AgCartesianSeriesTheme {
-    line?: Partial<AgLineSeriesOptions>;
-    scatter?: Partial<AgScatterSeriesOptions>;
-    area?: Partial<AgAreaSeriesOptions>;
-    bar?: Partial<AgBarSeriesOptions>;
-    histogram?: Partial<AgHistogramSeriesOptions>;
 }
 
 export interface AgNumberAxisThemeOptions

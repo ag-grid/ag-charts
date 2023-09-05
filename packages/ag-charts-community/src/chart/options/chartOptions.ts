@@ -117,8 +117,6 @@ export interface AgBaseChartOptions<TData = any[]> {
     listeners?: AgBaseChartListeners;
     /** Configuration for the chart highlighting. */
     highlight?: AgChartHighlightOptions;
-    /** Theme to use for rendering of the chart. Specify an inbuilt theme name, or provide an `AgChartTheme` instance to customise. */
-    theme?: string | AgBaseChartTheme<AgBaseChartOptions>;
     /** HTML overlays */
     overlays?: AgChartOverlaysOptions;
 }

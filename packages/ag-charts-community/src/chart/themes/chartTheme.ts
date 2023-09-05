@@ -2,17 +2,11 @@ import { jsonMerge, jsonWalk } from '../../util/json';
 import { deepMerge } from '../../util/object';
 import type {
     FontWeight,
-    AgPolarSeriesTheme,
     AgChartThemePalette,
     AgChartThemeOptions,
     AgChartThemeOverrides,
-    AgCartesianThemeOptions,
     AgBarSeriesLabelOptions,
     AgChartLegendPosition,
-    AgPolarThemeOptions,
-    AgHierarchyThemeOptions,
-    AgCartesianSeriesTheme,
-    AgHierarchySeriesTheme,
     InteractionRange,
     AgTooltipPositionType,
 } from '../agChartOptions';
@@ -25,15 +19,6 @@ const palette: AgChartThemePalette = {
     fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
     strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
 };
-
-type ChartThemeDefaults = {
-    cartesian: AgCartesianThemeOptions;
-    groupedCategory: AgCartesianThemeOptions;
-    polar: AgPolarThemeOptions;
-    hierarchy: AgHierarchyThemeOptions;
-} & { [key in keyof AgCartesianSeriesTheme]?: AgCartesianThemeOptions } & {
-    [key in keyof AgPolarSeriesTheme]?: AgPolarThemeOptions;
-} & { [key in keyof AgHierarchySeriesTheme]?: AgHierarchyThemeOptions };
 
 export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults');
 export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults');
@@ -320,38 +305,42 @@ export class ChartTheme {
         };
     }
 
-    private static readonly cartesianDefaults: AgCartesianThemeOptions = {
-        ...ChartTheme.getChartDefaults(),
-        axes: {
-            number: {
-                ...ChartTheme.getAxisDefaults(),
-            },
-            log: {
-                ...ChartTheme.getAxisDefaults(),
-                base: 10,
-            },
-            category: {
-                ...ChartTheme.getAxisDefaults(),
-                groupPaddingInner: 0.1,
-                label: {
-                    ...ChartTheme.getAxisDefaults().label,
-                    autoRotate: true,
-                },
-            },
-            groupedCategory: {
-                ...ChartTheme.getAxisDefaults(),
-            },
-            time: {
-                ...ChartTheme.getAxisDefaults(),
+    private static readonly cartesianAxisDefault = {
+        number: {
+            ...ChartTheme.getAxisDefaults(),
+        },
+        log: {
+            ...ChartTheme.getAxisDefaults(),
+            base: 10,
+        },
+        category: {
+            ...ChartTheme.getAxisDefaults(),
+            groupPaddingInner: 0.1,
+            label: {
+                ...ChartTheme.getAxisDefaults().label,
+                autoRotate: true,
             },
         },
-        series: {
-            bar: {
+        groupedCategory: {
+            ...ChartTheme.getAxisDefaults(),
+        },
+        time: {
+            ...ChartTheme.getAxisDefaults(),
+        },
+    };
+
+    private static readonly cartesianDefaults = {
+        ...ChartTheme.getChartDefaults(),
+        bar: {
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getBarSeriesDefaults(),
             },
-            line: {
+        },
+        line: {
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getLineSeriesDefaults(),
-                title: undefined,
                 strokeWidth: 2,
                 strokeOpacity: 1,
                 lineDash: [0],
@@ -371,7 +360,10 @@ export class ChartTheme {
                     formatter: undefined,
                 },
             },
-            scatter: {
+        },
+        scatter: {
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getScatterSeriesDefaults(),
                 sizeName: 'Size',
                 labelName: 'Label',
@@ -387,7 +379,10 @@ export class ChartTheme {
                     color: ChartTheme.labelColour,
                 },
             },
-            area: {
+        },
+        area: {
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getAreaSeriesDefaults(),
                 normalizedTo: undefined,
                 fillOpacity: 0.8,
@@ -418,7 +413,10 @@ export class ChartTheme {
                     formatter: undefined,
                 },
             },
-            histogram: {
+        },
+        histogram: {
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getSeriesDefaults(),
                 strokeWidth: 1,
                 fillOpacity: 1,
@@ -427,7 +425,7 @@ export class ChartTheme {
                 lineDashOffset: 0,
                 areaPlot: false,
                 bins: undefined,
-                aggregation: 'sum',
+                aggregation: 'sum' as const,
                 label: {
                     enabled: false,
                     fontStyle: undefined,
@@ -448,15 +446,15 @@ export class ChartTheme {
         },
     };
 
-    private static readonly polarDefaults: AgPolarThemeOptions = {
+    private static readonly polarDefaults = {
         ...ChartTheme.getChartDefaults(),
-        series: {
-            pie: {
+        pie: {
+            series: {
                 ...ChartTheme.getSeriesDefaults(),
                 title: {
                     enabled: true,
                     fontStyle: undefined,
-                    fontWeight: 'bold',
+                    fontWeight: BOLD,
                     fontSize: 14,
                     fontFamily: ChartTheme.fontFamily,
                     color: ChartTheme.labelColour,
@@ -519,10 +517,10 @@ export class ChartTheme {
         },
     };
 
-    private static readonly hierarchyDefaults: AgHierarchyThemeOptions = {
+    private static readonly hierarchyDefaults = {
         ...ChartTheme.getChartDefaults(),
-        series: {
-            treemap: {
+        treemap: {
+            series: {
                 ...ChartTheme.getSeriesDefaults(),
                 showInLegend: false,
                 labelKey: 'label',
@@ -557,7 +555,7 @@ export class ChartTheme {
                     enabled: true,
                     color: 'white',
                     fontStyle: undefined,
-                    fontWeight: 'bold',
+                    fontWeight: BOLD,
                     fontSize: 12,
                     fontFamily: ChartTheme.fontFamily,
                     padding: 2,
@@ -575,7 +573,7 @@ export class ChartTheme {
                     large: {
                         enabled: true,
                         fontStyle: undefined,
-                        fontWeight: 'bold',
+                        fontWeight: BOLD,
                         fontSize: 18,
                         fontFamily: ChartTheme.fontFamily,
                         color: 'white',
@@ -584,7 +582,7 @@ export class ChartTheme {
                     medium: {
                         enabled: true,
                         fontStyle: undefined,
-                        fontWeight: 'bold',
+                        fontWeight: BOLD,
                         fontSize: 14,
                         fontFamily: ChartTheme.fontFamily,
                         color: 'white',
@@ -593,7 +591,7 @@ export class ChartTheme {
                     small: {
                         enabled: true,
                         fontStyle: undefined,
-                        fontWeight: 'bold',
+                        fontWeight: BOLD,
                         fontSize: 10,
                         fontFamily: ChartTheme.fontFamily,
                         color: 'white',
@@ -614,11 +612,10 @@ export class ChartTheme {
         },
     };
 
-    private static readonly defaults: ChartThemeDefaults = {
-        cartesian: ChartTheme.cartesianDefaults,
-        groupedCategory: ChartTheme.cartesianDefaults,
-        polar: ChartTheme.polarDefaults,
-        hierarchy: ChartTheme.hierarchyDefaults,
+    private static readonly defaults: AgChartThemeOverrides = {
+        ...ChartTheme.cartesianDefaults,
+        ...ChartTheme.polarDefaults,
+        ...ChartTheme.hierarchyDefaults,
     };
 
     constructor(options?: AgChartThemeOptions) {
@@ -664,7 +661,7 @@ export class ChartTheme {
         this.config = Object.freeze(defaults);
     }
 
-    private createChartConfigPerChartType(config: ChartThemeDefaults) {
+    private createChartConfigPerChartType(config: AgChartThemeOverrides) {
         const typeToAliases = {
             cartesian: CHART_TYPES.cartesianTypes,
             polar: CHART_TYPES.polarTypes,
@@ -676,7 +673,7 @@ export class ChartTheme {
             const typeDefaults = this.templateTheme(getChartDefaults(type)) as any;
 
             aliases.forEach((next) => {
-                const alias = next as keyof ChartThemeDefaults;
+                const alias = next as keyof AgChartThemeOverrides;
                 if (!config[alias]) {
                     config[alias] = deepMerge({}, config[type]);
                     deepMerge(config[alias], typeDefaults);
@@ -687,7 +684,7 @@ export class ChartTheme {
         return config as AgChartThemeOverrides;
     }
 
-    protected getDefaults(): ChartThemeDefaults {
+    protected getDefaults(): AgChartThemeOverrides {
         const defaults = deepMerge({}, ChartTheme.defaults);
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
             const result = this.templateTheme(getChartDefaults(chartType)) as any;
@@ -780,9 +777,9 @@ export class ChartTheme {
     }
 
     protected mergeWithParentDefaults(
-        parentDefaults: ChartThemeDefaults,
-        defaults: ChartThemeDefaults
-    ): ChartThemeDefaults {
+        parentDefaults: AgChartThemeOverrides,
+        defaults: AgChartThemeOverrides
+    ): AgChartThemeOverrides {
         return deepMerge(parentDefaults, defaults);
     }
 }

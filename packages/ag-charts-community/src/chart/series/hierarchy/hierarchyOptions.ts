@@ -13,15 +13,11 @@ export interface AgBaseHierarchyChartOptions {
     contextMenu?: AgContextMenuOptions;
 }
 
-export interface AgBaseHierarchyThemeOptions<S = AgHierarchySeriesTheme> {
+export interface AgBaseHierarchyThemeOptions<S> {
     /** Series configurations. */
     series?: S;
     /** Configuration for the chart legend. */
     legend?: AgHierarchyChartLegendOptions;
-}
-
-export interface AgHierarchySeriesTheme {
-    treemap?: AgTreemapSeriesOptions;
 }
 
 export interface AgHierarchyChartLegendOptions extends AgChartBaseLegendOptions {
