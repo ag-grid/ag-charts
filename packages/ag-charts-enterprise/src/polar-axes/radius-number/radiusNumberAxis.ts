@@ -96,8 +96,13 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
             return;
         }
 
-        const ticks = scale.ticks?.() || [];
-        ticks.sort((a, b) => b - a); // Apply grid styles starting from the largest arc
+        const domainTop = scale.getDomain?.()[1];
+        const ticks = (scale.ticks?.() || [])
+            .filter((tick) => tick !== domainTop) // Prevent outer tick being drawn behind polar line
+            .sort((a, b) => b - a); // Apply grid styles starting from the largest arc
+
+        const topRadius = scale.range[0];
+        const getRadius = (tick: number) => topRadius - scale.convert(tick);
 
         const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
             const style = gridStyle[index % gridStyle.length];
@@ -112,7 +117,7 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
 
             node.centerX = 0;
             node.centerY = 0;
-            node.radius = scale.convert(value);
+            node.radius = getRadius(value);
             node.startAngle = 0;
             node.endAngle = 2 * Math.PI;
         });
@@ -127,7 +132,7 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
                 return;
             }
 
-            const radius = scale.convert(value);
+            const radius = getRadius(value);
             angles.forEach((angle, i) => {
                 const x = radius * Math.cos(angle);
                 const y = radius * Math.sin(angle);
