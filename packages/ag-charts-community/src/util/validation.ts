@@ -146,11 +146,23 @@ export const OPT_COLOR_STRING_ARRAY = predicateWithMessage(
     `expecting an optional Array of color strings. ${colorMessage}`
 );
 
+function numberMessage(prefix = `expecting a finite Number`, min?: number, max?: number) {
+    let message = prefix;
+
+    if (min !== undefined && max !== undefined) {
+        message += ` between ${min} and ${max} inclusive`;
+    } else if (min !== undefined) {
+        message += ` greater than or equal to ${min}`;
+    } else if (max !== undefined) {
+        message += ` less than or equal to ${max}`;
+    }
+
+    return message;
+}
+
 export function NUMBER(min?: number, max?: number) {
-    const message = `expecting a finite Number${
-        (min !== undefined ? ', more than or equal to ' + min : '') +
-        (max !== undefined ? ', less than or equal to ' + max : '')
-    }`;
+    const message = numberMessage(undefined, min, max);
+
     return predicateWithMessage(
         (v: any) =>
             typeof v === 'number' &&
@@ -161,19 +173,14 @@ export function NUMBER(min?: number, max?: number) {
     );
 }
 export function OPT_NUMBER(min?: number, max?: number) {
-    const message = `expecting an optional finite Number${
-        (min !== undefined ? ', more than or equal to ' + min : '') +
-        (max !== undefined ? ', less than or equal to ' + max : '')
-    }`;
+    const message = numberMessage('expecting an optional finite Number', min, max);
+
     return predicateWithMessage((v: any, ctx) => OPTIONAL(v, ctx, NUMBER(min, max)), message);
 }
 
 export function NUMBER_OR_NAN(min?: number, max?: number) {
     // Can be NaN or finite number
-    const message = `expecting a finite Number${
-        (min !== undefined ? ', more than or equal to ' + min : '') +
-        (max !== undefined ? ', less than or equal to ' + max : '')
-    }`;
+    const message = numberMessage(undefined, min, max);
 
     return predicateWithMessage(
         (v: any) =>
