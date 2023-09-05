@@ -474,9 +474,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(): any[] {
-        const { data, xKey, yKey } = this;
+        const { data, dataModel, xKey, yKey } = this;
 
-        if (!(data?.length && xKey && yKey)) {
+        if (!(data?.length && xKey && yKey && dataModel)) {
             return [];
         }
 
@@ -484,7 +484,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         if (colorKey) {
             let colorDomain = this.colorDomain;
             if (!colorDomain) {
-                const colorKeyIdx = this.dataModel!.resolveProcessedDataIndexById(this, 'colorValue').index;
+                const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
                 colorDomain = this.processedData!.domain.values[colorKeyIdx];
             }
             return [
