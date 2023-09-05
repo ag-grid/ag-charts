@@ -11,7 +11,7 @@ enum GroupTags {
 
 export class BoxPlotGroup extends _Scene.Group {
     constructor() {
-        super({ layer: true });
+        super();
         this.append([
             new _Scene.Rect({ tag: GroupTags.Box }),
             new _Scene.Rect({ tag: GroupTags.Box }),
@@ -49,42 +49,42 @@ export class BoxPlotGroup extends _Scene.Group {
         const whiskers = selection.selectByTag<_Scene.Line>(GroupTags.Whisker);
         const caps = selection.selectByTag<_Scene.Line>(GroupTags.Cap);
 
-        outline.setStyles({ x: q1Value, y: yValue, width: q3Value - q1Value, height: bandwidth });
+        outline.setProperties({ x: q1Value, y: yValue, width: q3Value - q1Value, height: bandwidth });
 
-        boxes[0].setStyles({
+        boxes[0].setProperties({
             x: q1Value,
             y: yValue,
             width: Math.round(medianValue - q1Value + strokeWidth / 2),
             height: bandwidth,
         });
 
-        boxes[1].setStyles({
+        boxes[1].setProperties({
             x: Math.round(medianValue - strokeWidth / 2),
             y: yValue,
             width: Math.floor(q3Value - medianValue + strokeWidth / 2),
             height: bandwidth,
         });
 
-        median.setStyles({
+        median.setProperties({
             x: medianValue,
             y1: yValue + strokeWidth,
             y2: yValue + bandwidth - strokeWidth,
         });
 
-        const capSize = 0.5;
-        const capY1 = yValue + bandwidth * capSize * 0.5;
-        const capY2 = yValue + bandwidth * capSize * 1.5;
+        const capLengthRatio = 0.5; // TODO extract value from user input
+        const capY1 = yValue + (bandwidth * (1 - capLengthRatio)) / 2;
+        const capY2 = yValue + (bandwidth * (1 + capLengthRatio)) / 2;
 
-        caps[0].setStyles({ x: minValue, y1: capY1, y2: capY2 });
-        caps[1].setStyles({ x: maxValue, y1: capY1, y2: capY2 });
+        caps[0].setProperties({ x: minValue, y1: capY1, y2: capY2 });
+        caps[1].setProperties({ x: maxValue, y1: capY1, y2: capY2 });
 
-        whiskers[0].setStyles({
+        whiskers[0].setProperties({
             x1: Math.round(minValue + strokeWidth / 2),
             x2: q1Value,
             y: yValue + bandwidth * 0.5,
         });
 
-        whiskers[1].setStyles({
+        whiskers[1].setProperties({
             x1: q3Value,
             x2: Math.round(maxValue - strokeWidth / 2),
             y: yValue + bandwidth * 0.5,
@@ -92,20 +92,12 @@ export class BoxPlotGroup extends _Scene.Group {
 
         // fill only elements
         for (const element of boxes) {
-            element.fill = fill;
-            element.fillOpacity = fillOpacity;
-            element.strokeWidth = strokeWidth * 2;
-            element.strokeOpacity = 0;
+            element.setProperties({ fill, fillOpacity, strokeWidth: strokeWidth * 2, strokeOpacity: 0 });
         }
 
         // stroke only elements
         for (const element of [outline, median, ...whiskers, ...caps]) {
-            element.fillOpacity = 0;
-            element.stroke = stroke;
-            element.strokeWidth = strokeWidth;
-            element.strokeOpacity = strokeOpacity;
-            element.lineDash = lineDash;
-            element.lineDashOffset = lineDashOffset;
+            element.setProperties({ stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, fillOpacity: 0 });
         }
     }
 }

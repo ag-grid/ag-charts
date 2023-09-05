@@ -135,10 +135,11 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     async createNodeData() {
-        const { visible, dataModel } = this;
-
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
+        const {
+            visible,
+            dataModel,
+            axes: { [ChartAxisDirection.X]: xAxis, [ChartAxisDirection.Y]: yAxis },
+        } = this;
 
         if (!(dataModel && visible && xAxis && yAxis)) {
             return [];
@@ -151,9 +152,8 @@ export class BoxPlotSeries extends CartesianSeries<
             stroke,
             strokeWidth,
             strokeOpacity,
-            lineDash,
+            lineDash = [],
             lineDashOffset,
-            processedData,
         } = this;
 
         const context: _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum> = {
@@ -162,47 +162,40 @@ export class BoxPlotSeries extends CartesianSeries<
             labelData: [],
         };
 
-        const yValueIndex = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const minValueIndex = dataModel.resolveProcessedDataIndexById(this, `minValue`).index;
-        const q1ValueIndex = dataModel.resolveProcessedDataIndexById(this, `q1Value`).index;
-        const medianValueIndex = dataModel.resolveProcessedDataIndexById(this, `medianValue`).index;
-        const q3ValueIndex = dataModel.resolveProcessedDataIndexById(this, `q3Value`).index;
-        const maxValueIndex = dataModel.resolveProcessedDataIndexById(this, `maxValue`).index;
+        const defs = dataModel.resolveProcessedDataDefsByIds(this, [
+            'yValue',
+            'minValue',
+            'q1Value',
+            `medianValue`,
+            `q3Value`,
+            `maxValue`,
+        ]);
 
-        processedData?.data.forEach(({ keys, datum: seriesDatum, values }, dataIndex) => {
-            const yValue = keys[yValueIndex];
-            const minValue = values[minValueIndex];
-            const q1Value = values[q1ValueIndex];
-            const medianValue = values[medianValueIndex];
-            const q3Value = values[q3ValueIndex];
-            const maxValue = values[maxValueIndex];
+        this.processedData?.data.forEach(({ datum, keys, values }, index) => {
+            const { yValue, minValue, q1Value, medianValue, q3Value, maxValue } =
+                dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
 
             if (minValue > q1Value || q1Value > medianValue || medianValue > q3Value || q3Value > maxValue) {
                 return;
             }
 
             const nodeData: BoxPlotNodeDatum = {
-                index: dataIndex,
-                datum: seriesDatum,
                 series: this,
                 itemId: yKey,
                 xKey: '',
                 xValue: 0,
+                bandwidth: yAxis.scale.bandwidth ?? 0,
+                ...this.convertValuesToScaleByDefs(defs, { yValue, minValue, q1Value, medianValue, q3Value, maxValue }),
+                datum,
+                index,
                 yKey,
                 fill,
                 fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
-                lineDash: lineDash ?? [0],
+                lineDash,
                 lineDashOffset,
-                bandwidth: yAxis.scale.bandwidth ?? 0,
-                yValue: Math.round(yAxis.scale.convert(yValue, { strict: false })),
-                minValue: Math.round(xAxis.scale.convert(minValue, { strict: false })),
-                q1Value: Math.round(xAxis.scale.convert(q1Value, { strict: false })),
-                medianValue: Math.round(xAxis.scale.convert(medianValue, { strict: false })),
-                q3Value: Math.round(xAxis.scale.convert(q3Value, { strict: false })),
-                maxValue: Math.round(xAxis.scale.convert(maxValue, { strict: false })),
             };
 
             context.nodeData.push(nodeData);
@@ -215,8 +208,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return [];
     }
 
-    // @ts-ignore
-    getTooltipHtml(seriesDatum: any): string {
+    getTooltipHtml(_seriesDatum: any): string {
         return '';
     }
 
@@ -242,9 +234,8 @@ export class BoxPlotSeries extends CartesianSeries<
         });
     }
 
-    // @ts-ignore
-    protected async updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, _ModuleSupport.SeriesNodeDataContext<any>>;
+    protected async updateLabelNodes(_opts: {
+        labelSelection: _Scene.Selection<_Scene.Text, BoxPlotNodeDatum>;
         seriesIdx: number;
     }) {}
 
@@ -263,5 +254,23 @@ export class BoxPlotSeries extends CartesianSeries<
 
     getBandScalePadding() {
         return { inner: 0.2, outer: 0.3 };
+    }
+
+    convertValuesToScaleByDefs<T extends string>(
+        defs: [string, _ModuleSupport.ProcessedDataDef[]][],
+        values: Record<T, unknown>
+    ): Record<T, number> {
+        const { [ChartAxisDirection.X]: xAxis, [ChartAxisDirection.Y]: yAxis } = this.axes;
+        if (!(xAxis && yAxis)) {
+            throw new Error('Axes must be defined');
+        }
+        const result: Record<string, number> = {};
+        for (const [searchId, [{ def }]] of defs) {
+            if (Object.prototype.hasOwnProperty.call(values, searchId)) {
+                const { scale } = def.type === 'key' ? yAxis : xAxis;
+                result[searchId] = Math.round(scale.convert((values as any)[searchId], { strict: false }));
+            }
+        }
+        return result;
     }
 }
