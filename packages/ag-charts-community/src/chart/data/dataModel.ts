@@ -36,6 +36,11 @@ export interface UngroupedData<D> {
 
 type GroupedDataItem<D> = UngroupedDataItem<D[], any[][]> & { area?: number };
 
+export interface ProcessedDataDef {
+    index: number;
+    def: PropertyDefinition<any>;
+}
+
 export interface GroupedData<D> {
     type: 'grouped';
     data: GroupedDataItem<D>[];
@@ -307,32 +312,43 @@ export class DataModel<
         }
     }
 
-    resolveProcessedDataIndexById(
-        scope: ScopeProvider,
-        searchId: string
-    ): { index: number; def: PropertyDefinition<any> } | never {
+    resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
         const { index, def } = this.resolveProcessedDataDefById(scope, searchId) ?? {};
         return { index, def };
     }
 
-    resolveProcessedDataIndicesById(
-        scope: ScopeProvider,
-        searchId: string | RegExp
-    ): { index: number; def: PropertyDefinition<any> }[] | never {
+    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string | RegExp): ProcessedDataDef[] | never {
         return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ index, def }));
     }
 
-    resolveProcessedDataDefById(
-        scope: ScopeProvider,
-        searchId: string
-    ): { index: number; def: PropertyDefinition<any> } | never {
+    resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
         return this.resolveProcessedDataDefsById(scope, searchId)[0];
     }
 
-    resolveProcessedDataDefsById(
-        searchScope: ScopeProvider,
-        searchId: RegExp | string
-    ): { index: number; def: PropertyDefinition<any> }[] | never {
+    resolveProcessedDataDefsByIds<T extends string>(
+        scope: ScopeProvider,
+        searchIds: T[]
+    ): [T, ProcessedDataDef[]][] | never {
+        const defs: [T, ProcessedDataDef[]][] = [];
+        for (const searchId of searchIds) {
+            defs.push([searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
+        }
+        return defs;
+    }
+
+    resolveProcessedDataDefsValues<T extends string>(
+        defs: [T, ProcessedDataDef[]][],
+        { keys, values }: { keys: unknown[]; values: unknown[] }
+    ): Record<T, any> {
+        const result: Record<string, any> = {};
+        for (const [searchId, [{ index, def }]] of defs) {
+            const processedData = def.type === 'key' ? keys : values;
+            result[searchId] = processedData[index];
+        }
+        return result;
+    }
+
+    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: RegExp | string): ProcessedDataDef[] | never {
         const { keys, values, aggregates, groupProcessors, reducers } = this;
 
         const match = (prop: PropertyDefinition<any> & InternalDefinition) => {
@@ -354,7 +370,7 @@ export class DataModel<
             groupProcessors,
             reducers,
         ];
-        const result: { index: number; def: PropertyDefinition<any> }[] = [];
+        const result: ProcessedDataDef[] = [];
         for (const defs of allDefs) {
             result.push(...defs.filter(match).map((def) => ({ index: def.index, def })));
         }

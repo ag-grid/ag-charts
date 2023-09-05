@@ -1,6 +1,6 @@
 import { Shape } from './shape';
 import { BBox } from '../bbox';
-import type { RenderContext } from '../node';
+import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 
 export class Range extends Shape {
@@ -11,8 +11,8 @@ export class Range extends Shape {
         strokeWidth: 1,
     };
 
-    constructor() {
-        super();
+    constructor(opts: NodeOptions = {}) {
+        super(opts);
         this.restoreOwnStyles();
     }
 

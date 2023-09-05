@@ -1,6 +1,6 @@
 import { Shape } from './shape';
 import { BBox } from '../bbox';
-import type { RenderContext } from '../node';
+import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 
 export class Line extends Shape {
@@ -11,8 +11,8 @@ export class Line extends Shape {
         strokeWidth: 1,
     });
 
-    constructor() {
-        super();
+    constructor(opts: NodeOptions = {}) {
+        super(opts);
         this.restoreOwnStyles();
     }
 
@@ -27,6 +27,16 @@ export class Line extends Shape {
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     y2: number = 0;
+
+    set x(value: number) {
+        this.x1 = value;
+        this.x2 = value;
+    }
+
+    set y(value: number) {
+        this.y1 = value;
+        this.y2 = value;
+    }
 
     computeBBox(): BBox {
         return new BBox(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);

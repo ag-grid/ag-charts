@@ -31,6 +31,11 @@ export type RenderContext = {
     debugNodes: Record<string, Node>;
 };
 
+export interface NodeOptions {
+    isVirtual?: boolean;
+    tag?: number;
+}
+
 const zIndexChangedCallback = (o: any) => {
     if (o.parent) {
         o.parent.dirtyZIndex = true;
@@ -90,7 +95,7 @@ export abstract class Node extends ChangeDetectable {
      * Some number to identify this node, typically within a `Group` node.
      * Usually this will be some enum value used as a selector.
      */
-    tag: number = NaN;
+    tag: number;
 
     /**
      * To simplify the type system (especially in Selections) we don't have the `Parent` node
@@ -313,9 +318,10 @@ export abstract class Node extends ChangeDetectable {
     @SceneChangeDetection({ type: 'transform' })
     translationY: number = 0;
 
-    constructor({ isVirtual }: { isVirtual?: boolean } = {}) {
+    constructor({ isVirtual, tag }: NodeOptions = {}) {
         super();
         this.isVirtual = isVirtual ?? false;
+        this.tag = tag ?? NaN;
     }
 
     containsPoint(_x: number, _y: number): boolean {
