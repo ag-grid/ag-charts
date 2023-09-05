@@ -6,7 +6,7 @@ describe.each([
     { fileName: 'multi.word.script.js', output: 'text/javascript' },
     { fileName: 'something.someWeirdFileExt', output: 'text/plain' },
     { fileName: 'something', output: 'text/plain' },
-])('addNonBreakingSpaceBetweenLastWords', ({ fileName, output }) => {
+])('fileNameToMimeType', ({ fileName, output }) => {
     it(`${fileName} outputs ${output}`, () => {
         expect(fileNameToMimeType(fileName)).toEqual(output);
     });
