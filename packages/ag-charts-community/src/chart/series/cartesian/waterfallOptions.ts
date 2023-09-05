@@ -52,11 +52,9 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
     direction?: 'horizontal' | 'vertical';
     /** The key to use to retrieve x-values from the data. */
-    xKey?: string;
+    xKey: string;
     /** The key to use to retrieve y-values from the data. */
-    yKey?: string;
-    /** The key to use to retrieve type-values from the data. */
-    typeKey?: string;
+    yKey: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -74,8 +72,6 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     };
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
-    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
-    title?: string;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
@@ -95,7 +91,7 @@ export interface WaterfallSeriesTotalMeta {
 }
 
 export interface AgWaterfallSeriesItemOptions<DatumType> {
-    /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A human-readable description of the y-values. If supplied, this will be shown in the default legend and tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */
     label?: AgWaterfallSeriesLabelOptions;
