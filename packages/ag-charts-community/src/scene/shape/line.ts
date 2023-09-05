@@ -42,8 +42,9 @@ export class Line extends Shape {
         return new BBox(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
     }
 
-    isPointInPath(_x: number, _y: number): boolean {
-        return false;
+    isPointInPath(px: number, py: number): boolean {
+        const { x, y } = this.transformPoint(px, py);
+        return this.computeBBox().grow(this.strokeWidth).containsPoint(x, y);
     }
 
     render(renderCtx: RenderContext) {
