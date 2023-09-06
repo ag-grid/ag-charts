@@ -3,11 +3,11 @@ title: 'Range Bar Series'
 enterprise: true
 ---
 
-A Range Bar series displays both the high and low values within the data using bars or columns. This series type is used to monitor how consistent or variable the data is.
+A Range Bar Series displays both the high and low values within the data using vertical or horizontal bars. This series type is used to monitor how consistent or variable the data is.
 
-## Range Column
+## Simple Range Bar
 
-To create a basic Range Column chart, use the `range-bar` series type and specify the `xKey`, `yLowKey` and `yHighKey` properties:
+To create a Simple Range Bar Series, use the `range-bar` series type:
 
 ```js
 series: [
@@ -20,22 +20,23 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Basic Range Column" name="basic-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
+The `xKey` is used to extract x-axis values from the data, while the `yLowKey` and `yHighKey` supply the numerical values for the y-axis.
 
-## Range Column Labels
+The following example shows a Simple Range Bar Series using default options.
 
-It's possible to add labels to the range columns, by adding the following to the series config:
+{% chartExampleRunner title="Simple Range Bar" name="simple-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Labels
+
+To display labels for the `yHighKey` and `yLowKey` values of each bar, set `label.enabled` to true.
 
 ```js
 label: {
+    enabled: true;
 }
 ```
 
-By default, a label will be shown for the `yHighKey` value and `yLowKey` value of each column.
-
-In the snippet below, a label formatter is used to return the integer part of the data value to display as the column labels.
-
--   The params object passed into the formatter includes an `itemId` which can be used to identify whether the value is a `high` or a `low` value:
+A label formatter can be used to customise the displayed labels.
 
 ```js
 label: {
@@ -45,45 +46,46 @@ label: {
 }
 ```
 
-The formatter above creates labels as seen in the provided example:
+In the provided snippet:
+
+-   The formatter converts the data value to an integer for displaying as bar labels.
+-   The params object passed into the formatter includes an `itemId` which is used to identify whether the value is a `high` or a `low` value.
+
+This configuration generates labels as shown in the example below.
+
 {% chartExampleRunner title="Range Column Label" name="range-bar-labels" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Multiple Range Column Series
+## Multiple Range Bar Series
 
-It is possible to combine multiple range column series into a single chart.
+Multiple Range Bar Series can be combined into a single chart.
 
-Note that in the example below we:
+Note the example below:
 
--   Set the category axis `groupPaddingInner` to `0` to close the gap between the two series
--   Use `yName` to control the text that the legend displays
--   Use `yLowName` and `yHighName` to control the text that the tooltip displays
+-   Sets the category axis `groupPaddingInner` to `0` to close the gap between the two series
+-   Uses `yName` to control the text that the legend displays
+-   Uses `yLowName` and `yHighName` to control the text that the tooltip displays
 
-{% chartExampleRunner title="Multiple Range Column Series" name="multiple-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Multiple Range Bar Series" name="multiple-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Missing Data
 
-Sometimes data for certain items or time periods might be missing.
+The series handles missing or invalid data based on the presence or validity of `xKey`, `yLowKey` and `yHighKey` values in a data object.
 
-The chart handles such cases based on whether the `xKey` or `yKey` value of a data point is missing or invalid.
+-   The `yLowKey` and `yHighKey` values in a data object are considered invalid if they are `+/-Infinity`, `null`, `undefined` or non-numeric.
+-   If the x-axis is continuous (either a `'time'` or `'number'` axis), the `xKey` value is also considered invalid if it’s `+/-Infinity`, `null`, `undefined` or `NaN`.
+-   Data entries with invalid `yLowKey`, `yHighKey`, or `xKey` values will result in gaps in the series.
 
-The `yLowKey` and `yHighKey` values of a data point are invalid if they are `+/-Infinity`, `null`, `undefined` or not a number. A data point with an invalid `yLowKey` or `yHighKey` value will be rendered as a gap in the series.
+The following example demonstrates how missing data is handled in the context of a continuous time x-axis:
 
-The chart handles missing `xKey` values depending on the X-axis type:
-
--   For continuous X axes (either a `'time'` or `'number'` axis), the `xKey` value of a data point is invalid if it’s `+/-Infinity`, `null`, `undefined` or `NaN`. In this case the data point will be skipped altogether.
--   For category X axes the data point will not be skipped. It will be rendered as a category along the X axis.
-
-The following example demonstrates how missing data is handled for a continuous X axis type (time axis):
-
--   Initially there is no missing data, all values are valid for their associated axes.
--   Click the Missing Y values button and note that if either of the Y low or high values are missing, the data point is rendered as a gap in the chart.
--   Click the Missing X value button and note that a missing X value on a continuous X axis is skipped.
+-   Initially all data is complete and valid for their respective axes.
+-   Click the **Missing Y values** button and note that if either of the Y low or high values are missing, the data point is rendered as a gap in the series.
+-   Click the **Missing X value** button and note that a missing X value on a continuous x-axis is skipped.
 
 {% chartExampleRunner title="Range Column Missing Data" name="range-bar-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Range Bar
+## Horizontal Range Bar
 
-To create a basic Range Bar chart, use the `range-bar` series type and specify the `direction`, `xKey`, `yLowKey` and `yHighKey` properties:
+To create a Horizontal Range Bar chart, set `direction: 'horizontal'`.
 
 ```js
 series: [
@@ -97,19 +99,21 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Basic Range Bar" name="basic-range-bar-horizontal" type="generated" options="{ \"enterprise\": true }" /%}
+When the `direction` is `'horizontal'` the `xKey` will determine categories on the y-axis, while the `yLowKey` and `yHighKey` will be used to provide numerical values along the x-axis.
 
-## Multiple Range Bar Series
+{% chartExampleRunner title="Horizontal Range Bar" name="horizontal-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
 
-It is possible to combine multiple range bar series into a single chart.
+## Multiple Horizontal Range Bar Series
 
-Note that in the example below we:
+Multiple Horizontal Range Bar Series can be combined into a single chart.
 
--   Set the category axis `groupPaddingInner` to `0` to close the gap between the two series
--   Use `yName` to control the text that the legend displays
--   Use `yLowName` and `yHighName` to control the text that the tooltip displays
+Note the example below:
 
-{% chartExampleRunner title="Multiple Range Bar Series" name="multiple-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
+-   Sets the category axis `groupPaddingInner` to `0` to close the gap between the two series
+-   Uses `yName` to control the text that the legend displays
+-   Uses `yLowName` and `yHighName` to control the text that the tooltip displays
+
+{% chartExampleRunner title="Multiple Horizontal Range Bar Series" name="multiple-horizontal-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 
