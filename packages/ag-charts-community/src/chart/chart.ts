@@ -782,7 +782,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             series.directions.forEach((direction) => {
                 const directionAxes = directionToAxesMap[direction];
                 if (!directionAxes) {
-                    Logger.warnOnce(`no available axis for direction [${direction}]; check series and axes configuration.`);
+                    Logger.warnOnce(
+                        `no available axis for direction [${direction}]; check series and axes configuration.`
+                    );
                     return;
                 }
 
