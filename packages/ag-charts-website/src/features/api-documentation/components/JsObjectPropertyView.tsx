@@ -52,7 +52,7 @@ function HeadingPath({ path }: { path: string[] }) {
 
 function NameHeading({ id, name, path }: { id: string; name: string; path: string[] }) {
     const displayNameSplit = splitName(name);
-    const pathSeparator = path.length > 0 ? '.' : '';
+    const pathSeparator = name && path.length > 0 ? '.' : '';
 
     return (
         <h6 id={id} className={classnames(styles.name, 'side-menu-exclude')}>
