@@ -457,7 +457,7 @@ export function getLongestNameLength(nameWithBreaks) {
 /**
  * Split display name on capital letter, add <wbr> to improve text splitting across lines
  */
-export function splitName(name: string) {
+export function splitName(name?: string) {
     if (!name) {
         return name;
     }

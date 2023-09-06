@@ -50,7 +50,7 @@ function HeadingPath({ path }: { path: string[] }) {
     );
 }
 
-function NameHeading({ id, name, path }: { id: string; name: string; path: string[] }) {
+function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
     const displayNameSplit = splitName(name);
     const pathSeparator = name && path.length > 0 ? '.' : '';
 
@@ -59,7 +59,7 @@ function NameHeading({ id, name, path }: { id: string; name: string; path: strin
             <HeadingPath path={path} />
             <span>
                 {pathSeparator}
-                <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>
+                {displayNameSplit && <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>}
             </span>
             <a href={`#${id}`} className="docs-header-icon">
                 <Icon name="link" />
@@ -151,7 +151,7 @@ function NestedObjectProperties({
     properties,
     framework,
 }: {
-    parentName: string;
+    parentName?: string;
     parentPath: string[];
     properties: JsonModel['properties'];
     framework: Framework;
@@ -186,7 +186,7 @@ function NestedObjectPropertyView({
     framework,
 }: {
     id: string;
-    name: string;
+    name?: string;
     path: string[];
     model: JsonModelProperty;
     framework: Framework;
@@ -431,7 +431,7 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
             return (
                 <NestedObjectPropertyView
                     id={id}
-                    name={name}
+                    // NOTE: No `name`, as it's a union nested object
                     path={nestedObjectPath}
                     model={nestedObjectModel}
                     framework={framework}
