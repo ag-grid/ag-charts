@@ -91,7 +91,7 @@ export function areaAnimateEmptyUpdateReady<
     contextData.forEach(({ fillData, strokeData }, seriesIdx) => {
         const [fill, stroke] = paths[seriesIdx];
 
-        const duration = ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = ctx.animationManager.defaultDuration();
         const markerDuration = 200;
 
         const animationOptions = {
@@ -115,7 +115,7 @@ export function areaAnimateEmptyUpdateReady<
             stroke.lineDash = lineDash;
             stroke.lineDashOffset = lineDashOffset;
 
-            ctx.animationManager?.animate<number>(`${seriesId}_empty-update-ready_stroke_${seriesIdx}`, {
+            ctx.animationManager.animate<number>(`${seriesId}_empty-update-ready_stroke_${seriesIdx}`, {
                 ...animationOptions,
                 onUpdate(xValue) {
                     stroke.path.clear({ trackChanges: true });
@@ -173,7 +173,7 @@ export function areaAnimateEmptyUpdateReady<
             fill.lineDashOffset = lineDashOffset;
             fill.fillShadow = shadow;
 
-            ctx.animationManager?.animate<number>(`${seriesId}_empty-update-ready_fill_${seriesIdx}`, {
+            ctx.animationManager.animate<number>(`${seriesId}_empty-update-ready_fill_${seriesIdx}`, {
                 ...animationOptions,
                 onUpdate(xValue) {
                     fill.path.clear({ trackChanges: true });
@@ -237,7 +237,7 @@ export function areaAnimateEmptyUpdateReady<
                 getFormatterParams,
             });
 
-            ctx.animationManager?.animate<number>(`${seriesId}_empty-update-ready_${marker.id}`, {
+            ctx.animationManager.animate<number>(`${seriesId}_empty-update-ready_${marker.id}`, {
                 ...animationOptions,
                 to: format?.size ?? datum.point?.size ?? 0,
                 delay,
@@ -250,7 +250,7 @@ export function areaAnimateEmptyUpdateReady<
 
         labelSelections[seriesIdx].each((label, datum) => {
             const delay = seriesRect?.width ? (datum.x / seriesRect.width) * duration : 0;
-            ctx.animationManager?.animate(`${seriesId}_empty-update-ready_${label.id}`, {
+            ctx.animationManager.animate(`${seriesId}_empty-update-ready_${label.id}`, {
                 from: 0,
                 to: 1,
                 delay,

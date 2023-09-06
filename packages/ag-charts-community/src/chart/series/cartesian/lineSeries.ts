@@ -144,7 +144,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
-        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
             props.push(diff(this.processedData));
         }
 
@@ -533,7 +533,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             lineNode.lineDash = this.lineDash;
             lineNode.lineDashOffset = this.lineDashOffset;
 
-            const duration = animationData.duration ?? this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+            const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration();
             const markerDuration = 200;
 
             const animationOptions = {
@@ -541,7 +541,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 to: lineLength,
             };
 
-            this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
                 ...animationOptions,
                 duration,
                 onUpdate(length) {
@@ -585,7 +585,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 const size = datum.point?.size ?? 0;
                 marker.opacity = 1;
 
-                this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready_${marker.id}`, {
+                this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${marker.id}`, {
                     ...animationOptions,
                     to: format?.size ?? size,
                     delay,
@@ -598,7 +598,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
             labelSelections[contextDataIndex].each((label, _, index) => {
                 const delay = (nodeLengths[index] / lineLength) * duration;
-                this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay,
@@ -722,11 +722,11 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 }
             }
 
-            const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+            const duration = this.ctx.animationManager.defaultDuration();
             const markerFormats: Record<string, AgCartesianSeriesMarkerFormat | undefined> = {};
 
             // Animate all nodes using a single animation to ensure the line is drawn correctly from node to node
-            this.ctx.animationManager?.animate<number>(`${this.id}_waiting-update-ready`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready`, {
                 from: 0,
                 to: 1,
                 duration,
@@ -950,7 +950,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     protected animateClearingUpdateEmpty(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
 
-        const updateDuration = (this.ctx.animationManager?.defaultOptions.duration ?? 1000) / 2;
+        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
         const clearDuration = 200;
 
         contextData.forEach((_, contextDataIndex) => {

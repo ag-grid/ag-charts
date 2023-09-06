@@ -196,7 +196,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
         }
 
-        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
 
@@ -654,7 +654,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
 
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
@@ -680,7 +680,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     { from: contextHeight, to: datum.height },
                 ];
 
-                this.ctx.animationManager?.animateMany(`${this.id}_empty-update-ready_${rect.id}`, props, {
+                this.ctx.animationManager.animateMany(`${this.id}_empty-update-ready_${rect.id}`, props, {
                     duration,
                     ease: easing.easeOut,
                     onUpdate([x, width, y, height]) {
@@ -695,7 +695,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         labelSelections.forEach((labelSelection) => {
             labelSelection.each((label) => {
-                this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay: duration,
@@ -729,7 +729,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return;
         }
 
-        const totalDuration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const totalDuration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
 
         let sectionDuration = totalDuration;
@@ -790,26 +790,22 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     cleanup = true;
                 }
 
-                this.ctx.animationManager?.animateManyWithThrottle(
-                    `${this.id}_waiting-update-ready_${rect.id}`,
-                    props,
-                    {
-                        delay,
-                        duration,
-                        ease: easing.easeOut,
-                        throttleId: `${this.id}_rects`,
-                        throttleGroup: rectThrottleGroup,
-                        onUpdate([x, width, y, height]) {
-                            rect.x = x;
-                            rect.width = width;
-                            rect.y = y;
-                            rect.height = height;
-                        },
-                        onComplete() {
-                            if (cleanup) datumSelection.cleanup();
-                        },
-                    }
-                );
+                this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${rect.id}`, props, {
+                    delay,
+                    duration,
+                    ease: easing.easeOut,
+                    throttleId: `${this.id}_rects`,
+                    throttleGroup: rectThrottleGroup,
+                    onUpdate([x, width, y, height]) {
+                        rect.x = x;
+                        rect.width = width;
+                        rect.y = y;
+                        rect.height = height;
+                    },
+                    onComplete() {
+                        if (cleanup) datumSelection.cleanup();
+                    },
+                });
             });
         });
 
@@ -817,7 +813,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             labelSelection.each((label) => {
                 label.opacity = 0;
 
-                this.ctx.animationManager?.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
+                this.ctx.animationManager.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay: totalDuration,

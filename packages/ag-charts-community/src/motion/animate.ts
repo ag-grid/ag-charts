@@ -2,9 +2,11 @@ import type { Easing } from './easing';
 import { linear } from './easing';
 
 export interface KeyframesOptions<T> {
+    /** Length of the animation in milliseconds. */
     duration: number;
     from: T;
     to: T;
+    /** Function with which to tween the value between `from` and `to`. See https://easings.net for examples. */
     ease?: Easing<T>;
 }
 
@@ -16,13 +18,18 @@ export enum RepeatType {
 export interface AnimationOptions<T> extends KeyframesOptions<T> {
     driver: Driver;
     autoplay?: boolean;
+    /** Time in milliseconds to wait before starting the animation. */
     delay?: number;
+    /** Number of times to repeat the animation before stopping. Set to `0` to disable repetition. */
     repeat?: number;
     repeatType?: RepeatType;
+    /** Called once when the animation is successfully completed, after all repetitions if any. */
     onComplete?: () => void;
     onPlay?: () => void;
     onRepeat?: () => void;
+    /** Called once when then animation successfully completes or is prematurely stopped. */
     onStop?: () => void;
+    /** Called once per frame with the tweened value between the `from` and `to` properties. */
     onUpdate?: (v: T) => void;
 }
 
@@ -141,45 +148,6 @@ export function animate<T = number>({
     }
 
     if (autoplay) play();
-
-    return controls;
-}
-
-export interface TweenOptions<T> extends KeyframesOptions<T> {
-    driver: Driver;
-}
-
-export interface TweenControls<T> {
-    start: (onUpdate?: (value: T) => void) => TweenControls<T>;
-    stop: () => TweenControls<T>;
-}
-
-export function tween<T>(opts: TweenOptions<T>): TweenControls<T> {
-    let handleUpdate: Function | undefined;
-
-    const animateOpts: AnimationOptions<T> = {
-        ...opts,
-        autoplay: false,
-        onUpdate: (value: T) => {
-            handleUpdate?.(value);
-        },
-    };
-
-    const animationControls = animate(animateOpts);
-
-    const controls = {
-        start: (onUpdate?: (value: T) => void) => {
-            animationControls.stop();
-            animationControls.reset();
-            animationControls.play();
-            handleUpdate = onUpdate;
-            return controls;
-        },
-        stop: () => {
-            animationControls.stop();
-            return controls;
-        },
-    };
 
     return controls;
 }

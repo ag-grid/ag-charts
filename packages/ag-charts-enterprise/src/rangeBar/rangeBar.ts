@@ -225,7 +225,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         const isContinuousY = this.getValueAxis()?.scale instanceof ContinuousScale;
 
         const animationProp = [];
-        if (!this.ctx.animationManager?.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
             animationProp.push(diff(this.processedData));
         }
 
@@ -751,7 +751,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager.defaultDuration();
 
         contextData.forEach((_, contextDataIndex) => {
             this.animateRects(datumSelections[contextDataIndex], duration);
@@ -762,7 +762,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number], duration: number) {
         const horizontal = this.getBarDirection() === ChartAxisDirection.X;
         datumSelection.each((rect, datum) => {
-            this.ctx.animationManager?.animateMany(
+            this.ctx.animationManager.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
                 [
                     {
@@ -805,7 +805,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             return;
         }
 
-        const totalDuration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const totalDuration = this.ctx.animationManager.defaultDuration();
         const labelDuration = totalDuration / 5;
 
         let sectionDuration = totalDuration;
@@ -871,34 +871,30 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
                     ];
                 }
 
-                this.ctx.animationManager?.animateManyWithThrottle(
-                    `${this.id}_waiting-update-ready_${rect.id}`,
-                    props,
-                    {
-                        duration,
-                        ease: Motion.easeOut,
-                        throttleId: `${this.id}_rects`,
-                        throttleGroup: rectThrottleGroup,
-                        onUpdate([x, width, y, height]) {
-                            rect.x = x;
-                            rect.width = width;
-                            rect.y = y;
-                            rect.height = height;
-                        },
-                        onComplete() {
-                            if (cleanup) datumSelection.cleanup();
-                        },
-                        onStop() {
-                            if (cleanup) datumSelection.cleanup();
-                        },
-                    }
-                );
+                this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${rect.id}`, props, {
+                    duration,
+                    ease: Motion.easeOut,
+                    throttleId: `${this.id}_rects`,
+                    throttleGroup: rectThrottleGroup,
+                    onUpdate([x, width, y, height]) {
+                        rect.x = x;
+                        rect.width = width;
+                        rect.y = y;
+                        rect.height = height;
+                    },
+                    onComplete() {
+                        if (cleanup) datumSelection.cleanup();
+                    },
+                    onStop() {
+                        if (cleanup) datumSelection.cleanup();
+                    },
+                });
             });
         });
 
         labelSelections.forEach((labelSelection) => {
             labelSelection.each((label) => {
-                this.ctx.animationManager?.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
+                this.ctx.animationManager.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
                     delay: totalDuration,
@@ -915,7 +911,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
     protected animateLabels(labelSelection: RangeBarAnimationData['labelSelections'][number], duration: number) {
         labelSelection.each((label) => {
-            this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
                 from: 0,
                 to: 1,
                 delay: duration,
