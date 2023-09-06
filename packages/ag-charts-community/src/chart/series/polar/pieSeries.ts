@@ -1734,6 +1734,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         const labelDuration = 200;
         const rotation = Math.PI / -2 + toRadians(this.rotation);
         const sectors = groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
+        const throttleGroup = `${this.id}_${Math.random()}`;
 
         const datumIndices: { [key: string]: number } = {};
         processedData?.data.forEach((d, index) => {
@@ -1776,7 +1777,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         sortedDatumIds.forEach((datumId, index) => {
             const sector = sectorsByDatum[datumId];
             const { datum } = sector;
-            const cleanup = index === sectors.length - 1;
+            // const cleanup = index === sectors.length - 1;
             const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
             const replacement = shiftedSectors[index];
 
@@ -1792,11 +1793,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 endAngleTo = startAngleTo;
             } else if (addedIds[datumId]) {
                 const previousSector = sectorsByDatum[sortedDatumIds[index - 1]];
-                const previousEndAngle = previousSector?.endAngle ?? rotation;
+                const nextSector = sectorsByDatum[sortedDatumIds[index + 1]];
 
-                startAngleFrom = previousEndAngle;
+                startAngleFrom = previousSector?.endAngle ?? rotation;
                 startAngleTo = datum.startAngle;
-                endAngleFrom = previousEndAngle;
+                endAngleFrom = nextSector?.startAngle ?? previousSector?.endAngle ?? rotation;
                 endAngleTo = datum.endAngle;
                 fillFrom = format.fill;
                 fillTo = format.fill;
@@ -1811,9 +1812,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 { from: sector.fillOpacity, to: format.fillOpacity },
             ];
 
-            this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${sector.id}`, props, {
+            this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${sector.id}`, props, {
                 duration,
                 ease: easing.easeOut,
+                throttleId: this.id,
+                throttleGroup,
                 onUpdate([startAngle, endAngle, fill, stroke, strokeWidth, fillOpacity]) {
                     sector.startAngle = startAngle;
                     sector.endAngle = endAngle;
@@ -1823,7 +1826,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                     sector.fillOpacity = fillOpacity;
                 },
                 onComplete: () => {
-                    if (cleanup) this.resetSectors();
+                    // TODO: Calling reset here causes a discrepancy between the data and the sectors, such that
+                    // sectors that were previously removed then shown do not get rendered.
+                    // if (cleanup) this.resetSectors();
                 },
             });
 
@@ -1911,9 +1916,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    resetSectors() {
-        const sectors = this.groupSelection.cleanup().selectByTag<Sector>(PieNodeTag.Sector);
-        this.sortSectorsByData(sectors);
+    async resetSectors() {
+        const sectors = this.sortSectorsByData(this.groupSelection.cleanup().selectByTag<Sector>(PieNodeTag.Sector));
 
         sectors.forEach((sector, index) => {
             const { datum } = sector;
