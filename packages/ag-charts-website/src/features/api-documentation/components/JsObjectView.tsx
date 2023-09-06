@@ -205,6 +205,22 @@ function Union({
     );
 }
 
+function DiscriminatorType({ discriminatorType }: { discriminatorType: string }) {
+    const quotationMatches = /(["'])(.*)(["'])/.exec(discriminatorType);
+    if (!quotationMatches) {
+        return <>{discriminatorType}</>;
+    }
+
+    const [_, leftQuote, value, rightQuote] = quotationMatches;
+    return (
+        <>
+            {leftQuote}
+            <span className={styles.unionDiscriminator}>{value}</span>
+            {rightQuote}
+        </>
+    );
+}
+
 function UnionNestedObject({
     desc,
     index,
@@ -252,16 +268,19 @@ function UnionNestedObject({
                         {' { '}
                     </span>
                     {!isExpanded && (
-                        <PropertyDeclaration
-                            propName={discriminatorProp}
-                            tsType={discriminatorType}
-                            propDesc={discriminator}
-                            isExpanded={isExpanded}
-                            expandable={true}
-                            toggleExpand={toggleExpand}
-                            toggleSelection={toggleSelection}
-                            style="unionTypeProperty"
-                        />
+                        <>
+                            <PropertyDeclaration
+                                propName={discriminatorProp}
+                                tsType={discriminatorType}
+                                propDesc={discriminator}
+                                isExpanded={isExpanded}
+                                expandable={true}
+                                toggleExpand={toggleExpand}
+                                toggleSelection={toggleSelection}
+                                style="unionTypeProperty"
+                            />{' '}
+                            = <DiscriminatorType discriminatorType={discriminatorType} />
+                        </>
                     )}
                     {!isExpanded && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
                     {isExpanded ? (
