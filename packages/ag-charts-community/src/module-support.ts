@@ -3,6 +3,7 @@ export * from './util/default';
 export * from './util/module';
 export * from './util/moduleContext';
 export * from './util/navigator-module';
+export * from './util/object';
 export * from './util/proxy';
 export * from './chart/background/backgroundModule';
 export * from './chart/chartAxisDirection';

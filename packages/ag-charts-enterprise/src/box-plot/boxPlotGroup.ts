@@ -1,5 +1,5 @@
-import type { BoxPlotNodeDatum } from 'ag-charts-community';
-import { _Scene } from 'ag-charts-community';
+import type { AgBoxPlotWhiskerOptions, BoxPlotNodeDatum, AgBoxPlotSeriesFormat } from 'ag-charts-community';
+import { _Scene, _ModuleSupport } from 'ag-charts-community';
 
 enum GroupTags {
     Box,
@@ -8,6 +8,22 @@ enum GroupTags {
     Whisker,
     Cap,
 }
+
+const seriesFormatKeys: (keyof AgBoxPlotSeriesFormat)[] = [
+    'fill',
+    'fillOpacity',
+    'stroke',
+    'strokeWidth',
+    'strokeOpacity',
+];
+
+const whiskerFormatKeys: (keyof AgBoxPlotWhiskerOptions)[] = [
+    'stroke',
+    'strokeWidth',
+    'strokeOpacity',
+    'lineDash',
+    'lineDashOffset',
+];
 
 export class BoxPlotGroup extends _Scene.Group {
     constructor() {
@@ -24,10 +40,10 @@ export class BoxPlotGroup extends _Scene.Group {
         ]);
     }
 
-    updateDatumStyles(datum: BoxPlotNodeDatum) {
+    updateDatumStyles(datum: BoxPlotNodeDatum, formatOverrides: AgBoxPlotSeriesFormat = {}) {
         const {
             xValue: axisValue,
-            whisker: whiskerProperties,
+            whisker: whiskerOptions,
             minValue,
             q1Value,
             medianValue,
@@ -35,11 +51,6 @@ export class BoxPlotGroup extends _Scene.Group {
             maxValue,
             bandwidth,
             cap,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
             lineDash,
             lineDashOffset,
         } = datum;
@@ -50,6 +61,20 @@ export class BoxPlotGroup extends _Scene.Group {
         const [median] = selection.selectByTag<_Scene.Line>(GroupTags.Median);
         const whiskers = selection.selectByTag<_Scene.Line>(GroupTags.Whisker);
         const caps = selection.selectByTag<_Scene.Line>(GroupTags.Cap);
+
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = _ModuleSupport.defaultsByKeys(
+            seriesFormatKeys,
+            formatOverrides,
+            datum
+        );
+
+        const whiskerProperties = _ModuleSupport.defaultsByKeys(whiskerFormatKeys, whiskerOptions, {
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        });
 
         outline.setProperties({ x: q1Value, y: axisValue, width: q3Value - q1Value, height: bandwidth });
 

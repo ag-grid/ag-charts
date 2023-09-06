@@ -1,4 +1,10 @@
-import type { AgCartesianSeriesTooltipRendererParams, _Scene, BoxPlotNodeDatum } from 'ag-charts-community';
+import type {
+    _Scene,
+    AgBoxPlotSeriesFormat,
+    AgBoxPlotSeriesFormatterParams,
+    AgCartesianSeriesTooltipRendererParams,
+    BoxPlotNodeDatum,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { BoxPlotGroup } from './boxPlotGroup';
 
@@ -8,8 +14,9 @@ const {
     keyProperty,
     NUMBER,
     OPT_COLOR_STRING,
-    OPT_STRING,
+    OPT_FUNCTION,
     OPT_LINE_DASH,
+    OPT_STRING,
     SeriesNodePickMode,
     SeriesTooltip,
     Validate,
@@ -23,19 +30,19 @@ class BoxPlotSeriesCap {
 
 class BoxPlotSeriesWhisker {
     @Validate(OPT_COLOR_STRING)
-    stroke: string | undefined;
+    stroke?: string;
 
     @Validate(NUMBER(0))
-    strokeWidth: number | undefined;
+    strokeWidth?: number;
 
     @Validate(NUMBER(0, 1))
-    strokeOpacity: number | undefined;
+    strokeOpacity?: number;
 
     @Validate(OPT_LINE_DASH)
-    lineDash: number[] | undefined;
+    lineDash?: number[];
 
     @Validate(NUMBER(0))
-    lineDashOffset: number | undefined;
+    lineDashOffset?: number;
 }
 
 export class BoxPlotSeries extends CartesianSeries<
@@ -101,6 +108,9 @@ export class BoxPlotSeries extends CartesianSeries<
 
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
+
+    @Validate(OPT_FUNCTION)
+    formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesFormat = undefined;
 
     cap = new BoxPlotSeriesCap();
 
@@ -205,14 +215,14 @@ export class BoxPlotSeries extends CartesianSeries<
 
             const nodeData: BoxPlotNodeDatum = {
                 series: this,
-                itemId: xKey,
+                itemId: xValue,
                 datum,
                 xKey,
                 yValue: 0,
-                bandwidth: yAxis.scale.bandwidth ?? 0,
-                whisker: Object.assign({ stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset }, whisker),
+                bandwidth: Math.round(yAxis.scale.bandwidth ?? 0),
                 ...this.convertValuesToScaleByDefs(defs, { xValue, minValue, q1Value, medianValue, q3Value, maxValue }),
                 cap,
+                whisker,
                 fill,
                 fillOpacity,
                 stroke,
@@ -254,7 +264,15 @@ export class BoxPlotSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         opts.datumSelection.each((boxPlot, datum) => {
-            boxPlot.updateDatumStyles(datum);
+            let format: AgBoxPlotSeriesFormat | undefined;
+            if (this.formatter) {
+                format = this.formatter({
+                    ...datum,
+                    seriesId: this.id,
+                    highlighted: false,
+                });
+            }
+            boxPlot.updateDatumStyles(datum, format);
         });
     }
 

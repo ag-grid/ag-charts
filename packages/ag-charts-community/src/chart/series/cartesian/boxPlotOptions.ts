@@ -44,9 +44,9 @@ export interface BoxPlotNodeDatum
     readonly bandwidth: number;
 
     readonly cap: {
-        lengthRatio: Ratio;
+        readonly lengthRatio: Ratio;
     };
-    readonly whisker: Readonly<Required<StrokeOptions>> & Readonly<Required<LineDashOptions>>;
+    readonly whisker: Readonly<StrokeOptions & LineDashOptions>;
 }
 
 export type AgBoxPlotSeriesFormatterParams<DatumType> = AgSeriesFormatterParams<DatumType> &
@@ -64,7 +64,7 @@ export interface AgBoxPlotSeriesOptions<DatumType = BoxPlotNodeDatum>
         FillOptions,
         StrokeOptions,
         LineDashOptions {
-    type?: 'box-plot';
+    type: 'box-plot';
 
     /** Options to style chart's caps **/
     cap?: AgBoxPlotCapOptions;
