@@ -15,23 +15,33 @@ interface AnimationEvent<AnimationEventType> {
 }
 
 interface AnimationOptions<T> extends Omit<BaseAnimationOptions<T>, 'driver'> {
+    /** Set to `true` to disable all interactions with the chart while the animation is running. */
     disableInteractions?: boolean;
 }
 
 interface AnimationManyOptions<T> extends Omit<AnimationOptions<T>, 'from' | 'to' | 'onUpdate'> {
+    /** Called once per frame with the tweened values for each `from` and `to` property pair. */
     onUpdate: (props: Array<T>) => void;
 }
 
 interface AnimationThrottleOptions {
-    // Animations that share this throttleId will cause each other to be throttled if triggered within the duration of
-    // a previous animation.
+    /**
+     * Animations that share this throttleId will cause each other to be throttled if triggered within the duration of
+     * a previous animation.
+     */
     throttleId?: string;
 
-    // Animations within a throttleGroup will not cause each other to be throttled. Used in combination with a
-    // throttleId this allows batches of animations to run normally but throttle later batches.
+    /**
+     * Animations within a throttleGroup will not cause each other to be throttled. Used in combination with a
+     * throttleId this allows batches of animations to run normally but throttle later batches.
+     */
     throttleGroup?: string;
 }
 
+/**
+ * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
+ * preventing duplicate animations and handling their lifecycle.
+ */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent<AnimationEventType>> {
     private readonly controllers: Record<AnimationId, AnimationControls> = {};
     private throttles: Record<string, number> = {};
@@ -118,6 +128,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
     }
 
+    /**
+     * Create an animation to tween a value between the `from` and `to` properties. If an animation already exists
+     * with the same `id`, immediately stop it.
+     */
     public animate<T>(id: AnimationId, { disableInteractions = true, ...opts }: AnimationOptions<T>) {
         if (this.skipAnimations) {
             // Initialise the animation with the final values immediately and then stop the animation
@@ -144,6 +158,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         return controller;
     }
 
+    /**
+     * Create multiple animations at the same time, each with it's own `from` and `to` properties. The `onUpdate`
+     * callback is shared and called once for the batch as a whole per frame.
+     */
     public animateMany<T>(
         id: AnimationId,
         props: Array<Pick<AnimationOptions<T>, 'from' | 'to'>>,
@@ -204,6 +222,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
     }
 
+    /**
+     * Create an animation with a throttle. If a subsequent animation is created with the same `throttleId` and while
+     * within the duration of the former animation, run this new animation to completion immediately.
+     */
     public animateWithThrottle<T>(id: AnimationId, opts: AnimationOptions<T> & AnimationThrottleOptions) {
         const throttleId = opts.throttleId ?? id;
 
@@ -216,6 +238,13 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.animate(id, { ...opts });
     }
 
+    /**
+     * Create many animations at once with a throttle. If a subsequent animation is created with the same `throttleId`
+     * and not in the same `throttleGroup`, then run this new animation to completion immediately. If they share
+     * a `throttleGroup`, then do not run to completion but instead allow it to run through normally. This
+     * allows us to create a batch of animations at once, then cancel any future colliding batches until
+     * the first batch has completed.
+     */
     public animateManyWithThrottle<T>(
         id: AnimationId,
         props: Array<Pick<AnimationOptions<T>, 'from' | 'to'>>,

@@ -2,9 +2,11 @@ import type { Easing } from './easing';
 import { linear } from './easing';
 
 export interface KeyframesOptions<T> {
+    /** Length of the animation in milliseconds. */
     duration: number;
     from: T;
     to: T;
+    /** Function with which to tween the value between `from` and `to`. See https://easings.net for examples. */
     ease?: Easing<T>;
 }
 
@@ -16,13 +18,18 @@ export enum RepeatType {
 export interface AnimationOptions<T> extends KeyframesOptions<T> {
     driver: Driver;
     autoplay?: boolean;
+    /** Time in milliseconds to wait before starting the animation. */
     delay?: number;
+    /** Number of times to repeat the animation before stopping. Set to `0` to disable repetition. */
     repeat?: number;
     repeatType?: RepeatType;
+    /** Called once when the animation is successfully completed, after all repetitions if any. */
     onComplete?: () => void;
     onPlay?: () => void;
     onRepeat?: () => void;
+    /** Called once when then animation successfully completes or is prematurely stopped. */
     onStop?: () => void;
+    /** Called once per frame with the tweened value between the `from` and `to` properties. */
     onUpdate?: (v: T) => void;
 }
 
