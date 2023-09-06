@@ -234,7 +234,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             opts.duration = 1;
         }
 
-        this.throttles[id] = Date.now();
+        this.throttles[throttleId] = Date.now();
         this.animate(id, { ...opts });
     }
 
