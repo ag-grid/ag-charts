@@ -288,7 +288,10 @@ function UnionNestedObject({
                             <ModelSnippet model={desc.model} config={config} path={unionPath}></ModelSnippet>
                         </div>
                     ) : (
-                        <span className={classnames('token', 'operator')}> ... </span>
+                        <span onClick={toggleExpand} className={classnames('token', 'operator')}>
+                            {' '}
+                            ...{' '}
+                        </span>
                     )}
                     <span className={classnames('token', 'punctuation')}>{' }'}</span>
                     {!HIDE_TYPES && (
