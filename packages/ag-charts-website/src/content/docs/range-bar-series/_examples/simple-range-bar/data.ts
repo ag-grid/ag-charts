@@ -1,4 +1,3 @@
-// Source: http://www.sheffieldweather.co.uk/Averages/MONTHLYAIRAVERAGE.htm
 export function getData() {
     return [
         {
