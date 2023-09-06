@@ -43,7 +43,6 @@ const options: AgChartOptions = {
             tick: { width: 2, color: 'red' }, // outer tick lines
             gridStyle: [{ stroke: 'red', lineDash: [2, 2] }], // inner grid
             shape: 'circle',
-            label: { autoRotate: true },
         },
         {
             type: 'radius-number',
@@ -52,7 +51,7 @@ const options: AgChartOptions = {
             tick: { width: 2, color: 'green', minSpacing: 10 }, // radius axis tick lines
             shape: 'circle',
             gridStyle: [{ stroke: 'green', lineDash: [2, 2] }], // inner grid
-            label: { autoRotate: true, color: 'green', fontWeight: 'bold' },
+            label: { color: 'green', fontWeight: 'bold' },
         },
     ],
 };
