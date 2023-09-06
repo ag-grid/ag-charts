@@ -49,7 +49,10 @@ export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     /** Configuration for the Waterfall series. */
     type?: 'waterfall';
-    /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
+    /** Bar rendering direction.
+     * <br/>
+     * **NOTE**: This option affects the layout direction of X and Y data values.
+     */
     direction?: 'horizontal' | 'vertical';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
