@@ -1,7 +1,6 @@
 interface Series {
     id: string;
     type: string;
-    axes: { y: { id: string }; x: { id: string } };
     getLegendData(): any[];
 }
 

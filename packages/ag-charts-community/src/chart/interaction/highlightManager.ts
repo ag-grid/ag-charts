@@ -6,7 +6,7 @@ interface HighlightState {
 }
 
 interface HighlightNodeDatum {
-    readonly series: { axes: { y: { id: string }; x: { id: string } } };
+    readonly series: any;
     readonly itemId?: any;
     readonly datum: any;
     readonly xKey?: string;
