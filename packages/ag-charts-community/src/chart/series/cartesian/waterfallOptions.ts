@@ -96,7 +96,7 @@ export interface WaterfallSeriesTotalMeta {
 }
 
 export interface AgWaterfallSeriesItemOptions<DatumType> {
-    /** A human-readable description of the y-values. If supplied, this will be shown in the default legend and tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */
     label?: AgWaterfallSeriesLabelOptions;
