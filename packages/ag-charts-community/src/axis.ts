@@ -1458,7 +1458,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        const totalDuration = this.animationManager?.defaultOptions.duration ?? 1000;
+        const totalDuration = this.animationManager.defaultDuration();
         let sectionDuration = Math.floor(totalDuration / 2);
         if (addedCount > 0 && removedCount > 0) {
             sectionDuration = Math.floor(totalDuration / 3);

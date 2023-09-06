@@ -828,7 +828,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     protected toggleSeriesItem(): void {}
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const duration = this.ctx.animationManager?.defaultOptions.duration ?? 1000;
+        const duration = this.ctx.animationManager.defaultDuration();
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
             this.animateRects(datumSelections[contextDataIndex], duration);
@@ -851,7 +851,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         const horizontal = this.direction === 'horizontal';
         const yAxis = this.getValueAxis();
         datumSelection.each((rect, datum) => {
-            this.ctx.animationManager?.animateMany(
+            this.ctx.animationManager.animateMany(
                 `${this.id}_empty-update-ready_${rect.id}`,
                 [
                     { from: yAxis?.scale.convert(0) ?? 0, to: horizontal ? datum.x : datum.y },
@@ -882,7 +882,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
     protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>, duration: number) {
         labelSelection.each((label) => {
-            this.ctx.animationManager?.animate(`${this.id}_empty-update-ready_${label.id}`, {
+            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
                 from: 0,
                 to: 1,
                 delay: duration,
@@ -916,7 +916,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
         };
 
-        this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
+        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
             from: startX,
             to: endX,
             duration,
@@ -960,7 +960,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
         };
 
-        this.ctx.animationManager?.animate<number>(`${this.id}_empty-update-ready`, {
+        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
             from: startY,
             to: endY,
             duration,

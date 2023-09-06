@@ -104,6 +104,10 @@
     line-break: anywhere;
 }
 
+.unionDiscriminator {
+    color: var(--code-text-color);
+}
+
 .metaList {
     display: flex;
     flex-wrap: wrap;
@@ -153,4 +157,8 @@
         margin: -0.1em 0 0;
         transition: fill $default-transition-timing;
     }
+}
+
+.noWrap {
+    white-space: nowrap;
 }

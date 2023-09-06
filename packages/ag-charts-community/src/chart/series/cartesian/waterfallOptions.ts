@@ -49,7 +49,10 @@ export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
     /** Configuration for the Waterfall series. */
     type?: 'waterfall';
-    /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
+    /** Bar rendering direction.
+     * <br/>
+     * **NOTE**: This option affects the layout direction of X and Y data values.
+     */
     direction?: 'horizontal' | 'vertical';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
@@ -62,14 +65,7 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** Configuration of total and subtotal values. */
     totals?: WaterfallSeriesTotalMeta[];
     /** Configuration used for the waterfall series item types. */
-    item: {
-        /** Configuration for the negative series items. */
-        negative?: AgWaterfallSeriesItemOptions<DatumType>;
-        /** Configuration for the positive series items. */
-        positive?: AgWaterfallSeriesItemOptions<DatumType>;
-        /** Configuration for the total and subtotal series items. */
-        total?: AgWaterfallSeriesItemOptions<DatumType>;
-    };
+    item: AgWaterfallSeriesItem<DatumType>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
@@ -78,6 +74,15 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the waterfall series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
+}
+
+export interface AgWaterfallSeriesItem<DatumType> {
+    /** Configuration for the negative series items. */
+    negative?: AgWaterfallSeriesItemOptions<DatumType>;
+    /** Configuration for the positive series items. */
+    positive?: AgWaterfallSeriesItemOptions<DatumType>;
+    /** Configuration for the total and subtotal series items. */
+    total?: AgWaterfallSeriesItemOptions<DatumType>;
 }
 
 export interface WaterfallSeriesTotalMeta {
@@ -91,7 +96,7 @@ export interface WaterfallSeriesTotalMeta {
 }
 
 export interface AgWaterfallSeriesItemOptions<DatumType> {
-    /** A human-readable description of the y-values. If supplied, this will be shown in the default legend and tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */
     label?: AgWaterfallSeriesLabelOptions;
