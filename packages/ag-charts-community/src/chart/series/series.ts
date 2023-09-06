@@ -311,6 +311,8 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     @Validate(STRING)
     readonly id = createId(this);
 
+    readonly canHaveAxes: boolean = false;
+
     get type(): string {
         return (this.constructor as any).type ?? '';
     }

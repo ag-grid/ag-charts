@@ -82,6 +82,8 @@ class RadarStateMachine extends _ModuleSupport.StateMachine<RadarAnimationState,
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
     static className = 'RadarSeries';
 
+    readonly canHaveAxes = true;
+
     readonly marker = new RadarSeriesMarker();
 
     readonly label = new RadarSeriesLabel();

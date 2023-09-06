@@ -782,14 +782,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
             series.directions.forEach((direction) => {
                 const directionAxes = directionToAxesMap[direction];
                 if (!directionAxes) {
-                    Logger.warn(`no available axis for direction [${direction}]; check series and axes configuration.`);
+                    Logger.warnOnce(`no available axis for direction [${direction}]; check series and axes configuration.`);
                     return;
                 }
 
                 const seriesKeys = series.getKeys(direction);
                 const newAxis = this.findMatchingAxis(directionAxes, seriesKeys);
                 if (!newAxis) {
-                    Logger.warn(
+                    Logger.warnOnce(
                         `no matching axis for direction [${direction}] and keys [${seriesKeys}]; check series and axes configuration.`
                     );
                     return;
@@ -834,7 +834,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     async processData() {
-        if (this.axes.length > 0) {
+        if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
         }
