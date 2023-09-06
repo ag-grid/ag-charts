@@ -13,7 +13,6 @@ import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonU
 import { getPropertyType } from '../utils/getPropertyType';
 import type { Framework } from '@ag-grid-types';
 import { createUnionNestedObjectPathItemRegex, getUnionPathInfo } from '../utils/modelPath';
-import { Fragment } from 'react';
 
 interface Props {
     selection: JsObjectSelection;
@@ -21,8 +20,7 @@ interface Props {
     parentName?: string;
 }
 
-function HeadingPath({ name, path }: { name: string; path: string[] }) {
-    const lastDot = name ? '.' : '';
+function HeadingPath({ path }: { path: string[] }) {
     const regex = createUnionNestedObjectPathItemRegex();
     return (
         path.length > 0 && (
@@ -34,7 +32,7 @@ function HeadingPath({ name, path }: { name: string; path: string[] }) {
                     const separator = index !== 0 && !arrayDiscriminatorMatches ? '.' : '';
 
                     return (
-                        <Fragment key={`${pathItem}-${index}`}>
+                        <span className={styles.noWrap} key={`${pathItem}-${index}`}>
                             {separator}
                             {!arrayDiscriminatorMatches && <>{pathItem}</>}
                             {arrayDiscriminatorMatches && (
@@ -44,10 +42,9 @@ function HeadingPath({ name, path }: { name: string; path: string[] }) {
                                     {postValue}
                                 </>
                             )}
-                        </Fragment>
+                        </span>
                     );
                 })}
-                {lastDot}
             </span>
         )
     );
@@ -55,11 +52,15 @@ function HeadingPath({ name, path }: { name: string; path: string[] }) {
 
 function NameHeading({ id, name, path }: { id: string; name: string; path: string[] }) {
     const displayNameSplit = splitName(name);
+    const pathSeparator = path.length > 0 ? '.' : '';
 
     return (
         <h6 id={id} className={classnames(styles.name, 'side-menu-exclude')}>
-            <HeadingPath name={name} path={path} />
-            <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>
+            <HeadingPath path={path} />
+            <span>
+                {pathSeparator}
+                <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>
+            </span>
             <a href={`#${id}`} className="docs-header-icon">
                 <Icon name="link" />
             </a>
