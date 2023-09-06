@@ -1091,7 +1091,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
     }
 
-    private updateSelections(data: TickDatum[]) {
+    protected updateSelections(data: TickDatum[]) {
         const gridData = this.gridLength ? data : [];
         const gridLineGroupSelection = this.gridLineGroupSelection.update(
             gridData,
