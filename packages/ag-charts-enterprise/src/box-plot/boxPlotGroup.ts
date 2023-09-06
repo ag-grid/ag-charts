@@ -1,5 +1,5 @@
+import type { BoxPlotNodeDatum } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
-import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 enum GroupTags {
     Box,
@@ -27,12 +27,14 @@ export class BoxPlotGroup extends _Scene.Group {
     updateDatumStyles(datum: BoxPlotNodeDatum) {
         const {
             xValue: axisValue,
+            whisker: whiskerProperties,
             minValue,
             q1Value,
             medianValue,
             q3Value,
             maxValue,
             bandwidth,
+            cap,
             fill,
             fillOpacity,
             stroke,
@@ -71,23 +73,22 @@ export class BoxPlotGroup extends _Scene.Group {
             y2: axisValue + bandwidth - strokeWidth,
         });
 
-        const capLengthRatio = 0.5; // TODO extract value from user input
-        const capY1 = axisValue + (bandwidth * (1 - capLengthRatio)) / 2;
-        const capY2 = axisValue + (bandwidth * (1 + capLengthRatio)) / 2;
+        const capY1 = axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2;
+        const capY2 = axisValue + (bandwidth * (1 + cap.lengthRatio)) / 2;
 
         caps[0].setProperties({ x: minValue, y1: capY1, y2: capY2 });
         caps[1].setProperties({ x: maxValue, y1: capY1, y2: capY2 });
 
         whiskers[0].setProperties({
-            x1: Math.round(minValue + strokeWidth / 2),
+            x1: Math.round(minValue + whiskerProperties.strokeWidth / 2),
             x2: q1Value,
-            y: axisValue + bandwidth * 0.5,
+            y: axisValue + bandwidth / 2,
         });
 
         whiskers[1].setProperties({
             x1: q3Value,
-            x2: Math.round(maxValue - strokeWidth / 2),
-            y: axisValue + bandwidth * 0.5,
+            x2: Math.round(maxValue - whiskerProperties.strokeWidth / 2),
+            y: axisValue + bandwidth / 2,
         });
 
         // fill only elements
@@ -96,8 +97,12 @@ export class BoxPlotGroup extends _Scene.Group {
         }
 
         // stroke only elements
-        for (const element of [outline, median, ...whiskers, ...caps]) {
+        for (const element of [outline, median]) {
             element.setProperties({ stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, fillOpacity: 0 });
+        }
+
+        for (const element of [...whiskers, ...caps]) {
+            element.setProperties(whiskerProperties);
         }
     }
 }

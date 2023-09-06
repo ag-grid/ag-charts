@@ -1,6 +1,5 @@
-import type { AgCartesianSeriesTooltipRendererParams, _Scene } from 'ag-charts-community';
+import type { AgCartesianSeriesTooltipRendererParams, _Scene, BoxPlotNodeDatum } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoxPlotNodeDatum } from './boxPlotTypes';
 import { BoxPlotGroup } from './boxPlotGroup';
 
 const {
@@ -16,6 +15,28 @@ const {
     Validate,
     valueProperty,
 } = _ModuleSupport;
+
+class BoxPlotSeriesCap {
+    @Validate(NUMBER(0, 1))
+    lengthRatio = 0.5;
+}
+
+class BoxPlotSeriesWhisker {
+    @Validate(OPT_COLOR_STRING)
+    stroke: string | undefined;
+
+    @Validate(NUMBER(0))
+    strokeWidth: number | undefined;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity: number | undefined;
+
+    @Validate(OPT_LINE_DASH)
+    lineDash: number[] | undefined;
+
+    @Validate(NUMBER(0))
+    lineDashOffset: number | undefined;
+}
 
 export class BoxPlotSeries extends CartesianSeries<
     _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>,
@@ -76,10 +97,14 @@ export class BoxPlotSeries extends CartesianSeries<
     strokeOpacity = 1;
 
     @Validate(OPT_LINE_DASH)
-    lineDash?: number[] = [0];
+    lineDash: number[] = [0];
 
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
+
+    cap = new BoxPlotSeriesCap();
+
+    whisker = new BoxPlotSeriesWhisker();
 
     tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
@@ -149,8 +174,10 @@ export class BoxPlotSeries extends CartesianSeries<
             stroke,
             strokeWidth,
             strokeOpacity,
-            lineDash = [],
+            lineDash,
             lineDashOffset,
+            cap,
+            whisker,
         } = this;
 
         const context: _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum> = {
@@ -181,10 +208,11 @@ export class BoxPlotSeries extends CartesianSeries<
                 itemId: xKey,
                 datum,
                 xKey,
-                yKey: '',
                 yValue: 0,
                 bandwidth: yAxis.scale.bandwidth ?? 0,
+                whisker: Object.assign({ stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset }, whisker),
                 ...this.convertValuesToScaleByDefs(defs, { xValue, minValue, q1Value, medianValue, q3Value, maxValue }),
+                cap,
                 fill,
                 fillOpacity,
                 stroke,
