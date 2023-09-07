@@ -11,8 +11,14 @@ const options: AgChartOptions = {
         {
             type: 'radar-area',
             angleKey: 'subject',
-            radiusKey: 'grades',
-            radiusName: `Grades`,
+            radiusKey: 'mike',
+            radiusName: `Mike's grades`,
+        },
+        {
+            type: 'radar-area',
+            angleKey: 'subject',
+            radiusKey: 'tony',
+            radiusName: `Tony's grades`,
         },
     ],
     legend: {
