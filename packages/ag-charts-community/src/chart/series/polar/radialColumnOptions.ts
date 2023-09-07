@@ -1,7 +1,7 @@
 import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../options/types';
+import type { CssColor, Opacity, PixelSize, Ratio } from '../../options/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
 /** Base configuration for Radial Column series. */
@@ -46,8 +46,10 @@ export interface AgBaseRadialColumnSeriesOptions<DatumType = any> extends AgBase
 /** Configuration for Radial Column series. */
 export interface AgRadialColumnSeriesOptions<DatumType = any> extends AgBaseRadialColumnSeriesOptions<DatumType> {
     type?: 'radial-column';
-    /** The width of columns. If unset it will be calculated based on items count and the radius of the axis hole. */
-    columnWidth?: PixelSize;
+    /** The ratio used to calculate the column width based on the circumference and padding between items. */
+    columnWidthRatio?: Ratio;
+    /** Prevents columns from becoming too wide. This value is relative to the diameter of the polar chart. */
+    maxColumnWidthRatio?: Ratio;
 }
 
 export interface AgRadialColumnSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
