@@ -56,7 +56,7 @@ function NameHeading({ id, name, path }: { id: string; name?: string; path: stri
     const pathSeparator = name && path.length > 0 ? '.' : '';
 
     return (
-        <h6 id={id} className={classnames(styles.name, 'side-menu-exclude')}>
+        <h6 className={classnames(styles.name, 'side-menu-exclude')}>
             <HeadingPath path={path} />
             <span>
                 {pathSeparator}
@@ -129,7 +129,7 @@ function PrimitivePropertyView({
     );
     const description = convertMarkdown(formattedDocumentation, framework);
     return (
-        <tr>
+        <tr id={id}>
             <td role="presentation" className={styles.leftColumn}>
                 <NameHeading id={id} name={name} path={path} />
                 <MetaList propertyType={propertyType} model={model} description={description} />
@@ -207,7 +207,7 @@ function NestedObjectPropertyView({
 
     return (
         <>
-            <tr>
+            <tr id={id}>
                 <td role="presentation" className={styles.leftColumn}>
                     <NameHeading id={id} name={name} path={path} />
                     <MetaList propertyType={propertyType} model={model} description={description} />
@@ -341,7 +341,7 @@ function ArrayPropertyView({
 
     return (
         <>
-            <tr>
+            <tr id={id}>
                 <td role="presentation" className={styles.leftColumn}>
                     <NameHeading id={id} name={name} path={path} />
                     <MetaList propertyType={propertyType} model={model} description={description} />
@@ -387,7 +387,7 @@ function FunctionPropertyView({
     const propertyType = getPropertyType(model.desc.tsType);
 
     return (
-        <tr>
+        <tr id={id}>
             <td role="presentation" className={styles.leftColumn}>
                 <NameHeading id={id} name={name} path={path} />
                 <MetaList propertyType={propertyType} model={model} description={description} />
