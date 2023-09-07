@@ -28,11 +28,16 @@ const data = [
 describe('ChartTheme', () => {
     let chart: AgChartInstance;
 
+    beforeEach(() => {
+        console.warn = jest.fn();
+    });
+
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as any) = null;
         }
+        expect(console.warn).not.toBeCalled();
     });
 
     describe('cartesian overrides', () => {
@@ -795,32 +800,6 @@ describe('ChartTheme', () => {
                 strokes: ['cyan'],
             },
             overrides: {
-                common: {
-                    series: {
-                        bar: {
-                            strokeWidth: 10,
-                        },
-                        line: {
-                            strokeWidth: 11,
-                        },
-                        area: {
-                            strokeWidth: 12,
-                        },
-                    },
-                },
-                cartesian: {
-                    series: {
-                        bar: {
-                            strokeWidth: 13,
-                        },
-                        line: {
-                            strokeWidth: 14,
-                        },
-                        area: {
-                            strokeWidth: 15,
-                        },
-                    },
-                },
                 bar: {
                     series: {
                         strokeWidth: 16,
