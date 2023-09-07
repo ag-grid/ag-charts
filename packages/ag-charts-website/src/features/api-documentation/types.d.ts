@@ -266,7 +266,7 @@ export interface JsObjectViewProps {
     model: JsonModel;
     breadcrumbs?: string[];
     config?: Config;
-    onSelection?: (value: OnSelectionValue) => void;
+    handleSelection?: (value: OnSelectionValue) => void;
 }
 
 export interface JsObjectPropertiesViewProps {

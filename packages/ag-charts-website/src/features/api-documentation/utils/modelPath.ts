@@ -1,4 +1,5 @@
 import type { JsonModel } from '@features/api-documentation/utils/model';
+import type { JsObjectSelection } from '../types';
 
 /**
  * Property key used to differentiate between different union items
@@ -53,5 +54,40 @@ export function getUnionPathInfo({
         discriminatorType,
         discriminatorProp,
         discriminator,
+    };
+}
+
+export function getTopLevelSelection({
+    pathItem,
+    model,
+}: {
+    pathItem: string;
+    model: JsonModel;
+}): JsObjectSelection | undefined {
+    const topLevelModel = model.properties[pathItem];
+    if (!topLevelModel) {
+        return;
+    }
+
+    return {
+        type: 'property',
+        path: [],
+        propName: pathItem,
+        model: topLevelModel,
+    };
+}
+
+export function getTopSelection({
+    model,
+    hideChildren,
+}: {
+    model: JsonModel;
+    hideChildren?: boolean;
+}): JsObjectSelection {
+    return {
+        type: model.type,
+        path: [],
+        model,
+        hideChildren,
     };
 }

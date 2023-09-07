@@ -2,20 +2,19 @@ import { Fragment, useState, type FunctionComponent, createContext, useContext }
 import type { JsObjectViewProps } from '../types';
 import classnames from 'classnames';
 import styles from './JsObjectView.module.scss';
-import {
-    buildModel,
-    type JsonArray,
-    type JsonFunction,
-    type JsonModel,
-    type JsonObjectProperty,
-    type JsonPrimitiveProperty,
-    type JsonProperty,
-    type JsonUnionType,
+import type {
+    JsonArray,
+    JsonFunction,
+    JsonModel,
+    JsonObjectProperty,
+    JsonPrimitiveProperty,
+    JsonProperty,
+    JsonUnionType,
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
-import { getUnionPathInfo } from '../utils/modelPath';
+import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
 
-const SelectionContext = createContext<{ onSelection?: JsObjectViewProps['onSelection'] }>({});
+const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
 
 const DEFAULT_JSON_NODES_EXPANDED = false;
 const HIDE_TYPES = true;
@@ -42,25 +41,34 @@ interface ModelSnippetWithBreadcrumbsParams {
     breadcrumbs?: string[];
     model: JsonModel;
     config: Config;
-    onSelection?: JsObjectViewProps['onSelection'];
+    topBreakcrumbOnClick: () => void;
 }
 
 export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
     model,
     breadcrumbs = [],
     config = {},
-    onSelection,
+    handleSelection,
 }) => {
+    const handleTopObjectSelection = () => {
+        handleSelection &&
+            handleSelection(
+                getTopSelection({
+                    model,
+                    hideChildren: true,
+                })
+            );
+    };
     return (
         <div className={styles.expandableSnippet} role="presentation">
             <pre className={classnames('code', 'language-ts')}>
                 <code className={'language-ts'}>
-                    <SelectionContext.Provider value={{ onSelection }}>
+                    <SelectionContext.Provider value={{ handleSelection }}>
                         <ModelSnippetWithBreadcrumbs
                             breadcrumbs={breadcrumbs}
                             model={model}
                             config={config}
-                            onSelection={onSelection}
+                            topBreakcrumbOnClick={handleTopObjectSelection}
                         />
                     </SelectionContext.Provider>
                 </code>
@@ -73,6 +81,7 @@ const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> =
     model,
     breadcrumbs = [],
     config = {},
+    topBreakcrumbOnClick,
 }) => {
     return (
         <ObjectBreadcrumb
@@ -84,6 +93,7 @@ const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> =
                     </div>
                 </>
             )}
+            topBreakcrumbOnClick={topBreakcrumbOnClick}
         />
     );
 };
@@ -239,10 +249,10 @@ function UnionNestedObject({
     const unionPath = path.concat(pathItem);
     const expandedInitially = isExpandedInitially(discriminatorType || String(index), unionPath, config);
     const [isExpanded, setExpanded] = useState(expandedInitially);
-    const { onSelection } = useContext(SelectionContext);
-    const toggleSelection = () => {
-        onSelection &&
-            onSelection({
+    const { handleSelection } = useContext(SelectionContext);
+    const handleUnionNestedObjectSelection = () => {
+        handleSelection &&
+            handleSelection({
                 type: 'unionNestedObject',
                 index,
                 // NOTE: Not passing in `unionPath`, as selection should handle how to determine the path
@@ -272,7 +282,7 @@ function UnionNestedObject({
                                 isExpanded={isExpanded}
                                 expandable={true}
                                 toggleExpand={toggleExpand}
-                                toggleSelection={toggleSelection}
+                                onSelection={handleUnionNestedObjectSelection}
                                 style="unionTypeProperty"
                             />{' '}
                             = <DiscriminatorType discriminatorType={discriminatorType} />
@@ -370,9 +380,9 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     const propPath = path.concat(propName);
     const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config);
     const [isJSONNodeExpanded, setJSONNodeExpanded] = useState(expandedInitially);
-    const { onSelection } = useContext(SelectionContext);
-    const toggleSelection = () => {
-        onSelection && onSelection({ type: 'property', propName, path, model: meta });
+    const { handleSelection } = useContext(SelectionContext);
+    const handlePropertySelection = () => {
+        handleSelection && handleSelection({ type: 'property', propName, path, model: meta });
     };
     const toggleExpand = () => {
         if (!expandable) {
@@ -445,7 +455,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                     isExpanded={isJSONNodeExpanded}
                     expandable={expandable}
                     toggleExpand={toggleExpand}
-                    toggleSelection={toggleSelection}
+                    onSelection={handlePropertySelection}
                 />
             }
             {!isJSONNodeExpanded && collapsePropertyRendering ? (
@@ -479,7 +489,7 @@ function PropertyDeclaration({
     isExpanded,
     expandable,
     toggleExpand,
-    toggleSelection,
+    onSelection,
     style = 'propertyName',
 }: {
     propName: string;
@@ -488,7 +498,7 @@ function PropertyDeclaration({
     isExpanded: boolean;
     expandable: boolean;
     toggleExpand: () => void;
-    toggleSelection: () => void;
+    onSelection: () => void;
     style?: string;
 }) {
     const { required } = propDesc;
@@ -497,7 +507,7 @@ function PropertyDeclaration({
             {isExpanded && <div className={styles.expanderBar}></div>}
             <span className={classnames('token', 'name', styles[style])}>
                 {expandable && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
-                <span onClick={toggleSelection}>{propName}</span>
+                <span onClick={onSelection}>{propName}</span>
             </span>
             {!required && <span className={classnames('token', 'optional')}>?</span>}
             {!HIDE_TYPES && (
@@ -692,13 +702,24 @@ export function buildObjectIndent(level: number): string {
     return '  '.repeat(level);
 }
 
-export function ObjectBreadcrumb({ breadcrumbs, bodyContent }: { breadcrumbs: string[]; bodyContent: () => any }) {
+export function ObjectBreadcrumb({
+    breadcrumbs,
+    bodyContent,
+    topBreakcrumbOnClick,
+}: {
+    breadcrumbs: string[];
+    bodyContent: () => any;
+    topBreakcrumbOnClick?: () => void;
+}) {
     return (
         <>
             {breadcrumbs.length > 0 && (
                 <>
                     <div role="presentation">
-                        {breadcrumbs[0]}: {'{'}
+                        <span className={styles.topBreadcrumb} onClick={topBreakcrumbOnClick}>
+                            {breadcrumbs[0]}
+                        </span>
+                        : {'{'}
                     </div>
                 </>
             )}
