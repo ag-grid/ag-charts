@@ -34,7 +34,6 @@ export * from './chart/axis/axisLabel';
 export * from './chart/axis/axisTick';
 export * from './chart/axis/polarAxis';
 export * from './chart/axis/categoryAxis';
-export * from './chart/axis/groupedCategoryAxis';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/legendDatum';
