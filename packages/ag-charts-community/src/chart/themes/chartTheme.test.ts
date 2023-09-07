@@ -48,7 +48,7 @@ describe('ChartTheme', () => {
                 strokes: ['cyan'],
             },
             overrides: {
-                cartesian: {
+                common: {
                     title: {
                         fontSize: 24,
                         fontWeight: 'bold',
@@ -61,22 +61,24 @@ describe('ChartTheme', () => {
                         //     height: 20,
                         // },
                     },
+                },
+                bar: {
                     series: {
-                        bar: {
-                            label: {
-                                enabled: true,
-                                color: 'yellow',
-                                fontSize: 20,
-                            },
-                            tooltip: {
-                                enabled: false,
-                                renderer: tooltipRenderer,
-                            },
+                        label: {
+                            enabled: true,
+                            color: 'yellow',
+                            fontSize: 20,
                         },
-                        area: {
-                            marker: {
-                                formatter: markerFormatter,
-                            },
+                        tooltip: {
+                            enabled: false,
+                            renderer: tooltipRenderer,
+                        },
+                    },
+                },
+                area: {
+                    series: {
+                        marker: {
+                            formatter: markerFormatter,
                         },
                     },
                 },
@@ -220,7 +222,7 @@ describe('ChartTheme', () => {
                 strokes: ['cyan'],
             },
             overrides: {
-                polar: {
+                pie: {
                     title: {
                         fontSize: 24,
                         fontWeight: 'bold',
@@ -229,16 +231,14 @@ describe('ChartTheme', () => {
                         fill: 'red',
                     },
                     series: {
-                        pie: {
-                            calloutLabel: {
-                                enabled: true,
-                                color: 'yellow',
-                                fontSize: 20,
-                            },
-                            tooltip: {
-                                enabled: false,
-                                renderer: tooltipRenderer,
-                            },
+                        calloutLabel: {
+                            enabled: true,
+                            color: 'yellow',
+                            fontSize: 20,
+                        },
+                        tooltip: {
+                            enabled: false,
+                            renderer: tooltipRenderer,
                         },
                     },
                 },
@@ -313,28 +313,30 @@ describe('ChartTheme', () => {
                     background: {
                         fill: 'red',
                     },
+                },
+                bar: {
                     series: {
-                        bar: {
-                            label: {
-                                enabled: true,
-                                color: 'blue',
-                                fontSize: 22,
-                            },
-                            tooltip: {
-                                enabled: false,
-                                renderer: columnTooltipRenderer,
-                            },
+                        label: {
+                            enabled: true,
+                            color: 'blue',
+                            fontSize: 22,
                         },
-                        pie: {
-                            calloutLabel: {
-                                enabled: true,
-                                color: 'yellow',
-                                fontSize: 20,
-                            },
-                            tooltip: {
-                                enabled: false,
-                                renderer: pieTooltipRenderer,
-                            },
+                        tooltip: {
+                            enabled: false,
+                            renderer: columnTooltipRenderer,
+                        },
+                    },
+                },
+                pie: {
+                    series: {
+                        calloutLabel: {
+                            enabled: true,
+                            color: 'yellow',
+                            fontSize: 20,
+                        },
+                        tooltip: {
+                            enabled: false,
+                            renderer: pieTooltipRenderer,
                         },
                     },
                 },
@@ -471,7 +473,7 @@ describe('ChartTheme', () => {
         const theme: AgChartTheme = {
             baseTheme: 'ag-default',
             overrides: {
-                cartesian: {
+                area: {
                     axes: {
                         category: {
                             line: {
@@ -573,8 +575,8 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.color).toBe(defaultTheme.config.cartesian.axes.number.line.color);
-            expect(axis0.label.fontSize).toBe(defaultTheme.config.cartesian.axes.number.label.fontSize);
+            expect(axis0.line.color).toBe(defaultTheme.config.area.axes.number.line.color);
+            expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
@@ -586,27 +588,31 @@ describe('ChartTheme', () => {
         test('Specialized chart type themed bottom category, unthemed left number', async () => {
             chart = deproxy(
                 AgChart.create({
-                    type: 'area',
                     theme,
                     data,
                     series: [
                         {
+                            type: 'area',
                             xKey: 'label',
                             yKey: 'v1',
                         },
                         {
+                            type: 'area',
                             xKey: 'label',
                             yKey: 'v2',
                         },
                         {
+                            type: 'area',
                             xKey: 'label',
                             yKey: 'v3',
                         },
                         {
+                            type: 'area',
                             xKey: 'label',
                             yKey: 'v4',
                         },
                         {
+                            type: 'area',
                             xKey: 'label',
                             yKey: 'v5',
                         },
@@ -619,8 +625,8 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.color).toBe(defaultTheme.config.cartesian.axes.number.line.color);
-            expect(axis0.label.fontSize).toBe(defaultTheme.config.cartesian.axes.number.label.fontSize);
+            expect(axis0.line.color).toBe(defaultTheme.config.area.axes.number.line.color);
+            expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
@@ -760,9 +766,9 @@ describe('ChartTheme', () => {
             expect(axis0.label.fontSize).toBe(18);
             expect(axis0.label.fontStyle).toBe('italic');
             expect(axis0.label.fontFamily).toBe('Tahoma');
-            expect(axis0.label.fontWeight).toBe(defaultTheme.config.cartesian.axes.number.label.fontWeight);
-            expect(axis0.label.padding).toBe(defaultTheme.config.cartesian.axes.number.label.padding);
-            expect(axis0.label.rotation).toBe(defaultTheme.config.cartesian.axes.number.label.rotation);
+            expect(axis0.label.fontWeight).toBe(defaultTheme.config.area.axes.number.label.fontWeight);
+            expect(axis0.label.padding).toBe(defaultTheme.config.area.axes.number.label.padding);
+            expect(axis0.label.rotation).toBe(defaultTheme.config.area.axes.number.label.rotation);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
@@ -770,8 +776,8 @@ describe('ChartTheme', () => {
             expect(axis1.line.color).toBe('blue');
             expect(axis1.line.width).toBe(5);
             expect(axis1.label.fontSize).toBe(18);
-            expect(axis1.label.fontStyle).toBe(defaultTheme.config.cartesian.axes.category.label.fontStyle);
-            expect(axis1.label.fontFamily).toBe(defaultTheme.config.cartesian.axes.category.label.fontFamily);
+            expect(axis1.label.fontStyle).toBe(defaultTheme.config.area.axes.category.label.fontStyle);
+            expect(axis1.label.fontFamily).toBe(defaultTheme.config.area.axes.category.label.fontFamily);
             expect(axis1.label.fontWeight).toBe('bold');
             expect(axis1.label.rotation).toBe(45);
             expect(axis1.title && axis1.title.text).toBe('Test');
