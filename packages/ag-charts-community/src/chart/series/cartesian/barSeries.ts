@@ -343,7 +343,11 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         }
 
         // To get exactly `0` padding we need to turn off rounding
-        groupScale.round = groupScale.padding !== 0;
+        if (groupScale.padding === 0) {
+            groupScale.round = false;
+        } else {
+            groupScale.round = true;
+        }
 
         const barWidth =
             groupScale.bandwidth >= 1
@@ -370,7 +374,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             const yRawValue = values[0][yRawIndex];
             const barX = x + groupScale.convert(String(groupIndex));
 
-            // Bars outside visible range are not rendered, so we create node data
+            // Bars outside of visible range are not rendered, so we create node data
             // only for the visible subset of user data.
             if (!xAxis.inRange(barX, barWidth)) {
                 return;

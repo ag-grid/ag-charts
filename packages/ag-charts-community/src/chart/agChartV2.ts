@@ -626,7 +626,7 @@ function applySeriesValues(
         registerListeners(target, listeners as unknown as { [key: string]: Function });
     }
 
-    const { seriesGrouping } = options as any;
+    const seriesGrouping = (options as any).seriesGrouping;
     if ('seriesGrouping' in (options ?? {})) {
         if (seriesGrouping) {
             const newSeriesGroup = Object.freeze({
