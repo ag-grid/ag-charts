@@ -147,7 +147,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
         const rotation = angleBetween(datum.startAngle, datum.endAngle);
         let { startAngle, endAngle } = datum;
 
-        const pad = rotation * (1 - columnWidthRatio) / 2;
+        const pad = (rotation * (1 - columnWidthRatio)) / 2;
         startAngle += pad;
         endAngle -= pad;
 
@@ -165,10 +165,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
         const colWidth = Math.floor(Math.sqrt((startX - endX) ** 2 + (startY - endY) ** 2));
         const maxWidth = 2 * axisOuterRadius * maxColumnWidthRatio;
 
-        return Math.max(
-            1,
-            Math.min(maxWidth, colWidth)
-        );
+        return Math.max(1, Math.min(maxWidth, colWidth));
     }
 
     protected isRadiusAxisCircle() {
