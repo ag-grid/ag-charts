@@ -4,6 +4,8 @@ import styles from './JsObjectProperties.module.scss';
 import type { Config, JsObjectPropertiesViewProps, JsObjectSelection } from '../types';
 import { JsObjectDetails } from './JsObjectDetails';
 import { buildModel } from '../utils/model';
+import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
+import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 
 export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewProps> = ({
     interfaceName,
@@ -19,18 +21,15 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
         path: [],
         model,
     };
-    const [selection, setSelection] = useState<JsObjectSelection>(completeModelSelection);
-    const onSelection = useCallback(
-        (data: JsObjectSelection) => {
-            setSelection(data);
-        },
-        [selection]
-    );
+    const onSelection = useCallback((selection: JsObjectSelection) => {
+        const id = getSelectionReferenceId(selection);
+        smoothScrollIntoView(`#${id}`);
+    }, []);
 
     return (
         <div className={styles.container}>
             <JsObjectView breadcrumbs={breadcrumbs} config={config} onSelection={onSelection} model={model} />
-            <JsObjectDetails selection={selection} framework={framework} />
+            <JsObjectDetails selection={completeModelSelection} framework={framework} />
         </div>
     );
 };

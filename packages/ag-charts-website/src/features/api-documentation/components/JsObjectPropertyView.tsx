@@ -13,6 +13,7 @@ import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonU
 import { getPropertyType } from '../utils/getPropertyType';
 import type { Framework } from '@ag-grid-types';
 import { createUnionNestedObjectPathItemRegex, getUnionPathInfo } from '../utils/modelPath';
+import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
 
 interface Props {
     selection: JsObjectSelection;
@@ -391,6 +392,7 @@ function FunctionPropertyView({
 
 export function JsObjectPropertyView({ selection, framework, parentName }: Props) {
     const { type, path, model } = selection;
+    const id = getSelectionReferenceId(selection);
 
     if (type === 'model') {
         const { properties } = model;
@@ -404,16 +406,36 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
         );
     } else if (type === 'property') {
         const { propName } = selection as JsObjectSelectionProperty;
-        const id = `reference-${path}-${propName}`;
         const propertyType = model.desc.type;
+        const propertyId = id!;
         if (propertyType === 'primitive') {
-            return <PrimitivePropertyView id={id} model={model} name={propName} framework={framework} path={path} />;
+            return (
+                <PrimitivePropertyView
+                    id={propertyId}
+                    model={model}
+                    name={propName}
+                    framework={framework}
+                    path={path}
+                />
+            );
         } else if (propertyType === 'nested-object') {
-            return <NestedObjectPropertyView id={id} name={propName} path={path} model={model} framework={framework} />;
+            return (
+                <NestedObjectPropertyView
+                    id={propertyId}
+                    name={propName}
+                    path={path}
+                    model={model}
+                    framework={framework}
+                />
+            );
         } else if (propertyType === 'array') {
-            return <ArrayPropertyView id={id} name={propName} path={path} model={model} framework={framework} />;
+            return (
+                <ArrayPropertyView id={propertyId} name={propName} path={path} model={model} framework={framework} />
+            );
         } else if (propertyType === 'function') {
-            return <FunctionPropertyView id={id} model={model} name={propName} framework={framework} path={path} />;
+            return (
+                <FunctionPropertyView id={propertyId} model={model} name={propName} framework={framework} path={path} />
+            );
         } else if (propertyType === 'union') {
             const elements = model.desc;
             return (
@@ -422,12 +444,20 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
         }
     } else if (type === 'unionNestedObject') {
         const { index } = selection as JsObjectSelectionUnionNestedObject;
-        const id = `reference-${path}-${index}`;
+        const unionNestedObjectId = id!;
         const propertyType = model.type;
         const name = parentName!;
 
         if (propertyType === 'primitive') {
-            return <PrimitivePropertyView id={id} model={model} name={name} framework={framework} path={path} />;
+            return (
+                <PrimitivePropertyView
+                    id={unionNestedObjectId}
+                    model={model}
+                    name={name}
+                    framework={framework}
+                    path={path}
+                />
+            );
         } else if (propertyType === 'nested-object') {
             const nestedObjectModel = {
                 desc: model,
@@ -440,7 +470,7 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
             const nestedObjectPath = path.concat(pathItem);
             return (
                 <NestedObjectPropertyView
-                    id={id}
+                    id={unionNestedObjectId}
                     // NOTE: No `name`, as it's a union nested object
                     path={nestedObjectPath}
                     model={nestedObjectModel}
@@ -448,7 +478,15 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                 />
             );
         } else if (propertyType === 'array') {
-            return <ArrayPropertyView id={id} name={name} path={path} model={model} framework={framework} />;
+            return (
+                <ArrayPropertyView
+                    id={unionNestedObjectId}
+                    name={name}
+                    path={path}
+                    model={model}
+                    framework={framework}
+                />
+            );
         }
     }
 
