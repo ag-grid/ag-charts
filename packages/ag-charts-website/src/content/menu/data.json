@@ -175,9 +175,21 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Radar",
+                        "title": "Radar Line",
                         "icon": "chartsRadar",
-                        "path": "radar-series",
+                        "path": "radar-line-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Radar Area",
+                        "icon": "chartsRadar",
+                        "path": "radar-area-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Polar Axes",
+                        "icon": "chartsRadar",
+                        "path": "polar-axes",
                         "isEnterprise": true
                     },
                     {
