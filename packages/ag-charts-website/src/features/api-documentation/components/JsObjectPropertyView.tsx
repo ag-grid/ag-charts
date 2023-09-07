@@ -151,11 +151,13 @@ function NestedObjectProperties({
     parentPath,
     properties,
     framework,
+    hideChildren,
 }: {
     parentName?: string;
     parentPath: string[];
     properties: JsonModel['properties'];
     framework: Framework;
+    hideChildren?: boolean;
 }) {
     return (
         <>
@@ -165,6 +167,7 @@ function NestedObjectProperties({
                     propName,
                     path: parentPath,
                     model,
+                    hideChildren,
                 };
                 return (
                     <JsObjectPropertyView
@@ -185,12 +188,14 @@ function NestedObjectPropertyView({
     path,
     model,
     framework,
+    hideChildren,
 }: {
     id: string;
     name?: string;
     path: string[];
     model: JsonModelProperty;
     framework: Framework;
+    hideChildren?: boolean;
 }) {
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
@@ -216,12 +221,14 @@ function NestedObjectPropertyView({
                     <div className={styles.actions}></div>
                 </td>
             </tr>
-            <NestedObjectProperties
-                parentName={name}
-                properties={properties}
-                parentPath={nestedObjectPropertiesPath}
-                framework={framework}
-            />
+            {!hideChildren && (
+                <NestedObjectProperties
+                    parentName={name}
+                    properties={properties}
+                    parentPath={nestedObjectPropertiesPath}
+                    framework={framework}
+                />
+            )}
         </>
     );
 }
@@ -231,11 +238,13 @@ function UnionProperties({
     parentPath,
     elements,
     framework,
+    hideChildren,
 }: {
     parentName: string;
     parentPath: string[];
     elements: JsonUnionType;
     framework: Framework;
+    hideChildren?: boolean;
 }) {
     return elements.options.map((model, index) => {
         const selection: JsObjectSelectionUnionNestedObject = {
@@ -243,6 +252,7 @@ function UnionProperties({
             index,
             path: parentPath,
             model,
+            hideChildren,
         };
         return (
             <JsObjectPropertyView
@@ -314,12 +324,14 @@ function ArrayPropertyView({
     path,
     model,
     framework,
+    hideChildren,
 }: {
     id: string;
     name: string;
     path: string[];
     model: JsonModelProperty;
     framework: Framework;
+    hideChildren?: boolean;
 }) {
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
@@ -343,14 +355,16 @@ function ArrayPropertyView({
                     <div className={styles.actions}></div>
                 </td>
             </tr>
-            <NestedArrayProperties
-                parentId={id}
-                parentName={name}
-                parentPath={nestedArrayPropertiesPath}
-                parentModel={model}
-                elements={elements}
-                framework={framework}
-            />
+            {!hideChildren && (
+                <NestedArrayProperties
+                    parentId={id}
+                    parentName={name}
+                    parentPath={nestedArrayPropertiesPath}
+                    parentModel={model}
+                    elements={elements}
+                    framework={framework}
+                />
+            )}
         </>
     );
 }
@@ -391,7 +405,7 @@ function FunctionPropertyView({
 }
 
 export function JsObjectPropertyView({ selection, framework, parentName }: Props) {
-    const { type, path, model } = selection;
+    const { type, path, model, hideChildren } = selection;
     const id = getSelectionReferenceId(selection);
 
     if (type === 'model') {
@@ -402,6 +416,7 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                 parentPath={path}
                 properties={properties}
                 framework={framework}
+                hideChildren={hideChildren}
             />
         );
     } else if (type === 'property') {
@@ -426,11 +441,19 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     path={path}
                     model={model}
                     framework={framework}
+                    hideChildren={hideChildren}
                 />
             );
         } else if (propertyType === 'array') {
             return (
-                <ArrayPropertyView id={propertyId} name={propName} path={path} model={model} framework={framework} />
+                <ArrayPropertyView
+                    id={propertyId}
+                    name={propName}
+                    path={path}
+                    model={model}
+                    framework={framework}
+                    hideChildren={hideChildren}
+                />
             );
         } else if (propertyType === 'function') {
             return (
@@ -439,7 +462,13 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
         } else if (propertyType === 'union') {
             const elements = model.desc;
             return (
-                <UnionProperties parentName={propName} elements={elements} parentPath={path} framework={framework} />
+                <UnionProperties
+                    parentName={propName}
+                    elements={elements}
+                    parentPath={path}
+                    framework={framework}
+                    hideChildren={hideChildren}
+                />
             );
         }
     } else if (type === 'unionNestedObject') {
@@ -475,6 +504,7 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     path={nestedObjectPath}
                     model={nestedObjectModel}
                     framework={framework}
+                    hideChildren={hideChildren}
                 />
             );
         } else if (propertyType === 'array') {
@@ -485,6 +515,7 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     path={path}
                     model={model}
                     framework={framework}
+                    hideChildren={hideChildren}
                 />
             );
         }

@@ -237,25 +237,25 @@ export interface ApiDocumentationProps {
     config?: Config;
 }
 
-export interface JsModelSelectionProperty {
-    type: 'model';
+interface JsSelectionBase {
     path: string[];
     model: JsonModelProperty;
+    hideChildren?: boolean;
 }
 
-export interface JsObjectSelectionProperty {
+export type JsModelSelectionProperty = JsSelectionBase & {
+    type: 'model';
+};
+
+export type JsObjectSelectionProperty = JsSelectionBase & {
     type: 'property';
     propName: string;
-    path: string[];
-    model: JsonModelProperty;
-}
+};
 
-export interface JsObjectSelectionUnionNestedObject {
+export type JsObjectSelectionUnionNestedObject = JsSelectionBase & {
     type: 'unionNestedObject';
     index: number;
-    path: string[];
-    model: JsonObjectProperty;
-}
+};
 
 export type JsObjectSelection =
     | JsModelSelectionProperty

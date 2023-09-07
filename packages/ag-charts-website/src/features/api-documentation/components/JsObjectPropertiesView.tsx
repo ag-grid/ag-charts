@@ -1,4 +1,4 @@
-import { useCallback, type FunctionComponent, useState } from 'react';
+import { useCallback, type FunctionComponent } from 'react';
 import { JsObjectView } from './JsObjectView';
 import styles from './JsObjectProperties.module.scss';
 import type { Config, JsObjectPropertiesViewProps, JsObjectSelection } from '../types';
@@ -16,10 +16,11 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     framework,
 }) => {
     const model = buildModel(interfaceName, interfaceLookup, codeLookup);
-    const completeModelSelection = {
+    const completeModelSelection: JsObjectSelection = {
         type: model.type,
         path: [],
         model,
+        hideChildren: true,
     };
     const onSelection = useCallback((selection: JsObjectSelection) => {
         const id = getSelectionReferenceId(selection);
