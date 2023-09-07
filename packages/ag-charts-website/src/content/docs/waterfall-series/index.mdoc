@@ -23,7 +23,7 @@ series: [
 The `xKey` defines categories for the [Category Axis](/charts-axes-types/#category), and the `yKey` supplies numerical
 values for the [Number Axis](/charts-axes-types/#number).
 
-The following example shows a Simple Waterfall Series using default options.
+The following example shows a simple Waterfall Series using default options.
 
 {% chartExampleRunner title="Simple Waterfall" name="simple-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
@@ -33,13 +33,13 @@ Legend toggling is disabled in Waterfall Series to avoid misleading or incorrect
 
 ## Total / Subtotal Values
 
-Adding **Total** and **Subtotal** values at specific points in a Waterfall Series can make the data easier to interpret.
+Adding Total and Subtotal values at specific points in a Waterfall Series can make the data easier to interpret.
 These values are automatically calculated based on the following criteria:
 
 -   **Total**: Accumulates all values from the starting point (zero) up to the current point.
--   **Subtotal**: Begins at the last **Total** or **Subtotal** and sums up to the current point.
+-   **Subtotal**: Begins at the last Total or Subtotal and sums up to the current point.
 
-**Total** and **Subtotal** values are added to the `totals` array within the `series` options object.
+Total and Subtotal values are added to the `totals` array within the `series` options object.
 
 ```js
 series: [
@@ -58,8 +58,8 @@ series: [
 
 In this configuration:
 
--   `totalType` specifies whether the value is a **Total** or **Subtotal**.
--   `index` determines the position in the data after which the **Total** or **Subtotal** will appear.
+-   `totalType` specifies whether the value is a Total or Subtotal.
+-   `index` determines the position in the data after which the Total or Subtotal will appear.
 -   `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](/charts-axes-types/#category).
 
 Note the following in the example:
@@ -105,7 +105,7 @@ In the `item` configuration:
 -   `total` changes Total/Subtotal series items.
 
 Note that the `total` series item also contains a `name` property to change the total name to 'Total / Subtotal' in the
-total legend item and tooltips.
+Total legend item and tooltips.
 
 The example below demonstrates these series item customisations.
 
@@ -131,7 +131,7 @@ series: [
 
 To remove the connector lines, set `line.enabled` to `false`.
 
-The following example shows a simple waterfall series with `red` connector lines between the bars.
+The following example shows a simple Waterfall Series with `red` connector lines between the bars.
 
 {% chartExampleRunner title="Customising Connector Lines" name="customising-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
 
