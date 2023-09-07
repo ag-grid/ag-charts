@@ -149,6 +149,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             moduleCtx,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            canHaveAxes: true,
         });
 
         const lineGroup = new Group();

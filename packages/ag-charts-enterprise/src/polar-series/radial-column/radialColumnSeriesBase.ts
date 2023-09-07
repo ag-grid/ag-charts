@@ -154,6 +154,7 @@ export abstract class RadialColumnSeriesBase<
         super({
             moduleCtx,
             useLabelLayer: true,
+            canHaveAxes: true,
         });
 
         const sectorGroup = new Group();

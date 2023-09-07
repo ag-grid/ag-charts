@@ -30,10 +30,12 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<Seri
         moduleCtx,
         useLabelLayer = false,
         pickModes = [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+        canHaveAxes = false,
     }: {
         moduleCtx: ModuleContext;
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
+        canHaveAxes?: boolean;
     }) {
         super({
             moduleCtx,
@@ -48,6 +50,7 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<Seri
                 [ChartAxisDirection.X]: ['angleName'],
                 [ChartAxisDirection.Y]: ['radiusName'],
             },
+            canHaveAxes,
         });
     }
 

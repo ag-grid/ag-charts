@@ -164,6 +164,7 @@ export abstract class CartesianSeries<
         super({
             ...opts,
             useSeriesGroupLayer: true,
+            canHaveAxes: true,
         });
 
         this.opts = opts;
