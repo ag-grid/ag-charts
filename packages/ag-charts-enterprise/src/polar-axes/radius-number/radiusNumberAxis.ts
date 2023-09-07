@@ -33,6 +33,13 @@ class RadiusNumberAxisLabel extends _ModuleSupport.AxisLabel {
     autoRotateAngle: number = 335;
 }
 
+type TickDatum = {
+    tickLabel: string;
+    tick: any;
+    tickId: string;
+    translationY: number;
+};
+
 export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
     static className = 'RadiusNumberAxis';
     static type = 'radius-number' as const;
@@ -79,12 +86,6 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
         assignJsonApplyConstructedArray(crossLines, RadiusCrossLine);
     }
 
-    update(primaryTickCount?: number) {
-        primaryTickCount = super.update(primaryTickCount);
-        this.updateGridArcs();
-        return primaryTickCount;
-    }
-
     protected getAxisTransform() {
         const maxRadius = this.scale.range[0];
         const { translation, positionAngle, innerRadiusRatio } = this;
@@ -99,20 +100,22 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
         };
     }
 
-    private updateGridArcs() {
+    protected updateSelections(data: TickDatum[]) {
+        super.updateSelections(data);
+
         const { scale, gridStyle, tick, shape } = this;
         if (!gridStyle) {
             return;
         }
 
         const domainTop = scale.getDomain?.()[1];
-        const ticks = (scale.ticks?.() || [])
-            .filter((tick) => tick !== domainTop) // Prevent outer tick being drawn behind polar line
-            .sort((a, b) => b - a); // Apply grid styles starting from the largest arc
+        const ticks = data
+            .filter(({ tick }) => tick !== domainTop) // Prevent outer tick being drawn behind polar line
+            .sort((a, b) => b.tick - a.tick); // Apply grid styles starting from the largest arc
 
         const maxRadius = scale.range[0];
         const minRadius = maxRadius * this.innerRadiusRatio;
-        const getRadius = (tick: number) => maxRadius - scale.convert(tick) + minRadius;
+        const getTickRadius = (tick: TickDatum) => maxRadius - tick.translationY + minRadius;
 
         const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
             const style = gridStyle[index % gridStyle.length];
@@ -127,7 +130,7 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
 
             node.centerX = 0;
             node.centerY = 0;
-            node.radius = getRadius(value);
+            node.radius = getTickRadius(value);
             node.startAngle = 0;
             node.endAngle = 2 * Math.PI;
         });
@@ -142,7 +145,7 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
                 return;
             }
 
-            const radius = getRadius(value);
+            const radius = getTickRadius(value);
             angles.forEach((angle, i) => {
                 const x = radius * Math.cos(angle);
                 const y = radius * Math.sin(angle);
