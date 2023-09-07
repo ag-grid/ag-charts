@@ -112,11 +112,11 @@ export class BoxPlotSeries extends CartesianSeries<
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesFormat = undefined;
 
-    cap = new BoxPlotSeriesCap();
+    readonly cap = new BoxPlotSeriesCap();
 
-    whisker = new BoxPlotSeriesWhisker();
+    readonly whisker = new BoxPlotSeriesWhisker();
 
-    tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
