@@ -13,4 +13,5 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule = {
     instanceConstructor: BoxPlotSeries,
     seriesDefaults: BOX_PLOT_SERIES_DEFAULTS,
     themeTemplate: BOX_PLOT_SERIES_THEME,
+    groupable: true,
 };
