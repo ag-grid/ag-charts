@@ -9,21 +9,21 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'radar-area',
+            type: 'radar-line',
             angleKey: 'subject',
-            radiusKey: 'mike',
-            radiusName: `Mike's grades`,
-        },
-        {
-            type: 'radar-area',
-            angleKey: 'subject',
-            radiusKey: 'tony',
-            radiusName: `Tony's grades`,
+            radiusKey: 'grade',
         },
     ],
-    legend: {
-        enabled: true,
-    },
+    axes: [
+        {
+            type: 'angle-category',
+            shape: 'circle',
+        },
+        {
+            type: 'radius-number',
+            shape: 'circle',
+        },
+    ],
 };
 
 const chart = AgEnterpriseCharts.create(options);

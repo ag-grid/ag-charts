@@ -1,0 +1,81 @@
+---
+title: 'Polar Axes'
+enterprise: true
+---
+
+**Polar Axes** are used for for Radar Line and Area, Radial Column and Nightingale charts. They let plotting the data in a polar coordinate system.
+
+## Polar Axes Shape
+
+Polar Axes have `polygon` shape by default. The categories are connected with straight lines.
+
+{% chartExampleRunner title="Default Polar Axes" name="default-polar-axes" type="generated" options="{ \"enterprise\": true }" /%}
+
+To change the shape to `circle`, please use the axis `shape` property:
+
+```js
+series: [
+    ...
+],
+axes: [
+    {
+        type: 'angle-category',
+        shape: 'circle',
+    },
+    {
+        type: 'radius-number',
+        shape: 'circle',
+    },
+]
+```
+
+{% chartExampleRunner title="Polar Axes With Circle Shape" name="polar-circle-axes" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Polar Axis Labels
+
+Use `label.orientation` property to change the orientation of polar axis labels by providing one of the options: `fixed`, `parallel` or `perpendicular`. The next example demonstrates how this property works:
+
+```js
+series: [
+    ...
+],
+axes: [
+    {
+        type: 'angle-category',
+        label: {
+            orientation: 'parallel',
+        },
+    },
+    {
+        type: 'radius-number',
+    },
+]
+```
+
+{% chartExampleRunner title="Polar Axis Label Orientation" name="polar-axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Other Properties
+
+There are many ways to modify a look of polar grid lines and labels:
+
+```js
+series: [
+    ...
+],
+axes: [
+    { type: 'angle-category', label: { ... } },
+    { type: 'radius-number', gridStyle: [{ ... }] },
+]
+```
+
+{% chartExampleRunner title="Polar Axes" name="polar-axes-style" type="generated" options="{ \"enterprise\": true }" /%}
+
+Please see the API reference for more details.
+
+## API Reference
+
+{% interfaceDocumentation interfaceName="AgAngleCategoryAxisOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgAngleCategoryAxisLabelOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgRadiusNumberAxisOptions" config="{ \"showSnippets\": false }" /%}
