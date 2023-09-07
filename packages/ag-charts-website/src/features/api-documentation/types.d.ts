@@ -237,6 +237,12 @@ export interface ApiDocumentationProps {
     config?: Config;
 }
 
+export interface JsModelSelectionProperty {
+    type: 'model';
+    path: string[];
+    model: JsonModelProperty;
+}
+
 export interface JsObjectSelectionProperty {
     type: 'property';
     propName: string;
@@ -251,7 +257,10 @@ export interface JsObjectSelectionUnionNestedObject {
     model: JsonObjectProperty;
 }
 
-export type JsObjectSelection = JsObjectSelectionProperty | JsObjectSelectionUnionNestedObject;
+export type JsObjectSelection =
+    | JsModelSelectionProperty
+    | JsObjectSelectionProperty
+    | JsObjectSelectionUnionNestedObject;
 
 export interface JsObjectViewProps {
     model: JsonModel;

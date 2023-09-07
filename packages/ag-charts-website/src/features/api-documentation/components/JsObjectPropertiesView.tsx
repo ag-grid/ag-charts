@@ -13,20 +13,24 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     config = {} as Config,
     framework,
 }) => {
-    const [selection, setSelection] = useState<JsObjectSelection>();
+    const model = buildModel(interfaceName, interfaceLookup, codeLookup);
+    const completeModelSelection = {
+        type: model.type,
+        path: [],
+        model,
+    };
+    const [selection, setSelection] = useState<JsObjectSelection>(completeModelSelection);
     const onSelection = useCallback(
         (data: JsObjectSelection) => {
             setSelection(data);
         },
         [selection]
     );
-    const model = buildModel(interfaceName, interfaceLookup, codeLookup);
 
     return (
         <div className={styles.container}>
             <JsObjectView breadcrumbs={breadcrumbs} config={config} onSelection={onSelection} model={model} />
-
-            {selection ? <JsObjectDetails selection={selection} framework={framework} /> : 'TODO: No selection'}
+            <JsObjectDetails selection={selection} framework={framework} />
         </div>
     );
 };

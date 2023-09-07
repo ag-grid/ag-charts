@@ -392,7 +392,17 @@ function FunctionPropertyView({
 export function JsObjectPropertyView({ selection, framework, parentName }: Props) {
     const { type, path, model } = selection;
 
-    if (type === 'property') {
+    if (type === 'model') {
+        const { properties } = model;
+        return (
+            <NestedObjectProperties
+                parentName={parentName}
+                parentPath={path}
+                properties={properties}
+                framework={framework}
+            />
+        );
+    } else if (type === 'property') {
         const { propName } = selection as JsObjectSelectionProperty;
         const id = `reference-${path}-${propName}`;
         const propertyType = model.desc.type;
