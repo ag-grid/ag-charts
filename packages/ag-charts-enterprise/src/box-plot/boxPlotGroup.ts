@@ -1,5 +1,6 @@
-import type { AgBoxPlotWhiskerOptions, BoxPlotNodeDatum, AgBoxPlotSeriesFormat } from 'ag-charts-community';
-import { _Scene, _ModuleSupport } from 'ag-charts-community';
+import type { AgBoxPlotSeriesFormat, AgBoxPlotWhiskerOptions } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 enum GroupTags {
     Box,

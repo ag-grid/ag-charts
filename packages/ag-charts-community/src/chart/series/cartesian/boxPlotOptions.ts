@@ -9,7 +9,6 @@ import type {
 } from './commonOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { Ratio } from '../../options/types';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 interface BoxPlotUniqueOptions {
     minKey?: string;
@@ -30,25 +29,6 @@ export interface AgBoxPlotCapOptions {
 
 export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
-export interface BoxPlotNodeDatum
-    extends Omit<CartesianSeriesNodeDatum, 'yKey'>,
-        Readonly<Required<FillOptions>>,
-        Readonly<Required<StrokeOptions>>,
-        Readonly<Required<LineDashOptions>> {
-    readonly xValue: number;
-    readonly minValue: number;
-    readonly q1Value: number;
-    readonly medianValue: number;
-    readonly q3Value: number;
-    readonly maxValue: number;
-    readonly bandwidth: number;
-
-    readonly cap: {
-        readonly lengthRatio: Ratio;
-    };
-    readonly whisker: Readonly<StrokeOptions & LineDashOptions>;
-}
-
 export type AgBoxPlotSeriesFormatterParams<DatumType> = AgSeriesFormatterParams<DatumType> &
     Readonly<BoxPlotUniqueOptions> &
     Readonly<Omit<AxisOptions, 'yKey'>> &
@@ -57,7 +37,7 @@ export type AgBoxPlotSeriesFormatterParams<DatumType> = AgSeriesFormatterParams<
 
 export type AgBoxPlotSeriesFormat = FillOptions & StrokeOptions;
 
-export interface AgBoxPlotSeriesOptions<DatumType = BoxPlotNodeDatum>
+export interface AgBoxPlotSeriesOptions<DatumType = any>
     extends AgBaseSeriesOptions<DatumType>,
         BoxPlotUniqueOptions,
         Omit<AxisOptions, 'yKey'>,

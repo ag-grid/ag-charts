@@ -3,10 +3,10 @@ import type {
     AgBoxPlotSeriesFormat,
     AgBoxPlotSeriesFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
-    BoxPlotNodeDatum,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { BoxPlotGroup } from './boxPlotGroup';
+import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const {
     CartesianSeries,
