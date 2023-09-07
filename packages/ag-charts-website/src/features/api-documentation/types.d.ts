@@ -1,5 +1,5 @@
 import type { Framework } from '@ag-grid-types';
-import type { JsonProperty } from './utils/model';
+import type { JsonModel, JsonProperty } from './utils/model';
 
 interface MetaTag {
     displayName: string;
@@ -254,10 +254,8 @@ export interface JsObjectSelectionUnionNestedObject {
 export type JsObjectSelection = JsObjectSelectionProperty | JsObjectSelectionUnionNestedObject;
 
 export interface JsObjectViewProps {
-    interfaceName: string;
+    model: JsonModel;
     breadcrumbs?: string[];
-    interfaceLookup: InterfaceLookup;
-    codeLookup: CodeLookup;
     config?: Config;
     onSelection?: (value: OnSelectionValue) => void;
 }

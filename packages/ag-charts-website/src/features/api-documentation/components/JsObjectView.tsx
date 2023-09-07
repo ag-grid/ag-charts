@@ -46,15 +46,11 @@ interface ModelSnippetWithBreadcrumbsParams {
 }
 
 export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
-    interfaceName,
+    model,
     breadcrumbs = [],
-    codeLookup,
-    interfaceLookup,
     config = {},
     onSelection,
 }) => {
-    const model = buildModel(interfaceName, interfaceLookup, codeLookup);
-
     return (
         <div className={styles.expandableSnippet} role="presentation">
             <pre className={classnames('code', 'language-ts')}>
