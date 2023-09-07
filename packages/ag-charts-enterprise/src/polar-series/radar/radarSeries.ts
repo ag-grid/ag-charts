@@ -82,8 +82,6 @@ class RadarStateMachine extends _ModuleSupport.StateMachine<RadarAnimationState,
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
     static className = 'RadarSeries';
 
-    readonly canHaveAxes = true;
-
     readonly marker = new RadarSeriesMarker();
 
     readonly label = new RadarSeriesLabel();
@@ -151,6 +149,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             moduleCtx,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            canHaveAxes: true,
         });
 
         const lineGroup = new Group();

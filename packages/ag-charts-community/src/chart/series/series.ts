@@ -311,7 +311,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     @Validate(STRING)
     readonly id = createId(this);
 
-    readonly canHaveAxes: boolean = false;
+    readonly canHaveAxes: boolean;
 
     get type(): string {
         return (this.constructor as any).type ?? '';
@@ -437,6 +437,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         contentGroupVirtual?: boolean;
         directionKeys?: { [key in ChartAxisDirection]?: string[] };
         directionNames?: { [key in ChartAxisDirection]?: string[] };
+        canHaveAxes?: boolean;
     }) {
         super();
 
@@ -448,12 +449,14 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
             directionKeys = {},
             directionNames = {},
             contentGroupVirtual = true,
+            canHaveAxes = false,
         } = seriesOpts;
 
         const { rootGroup } = this;
 
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
+        this.canHaveAxes = canHaveAxes;
 
         this.contentGroup = rootGroup.appendChild(
             new Group({

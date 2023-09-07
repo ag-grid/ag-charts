@@ -110,8 +110,6 @@ export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
     N extends Node = Group
 > extends Series<C> {
-    readonly canHaveAxes = true;
-
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
 
@@ -166,6 +164,7 @@ export abstract class CartesianSeries<
         super({
             ...opts,
             useSeriesGroupLayer: true,
+            canHaveAxes: true,
         });
 
         this.opts = opts;

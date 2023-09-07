@@ -89,8 +89,6 @@ class RadialColumnStateMachine extends _ModuleSupport.StateMachine<
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Path
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
-    readonly canHaveAxes = true;
-
     readonly label = new RadialColumnSeriesLabel();
 
     protected itemSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
@@ -156,6 +154,7 @@ export abstract class RadialColumnSeriesBase<
         super({
             moduleCtx,
             useLabelLayer: true,
+            canHaveAxes: true,
         });
 
         const sectorGroup = new Group();
