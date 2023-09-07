@@ -12,7 +12,7 @@ export const openPlunker = ({
     const form = document.createElement('form');
     form.method = 'post';
     form.style.display = 'none';
-    form.action = `//plnkr.co/edit/?preview&open=${fileToOpen}`;
+    form.action = `https://plnkr.co/edit/?preview&open=${fileToOpen}`;
     form.target = '_blank';
 
     const addHiddenInput = (name: string, value: any) => {
