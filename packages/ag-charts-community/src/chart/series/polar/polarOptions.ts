@@ -31,7 +31,7 @@ export interface AgBasePolarChartOptions {
 
 export interface AgBasePolarThemeOptions<S> {
     /** Series configurations. */
-    series?: S extends { type?: 'pie' } ? AgPieSeriesTheme : S;
+    series?: S extends AgPieSeriesOptions ? AgPieSeriesTheme : S;
     /** Configuration for the chart legend. */
     legend?: AgPolarChartLegendOptions;
 }

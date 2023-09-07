@@ -1,6 +1,5 @@
 import type { AgChartBackgroundImage } from '../background/backgroundOptions';
 import type { AgBaseChartListeners } from './eventOptions';
-import type { AgBaseChartTheme } from './themeOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextWrap } from './types';
 

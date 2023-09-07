@@ -59,14 +59,10 @@ const options: AgCartesianChartOptions = {
   },
   theme: {
     overrides: {
-      cartesian: {
-        series: {
-          line: highlightTheme,
-          scatter: highlightTheme,
-          area: highlightTheme,
-          bar: highlightTheme,
-        },
-      },
+      line: { series: highlightTheme },
+      scatter: { series: highlightTheme },
+      area: { series: highlightTheme },
+      bar: { series: highlightTheme },
     },
   },
   axes: [

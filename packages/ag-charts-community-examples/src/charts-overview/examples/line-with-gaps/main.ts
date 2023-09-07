@@ -46,17 +46,15 @@ const options: AgChartOptions = {
       ],
     },
     overrides: {
-      cartesian: {
+      line: {
         series: {
-          line: {
-            highlightStyle: {
-              series: {
-                dimOpacity: 0.2,
-                strokeWidth: 4,
-              },
+          highlightStyle: {
+            series: {
+              dimOpacity: 0.2,
+              strokeWidth: 4,
             },
-            marker: { enabled: true },
           },
+          marker: { enabled: true },
         },
       },
     },
