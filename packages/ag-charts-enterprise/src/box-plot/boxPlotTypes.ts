@@ -1,21 +1,20 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-export interface BoxPlotNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
-    readonly index: number;
-    readonly xValue: number;
-    readonly bandwidth: number;
+import type { _ModuleSupport, FillOptions, LineDashOptions, Ratio, StrokeOptions } from 'ag-charts-community';
 
-    readonly yValue: number;
+export interface BoxPlotNodeDatum
+    extends Readonly<Required<FillOptions>>,
+        Readonly<Required<StrokeOptions>>,
+        Readonly<Required<LineDashOptions>>,
+        Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey'> {
+    readonly xValue: number;
     readonly minValue: number;
     readonly q1Value: number;
     readonly medianValue: number;
     readonly q3Value: number;
     readonly maxValue: number;
+    readonly bandwidth: number;
 
-    readonly fill: string;
-    readonly fillOpacity: number;
-    readonly stroke: string;
-    readonly strokeWidth: number;
-    readonly strokeOpacity: number;
-    readonly lineDash: number[];
-    readonly lineDashOffset: number;
+    readonly cap: {
+        readonly lengthRatio: Ratio;
+    };
+    readonly whisker: Readonly<StrokeOptions & LineDashOptions>;
 }

@@ -42,7 +42,13 @@ export class Line extends Shape {
         return new BBox(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
     }
 
-    isPointInPath(_x: number, _y: number): boolean {
+    isPointInPath(px: number, py: number): boolean {
+        if (this.x1 === this.x2 || this.y1 === this.y2) {
+            const { x, y } = this.transformPoint(px, py);
+            return this.computeBBox()
+                .grow(this.strokeWidth / 2)
+                .containsPoint(x, y);
+        }
         return false;
     }
 
@@ -57,10 +63,7 @@ export class Line extends Shape {
         this.computeTransformMatrix();
         this.matrix.toContext(ctx);
 
-        let x1 = this.x1;
-        let y1 = this.y1;
-        let x2 = this.x2;
-        let y2 = this.y2;
+        let { x1, y1, x2, y2 } = this;
 
         // Align to the pixel grid if the line is strictly vertical
         // or horizontal (but not both, i.e. a dot).

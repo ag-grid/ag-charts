@@ -22,7 +22,7 @@ const BOX_PLOT_BAR_OPTIONS: AgChartOptions = {
     series: [
         {
             type: 'box-plot',
-            yKey: 'year',
+            xKey: 'year',
             minKey: 'min',
             q1Key: 'q1',
             medianKey: 'median',

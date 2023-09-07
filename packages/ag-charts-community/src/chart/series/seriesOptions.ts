@@ -38,9 +38,9 @@ export interface AgBaseSeriesOptions<DatumType> {
     id?: string;
     /** The data to use when rendering the series. If this is not supplied, data must be set on the chart instead. */
     data?: DatumType[];
-    /** Whether or not to display the series. */
+    /** Whether to display the series. */
     visible?: boolean;
-    /** Whether or not to include the series in the legend. */
+    /** Whether to include the series in the legend. */
     showInLegend?: boolean;
     /** The cursor to use for hovered area markers. This config is identical to the CSS `cursor` property. */
     cursor?: string;

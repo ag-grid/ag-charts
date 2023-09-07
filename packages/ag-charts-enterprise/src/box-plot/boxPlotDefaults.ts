@@ -11,10 +11,4 @@ export const BOX_PLOT_SERIES_DEFAULTS: AgCartesianChartOptions = {
             position: 'left',
         },
     ],
-    // legend: {
-    //     enabled: true,
-    //     item: {
-    //         toggleSeriesVisible: false,
-    //     },
-    // },
 };

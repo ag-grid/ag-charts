@@ -1,7 +1,12 @@
-import type { AgCartesianSeriesTooltipRendererParams, _Scene } from 'ag-charts-community';
+import type {
+    _Scene,
+    AgBoxPlotSeriesFormat,
+    AgBoxPlotSeriesFormatterParams,
+    AgCartesianSeriesTooltipRendererParams,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoxPlotNodeDatum } from './boxPlotTypes';
 import { BoxPlotGroup } from './boxPlotGroup';
+import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const {
     CartesianSeries,
@@ -9,13 +14,36 @@ const {
     keyProperty,
     NUMBER,
     OPT_COLOR_STRING,
-    OPT_STRING,
+    OPT_FUNCTION,
     OPT_LINE_DASH,
+    OPT_STRING,
     SeriesNodePickMode,
     SeriesTooltip,
     Validate,
     valueProperty,
 } = _ModuleSupport;
+
+class BoxPlotSeriesCap {
+    @Validate(NUMBER(0, 1))
+    lengthRatio = 0.5;
+}
+
+class BoxPlotSeriesWhisker {
+    @Validate(OPT_COLOR_STRING)
+    stroke?: string;
+
+    @Validate(NUMBER(0))
+    strokeWidth?: number;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity?: number;
+
+    @Validate(OPT_LINE_DASH)
+    lineDash?: number[];
+
+    @Validate(NUMBER(0))
+    lineDashOffset?: number;
+}
 
 export class BoxPlotSeries extends CartesianSeries<
     _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>,
@@ -26,9 +54,6 @@ export class BoxPlotSeries extends CartesianSeries<
 
     @Validate(OPT_STRING)
     xName?: string = undefined;
-
-    @Validate(OPT_STRING)
-    yKey?: string = undefined;
 
     @Validate(OPT_STRING)
     yName?: string = undefined;
@@ -79,12 +104,19 @@ export class BoxPlotSeries extends CartesianSeries<
     strokeOpacity = 1;
 
     @Validate(OPT_LINE_DASH)
-    lineDash?: number[] = [0];
+    lineDash: number[] = [0];
 
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
 
-    tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
+    @Validate(OPT_FUNCTION)
+    formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesFormat = undefined;
+
+    readonly cap = new BoxPlotSeriesCap();
+
+    readonly whisker = new BoxPlotSeriesWhisker();
+
+    readonly tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -96,13 +128,13 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        const { yKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
 
-        if (!yKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
+        if (!xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
 
         const { dataModel, processedData } = await dataController.request(this.id, data, {
             props: [
-                keyProperty(this, yKey, false, { id: `yValue` }),
+                keyProperty(this, xKey, false, { id: `xValue` }),
                 valueProperty(this, minKey, true, { id: `minValue` }),
                 valueProperty(this, q1Key, true, { id: `q1Value` }),
                 valueProperty(this, medianKey, true, { id: `medianValue` }),
@@ -129,8 +161,8 @@ export class BoxPlotSeries extends CartesianSeries<
                 this.axes[ChartAxisDirection.X]
             );
         } else {
-            const yValueIndex = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-            return processedData.domain.keys[yValueIndex];
+            const { index } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+            return processedData.domain.keys[index];
         }
     }
 
@@ -146,24 +178,26 @@ export class BoxPlotSeries extends CartesianSeries<
         }
 
         const {
-            yKey = '',
+            xKey = '',
             fill,
             fillOpacity,
             stroke,
             strokeWidth,
             strokeOpacity,
-            lineDash = [],
+            lineDash,
             lineDashOffset,
+            cap,
+            whisker,
         } = this;
 
         const context: _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum> = {
-            itemId: yKey,
+            itemId: xKey,
             nodeData: [],
             labelData: [],
         };
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [
-            'yValue',
+            'xValue',
             'minValue',
             'q1Value',
             `medianValue`,
@@ -171,8 +205,8 @@ export class BoxPlotSeries extends CartesianSeries<
             `maxValue`,
         ]);
 
-        this.processedData?.data.forEach(({ datum, keys, values }, index) => {
-            const { yValue, minValue, q1Value, medianValue, q3Value, maxValue } =
+        this.processedData?.data.forEach(({ datum, keys, values }) => {
+            const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
                 dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
 
             if (minValue > q1Value || q1Value > medianValue || medianValue > q3Value || q3Value > maxValue) {
@@ -181,14 +215,14 @@ export class BoxPlotSeries extends CartesianSeries<
 
             const nodeData: BoxPlotNodeDatum = {
                 series: this,
-                itemId: yKey,
-                xKey: '',
-                xValue: 0,
-                bandwidth: yAxis.scale.bandwidth ?? 0,
-                ...this.convertValuesToScaleByDefs(defs, { yValue, minValue, q1Value, medianValue, q3Value, maxValue }),
+                itemId: xValue,
                 datum,
-                index,
-                yKey,
+                xKey,
+                yValue: 0,
+                bandwidth: Math.round(yAxis.scale.bandwidth ?? 0),
+                ...this.convertValuesToScaleByDefs(defs, { xValue, minValue, q1Value, medianValue, q3Value, maxValue }),
+                cap,
+                whisker,
                 fill,
                 fillOpacity,
                 stroke,
@@ -230,7 +264,15 @@ export class BoxPlotSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         opts.datumSelection.each((boxPlot, datum) => {
-            boxPlot.updateDatumStyles(datum);
+            let format: AgBoxPlotSeriesFormat | undefined;
+            if (this.formatter) {
+                format = this.formatter({
+                    ...datum,
+                    seriesId: this.id,
+                    highlighted: false,
+                });
+            }
+            boxPlot.updateDatumStyles(datum, format);
         });
     }
 
