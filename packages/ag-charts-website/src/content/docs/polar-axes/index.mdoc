@@ -7,11 +7,13 @@ enterprise: true
 
 ## Polar Axes Shape
 
-Polar Axes have `polygon` shape by default. The categories are connected with straight lines.
+There are two Polar Axes shape types:
+- `polygon` where categories are connected with straight lines (default for Radar series).
+- `circle` where axis grid is drawn using circles (default for Radial Column and Nightingale).
 
 {% chartExampleRunner title="Default Polar Axes" name="default-polar-axes" type="generated" options="{ \"enterprise\": true }" /%}
 
-To change the shape to `circle`, please use the axis `shape` property:
+To change the default shape, please use the axis `shape` property (it should be modified for both axes):
 
 ```js
 series: [
