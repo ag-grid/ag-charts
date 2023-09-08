@@ -34,6 +34,8 @@ import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
+import type { ErrorBar, ErrorBarConfig, ErrorBarDatum } from '../../errorBar';
+import { updateErrorBar } from './errorBarUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
     readonly point: SeriesNodeDatum['point'] & {
@@ -49,6 +51,7 @@ interface LineNodeDatum extends CartesianSeriesNodeDatum {
         readonly textBaseline: CanvasTextBaseline;
         readonly fill: string;
     };
+    readonly errorBar?: ErrorBarDatum;
 }
 
 class LineSeriesLabel extends Label {
@@ -58,25 +61,6 @@ class LineSeriesLabel extends Label {
 
 type LineContext = SeriesNodeDataContext<LineNodeDatum>;
 type LineAnimationData = CartesianAnimationData<LineContext>;
-
-export class ErrorBarConfig {
-    @Validate(OPT_STRING)
-    yLowerKey: string = '';
-
-    @Validate(OPT_STRING)
-    yLowerName?: string = undefined;
-
-    @Validate(OPT_STRING)
-    yUpperKey: string = '';
-
-    @Validate(OPT_STRING)
-    yUpperName?: string = undefined;
-
-    constructor(yLowerKey: string, yUpperKey: string) {
-        this.yLowerKey = yLowerKey;
-        this.yUpperKey = yUpperKey;
-    }
-}
 
 export class LineSeries extends CartesianSeries<LineContext> {
     static className = 'LineSeries';
@@ -110,6 +94,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         super({
             moduleCtx,
             hasMarkers: true,
+            hasErrorBars: true, // TODO(olegat) false if this.errorBars undefined
             pickModes: [
                 SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
                 SeriesNodePickMode.NEAREST_NODE,
@@ -266,6 +251,17 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
                 const y = yScale.convert(yDatum) + yOffset;
 
+                const { yLowerKey = undefined, yUpperKey = undefined } = this.errorBar ?? {};
+                let errorBar;
+                if (yLowerKey && yLowerKey in datum && yUpperKey && yUpperKey in datum) {
+                    errorBar = {
+                        yLowerValue: datum[yLowerKey],
+                        yUpperValue: datum[yUpperKey],
+                        yLowerPoint: { x: x, y: yScale.convert(datum[yLowerKey]) + yOffset },
+                        yUpperPoint: { x: x, y: yScale.convert(datum[yUpperKey]) + yOffset },
+                    };
+                }
+
                 let labelText;
                 if (label.formatter) {
                     labelText = callbackCache.call(label.formatter, { value: yDatum, seriesId });
@@ -299,6 +295,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                               fill: label.color,
                           }
                         : undefined,
+                    errorBar: errorBar,
                 };
                 moveTo = false;
             }
@@ -383,6 +380,26 @@ export class LineSeries extends CartesianSeries<LineContext> {
         if (!highlighted) {
             this.marker.markClean();
         }
+    }
+
+    protected async updateErrorBarSelection(opts: {
+        nodeData: LineNodeDatum[];
+        errorBarSelection: Selection<ErrorBar, LineNodeDatum>;
+    }) {
+        // TODO(olegat) implement
+        return super.updateErrorBarSelection({ ...opts, seriesIdx: 0 });
+    }
+
+    protected async updateErrorBarNodes(opts: {
+        errorBarSelection: Selection<ErrorBar, LineNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        // TODO(olegat) implement
+        opts.errorBarSelection.each((node, datum) => {
+            if (datum.errorBar) {
+                updateErrorBar(node, datum.errorBar);
+            }
+        });
     }
 
     protected async updateLabelSelection(opts: {

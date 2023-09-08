@@ -6,6 +6,7 @@ import { isContinuous, isDiscrete } from '../../../util/value';
 import { Path } from '../../../scene/shape/path';
 import { Selection } from '../../../scene/selection';
 import type { Marker } from '../../marker/marker';
+import { ErrorBar } from '../../errorBar';
 import { Group } from '../../../scene/group';
 import { Text } from '../../../scene/shape/text';
 import type { Node, ZIndexSubOrder } from '../../../scene/node';
@@ -26,6 +27,7 @@ import { StateMachine } from '../../../motion/states';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Logger } from '../../../util/logger';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesStateManager';
+import { updateErrorBar } from './errorBarUtil';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -48,14 +50,17 @@ interface SubGroup<C extends SeriesNodeDataContext, SceneNodeType extends Node> 
     dataNodeGroup: Group;
     labelGroup: Group;
     markerGroup?: Group;
+    errorBarGroup?: Group;
     datumSelection: NodeDataSelection<SceneNodeType, C>;
     labelSelection: LabelDataSelection<Text, C>;
     markerSelection?: NodeDataSelection<Marker, C>;
+    errorBarSelection?: NodeDataSelection<ErrorBar, C>;
 }
 interface SeriesOpts {
     pathsPerSeries: number;
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
+    hasErrorBars: boolean;
     hasHighlightedLabels: boolean;
     directionKeys: { [key in ChartAxisDirection]?: string[] };
     directionNames: { [key in ChartAxisDirection]?: string[] };
@@ -126,6 +131,11 @@ export abstract class CartesianSeries<
     ) as NodeDataSelection<N, C>;
     private highlightLabelSelection = Selection.select(this.highlightLabel, Text) as LabelDataSelection<Text, C>;
 
+    //private errorBarGroup: Node = new Group();
+    // private errorBarSelection = Selection.select(this.errorBarGroup, () =>
+    //     this.opts.hasErrorBars ? this.errorBarFactory() : this.nodeFactory()
+    // ); // as NodeDataSelection<ErrorBar, LineContext>;
+
     private subGroups: SubGroup<C, any>[] = [];
     private subGroupId: number = 0;
 
@@ -141,6 +151,7 @@ export abstract class CartesianSeries<
     protected constructor({
         pathsPerSeries = 1,
         hasMarkers = false,
+        hasErrorBars = false,
         hasHighlightedLabels = false,
         pathsZIndexSubOrderOffset = [],
         directionKeys = DEFAULT_DIRECTION_KEYS,
@@ -154,6 +165,7 @@ export abstract class CartesianSeries<
         const opts = {
             pathsPerSeries,
             hasMarkers,
+            hasErrorBars,
             hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
             directionKeys,
@@ -308,7 +320,7 @@ export abstract class CartesianSeries<
     }
 
     private async updateSeriesGroupSelections(subGroup: SubGroup<C, any>, seriesIdx: number) {
-        const { datumSelection, labelSelection, markerSelection } = subGroup;
+        const { datumSelection, labelSelection, markerSelection, errorBarSelection } = subGroup;
         const contextData = this._contextNodeData[seriesIdx];
         const { nodeData, labelData } = contextData;
 
@@ -318,6 +330,13 @@ export abstract class CartesianSeries<
             subGroup.markerSelection = await this.updateMarkerSelection({
                 nodeData,
                 markerSelection,
+                seriesIdx,
+            });
+        }
+        if (errorBarSelection) {
+            subGroup.errorBarSelection = await this.updateErrorBarSelection({
+                nodeData,
+                errorBarSelection,
                 seriesIdx,
             });
         }
@@ -332,30 +351,39 @@ export abstract class CartesianSeries<
         return new MarkerShape();
     }
 
+    protected errorBarFactory(): ErrorBar {
+        return new ErrorBar();
+    }
+
     private async updateSeriesGroups() {
         const {
             _contextNodeData: contextNodeData,
             contentGroup,
             subGroups,
-            opts: { pathsPerSeries, hasMarkers },
+            opts: { pathsPerSeries, hasMarkers, hasErrorBars },
         } = this;
         if (contextNodeData.length === subGroups.length) {
             return;
         }
 
         if (contextNodeData.length < subGroups.length) {
-            subGroups.splice(contextNodeData.length).forEach(({ dataNodeGroup, markerGroup, labelGroup, paths }) => {
-                contentGroup.removeChild(dataNodeGroup);
-                if (markerGroup) {
-                    contentGroup.removeChild(markerGroup);
-                }
-                if (labelGroup) {
-                    contentGroup.removeChild(labelGroup);
-                }
-                for (const path of paths) {
-                    contentGroup.removeChild(path);
-                }
-            });
+            subGroups
+                .splice(contextNodeData.length)
+                .forEach(({ dataNodeGroup, markerGroup, errorBarGroup, labelGroup, paths }) => {
+                    contentGroup.removeChild(dataNodeGroup);
+                    if (markerGroup) {
+                        contentGroup.removeChild(markerGroup);
+                    }
+                    if (errorBarGroup) {
+                        contentGroup.removeChild(errorBarGroup);
+                    }
+                    if (labelGroup) {
+                        contentGroup.removeChild(labelGroup);
+                    }
+                    for (const path of paths) {
+                        contentGroup.removeChild(path);
+                    }
+                });
         }
 
         const totalGroups = contextNodeData.length;
@@ -376,6 +404,14 @@ export abstract class CartesianSeries<
                       zIndexSubOrder: this.getGroupZIndexSubOrder('marker', subGroupId),
                   })
                 : undefined;
+            const errorBarGroup = hasErrorBars
+                ? new Group({
+                      name: `${this.id}-series-sub${this.subGroupId++}-errorBars`,
+                      layer,
+                      zIndex: Layers.SERIES_LAYER_ZINDEX,
+                      zIndexSubOrder: this.getGroupZIndexSubOrder('errorBar', subGroupId),
+                  })
+                : undefined;
             const labelGroup = new Group({
                 name: `${this.id}-series-sub${this.subGroupId++}-labels`,
                 layer,
@@ -387,6 +423,9 @@ export abstract class CartesianSeries<
             contentGroup.appendChild(labelGroup);
             if (markerGroup) {
                 contentGroup.appendChild(markerGroup);
+            }
+            if (errorBarGroup) {
+                contentGroup.appendChild(errorBarGroup);
             }
 
             const paths: Path[] = [];
@@ -401,6 +440,7 @@ export abstract class CartesianSeries<
                 paths,
                 dataNodeGroup,
                 markerGroup,
+                errorBarGroup,
                 labelGroup,
                 labelSelection: Selection.select(labelGroup, Text),
                 datumSelection: Selection.select(
@@ -410,6 +450,9 @@ export abstract class CartesianSeries<
                 ),
                 markerSelection: markerGroup
                     ? Selection.select(markerGroup, () => this.markerFactory(), this.markerSelectionGarbageCollection)
+                    : undefined,
+                errorBarSelection: errorBarGroup
+                    ? Selection.select(errorBarGroup, () => this.errorBarFactory())
                     : undefined,
             });
         }
@@ -433,7 +476,7 @@ export abstract class CartesianSeries<
         const {
             highlightSelection,
             highlightLabelSelection,
-            opts: { hasMarkers, hasHighlightedLabels },
+            opts: { hasMarkers, hasErrorBars, hasHighlightedLabels },
         } = this;
 
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
@@ -457,6 +500,14 @@ export abstract class CartesianSeries<
             this.animationState.transition('highlight', highlightSelection);
         }
 
+        if (hasErrorBars) {
+            await this.updateErrorBarNodes({
+                errorBarSelection: highlightSelection as any,
+                isHighlight: true,
+                seriesIdx: -1,
+            });
+        }
+
         if (hasHighlightedLabels) {
             await this.updateLabelNodes({ labelSelection: highlightLabelSelection, seriesIdx: -1 });
         }
@@ -469,6 +520,7 @@ export abstract class CartesianSeries<
                     datumSelection,
                     labelSelection,
                     markerSelection,
+                    errorBarSelection,
                     paths,
                     labelGroup,
                 } = subGroup;
@@ -506,6 +558,9 @@ export abstract class CartesianSeries<
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
                     await this.updateMarkerNodes({ markerSelection, isHighlight: false, seriesIdx });
+                }
+                if (hasErrorBars && errorBarSelection) {
+                    await this.updateErrorBarNodes({ errorBarSelection, isHighlight: false, seriesIdx });
                 }
             })
         );
@@ -790,6 +845,25 @@ export abstract class CartesianSeries<
         seriesIdx: number;
     }): Promise<void> {
         // Override point for sub-classes.
+    }
+
+    protected async updateErrorBarSelection(opts: {
+        nodeData: C['nodeData'];
+        errorBarSelection: NodeDataSelection<ErrorBar, C>;
+        seriesIdx: number;
+    }): Promise<NodeDataSelection<ErrorBar, C>> {
+        // Override point for sub-classes.
+        return opts.errorBarSelection.update(opts.nodeData, undefined, undefined);
+    }
+    protected async updateErrorBarNodes(opts: {
+        errorBarSelection: NodeDataSelection<ErrorBar, C>;
+        isHighlight: boolean;
+        seriesIdx: number;
+    }): Promise<void> {
+        // Override point for sub-classes.
+        opts.errorBarSelection.each((node, datum) => {
+            updateErrorBar(node, datum);
+        });
     }
 
     protected animateEmptyUpdateReady(_data: CartesianAnimationData<C, N>) {
