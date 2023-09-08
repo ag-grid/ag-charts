@@ -41,7 +41,7 @@ export class BoxPlotGroup extends _Scene.Group {
         ]);
     }
 
-    updateDatumStyles(datum: BoxPlotNodeDatum, formatOverrides: AgBoxPlotSeriesFormat = {}) {
+    updateDatumStyles(datum: BoxPlotNodeDatum, formatOverrides: AgBoxPlotSeriesFormat = {}, invertAxes = false) {
         const {
             xValue: axisValue,
             whisker: whiskerOptions,
@@ -77,45 +77,84 @@ export class BoxPlotGroup extends _Scene.Group {
             lineDashOffset,
         });
 
-        outline.setProperties({ x: q1Value, y: axisValue, width: q3Value - q1Value, height: bandwidth });
+        const capStart = axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2;
+        const capEnd = axisValue + (bandwidth * (1 + cap.lengthRatio)) / 2;
 
-        boxes[0].setProperties({
-            x: q1Value,
-            y: axisValue,
-            width: Math.round(medianValue - q1Value + strokeWidth / 2),
-            height: bandwidth,
-        });
+        if (invertAxes) {
+            outline.setProperties({ x: axisValue, y: q3Value, width: bandwidth, height: q1Value - q3Value });
 
-        boxes[1].setProperties({
-            x: Math.round(medianValue - strokeWidth / 2),
-            y: axisValue,
-            width: Math.floor(q3Value - medianValue + strokeWidth / 2),
-            height: bandwidth,
-        });
+            boxes[0].setProperties({
+                x: axisValue,
+                y: q3Value,
+                width: bandwidth,
+                height: Math.round(medianValue - q3Value + strokeWidth / 2),
+            });
 
-        median.setProperties({
-            x: medianValue,
-            y1: axisValue + strokeWidth,
-            y2: axisValue + bandwidth - strokeWidth,
-        });
+            boxes[1].setProperties({
+                x: axisValue,
+                y: Math.round(medianValue - strokeWidth / 2),
+                width: bandwidth,
+                height: Math.floor(q1Value - medianValue + strokeWidth / 2),
+            });
 
-        const capY1 = axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2;
-        const capY2 = axisValue + (bandwidth * (1 + cap.lengthRatio)) / 2;
+            median.setProperties({
+                x1: axisValue + strokeWidth,
+                x2: axisValue + bandwidth - strokeWidth,
+                y: medianValue,
+            });
 
-        caps[0].setProperties({ x: minValue, y1: capY1, y2: capY2 });
-        caps[1].setProperties({ x: maxValue, y1: capY1, y2: capY2 });
+            caps[0].setProperties({ x1: capStart, x2: capEnd, y: minValue });
+            caps[1].setProperties({ x1: capStart, x2: capEnd, y: maxValue });
 
-        whiskers[0].setProperties({
-            x1: Math.round(minValue + whiskerProperties.strokeWidth / 2),
-            x2: q1Value,
-            y: axisValue + bandwidth / 2,
-        });
+            whiskers[0].setProperties({
+                x: axisValue + bandwidth / 2,
+                y1: Math.round(minValue + whiskerProperties.strokeWidth / 2),
+                y2: q1Value,
+            });
 
-        whiskers[1].setProperties({
-            x1: q3Value,
-            x2: Math.round(maxValue - whiskerProperties.strokeWidth / 2),
-            y: axisValue + bandwidth / 2,
-        });
+            whiskers[1].setProperties({
+                x: axisValue + bandwidth / 2,
+                y1: q3Value,
+                y2: Math.round(maxValue - whiskerProperties.strokeWidth / 2),
+            });
+        } else {
+            outline.setProperties({ x: q1Value, y: axisValue, width: q3Value - q1Value, height: bandwidth });
+
+            boxes[0].setProperties({
+                x: q1Value,
+                y: axisValue,
+                width: Math.round(medianValue - q1Value + strokeWidth / 2),
+                height: bandwidth,
+            });
+
+            boxes[1].setProperties({
+                x: Math.round(medianValue - strokeWidth / 2),
+                y: axisValue,
+                width: Math.floor(q3Value - medianValue + strokeWidth / 2),
+                height: bandwidth,
+            });
+
+            median.setProperties({
+                x: medianValue,
+                y1: axisValue + strokeWidth,
+                y2: axisValue + bandwidth - strokeWidth,
+            });
+
+            caps[0].setProperties({ x: minValue, y1: capStart, y2: capEnd });
+            caps[1].setProperties({ x: maxValue, y1: capStart, y2: capEnd });
+
+            whiskers[0].setProperties({
+                x1: Math.round(minValue + whiskerProperties.strokeWidth / 2),
+                x2: q1Value,
+                y: axisValue + bandwidth / 2,
+            });
+
+            whiskers[1].setProperties({
+                x1: q3Value,
+                x2: Math.round(maxValue - whiskerProperties.strokeWidth / 2),
+                y: axisValue + bandwidth / 2,
+            });
+        }
 
         // fill only elements
         for (const element of boxes) {
