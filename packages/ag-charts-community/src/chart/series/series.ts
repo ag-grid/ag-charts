@@ -31,7 +31,7 @@ import type { ModuleContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
 import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
-import type { SeriesGrouping } from './seriesStateManager';
+import type { SeriesGrouping, SeriesGroupZIndexSubOrderType } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
 
@@ -68,8 +68,6 @@ export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
 };
-
-export type SeriesGroupZIndexSubOrderType = 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths';
 
 function basicContinuousCheckDatumValidation(v: any) {
     return checkDatum(v, true) != null;

@@ -1,8 +1,7 @@
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { Layers } from '../layers';
-import type { SeriesGroupZIndexSubOrderType } from './series';
-import type { SeriesGrouping } from './seriesStateManager';
+import type { SeriesGrouping, SeriesGroupZIndexSubOrderType } from './seriesStateManager';
 
 export type SeriesConfig = {
     id: string;

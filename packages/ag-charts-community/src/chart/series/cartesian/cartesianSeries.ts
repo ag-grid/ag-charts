@@ -1,10 +1,4 @@
-import type {
-    SeriesNodeDataContext,
-    SeriesNodeDatum,
-    SeriesNodePickMode,
-    SeriesNodePickMatch,
-    SeriesGroupZIndexSubOrderType,
-} from '../series';
+import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMode, SeriesNodePickMatch } from '../series';
 import { Series, SeriesNodeBaseClickEvent } from '../series';
 import type { ChartAxis } from '../../chartAxis';
 import { SeriesMarker } from '../seriesMarker';
@@ -31,6 +25,7 @@ import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from 
 import { StateMachine } from '../../../motion/states';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Logger } from '../../../util/logger';
+import type { SeriesGroupZIndexSubOrderType } from '../seriesStateManager';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -88,13 +83,13 @@ export class CartesianSeriesNodeBaseClickEvent<Datum extends { datum: any }> ext
 }
 
 export class CartesianSeriesNodeClickEvent<
-    Datum extends { datum: any },
+    Datum extends { datum: any }
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeClick';
 }
 
 export class CartesianSeriesNodeDoubleClickEvent<
-    Datum extends { datum: any },
+    Datum extends { datum: any }
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeDoubleClick';
 }
@@ -114,7 +109,7 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
 
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
-    N extends Node = Group,
+    N extends Node = Group
 > extends Series<C> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
