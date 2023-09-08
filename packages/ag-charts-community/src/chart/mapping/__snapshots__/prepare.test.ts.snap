@@ -2460,7 +2460,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "fontStyle": undefined,
         "fontWeight": undefined,
       },
-      "labelName": "Label",
       "marker": {
         "enabled": true,
         "fill": "#f3622d",
@@ -3225,7 +3224,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3291,7 +3289,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3357,7 +3354,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3423,7 +3419,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3489,7 +3484,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -4346,7 +4340,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "fontStyle": undefined,
         "fontWeight": undefined,
       },
-      "labelName": "Label",
       "marker": {
         "enabled": true,
         "fill": "#cc5b58",
@@ -6246,7 +6239,6 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
   },
   "series": [
     {
-      "aggregation": "sum",
       "areaPlot": true,
       "bins": [
         [
@@ -10018,7 +10010,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10083,7 +10074,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10148,7 +10138,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10213,7 +10202,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10639,7 +10627,6 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "offset": 3,
       },
       "calloutLabelKey": "type",
-      "calloutLabelName": undefined,
       "calloutLine": {
         "length": 10,
         "strokeWidth": 2,
@@ -10697,8 +10684,6 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
       "outerRadiusOffset": 0,
-      "radiusKey": undefined,
-      "radiusName": undefined,
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
@@ -10712,7 +10697,6 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "count",
-      "sectorLabelName": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -10968,9 +10952,6 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
   },
   "series": [
     {
-      "aggregation": "sum",
-      "areaPlot": false,
-      "bins": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.5,
       "highlightStyle": {
@@ -11482,7 +11463,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "offset": 3,
       },
       "calloutLabelKey": "religion",
-      "calloutLabelName": undefined,
       "calloutLine": {
         "length": 10,
         "strokeWidth": 2,
@@ -11519,8 +11499,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
       "outerRadiusOffset": 0,
-      "radiusKey": undefined,
-      "radiusName": undefined,
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
@@ -11534,7 +11512,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "population",
-      "sectorLabelName": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -11808,7 +11785,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "fontStyle": undefined,
         "fontWeight": undefined,
       },
-      "labelName": "Label",
       "marker": {
         "enabled": true,
         "fill": "#002D72",
@@ -11823,7 +11799,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "sizeName": "Size",
       "tooltip": {
         "enabled": true,
         "position": {
@@ -12097,7 +12072,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12167,7 +12141,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12237,7 +12210,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12307,7 +12279,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12377,7 +12348,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12447,7 +12417,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13756,7 +13725,6 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
   },
   "series": [
     {
-      "aggregation": "sum",
       "areaPlot": true,
       "bins": [
         [

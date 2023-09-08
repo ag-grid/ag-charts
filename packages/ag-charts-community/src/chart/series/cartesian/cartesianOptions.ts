@@ -18,6 +18,7 @@ import type { CssColor, PixelSize, Ratio } from '../../options/types';
 import type { AgZoomOptions } from '../../options/zoomOptions';
 import type { AgCrosshairOptions } from '../../options/crosshairOptions';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
+import type { AgBaseThemeableChartOptions } from '../../options/chartOptions';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions<AgCartesianAxisLabelOptions> {
@@ -149,11 +150,9 @@ export interface AgCartesianAxisThemeOptions<T> {
     left?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
 }
 
-export interface AgBaseCartesianThemeOptions<S> {
+export interface AgBaseCartesianThemeOptions extends AgBaseThemeableChartOptions {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
-    /** Series configurations. */
-    series?: Partial<S>;
     /** Configuration for the chart legend. */
     legend?: AgCartesianChartLegendOptions;
     /** Configuration for the chart navigator. */
@@ -171,8 +170,6 @@ export interface AgCartesianAxesTheme {
     log?: AgLogAxisThemeOptions;
     /** This extends the common axis configuration with options specific to category axes. */
     category?: AgCategoryAxisThemeOptions;
-    /** This extends the common axis configuration with options specific to grouped category axes. Currently there are no additional options beyond the common configuration. */
-    groupedCategory?: AgGroupedCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to time axes. */
     time?: AgTimeAxisThemeOptions;
 }

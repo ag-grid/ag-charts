@@ -86,18 +86,7 @@ export interface AgChartHighlightOptions {
     range?: AgChartHighlightRange;
 }
 
-/** Configuration common to all charts.  */
-export interface AgBaseChartOptions<TData = any[]> {
-    /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
-    data?: TData;
-    /** The element to place the rendered chart into.<br/><strong>Important:</strong> make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default). */
-    container?: HTMLElement | null;
-    /** The width of the chart in pixels. */
-    width?: PixelSize;
-    /** The height of the chart in pixels. */
-    height?: PixelSize;
-    /** By default, the chart will resize automatically to fill the container element. Set this to `false` to disable this behaviour. If `width` or `height` are specified, auto-sizing will be active for the other unspecified dimension.<br/><strong>Important:</strong> if this config is set to `true`, make sure to give the chart's `container` element an explicit size, otherwise you will run into a chicken and egg situation where the container expects to size itself according to the content and the chart expects to size itself according to the container. */
-    autoSize?: boolean;
+export interface AgBaseThemeableChartOptions {
     /** Configuration for the padding shown around the chart. */
     padding?: AgChartPaddingOptions;
     /** Configuration for the padding around the series area. */
@@ -110,12 +99,26 @@ export interface AgBaseChartOptions<TData = any[]> {
     subtitle?: AgChartSubtitleOptions;
     /** Configuration for the footnote shown at the bottom of the chart. */
     footnote?: AgChartFooterOptions;
-    /** Global configuration that applies to all tooltips in the chart. */
-    tooltip?: AgChartTooltipOptions;
-    /** A map of event names to event listeners. */
-    listeners?: AgBaseChartListeners;
     /** Configuration for the chart highlighting. */
     highlight?: AgChartHighlightOptions;
     /** HTML overlays */
     overlays?: AgChartOverlaysOptions;
+}
+
+/** Configuration common to all charts.  */
+export interface AgBaseChartOptions<TData = any[]> extends AgBaseThemeableChartOptions {
+    /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
+    data?: TData;
+    /** The element to place the rendered chart into.<br/><strong>Important:</strong> make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default). */
+    container?: HTMLElement | null;
+    /** The width of the chart in pixels. */
+    width?: PixelSize;
+    /** The height of the chart in pixels. */
+    height?: PixelSize;
+    /** By default, the chart will resize automatically to fill the container element. Set this to `false` to disable this behaviour. If `width` or `height` are specified, auto-sizing will be active for the other unspecified dimension.<br/><strong>Important:</strong> if this config is set to `true`, make sure to give the chart's `container` element an explicit size, otherwise you will run into a chicken and egg situation where the container expects to size itself according to the content and the chart expects to size itself according to the container. */
+    autoSize?: boolean;
+    /** Global configuration that applies to all tooltips in the chart. */
+    tooltip?: AgChartTooltipOptions;
+    /** A map of event names to event listeners. */
+    listeners?: AgBaseChartListeners;
 }

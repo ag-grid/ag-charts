@@ -1,5 +1,5 @@
 import type { AgBaseChartOptions } from './options/chartOptions';
-import type { AgBaseChartTheme, AgBaseChartThemeOptions } from './options/themeOptions';
+import type { AgBaseChartThemeOptions, AgChartTheme } from './options/themeOptions';
 import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
@@ -45,20 +45,7 @@ export * from './series/polar/radarLineOptions';
 export * from './series/polar/radarAreaOptions';
 export * from './series/polar/radialColumnOptions';
 
-type ThemeChartOptions = Pick<
-    AgBaseChartOptions,
-    | 'padding'
-    | 'seriesAreaPadding'
-    | 'background'
-    | 'title'
-    | 'subtitle'
-    | 'footnote'
-    | 'tooltip'
-    | 'highlight'
-    | 'overlays'
->;
-export interface AgChartThemeOptions extends AgBaseChartThemeOptions<ThemeChartOptions> {}
-export type AgChartTheme = AgBaseChartTheme<ThemeChartOptions>;
+export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
 export type AgChartThemeOverrides = NonNullable<AgChartThemeOptions['overrides']>;
 
 export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {

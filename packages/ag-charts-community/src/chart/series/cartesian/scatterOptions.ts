@@ -1,7 +1,7 @@
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
@@ -33,14 +33,23 @@ export interface AgScatterSeriesMarker<DatumType> extends AgCartesianSeriesMarke
     domain?: [number, number];
 }
 
-/** Configuration for scatter/bubble series. */
-export interface AgScatterSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    /** Configuration for the scatter series.  */
-    type?: 'scatter';
+export interface AgScatterSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
     /** Configuration for the markers used in the series.  */
     marker?: AgScatterSeriesMarker<DatumType>;
     /** Configuration for the labels shown on top of data points.  */
     label?: AgScatterSeriesLabelOptions<DatumType>;
+    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
+    title?: string;
+    /** Series-specific tooltip configuration.  */
+    tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams>;
+}
+
+/** Configuration for scatter/bubble series. */
+export interface AgScatterSeriesOptions<DatumType = any>
+    extends AgScatterSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
+    /** Configuration for the scatter series.  */
+    type?: 'scatter';
     /** The key to use to retrieve x-values from the data.  */
     xKey?: string;
     /** The key to use to retrieve y-values from the data.  */
@@ -57,10 +66,6 @@ export interface AgScatterSeriesOptions<DatumType = any> extends AgBaseSeriesOpt
     labelKey?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     labelName?: string;
-    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
-    title?: string;
-    /** Series-specific tooltip configuration.  */
-    tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

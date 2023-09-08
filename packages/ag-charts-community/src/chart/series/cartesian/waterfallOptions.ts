@@ -2,7 +2,7 @@ import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
-import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 
@@ -45,15 +45,28 @@ export interface AgWaterfallSeriesLabelOptions extends AgCartesianSeriesLabelOpt
 
 export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 
-/** Configuration for Waterfall series. */
-export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    /** Configuration for the Waterfall series. */
-    type?: 'waterfall';
+export interface AgWaterfallSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
     /** Bar rendering direction.
      * <br/>
      * **NOTE**: This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
+    /** Configuration used for the waterfall series item types. */
+    item?: AgWaterfallSeriesItem<DatumType>;
+    /** Configuration for the connector lines. */
+    line?: AgWaterfallSeriesLineOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
+    /** Configuration for the waterfall series items when they are hovered over. */
+    highlightStyle?: AgSeriesHighlightStyle;
+}
+
+/** Configuration for Waterfall series. */
+export interface AgWaterfallSeriesOptions<DatumType = any>
+    extends AgWaterfallSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
+    /** Configuration for the Waterfall series. */
+    type?: 'waterfall';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-values from the data. */
@@ -64,16 +77,8 @@ export interface AgWaterfallSeriesOptions<DatumType = any> extends AgBaseSeriesO
     yName?: string;
     /** Configuration of total and subtotal values. */
     totals?: WaterfallSeriesTotalMeta[];
-    /** Configuration used for the waterfall series item types. */
-    item: AgWaterfallSeriesItem<DatumType>;
-    /** Configuration for the connector lines. */
-    line?: AgWaterfallSeriesLineOptions;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
-    /** Configuration for the waterfall series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
 }
 
 export interface AgWaterfallSeriesItem<DatumType> {

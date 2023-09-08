@@ -1,5 +1,5 @@
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type {
     AgSeriesFormatterParams,
     AxisOptions,
@@ -37,24 +37,28 @@ export type AgBoxPlotSeriesFormatterParams<DatumType> = AgSeriesFormatterParams<
 
 export type AgBoxPlotSeriesFormat = FillOptions & StrokeOptions;
 
-export interface AgBoxPlotSeriesOptions<DatumType = any>
-    extends AgBaseSeriesOptions<DatumType>,
-        BoxPlotUniqueOptions,
-        Omit<AxisOptions, 'yKey'>,
+export interface AgBoxPlotSeriesThemeableOptions<DatumType = any>
+    extends AgBaseSeriesThemeableOptions,
         FillOptions,
         StrokeOptions,
         LineDashOptions {
-    type: 'box-plot';
-
     /** Options to style chart's caps **/
     cap?: AgBoxPlotCapOptions;
     /** Options to style chart's whiskers **/
     whisker?: AgBoxPlotWhiskerOptions;
-
-    /** Whether to group together (adjacently) separate columns. */
-    grouped?: boolean;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgBoxPlotSeriesFormatterParams<DatumType>) => AgBoxPlotSeriesFormat;
+}
+
+export interface AgBoxPlotSeriesOptions<DatumType = any>
+    extends AgBoxPlotSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType>,
+        BoxPlotUniqueOptions,
+        Omit<AxisOptions, 'yKey'> {
+    type: 'box-plot';
+
+    /** Whether to group together (adjacently) separate columns. */
+    grouped?: boolean;
 }

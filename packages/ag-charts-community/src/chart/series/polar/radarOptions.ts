@@ -1,10 +1,29 @@
 import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../options/types';
-import type { AgBaseSeriesOptions, AgSeriesMarker, AgSeriesMarkerFormatterParams } from '../seriesOptions';
+import type { CssColor, PixelSize } from '../../options/types';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgSeriesMarker,
+    AgSeriesMarkerFormatterParams,
+} from '../seriesOptions';
+import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 
-export interface AgBaseRadarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
+export interface AgRadarSeriesThemeableOptions<DatumType = any>
+    extends StrokeOptions,
+        LineDashOptions,
+        AgBaseSeriesThemeableOptions {
+    marker?: AgRadarSeriesMarker<DatumType>;
+    /** Configuration for the labels shown on top of data points. */
+    label?: AgRadarSeriesLabelOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams>;
+}
+
+export interface AgBaseRadarSeriesOptions<DatumType = any>
+    extends AgRadarSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
     type?: 'radar-line' | 'radar-area';
     /** The key to use to retrieve angle values from the data. */
     angleKey?: string;
@@ -15,21 +34,6 @@ export interface AgBaseRadarSeriesOptions<DatumType = any> extends AgBaseSeriesO
     /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     radiusName?: string;
 
-    marker?: AgRadarSeriesMarker<DatumType>;
-    /** The colour of the stroke for the lines. */
-    stroke?: CssColor;
-    /** The width in pixels of the stroke for the lines. */
-    strokeWidth?: PixelSize;
-    /** The opacity of the stroke for the lines. */
-    strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
-    /** The initial offset of the dashed line in pixels. */
-    lineDashOffset?: PixelSize;
-    /** Configuration for the labels shown on top of data points. */
-    label?: AgRadarSeriesLabelOptions;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

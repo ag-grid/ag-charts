@@ -369,8 +369,6 @@ export class ChartTheme {
             axes: this.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getScatterSeriesDefaults(),
-                sizeName: 'Size',
-                labelName: 'Label',
                 marker: {
                     ...ChartTheme.getCartesianSeriesMarkerDefaults(),
                 },
@@ -389,7 +387,6 @@ export class ChartTheme {
             axes: this.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getAreaSeriesDefaults(),
-                normalizedTo: undefined,
                 fillOpacity: 0.8,
                 strokeOpacity: 1,
                 strokeWidth: 2,
@@ -429,9 +426,6 @@ export class ChartTheme {
                 strokeOpacity: 1,
                 lineDash: [0],
                 lineDashOffset: 0,
-                areaPlot: false,
-                bins: undefined,
-                aggregation: 'sum' as const,
                 label: {
                     enabled: false,
                     fontStyle: undefined,
@@ -466,12 +460,6 @@ export class ChartTheme {
                     color: DEFAULT_LABEL_COLOUR as unknown as string,
                     spacing: 0,
                 },
-                radiusKey: undefined,
-                radiusName: undefined,
-                calloutLabelKey: undefined,
-                calloutLabelName: undefined,
-                sectorLabelKey: undefined,
-                sectorLabelName: undefined,
                 calloutLabel: {
                     enabled: true,
                     fontStyle: undefined,
@@ -529,9 +517,6 @@ export class ChartTheme {
             series: {
                 ...ChartTheme.getSeriesDefaults(),
                 showInLegend: false,
-                labelKey: 'label',
-                sizeKey: 'size',
-                colorKey: 'color',
                 colorDomain: [-5, 5],
                 colorRange: ['#cb4b3f', '#6acb64'],
                 groupFill: '#272931',

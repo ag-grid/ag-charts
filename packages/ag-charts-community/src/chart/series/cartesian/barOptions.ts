@@ -1,10 +1,11 @@
 import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../options/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { CssColor, PixelSize } from '../../options/types';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
+import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgBarSeriesLabelPlacement = 'inside' | 'outside';
 
@@ -35,11 +36,28 @@ export interface AgBarSeriesTooltipRendererParams extends AgCartesianSeriesToolt
     readonly stackGroup?: string;
 }
 
-/** Configuration for bar series. */
-export interface AgBarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    type: 'bar';
+export interface AgBarSeriesThemeableOptions<DatumType = any>
+    extends FillOptions,
+        StrokeOptions,
+        LineDashOptions,
+        AgBaseSeriesThemeableOptions {
     /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
     direction?: 'horizontal' | 'vertical';
+    /** Configuration for the shadow used behind the chart series. */
+    shadow?: AgDropShadowOptions;
+    /** Configuration for the labels shown on bars. */
+    label?: AgBarSeriesLabelOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams>;
+    /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    formatter?: (params: AgBarSeriesFormatterParams<DatumType>) => AgBarSeriesFormat;
+}
+
+/** Configuration for bar series. */
+export interface AgBarSeriesOptions<DatumType = any>
+    extends AgBarSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
+    type: 'bar';
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
     /** An option indicating if the bars should be stacked. */
@@ -58,28 +76,6 @@ export interface AgBarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions
     yName?: string;
     /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
     legendItemName?: string;
-    /** The colour to use for the fill of the bars. */
-    fill?: CssColor;
-    /** The colours to use for the stroke of the bars. */
-    stroke?: CssColor;
-    /** The width in pixels of the stroke for the bars. */
-    strokeWidth?: PixelSize;
-    /** The opacity of the fill for the bars. */
-    fillOpacity?: Opacity;
-    /** The opacity of the stroke for the bars. */
-    strokeOpacity?: Opacity;
-    /** Defines how the bar strokes are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
-    /** The initial offset of the dashed line in pixels. */
-    lineDashOffset?: PixelSize;
-    /** Configuration for the shadow used behind the chart series. */
-    shadow?: AgDropShadowOptions;
-    /** Configuration for the labels shown on bars. */
-    label?: AgBarSeriesLabelOptions;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams>;
-    /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgBarSeriesFormatterParams<DatumType>) => AgBarSeriesFormat;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

@@ -1,8 +1,9 @@
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../options/tooltipOptions';
 import type { CssColor, PixelSize } from '../../options/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { StrokeOptions } from './commonOptions';
 
 export interface AgHeatmapSeriesFormatterParams<DatumType> {
     readonly datum: DatumType;
@@ -32,12 +33,23 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
 
 export interface AgHeatmapSeriesLabelOptions extends AgTooltipRendererResult {}
 
-/** Configuration for heatmap series. */
-export interface AgHeatmapSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    /** Configuration for the heatmap series. */
-    type?: 'heatmap';
+export interface AgHeatmapSeriesThemeableOptions<DatumType = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
     label?: AgHeatmapSeriesLabelOptions;
+    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
+    title?: string;
+    /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    formatter?: (params: AgHeatmapSeriesFormatterParams<DatumType>) => AgHeatmapSeriesFormat;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams>;
+}
+
+/** Configuration for heatmap series. */
+export interface AgHeatmapSeriesOptions<DatumType = any>
+    extends AgHeatmapSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
+    /** Configuration for the heatmap series. */
+    type?: 'heatmap';
     /** The key to use to retrieve x-values from the data. */
     xKey?: string;
     /** The key to use to retrieve y-values from the data. */
@@ -58,16 +70,6 @@ export interface AgHeatmapSeriesOptions<DatumType = any> extends AgBaseSeriesOpt
     colorDomain?: number[];
     /** The color range to interpolate the numeric `colorDomain` into. For example, if the `colorDomain` is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' color, `5` - 'green' color and `0` a blend of 'red' and 'green'. */
     colorRange?: string[];
-    /** The stroke color of cells. */
-    stroke?: string;
-    /** The stroke width of cells. */
-    strokeWidth?: number;
-    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
-    title?: string;
-    /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgHeatmapSeriesFormatterParams<DatumType>) => AgHeatmapSeriesFormat;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

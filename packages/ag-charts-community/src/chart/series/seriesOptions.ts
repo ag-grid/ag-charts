@@ -27,7 +27,18 @@ export interface AgSeriesHighlightStyle {
     series?: AgSeriesHighlightSeriesStyle;
 }
 
-export interface AgBaseSeriesOptions<DatumType> {
+export interface AgBaseSeriesThemeableOptions {
+    /** Whether to include the series in the legend. */
+    showInLegend?: boolean;
+    /** The cursor to use for hovered area markers. This config is identical to the CSS `cursor` property. */
+    cursor?: string;
+    /** Configuration for series markers and series line highlighting when a marker / data point or a legend item is hovered over. */
+    highlightStyle?: AgSeriesHighlightStyle;
+    /** Range from a node a click triggers the listener. */
+    nodeClickRange?: InteractionRange;
+}
+
+export interface AgBaseSeriesOptions<DatumType> extends AgBaseSeriesThemeableOptions {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple
      * series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour
@@ -40,16 +51,8 @@ export interface AgBaseSeriesOptions<DatumType> {
     data?: DatumType[];
     /** Whether to display the series. */
     visible?: boolean;
-    /** Whether to include the series in the legend. */
-    showInLegend?: boolean;
-    /** The cursor to use for hovered area markers. This config is identical to the CSS `cursor` property. */
-    cursor?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
-    /** Configuration for series markers and series line highlighting when a marker / data point or a legend item is hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
-    /** Range from a node a click triggers the listener. */
-    nodeClickRange?: InteractionRange;
 }
 
 export interface AgSeriesMarker {

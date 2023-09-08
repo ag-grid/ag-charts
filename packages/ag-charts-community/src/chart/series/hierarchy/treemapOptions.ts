@@ -3,7 +3,7 @@ import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, DataValue, Opacity, PixelSize, TextWrap } from '../../options/types';
-import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 export interface AgTreemapSeriesLabelOptions extends AgChartLabelOptions {
     /** The amount of the tile's vertical space to reserve for the label. */
@@ -81,21 +81,13 @@ export interface AgTreemapSeriesHighlightStyle extends AgSeriesHighlightStyle {
     text?: AgTreemapSeriesHighlightTextStyle;
 }
 
-/** Configuration for the treemap series. */
-export interface AgTreemapSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    type?: 'treemap';
+export interface AgTreemapSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
     /** The label configuration for the top-level tiles. */
     title?: AgTreemapSeriesLabelOptions;
     /** The label configuration for the children of the top-level parent tiles. */
     subtitle?: AgTreemapSeriesLabelOptions;
     /** Configuration for the tile labels. */
     labels?: AgTreemapSeriesLabelsOptions<DatumType>;
-    /** The name of the node key containing the label. */
-    labelKey?: string;
-    /** The name of the node key containing the size value. */
-    sizeKey?: string;
-    /** The name of the node key containing the color value. This value (along with `colorDomain` and `colorRange` configs) will be used to determine the tile color. */
-    colorKey?: string;
     /** The domain the 'colorKey' values belong to. The domain can contain more than two stops, for example `[-5, 0, -5]`. In that case the 'colorRange' should also use a matching number of colors. */
     colorDomain?: number[];
     /** The color range to interpolate the numeric `colorDomain` into. For example, if the `colorDomain` is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' color, `5` - 'green' color and `0` a blend of 'red' and 'green'. */
@@ -134,6 +126,19 @@ export interface AgTreemapSeriesOptions<DatumType = any> extends AgBaseSeriesOpt
     highlightStyle?: AgTreemapSeriesHighlightStyle;
     /** A callback function for adjusting the styles of a particular treemap tile based on the input parameters */
     formatter?: (params: AgTreemapSeriesFormatterParams<DataValue>) => AgTreemapSeriesFormat;
+}
+
+/** Configuration for the treemap series. */
+export interface AgTreemapSeriesOptions<DatumType = any>
+    extends AgTreemapSeriesThemeableOptions<DatumType>,
+        Omit<AgBaseSeriesOptions<DatumType>, 'highlightStyle'> {
+    type?: 'treemap';
+    /** The name of the node key containing the label. */
+    labelKey?: string;
+    /** The name of the node key containing the size value. */
+    sizeKey?: string;
+    /** The name of the node key containing the color value. This value (along with `colorDomain` and `colorRange` configs) will be used to determine the tile color. */
+    colorKey?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

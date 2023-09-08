@@ -2,7 +2,7 @@ import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 
@@ -19,9 +19,7 @@ export interface AgHistogramBinDatum<DatumType> {
     domain: [number, number];
 }
 
-/** Configuration for histogram series. */
-export interface AgHistogramSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    type?: 'histogram';
+export interface AgHistogramSeriesThemeableOptions<_DatumType = any> extends AgBaseSeriesThemeableOptions {
     /** The colour of the fill for the histogram bars. */
     fill?: CssColor;
     /** The colour of the stroke for the histogram bars. */
@@ -36,6 +34,19 @@ export interface AgHistogramSeriesOptions<DatumType = any> extends AgBaseSeriesO
     lineDash?: PixelSize[];
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
+    /** Configuration for the shadow used behind the chart series. */
+    shadow?: AgDropShadowOptions;
+    /** Configuration for the labels shown on bars. */
+    label?: AgHistogramSeriesLabelOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams>;
+}
+
+/** Configuration for histogram series. */
+export interface AgHistogramSeriesOptions<DatumType = any>
+    extends AgHistogramSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
+    type?: 'histogram';
     /** The key to use to retrieve x-values from the data. */
     xKey?: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -52,12 +63,6 @@ export interface AgHistogramSeriesOptions<DatumType = any> extends AgBaseSeriesO
     binCount?: number;
     /** Dictates how the bins are aggregated. If set to 'sum', the value shown for the bins will be the total of the yKey values. If set to 'mean', it will display the average yKey value of the bin. */
     aggregation?: 'count' | 'sum' | 'mean';
-    /** Configuration for the shadow used behind the chart series. */
-    shadow?: AgDropShadowOptions;
-    /** Configuration for the labels shown on bars. */
-    label?: AgHistogramSeriesLabelOptions;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }
