@@ -4,7 +4,7 @@ import type {
     AgBoxPlotSeriesFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
 } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scale } from 'ag-charts-community';
 import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
@@ -22,6 +22,37 @@ const {
     Validate,
     valueProperty,
 } = _ModuleSupport;
+
+export class BoxPlotSeriesNodeBaseClickEvent<
+    Datum extends { datum: any }
+> extends _ModuleSupport.SeriesNodeBaseClickEvent<Datum> {
+    readonly xKey?: string;
+    readonly minKey?: string;
+    readonly q1Key?: string;
+    readonly medianKey?: string;
+    readonly q3Key?: string;
+    readonly maxKey?: string;
+
+    constructor(nativeEvent: MouseEvent, datum: Datum, series: BoxPlotSeries) {
+        super(nativeEvent, datum, series);
+        this.xKey = series.xKey;
+        this.minKey = series.minKey;
+        this.q1Key = series.q1Key;
+        this.medianKey = series.medianKey;
+        this.q3Key = series.q3Key;
+        this.maxKey = series.maxKey;
+    }
+}
+
+export class BoxPlotSeriesNodeClickEvent<Datum extends { datum: any }> extends BoxPlotSeriesNodeBaseClickEvent<Datum> {
+    readonly type = 'nodeClick';
+}
+
+export class BoxPlotSeriesNodeDoubleClickEvent<
+    Datum extends { datum: any }
+> extends BoxPlotSeriesNodeBaseClickEvent<Datum> {
+    readonly type = 'nodeDoubleClick';
+}
 
 class BoxPlotSeriesCap {
     @Validate(NUMBER(0, 1))
@@ -117,6 +148,10 @@ export class BoxPlotSeries extends CartesianSeries<
     readonly whisker = new BoxPlotSeriesWhisker();
 
     readonly tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
+    /**
+     * Used to get the position of items within each group.
+     */
+    private groupScale = new _Scale.BandScale<string>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -188,7 +223,29 @@ export class BoxPlotSeries extends CartesianSeries<
             lineDashOffset,
             cap,
             whisker,
+            groupScale,
+            ctx: { seriesStateManager },
         } = this;
+
+        const domain = [];
+        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
+        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
+            domain.push(String(groupIdx));
+        }
+        groupScale.domain = domain;
+        groupScale.range = [0, yAxis.scale.bandwidth ?? 0];
+
+        // TODO ask/figure why are the axes flipped
+        if (yAxis instanceof _ModuleSupport.CategoryAxis) {
+            groupScale.paddingInner = yAxis.groupPaddingInner;
+        }
+
+        const barWidth =
+            groupScale.bandwidth >= 1
+                ? // Pixel-rounded value for low-volume bar charts.
+                  groupScale.bandwidth
+                : // Handle high-volume bar charts gracefully.
+                  groupScale.rawBandwidth;
 
         const context: _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum> = {
             itemId: xKey,
@@ -213,14 +270,25 @@ export class BoxPlotSeries extends CartesianSeries<
                 return;
             }
 
+            const scaledValues = this.convertValuesToScaleByDefs(defs, {
+                xValue,
+                minValue,
+                q1Value,
+                medianValue,
+                q3Value,
+                maxValue,
+            });
+
+            scaledValues.xValue += groupScale.convert(String(groupIndex));
+
             const nodeData: BoxPlotNodeDatum = {
                 series: this,
                 itemId: xValue,
                 datum,
                 xKey,
                 yValue: 0,
-                bandwidth: Math.round(yAxis.scale.bandwidth ?? 0),
-                ...this.convertValuesToScaleByDefs(defs, { xValue, minValue, q1Value, medianValue, q3Value, maxValue }),
+                bandwidth: Math.round(barWidth),
+                ...scaledValues,
                 cap,
                 whisker,
                 fill,
@@ -239,7 +307,49 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     getLegendData(): _ModuleSupport.ChartLegendDatum[] {
-        return [];
+        const {
+            id,
+            data,
+            xKey,
+            xName,
+            showInLegend,
+            visible,
+            legendItemName,
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+        } = this;
+
+        if (!(showInLegend && data?.length && xKey)) {
+            return [];
+        }
+
+        return [
+            {
+                legendType: 'category',
+                id,
+                itemId: xKey,
+                seriesId: id,
+                enabled: visible,
+                label: {
+                    text: legendItemName ?? xName ?? xKey,
+                },
+                legendItemName,
+                marker: { fill, stroke, fillOpacity, strokeOpacity },
+            } as _ModuleSupport.CategoryLegendDatum,
+        ];
+    }
+
+    protected getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<any> {
+        return new BoxPlotSeriesNodeClickEvent(event, datum, this);
+    }
+
+    protected getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: BoxPlotNodeDatum
+    ): BoxPlotSeriesNodeDoubleClickEvent<any> {
+        return new BoxPlotSeriesNodeDoubleClickEvent(event, datum, this);
     }
 
     getTooltipHtml(_seriesDatum: any): string {
