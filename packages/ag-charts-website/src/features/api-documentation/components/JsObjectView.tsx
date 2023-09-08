@@ -13,6 +13,7 @@ import type {
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
+import { UNION_DISCRIMINATOR_PROP } from '../constants';
 
 const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
 
@@ -104,6 +105,7 @@ interface ModelSnippetParams {
     closeWith?: string;
     path: string[];
     config: Config;
+    showTypeAsDiscriminatorValue?: boolean;
 }
 
 const ModelSnippet: React.FC<ModelSnippetParams> = ({
@@ -111,6 +113,7 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({
     closeWith = DEFAULT_ENDING_PUNCTUATION,
     path,
     config = {},
+    showTypeAsDiscriminatorValue,
 }) => {
     if (model.type === 'model') {
         const propertiesRendering = Object.entries(model.properties)
@@ -129,6 +132,7 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({
                         path={path}
                         closeWith={closeWith}
                         config={config}
+                        showTypeAsDiscriminatorValue={showTypeAsDiscriminatorValue}
                     />
                 );
             })
@@ -211,7 +215,11 @@ function Union({
     );
 }
 
-function DiscriminatorType({ discriminatorType }: { discriminatorType: string }) {
+function DiscriminatorType({ discriminatorType }: { discriminatorType?: string }) {
+    if (!discriminatorType) {
+        return;
+    }
+
     const quotationMatches = /(["'])(.*)(["'])/.exec(discriminatorType);
     if (!quotationMatches) {
         return <>{discriminatorType}</>;
@@ -291,7 +299,12 @@ function UnionNestedObject({
                     {!isExpanded && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
                     {isExpanded ? (
                         <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
-                            <ModelSnippet model={desc.model} config={config} path={unionPath}></ModelSnippet>
+                            <ModelSnippet
+                                model={desc.model}
+                                config={config}
+                                path={unionPath}
+                                showTypeAsDiscriminatorValue={true}
+                            ></ModelSnippet>
                         </div>
                     ) : (
                         <span onClick={toggleExpand} className={classnames('token', 'operator')}>
@@ -365,6 +378,7 @@ interface PropertySnippetParams {
     path: string[];
     closeWith: string;
     config: Config;
+    showTypeAsDiscriminatorValue?: boolean;
 }
 
 const PropertySnippet: React.FC<PropertySnippetParams> = ({
@@ -376,6 +390,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     path,
     closeWith,
     config,
+    showTypeAsDiscriminatorValue,
 }) => {
     const propPath = path.concat(propName);
     const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config);
@@ -456,6 +471,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                     expandable={expandable}
                     toggleExpand={toggleExpand}
                     onSelection={handlePropertySelection}
+                    showTypeAsDiscriminatorValue={showTypeAsDiscriminatorValue && propName === UNION_DISCRIMINATOR_PROP}
                 />
             }
             {!isJSONNodeExpanded && collapsePropertyRendering ? (
@@ -486,6 +502,7 @@ function PropertyDeclaration({
     propName,
     tsType,
     propDesc,
+    showTypeAsDiscriminatorValue,
     isExpanded,
     expandable,
     toggleExpand,
@@ -495,6 +512,7 @@ function PropertyDeclaration({
     propName: string;
     tsType: string | null;
     propDesc: { required: boolean };
+    showTypeAsDiscriminatorValue?: boolean;
     isExpanded: boolean;
     expandable: boolean;
     toggleExpand: () => void;
@@ -514,6 +532,12 @@ function PropertyDeclaration({
                 <>
                     <span className={classnames('token', 'operator')}>: </span>
                     {tsType && <span className={classnames('token', 'builtin')}>{tsType}</span>}
+                </>
+            )}
+            {showTypeAsDiscriminatorValue && (
+                <>
+                    {` = `}
+                    <DiscriminatorType discriminatorType={tsType} />
                 </>
             )}
         </>
