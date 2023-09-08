@@ -42,6 +42,11 @@ export interface AgBoxPlotSeriesThemeableOptions<DatumType = any>
         FillOptions,
         StrokeOptions,
         LineDashOptions {
+    /** Bar rendering direction.
+     * <br/>
+     * **NOTE**: This option affects the layout direction of X and Y data values.
+     */
+    direction?: 'horizontal' | 'vertical';
     /** Options to style chart's caps **/
     cap?: AgBoxPlotCapOptions;
     /** Options to style chart's whiskers **/

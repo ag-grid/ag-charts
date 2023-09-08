@@ -19,6 +19,7 @@ const {
     OPT_STRING,
     SeriesNodePickMode,
     SeriesTooltip,
+    STRING_UNION,
     Validate,
     valueProperty,
 } = _ModuleSupport;
@@ -140,6 +141,9 @@ export class BoxPlotSeries extends CartesianSeries<
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
 
+    @Validate(STRING_UNION('vertical', 'horizontal'))
+    direction: 'vertical' | 'horizontal' = 'horizontal';
+
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesFormat = undefined;
 
@@ -187,14 +191,11 @@ export class BoxPlotSeries extends CartesianSeries<
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
-        if (direction === ChartAxisDirection.X) {
+        if (direction === this.getBarDirection()) {
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return this.fixNumericExtent(
-                [Math.min(...minValues), Math.max(...maxValues)],
-                this.axes[ChartAxisDirection.X]
-            );
+            return this.fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
         } else {
             const { index } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
             return processedData.domain.keys[index];
@@ -202,11 +203,10 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     async createNodeData() {
-        const {
-            visible,
-            dataModel,
-            axes: { [ChartAxisDirection.X]: xAxis, [ChartAxisDirection.Y]: yAxis },
-        } = this;
+        const { visible, dataModel } = this;
+
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
 
         if (!(dataModel && visible && xAxis && yAxis)) {
             return [];
@@ -233,11 +233,10 @@ export class BoxPlotSeries extends CartesianSeries<
             domain.push(String(groupIdx));
         }
         groupScale.domain = domain;
-        groupScale.range = [0, yAxis.scale.bandwidth ?? 0];
+        groupScale.range = [0, xAxis.scale.bandwidth ?? 0];
 
-        // TODO ask/figure why are the axes flipped
-        if (yAxis instanceof _ModuleSupport.CategoryAxis) {
-            groupScale.paddingInner = yAxis.groupPaddingInner;
+        if (xAxis instanceof _ModuleSupport.CategoryAxis) {
+            groupScale.paddingInner = xAxis.groupPaddingInner;
         }
 
         const barWidth =
@@ -373,6 +372,7 @@ export class BoxPlotSeries extends CartesianSeries<
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
+        const insertAxes = this.direction === 'vertical';
         opts.datumSelection.each((boxPlot, datum) => {
             let format: AgBoxPlotSeriesFormat | undefined;
             if (this.formatter) {
@@ -382,7 +382,7 @@ export class BoxPlotSeries extends CartesianSeries<
                     highlighted: false,
                 });
             }
-            boxPlot.updateDatumStyles(datum, format);
+            boxPlot.updateDatumStyles(datum, format, insertAxes);
         });
     }
 
@@ -408,18 +408,35 @@ export class BoxPlotSeries extends CartesianSeries<
         return { inner: 0.2, outer: 0.3 };
     }
 
+    protected getBarDirection() {
+        return this.direction === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+    }
+
+    protected getCategoryDirection() {
+        return this.direction === 'horizontal' ? ChartAxisDirection.Y : ChartAxisDirection.X;
+    }
+
+    protected getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
+        return this.axes[this.getCategoryDirection()];
+    }
+
+    protected getValueAxis(): _ModuleSupport.ChartAxis | undefined {
+        return this.axes[this.getBarDirection()];
+    }
+
     convertValuesToScaleByDefs<T extends string>(
         defs: [string, _ModuleSupport.ProcessedDataDef[]][],
         values: Record<T, unknown>
     ): Record<T, number> {
-        const { [ChartAxisDirection.X]: xAxis, [ChartAxisDirection.Y]: yAxis } = this.axes;
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
         if (!(xAxis && yAxis)) {
             throw new Error('Axes must be defined');
         }
         const result: Record<string, number> = {};
         for (const [searchId, [{ def }]] of defs) {
             if (Object.prototype.hasOwnProperty.call(values, searchId)) {
-                const { scale } = def.type === 'key' ? yAxis : xAxis;
+                const { scale } = def.type === 'key' ? xAxis : yAxis;
                 result[searchId] = Math.round(scale.convert((values as any)[searchId], { strict: false }));
             }
         }
