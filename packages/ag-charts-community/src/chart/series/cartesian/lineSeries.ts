@@ -29,7 +29,7 @@ import type {
     FontWeight,
     AgCartesianSeriesMarkerFormat,
 } from '../../agChartOptions';
-import type { UngroupedDataItem } from '../../data/dataModel';
+import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
@@ -127,7 +127,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         const isContinuousX = xAxis?.scale instanceof ContinuousScale;
         const isContinuousY = yAxis?.scale instanceof ContinuousScale;
 
-        const props: any[] = [];
+        const props: DataModelOptions<any, false>['props'] = [];
 
         // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
         // They must be identified this way when animated to ensure they can be tracked when their y-value
