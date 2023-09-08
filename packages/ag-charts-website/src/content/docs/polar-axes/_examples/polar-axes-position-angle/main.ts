@@ -14,6 +14,18 @@ const options: AgChartOptions = {
             radiusKey: 'grade',
         },
     ],
+    axes: [
+        {
+            type: 'angle-category',
+        },
+        {
+            type: 'radius-number',
+            positionAngle: 360 / 5,
+            label: {
+                rotation: -360 / 5,
+            },
+        },
+    ],
 };
 
 const chart = AgEnterpriseCharts.create(options);
