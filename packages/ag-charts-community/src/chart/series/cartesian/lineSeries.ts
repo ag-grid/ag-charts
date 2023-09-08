@@ -77,7 +77,7 @@ export class ErrorBarDatum {
         this.yLowerKey = yLowerKey;
         this.yUpperKey = yUpperKey;
     }
-};
+}
 
 export class LineSeries extends CartesianSeries<LineContext> {
     static className = 'LineSeries';
