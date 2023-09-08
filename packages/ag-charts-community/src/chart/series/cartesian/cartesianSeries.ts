@@ -1,4 +1,10 @@
-import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMode, SeriesNodePickMatch } from '../series';
+import type {
+    SeriesNodeDataContext,
+    SeriesNodeDatum,
+    SeriesNodePickMode,
+    SeriesNodePickMatch,
+    SeriesGroupZIndexSubOrderType,
+} from '../series';
 import { Series, SeriesNodeBaseClickEvent } from '../series';
 import type { ChartAxis } from '../../chartAxis';
 import { SeriesMarker } from '../seriesMarker';
@@ -414,10 +420,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    getGroupZIndexSubOrder(
-        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
-        subIndex = 0
-    ): ZIndexSubOrder {
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         const result = super.getGroupZIndexSubOrder(type, subIndex);
         if (type === 'paths') {
             const pathOffset = this.opts.pathsZIndexSubOrderOffset[subIndex] ?? 0;

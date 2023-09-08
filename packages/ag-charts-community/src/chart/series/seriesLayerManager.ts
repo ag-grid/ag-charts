@@ -1,6 +1,7 @@
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { Layers } from '../layers';
+import type { SeriesGroupZIndexSubOrderType } from './series';
 import type { SeriesGrouping } from './seriesStateManager';
 
 export type SeriesConfig = {
@@ -9,10 +10,7 @@ export type SeriesConfig = {
     rootGroup: Group;
     highlightGroup: Group;
     type: string;
-    getGroupZIndexSubOrder(
-        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
-        subIndex?: number
-    ): ZIndexSubOrder;
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex?: number): ZIndexSubOrder;
 };
 
 type LayerState = {
