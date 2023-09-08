@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport, AgBoxPlotSeriesOptions } from 'ag-charts-community';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 import { BOX_PLOT_SERIES_DEFAULTS } from './boxPlotDefaults';
 import { BoxPlotSeries } from './boxPlotSeries';
@@ -14,4 +14,9 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule = {
     seriesDefaults: BOX_PLOT_SERIES_DEFAULTS,
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
+
+    swapDefaultAxesCondition({ series }) {
+        const [{ direction }] = series as [AgBoxPlotSeriesOptions];
+        return direction === 'vertical';
+    },
 };
