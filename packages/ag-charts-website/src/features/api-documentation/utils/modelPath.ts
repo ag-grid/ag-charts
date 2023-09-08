@@ -88,6 +88,6 @@ export function getTopSelection({
         type: model.type,
         path: [],
         model,
-        hideChildren,
+        onlyShowToDepth: hideChildren ? 0 : undefined,
     };
 }

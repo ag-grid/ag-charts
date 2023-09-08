@@ -240,7 +240,7 @@ export interface ApiDocumentationProps {
 interface JsSelectionBase {
     path: string[];
     model: JsonModelProperty;
-    hideChildren?: boolean;
+    onlyShowToDepth?: number;
 }
 
 export type JsModelSelectionProperty = JsSelectionBase & {

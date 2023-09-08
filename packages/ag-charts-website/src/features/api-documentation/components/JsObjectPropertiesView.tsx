@@ -1,12 +1,13 @@
 import { useCallback, type FunctionComponent, useState } from 'react';
 import { JsObjectView } from './JsObjectView';
 import styles from './JsObjectProperties.module.scss';
-import type { Config, JsObjectPropertiesViewProps, JsObjectSelection } from '../types';
+import type { Config, JsObjectPropertiesViewProps, JsObjectSelection, JsObjectSelectionProperty } from '../types';
 import { JsObjectDetails } from './JsObjectDetails';
 import { buildModel } from '../utils/model';
 import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { getTopLevelSelection, getTopSelection } from '../utils/modelPath';
+import { TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
 
 export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewProps> = ({
     interfaceName,
@@ -24,11 +25,13 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
             const isTopLevelSelection = path.length === 0;
 
             if (isTopLevelSelection) {
-                setSelection(newSelection);
+                const { propName } = newSelection as JsObjectSelectionProperty;
+                const onlyShowToDepth = TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN.includes(propName) ? 1 : undefined;
+                setSelection({ ...newSelection, onlyShowToDepth });
                 smoothScrollIntoView('#top');
             } else {
-                const [currentTopLevelPathItem] = selection.path;
                 const [newTopLevelPathItem] = newSelection.path;
+                const [currentTopLevelPathItem] = selection.path;
                 const isCurrentTopLevelSelection = currentTopLevelPathItem === newTopLevelPathItem;
                 if (!isCurrentTopLevelSelection) {
                     const newTopLevelSelection = getTopLevelSelection({ pathItem: newTopLevelPathItem, model });
