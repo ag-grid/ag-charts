@@ -223,6 +223,7 @@ function applyInheritance(extensions, interfaces, isDocStyle) {
                 }
                 omitFields.forEach((f) => {
                     delete extendedInterface[f];
+                    delete extendedInterface[f + '?'];
                 });
             } else {
                 if (extInt && extInt.type) {
@@ -241,6 +242,9 @@ function applyInheritance(extensions, interfaces, isDocStyle) {
                     delete extendedInterface.docs?.[f];
                     delete extendedInterface.meta?.[f];
                     delete extendedInterface.type?.[f];
+                    delete extendedInterface.docs?.[f + '?'];
+                    delete extendedInterface.meta?.[f + '?'];
+                    delete extendedInterface.type?.[f + '?'];
                 });
             }
         });
