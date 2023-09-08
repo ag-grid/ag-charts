@@ -2,6 +2,8 @@ import { _Theme } from 'ag-charts-community';
 
 export const RADIAL_COLUMN_SERIES_THEME = {
     __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
+    columnWidthRatio: 0.5,
+    maxColumnWidthRatio: 0.5,
     strokeWidth: 0,
     label: {
         enabled: false,

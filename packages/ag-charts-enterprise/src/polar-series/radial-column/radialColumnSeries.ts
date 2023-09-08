@@ -9,8 +9,11 @@ const { isNumberEqual, normalizeAngle360, angleBetween } = _Util;
 export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
     static className = 'RadialColumnSeries';
 
-    @Validate(OPT_NUMBER(0))
-    columnWidth: number | undefined = undefined;
+    @Validate(OPT_NUMBER(0, 1))
+    columnWidthRatio: number | undefined = undefined;
+
+    @Validate(OPT_NUMBER(0, 1))
+    maxColumnWidthRatio: number | undefined = undefined;
 
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
@@ -138,22 +141,31 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
     }
 
     private getColumnWidth(datum: RadialColumnNodeDatum) {
-        if (this.columnWidth !== undefined) {
-            return this.columnWidth;
+        const { columnWidthRatio = 0.5, maxColumnWidthRatio = 0.5 } = this;
+        const axisOuterRadius = this.radius;
+
+        const rotation = angleBetween(datum.startAngle, datum.endAngle);
+        let { startAngle, endAngle } = datum;
+
+        const pad = (rotation * (1 - columnWidthRatio)) / 2;
+        startAngle += pad;
+        endAngle -= pad;
+
+        if (rotation >= 2 * Math.PI) {
+            const midAngle = startAngle + rotation / 2;
+            startAngle = midAngle - Math.PI;
+            endAngle = midAngle + Math.PI;
         }
-        const axisInnerRadius = this.getAxisInnerRadius();
-        const midAngle = angleBetween(datum.startAngle, datum.endAngle);
-        if (midAngle >= Math.PI) {
-            return 2 * axisInnerRadius;
-        }
-        const startX = axisInnerRadius * Math.cos(datum.startAngle);
-        const startY = axisInnerRadius * Math.sin(datum.startAngle);
-        const endX = axisInnerRadius * Math.cos(datum.endAngle);
-        const endY = axisInnerRadius * Math.sin(datum.endAngle);
-        return Math.max(
-            1,
-            Math.min(axisInnerRadius * 2, Math.floor(Math.sqrt((startX - endX) ** 2 + (startY - endY) ** 2)))
-        );
+
+        const startX = axisOuterRadius * Math.cos(startAngle);
+        const startY = axisOuterRadius * Math.sin(startAngle);
+        const endX = axisOuterRadius * Math.cos(endAngle);
+        const endY = axisOuterRadius * Math.sin(endAngle);
+
+        const colWidth = Math.floor(Math.sqrt((startX - endX) ** 2 + (startY - endY) ** 2));
+        const maxWidth = 2 * axisOuterRadius * maxColumnWidthRatio;
+
+        return Math.max(1, Math.min(maxWidth, colWidth));
     }
 
     protected isRadiusAxisCircle() {
