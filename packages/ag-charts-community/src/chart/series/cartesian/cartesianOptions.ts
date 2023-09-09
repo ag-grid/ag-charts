@@ -14,7 +14,7 @@ import type {
 } from '../../options/crossLineOptions';
 import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
 import type { AgNavigatorOptions } from '../../options/navigatorOptions';
-import type { CssColor, PixelSize, Ratio } from '../../options/types';
+import type { PixelSize, Ratio } from '../../options/types';
 import type { AgZoomOptions } from '../../options/zoomOptions';
 import type { AgCrosshairOptions } from '../../options/crosshairOptions';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
@@ -47,7 +47,7 @@ export interface AgBaseCartesianChartOptions {
     /** Series configurations. */
     series?: AgCartesianSeriesOptions[];
     /** Configuration for the chart legend. */
-    legend?: AgCartesianChartLegendOptions | AgGradientLegendOptions;
+    legend?: AgCartesianChartLegendOptions;
     /** Configuration for the chart navigator. */
     navigator?: AgNavigatorOptions;
 
@@ -55,13 +55,6 @@ export interface AgBaseCartesianChartOptions {
     contextMenu?: AgContextMenuOptions;
     /** Configuration for zoom. */
     zoom?: AgZoomOptions;
-}
-
-export interface AgGradientLegendOptions extends AgChartBaseLegendOptions {
-    type: 'gradient';
-    enabled?: boolean;
-    startColour: CssColor;
-    stopColour: CssColor;
 }
 
 export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {
@@ -196,7 +189,6 @@ export interface AgTimeAxisThemeOptions
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgCartesianChartLegendOptions extends AgChartBaseLegendOptions {
-    type?: 'item';
     /** Whether or not to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
 }

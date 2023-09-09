@@ -118,8 +118,6 @@ export interface AgRangeBarSeriesOptions<DatumType = any>
     yHighName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
-    title?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }
