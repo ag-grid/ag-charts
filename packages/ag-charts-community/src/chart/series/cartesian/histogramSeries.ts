@@ -128,7 +128,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
     bins: [number, number][] | undefined = undefined;
 
     @Validate(HISTOGRAM_AGGREGATION)
-    aggregation: HistogramAggregation = 'count';
+    aggregation: HistogramAggregation = 'sum';
 
     @Validate(OPT_NUMBER(0))
     binCount?: number = undefined;

@@ -169,8 +169,8 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
                     ({ type }) => type === axisType
                 );
                 const axesTheme = jsonMerge([
-                    axesThemes[axisType],
-                    axesThemes[axisType][axis.position ?? 'unknown'] ?? {},
+                    axesThemes[axisType] ?? {},
+                    axesThemes[axisType]?.[axis.position ?? 'unknown'] ?? {},
                     axisDefaults ?? {},
                 ]);
                 return prepareAxis(axis, axesTheme);
@@ -230,10 +230,10 @@ function prepareMainOptions<T extends AgChartOptions>(
 
 function prepareTheme<T extends AgChartOptions>(options: T) {
     const theme = getChartTheme(options.theme);
-    const themeConfig = theme.config[optionsType(options) ?? 'cartesian'];
+    const themeConfig = theme.config[optionsType(options)];
 
     const seriesThemes = Object.entries<any>(theme.config).reduce((result, [seriesType, { series }]) => {
-        result[seriesType] = series?.[seriesType];
+        result[seriesType] = series;
         return result;
     }, {} as any);
 

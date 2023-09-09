@@ -1,12 +1,14 @@
-import type { CssColor, Opacity } from '../../options/types';
-import type { AgBaseRadarSeriesOptions } from './radarOptions';
+import type { FillOptions } from '../cartesian/commonOptions';
+import type { AgBaseRadarSeriesOptions, AgRadarSeriesThemeableOptions } from './radarOptions';
 
-export interface AgRadarAreaSeriesOptions<DatumType = any> extends AgBaseRadarSeriesOptions<DatumType> {
+export interface AgRadarAreaSeriesThemeableOptions<DatumType = any>
+    extends FillOptions,
+        AgRadarSeriesThemeableOptions<DatumType> {}
+
+export interface AgRadarAreaSeriesOptions<DatumType = any>
+    extends AgRadarAreaSeriesThemeableOptions<DatumType>,
+        AgBaseRadarSeriesOptions<DatumType> {
     type?: 'radar-area';
-    /** The colour to use for the fill of the area. */
-    fill?: CssColor;
-    /** The opacity of the fill for the area. */
-    fillOpacity?: Opacity;
 }
 
 /**

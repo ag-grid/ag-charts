@@ -2,10 +2,16 @@ import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../options/types';
-import type { AgBaseSeriesOptions, AgSeriesHighlightStyle, AgSeriesMarker } from '../seriesOptions';
+import type { CssColor, PixelSize } from '../../options/types';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgSeriesHighlightStyle,
+    AgSeriesMarker,
+} from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
+import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgRangeAreaSeriesMarkerFormatterParams<DatumType> {
     readonly datum: DatumType;
@@ -67,8 +73,27 @@ export interface AgRangeAreaSeriesLabelFormatterParams extends AgCartesianSeries
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
+export interface AgRangeAreaSeriesThemeableOptions<DatumType = any>
+    extends StrokeOptions,
+        FillOptions,
+        LineDashOptions,
+        AgBaseSeriesThemeableOptions {
+    /** Configuration for the markers used in the series.  */
+    marker?: AgRangeAreaSeriesMarker<DatumType>;
+    /** Configuration for the range series items when they are hovered over. */
+    highlightStyle?: AgSeriesHighlightStyle;
+    /** Configuration for the labels shown on top of data points. */
+    label?: AgRangeAreaSeriesLabelOptions;
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>;
+}
+
 /** Configuration for RangeArea series. */
-export interface AgRangeAreaSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
+export interface AgRangeAreaSeriesOptions<DatumType = any>
+    extends AgRangeAreaSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
     /** Configuration for the RangeArea series. */
     type?: 'range-area';
     /** The key to use to retrieve x-values from the data. */
@@ -87,30 +112,6 @@ export interface AgRangeAreaSeriesOptions<DatumType = any> extends AgBaseSeriesO
     yName?: string;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
-    /** Configuration for the markers used in the series.  */
-    marker?: AgRangeAreaSeriesMarker<DatumType>;
-    /** Configuration for the range series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
-    /** Configuration for the labels shown on top of data points. */
-    label?: AgRangeAreaSeriesLabelOptions;
-    /** The fill colour to use for the area. */
-    fill?: CssColor;
-    /** Opacity of the area. */
-    fillOpacity?: Opacity;
-    /** The colour to use for the line. */
-    stroke?: CssColor;
-    /** The width in pixels of the stroke. */
-    strokeWidth?: PixelSize;
-    /** Opacity of the stroke. */
-    strokeOpacity?: Opacity;
-    /** Defines how the strokes are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
-    /** The initial offset of the dashed line in pixels. */
-    lineDashOffset?: PixelSize;
-    /** Configuration for the shadow used behind the series items. */
-    shadow?: AgDropShadowOptions;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

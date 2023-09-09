@@ -1,189 +1,22 @@
 import type { AgChartThemeOptions } from '../agChartOptions';
-import { ChartTheme, OVERRIDE_SERIES_LABEL_DEFAULTS } from './chartTheme';
-import { CHART_TYPES } from '../factory/chartTypes';
-import { getSeriesThemeTemplate } from '../factory/seriesTypes';
+import {
+    ChartTheme,
+    DEFAULT_AXIS_GRID_COLOUR,
+    DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+} from './chartTheme';
 
 export class DarkTheme extends ChartTheme {
-    static fontColor = 'rgb(200, 200, 200)';
-    static mutedFontColor = 'rgb(150, 150, 150)';
-
-    static seriesLabelDefaults = {
-        label: {
-            color: DarkTheme.fontColor,
-        },
-    };
-
-    protected getDefaults(): (typeof ChartTheme)['defaults'] {
-        const fontColor = DarkTheme.fontColor;
-        const mutedFontColor = DarkTheme.mutedFontColor;
-
-        const axisDefaults = {
-            title: {
-                color: fontColor,
-            },
-            label: {
-                color: fontColor,
-            },
-            gridStyle: [
-                {
-                    stroke: 'rgb(88, 88, 88)',
-                    lineDash: [4, 2],
-                },
-            ],
-        };
-
-        const seriesLabelDefaults = {
-            label: {
-                color: fontColor,
-            },
-        };
-
-        const chartAxesDefaults = {
-            axes: {
-                number: {
-                    ...axisDefaults,
-                },
-                category: {
-                    ...axisDefaults,
-                },
-                time: {
-                    ...axisDefaults,
-                },
-            },
-        };
-
-        const chartDefaults = {
-            background: {
-                fill: 'rgb(34, 38, 41)',
-            },
-            title: {
-                color: fontColor,
-            },
-            subtitle: {
-                color: mutedFontColor,
-            },
-            legend: {
-                item: {
-                    label: {
-                        color: fontColor,
-                    },
-                },
-                pagination: {
-                    activeStyle: {
-                        fill: fontColor,
-                    },
-                    inactiveStyle: {
-                        fill: mutedFontColor,
-                    },
-                    highlightStyle: {
-                        fill: fontColor,
-                    },
-                    label: {
-                        color: fontColor,
-                    },
-                },
-            },
-        };
-
-        const getOverridesByType = (seriesTypes: string[]) => {
-            return seriesTypes.reduce((obj, seriesType) => {
-                const template = getSeriesThemeTemplate(seriesType);
-                if (template) {
-                    obj[seriesType] = this.templateTheme(template);
-                }
-                return obj;
-            }, {} as Record<string, any>);
-        };
-
-        return this.mergeWithParentDefaults(super.getDefaults(), {
-            cartesian: {
-                ...chartDefaults,
-                ...chartAxesDefaults,
-                series: {
-                    line: {
-                        ...seriesLabelDefaults,
-                    },
-                    bar: {
-                        ...seriesLabelDefaults,
-                    },
-                    histogram: {
-                        ...seriesLabelDefaults,
-                    },
-                    ...getOverridesByType(CHART_TYPES.cartesianTypes),
-                },
-            },
-            groupedCategory: {
-                ...chartDefaults,
-                ...chartAxesDefaults,
-                series: {
-                    bar: {
-                        ...seriesLabelDefaults,
-                    },
-                    histogram: {
-                        ...seriesLabelDefaults,
-                    },
-                    ...getOverridesByType(CHART_TYPES.cartesianTypes),
-                },
-            },
-            polar: {
-                ...chartDefaults,
-                series: {
-                    pie: {
-                        calloutLabel: {
-                            color: fontColor,
-                        },
-                        sectorLabel: {
-                            color: fontColor,
-                        },
-                        title: {
-                            color: fontColor,
-                        },
-                        innerLabels: {
-                            color: fontColor,
-                        },
-                    },
-                    ...getOverridesByType(CHART_TYPES.polarTypes),
-                },
-            },
-            hierarchy: {
-                ...chartDefaults,
-                series: {
-                    treemap: {
-                        tileStroke: 'white',
-                        groupStroke: 'white',
-                        title: {
-                            color: fontColor,
-                        },
-                        subtitle: {
-                            color: mutedFontColor,
-                        },
-                        labels: {
-                            large: {
-                                color: fontColor,
-                            },
-                            medium: {
-                                color: fontColor,
-                            },
-                            small: {
-                                color: fontColor,
-                            },
-                            value: {
-                                style: {
-                                    color: fontColor,
-                                },
-                            },
-                        },
-                    },
-                    ...getOverridesByType(CHART_TYPES.hierarchyTypes),
-                },
-            },
-        });
-    }
-
     protected getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, DarkTheme.seriesLabelDefaults.label);
+        result.properties.set(DEFAULT_LABEL_COLOUR, 'rgb(200, 200, 200)');
+        result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(150, 150, 150)');
+        result.properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(88, 88, 88)');
+        result.properties.set(DEFAULT_BACKGROUND_COLOUR, 'rgb(34, 38, 41)');
+        result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
 
         return result;
     }

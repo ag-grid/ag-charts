@@ -2,21 +2,28 @@ import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type {
     AgBaseRadialColumnSeriesOptions,
+    AgBaseRadialColumnSeriesThemeableOptions,
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
     AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
 } from './radialColumnOptions';
 
-/** Configuration for Nightingale series. */
-export interface AgNightingaleSeriesOptions<DatumType = any> extends AgBaseRadialColumnSeriesOptions<DatumType> {
-    type?: 'nightingale';
+export interface AgNightingaleSeriesThemeableOptions<DatumType = any>
+    extends AgBaseRadialColumnSeriesThemeableOptions<DatumType> {
     /** Configuration for the labels shown on top of data points. */
     label?: AgNightingaleSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgNightingaleSeriesTooltipRendererParams>;
     /** A formatter function for adjusting the styling of the nightingale sectors. */
     formatter?: (params: AgNightingaleSeriesFormatterParams<DatumType>) => AgNightingaleSeriesFormat;
+}
+
+/** Configuration for Nightingale series. */
+export interface AgNightingaleSeriesOptions<DatumType = any>
+    extends AgNightingaleSeriesThemeableOptions<DatumType>,
+        AgBaseRadialColumnSeriesOptions<DatumType> {
+    type?: 'nightingale';
 }
 
 export interface AgNightingaleSeriesTooltipRendererParams extends AgRadialColumnSeriesTooltipRendererParams {}

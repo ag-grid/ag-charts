@@ -2,38 +2,23 @@ import { jsonMerge, jsonWalk } from '../../util/json';
 import { deepMerge } from '../../util/object';
 import type {
     FontWeight,
-    AgPolarSeriesTheme,
     AgChartThemePalette,
     AgChartThemeOptions,
     AgChartThemeOverrides,
-    AgCartesianThemeOptions,
     AgBarSeriesLabelOptions,
     AgChartLegendPosition,
-    AgPolarThemeOptions,
-    AgHierarchyThemeOptions,
-    AgCartesianSeriesTheme,
-    AgHierarchySeriesTheme,
     InteractionRange,
     AgTooltipPositionType,
+    AgChartTheme,
 } from '../agChartOptions';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
-import type { ChartType } from '../factory/chartTypes';
-import { CHART_TYPES, getChartDefaults } from '../factory/chartTypes';
+import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
 
 const palette: AgChartThemePalette = {
     fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
     strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
 };
-
-type ChartThemeDefaults = {
-    cartesian: AgCartesianThemeOptions;
-    groupedCategory: AgCartesianThemeOptions;
-    polar: AgPolarThemeOptions;
-    hierarchy: AgHierarchyThemeOptions;
-} & { [key in keyof AgCartesianSeriesTheme]?: AgCartesianThemeOptions } & {
-    [key in keyof AgPolarSeriesTheme]?: AgPolarThemeOptions;
-} & { [key in keyof AgHierarchySeriesTheme]?: AgHierarchyThemeOptions };
 
 export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults');
 export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults');
@@ -42,6 +27,12 @@ export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults');
 export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults');
 export const OVERRIDE_SERIES_LABEL_DEFAULTS = Symbol('override-series-label-defaults');
 export const DEFAULT_FONT_FAMILY = Symbol('default-font');
+export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour');
+export const DEFAULT_MUTED_LABEL_COLOUR = Symbol('default-muted-label-colour');
+export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour');
+export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour');
+export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour');
+export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour');
 
 const BOLD: FontWeight = 'bold';
 const INSIDE: AgBarSeriesLabelOptions['placement'] = 'inside';
@@ -55,10 +46,6 @@ export class ChartTheme {
 
     readonly config: any;
 
-    static fontFamily = 'Verdana, sans-serif';
-    static shadowColour = 'rgba(0, 0, 0, 0.5)';
-    static labelColour = 'rgb(70, 70, 70)';
-
     private static getAxisDefaults() {
         return {
             top: {},
@@ -71,17 +58,17 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: BOLD,
                 fontSize: 12,
-                fontFamily: this.fontFamily,
-                color: ChartTheme.labelColour,
+                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                color: DEFAULT_LABEL_COLOUR as unknown as string,
             },
             label: {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: this.fontFamily,
+                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
                 padding: 5,
                 rotation: undefined,
-                color: 'rgb(87, 87, 87)',
+                color: DEFAULT_LABEL_COLOUR as unknown as string,
                 formatter: undefined,
                 avoidCollisions: true,
             },
@@ -96,7 +83,7 @@ export class ChartTheme {
             },
             gridStyle: [
                 {
-                    stroke: 'rgb(219, 219, 219)',
+                    stroke: DEFAULT_AXIS_GRID_COLOUR as unknown as string,
                     lineDash: [4, 2],
                 },
             ],
@@ -110,15 +97,15 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: this.fontFamily,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
                     padding: 5,
-                    color: 'rgb(87, 87, 87)',
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                 },
             },
         };
     }
 
-    static getSeriesDefaults() {
+    private static getSeriesDefaults() {
         return {
             tooltip: {
                 enabled: true,
@@ -156,14 +143,14 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: this.fontFamily,
-                color: ChartTheme.labelColour,
+                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                color: DEFAULT_LABEL_COLOUR as unknown as string,
                 formatter: undefined,
                 placement: INSIDE,
             },
             shadow: {
                 enabled: false,
-                color: ChartTheme.shadowColour,
+                color: DEFAULT_SHADOW_COLOUR as unknown as string,
                 xOffset: 3,
                 yOffset: 3,
                 blur: 5,
@@ -231,7 +218,7 @@ export class ChartTheme {
         return {
             background: {
                 visible: true,
-                fill: 'white',
+                fill: DEFAULT_BACKGROUND_COLOUR as unknown as string,
             },
             padding: {
                 top: 20,
@@ -245,8 +232,8 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: BOLD,
                 fontSize: 16,
-                fontFamily: this.fontFamily,
-                color: ChartTheme.labelColour,
+                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                color: DEFAULT_LABEL_COLOUR as unknown as string,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             subtitle: {
@@ -255,8 +242,8 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: this.fontFamily,
-                color: 'rgb(140, 140, 140)',
+                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                color: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             footnote: {
@@ -265,7 +252,7 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: this.fontFamily,
+                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
                 color: 'rgb(140, 140, 140)',
                 spacing: 30,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -284,11 +271,11 @@ export class ChartTheme {
                         padding: 8,
                     },
                     label: {
-                        color: 'black',
+                        color: DEFAULT_LABEL_COLOUR as unknown as string,
                         fontStyle: undefined,
                         fontWeight: undefined,
                         fontSize: 12,
-                        fontFamily: this.fontFamily,
+                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
                         formatter: undefined,
                     },
                 },
@@ -298,16 +285,16 @@ export class ChartTheme {
                         size: 12,
                     },
                     activeStyle: {
-                        fill: ChartTheme.labelColour,
+                        fill: DEFAULT_LABEL_COLOUR as unknown as string,
                     },
                     inactiveStyle: {
-                        fill: 'rgb(219, 219, 219)',
+                        fill: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
                     },
                     highlightStyle: {
-                        fill: ChartTheme.labelColour,
+                        fill: DEFAULT_LABEL_COLOUR as unknown as string,
                     },
                     label: {
-                        color: ChartTheme.labelColour,
+                        color: DEFAULT_LABEL_COLOUR as unknown as string,
                     },
                 },
             },
@@ -320,38 +307,43 @@ export class ChartTheme {
         };
     }
 
-    private static readonly cartesianDefaults: AgCartesianThemeOptions = {
-        ...ChartTheme.getChartDefaults(),
-        axes: {
-            number: {
-                ...ChartTheme.getAxisDefaults(),
-            },
-            log: {
-                ...ChartTheme.getAxisDefaults(),
-                base: 10,
-            },
-            category: {
-                ...ChartTheme.getAxisDefaults(),
-                groupPaddingInner: 0.1,
-                label: {
-                    ...ChartTheme.getAxisDefaults().label,
-                    autoRotate: true,
-                },
-            },
-            groupedCategory: {
-                ...ChartTheme.getAxisDefaults(),
-            },
-            time: {
-                ...ChartTheme.getAxisDefaults(),
+    private static readonly cartesianAxisDefault = {
+        number: {
+            ...ChartTheme.getAxisDefaults(),
+        },
+        log: {
+            ...ChartTheme.getAxisDefaults(),
+            base: 10,
+        },
+        category: {
+            ...ChartTheme.getAxisDefaults(),
+            groupPaddingInner: 0.1,
+            label: {
+                ...ChartTheme.getAxisDefaults().label,
+                autoRotate: true,
             },
         },
-        series: {
-            bar: {
+        groupedCategory: {
+            ...ChartTheme.getAxisDefaults(),
+        },
+        time: {
+            ...ChartTheme.getAxisDefaults(),
+        },
+    };
+
+    private static readonly cartesianDefaults: Partial<AgChartThemeOverrides> = {
+        bar: {
+            ...ChartTheme.getChartDefaults(),
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getBarSeriesDefaults(),
             },
-            line: {
+        },
+        line: {
+            ...ChartTheme.getChartDefaults(),
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getLineSeriesDefaults(),
-                title: undefined,
                 strokeWidth: 2,
                 strokeOpacity: 1,
                 lineDash: [0],
@@ -366,15 +358,17 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     formatter: undefined,
                 },
             },
-            scatter: {
+        },
+        scatter: {
+            ...ChartTheme.getChartDefaults(),
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getScatterSeriesDefaults(),
-                sizeName: 'Size',
-                labelName: 'Label',
                 marker: {
                     ...ChartTheme.getCartesianSeriesMarkerDefaults(),
                 },
@@ -383,13 +377,16 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                 },
             },
-            area: {
+        },
+        area: {
+            ...ChartTheme.getChartDefaults(),
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getAreaSeriesDefaults(),
-                normalizedTo: undefined,
                 fillOpacity: 0.8,
                 strokeOpacity: 1,
                 strokeWidth: 2,
@@ -397,7 +394,7 @@ export class ChartTheme {
                 lineDashOffset: 0,
                 shadow: {
                     enabled: false,
-                    color: ChartTheme.shadowColour,
+                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -413,33 +410,34 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     formatter: undefined,
                 },
             },
-            histogram: {
+        },
+        histogram: {
+            ...ChartTheme.getChartDefaults(),
+            axes: this.cartesianAxisDefault,
+            series: {
                 ...ChartTheme.getSeriesDefaults(),
                 strokeWidth: 1,
                 fillOpacity: 1,
                 strokeOpacity: 1,
                 lineDash: [0],
                 lineDashOffset: 0,
-                areaPlot: false,
-                bins: undefined,
-                aggregation: 'sum',
                 label: {
                     enabled: false,
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     formatter: undefined,
                 },
                 shadow: {
                     enabled: true,
-                    color: ChartTheme.shadowColour,
+                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
                     xOffset: 0,
                     yOffset: 0,
                     blur: 5,
@@ -448,33 +446,27 @@ export class ChartTheme {
         },
     };
 
-    private static readonly polarDefaults: AgPolarThemeOptions = {
-        ...ChartTheme.getChartDefaults(),
-        series: {
-            pie: {
+    private static readonly polarDefaults: Partial<AgChartThemeOverrides> = {
+        pie: {
+            ...ChartTheme.getChartDefaults(),
+            series: {
                 ...ChartTheme.getSeriesDefaults(),
                 title: {
                     enabled: true,
                     fontStyle: undefined,
-                    fontWeight: 'bold',
+                    fontWeight: BOLD,
                     fontSize: 14,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     spacing: 0,
                 },
-                radiusKey: undefined,
-                radiusName: undefined,
-                calloutLabelKey: undefined,
-                calloutLabelName: undefined,
-                sectorLabelKey: undefined,
-                sectorLabelName: undefined,
                 calloutLabel: {
                     enabled: true,
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     offset: 3,
                     minAngle: 0,
                 },
@@ -483,8 +475,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     positionOffset: 0,
                     positionRatio: 0.5,
                 },
@@ -502,7 +494,7 @@ export class ChartTheme {
                 innerRadiusOffset: 0,
                 shadow: {
                     enabled: false,
-                    color: ChartTheme.shadowColour,
+                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -511,34 +503,31 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
-                    color: ChartTheme.labelColour,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     margin: 2,
                 },
             },
         },
     };
 
-    private static readonly hierarchyDefaults: AgHierarchyThemeOptions = {
-        ...ChartTheme.getChartDefaults(),
-        series: {
-            treemap: {
+    private static readonly hierarchyDefaults: Partial<AgChartThemeOverrides> = {
+        treemap: {
+            ...ChartTheme.getChartDefaults(),
+            series: {
                 ...ChartTheme.getSeriesDefaults(),
                 showInLegend: false,
-                labelKey: 'label',
-                sizeKey: 'size',
-                colorKey: 'color',
                 colorDomain: [-5, 5],
                 colorRange: ['#cb4b3f', '#6acb64'],
                 groupFill: '#272931',
-                groupStroke: 'black',
+                groupStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR as unknown as string,
                 groupStrokeWidth: 1,
-                tileStroke: 'black',
+                tileStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR as unknown as string,
                 tileStrokeWidth: 1,
                 gradient: true,
                 tileShadow: {
                     enabled: false,
-                    color: ChartTheme.shadowColour,
+                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -555,48 +544,48 @@ export class ChartTheme {
                 nodeGap: 0,
                 title: {
                     enabled: true,
-                    color: 'white',
+                    color: DEFAULT_LABEL_COLOUR as unknown as string,
                     fontStyle: undefined,
-                    fontWeight: 'bold',
+                    fontWeight: BOLD,
                     fontSize: 12,
-                    fontFamily: ChartTheme.fontFamily,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
                     padding: 2,
                 },
                 subtitle: {
                     enabled: true,
-                    color: 'white',
+                    color: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 9,
-                    fontFamily: ChartTheme.fontFamily,
+                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
                     padding: 2,
                 },
                 labels: {
                     large: {
                         enabled: true,
                         fontStyle: undefined,
-                        fontWeight: 'bold',
+                        fontWeight: BOLD,
                         fontSize: 18,
-                        fontFamily: ChartTheme.fontFamily,
-                        color: 'white',
+                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                        color: DEFAULT_LABEL_COLOUR as unknown as string,
                         wrapping: 'on-space',
                     },
                     medium: {
                         enabled: true,
                         fontStyle: undefined,
-                        fontWeight: 'bold',
+                        fontWeight: BOLD,
                         fontSize: 14,
-                        fontFamily: ChartTheme.fontFamily,
-                        color: 'white',
+                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                        color: DEFAULT_LABEL_COLOUR as unknown as string,
                         wrapping: 'on-space',
                     },
                     small: {
                         enabled: true,
                         fontStyle: undefined,
-                        fontWeight: 'bold',
+                        fontWeight: BOLD,
                         fontSize: 10,
-                        fontFamily: ChartTheme.fontFamily,
-                        color: 'white',
+                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                        color: DEFAULT_LABEL_COLOUR as unknown as string,
                         wrapping: 'on-space',
                     },
                     value: {
@@ -605,8 +594,8 @@ export class ChartTheme {
                             fontStyle: undefined,
                             fontWeight: undefined,
                             fontSize: 12,
-                            fontFamily: ChartTheme.fontFamily,
-                            color: 'white',
+                            fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                            color: DEFAULT_LABEL_COLOUR as unknown as string,
                         },
                     },
                 },
@@ -614,57 +603,46 @@ export class ChartTheme {
         },
     };
 
-    private static readonly defaults: ChartThemeDefaults = {
-        cartesian: ChartTheme.cartesianDefaults,
-        groupedCategory: ChartTheme.cartesianDefaults,
-        polar: ChartTheme.polarDefaults,
-        hierarchy: ChartTheme.hierarchyDefaults,
+    private static readonly defaults: AgChartThemeOverrides = {
+        ...ChartTheme.cartesianDefaults,
+        ...ChartTheme.polarDefaults,
+        ...ChartTheme.hierarchyDefaults,
     };
 
-    constructor(options?: AgChartThemeOptions) {
+    constructor(options?: AgChartTheme) {
         options = deepMerge({}, options ?? {}) as AgChartThemeOptions;
         const { overrides = null, palette = null } = options;
 
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
 
         if (overrides) {
-            const { common, cartesian, polar, hierarchy } = overrides;
+            const { common } = overrides;
 
             const applyOverrides = <K extends keyof typeof defaults>(
-                type: K,
                 seriesTypes: string[],
                 overrideOpts: AgChartThemeOverrides[K]
             ) => {
-                if (overrideOpts) {
-                    defaults[type] = deepMerge(defaults[type], overrideOpts);
-                    seriesTypes.forEach((s) => {
-                        const seriesType = s as keyof AgChartThemeOverrides;
-                        defaults[seriesType] = deepMerge(defaults[seriesType], overrideOpts);
-                    });
+                if (!overrideOpts) return;
+                for (const s of seriesTypes) {
+                    const seriesType = s as keyof AgChartThemeOverrides;
+                    defaults[seriesType] = deepMerge(defaults[seriesType], overrideOpts);
                 }
             };
-            applyOverrides('common', Object.keys(defaults) as any[], common);
-            applyOverrides('cartesian', CHART_TYPES.cartesianTypes, cartesian);
-            applyOverrides('polar', CHART_TYPES.polarTypes, polar);
-            applyOverrides('hierarchy', CHART_TYPES.hierarchyTypes, hierarchy);
+            applyOverrides(CHART_TYPES.seriesTypes, common);
 
             CHART_TYPES.seriesTypes.forEach((s) => {
                 const seriesType = s as keyof AgChartThemeOverrides;
-                const chartConfig = overrides[seriesType];
-                if (chartConfig) {
-                    if (chartConfig.series) {
-                        chartConfig.series = { [seriesType]: chartConfig.series };
-                    }
-                    defaults[seriesType] = deepMerge(defaults[seriesType], chartConfig);
+                if (overrides[seriesType]) {
+                    defaults[seriesType] = deepMerge(defaults[seriesType], overrides[seriesType]);
                 }
             });
         }
         this.palette = palette ?? this.getPalette();
 
-        this.config = Object.freeze(defaults);
+        this.config = Object.freeze(this.templateTheme(defaults));
     }
 
-    private createChartConfigPerChartType(config: ChartThemeDefaults) {
+    private createChartConfigPerChartType(config: AgChartThemeOverrides) {
         const typeToAliases = {
             cartesian: CHART_TYPES.cartesianTypes,
             polar: CHART_TYPES.polarTypes,
@@ -673,54 +651,67 @@ export class ChartTheme {
         };
         Object.entries(typeToAliases).forEach(([nextType, aliases]) => {
             const type = nextType as ChartType;
-            const typeDefaults = this.templateTheme(getChartDefaults(type)) as any;
+            const typeDefaults = getChartDefaults(type) as any;
 
             aliases.forEach((next) => {
-                const alias = next as keyof ChartThemeDefaults;
+                const alias = next as keyof AgChartThemeOverrides;
                 if (!config[alias]) {
-                    config[alias] = deepMerge({}, config[type]);
+                    config[alias] = {};
                     deepMerge(config[alias], typeDefaults);
                 }
             });
         });
 
-        return config as AgChartThemeOverrides;
+        return config;
     }
 
-    protected getDefaults(): ChartThemeDefaults {
-        const defaults = deepMerge({}, ChartTheme.defaults);
+    private getDefaults(): AgChartThemeOverrides {
+        let defaults = deepMerge({}, ChartTheme.defaults);
+
+        const getChartTypeDefaults = (chartType: ChartType) => {
+            return {
+                ...ChartTheme.getChartDefaults(),
+                ...getChartDefaults(chartType),
+            };
+        };
+
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
-            const result = this.templateTheme(getChartDefaults(chartType)) as any;
-            result.series = seriesTypes.reduce((obj, seriesType) => {
+            const chartDefaults = getChartTypeDefaults(chartType) as any;
+            const result: Record<string, { series?: {}; axes?: {} }> = {};
+            for (const seriesType of seriesTypes) {
+                result[seriesType] ??= deepMerge({}, chartDefaults);
+                const axes: Record<string, {}> = (result[seriesType].axes ??= {});
+
                 const template = getSeriesThemeTemplate(seriesType);
                 if (template) {
-                    obj[seriesType] = this.templateTheme(template);
+                    result[seriesType].series = deepMerge(result[seriesType].series, template);
                 }
-                return obj;
-            }, {} as Record<string, any>);
 
-            if (chartType === 'cartesian' || chartType === 'polar') {
-                result.axes = AXIS_TYPES.axesTypes.reduce((obj, axisType) => {
+                for (const axisType of AXIS_TYPES.axesTypes) {
                     const template = getAxisThemeTemplate(axisType);
-                    if (template) {
-                        obj[axisType] = this.templateTheme(template);
+                    if (chartType === 'cartesian') {
+                        axes[axisType] = deepMerge(
+                            axes[axisType],
+                            (ChartTheme.cartesianAxisDefault as any)[axisType] ?? {}
+                        );
                     }
-                    return obj;
-                }, {} as Record<string, any>);
+                    if (template) {
+                        axes[axisType] = deepMerge(axes[axisType], template);
+                    }
+                }
             }
+
             return result;
         };
 
-        const extension = {
-            cartesian: getOverridesByType('cartesian', CHART_TYPES.cartesianTypes),
-            groupedCategory: getOverridesByType('cartesian', CHART_TYPES.cartesianTypes),
-            polar: getOverridesByType('polar', CHART_TYPES.polarTypes),
-            hierarchy: getOverridesByType('hierarchy', CHART_TYPES.hierarchyTypes),
-        };
-        return deepMerge(defaults, extension);
+        defaults = deepMerge(defaults, getOverridesByType('cartesian', CHART_TYPES.cartesianTypes));
+        defaults = deepMerge(defaults, getOverridesByType('polar', CHART_TYPES.polarTypes));
+        defaults = deepMerge(defaults, getOverridesByType('hierarchy', CHART_TYPES.hierarchyTypes));
+
+        return defaults;
     }
 
-    protected templateTheme(themeTemplate: {}): {} {
+    private templateTheme(themeTemplate: {}): {} {
         const themeInstance = jsonMerge([themeTemplate]);
         const { extensions, properties } = this.getTemplateParameters();
 
@@ -771,18 +762,17 @@ export class ChartTheme {
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
 
         const properties = new Map();
-        properties.set(DEFAULT_FONT_FAMILY, ChartTheme.fontFamily);
+        properties.set(DEFAULT_FONT_FAMILY as unknown as string, 'Verdana, sans-serif');
+        properties.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
+        properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
+        properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(219, 219, 219)');
+        properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
+        properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
+        properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
 
         return {
             extensions,
             properties,
         };
-    }
-
-    protected mergeWithParentDefaults(
-        parentDefaults: ChartThemeDefaults,
-        defaults: ChartThemeDefaults
-    ): ChartThemeDefaults {
-        return deepMerge(parentDefaults, defaults);
     }
 }

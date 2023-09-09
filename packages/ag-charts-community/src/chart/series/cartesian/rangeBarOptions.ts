@@ -3,7 +3,7 @@ import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../options/types';
-import type { AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
 
@@ -69,32 +69,11 @@ export interface AgRangeBarSeriesLabelFormatterParams extends AgCartesianSeriesL
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
-/** Configuration for RangeBar series. */
-export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    /** Configuration for the RangeBar series. */
-    type: 'range-bar';
+export interface AgRangeBarSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
     /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
     direction?: 'horizontal' | 'vertical';
-    /** The key to use to retrieve x-values from the data. */
-    xKey: string;
-    /** The key to use to retrieve y-low-values from the data. */
-    yLowKey: string;
-    /** The key to use to retrieve y-high-values from the data. */
-    yHighKey: string;
-    /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    xName?: string;
-    /** A human-readable description of the y-low-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    yLowName?: string;
-    /** A human-readable description of the y-high-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    yHighName?: string;
-    /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    yName?: string;
-    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
-    title?: string;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams>;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
@@ -117,6 +96,30 @@ export interface AgRangeBarSeriesOptions<DatumType = any> extends AgBaseSeriesOp
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgRangeBarSeriesFormatterParams<DatumType>) => AgRangeBarSeriesFormat;
+}
+
+/** Configuration for RangeBar series. */
+export interface AgRangeBarSeriesOptions<DatumType = any>
+    extends AgRangeBarSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
+    /** Configuration for the RangeBar series. */
+    type: 'range-bar';
+    /** The key to use to retrieve x-values from the data. */
+    xKey: string;
+    /** The key to use to retrieve y-low-values from the data. */
+    yLowKey: string;
+    /** The key to use to retrieve y-high-values from the data. */
+    yHighKey: string;
+    /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    xName?: string;
+    /** A human-readable description of the y-low-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    yLowName?: string;
+    /** A human-readable description of the y-high-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    yHighName?: string;
+    /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    yName?: string;
+    /** A map of event names to event listeners. */
+    listeners?: AgSeriesListeners<DatumType>;
 }
 
 /**

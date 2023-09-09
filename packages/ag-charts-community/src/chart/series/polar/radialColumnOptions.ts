@@ -2,10 +2,25 @@ import type { AgChartLabelOptions } from '../../options/labelOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
 import type { CssColor, Opacity, PixelSize, Ratio } from '../../options/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+
+export interface AgBaseRadialColumnSeriesThemeableOptions<DatumType = any>
+    extends StrokeOptions,
+        LineDashOptions,
+        AgBaseSeriesThemeableOptions {
+    /** Configuration for the labels shown on top of data points. */
+    label?: AgRadialColumnSeriesLabelOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>;
+    /** A formatter function for adjusting the styling of the radial columns. */
+    formatter?: (params: AgRadialColumnSeriesFormatterParams<DatumType>) => AgRadialColumnSeriesFormat;
+}
 
 /** Base configuration for Radial Column series. */
-export interface AgBaseRadialColumnSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
+export interface AgBaseRadialColumnSeriesOptions<DatumType = any>
+    extends AgBaseRadialColumnSeriesThemeableOptions<DatumType>,
+        AgBaseSeriesOptions<DatumType> {
     type?: 'radial-column' | 'nightingale';
     /** The key to use to retrieve angle values from the data. */
     angleKey?: string;
@@ -23,33 +38,23 @@ export interface AgBaseRadialColumnSeriesOptions<DatumType = any> extends AgBase
     /** An ID to be used to group stacked items. */
     stackGroup?: string;
 
-    /** The colour of the stroke for the lines. */
-    stroke?: CssColor;
-    /** The width in pixels of the stroke for the lines. */
-    strokeWidth?: PixelSize;
-    /** The opacity of the stroke for the lines. */
-    strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
-    /** The initial offset of the dashed line in pixels. */
-    lineDashOffset?: PixelSize;
-    /** Configuration for the labels shown on top of data points. */
-    label?: AgRadialColumnSeriesLabelOptions;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
-    /** A formatter function for adjusting the styling of the radial columns. */
-    formatter?: (params: AgRadialColumnSeriesFormatterParams<DatumType>) => AgRadialColumnSeriesFormat;
 }
 
-/** Configuration for Radial Column series. */
-export interface AgRadialColumnSeriesOptions<DatumType = any> extends AgBaseRadialColumnSeriesOptions<DatumType> {
-    type?: 'radial-column';
+export interface AgRadialColumnSeriesThemeableOptions<DatumType = any>
+    extends AgBaseRadialColumnSeriesThemeableOptions<DatumType> {
     /** The ratio used to calculate the column width based on the circumference and padding between items. */
     columnWidthRatio?: Ratio;
     /** Prevents columns from becoming too wide. This value is relative to the diameter of the polar chart. */
     maxColumnWidthRatio?: Ratio;
+}
+
+/** Configuration for Radial Column series. */
+export interface AgRadialColumnSeriesOptions<DatumType = any>
+    extends AgRadialColumnSeriesThemeableOptions<DatumType>,
+        AgBaseRadialColumnSeriesOptions<DatumType> {
+    type?: 'radial-column';
 }
 
 export interface AgRadialColumnSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {

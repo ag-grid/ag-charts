@@ -149,7 +149,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -241,7 +241,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "stroke": "#3d7ab0",
       "strokeOpacity": 1,
       "strokeWidth": 5,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -299,7 +298,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "stroke": "#b03d65",
       "strokeOpacity": 1,
       "strokeWidth": 5,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -357,7 +355,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "stroke": "#80b03d",
       "strokeOpacity": 1,
       "strokeWidth": 5,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -445,7 +442,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -491,7 +488,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -536,7 +533,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -588,7 +585,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -613,7 +610,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -823,7 +820,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "stroke": "#80a0c3",
       "strokeOpacity": 1,
       "strokeWidth": 5,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -916,7 +912,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -958,7 +954,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -1010,7 +1006,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -1035,7 +1031,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -1575,7 +1571,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -1617,7 +1613,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -1669,7 +1665,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -1694,7 +1690,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -2275,7 +2271,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -2317,7 +2313,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -2369,7 +2365,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -2394,7 +2390,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -2464,7 +2460,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "fontStyle": undefined,
         "fontWeight": undefined,
       },
-      "labelName": "Label",
       "marker": {
         "enabled": true,
         "fill": "#f3622d",
@@ -2546,7 +2541,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -2589,7 +2584,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -2640,7 +2635,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -2665,7 +2660,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -3021,7 +3016,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3063,7 +3058,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3115,7 +3110,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3140,7 +3135,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -3229,7 +3224,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3295,7 +3289,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3361,7 +3354,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3427,7 +3419,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3493,7 +3484,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -3599,7 +3589,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3641,7 +3631,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3693,7 +3683,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3718,7 +3708,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -3885,7 +3875,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3927,7 +3917,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -3979,7 +3969,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4004,7 +3994,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -4163,7 +4153,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4201,7 +4191,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4255,7 +4245,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4280,7 +4270,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -4350,7 +4340,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "fontStyle": undefined,
         "fontWeight": undefined,
       },
-      "labelName": "Label",
       "marker": {
         "enabled": true,
         "fill": "#cc5b58",
@@ -4428,7 +4417,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4473,7 +4462,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4528,7 +4517,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4553,7 +4542,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -4705,7 +4694,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4747,7 +4736,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4799,7 +4788,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -4824,7 +4813,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -5063,7 +5052,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -5105,7 +5094,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -5157,7 +5146,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -5182,7 +5171,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -5427,7 +5416,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -5469,7 +5458,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -5521,7 +5510,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -5546,7 +5535,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -6080,7 +6069,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -6123,7 +6112,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -6175,7 +6164,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -6200,7 +6189,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -6250,7 +6239,6 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
   },
   "series": [
     {
-      "aggregation": "sum",
       "areaPlot": true,
       "bins": [
         [
@@ -6363,7 +6351,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -6405,7 +6393,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -6460,7 +6448,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -6485,7 +6473,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -6578,7 +6566,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#0b1791",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -6637,7 +6624,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#be2a2c",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -6696,7 +6682,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -6755,7 +6740,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#ce1126",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -6814,7 +6798,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#002d62",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -6873,7 +6856,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#1b4e9e",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -6932,7 +6914,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -6991,7 +6972,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#0073cf",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7050,7 +7030,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#e88532",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7109,7 +7088,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#000000",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7168,7 +7146,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#006847",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7227,7 +7204,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#c22b38",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7286,7 +7262,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#042279",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7345,7 +7320,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#4997d0",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7404,7 +7378,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#2868c1",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7463,7 +7436,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#459945",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7491,18 +7463,16 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
   },
   "theme": {
     "overrides": {
-      "cartesian": {
+      "line": {
         "series": {
-          "line": {
-            "highlightStyle": {
-              "series": {
-                "dimOpacity": 0.2,
-                "strokeWidth": 4,
-              },
+          "highlightStyle": {
+            "series": {
+              "dimOpacity": 0.2,
+              "strokeWidth": 4,
             },
-            "marker": {
-              "enabled": true,
-            },
+          },
+          "marker": {
+            "enabled": true,
           },
         },
       },
@@ -7582,7 +7552,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
         "fontStyle": undefined,
@@ -7625,7 +7595,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
         "fontStyle": undefined,
@@ -7677,7 +7647,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -7702,7 +7672,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -7794,7 +7764,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "stroke": "#f3622d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -7860,7 +7829,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
   "legend": {
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -7885,7 +7854,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -7944,7 +7913,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       },
       "labels": {
         "large": {
-          "color": "white",
+          "color": "rgb(70, 70, 70)",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 18,
@@ -7953,7 +7922,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
           "wrapping": "on-space",
         },
         "medium": {
-          "color": "white",
+          "color": "rgb(70, 70, 70)",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 14,
@@ -7962,7 +7931,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
           "wrapping": "on-space",
         },
         "small": {
-          "color": "white",
+          "color": "rgb(70, 70, 70)",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 10,
@@ -7973,7 +7942,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
         "value": {
           "formatter": [Function],
           "style": {
-            "color": "white",
+            "color": "rgb(70, 70, 70)",
             "enabled": true,
             "fontFamily": "Verdana, sans-serif",
             "fontSize": 12,
@@ -7988,7 +7957,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       "showInLegend": false,
       "sizeKey": "valuation",
       "subtitle": {
-        "color": "white",
+        "color": "rgb(140, 140, 140)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 9,
@@ -8006,7 +7975,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       "tileStroke": "black",
       "tileStrokeWidth": 1,
       "title": {
-        "color": "white",
+        "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8070,7 +8039,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -8112,7 +8081,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -8165,7 +8134,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -8190,7 +8159,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -8799,7 +8768,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -8841,7 +8810,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -8894,7 +8863,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -8919,7 +8888,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -9227,7 +9196,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -9269,7 +9238,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -9322,7 +9291,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -9347,7 +9316,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -9829,7 +9798,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -9876,7 +9845,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -9928,7 +9897,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -9953,7 +9922,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -10041,7 +10010,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10106,7 +10074,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10171,7 +10138,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10236,7 +10202,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
@@ -10323,7 +10288,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -10365,7 +10330,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -10417,7 +10382,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -10442,7 +10407,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -10603,7 +10568,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
   "legend": {
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -10628,7 +10593,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -10662,7 +10627,6 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "offset": 3,
       },
       "calloutLabelKey": "type",
-      "calloutLabelName": undefined,
       "calloutLine": {
         "length": 10,
         "strokeWidth": 2,
@@ -10720,8 +10684,6 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
       "outerRadiusOffset": 0,
-      "radiusKey": undefined,
-      "radiusName": undefined,
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
@@ -10735,7 +10697,6 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "count",
-      "sectorLabelName": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -10821,7 +10782,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -10864,7 +10825,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -10916,7 +10877,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -10941,7 +10902,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -10991,9 +10952,6 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
   },
   "series": [
     {
-      "aggregation": "sum",
-      "areaPlot": false,
-      "bins": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.5,
       "highlightStyle": {
@@ -11090,7 +11048,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11138,7 +11096,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11190,7 +11148,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11215,7 +11173,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -11308,7 +11266,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "stroke": "#01c185",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -11366,7 +11323,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "stroke": "#000000",
       "strokeOpacity": 1,
       "strokeWidth": 2,
-      "title": undefined,
       "tooltip": {
         "enabled": true,
         "format": undefined,
@@ -11448,7 +11404,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11473,7 +11429,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -11507,7 +11463,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "offset": 3,
       },
       "calloutLabelKey": "religion",
-      "calloutLabelName": undefined,
       "calloutLine": {
         "length": 10,
         "strokeWidth": 2,
@@ -11544,8 +11499,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
       "outerRadiusOffset": 0,
-      "radiusKey": undefined,
-      "radiusName": undefined,
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
@@ -11559,7 +11512,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "population",
-      "sectorLabelName": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -11644,7 +11596,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11686,7 +11638,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11738,7 +11690,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11763,7 +11715,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -11833,7 +11785,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "fontStyle": undefined,
         "fontWeight": undefined,
       },
-      "labelName": "Label",
       "marker": {
         "enabled": true,
         "fill": "#002D72",
@@ -11848,7 +11799,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "sizeName": "Size",
       "tooltip": {
         "enabled": true,
         "position": {
@@ -11909,7 +11859,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -11957,7 +11907,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -12009,7 +11959,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -12034,7 +11984,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -12122,7 +12072,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12192,7 +12141,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12262,7 +12210,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12332,7 +12279,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12402,7 +12348,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12472,7 +12417,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "strokeWidth": 1,
       },
       "nodeClickRange": "nearest",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12589,7 +12533,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -12631,7 +12575,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -12684,7 +12628,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -12709,7 +12653,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -13066,7 +13010,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -13108,7 +13052,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -13160,7 +13104,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "enabled": true,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -13185,7 +13129,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -13611,7 +13555,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -13654,7 +13598,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "rgb(87, 87, 87)",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -13706,7 +13650,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
     "enabled": false,
     "item": {
       "label": {
-        "color": "black",
+        "color": "rgb(70, 70, 70)",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
@@ -13731,7 +13675,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
         "fill": "rgb(70, 70, 70)",
       },
       "inactiveStyle": {
-        "fill": "rgb(219, 219, 219)",
+        "fill": "rgb(140, 140, 140)",
       },
       "label": {
         "color": "rgb(70, 70, 70)",
@@ -13781,7 +13725,6 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
   },
   "series": [
     {
-      "aggregation": "sum",
       "areaPlot": true,
       "bins": [
         [

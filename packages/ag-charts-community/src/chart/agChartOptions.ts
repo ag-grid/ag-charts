@@ -1,8 +1,8 @@
 import type { AgBaseChartOptions } from './options/chartOptions';
-import type { AgBaseChartTheme, AgBaseChartThemeOptions, AgBaseChartThemeOverrides } from './options/themeOptions';
-import type { AgBaseCartesianChartOptions, AgBaseCartesianThemeOptions } from './series/cartesian/cartesianOptions';
-import type { AgBaseHierarchyChartOptions, AgBaseHierarchyThemeOptions } from './series/hierarchy/hierarchyOptions';
-import type { AgBasePolarChartOptions, AgBasePolarThemeOptions } from './series/polar/polarOptions';
+import type { AgBaseChartThemeOptions, AgChartTheme } from './options/themeOptions';
+import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
+import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
+import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
 
 export * from './options/axisOptions';
 export * from './options/crosshairOptions';
@@ -45,17 +45,19 @@ export * from './series/polar/radarLineOptions';
 export * from './series/polar/radarAreaOptions';
 export * from './series/polar/radialColumnOptions';
 
-export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {}
-export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {}
-export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions<any> {}
-export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
+export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
+export type AgChartThemeOverrides = NonNullable<AgChartThemeOptions['overrides']>;
 
-export interface AgChartThemeOptions extends AgBaseChartThemeOptions<AgBaseChartOptions> {}
-export type AgChartTheme = AgBaseChartTheme<AgBaseChartOptions>;
-export type AgChartThemeOverrides = AgBaseChartThemeOverrides<AgBaseChartOptions>;
-export type AgCartesianThemeOptions = AgBaseCartesianThemeOptions & AgBaseChartOptions;
-export type AgPolarThemeOptions = AgBasePolarThemeOptions & AgBaseChartOptions;
-export type AgHierarchyThemeOptions = AgBaseHierarchyThemeOptions & AgBaseChartOptions;
+export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {
+    theme?: AgChartTheme;
+}
+export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {
+    theme?: AgChartTheme;
+}
+export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions<any> {
+    theme?: AgChartTheme;
+}
+export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
 
 export interface AgChartInstance {
     /** Get the `AgChartOptions` representing the current chart configuration. */

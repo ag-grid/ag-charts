@@ -1,13 +1,14 @@
 import type { AgAnimationOptions } from '../../interaction/animationOptions';
 import type { AgContextMenuOptions } from '../../options/contextOptions';
 import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
-import type { AgPieSeriesOptions, AgPieSeriesTheme } from './pieOptions';
+import type { AgPieSeriesOptions } from './pieOptions';
 import type { AgAngleCategoryAxisOptions } from '../../options/polarAxisOptions';
 import type { AgRadiusNumberAxisOptions } from '../../options/radiusAxisOptions';
 import type { AgRadarLineSeriesOptions } from './radarLineOptions';
 import type { AgRadarAreaSeriesOptions } from './radarAreaOptions';
 import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
+import type { AgBaseThemeableChartOptions } from '../../options/chartOptions';
 
 export type AgPolarSeriesOptions =
     | AgPieSeriesOptions
@@ -29,15 +30,9 @@ export interface AgBasePolarChartOptions {
     axes?: AgPolarAxisOptions[];
 }
 
-export interface AgBasePolarThemeOptions<S = AgPolarSeriesTheme> {
-    /** Series configurations. */
-    series?: S;
+export interface AgBasePolarThemeOptions extends AgBaseThemeableChartOptions {
     /** Configuration for the chart legend. */
     legend?: AgPolarChartLegendOptions;
-}
-
-export interface AgPolarSeriesTheme {
-    pie?: AgPieSeriesTheme;
 }
 
 export interface AgPolarChartLegendOptions extends AgChartBaseLegendOptions {

@@ -12,12 +12,8 @@ import type {
     PixelSize,
     Ratio,
 } from '../../options/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgPolarSeriesTooltipRendererParams } from './polarTooltipOptions';
-
-export interface AgPieSeriesTheme extends Omit<AgPieSeriesOptions, 'innerLabels'> {
-    innerLabels?: AgDoughnutInnerLabelThemeOptions;
-}
 
 export interface AgPieSeriesLabelOptions<DatumType> extends AgChartLabelOptions {
     /** Distance in pixels between the callout line and the label text. */
@@ -114,9 +110,7 @@ export interface AgDoughnutInnerCircle {
     fillOpacity?: Opacity;
 }
 
-/** Configuration for pie/doughnut series. */
-export interface AgPieSeriesOptions<DatumType = any> extends AgBaseSeriesOptions<DatumType> {
-    type?: 'pie';
+export interface AgPieSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside of the sectors. */
@@ -125,24 +119,6 @@ export interface AgPieSeriesOptions<DatumType = any> extends AgBaseSeriesOptions
     sectorLabel?: AgPieSeriesSectorLabelOptions<DatumType>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
-    /** The key to use to retrieve angle values from the data. */
-    angleKey?: string;
-    /** A human-readable description of the angle values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
-    angleName?: string;
-    /** The key to use to retrieve radius values from the data. */
-    radiusKey?: string;
-    /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
-    radiusName?: string;
-    /** The key to use to retrieve label values from the data. */
-    calloutLabelKey?: string;
-    /** A human-readable description of the label values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
-    calloutLabelName?: string;
-    /** The key to use to retrieve sector label values from the data. */
-    sectorLabelKey?: string;
-    /** A human-readable description of the sector label values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
-    sectorLabelName?: string;
-    /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
-    legendItemKey?: string;
     /** The colours to cycle through for the fills of the sectors. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the sectors. */
@@ -176,11 +152,38 @@ export interface AgPieSeriesOptions<DatumType = any> extends AgBaseSeriesOptions
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams>;
     /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
-    innerLabels?: AgDoughnutInnerLabel[];
+    innerLabels?: AgDoughnutInnerLabelThemeOptions;
     /** Configuration for the area inside the series, only visible when rendering a doughnut chart by using innerRadiusOffset or innerRadiusRatio */
     innerCircle?: AgDoughnutInnerCircle;
     /** A formatter function for adjusting the styling of the pie sectors. */
     formatter?: (params: AgPieSeriesFormatterParams<DatumType>) => AgPieSeriesFormat;
+}
+
+/** Configuration for pie/doughnut series. */
+export interface AgPieSeriesOptions<DatumType = any>
+    extends Omit<AgPieSeriesThemeableOptions<DatumType>, 'innerLabels'>,
+        AgBaseSeriesOptions<DatumType> {
+    type?: 'pie';
+    /** The key to use to retrieve angle values from the data. */
+    angleKey?: string;
+    /** A human-readable description of the angle values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
+    angleName?: string;
+    /** The key to use to retrieve radius values from the data. */
+    radiusKey?: string;
+    /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
+    radiusName?: string;
+    /** The key to use to retrieve label values from the data. */
+    calloutLabelKey?: string;
+    /** A human-readable description of the label values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
+    calloutLabelName?: string;
+    /** The key to use to retrieve sector label values from the data. */
+    sectorLabelKey?: string;
+    /** A human-readable description of the sector label values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
+    sectorLabelName?: string;
+    /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
+    legendItemKey?: string;
+    /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
+    innerLabels?: AgDoughnutInnerLabel[];
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

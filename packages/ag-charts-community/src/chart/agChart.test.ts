@@ -140,14 +140,14 @@ describe('update', () => {
         expect(chart.padding.right).toBe(40);
         expect(chart.padding.bottom).toBe(50);
         expect(chart.padding.left).toBe(60);
-        expect(chart.title?.enabled).toBe(theme.config.cartesian.title.enabled);
-        expect(chart.title?.text).toBe(theme.config.cartesian.title.text);
-        expect(chart.title?.fontSize).toBe(theme.config.cartesian.title.fontSize);
-        expect(chart.title?.fontFamily).toBe(theme.config.cartesian.title.fontFamily);
-        expect(chart.title?.fontStyle).toBe(theme.config.cartesian.title.fontStyle);
-        expect(chart.title?.fontWeight).toBe(theme.config.cartesian.title.fontWeight);
-        expect(chart.subtitle?.text).toBe(theme.config.cartesian.subtitle.text);
-        expect(chart.subtitle?.fontSize).toBe(theme.config.cartesian.subtitle.fontSize);
+        expect(chart.title?.enabled).toBe(theme.config.line.title.enabled);
+        expect(chart.title?.text).toBe(theme.config.line.title.text);
+        expect(chart.title?.fontSize).toBe(theme.config.line.title.fontSize);
+        expect(chart.title?.fontFamily).toBe(theme.config.line.title.fontFamily);
+        expect(chart.title?.fontStyle).toBe(theme.config.line.title.fontStyle);
+        expect(chart.title?.fontWeight).toBe(theme.config.line.title.fontWeight);
+        expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);
+        expect(chart.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
         expect(chart.subtitle?.enabled).toBe(false);
         expect((chart as any).background.fill).toBe('red');
         expect((chart as any).background.visible).toBe(false);
@@ -176,16 +176,16 @@ describe('update', () => {
         });
         await waitForChartStability(chartProxy);
 
-        expect(chart.title?.enabled).toBe(theme.config.cartesian.title.enabled);
-        expect(chart.title?.text).toBe(theme.config.cartesian.title.text);
-        expect(chart.title?.fontSize).toBe(theme.config.cartesian.title.fontSize);
-        expect(chart.title?.fontFamily).toBe(theme.config.cartesian.title.fontFamily);
-        expect(chart.title?.fontStyle).toBe(theme.config.cartesian.title.fontStyle);
-        expect(chart.title?.fontWeight).toBe(theme.config.cartesian.title.fontWeight);
+        expect(chart.title?.enabled).toBe(theme.config.line.title.enabled);
+        expect(chart.title?.text).toBe(theme.config.line.title.text);
+        expect(chart.title?.fontSize).toBe(theme.config.line.title.fontSize);
+        expect(chart.title?.fontFamily).toBe(theme.config.line.title.fontFamily);
+        expect(chart.title?.fontStyle).toBe(theme.config.line.title.fontStyle);
+        expect(chart.title?.fontWeight).toBe(theme.config.line.title.fontWeight);
 
         expect(chart.subtitle?.enabled).toBe(false);
-        expect(chart.subtitle?.text).toBe(theme.config.cartesian.subtitle.text);
-        expect(chart.subtitle?.fontSize).toBe(theme.config.cartesian.subtitle.fontSize);
+        expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);
+        expect(chart.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
     });
 
     test('series', async () => {
