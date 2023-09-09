@@ -7,6 +7,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
     waitForChartStability,
+    spyOnAnimationManager,
 } from 'ag-charts-community-test';
 import { prepareEnterpriseTestOptions } from '../test/utils';
 
@@ -58,5 +59,22 @@ describe('Chart', () => {
         const options = BOX_PLOT_BAR_OPTIONS;
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgEnterpriseCharts.create(options));
+    });
+
+    describe('initial animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, ratio);
+
+                const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
+                prepareEnterpriseTestOptions(options);
+
+                await compareSnapshot(AgEnterpriseCharts.create(options));
+            });
+        }
     });
 });
