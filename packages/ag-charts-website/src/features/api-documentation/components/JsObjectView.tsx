@@ -537,7 +537,7 @@ function PropertyDeclaration({
             {showTypeAsDiscriminatorValue && (
                 <>
                     {` = `}
-                    <DiscriminatorType discriminatorType={tsType} />
+                    <DiscriminatorType discriminatorType={tsType!} />
                 </>
             )}
         </>
