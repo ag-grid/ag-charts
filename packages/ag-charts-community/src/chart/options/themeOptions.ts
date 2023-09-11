@@ -1,5 +1,5 @@
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
-import type { AgBaseCartesianThemeOptions } from '../series/cartesian/cartesianOptions';
+import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
@@ -8,7 +8,7 @@ import type { AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptio
 import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/rangeBarOptions';
 import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
-import type { AgBasePolarThemeOptions, AgPolarSeriesOptions } from '../series/polar/polarOptions';
+import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from '../series/polar/polarOptions';
 import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAreaOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
@@ -102,8 +102,14 @@ export interface AgTreemapSeriesThemeOverrides extends AgBaseHierarchyThemeOptio
     series?: AgTreemapSeriesThemeableOptions;
 }
 
+export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
+
+export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptions {
+    axes?: AgCommonThemeableAxisOptions;
+}
+
 export interface AgBaseChartThemeOverrides {
-    common?: AgBaseThemeableChartOptions;
+    common?: AgCommonThemeableChartOptions;
 
     line?: AgLineSeriesThemeOverrides;
     scatter?: AgScatterSeriesThemeOverrides;

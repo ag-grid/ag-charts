@@ -1,5 +1,8 @@
 import type { AgChartBackgroundImage } from '../background/backgroundOptions';
+import type { AgAnimationOptions } from '../interaction/animationOptions';
+import type { AgContextMenuOptions } from './contextOptions';
 import type { AgBaseChartListeners } from './eventOptions';
+import type { AgChartLegendOptions } from './legendOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextWrap } from './types';
 
@@ -103,6 +106,10 @@ export interface AgBaseThemeableChartOptions {
     highlight?: AgChartHighlightOptions;
     /** HTML overlays */
     overlays?: AgChartOverlaysOptions;
+    /** Configuration for the chart legend. */
+    legend?: AgChartLegendOptions;
+    animation?: AgAnimationOptions;
+    contextMenu?: AgContextMenuOptions;
 }
 
 /** Configuration common to all charts.  */

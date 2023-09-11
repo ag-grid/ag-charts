@@ -1,5 +1,5 @@
 import type { AgBaseChartOptions } from './options/chartOptions';
-import type { AgBaseChartThemeOptions, AgChartTheme } from './options/themeOptions';
+import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './options/themeOptions';
 import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
@@ -49,13 +49,13 @@ export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
 export type AgChartThemeOverrides = NonNullable<AgChartThemeOptions['overrides']>;
 
 export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme;
+    theme?: AgChartTheme | AgChartThemeName;
 }
 export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme;
+    theme?: AgChartTheme | AgChartThemeName;
 }
 export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions<any> {
-    theme?: AgChartTheme;
+    theme?: AgChartTheme | AgChartThemeName;
 }
 export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
 

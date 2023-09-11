@@ -82,7 +82,9 @@ export interface AgChartLegendListeners {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
-export interface AgChartBaseLegendOptions {
+export interface AgChartLegendOptions {
+    /** Whether or not to show the legend. By default, the chart displays a legend when there is more than one series present. */
+    enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
     position?: AgChartLegendPosition;
     /** How the legend items should be arranged. */
