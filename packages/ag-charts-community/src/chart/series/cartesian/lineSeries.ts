@@ -59,19 +59,18 @@ class LineSeriesLabel extends Label {
 type LineContext = SeriesNodeDataContext<LineNodeDatum>;
 type LineAnimationData = CartesianAnimationData<LineContext>;
 
-// TODO(olegat) move somewhere else?
-export class ErrorBarDatum {
+export class ErrorBarConfig {
     @Validate(OPT_STRING)
-    yLowerKey: string;
+    yLowerKey: string = '';
 
     @Validate(OPT_STRING)
-    yLowerName?: string;
+    yLowerName?: string = undefined;
 
     @Validate(OPT_STRING)
-    yUpperKey: string;
+    yUpperKey: string = '';
 
     @Validate(OPT_STRING)
-    yUpperName?: string;
+    yUpperName?: string = undefined;
 
     constructor(yLowerKey: string, yUpperKey: string) {
         this.yLowerKey = yLowerKey;
@@ -138,7 +137,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    errorBar?: ErrorBarDatum = undefined;
+    errorBar?: ErrorBarConfig = undefined;
 
     async processData(dataController: DataController) {
         const { axes, xKey = '', yKey = '' } = this;
