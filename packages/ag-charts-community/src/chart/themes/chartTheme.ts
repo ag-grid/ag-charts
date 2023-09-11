@@ -147,7 +147,7 @@ export class ChartTheme {
 
     private static getBarSeriesDefaults() {
         return {
-            ...this.getSeriesDefaults(),
+            ...ChartTheme.getSeriesDefaults(),
             fillOpacity: 1,
             strokeOpacity: 1,
             normalizedTo: undefined,
@@ -175,7 +175,7 @@ export class ChartTheme {
     }
 
     private static getLineSeriesDefaults() {
-        const seriesDefaults = this.getSeriesDefaults();
+        const seriesDefaults = ChartTheme.getSeriesDefaults();
         return {
             ...seriesDefaults,
             tooltip: {
@@ -189,7 +189,7 @@ export class ChartTheme {
     }
 
     private static getAreaSeriesDefaults() {
-        const seriesDefaults = this.getSeriesDefaults();
+        const seriesDefaults = ChartTheme.getSeriesDefaults();
         return {
             ...seriesDefaults,
             nodeClickRange: 'nearest' as InteractionRange,
@@ -203,7 +203,7 @@ export class ChartTheme {
     }
 
     private static getScatterSeriesDefaults() {
-        const seriesDefaults = this.getSeriesDefaults();
+        const seriesDefaults = ChartTheme.getSeriesDefaults();
         return {
             ...seriesDefaults,
             tooltip: {
@@ -350,14 +350,14 @@ export class ChartTheme {
     private static readonly cartesianDefaults: Partial<AgChartThemeOverrides> = {
         bar: {
             ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
+            axes: ChartTheme.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getBarSeriesDefaults(),
             },
         },
         line: {
             ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
+            axes: ChartTheme.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getLineSeriesDefaults(),
                 strokeWidth: 2,
@@ -382,7 +382,7 @@ export class ChartTheme {
         },
         scatter: {
             ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
+            axes: ChartTheme.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getScatterSeriesDefaults(),
                 marker: {
@@ -400,7 +400,7 @@ export class ChartTheme {
         },
         area: {
             ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
+            axes: ChartTheme.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getAreaSeriesDefaults(),
                 fillOpacity: 0.8,
@@ -434,7 +434,7 @@ export class ChartTheme {
         },
         histogram: {
             ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
+            axes: ChartTheme.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getSeriesDefaults(),
                 strokeWidth: 1,

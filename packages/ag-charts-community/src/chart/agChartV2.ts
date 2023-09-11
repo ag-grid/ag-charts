@@ -406,7 +406,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
 
     const seriesOpts = processedOptions.series as any[];
     const seriesDataUpdate = !!processedOptions.data || seriesOpts?.some((s) => s.data != null);
-    const otherRefreshUpdate = processedOptions.legend ?? processedOptions.title ?? processedOptions.subtitle;
+    const otherRefreshUpdate = processedOptions.gradientLegend ?? processedOptions.legend ?? processedOptions.title ?? processedOptions.subtitle;
     forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || !!otherRefreshUpdate;
     if (processedOptions.data) {
         chart.data = processedOptions.data;
@@ -518,9 +518,9 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
 function applyLegend(chart: Chart, options: AgChartOptions) {
     const skip = ['listeners'];
     chart.setLegendInit((legend) => {
-        applyOptionValues(legend, options.legend ?? {}, { skip });
-        if (options.legend?.listeners) {
-            Object.assign(chart.legend?.listeners!, options.legend.listeners ?? {});
+        applyOptionValues(legend, options.gradientLegend ?? options.legend ?? {}, { skip });
+        if (chart.legend && options.legend?.listeners) {
+            Object.assign(chart.legend.listeners!, options.legend.listeners);
         }
     });
 }

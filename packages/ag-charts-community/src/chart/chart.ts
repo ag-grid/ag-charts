@@ -122,6 +122,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
     readonly scene: Scene;
     readonly seriesRoot = new Group({ name: `${this.id}-Series-root` });
     legend: ChartLegend | undefined;
+    gradientLegend: ChartLegend | undefined;
+
+    getActiveLegend(): ChartLegend | undefined {
+        return this.legendType === 'gradient' ? this.gradientLegend : this.legend;
+    }
+
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
     readonly highlight: ChartHighlight;
@@ -440,7 +446,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.tooltipManager.destroy();
         this.tooltip.destroy();
-        this.legend?.destroy();
+        this.getActiveLegend()?.destroy();
         this.overlays.noData.hide();
         SizeMonitor.unobserve(this.element);
 
@@ -889,18 +895,24 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private attachLegend(legendType: string): ChartLegend {
-        if (this.legendType === legendType && this.legend) {
-            return this.legend;
+        const currentLegend = this.getActiveLegend();
+        if (this.legendType === legendType && currentLegend) {
+            return currentLegend;
         }
 
-        this.legend?.destroy();
+        this.getActiveLegend()?.destroy();
         this.legend = undefined;
+        this.gradientLegend = undefined;
 
         const ctx = this.getModuleContext();
         const legend = getLegend(legendType, ctx);
         legend.attachLegend(this.scene.root);
 
-        this.legend = legend;
+        if (legendType === 'gradient') {
+            this.gradientLegend = legend;
+        } else {
+            this.legend = legend;
+        }
         this.legendType = legendType;
 
         return legend;
