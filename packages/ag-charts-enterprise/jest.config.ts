@@ -40,11 +40,9 @@ const commonConfig = {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
     },
     moduleNameMapper: {
-        'ag-charts-community-test': '<rootDir>/../ag-charts-community/src/main-test.ts',
+        '^ag-charts-community$': '<rootDir>/../ag-charts-community/src/main.ts',
+        '^ag-charts-community-test$': '<rootDir>/../ag-charts-community/src/main-test.ts',
     },
-    // transform: {
-    //     '^.+\\.[tj]s$': ['ts-jest', { useESM: true, tsconfig: '<rootDir>/tsconfig.spec.json' }],
-    // },
 };
 
 const reporters: any[] = ['default'];

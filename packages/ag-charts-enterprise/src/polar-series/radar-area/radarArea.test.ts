@@ -8,6 +8,7 @@ import {
     setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    spyOnAnimationManager,
 } from 'ag-charts-community-test';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -102,5 +103,24 @@ describe('Radar Area Chart', () => {
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
+    });
+
+    describe('initial animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, ratio);
+
+                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgEnterpriseCharts.create(options);
+                await waitForChartStability(chart);
+                await compare();
+            });
+        }
     });
 });

@@ -39,5 +39,6 @@ export * from './chart/crossline/crossLine';
 export * from './chart/legendDatum';
 export * as Motion from './motion/easing';
 export * from './motion/states';
+export { resetIds } from './util/id';
 
 export { ChartUpdateType } from './chart/chartUpdateType';

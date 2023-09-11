@@ -35,7 +35,6 @@
       "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"]
     },
     "test": {
-      "dependsOn": ["build"],
       "inputs": ["default", "production", "^production", "{workspaceRoot}/jest.preset.js"]
     },
     "check": {
