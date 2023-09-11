@@ -265,7 +265,13 @@ export class BoxPlotSeries extends CartesianSeries<
             const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
                 dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
 
-            if (minValue > q1Value || q1Value > medianValue || medianValue > q3Value || q3Value > maxValue) {
+            if (
+                [minValue, q1Value, medianValue, q3Value, maxValue].some((value) => typeof value !== 'number') ||
+                minValue > q1Value ||
+                q1Value > medianValue ||
+                medianValue > q3Value ||
+                q3Value > maxValue
+            ) {
                 return;
             }
 
