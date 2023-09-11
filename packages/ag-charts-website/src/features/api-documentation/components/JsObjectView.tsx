@@ -13,7 +13,7 @@ import type {
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
-import { UNION_DISCRIMINATOR_PROP } from '../constants';
+import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, UNION_DISCRIMINATOR_PROP } from '../constants';
 
 const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
 
@@ -451,7 +451,22 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             console.warn(`AG Docs - unhandled sub-type: ${desc['type']}`);
     }
 
-    const expandable = !!collapsePropertyRendering;
+    const shouldHideChildren = TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN.includes(propName);
+    const expandable = !shouldHideChildren && !!collapsePropertyRendering;
+
+    let propertyValue;
+    if (shouldHideChildren) {
+        propertyValue = null;
+    } else if (!isJSONNodeExpanded && collapsePropertyRendering) {
+        propertyValue = collapsePropertyRendering;
+    } else {
+        propertyValue = (
+            <span className={classnames(styles['unexpandable'])} onClick={(e) => e.stopPropagation()}>
+                {propertyRendering}
+            </span>
+        );
+    }
+
     return (
         <div
             className={classnames(
@@ -474,13 +489,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                     showTypeAsDiscriminatorValue={showTypeAsDiscriminatorValue && propName === UNION_DISCRIMINATOR_PROP}
                 />
             }
-            {!isJSONNodeExpanded && collapsePropertyRendering ? (
-                collapsePropertyRendering
-            ) : (
-                <span className={classnames(styles['unexpandable'])} onClick={(e) => e.stopPropagation()}>
-                    {propertyRendering}
-                </span>
-            )}
+            {propertyValue}
             {(!isJSONNodeExpanded || needsClosingSemi) && (
                 <span className={classnames('token', 'punctuation')}>{closeWith}</span>
             )}
