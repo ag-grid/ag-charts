@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
+    "package": "nx pack",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
     "postinstall": "patch-package"
   },
