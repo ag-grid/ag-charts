@@ -1,3 +1,5 @@
+import type { Mutable } from './types';
+
 export function deepMerge(target: any, source: any) {
     if (isPlainObject(target) && isPlainObject(source)) {
         const result: Record<string, any> = {};
@@ -29,9 +31,12 @@ function isPlainObject(x: any): x is Object {
     return isObject(x) && x.constructor === Object;
 }
 
-export function defaultsByKeys<T, K extends keyof T>(keys: K[], target: T, source: T) {
-    for (const key of keys) {
-        target[key] ??= source[key];
+export function defaultsByKeys<T, K extends keyof T>(keys: K[], ...sources: T[]) {
+    const target = {} as T;
+    for (const source of sources) {
+        for (const key of keys) {
+            target[key] ??= source[key];
+        }
     }
-    return target as Required<T>;
+    return target as Mutable<Required<T>>;
 }

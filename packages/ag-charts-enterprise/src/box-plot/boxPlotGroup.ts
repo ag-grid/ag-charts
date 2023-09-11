@@ -77,6 +77,10 @@ export class BoxPlotGroup extends _Scene.Group {
             lineDashOffset,
         });
 
+        if (whiskerProperties.strokeWidth > bandwidth) {
+            whiskerProperties.strokeWidth = bandwidth;
+        }
+
         const capStart = Math.round(axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2);
         const capEnd = Math.round(axisValue + (bandwidth * (1 + cap.lengthRatio)) / 2);
 
