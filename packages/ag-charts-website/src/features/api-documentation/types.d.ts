@@ -1,5 +1,5 @@
 import type { Framework } from '@ag-grid-types';
-import type { JsonProperty } from './utils/model';
+import type { JsonModel, JsonProperty } from './utils/model';
 
 interface MetaTag {
     displayName: string;
@@ -237,29 +237,36 @@ export interface ApiDocumentationProps {
     config?: Config;
 }
 
-export interface JsObjectSelectionProperty {
-    type: 'property';
-    propName: string;
+interface JsSelectionBase {
     path: string[];
     model: JsonModelProperty;
+    onlyShowToDepth?: number;
 }
 
-export interface JsObjectSelectionUnionNestedObject {
+export type JsModelSelectionProperty = JsSelectionBase & {
+    type: 'model';
+};
+
+export type JsObjectSelectionProperty = JsSelectionBase & {
+    type: 'property';
+    propName: string;
+};
+
+export type JsObjectSelectionUnionNestedObject = JsSelectionBase & {
     type: 'unionNestedObject';
     index: number;
-    path: string[];
-    model: JsonObjectProperty;
-}
+};
 
-export type JsObjectSelection = JsObjectSelectionProperty | JsObjectSelectionUnionNestedObject;
+export type JsObjectSelection =
+    | JsModelSelectionProperty
+    | JsObjectSelectionProperty
+    | JsObjectSelectionUnionNestedObject;
 
 export interface JsObjectViewProps {
-    interfaceName: string;
+    model: JsonModel;
     breadcrumbs?: string[];
-    interfaceLookup: InterfaceLookup;
-    codeLookup: CodeLookup;
     config?: Config;
-    onSelection?: (value: OnSelectionValue) => void;
+    handleSelection?: (value: OnSelectionValue) => void;
 }
 
 export interface JsObjectPropertiesViewProps {

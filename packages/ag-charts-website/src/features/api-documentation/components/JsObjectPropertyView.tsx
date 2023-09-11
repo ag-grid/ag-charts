@@ -13,6 +13,7 @@ import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonU
 import { getPropertyType } from '../utils/getPropertyType';
 import type { Framework } from '@ag-grid-types';
 import { createUnionNestedObjectPathItemRegex, getUnionPathInfo } from '../utils/modelPath';
+import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
 
 interface Props {
     selection: JsObjectSelection;
@@ -55,7 +56,7 @@ function NameHeading({ id, name, path }: { id: string; name?: string; path: stri
     const pathSeparator = name && path.length > 0 ? '.' : '';
 
     return (
-        <h6 id={id} className={classnames(styles.name, 'side-menu-exclude')}>
+        <h6 className={classnames(styles.name, 'side-menu-exclude')}>
             <HeadingPath path={path} />
             <span>
                 {pathSeparator}
@@ -128,7 +129,7 @@ function PrimitivePropertyView({
     );
     const description = convertMarkdown(formattedDocumentation, framework);
     return (
-        <tr>
+        <tr id={id}>
             <td role="presentation" className={styles.leftColumn}>
                 <NameHeading id={id} name={name} path={path} />
                 <MetaList propertyType={propertyType} model={model} description={description} />
@@ -150,11 +151,13 @@ function NestedObjectProperties({
     parentPath,
     properties,
     framework,
+    onlyShowToDepth,
 }: {
     parentName?: string;
     parentPath: string[];
     properties: JsonModel['properties'];
     framework: Framework;
+    onlyShowToDepth?: number;
 }) {
     return (
         <>
@@ -164,6 +167,7 @@ function NestedObjectProperties({
                     propName,
                     path: parentPath,
                     model,
+                    onlyShowToDepth,
                 };
                 return (
                     <JsObjectPropertyView
@@ -184,12 +188,14 @@ function NestedObjectPropertyView({
     path,
     model,
     framework,
+    onlyShowToDepth,
 }: {
     id: string;
     name?: string;
     path: string[];
     model: JsonModelProperty;
     framework: Framework;
+    onlyShowToDepth?: number;
 }) {
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
@@ -198,10 +204,11 @@ function NestedObjectPropertyView({
         model: { properties },
     } = model.desc as JsonObjectProperty;
     const nestedObjectPropertiesPath = name ? path.concat(name) : path;
+    const showChildren = onlyShowToDepth === undefined ? true : path.length < onlyShowToDepth;
 
     return (
         <>
-            <tr>
+            <tr id={id}>
                 <td role="presentation" className={styles.leftColumn}>
                     <NameHeading id={id} name={name} path={path} />
                     <MetaList propertyType={propertyType} model={model} description={description} />
@@ -215,12 +222,15 @@ function NestedObjectPropertyView({
                     <div className={styles.actions}></div>
                 </td>
             </tr>
-            <NestedObjectProperties
-                parentName={name}
-                properties={properties}
-                parentPath={nestedObjectPropertiesPath}
-                framework={framework}
-            />
+            {showChildren && (
+                <NestedObjectProperties
+                    parentName={name}
+                    properties={properties}
+                    parentPath={nestedObjectPropertiesPath}
+                    framework={framework}
+                    onlyShowToDepth={onlyShowToDepth}
+                />
+            )}
         </>
     );
 }
@@ -230,11 +240,13 @@ function UnionProperties({
     parentPath,
     elements,
     framework,
+    onlyShowToDepth,
 }: {
     parentName: string;
     parentPath: string[];
     elements: JsonUnionType;
     framework: Framework;
+    onlyShowToDepth?: number;
 }) {
     return elements.options.map((model, index) => {
         const selection: JsObjectSelectionUnionNestedObject = {
@@ -242,6 +254,7 @@ function UnionProperties({
             index,
             path: parentPath,
             model,
+            onlyShowToDepth,
         };
         return (
             <JsObjectPropertyView
@@ -261,6 +274,7 @@ function NestedArrayProperties({
     parentModel,
     elements,
     framework,
+    onlyShowToDepth,
 }: {
     parentId: string;
     parentName: string;
@@ -268,6 +282,7 @@ function NestedArrayProperties({
     parentModel: JsonModelProperty;
     elements: JsonArray['elements'];
     framework: Framework;
+    onlyShowToDepth?: number;
 }) {
     const { type } = elements;
 
@@ -291,6 +306,7 @@ function NestedArrayProperties({
                 properties={properties}
                 parentPath={parentPath}
                 framework={framework}
+                onlyShowToDepth={onlyShowToDepth}
             />
         );
     } else if (type === 'union') {
@@ -300,6 +316,7 @@ function NestedArrayProperties({
                 elements={elements}
                 parentPath={parentPath}
                 framework={framework}
+                onlyShowToDepth={onlyShowToDepth}
             />
         );
     } else {
@@ -313,22 +330,25 @@ function ArrayPropertyView({
     path,
     model,
     framework,
+    onlyShowToDepth,
 }: {
     id: string;
     name: string;
     path: string[];
     model: JsonModelProperty;
     framework: Framework;
+    onlyShowToDepth?: number;
 }) {
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
     const propertyType = getPropertyType(model.desc.tsType);
     const { elements } = model.desc as JsonArray;
     const nestedArrayPropertiesPath = name ? path.concat(name) : path;
+    const showChildren = onlyShowToDepth === undefined ? true : path.length < onlyShowToDepth;
 
     return (
         <>
-            <tr>
+            <tr id={id}>
                 <td role="presentation" className={styles.leftColumn}>
                     <NameHeading id={id} name={name} path={path} />
                     <MetaList propertyType={propertyType} model={model} description={description} />
@@ -342,14 +362,17 @@ function ArrayPropertyView({
                     <div className={styles.actions}></div>
                 </td>
             </tr>
-            <NestedArrayProperties
-                parentId={id}
-                parentName={name}
-                parentPath={nestedArrayPropertiesPath}
-                parentModel={model}
-                elements={elements}
-                framework={framework}
-            />
+            {showChildren && (
+                <NestedArrayProperties
+                    parentId={id}
+                    parentName={name}
+                    parentPath={nestedArrayPropertiesPath}
+                    parentModel={model}
+                    elements={elements}
+                    framework={framework}
+                    onlyShowToDepth={onlyShowToDepth}
+                />
+            )}
         </>
     );
 }
@@ -372,7 +395,7 @@ function FunctionPropertyView({
     const propertyType = getPropertyType(model.desc.tsType);
 
     return (
-        <tr>
+        <tr id={id}>
             <td role="presentation" className={styles.leftColumn}>
                 <NameHeading id={id} name={name} path={path} />
                 <MetaList propertyType={propertyType} model={model} description={description} />
@@ -390,34 +413,88 @@ function FunctionPropertyView({
 }
 
 export function JsObjectPropertyView({ selection, framework, parentName }: Props) {
-    const { type, path, model } = selection;
+    const { type, path, model, onlyShowToDepth } = selection;
+    const id = getSelectionReferenceId(selection);
 
-    if (type === 'property') {
+    if (type === 'model') {
+        const { properties } = model;
+        return (
+            <NestedObjectProperties
+                parentName={parentName}
+                parentPath={path}
+                properties={properties}
+                framework={framework}
+                onlyShowToDepth={onlyShowToDepth}
+            />
+        );
+    } else if (type === 'property') {
         const { propName } = selection as JsObjectSelectionProperty;
-        const id = `reference-${path}-${propName}`;
         const propertyType = model.desc.type;
+        const propertyId = id!;
         if (propertyType === 'primitive') {
-            return <PrimitivePropertyView id={id} model={model} name={propName} framework={framework} path={path} />;
+            return (
+                <PrimitivePropertyView
+                    id={propertyId}
+                    model={model}
+                    name={propName}
+                    framework={framework}
+                    path={path}
+                />
+            );
         } else if (propertyType === 'nested-object') {
-            return <NestedObjectPropertyView id={id} name={propName} path={path} model={model} framework={framework} />;
+            return (
+                <NestedObjectPropertyView
+                    id={propertyId}
+                    name={propName}
+                    path={path}
+                    model={model}
+                    framework={framework}
+                    onlyShowToDepth={onlyShowToDepth}
+                />
+            );
         } else if (propertyType === 'array') {
-            return <ArrayPropertyView id={id} name={propName} path={path} model={model} framework={framework} />;
+            return (
+                <ArrayPropertyView
+                    id={propertyId}
+                    name={propName}
+                    path={path}
+                    model={model}
+                    framework={framework}
+                    onlyShowToDepth={onlyShowToDepth}
+                />
+            );
         } else if (propertyType === 'function') {
-            return <FunctionPropertyView id={id} model={model} name={propName} framework={framework} path={path} />;
+            return (
+                <FunctionPropertyView id={propertyId} model={model} name={propName} framework={framework} path={path} />
+            );
         } else if (propertyType === 'union') {
             const elements = model.desc;
             return (
-                <UnionProperties parentName={propName} elements={elements} parentPath={path} framework={framework} />
+                <UnionProperties
+                    parentName={propName}
+                    elements={elements}
+                    parentPath={path}
+                    framework={framework}
+                    onlyShowToDepth={onlyShowToDepth}
+                />
             );
         }
     } else if (type === 'unionNestedObject') {
         const { index } = selection as JsObjectSelectionUnionNestedObject;
-        const id = `reference-${path}-${index}`;
+        const unionNestedObjectId = id!;
         const propertyType = model.type;
         const name = parentName!;
 
         if (propertyType === 'primitive') {
-            return <PrimitivePropertyView id={id} model={model} name={name} framework={framework} path={path} />;
+            return (
+                <PrimitivePropertyView
+                    id={unionNestedObjectId}
+                    model={model}
+                    name={name}
+                    framework={framework}
+                    path={path}
+                />
+            );
         } else if (propertyType === 'nested-object') {
             const nestedObjectModel = {
                 desc: model,
@@ -430,15 +507,25 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
             const nestedObjectPath = path.concat(pathItem);
             return (
                 <NestedObjectPropertyView
-                    id={id}
+                    id={unionNestedObjectId}
                     // NOTE: No `name`, as it's a union nested object
                     path={nestedObjectPath}
                     model={nestedObjectModel}
                     framework={framework}
+                    onlyShowToDepth={onlyShowToDepth}
                 />
             );
         } else if (propertyType === 'array') {
-            return <ArrayPropertyView id={id} name={name} path={path} model={model} framework={framework} />;
+            return (
+                <ArrayPropertyView
+                    id={unionNestedObjectId}
+                    name={name}
+                    path={path}
+                    model={model}
+                    framework={framework}
+                    onlyShowToDepth={onlyShowToDepth}
+                />
+            );
         }
     }
 

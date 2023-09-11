@@ -8,6 +8,11 @@ $indent: 24px;
     border: none;
 }
 
+.topBreadcrumb {
+    color: var(--property-color);
+    cursor: pointer;
+}
+
 .expandableSnippet pre > code {
     --code-line-height: calc(28 / 16);
 
