@@ -284,7 +284,7 @@ export class BoxPlotSeries extends CartesianSeries<
                 maxValue,
             });
 
-            scaledValues.xValue += groupScale.convert(String(groupIndex));
+            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
 
             const nodeData: BoxPlotNodeDatum = {
                 series: this,
