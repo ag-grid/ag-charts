@@ -1,17 +1,21 @@
 import type { FunctionComponent } from 'react';
 import { JsObjectView } from './JsObjectView';
 import styles from './JsObjectProperties.module.scss';
-import type { Config, JsObjectPropertiesViewProps } from '../types';
+import type { JsObjectPropertiesViewConfig, JsObjectPropertiesViewProps } from '../types';
 import { JsObjectDetails } from './JsObjectDetails';
 import { buildModel } from '../utils/model';
 import { useJsObjectSelection } from '../utils/useJsObjectSelection';
+import { OptionsDataContext } from '../utils/optionsDataContext';
+import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
+import { FrameworkContext } from '../utils/frameworkContext';
 
 export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewProps> = ({
     interfaceName,
     breadcrumbs = [],
     codeLookup,
     interfaceLookup,
-    config = {} as Config,
+    config = {} as JsObjectPropertiesViewConfig,
+    optionsData,
     framework,
 }) => {
     const model = buildModel(interfaceName, interfaceLookup, codeLookup);
@@ -19,8 +23,15 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
 
     return (
         <div className={styles.container}>
-            <JsObjectView breadcrumbs={breadcrumbs} config={config} handleSelection={handleSelection} model={model} />
-            <JsObjectDetails selection={selection} framework={framework} />
+            <JsObjectPropertiesViewConfigContext.Provider value={config}>
+                <JsObjectView breadcrumbs={breadcrumbs} handleSelection={handleSelection} model={model} />
+
+                <FrameworkContext.Provider value={framework}>
+                    <OptionsDataContext.Provider value={optionsData}>
+                        <JsObjectDetails selection={selection} />
+                    </OptionsDataContext.Provider>
+                </FrameworkContext.Provider>
+            </JsObjectPropertiesViewConfigContext.Provider>
         </div>
     );
 };

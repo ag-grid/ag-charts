@@ -1,5 +1,5 @@
 import { Fragment, useState, type FunctionComponent, createContext, useContext } from 'react';
-import type { JsObjectViewProps } from '../types';
+import type { Config, JsObjectPropertiesViewConfig, JsObjectViewProps } from '../types';
 import classnames from 'classnames';
 import styles from './JsObjectView.module.scss';
 import type {
@@ -14,6 +14,7 @@ import type {
 import { Icon } from '@components/icon/Icon';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
 import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, UNION_DISCRIMINATOR_PROP } from '../constants';
+import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 
 const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
 
@@ -21,36 +22,19 @@ const DEFAULT_JSON_NODES_EXPANDED = false;
 const HIDE_TYPES = true;
 const DEFAULT_ENDING_PUNCTUATION = ',';
 
-type Config = {
-    includeDeprecated?: boolean;
-    excludeProperties?: string[];
-    expandedProperties?: string[];
-    expandedPaths?: string[];
-    expandAll?: boolean;
-    lookupRoot?: string;
-};
-
 export interface ExpandableSnippetParams {
     interfacename: string;
     overridesrc?: string;
     breadcrumbs?: string[];
-    config?: Config;
 }
 
 interface ModelSnippetWithBreadcrumbsParams {
-    framework?: string;
     breadcrumbs?: string[];
     model: JsonModel;
-    config: Config;
     topBreakcrumbOnClick: () => void;
 }
 
-export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
-    model,
-    breadcrumbs = [],
-    config = {},
-    handleSelection,
-}) => {
+export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({ model, breadcrumbs = [], handleSelection }) => {
     const handleTopObjectSelection = () => {
         handleSelection &&
             handleSelection(
@@ -68,7 +52,6 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
                         <ModelSnippetWithBreadcrumbs
                             breadcrumbs={breadcrumbs}
                             model={model}
-                            config={config}
                             topBreakcrumbOnClick={handleTopObjectSelection}
                         />
                     </SelectionContext.Provider>
@@ -81,7 +64,6 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
 const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> = ({
     model,
     breadcrumbs = [],
-    config = {},
     topBreakcrumbOnClick,
 }) => {
     return (
@@ -90,7 +72,7 @@ const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> =
             bodyContent={() => (
                 <>
                     <div className={styles.jsonObject} role="presentation">
-                        <ModelSnippet model={model} config={config} path={[]}></ModelSnippet>
+                        <ModelSnippet model={model} path={[]}></ModelSnippet>
                     </div>
                 </>
             )}
@@ -104,7 +86,6 @@ interface ModelSnippetParams {
     skip?: string[];
     closeWith?: string;
     path: string[];
-    config: Config;
     showTypeAsDiscriminatorValue?: boolean;
 }
 
@@ -112,13 +93,14 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({
     model,
     closeWith = DEFAULT_ENDING_PUNCTUATION,
     path,
-    config = {},
     showTypeAsDiscriminatorValue,
 }) => {
+    const config = useContext(JsObjectPropertiesViewConfigContext);
+
     if (model.type === 'model') {
         const propertiesRendering = Object.entries(model.properties)
             .map(([propName, propInfo]) => {
-                if (config.excludeProperties?.includes(propName)) {
+                if (config?.excludeProperties?.includes(propName)) {
                     return;
                 }
 
@@ -131,7 +113,6 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({
                         meta={propInfo}
                         path={path}
                         closeWith={closeWith}
-                        config={config}
                         showTypeAsDiscriminatorValue={showTypeAsDiscriminatorValue}
                     />
                 );
@@ -139,7 +120,7 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({
             .filter((v) => !!v);
         return <>{propertiesRendering}</>;
     } else if (model.type === 'union') {
-        return <Union model={model} closeWith={closeWith} path={path} config={config} />;
+        return <Union model={model} closeWith={closeWith} path={path} />;
     }
 
     return null;
@@ -163,17 +144,7 @@ function PrimitiveUnionOption({
     );
 }
 
-function Union({
-    model,
-    closeWith,
-    path,
-    config,
-}: {
-    model: JsonUnionType;
-    closeWith: string;
-    path: string[];
-    config: Config;
-}) {
+function Union({ model, closeWith, path }: { model: JsonUnionType; closeWith: string; path: string[] }) {
     if (model.options.every((opt) => opt.type === 'primitive')) {
         const lastIdx = model.options.length - 1;
         return model.options.map((opt, idx) => {
@@ -201,7 +172,6 @@ function Union({
                                     last={idx >= lastIdx}
                                     closeWith={closeWith}
                                     path={path}
-                                    config={config}
                                 />
                             );
                     }
@@ -241,15 +211,14 @@ function UnionNestedObject({
     last,
     closeWith,
     path,
-    config,
 }: {
     desc: JsonObjectProperty;
     index: number;
     last: boolean;
     closeWith: string;
     path: string[];
-    config: Config;
 }) {
+    const config = useContext(JsObjectPropertiesViewConfigContext);
     const { pathItem, discriminatorType, discriminatorProp, discriminator } = getUnionPathInfo({
         model: desc.model,
         index,
@@ -269,7 +238,7 @@ function UnionNestedObject({
             });
     };
     const toggleExpand = () => {
-        setExpanded((expanded) => !expanded);
+        setExpanded((expanded: boolean) => !expanded);
     };
 
     if (discriminatorType) {
@@ -301,7 +270,6 @@ function UnionNestedObject({
                         <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
                             <ModelSnippet
                                 model={desc.model}
-                                config={config}
                                 path={unionPath}
                                 showTypeAsDiscriminatorValue={true}
                             ></ModelSnippet>
@@ -345,7 +313,7 @@ function UnionNestedObject({
                         onClick={(e) => e.stopPropagation()}
                         role="presentation"
                     >
-                        <ModelSnippet model={desc.model} config={config} path={unionPath}></ModelSnippet>
+                        <ModelSnippet model={desc.model} path={unionPath}></ModelSnippet>
                     </div>
                 ) : (
                     <span className={classnames('token', 'operator')}> ... </span>
@@ -377,7 +345,6 @@ interface PropertySnippetParams {
     needsClosingSemi?: boolean;
     path: string[];
     closeWith: string;
-    config: Config;
     showTypeAsDiscriminatorValue?: boolean;
 }
 
@@ -389,11 +356,11 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     needsClosingSemi = true,
     path,
     closeWith,
-    config,
     showTypeAsDiscriminatorValue,
 }) => {
+    const config = useContext(JsObjectPropertiesViewConfigContext);
     const propPath = path.concat(propName);
-    const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config);
+    const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config as Config);
     const [isJSONNodeExpanded, setJSONNodeExpanded] = useState(expandedInitially);
     const { handleSelection } = useContext(SelectionContext);
     const handlePropertySelection = () => {
@@ -404,7 +371,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             return;
         }
 
-        setJSONNodeExpanded((expanded) => !expanded);
+        setJSONNodeExpanded((expanded: boolean) => !expanded);
     };
 
     const { deprecated } = meta;
@@ -418,7 +385,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             propertyRendering = null;
             break;
         case 'array':
-            propertyRendering = <ArrayType desc={desc} path={propPath} config={config} />;
+            propertyRendering = <ArrayType desc={desc} path={propPath} />;
             collapsePropertyRendering = desc.elements.type !== 'primitive' && (
                 <span onClick={toggleExpand}>
                     <span className={classnames('token', 'punctuation')}> {'['.repeat(desc.depth)}</span>
@@ -428,20 +395,18 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             );
             break;
         case 'nested-object':
-            propertyRendering = <NestedObject desc={desc} path={propPath} config={config} />;
+            propertyRendering = <NestedObject desc={desc} path={propPath} />;
             collapsePropertyRendering = <CollapsedNestedObject toggleExpand={toggleExpand} />;
             break;
         case 'union':
             const simpleUnion = isSimpleUnion(desc);
-            propertyRendering = !simpleUnion ? (
-                <ModelSnippet model={desc} config={config} path={propPath}></ModelSnippet>
-            ) : null;
+            propertyRendering = !simpleUnion ? <ModelSnippet model={desc} path={propPath}></ModelSnippet> : null;
             collapsePropertyRendering = !simpleUnion ? <></> : null;
             needsClosingSemi = simpleUnion;
             break;
         case 'function':
             propertyRendering = isJSONNodeExpanded ? (
-                <FunctionFragment desc={desc} path={propPath} closeWith={closeWith} config={config} />
+                <FunctionFragment desc={desc} path={propPath} closeWith={closeWith} />
             ) : null;
             collapsePropertyRendering = <CollapsedFunction desc={desc} />;
             renderTsType = isSimpleFunction(desc);
@@ -566,12 +531,12 @@ function PrimitiveType({ desc }: { desc: JsonPrimitiveProperty }) {
     return HIDE_TYPES ? null : <span className={classnames('token', 'builtin')}>{desc.tsType}</span>;
 }
 
-function NestedObject({ desc, path, config }: { desc: JsonObjectProperty; path: string[]; config: Config }) {
+function NestedObject({ desc, path }: { desc: JsonObjectProperty; path: string[] }) {
     return (
         <>
             <span className={classnames('token', 'punctuation')}>{' { '}</span>
             <div className={styles.jsonObject} role="presentation">
-                <ModelSnippet model={desc.model} config={config} path={path}></ModelSnippet>
+                <ModelSnippet model={desc.model} path={path}></ModelSnippet>
             </div>
             <span className={classnames('token', 'punctuation')}>{'}'}</span>
         </>
@@ -588,7 +553,7 @@ function CollapsedNestedObject({ toggleExpand }: { toggleExpand: () => void }) {
     );
 }
 
-function ArrayType({ desc, path, config }: { desc: JsonArray; path: string[]; config: Config }) {
+function ArrayType({ desc, path }: { desc: JsonArray; path: string[] }) {
     let arrayElementRendering;
     let arrayBracketMode = 'surround';
 
@@ -602,7 +567,7 @@ function ArrayType({ desc, path, config }: { desc: JsonArray; path: string[]; co
                 <>
                     <span className={classnames('token', 'punctuation')}>{'{ '}</span>
                     <div className={styles.jsonObject} role="presentation">
-                        <ModelSnippet model={desc.elements.model} path={path} config={config}></ModelSnippet>
+                        <ModelSnippet model={desc.elements.model} path={path}></ModelSnippet>
                     </div>
                     <span className={classnames('token', 'punctuation')}>{'}'}</span>
                 </>
@@ -611,7 +576,7 @@ function ArrayType({ desc, path, config }: { desc: JsonArray; path: string[]; co
         case 'union':
             arrayElementRendering = (
                 <>
-                    <ModelSnippet model={desc.elements} closeWith={''} path={path} config={config}></ModelSnippet>
+                    <ModelSnippet model={desc.elements} closeWith={''} path={path}></ModelSnippet>
                 </>
             );
             break;
@@ -664,17 +629,7 @@ function CollapsedFunction({ desc }: { desc: JsonFunction }) {
     );
 }
 
-function FunctionFragment({
-    desc,
-    path,
-    closeWith,
-    config,
-}: {
-    desc: JsonFunction;
-    path: string[];
-    closeWith: string;
-    config: Config;
-}) {
+function FunctionFragment({ desc, path, closeWith }: { desc: JsonFunction; path: string[]; closeWith: string }) {
     if (isSimpleFunction(desc)) {
         return null;
     }
@@ -692,7 +647,6 @@ function FunctionFragment({
                             desc={model.desc}
                             meta={model}
                             path={path}
-                            config={config}
                             forceInitiallyExpanded={singleParameter}
                             needsClosingSemi={false}
                             closeWith={closeWith}
@@ -718,7 +672,7 @@ function isSimpleFunction(desc: JsonFunction) {
     return Object.entries(desc.parameters).every(([_, type]) => type.desc.type === 'primitive');
 }
 
-function isExpandedInitially(propName: string, path: string[], config: Config) {
+function isExpandedInitially(propName: string, path: string[], config: JsObjectPropertiesViewConfig) {
     if (config.expandAll) {
         return true;
     }
