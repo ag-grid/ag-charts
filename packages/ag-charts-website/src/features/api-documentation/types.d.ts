@@ -237,6 +237,8 @@ export interface ApiDocumentationProps {
     config?: Config;
 }
 
+type OptionsData = CollectionEntry<'options-reference'>['data'];
+
 interface JsSelectionBase {
     path: string[];
     model: JsonModelProperty;
@@ -275,8 +277,19 @@ export interface JsObjectPropertiesViewProps {
     breadcrumbs?: string[];
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
-    config?: Config;
+    config?: JsObjectPropertiesViewConfig;
     framework: Framework;
+    optionsData: OptionsData;
+}
+
+export interface JsObjectPropertiesViewConfig {
+    includeDeprecated?: boolean;
+    excludeProperties?: string[];
+    expandedProperties?: string[];
+    expandedPaths?: string[];
+    expandAll?: boolean;
+    lookupRoot?: string;
+    hideMore?: boolean;
 }
 
 export interface InterfaceDocumentationProps {

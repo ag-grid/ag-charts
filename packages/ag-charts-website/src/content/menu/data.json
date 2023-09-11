@@ -22,6 +22,7 @@
                 "title": "API",
                 "items": [
                     { "title": "Options Reference", "path": "options" },
+                    { "title": "Themes Reference", "path": "api-themes" },
                     { "title": "Create/Update", "path": "api-create-update" },
                     { "title": "Download", "path": "api-download" },
                     { "title": "Events", "path": "events" }

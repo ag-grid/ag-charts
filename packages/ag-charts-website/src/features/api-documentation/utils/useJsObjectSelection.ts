@@ -4,7 +4,7 @@ import type { JsonModel } from './model';
 import { getSelectionReferenceId } from './getObjectReferenceId';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { getTopLevelSelection, getTopSelection } from './modelPath';
-import { TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
+import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
 
 function selectionHasChanged({
     selection,
@@ -26,8 +26,15 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
 
             if (isTopLevelSelection) {
                 const { propName } = newSelection as JsObjectSelectionProperty;
+                const shouldHideChildren = TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN.includes(propName);
                 const shouldLimitChildren = TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN.includes(propName);
-                const shouldLimitChildrenDepth = shouldLimitChildren ? 1 : undefined;
+
+                let shouldLimitChildrenDepth;
+                if (shouldHideChildren) {
+                    shouldLimitChildrenDepth = 0;
+                } else if (shouldLimitChildren) {
+                    shouldLimitChildrenDepth = 1;
+                }
                 const onlyShowToDepth =
                     newSelection.onlyShowToDepth === undefined
                         ? shouldLimitChildrenDepth
