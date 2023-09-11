@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
+    "new-version": "./tools/bump-versions.sh",
     "package": "nx pack",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
     "postinstall": "patch-package"
