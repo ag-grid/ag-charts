@@ -45,8 +45,8 @@ function extractTypesFromNode(node, srcFile, includeQuestionMark) {
     let nodeMembers = {};
     const kind = ts.SyntaxKind[node.kind];
 
-    let name = node && node.name && node.name.escapedText;
-    let returnType = node && node.type && node.type.getFullText().trim();
+    let name = node?.name?.escapedText ?? node?.getText()?.split(':')[0];
+    let returnType = node?.type?.getFullText().trim();
     let optional = includeQuestionMark ? node && !!node.questionToken : undefined;
 
     if (kind == 'PropertySignature') {
