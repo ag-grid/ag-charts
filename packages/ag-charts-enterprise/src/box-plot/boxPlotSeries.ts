@@ -382,7 +382,7 @@ export class BoxPlotSeries extends CartesianSeries<
         opts.datumSelection.each((boxPlot, datum) => {
             let format: AgBoxPlotSeriesFormat | undefined;
             if (this.formatter) {
-                format = this.formatter({
+                format = this.ctx.callbackCache.call(this.formatter, {
                     ...datum,
                     seriesId: this.id,
                     highlighted: false,

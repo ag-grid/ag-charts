@@ -63,7 +63,8 @@ export interface AgBoxPlotSeriesOptions<DatumType = any>
         BoxPlotUniqueOptions,
         Omit<AxisOptions, 'yKey'> {
     type: 'box-plot';
-
     /** Whether to group together (adjacently) separate columns. */
     grouped?: boolean;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }

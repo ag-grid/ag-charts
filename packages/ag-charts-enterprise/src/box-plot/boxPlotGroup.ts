@@ -116,13 +116,13 @@ export class BoxPlotGroup extends _Scene.Group {
             caps[1].setProperties({ x1: capStart, x2: capEnd, y: maxValue });
 
             whiskers[0].setProperties({
-                x: axisValue + bandwidth / 2,
+                x: Math.floor(axisValue + bandwidth / 2),
                 y1: Math.round(minValue - whiskerProperties.strokeWidth / 2),
                 y2: q1Value,
             });
 
             whiskers[1].setProperties({
-                x: axisValue + bandwidth / 2,
+                x: Math.floor(axisValue + bandwidth / 2),
                 y1: q3Value,
                 y2: Math.round(maxValue + whiskerProperties.strokeWidth / 2),
             });
@@ -160,13 +160,13 @@ export class BoxPlotGroup extends _Scene.Group {
             whiskers[0].setProperties({
                 x1: Math.round(minValue + whiskerProperties.strokeWidth / 2),
                 x2: q1Value,
-                y: axisValue + bandwidth / 2,
+                y: Math.floor(axisValue + bandwidth / 2),
             });
 
             whiskers[1].setProperties({
                 x1: q3Value,
                 x2: Math.round(maxValue - whiskerProperties.strokeWidth / 2),
-                y: axisValue + bandwidth / 2,
+                y: Math.floor(axisValue + bandwidth / 2),
             });
         }
 
