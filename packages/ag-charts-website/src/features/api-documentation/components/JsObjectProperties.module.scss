@@ -2,20 +2,58 @@
 
 .container {
     display: flex;
-    gap: $size-4;
+    width: 100%;
+    gap: $size-6;
+    padding-right: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
 
     > div:first-child {
-        $sticky-offset: $site-header-height + $size-4;
+        $sticky-offset: 41px;
 
+        border-right: 1px solid var(--border-color);
         position: sticky;
         top: $sticky-offset;
-        max-height: calc(100vh - #{$sticky-offset + $size-4});
-        width: min(50%, 540px);
-        flex-shrink: 0;
+        max-height: calc(100vh - #{$sticky-offset});
         overflow-y: auto;
-
-        pre {
-            max-height: 100%;
-        }
+        min-width: 380px;
     }
+
+    pre {
+        border: 0;
+        border-radius: 0;
+        width: 380px;
+        min-height: 100vh;
+    }
+
+    pre code {
+        min-height: 100vh;
+        padding-top: calc(26.25px * 2) !important;
+    }
+
+    > div:nth-child(2) {
+        width: 100%;
+    }
+
+    header {
+        margin-top: $size-4;
+        margin-bottom: $size-4;
+    }
+
+    svg {
+        display: none;
+    }
+
+    // > div:first-child {
+    //     $sticky-offset: $site-header-height + $size-4;
+
+    //     position: sticky;
+    //     top: $sticky-offset;
+    //     max-height: calc(100vh - #{$sticky-offset + $size-4});
+    //     width: min(50%, 540px);
+    //     flex-shrink: 0;
+    //     overflow-y: auto;
+
+    //     pre {
+    //         max-height: 100%;
+    //     }
+    // }
 }

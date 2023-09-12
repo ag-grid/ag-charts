@@ -28,7 +28,20 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
 
                 <FrameworkContext.Provider value={framework}>
                     <OptionsDataContext.Provider value={optionsData}>
-                        <JsObjectDetails selection={selection} />
+                        <div className="font-size-responsive">
+                            <header>
+                                <h1 className="font-size-gigantic">Options Reference</h1>
+                                <p className="font-size-extra-large">
+                                    A comprehensive interactive explorer for the <code>AgChartOptions</code> structure.
+                                </p>
+                            </header>
+
+                            <p className="font-size-large">
+                                Read more about how to use this structure in the <a href="#">Create/Update</a> section.
+                            </p>
+
+                            <JsObjectDetails selection={selection} />
+                        </div>
                     </OptionsDataContext.Provider>
                 </FrameworkContext.Provider>
             </JsObjectPropertiesViewConfigContext.Provider>
