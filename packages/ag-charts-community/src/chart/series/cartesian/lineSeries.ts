@@ -34,8 +34,7 @@ import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
-import type { ErrorBar, ErrorBarDatum } from '../../errorBar';
-import { updateErrorBar } from './errorBarUtil';
+import type { ErrorBarDatum } from '../../errorBar';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
     readonly point: SeriesNodeDatum['point'] & {
@@ -377,26 +376,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
         if (!highlighted) {
             this.marker.markClean();
         }
-    }
-
-    protected async updateErrorBarSelection(opts: {
-        nodeData: LineNodeDatum[];
-        errorBarSelection: Selection<ErrorBar, LineNodeDatum>;
-    }) {
-        // TODO(olegat) implement
-        return super.updateErrorBarSelection({ ...opts, seriesIdx: 0 });
-    }
-
-    protected async updateErrorBarNodes(opts: {
-        errorBarSelection: Selection<ErrorBar, LineNodeDatum>;
-        isHighlight: boolean;
-    }) {
-        // TODO(olegat) implement
-        opts.errorBarSelection.each((node, datum) => {
-            if (datum.errorBar) {
-                updateErrorBar(node, datum.errorBar);
-            }
-        });
     }
 
     protected async updateLabelSelection(opts: {

@@ -857,7 +857,9 @@ export abstract class CartesianSeries<
     }): Promise<void> {
         // Override point for sub-classes.
         opts.errorBarSelection.each((node, datum) => {
-            updateErrorBar(node, datum);
+            if (datum.errorBar) {
+                updateErrorBar(node, datum.errorBar);
+            }
         });
     }
 
