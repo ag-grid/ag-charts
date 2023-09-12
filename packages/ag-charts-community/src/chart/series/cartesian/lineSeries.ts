@@ -34,7 +34,6 @@ import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
-import type { ErrorBarPoints } from '../../errorBar';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
     readonly point: SeriesNodeDatum['point'] & {
@@ -50,7 +49,6 @@ interface LineNodeDatum extends CartesianSeriesNodeDatum {
         readonly textBaseline: CanvasTextBaseline;
         readonly fill: string;
     };
-    readonly errorBarPoints?: ErrorBarPoints;
 }
 
 class LineSeriesLabel extends Label {
@@ -247,15 +245,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
                 const y = yScale.convert(yDatum) + yOffset;
 
-                const { yLowerKey = undefined, yUpperKey = undefined } = this.errorBar ?? {};
-                let errorBarPoints;
-                if (yLowerKey && yLowerKey in datum && yUpperKey && yUpperKey in datum) {
-                    errorBarPoints = {
-                        yLowerPoint: { x: x, y: yScale.convert(datum[yLowerKey]) + yOffset },
-                        yUpperPoint: { x: x, y: yScale.convert(datum[yUpperKey]) + yOffset },
-                    };
-                }
-
                 let labelText;
                 if (label.formatter) {
                     labelText = callbackCache.call(label.formatter, { value: yDatum, seriesId });
@@ -289,7 +278,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
                               fill: label.color,
                           }
                         : undefined,
-                    errorBarPoints: errorBarPoints
                 };
                 moveTo = false;
             }

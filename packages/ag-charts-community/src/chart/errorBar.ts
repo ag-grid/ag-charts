@@ -1,7 +1,11 @@
-import { OPT_STRING, Validate } from '../util/validation';
-
-import { Path } from '../scene/shape/path';
+import type { Scale } from '../scale/scale';
+import { Group } from '../scene/group';
+import type { Node } from '../scene/node';
 import type { Point } from '../scene/point';
+import { Selection } from '../scene/selection';
+import { Path } from '../scene/shape/path';
+import { OPT_STRING, Validate } from '../util/validation';
+import type { ProcessedData } from './data/dataModel';
 
 export interface ErrorBarPoints {
     readonly yLowerPoint: Point;
@@ -45,5 +49,77 @@ export class ErrorBarNode extends Path {
         path.moveTo(yLowerPoint.x, yLowerPoint.y);
         path.lineTo(yUpperPoint.x, yUpperPoint.y);
         path.closePath();
+    }
+}
+
+export class ErrorBars {
+    public groupNode?: Group = undefined;
+    private selection?: Selection<ErrorBarNode> = undefined;
+    private nodeData: (ErrorBarPoints | undefined)[] = new Array(0);
+
+    createNodeData(
+        parent: Node,
+        processedData: ProcessedData<any>,
+        xIndex?: number,
+        _yIndex?: number, // This is will be used when the scatterplot errorbars are implemented
+        xScale?: Scale<any, any, any>,
+        yScale?: Scale<any, any, any>,
+        config?: ErrorBarConfig
+    ) {
+        this.selection = undefined;
+
+        const { nodeData } = this;
+        const { yLowerKey = undefined, yUpperKey = undefined } = config ?? {};
+        if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined || _yIndex === undefined) {
+            return;
+        }
+
+        const convert = (scale: Scale<any, any, any>, value: any) => {
+            const offset = (scale.bandwidth ?? 0) / 2;
+            return scale.convert(value) + offset;
+        };
+
+        nodeData.length = processedData.data.length;
+
+        for (let i = 0; i < processedData.data.length; i++) {
+            const { datum, values } = processedData.data[i];
+            const xDatum = values[xIndex];
+
+            if (yLowerKey in datum && yUpperKey in datum) {
+                nodeData[i] = {
+                    yLowerPoint: { x: convert(xScale, xDatum), y: convert(yScale, datum[yLowerKey]) },
+                    yUpperPoint: { x: convert(xScale, xDatum), y: convert(yScale, datum[yUpperKey]) },
+                };
+            } else {
+                nodeData[i] = undefined;
+            }
+        }
+
+        if (this.groupNode === undefined) {
+            this.groupNode = new Group({ name: `${parent.id}-series-errorBars` });
+            parent.appendChild(this.groupNode);
+        }
+
+        this.selection = Selection.select(this.groupNode, () => this.errorBarFactory());
+    }
+
+    update() {
+        if (this.selection != undefined) {
+            this.selection.update(this.nodeData, undefined, undefined);
+            this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
+        }
+    }
+
+    private updateNode(node: ErrorBarNode, _datum: any, index: number) {
+        const { nodeData } = this;
+        const points = nodeData[index];
+        if (points) {
+            node.points = points;
+            node.updatePath();
+        }
+    }
+
+    private errorBarFactory(): ErrorBarNode {
+        return new ErrorBarNode();
     }
 }
