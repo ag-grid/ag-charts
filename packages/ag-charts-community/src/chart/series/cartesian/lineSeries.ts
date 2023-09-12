@@ -34,7 +34,7 @@ import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
-import type { ErrorBar, ErrorBarConfig, ErrorBarDatum } from '../../errorBar';
+import type { ErrorBar, ErrorBarDatum } from '../../errorBar';
 import { updateErrorBar } from './errorBarUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
@@ -94,7 +94,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
         super({
             moduleCtx,
             hasMarkers: true,
-            hasErrorBars: true, // TODO(olegat) false if this.errorBars undefined
             pickModes: [
                 SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
                 SeriesNodePickMode.NEAREST_NODE,
@@ -121,8 +120,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
     @Validate(OPT_STRING)
     yName?: string = undefined;
-
-    errorBar?: ErrorBarConfig = undefined;
 
     async processData(dataController: DataController) {
         const { axes, xKey = '', yKey = '' } = this;

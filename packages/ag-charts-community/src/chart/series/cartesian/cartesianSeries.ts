@@ -6,7 +6,6 @@ import { isContinuous, isDiscrete } from '../../../util/value';
 import { Path } from '../../../scene/shape/path';
 import { Selection } from '../../../scene/selection';
 import type { Marker } from '../../marker/marker';
-import { ErrorBar } from '../../errorBar';
 import { Group } from '../../../scene/group';
 import { Text } from '../../../scene/shape/text';
 import type { Node, ZIndexSubOrder } from '../../../scene/node';
@@ -27,6 +26,8 @@ import { StateMachine } from '../../../motion/states';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Logger } from '../../../util/logger';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesStateManager';
+import { ErrorBar } from '../../errorBar';
+import type { ErrorBarConfig } from '../../errorBar';
 import { updateErrorBar } from './errorBarUtil';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
@@ -60,7 +61,6 @@ interface SeriesOpts {
     pathsPerSeries: number;
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
-    hasErrorBars: boolean;
     hasHighlightedLabels: boolean;
     directionKeys: { [key in ChartAxisDirection]?: string[] };
     directionNames: { [key in ChartAxisDirection]?: string[] };
@@ -119,6 +119,8 @@ export abstract class CartesianSeries<
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
 
+    errorBar?: ErrorBarConfig = undefined;
+
     private _contextNodeData: C[] = [];
     get contextNodeData(): C[] {
         return this._contextNodeData?.slice();
@@ -130,11 +132,6 @@ export abstract class CartesianSeries<
         this.opts.hasMarkers ? this.markerFactory() : (this.nodeFactory() as any)
     ) as NodeDataSelection<N, C>;
     private highlightLabelSelection = Selection.select(this.highlightLabel, Text) as LabelDataSelection<Text, C>;
-
-    //private errorBarGroup: Node = new Group();
-    // private errorBarSelection = Selection.select(this.errorBarGroup, () =>
-    //     this.opts.hasErrorBars ? this.errorBarFactory() : this.nodeFactory()
-    // ); // as NodeDataSelection<ErrorBar, LineContext>;
 
     private subGroups: SubGroup<C, any>[] = [];
     private subGroupId: number = 0;
@@ -151,7 +148,6 @@ export abstract class CartesianSeries<
     protected constructor({
         pathsPerSeries = 1,
         hasMarkers = false,
-        hasErrorBars = false,
         hasHighlightedLabels = false,
         pathsZIndexSubOrderOffset = [],
         directionKeys = DEFAULT_DIRECTION_KEYS,
@@ -165,7 +161,6 @@ export abstract class CartesianSeries<
         const opts = {
             pathsPerSeries,
             hasMarkers,
-            hasErrorBars,
             hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
             directionKeys,
@@ -360,7 +355,7 @@ export abstract class CartesianSeries<
             _contextNodeData: contextNodeData,
             contentGroup,
             subGroups,
-            opts: { pathsPerSeries, hasMarkers, hasErrorBars },
+            opts: { pathsPerSeries, hasMarkers },
         } = this;
         if (contextNodeData.length === subGroups.length) {
             return;
@@ -404,7 +399,7 @@ export abstract class CartesianSeries<
                       zIndexSubOrder: this.getGroupZIndexSubOrder('marker', subGroupId),
                   })
                 : undefined;
-            const errorBarGroup = hasErrorBars
+            const errorBarGroup = this.errorBar
                 ? new Group({
                       name: `${this.id}-series-sub${this.subGroupId++}-errorBars`,
                       layer,
@@ -476,7 +471,7 @@ export abstract class CartesianSeries<
         const {
             highlightSelection,
             highlightLabelSelection,
-            opts: { hasMarkers, hasErrorBars, hasHighlightedLabels },
+            opts: { hasMarkers, hasHighlightedLabels },
         } = this;
 
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
@@ -500,7 +495,7 @@ export abstract class CartesianSeries<
             this.animationState.transition('highlight', highlightSelection);
         }
 
-        if (hasErrorBars) {
+        if (this.errorBar) {
             await this.updateErrorBarNodes({
                 errorBarSelection: highlightSelection as any,
                 isHighlight: true,
@@ -559,7 +554,7 @@ export abstract class CartesianSeries<
                 if (hasMarkers && markerSelection) {
                     await this.updateMarkerNodes({ markerSelection, isHighlight: false, seriesIdx });
                 }
-                if (hasErrorBars && errorBarSelection) {
+                if (this.errorBar && errorBarSelection) {
                     await this.updateErrorBarNodes({ errorBarSelection, isHighlight: false, seriesIdx });
                 }
             })
