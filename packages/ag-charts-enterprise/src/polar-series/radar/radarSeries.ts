@@ -27,7 +27,7 @@ const {
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
 const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
-interface LinePoint {
+export interface RadarLinePoint {
     x: number;
     y: number;
     moveTo: boolean;
@@ -625,27 +625,36 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
-    protected getLinePoints(): LinePoint[] {
-        const { nodeData } = this;
+    protected abstract get breakMissingPoints(): boolean;
+
+    protected getLinePoints(): RadarLinePoint[] {
+        const { nodeData, breakMissingPoints } = this;
         if (nodeData.length === 0) {
             return [];
         }
-        const points: LinePoint[] = [];
+        const points: RadarLinePoint[] = [];
         let prevPointInvalid = false;
         const invalidDatums = new Set<RadarNodeDatum>();
         nodeData.forEach((datum, index) => {
-            const { x, y } = datum.point!;
+            let { x, y } = datum.point!;
             const isPointInvalid = isNaN(x) || isNaN(y);
             if (isPointInvalid) {
-                invalidDatums.add(datum);
                 prevPointInvalid = true;
-                return;
+                if (breakMissingPoints) {
+                    invalidDatums.add(datum);
+                    return;
+                } else {
+                    x = 0;
+                    y = 0;
+                }
             }
-            const moveTo = index === 0 || prevPointInvalid;
+            const moveTo = index === 0 || (breakMissingPoints && prevPointInvalid);
             points.push({ x, y, moveTo });
             prevPointInvalid = false;
         });
-        const closed = !invalidDatums.has(nodeData[0]) && !invalidDatums.has(nodeData[nodeData.length - 1]);
+        const isFirstInvalid = invalidDatums.has(nodeData[0]);
+        const isLastInvalid = invalidDatums.has(nodeData[nodeData.length - 1]);
+        const closed = !breakMissingPoints || (!isFirstInvalid && !isLastInvalid);
         if (closed) {
             points.push({ ...points[0], moveTo: false });
         }
@@ -654,7 +663,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
     protected animateSinglePath(
         pathNode: _Scene.Path,
-        points: LinePoint[],
+        points: RadarLinePoint[],
         totalDuration: number,
         timePassed: number
     ) {
@@ -683,7 +692,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         pathNode.checkPathDirty();
     }
 
-    protected animatePaths(points: LinePoint[], totalDuration: number, timePassed: number) {
+    protected animatePaths(points: RadarLinePoint[], totalDuration: number, timePassed: number) {
         this.animateSinglePath(this.getLineNode(), points, totalDuration, timePassed);
     }
 
@@ -767,7 +776,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
             linePath.clear({ trackChanges: true });
 
-            linePoints.forEach(({x, y, moveTo}) => {
+            linePoints.forEach(({ x, y, moveTo }) => {
                 if (moveTo) {
                     linePath.moveTo(x, y);
                 } else {

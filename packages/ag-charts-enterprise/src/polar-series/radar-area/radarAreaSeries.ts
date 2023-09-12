@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { RadarSeries } from '../radar/radarSeries';
+import type { RadarLinePoint } from '../radar/radarSeries';
 
 const { NUMBER, OPT_COLOR_STRING, Validate } = _ModuleSupport;
 
@@ -16,6 +17,10 @@ export class RadarAreaSeries extends RadarSeries {
 
     @Validate(NUMBER(0, 1))
     fillOpacity = 1;
+
+    protected get breakMissingPoints() {
+        return false;
+    }
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx);
@@ -49,18 +54,18 @@ export class RadarAreaSeries extends RadarSeries {
         areaNode.stroke = undefined;
     }
 
-    protected animatePaths(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
+    protected animatePaths(points: RadarLinePoint[], totalDuration: number, timePassed: number) {
         super.animatePaths(points, totalDuration, timePassed);
         this.animateSinglePath(this.getAreaNode(), points, totalDuration, timePassed);
     }
 
     protected resetMarkersAndPaths() {
         super.resetMarkersAndPaths();
-        const { nodeData } = this;
         const areaNode = this.getAreaNode();
 
         if (areaNode) {
             const { path: areaPath } = areaNode;
+            const areaPoints = this.getLinePoints();
 
             areaNode.fill = this.fill;
             areaNode.fillOpacity = this.fillOpacity;
@@ -74,8 +79,7 @@ export class RadarAreaSeries extends RadarSeries {
 
             areaPath.clear({ trackChanges: true });
 
-            nodeData.forEach((datum, index) => {
-                const { x, y } = datum.point!;
+            areaPoints.forEach(({ x, y }, index) => {
                 if (index === 0) {
                     areaPath.moveTo(x, y);
                 } else {
