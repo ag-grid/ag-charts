@@ -15,6 +15,7 @@ import { Icon } from '@components/icon/Icon';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
 import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, UNION_DISCRIMINATOR_PROP } from '../constants';
 import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
+import { Icon } from '@components/icon/Icon';
 
 const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
 
@@ -46,6 +47,18 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({ model, brea
     };
     return (
         <div className={styles.expandableSnippet} role="presentation">
+            <header>
+                <h3>Options Reference</h3>
+                <p className="text-secondary font-size-small">
+                    A comprehensive interactive explorer for the <b>AgChartOptions</b> structure.
+                </p>
+
+                <div className={styles.searchOuter}>
+                    <input className={styles.searchInput} type="search" placeholder="Search properties..." />
+                    <Icon svgClasses={styles.searchIcon} name={'search'} />
+                </div>
+            </header>
+
             <pre className={classnames('code', 'language-ts')}>
                 <code className={'language-ts'}>
                     <SelectionContext.Provider value={{ handleSelection }}>

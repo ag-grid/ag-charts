@@ -13,6 +13,47 @@ $indent: 24px;
     cursor: pointer;
 }
 
+.expandableSnippet header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: $size-2;
+    background-color: var(--white);
+    z-index: 2;
+    border-bottom: 1px solid var(--platinum-gray);
+
+    h3 {
+        margin-bottom: 0;
+    }
+
+    p {
+        line-height: var(--line-height-tight);
+    }
+}
+
+.searchOuter {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+input[type='search'].searchInput {
+    padding-left: 2em;
+}
+
+.searchIcon {
+    --icon-size: 1.25em;
+    --text-color: var(--secondary-text-color);
+
+    position: absolute;
+    left: 0.625em;
+}
+
+.expandableSnippet input[type='search'] {
+    width: 100%;
+}
+
 .expandableSnippet,
 .expandableSnippet pre,
 .expandableSnippet pre > code {
@@ -38,7 +79,6 @@ $indent: 24px;
 .expandableSnippet pre > code {
     --code-line-height: calc(28 / 16);
 
-    padding-top: calc(var(--code-line-height) * 2 * 1em);
     padding-bottom: calc(var(--code-line-height) * 4 * 1em);
     line-height: var(--code-line-height);
     background-size: 1px calc(1em * var(--code-line-height) * 2);
