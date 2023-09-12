@@ -21,7 +21,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     framework,
 }) => {
     const model = buildModel(interfaceName, interfaceLookup, codeLookup);
-    const { selection, handleSelection } = useJsObjectSelection({ model });
+    const { topLevelSelection, handleSelection } = useJsObjectSelection({ model });
 
     return (
         <div className={styles.container}>
@@ -38,7 +38,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
                                     <h1 className="font-size-gigantic">{heading}</h1>
                                 </header>
                             )}
-                            <JsObjectDetails selection={selection} />
+                            <JsObjectDetails selection={topLevelSelection} />
                         </div>
                     </OptionsDataContext.Provider>
                 </FrameworkContext.Provider>

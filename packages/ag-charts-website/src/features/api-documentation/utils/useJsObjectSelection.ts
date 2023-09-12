@@ -17,7 +17,9 @@ function selectionHasChanged({
 }
 
 export function useJsObjectSelection({ model }: { model: JsonModel }) {
-    const [selection, setSelection] = useState<JsObjectSelection>(getTopSelection({ model, hideChildren: true }));
+    const [topLevelSelection, setTopLevelSelection] = useState<JsObjectSelection>(
+        getTopSelection({ model, hideChildren: true })
+    );
 
     const handleSelection = useCallback(
         (newSelection: JsObjectSelection) => {
@@ -39,15 +41,15 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
                     newSelection.onlyShowToDepth === undefined
                         ? shouldLimitChildrenDepth
                         : newSelection.onlyShowToDepth;
-                setSelection({ ...newSelection, onlyShowToDepth });
+                setTopLevelSelection({ ...newSelection, onlyShowToDepth });
                 smoothScrollIntoView('#top');
             } else {
                 try {
                     const [newTopLevelPathItem] = newSelection.path;
-                    if (selectionHasChanged({ selection, newSelection })) {
+                    if (selectionHasChanged({ selection: topLevelSelection, newSelection })) {
                         const newTopLevelSelection = getTopLevelSelection({ selection: newSelection, model });
                         if (newTopLevelSelection) {
-                            setSelection(newTopLevelSelection);
+                            setTopLevelSelection(newTopLevelSelection);
                         } else {
                             // eslint-disable-next-line no-console
                             console.warn('No top level selection found:', {
@@ -66,15 +68,15 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
                     }, 0);
                 } catch (error) {
                     // eslint-disable-next-line no-console
-                    console.warn(error, { selection, newSelection });
+                    console.warn(error, { topLevelSelection, newSelection });
                 }
             }
         },
-        [selection]
+        [topLevelSelection]
     );
 
     return {
-        selection,
+        topLevelSelection,
         handleSelection,
     };
 }
