@@ -796,7 +796,7 @@ export class Legend {
             const legendData = chartSeries.reduce(
                 (ls, s) => [
                     ...ls,
-                    ...s.getLegendData().filter((d): d is CategoryLegendDatum => d.legendType === 'category'),
+                    ...s.getLegendData('category'),
                 ],
                 [] as CategoryLegendDatum[]
             );

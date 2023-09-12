@@ -48,18 +48,13 @@ class GradientLegendLabel {
     formatter?: (params: AgChartLegendLabelFormatterParams) => string = undefined;
 }
 
-class GradientLegendItem {
+class GradientLegendStop {
     readonly label = new GradientLegendLabel();
     /** Used to constrain the width of legend items. */
     @Validate(OPT_NUMBER(0))
     maxWidth?: number = undefined;
     @Validate(NUMBER(0))
     padding = 8;
-
-    // Placeholders
-    marker?: any = undefined;
-    paddingX = 0;
-    paddingY = 0;
 }
 
 class GradientBar {
@@ -105,9 +100,9 @@ export class GradientLegend {
     @Validate(NUMBER(0))
     spacing = 20;
 
-    private gradientBar = new GradientBar();
+    private gradient = new GradientBar();
 
-    readonly item = new GradientLegendItem();
+    readonly stop = new GradientLegendStop();
 
     data: GradientLegendDatum[] = [];
 
@@ -188,8 +183,8 @@ export class GradientLegend {
     }
 
     private getMeasurements(colorDomain: number[], shrinkRect: _Scene.BBox) {
-        const { preferredLength: gradientLength, thickness } = this.gradientBar;
-        const { padding } = this.item;
+        const { preferredLength: gradientLength, thickness } = this.gradient;
+        const { padding } = this.stop;
         const [textWidth, textHeight] = this.measureMaxText(colorDomain);
 
         let width: number;
@@ -262,7 +257,7 @@ export class GradientLegend {
     }
 
     private updateText(colorDomain: number[], gradientBox: _Scene.BBox) {
-        const { label, padding } = this.item;
+        const { label, padding } = this.stop;
         const orientation = this.getOrientation();
         if (this.reverseOrder) {
             colorDomain = colorDomain.slice().reverse();
@@ -321,7 +316,7 @@ export class GradientLegend {
     }
 
     private formatDomain(domain: number[]) {
-        const formatter = this.item.label.formatter;
+        const formatter = this.stop.label.formatter;
         if (formatter) {
             return (d: number) => this.ctx.callbackCache.call(formatter, { value: d } as any);
         }
@@ -329,7 +324,7 @@ export class GradientLegend {
     }
 
     private measureMaxText(colorDomain: number[]) {
-        const { label } = this.item;
+        const { label } = this.stop;
         const tempText = new Text();
         const format = this.formatDomain(colorDomain);
         const boxes: _Scene.BBox[] = colorDomain.map((d) => {

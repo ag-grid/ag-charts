@@ -2,7 +2,7 @@ import { REGISTERED_MODULES } from '../../util/module';
 import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
 import { JSON_APPLY_PLUGINS } from '../chartOptions';
 import { registerChartDefaults } from './chartTypes';
-import { registerLegend } from './legendTypes';
+import { registerLegend, registerLegendThemeTemplate } from './legendTypes';
 import { registerSeries } from './seriesTypes';
 
 export function setupModules() {
@@ -55,6 +55,7 @@ export function setupModules() {
 
         if (m.type === 'legend') {
             registerLegend(m.identifier, m.instanceConstructor);
+            registerLegendThemeTemplate(m.optionsKey, m.themeTemplate);
         }
     }
 }

@@ -337,7 +337,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return [context];
     }
 
-    getLegendData(): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: string): _ModuleSupport.ChartLegendDatum[] {
         const {
             id,
             data,
@@ -352,7 +352,7 @@ export class BoxPlotSeries extends CartesianSeries<
             strokeOpacity,
         } = this;
 
-        if (!(showInLegend && data?.length && xKey)) {
+        if (!(showInLegend && data?.length && xKey && legendType === 'category')) {
             return [];
         }
 

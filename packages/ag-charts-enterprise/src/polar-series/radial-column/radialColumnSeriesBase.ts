@@ -640,10 +640,10 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    getLegendData(): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: string): _ModuleSupport.ChartLegendDatum[] {
         const { id, data, angleKey, radiusKey, radiusName, visible } = this;
 
-        if (!(data?.length && angleKey && radiusKey)) {
+        if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {
             return [];
         }
 

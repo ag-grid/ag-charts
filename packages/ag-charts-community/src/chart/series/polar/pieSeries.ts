@@ -1550,10 +1550,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: string): ChartLegendDatum[] {
         const { processedData, calloutLabelKey, legendItemKey, id, dataModel } = this;
 
-        if (!dataModel || !processedData || processedData.data.length === 0) return [];
+        if (!dataModel || !processedData || processedData.data.length === 0 || legendType !== 'category') return [];
 
         if (!legendItemKey && !calloutLabelKey) return [];
 

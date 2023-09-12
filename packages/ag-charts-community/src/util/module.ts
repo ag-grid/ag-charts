@@ -68,6 +68,8 @@ export interface LegendModule extends BaseModule {
 
     identifier: string;
     instanceConstructor: LegendConstructor;
+
+    themeTemplate?: {};
 }
 
 export interface SeriesModule extends BaseModule {

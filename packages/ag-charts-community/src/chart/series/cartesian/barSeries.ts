@@ -597,7 +597,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: string): ChartLegendDatum[] {
         const {
             id,
             data,
@@ -613,7 +613,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             showInLegend,
         } = this;
 
-        if (!showInLegend || !data?.length || !xKey || !yKey) {
+        if (!showInLegend || !data?.length || !xKey || !yKey || legendType !== 'category') {
             return [];
         }
 

@@ -546,10 +546,10 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: string): ChartLegendDatum[] {
         const { id, data, xKey, yName, visible, fill, stroke, fillOpacity, strokeOpacity } = this;
 
-        if (!data || data.length === 0) {
+        if (!data || data.length === 0 || legendType !== 'category') {
             return [];
         }
 

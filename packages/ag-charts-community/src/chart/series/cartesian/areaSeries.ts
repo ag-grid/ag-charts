@@ -645,10 +645,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         });
     }
 
-    getLegendData(): CategoryLegendDatum[] {
+    getLegendData(legendType: string): CategoryLegendDatum[] {
         const { data, id, xKey, yKey, yName, marker, fill, stroke, fillOpacity, strokeOpacity, visible } = this;
 
-        if (!data?.length || !xKey || !yKey) {
+        if (!data?.length || !xKey || !yKey || legendType !== 'category') {
             return [];
         }
 

@@ -469,10 +469,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    getLegendData(): any[] {
+    getLegendData(legendType: string): any[] {
         const { data, dataModel, xKey, yKey } = this;
 
-        if (!(data?.length && xKey && yKey && dataModel)) {
+        if (!(data?.length && xKey && yKey && dataModel && legendType === 'gradient')) {
             return [];
         }
 

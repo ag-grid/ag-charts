@@ -25,13 +25,14 @@ import {
     type SeriesOptionsTypes,
 } from './mapping/types';
 import { windowValue } from '../util/window';
-import type { AxisOptionModule, Module, RootModule } from '../util/module';
+import type { AxisOptionModule, LegendModule, Module, ModuleInstance, RootModule } from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
 // Deliberately imported via `module-support` so that internal module registration happens.
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
+import { registerLegendThemeTemplate } from './factory/legendTypes';
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -435,20 +436,27 @@ function applyModules(chart: Chart, options: AgChartOptions) {
     };
 
     let modulesChanged = false;
-    const rootModules = REGISTERED_MODULES.filter((m): m is RootModule => m.type === 'root');
-    for (const next of rootModules) {
-        const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
-        const isEnabled = chart.isModuleEnabled(next);
-
-        if (shouldBeEnabled === isEnabled) continue;
-        modulesChanged = true;
-
-        if (shouldBeEnabled) {
-            chart.addModule(next);
-        } else {
-            chart.removeModule(next);
+    const processModules = <T extends Module<ModuleInstance>>(moduleType: string, add: (module: T) => void, remove: (module: T) => void) => {
+        const modules = REGISTERED_MODULES.filter((m): m is T => m.type === moduleType);
+        for (const next of modules) {
+            const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
+            const isEnabled = chart.isModuleEnabled(next);
+    
+            if (shouldBeEnabled === isEnabled) continue;
+            modulesChanged = true;
+    
+            if (shouldBeEnabled) {
+                add(next);
+            } else {
+                remove(next);
+            }
         }
-    }
+    };
+    processModules<RootModule>('root', (next) => chart.addModule(next), (next) => chart.removeModule(next));
+    processModules<LegendModule>('legend', (next) => {
+        chart.addLegendModule(next);
+        registerLegendThemeTemplate(next.optionsKey, next.themeTemplate);
+    }, (next) => chart.removeLegendModule(next));
 
     return modulesChanged;
 }

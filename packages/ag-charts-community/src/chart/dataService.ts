@@ -1,7 +1,7 @@
 interface Series {
     id: string;
     type: string;
-    getLegendData(): any[];
+    getLegendData(legendType: string): any[];
 }
 
 type SeriesGetter = () => Series[];

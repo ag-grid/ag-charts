@@ -746,7 +746,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return new SeriesNodeDoubleClickEvent(event, datum, this);
     }
 
-    abstract getLegendData(): ChartLegendDatum[];
+    abstract getLegendData(legendType: string): ChartLegendDatum[];
 
     protected toggleSeriesItem(_itemId: any, enabled: boolean): void {
         this.visible = enabled;

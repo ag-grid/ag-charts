@@ -14,6 +14,7 @@ import type {
 } from '../../options/agChartOptions';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
+import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
 
 const palette: AgChartThemePalette = {
@@ -689,6 +690,7 @@ export class ChartTheme {
             return {
                 ...ChartTheme.getChartDefaults(),
                 ...getChartDefaults(chartType),
+                ...getLegendThemeTemplates(),
             };
         };
 

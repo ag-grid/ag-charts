@@ -62,10 +62,6 @@ export interface AgGradientLegendStopOptions {
     label?: AgGradientLegendLabelOptions;
     /** Used to constrain the width of legend items. */
     maxWidth?: PixelSize;
-    /** The horizontal spacing in pixels to use between legend items. */
-    paddingX?: PixelSize;
-    /** The vertical spacing in pixels to use between legend items. */
-    paddingY?: PixelSize;
-    /** Set to `false` to turn off toggling of the series visibility in the chart when the legend item is clicked. */
-    toggleSeriesVisible?: boolean;
+    /** The spacing in pixels to use between gradient and labels. */
+    padding?: PixelSize;
 }

@@ -504,11 +504,11 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: string): ChartLegendDatum[] {
         const { id, data, xKey, yKey, yName, title, visible, marker } = this;
         const { fill, stroke, fillOpacity, strokeOpacity } = marker;
 
-        if (!(data?.length && xKey && yKey)) {
+        if (!(data?.length && xKey && yKey && legendType === 'category')) {
             return [];
         }
 

@@ -453,10 +453,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: string): ChartLegendDatum[] {
         const { id, data, xKey, yKey, yName, visible, title, marker, stroke, strokeOpacity } = this;
 
-        if (!(data?.length && xKey && yKey)) {
+        if (!(data?.length && xKey && yKey && legendType === 'category')) {
             return [];
         }
 
