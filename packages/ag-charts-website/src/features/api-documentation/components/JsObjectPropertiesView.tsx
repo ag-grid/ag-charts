@@ -10,6 +10,7 @@ import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectProperties
 import { FrameworkContext } from '../utils/frameworkContext';
 
 export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewProps> = ({
+    heading,
     interfaceName,
     breadcrumbs = [],
     codeLookup,
@@ -29,17 +30,11 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
                 <FrameworkContext.Provider value={framework}>
                     <OptionsDataContext.Provider value={optionsData}>
                         <div className="font-size-responsive">
-                            <header>
-                                <h1 className="font-size-gigantic">Options Reference</h1>
-                                <p className="font-size-extra-large">
-                                    A comprehensive interactive explorer for the <code>AgChartOptions</code> structure.
-                                </p>
-                            </header>
-
-                            <p className="font-size-large">
-                                Read more about how to use this structure in the <a href="#">Create/Update</a> section.
-                            </p>
-
+                            {heading && (
+                                <header>
+                                    <h1 className="font-size-gigantic">{heading}</h1>
+                                </header>
+                            )}
                             <JsObjectDetails selection={selection} />
                         </div>
                     </OptionsDataContext.Provider>

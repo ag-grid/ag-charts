@@ -272,6 +272,7 @@ export interface JsObjectViewProps {
 }
 
 export interface JsObjectPropertiesViewProps {
+    heading: string;
     interfaceName: string;
     framework: Framework;
     breadcrumbs?: string[];
