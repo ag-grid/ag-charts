@@ -2,6 +2,6 @@
   "name": "ag-chart-packages",
   "description": "NOTE: This package.json file is solely used by Plunker to look up type definitions.",
   "dependencies": {
-    "ag-charts-community": "9.0.0-beta.6"
+    "ag-charts-community": "9.0.0-beta.20230911"
   }
 }

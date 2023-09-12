@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Usage:
 # ./tools/bump-versions.sh 9.0.0-beta.7
@@ -18,8 +18,8 @@ PACKAGES=(
 )
 
 for package in ${PACKAGES[@]}; do
-    node ${TOOLS_DIR}/bump-repo-dep.js $package "$NEW_VERSION"
+    node ${TOOLS_DIR}/update-package-json-deps.js $package "$NEW_VERSION"
 done
 
 # Ensure consistent package.json formatting.
-npx nx format
+npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')

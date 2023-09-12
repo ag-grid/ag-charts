@@ -1,6 +1,7 @@
 {
   "name": "ag-charts-build-tools",
   "version": "0.0.1",
+  "private": true,
   "dependencies": {
     "@nx/devkit": "16.7.1",
     "typescript": "^4.9.5",
