@@ -65,7 +65,7 @@ input[type='search'].searchInput {
 .expandableSnippet {
     position: sticky;
     top: var(--sticky-offset);
-    width: 420px;
+    width: 100%;
     height: calc(100vh - var(--sticky-offset));
     overflow-y: auto;
 }

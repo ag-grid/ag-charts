@@ -1,14 +1,19 @@
 @use '../../../design-system' as *;
 
 .container {
+    --jsObjectWidth: 420px;
+
     display: flex;
     width: 100%;
-    gap: $size-6;
     padding-right: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
 }
 
 .objectViewOuter {
+    --right-margin: max(#{$size-6}, calc(50vw - var(--max-page-width) / 2 - var(--jsObjectWidth)));
+
     border-right: 1px solid var(--border-color);
+    min-width: var(--jsObjectWidth);
+    margin-right: var(--right-margin);
 }
 
 .referenceOuter {
