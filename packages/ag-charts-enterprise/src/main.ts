@@ -15,8 +15,8 @@ import { RadarLineModule } from './polar-series/radar-line/main';
 import { RadarAreaModule } from './polar-series/radar-area/main';
 import { ZoomModule } from './zoom/main';
 import { WaterfallModule } from './waterfall/main';
-import { RangeBarModule } from './rangeBar/main';
-import { RangeAreaModule } from './rangeArea/rangeAreaModule';
+import { RangeBarModule } from './range-bar/main';
+import { RangeAreaModule } from './range-area/rangeAreaModule';
 import { LicenseManager } from './license/licenseManager';
 import { BoxPlotModule } from './box-plot/boxPlotModule';
 
