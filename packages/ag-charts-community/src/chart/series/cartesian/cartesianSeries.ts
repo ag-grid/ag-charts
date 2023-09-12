@@ -28,7 +28,6 @@ import { Logger } from '../../../util/logger';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesStateManager';
 import { ErrorBar } from '../../errorBar';
 import type { ErrorBarConfig } from '../../errorBar';
-import { updateErrorBar } from './errorBarUtil';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -847,7 +846,6 @@ export abstract class CartesianSeries<
         errorBarSelection: NodeDataSelection<ErrorBar, C>;
         seriesIdx: number;
     }): Promise<NodeDataSelection<ErrorBar, C>> {
-        // Override point for sub-classes.
         return opts.errorBarSelection.update(opts.nodeData, undefined, undefined);
     }
     protected async updateErrorBarNodes(opts: {
@@ -855,10 +853,10 @@ export abstract class CartesianSeries<
         isHighlight: boolean;
         seriesIdx: number;
     }): Promise<void> {
-        // Override point for sub-classes.
         opts.errorBarSelection.each((node, datum) => {
             if (datum.errorBar) {
-                updateErrorBar(node, datum.errorBar);
+                node.datum = datum;
+                node.updatePath();
             }
         });
     }
