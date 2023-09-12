@@ -18,7 +18,7 @@ PACKAGES=(
 )
 
 for package in ${PACKAGES[@]}; do
-    node ${TOOLS_DIR}/bump-repo-dep.js $package "$NEW_VERSION"
+    node ${TOOLS_DIR}/update-package-json-deps.js $package "$NEW_VERSION"
 done
 
 # Ensure consistent package.json formatting.
