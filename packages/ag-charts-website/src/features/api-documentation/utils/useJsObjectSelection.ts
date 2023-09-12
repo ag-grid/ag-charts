@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
-import type { JsObjectSelection, JsObjectSelectionProperty } from '../types';
+import type { JsObjectSelection, JsObjectSelectionProperty, TopLevelHeaderData } from '../types';
 import type { JsonModel } from './model';
 import { getSelectionReferenceId } from './getObjectReferenceId';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { getTopLevelSelection, getTopSelection } from './modelPath';
 import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
+import { formatPropertyDocumentation, removeDefaultValue } from './documentationHelpers';
+import { getPropertyType } from './getPropertyType';
 
 function selectionHasChanged({
     selection,
@@ -28,10 +30,41 @@ function scrollToId(id?: string) {
     }
 }
 
+const ROOT_HEADING = 'AgChartOptions'; // TODO: Get this from the data;
+function getTopLevelHeader(selection: JsObjectSelection): TopLevelHeaderData | undefined {
+    const { type, path, model } = selection;
+    const isRoot = type === 'model' && path.length === 0;
+    const description = formatPropertyDocumentation(model).join('\n');
+    const descriptionWithoutDefault = removeDefaultValue(description);
+    const output = {
+        path,
+        description,
+        descriptionWithoutDefault,
+    };
+
+    if (isRoot) {
+        return Object.assign({}, output, {
+            heading: ROOT_HEADING,
+            propertyType: getPropertyType(model.tsType),
+        });
+    } else if (type === 'property') {
+        return Object.assign({}, output, {
+            heading: selection.propName,
+            propertyType: (model as any).type === 'primitive' ? (model as any).tsType : model.desc?.tsType,
+        });
+    } else if (type === 'model') {
+        return Object.assign({}, output, {
+            heading: '',
+            propertyType: model.tsType,
+        });
+    }
+}
+
 export function useJsObjectSelection({ model }: { model: JsonModel }) {
     const rootSelection = getTopSelection({ model, hideChildren: true });
     const [topLevelSelection, setTopLevelSelection] = useState<JsObjectSelection>(rootSelection);
     const [selection, setSelection] = useState<JsObjectSelection>(rootSelection);
+    const topLevelHeader = getTopLevelHeader(topLevelSelection);
 
     const handleSelection = useCallback(
         (newSelection: JsObjectSelection) => {
@@ -96,6 +129,7 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
     return {
         selection,
         topLevelSelection,
+        topLevelHeader,
         handleSelection,
     };
 }

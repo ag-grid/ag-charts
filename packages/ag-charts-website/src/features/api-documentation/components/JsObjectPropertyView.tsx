@@ -1,17 +1,15 @@
 import classnames from 'classnames';
 import styles from './ApiDocumentation.module.scss';
-import { Icon } from '@components/icon/Icon';
 import {
     convertMarkdown,
-    formatJsDocString,
-    getFormattedDefaultValue,
+    formatPropertyDocumentation,
     removeDefaultValue,
     splitName,
 } from '../utils/documentationHelpers';
 import type { JsObjectSelection, JsObjectSelectionProperty, JsObjectSelectionUnionNestedObject } from '../types';
 import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonUnionType } from '../utils/model';
 import { getPropertyType } from '../utils/getPropertyType';
-import { createUnionNestedObjectPathItemRegex, getUnionPathInfo } from '../utils/modelPath';
+import { getUnionPathInfo } from '../utils/modelPath';
 import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
 import { useContext } from 'react';
 import { OptionsDataContext } from '../utils/optionsDataContext';
@@ -19,40 +17,12 @@ import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectProperties
 import { FrameworkContext } from '../utils/frameworkContext';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
+import { HeadingPath } from './HeadingPath';
+import { MetaList } from './MetaList';
 
 interface Props {
     selection: JsObjectSelection;
     parentName?: string;
-}
-
-function HeadingPath({ path }: { path: string[] }) {
-    const regex = createUnionNestedObjectPathItemRegex();
-    return (
-        path.length > 0 && (
-            <span className={styles.parentProperties}>
-                {path.map((pathItem, index) => {
-                    const arrayDiscriminatorMatches = regex.exec(pathItem);
-                    const [_, preValue, value, postValue] = arrayDiscriminatorMatches || [];
-                    // Only show separator `.` at the front, when not the first and not an array discriminator afterwards
-                    const separator = index !== 0 && !arrayDiscriminatorMatches ? '.' : '';
-
-                    return (
-                        <span className={styles.noWrap} key={`${pathItem}-${index}`}>
-                            {separator}
-                            {!arrayDiscriminatorMatches && <>{pathItem}</>}
-                            {arrayDiscriminatorMatches && (
-                                <>
-                                    {preValue}
-                                    <span className={styles.unionDiscriminator}>{value}</span>
-                                    {postValue}
-                                </>
-                            )}
-                        </span>
-                    );
-                })}
-            </span>
-        )
-    );
 }
 
 function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
@@ -100,47 +70,6 @@ function Actions({ propName }: { propName?: string }) {
             )}
         </div>
     );
-}
-
-function MetaList({
-    propertyType,
-    description,
-    model,
-}: {
-    propertyType: string;
-    description: string;
-    model: JsonModelProperty;
-}) {
-    const formattedDefaultValue = getFormattedDefaultValue({
-        model,
-        description,
-    });
-    return (
-        <div className={styles.metaList}>
-            <div title={propertyType} className={styles.metaItem}>
-                <span className={styles.metaLabel}>Type</span>
-                <span className={styles.metaValue}>{propertyType}</span>
-            </div>
-            {formattedDefaultValue != null && (
-                <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Default</span>
-                    <span className={styles.metaValue}>{formattedDefaultValue}</span>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function formatPropertyDocumentation(model: Omit<JsonModelProperty, 'desc'>): string[] {
-    const { documentation } = model;
-    const defaultValue = model.default;
-    const result: string[] = documentation?.trim() ? [formatJsDocString(documentation.trim())] : [];
-
-    if (Object.hasOwn(model, 'default')) {
-        result.push('Default: `' + JSON.stringify(defaultValue) + '`');
-    }
-
-    return result.filter((v) => !!v?.trim());
 }
 
 function PrimitivePropertyView({

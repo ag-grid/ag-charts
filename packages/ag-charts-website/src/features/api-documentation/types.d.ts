@@ -264,6 +264,14 @@ export type JsObjectSelection =
     | JsObjectSelectionProperty
     | JsObjectSelectionUnionNestedObject;
 
+export interface TopLevelHeaderData {
+    path: string[];
+    heading: string;
+    propertyType: string;
+    description: string;
+    descriptionWithoutDefault: string;
+}
+
 export interface JsObjectViewProps {
     model: JsonModel;
     breadcrumbs?: string[];
@@ -272,7 +280,6 @@ export interface JsObjectViewProps {
 }
 
 export interface JsObjectPropertiesViewProps {
-    heading: string;
     interfaceName: string;
     framework: Framework;
     breadcrumbs?: string[];

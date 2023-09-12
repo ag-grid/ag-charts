@@ -2,16 +2,48 @@ import classNames from 'classnames';
 import type { FunctionComponent } from 'react';
 import { JsObjectView } from './JsObjectView';
 import styles from './JsObjectProperties.module.scss';
-import type { JsObjectPropertiesViewConfig, JsObjectPropertiesViewProps } from '../types';
+import type {
+    JsObjectPropertiesViewConfig,
+    JsObjectPropertiesViewProps,
+    JsObjectSelection,
+    TopLevelHeaderData,
+} from '../types';
 import { JsObjectDetails } from './JsObjectDetails';
 import { buildModel } from '../utils/model';
 import { useJsObjectSelection } from '../utils/useJsObjectSelection';
 import { OptionsDataContext } from '../utils/optionsDataContext';
 import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 import { FrameworkContext } from '../utils/frameworkContext';
+import { HeadingPath } from './HeadingPath';
+import { MetaList } from './MetaList';
+
+function TopLevelHeader({
+    topLevelHeader,
+    topLevelSelection,
+}: {
+    topLevelHeader?: TopLevelHeaderData;
+    topLevelSelection: JsObjectSelection;
+}) {
+    if (!topLevelHeader) {
+        return null;
+    }
+    return (
+        <header>
+            <h1 className="font-size-gigantic">
+                <HeadingPath path={topLevelHeader.path} />
+                {topLevelHeader.heading}
+            </h1>
+            <p>{topLevelHeader.descriptionWithoutDefault}</p>
+            <MetaList
+                propertyType={topLevelHeader.propertyType}
+                model={topLevelSelection.model}
+                description={topLevelHeader.description}
+            />
+        </header>
+    );
+}
 
 export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewProps> = ({
-    heading,
     interfaceName,
     breadcrumbs = [],
     codeLookup,
@@ -21,7 +53,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     framework,
 }) => {
     const model = buildModel(interfaceName, interfaceLookup, codeLookup);
-    const { topLevelSelection, handleSelection } = useJsObjectSelection({ model });
+    const { topLevelSelection, topLevelHeader, handleSelection } = useJsObjectSelection({ model });
 
     return (
         <div className={styles.container}>
@@ -33,11 +65,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
                 <FrameworkContext.Provider value={framework}>
                     <OptionsDataContext.Provider value={optionsData}>
                         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
-                            {heading && (
-                                <header>
-                                    <h1 className="font-size-gigantic">{heading}</h1>
-                                </header>
-                            )}
+                            <TopLevelHeader topLevelHeader={topLevelHeader} topLevelSelection={topLevelSelection} />
                             <JsObjectDetails selection={topLevelSelection} />
                         </div>
                     </OptionsDataContext.Provider>
