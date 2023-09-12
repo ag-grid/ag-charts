@@ -1,9 +1,9 @@
-name: Publish
+name: Bump Beta Version
 
 on: workflow_dispatch
 
 jobs:
-    build:
+    bump_version_and_tag:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
