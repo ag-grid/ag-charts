@@ -8,11 +8,6 @@ export interface ChartLegend {
     attachLegend(node: Node | null): void;
     destroy(): void;
     data: any;
-    item: {
-        label: {
-            formatter?: (params: any) => string;
-        };
-    };
     listeners: AgChartLegendListeners;
 }
 
