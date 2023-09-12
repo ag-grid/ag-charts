@@ -27,6 +27,12 @@ const {
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
 const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
+interface LinePoint {
+    x: number;
+    y: number;
+    moveTo: boolean;
+}
+
 class RadarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
     readonly radiusKey: string;
@@ -619,9 +625,36 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
+    protected getLinePoints(): LinePoint[] {
+        const { nodeData } = this;
+        if (nodeData.length === 0) {
+            return [];
+        }
+        const points: LinePoint[] = [];
+        let prevPointInvalid = false;
+        const invalidDatums = new Set<RadarNodeDatum>();
+        nodeData.forEach((datum, index) => {
+            const { x, y } = datum.point!;
+            const isPointInvalid = isNaN(x) || isNaN(y);
+            if (isPointInvalid) {
+                invalidDatums.add(datum);
+                prevPointInvalid = true;
+                return;
+            }
+            const moveTo = index === 0 || prevPointInvalid;
+            points.push({ x, y, moveTo });
+            prevPointInvalid = false;
+        });
+        const closed = !invalidDatums.has(nodeData[0]) && !invalidDatums.has(nodeData[nodeData.length - 1]);
+        if (closed) {
+            points.push({ ...points[0], moveTo: false });
+        }
+        return points;
+    }
+
     protected animateSinglePath(
         pathNode: _Scene.Path,
-        points: Array<{ x: number; y: number }>,
+        points: LinePoint[],
         totalDuration: number,
         timePassed: number
     ) {
@@ -631,7 +664,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        points.forEach((point, index) => {
+        points.forEach((point) => {
             const { x: x1, y: y1 } = point;
             const angle = Math.atan2(y1, x1);
             const x0 = axisInnerRadius * Math.cos(angle);
@@ -640,18 +673,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const x = x0 * (1 - t) + x1 * t;
             const y = y0 * (1 - t) + y1 * t;
 
-            if (index === 0) {
+            if (point.moveTo) {
                 path.moveTo(x, y);
             } else {
                 path.lineTo(x, y);
             }
         });
 
-        path.closePath();
         pathNode.checkPathDirty();
     }
 
-    protected animatePaths(points: Array<{ x: number; y: number }>, totalDuration: number, timePassed: number) {
+    protected animatePaths(points: LinePoint[], totalDuration: number, timePassed: number) {
         this.animateSinglePath(this.getLineNode(), points, totalDuration, timePassed);
     }
 
@@ -660,9 +692,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             return;
         }
 
-        const { markerSelection, labelSelection, nodeData } = this;
+        const { markerSelection, labelSelection } = this;
 
-        const points = nodeData.map((datum) => datum.point!);
+        const points = this.getLinePoints();
 
         const duration = this.ctx.animationManager.defaultDuration();
         const markerDuration = 200;
@@ -718,11 +750,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     protected resetMarkersAndPaths() {
-        const { markerSelection, nodeData } = this;
+        const { markerSelection } = this;
         const lineNode = this.getLineNode();
 
         if (lineNode) {
             const { path: linePath } = lineNode;
+            const linePoints = this.getLinePoints();
 
             lineNode.fill = undefined;
             lineNode.stroke = this.stroke;
@@ -734,15 +767,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
             linePath.clear({ trackChanges: true });
 
-            nodeData.forEach((datum, index) => {
-                const { x, y } = datum.point!;
-                if (index === 0) {
+            linePoints.forEach(({x, y, moveTo}) => {
+                if (moveTo) {
                     linePath.moveTo(x, y);
                 } else {
                     linePath.lineTo(x, y);
                 }
             });
-            linePath.closePath();
 
             lineNode.checkPathDirty();
         }
