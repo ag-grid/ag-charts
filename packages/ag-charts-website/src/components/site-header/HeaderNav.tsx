@@ -13,6 +13,10 @@ const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 
 const links = [
     {
+        name: 'API',
+        url: pathJoin(SITE_BASE_URL, 'options'),
+    },
+    {
         name: 'Gallery',
         url: pathJoin(SITE_BASE_URL, 'gallery'),
     },

@@ -1,0 +1,109 @@
+---
+import type { Framework } from '@ag-grid-types';
+import { JsObjectPropertiesView } from '@features/api-documentation/components/JsObjectPropertiesView';
+import Layout from '@layouts/Layout.astro';
+import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
+import { urlWithBaseUrl } from '@utils/pages';
+import { getEntry } from 'astro:content';
+
+const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
+const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+
+const optionsData = (await getEntry('options-reference', 'data')).data;
+
+const framework = Astro.params.framework as Framework;
+const { config: configString, breadcrumbs: breadcrumbsString, ...props } = Astro.props;
+const breadcrumbs = breadcrumbsString ? JSON.parse(breadcrumbsString) : undefined;
+const config = configString ? JSON.parse(configString) : undefined;
+
+const menuItems = [
+    {
+        name: 'Options API',
+        url: '/options',
+    },
+    {
+        name: 'Themes API',
+        url: '/theme',
+    },
+    {
+        name: 'API Explorer',
+        url: '/explorer',
+    },
+];
+
+// TODO: Use `AgChartOptions`
+const interfaceName = 'AgCartesianChartOptions';
+---
+
+<Layout>
+    <div class="topBar">
+        <div class="page-margin">
+            <ul class="topBarInner list-style-none">
+                {
+                    menuItems.map(({ name, url }) => {
+                        return (
+                            <li>
+                                <a href={urlWithBaseUrl(url)}>{name}</a>
+                            </li>
+                        );
+                    })
+                }
+            </ul>
+        </div>
+    </div>
+    <div class="container">
+        <!-- TODO: Remove `client:only` -->
+        <JsObjectPropertiesView
+            client:only
+            interfaceName={interfaceName}
+            interfaceLookup={interfaceLookup}
+            codeLookup={codeLookup}
+            breadcrumbs={breadcrumbs}
+            config={config}
+            framework={framework}
+            optionsData={optionsData}
+        />
+    </div>
+</Layout>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    .container {
+        --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
+        --menu-width: 14rem;
+        --gallery-list-gap: #{$size-3};
+
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+
+    .topBar {
+        background-color: var(--toolbar-background);
+        border-bottom: 1px solid var(--border-color);
+
+        @media screen and (min-width: $breakpoint-docs-nav-medium) {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+    }
+
+    .topBarInner {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        gap: $size-1;
+        padding-top: $size-1;
+        padding-bottom: $size-1;
+
+        gap: $size-3;
+    }
+
+    .menu {
+    }
+
+    .content {
+    }
+</style>
