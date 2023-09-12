@@ -55,6 +55,7 @@ import { SeriesStateManager } from './series/seriesStateManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { Legend } from './legend';
+import { getLegendKeys } from './factory/legendTypes';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
@@ -384,13 +385,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private legends: Record<string, ChartLegend> = {};
-    private legendsKeys: Record<string, string> = {};
 
-    private attachLegend(legendType: string, legendKey: string, legendConstructor: new (moduleContext: ModuleContext) => ChartLegend) {
+    private attachLegend(
+        legendType: string,
+        legendKey: string,
+        legendConstructor: new (moduleContext: ModuleContext) => ChartLegend
+    ) {
         const legend = new legendConstructor(this.getModuleContext());
         (this as any)[legendKey] = legend;
         this.legends[legendType] = legend;
-        this.legendsKeys[legendType] = legendKey;
         legend.attachLegend(this.scene.root);
         return legend;
     }
@@ -409,7 +412,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         delete this.modules[module.optionsKey];
         delete (this as any)[module.optionsKey];
         delete this.legends[module.identifier];
-        delete this.legendsKeys[module.identifier];
     }
 
     isModuleEnabled(module: Module) {
@@ -926,7 +928,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private async updateLegend() {
         Object.entries(this.legends).forEach(([legendType, legend]) => {
-            const legendKey = this.legendsKeys[legendType] ?? 'legend';
+            const legendKey = getLegendKeys()[legendType];
             const legendData: ChartLegendDatum[] = [];
             this.series
                 .filter((s) => s.showInLegend)

@@ -7,12 +7,18 @@ const LEGEND_FACTORIES: Record<string, LegendConstructor> = {
     category: Legend,
 };
 
-export function registerLegend(type: string, ctr: LegendConstructor) {
+const LEGEND_KEYS: Record<string, string> = {
+    category: 'legend',
+};
+
+export function registerLegend(type: string, key: string, ctr: LegendConstructor, theme: {} | undefined) {
     if (LEGEND_FACTORIES[type]) {
         throw new Error(`AG Charts - already registered legend type: ${type}`);
     }
 
     LEGEND_FACTORIES[type] = ctr;
+    LEGEND_KEYS[type] = key;
+    LEGEND_THEME_TEMPLATES[key] = theme;
 }
 
 export function getLegend(type: string, ctx: ModuleContext): ChartLegend {
@@ -25,10 +31,10 @@ export function getLegend(type: string, ctx: ModuleContext): ChartLegend {
 
 const LEGEND_THEME_TEMPLATES: Record<string, {} | undefined> = {};
 
-export function registerLegendThemeTemplate(legendProp: string, theme: {} | undefined) {
-    LEGEND_THEME_TEMPLATES[legendProp] = theme;
-}
-
 export function getLegendThemeTemplates() {
     return LEGEND_THEME_TEMPLATES;
+}
+
+export function getLegendKeys() {
+    return LEGEND_KEYS;
 }

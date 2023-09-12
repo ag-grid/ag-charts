@@ -32,7 +32,7 @@ import { getJsonApplyOptions } from './chartOptions';
 // Deliberately imported via `module-support` so that internal module registration happens.
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
-import { registerLegendThemeTemplate } from './factory/legendTypes';
+import { getLegendKeys } from './factory/legendTypes';
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -407,8 +407,12 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
 
     const seriesOpts = processedOptions.series as any[];
     const seriesDataUpdate = !!processedOptions.data || seriesOpts?.some((s) => s.data != null);
-    const otherRefreshUpdate = processedOptions.gradientLegend ?? processedOptions.legend ?? processedOptions.title ?? processedOptions.subtitle;
-    forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || !!otherRefreshUpdate;
+    const legendKeys = getLegendKeys();
+    const optionsHaveLegend = Object.values(legendKeys).some(
+        (legendKey) => (processedOptions as any)[legendKey] != undefined
+    );
+    const otherRefreshUpdate = Boolean(processedOptions.title ?? processedOptions.subtitle);
+    forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     if (processedOptions.data) {
         chart.data = processedOptions.data;
     }
@@ -436,15 +440,19 @@ function applyModules(chart: Chart, options: AgChartOptions) {
     };
 
     let modulesChanged = false;
-    const processModules = <T extends Module<ModuleInstance>>(moduleType: string, add: (module: T) => void, remove: (module: T) => void) => {
+    const processModules = <T extends Module<ModuleInstance>>(
+        moduleType: string,
+        add: (module: T) => void,
+        remove: (module: T) => void
+    ) => {
         const modules = REGISTERED_MODULES.filter((m): m is T => m.type === moduleType);
         for (const next of modules) {
             const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
             const isEnabled = chart.isModuleEnabled(next);
-    
+
             if (shouldBeEnabled === isEnabled) continue;
             modulesChanged = true;
-    
+
             if (shouldBeEnabled) {
                 add(next);
             } else {
@@ -452,11 +460,16 @@ function applyModules(chart: Chart, options: AgChartOptions) {
             }
         }
     };
-    processModules<RootModule>('root', (next) => chart.addModule(next), (next) => chart.removeModule(next));
-    processModules<LegendModule>('legend', (next) => {
-        chart.addLegendModule(next);
-        registerLegendThemeTemplate(next.optionsKey, next.themeTemplate);
-    }, (next) => chart.removeLegendModule(next));
+    processModules<RootModule>(
+        'root',
+        (next) => chart.addModule(next),
+        (next) => chart.removeModule(next)
+    );
+    processModules<LegendModule>(
+        'legend',
+        (next) => chart.addLegendModule(next),
+        (next) => chart.removeLegendModule(next)
+    );
 
     return modulesChanged;
 }

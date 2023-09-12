@@ -794,10 +794,7 @@ export class Legend {
 
         if (toggleSeriesVisible) {
             const legendData = chartSeries.reduce(
-                (ls, s) => [
-                    ...ls,
-                    ...s.getLegendData('category'),
-                ],
+                (ls, s) => [...ls, ...s.getLegendData('category')],
                 [] as CategoryLegendDatum[]
             );
 
