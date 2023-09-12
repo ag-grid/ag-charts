@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Usage:
 # ./tools/bump-versions.sh 9.0.0-beta.7
@@ -22,4 +22,4 @@ for package in ${PACKAGES[@]}; do
 done
 
 # Ensure consistent package.json formatting.
-npx nx format
+npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
