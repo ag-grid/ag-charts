@@ -51,8 +51,10 @@ const options: AgChartOptions = {
       },
     },
   ],
-  seriesAreaPadding: {
-    left: 40,
+  seriesArea: {
+    padding: {
+      left: 40,
+    }
   },
   tooltip: {
     range: "exact",
