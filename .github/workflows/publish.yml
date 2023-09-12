@@ -12,40 +12,33 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Cache node_modules
-              id: cache
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      node_modules/
-                      packages/*/node_modules/
-                      !node_modules/.cache/
-                      !packages/*/node_modules/.cache/
-                  key: node_modules-${{hashFiles('yarn.lock')}}
-                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
-            - name: Cache Nx
-              uses: actions/cache@v3
-              with:
-                  path: node_modules/.cache/nx
-                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
-                  restore-keys: |
-                      cache-nx-${{ hashFiles('yarn.lock') }}-
             - name: Setup Node.js
               id: setup_node
               uses: actions/setup-node@v3
               with:
                   node-version: '18'
-                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
-                  registry-url: 'http://54.194.75.252:4873/'
-            - name: yarn install
-              if: steps.cache.outputs.cache-hit != 'true'
-              id: yarn_install
-              run: yarn install --ci --prefer-offline
 
-            - run: nx pack --prod
-            - run: |
-                  for package in (ag-charts-community ag-charts-enterprise ag-charts-angular ag-charts-react ag-charts-vue ag-charts-vue3) ; do
-                      yarn publish dist/packages/${package}.tgz --tag beta
-                  done
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            - name: Calculate Next Beta Version
+              id: next_version
+              run: |
+                  NEW_VERSION=$(node ./tools/calculate-next-version.js)
+                  echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+                  echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+                  echo "tag=b${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+            - name: Bump Beta Package Version
+              run: ./tools/bump-versions.sh $(node ./tools/calculate-next-version.js)
+
+            - name: Commit Changes
+              uses: EndBug/add-and-commit@v9
+              if: success()
+              with:
+                  default_author: github_actions
+                  message: Automated package version bump to ${{ steps.next_version.outputs.version }}.
+
+            - name: Tag Latest Successful Commit
+              uses: EndBug/latest-tag@latest
+              if: success()
+              with:
+                  ref: ${{ steps.next_version.outputs.tag }}
+                  description: Latest commit to pass GitHub Actions workflow on latest branch.
