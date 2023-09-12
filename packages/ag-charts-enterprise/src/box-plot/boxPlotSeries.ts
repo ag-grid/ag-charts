@@ -358,7 +358,9 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     getTooltipHtml(_seriesDatum: any): string {
-        return '';
+        // TODO remove when implementing the tooltip
+        this.tooltip.enabled = false;
+        return '<span>Tooltip Placeholder</span>';
     }
 
     protected isLabelEnabled(): boolean {
@@ -378,17 +380,41 @@ export class BoxPlotSeries extends CartesianSeries<
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
-        const insertAxes = this.direction === 'vertical';
-        opts.datumSelection.each((boxPlot, datum) => {
-            let format: AgBoxPlotSeriesFormat | undefined;
-            if (this.formatter) {
-                format = this.ctx.callbackCache.call(this.formatter, {
-                    ...datum,
-                    seriesId: this.id,
+        const {
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            direction,
+            formatter,
+            id: seriesId,
+            ctx: { callbackCache },
+        } = this;
+        const invertAxes = direction === 'vertical';
+        opts.datumSelection.each((boxPlotGroup, selectDatum) => {
+            let formatStyles: AgBoxPlotSeriesFormat | undefined;
+            const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = selectDatum;
+            if (formatter) {
+                formatStyles = callbackCache.call(formatter, {
+                    datum,
+                    xKey,
+                    minKey,
+                    q1Key,
+                    medianKey,
+                    q3Key,
+                    maxKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    seriesId,
                     highlighted: false,
                 });
             }
-            boxPlot.updateDatumStyles(datum, format, insertAxes);
+            boxPlotGroup.updateDatumStyles(selectDatum, formatStyles, invertAxes);
         });
     }
 
