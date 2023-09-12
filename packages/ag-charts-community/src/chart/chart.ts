@@ -54,6 +54,7 @@ import { DataController } from './data/dataController';
 import { SeriesStateManager } from './series/seriesStateManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesOptionsTypes } from './mapping/types';
+import { Legend } from './legend';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
@@ -121,10 +122,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     readonly scene: Scene;
     readonly seriesRoot = new Group({ name: `${this.id}-Series-root` });
     legend: ChartLegend | undefined;
-
-    // getActiveLegend(): ChartLegend | undefined {
-    //     return this.legends[this.legendType ?? ''];
-    // }
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -365,6 +362,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.zoomManager.addListener('zoom-change', (_) =>
             this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true })
         );
+
+        this.attachLegend('category', 'legend', Legend);
     }
 
     addModule(module: RootModule) {
@@ -385,19 +384,24 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private legends: Record<string, ChartLegend> = {};
+    private legendsKeys: Record<string, string> = {};
+
+    private attachLegend(legendType: string, legendKey: string, legendConstructor: new (moduleContext: ModuleContext) => ChartLegend) {
+        const legend = new legendConstructor(this.getModuleContext());
+        (this as any)[legendKey] = legend;
+        this.legends[legendType] = legend;
+        this.legendsKeys[legendType] = legendKey;
+        legend.attachLegend(this.scene.root);
+        return legend;
+    }
 
     addLegendModule(module: LegendModule) {
         if (this.modules[module.optionsKey] != null) {
             throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
         }
 
-        const legend = new module.instanceConstructor(this.getModuleContext());
+        const legend = this.attachLegend(module.identifier, module.optionsKey, module.instanceConstructor);
         this.modules[module.optionsKey] = { instance: legend };
-
-        (this as any)[module.optionsKey] = legend;
-
-        this.legends[module.identifier] = legend;
-        legend.attachLegend(this.scene.root);
     }
 
     removeLegendModule(module: LegendModule) {
@@ -405,6 +409,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         delete this.modules[module.optionsKey];
         delete (this as any)[module.optionsKey];
         delete this.legends[module.identifier];
+        delete this.legendsKeys[module.identifier];
     }
 
     isModuleEnabled(module: Module) {
@@ -913,14 +918,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return new Map(labels.map((l, i) => [visibleSeries[i], l]));
     }
 
-    private applyLegendOptions?: (legend: ChartLegend) => void = undefined;
+    private applyLegendOptions?: (legendKey: string, legend: ChartLegend) => void = undefined;
 
-    setLegendInit(initLegend: (legend: ChartLegend) => void) {
+    setLegendInit(initLegend: (legendKey: string, legend: ChartLegend) => void) {
         this.applyLegendOptions = initLegend;
     }
 
     private async updateLegend() {
         Object.entries(this.legends).forEach(([legendType, legend]) => {
+            const legendKey = this.legendsKeys[legendType] ?? 'legend';
             const legendData: ChartLegendDatum[] = [];
             this.series
                 .filter((s) => s.showInLegend)
@@ -928,7 +934,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     const data = series.getLegendData(legendType);
                     legendData.push(...data);
                 });
-            this.applyLegendOptions?.(legend);
+            this.applyLegendOptions?.(legendKey, legend);
 
             if (legendType === 'category') {
                 this.validateLegendData(legendData);

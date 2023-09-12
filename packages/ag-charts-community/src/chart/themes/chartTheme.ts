@@ -688,9 +688,9 @@ export class ChartTheme {
 
         const getChartTypeDefaults = (chartType: ChartType) => {
             return {
+                ...getLegendThemeTemplates(),
                 ...ChartTheme.getChartDefaults(),
                 ...getChartDefaults(chartType),
-                ...getLegendThemeTemplates(),
             };
         };
 

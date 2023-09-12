@@ -525,8 +525,8 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
 
 function applyLegend(chart: Chart, options: AgChartOptions) {
     const skip = ['listeners'];
-    chart.setLegendInit((legend) => {
-        applyOptionValues(legend, options.gradientLegend ?? options.legend ?? {}, { skip });
+    chart.setLegendInit((legendKey, legend) => {
+        applyOptionValues(legend, (options as any)[legendKey] ?? {}, { skip });
         if (chart.legend && options.legend?.listeners) {
             Object.assign(chart.legend.listeners!, options.legend.listeners);
         }
