@@ -16,17 +16,37 @@ function selectionHasChanged({
     return JSON.stringify(newSelection.path) !== JSON.stringify(selection.path);
 }
 
+function scrollToId(id?: string) {
+    // Scroll to top to reset scroll position
+    smoothScrollIntoView('#top');
+
+    if (id) {
+        // Wait for one render cycle before scrolling to position
+        setTimeout(() => {
+            smoothScrollIntoView(`#${id}`);
+        }, 0);
+    }
+}
+
 export function useJsObjectSelection({ model }: { model: JsonModel }) {
-    const [topLevelSelection, setTopLevelSelection] = useState<JsObjectSelection>(
-        getTopSelection({ model, hideChildren: true })
-    );
+    const rootSelection = getTopSelection({ model, hideChildren: true });
+    const [topLevelSelection, setTopLevelSelection] = useState<JsObjectSelection>(rootSelection);
+    const [selection, setSelection] = useState<JsObjectSelection>(rootSelection);
 
     const handleSelection = useCallback(
         (newSelection: JsObjectSelection) => {
             const { path } = newSelection;
             const isTopLevelSelection = path.length === 0;
+            const newPropertyType = newSelection.model?.desc?.type;
 
-            if (isTopLevelSelection) {
+            if (isTopLevelSelection && newPropertyType === 'primitive') {
+                // Scroll to position, rather than filtering
+                setTopLevelSelection(rootSelection);
+                setSelection(rootSelection);
+
+                const id = getSelectionReferenceId(newSelection);
+                scrollToId(id);
+            } else if (isTopLevelSelection) {
                 const { propName } = newSelection as JsObjectSelectionProperty;
                 const shouldHideChildren = TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN.includes(propName);
                 const shouldLimitChildren = TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN.includes(propName);
@@ -42,6 +62,7 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
                         ? shouldLimitChildrenDepth
                         : newSelection.onlyShowToDepth;
                 setTopLevelSelection({ ...newSelection, onlyShowToDepth });
+                setSelection(newSelection);
                 smoothScrollIntoView('#top');
             } else {
                 try {
@@ -58,24 +79,22 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
                             });
                         }
                     }
+                    // NOTE: Don't change top level selection, as it hasn't changed
+                    setSelection(newSelection);
 
                     const id = getSelectionReferenceId(newSelection);
-                    // Scroll to top to reset scroll position
-                    smoothScrollIntoView('#top');
-                    // Wait for one render cycle before scrolling to position
-                    setTimeout(() => {
-                        smoothScrollIntoView(`#${id}`);
-                    }, 0);
+                    scrollToId(id);
                 } catch (error) {
                     // eslint-disable-next-line no-console
-                    console.warn(error, { topLevelSelection, newSelection });
+                    console.warn(error, { topLevelSelection, selection, newSelection });
                 }
             }
         },
-        [topLevelSelection]
+        [topLevelSelection, selection]
     );
 
     return {
+        selection,
         topLevelSelection,
         handleSelection,
     };
