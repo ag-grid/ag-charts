@@ -318,7 +318,7 @@ export class BoxPlotSeries extends CartesianSeries<
             id,
             data,
             xKey,
-            xName,
+            yName,
             showInLegend,
             visible,
             legendItemName,
@@ -336,11 +336,10 @@ export class BoxPlotSeries extends CartesianSeries<
             {
                 legendType: 'category',
                 id,
-                itemId: xKey,
                 seriesId: id,
                 enabled: visible,
                 label: {
-                    text: legendItemName ?? xName ?? xKey,
+                    text: legendItemName ?? yName ?? id,
                 },
                 legendItemName,
                 marker: { fill, stroke, fillOpacity, strokeOpacity },

@@ -15,6 +15,13 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule = {
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 
+    paletteFactory: ({ takeColors }) => {
+        const {
+            fills: [fill],
+        } = takeColors(1);
+        return { fill };
+    },
+
     swapDefaultAxesCondition({ series }) {
         const [{ direction }] = series as [AgBoxPlotSeriesOptions];
         return direction === 'vertical';
