@@ -261,8 +261,11 @@ function UnionNestedObject({
                                 toggleExpand={toggleExpand}
                                 onSelection={handleUnionNestedObjectSelection}
                                 style="unionTypeProperty"
-                            />{' '}
-                            = <DiscriminatorType discriminatorType={discriminatorType} />
+                            />
+                            <span onClick={handleUnionNestedObjectSelection}>
+                                {' '}
+                                = <DiscriminatorType discriminatorType={discriminatorType} />
+                            </span>
                         </>
                     )}
                     {!isExpanded && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
