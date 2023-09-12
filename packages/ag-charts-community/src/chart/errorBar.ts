@@ -3,9 +3,7 @@ import { OPT_STRING, Validate } from '../util/validation';
 import { Path } from '../scene/shape/path';
 import type { Point } from '../scene/point';
 
-export interface ErrorBarDatum {
-    readonly yLowerValue: any; // TODO(olegat) this should be a "continuous" type
-    readonly yUpperValue: any;
+export interface ErrorBarPoints {
     readonly yLowerPoint: Point;
     readonly yUpperPoint: Point;
 }
@@ -30,6 +28,8 @@ export class ErrorBarConfig {
 }
 
 export class ErrorBar extends Path {
+    public points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
+
     updatePath() {
         // TODO(olegat) implement, this is just placeholder draw code
         const { path } = this;
@@ -39,7 +39,7 @@ export class ErrorBar extends Path {
         this.fillOpacity = 1;
         this.strokeOpacity = 1;
 
-        const { yLowerPoint, yUpperPoint } = this.datum as ErrorBarDatum;
+        const { yLowerPoint, yUpperPoint } = this.points;
 
         path.clear();
         path.moveTo(yLowerPoint.x, yLowerPoint.y);

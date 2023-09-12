@@ -854,8 +854,8 @@ export abstract class CartesianSeries<
         seriesIdx: number;
     }): Promise<void> {
         opts.errorBarSelection.each((node, datum) => {
-            if (datum.errorBar) {
-                node.datum = datum;
+            if (datum.errorBarPoints) {
+                node.points = datum.errorBarPoints
                 node.updatePath();
             }
         });
