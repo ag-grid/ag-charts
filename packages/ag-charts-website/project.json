@@ -8,7 +8,9 @@
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "dependsOn": ["^build", "^interface-metadata", "^interface-docs"],
       "executor": "@nxtensions/astro:build",
-      "options": {},
+      "options": {
+        "silent": true
+      },
       "configurations": {
         "staging": {},
         "production": {}

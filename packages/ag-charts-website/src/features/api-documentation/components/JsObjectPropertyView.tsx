@@ -11,13 +11,16 @@ import {
 import type { JsObjectSelection, JsObjectSelectionProperty, JsObjectSelectionUnionNestedObject } from '../types';
 import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonUnionType } from '../utils/model';
 import { getPropertyType } from '../utils/getPropertyType';
-import type { Framework } from '@ag-grid-types';
 import { createUnionNestedObjectPathItemRegex, getUnionPathInfo } from '../utils/modelPath';
 import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
+import { useContext } from 'react';
+import { OptionsDataContext } from '../utils/optionsDataContext';
+import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
+import { FrameworkContext } from '../utils/frameworkContext';
+import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 
 interface Props {
     selection: JsObjectSelection;
-    framework: Framework;
     parentName?: string;
 }
 
@@ -69,6 +72,37 @@ function NameHeading({ id, name, path }: { id: string; name?: string; path: stri
     );
 }
 
+function Actions({ propName }: { propName?: string }) {
+    const framework = useContext(FrameworkContext);
+    const optionsData = useContext(OptionsDataContext);
+    const config = useContext(JsObjectPropertiesViewConfigContext);
+    const actionsData = optionsData[propName];
+    const more = actionsData?.more;
+    const hasMore = Boolean(more);
+
+    if (!actionsData || !hasMore) {
+        return null;
+    }
+
+    return (
+        <div className={styles.actions}>
+            {hasMore && more.url && !config.hideMore && (
+                <span>
+                    <span className="text-secondary">See:</span>{' '}
+                    <a
+                        href={getExamplePageUrl({
+                            path: more.url,
+                            framework,
+                        })}
+                    >
+                        {more.name}
+                    </a>
+                </span>
+            )}
+        </div>
+    );
+}
+
 function MetaList({
     propertyType,
     description,
@@ -115,14 +149,13 @@ function PrimitivePropertyView({
     name,
     model,
     path,
-    framework,
 }: {
     id: string;
     name: string;
     model: JsonModelProperty;
     path: string[];
-    framework: Framework;
 }) {
+    const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const propertyType = getPropertyType(
         (model as any).type === 'primitive' ? (model as any).tsType : model.desc.tsType
@@ -140,7 +173,7 @@ function PrimitivePropertyView({
                     className={styles.description}
                     dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
                 ></div>
-                <div className={styles.actions}></div>
+                <Actions propName={name} />
             </td>
         </tr>
     );
@@ -150,13 +183,11 @@ function NestedObjectProperties({
     parentName,
     parentPath,
     properties,
-    framework,
     onlyShowToDepth,
 }: {
     parentName?: string;
     parentPath: string[];
     properties: JsonModel['properties'];
-    framework: Framework;
     onlyShowToDepth?: number;
 }) {
     return (
@@ -169,14 +200,7 @@ function NestedObjectProperties({
                     model,
                     onlyShowToDepth,
                 };
-                return (
-                    <JsObjectPropertyView
-                        key={propName}
-                        selection={selection}
-                        framework={framework}
-                        parentName={parentName}
-                    />
-                );
+                return <JsObjectPropertyView key={propName} selection={selection} parentName={parentName} />;
             })}
         </>
     );
@@ -187,16 +211,15 @@ function NestedObjectPropertyView({
     name,
     path,
     model,
-    framework,
     onlyShowToDepth,
 }: {
     id: string;
     name?: string;
     path: string[];
     model: JsonModelProperty;
-    framework: Framework;
     onlyShowToDepth?: number;
 }) {
+    const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
     const propertyType = getPropertyType(model.desc.tsType);
@@ -219,7 +242,7 @@ function NestedObjectPropertyView({
                         className={styles.description}
                         dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
                     ></div>
-                    <div className={styles.actions}></div>
+                    <Actions propName={name} />
                 </td>
             </tr>
             {showChildren && (
@@ -227,7 +250,6 @@ function NestedObjectPropertyView({
                     parentName={name}
                     properties={properties}
                     parentPath={nestedObjectPropertiesPath}
-                    framework={framework}
                     onlyShowToDepth={onlyShowToDepth}
                 />
             )}
@@ -239,13 +261,11 @@ function UnionProperties({
     parentName,
     parentPath,
     elements,
-    framework,
     onlyShowToDepth,
 }: {
     parentName: string;
     parentPath: string[];
     elements: JsonUnionType;
-    framework: Framework;
     onlyShowToDepth?: number;
 }) {
     return elements.options.map((model, index) => {
@@ -256,14 +276,7 @@ function UnionProperties({
             model,
             onlyShowToDepth,
         };
-        return (
-            <JsObjectPropertyView
-                key={JSON.stringify(model)}
-                selection={selection}
-                framework={framework}
-                parentName={parentName}
-            />
-        );
+        return <JsObjectPropertyView key={JSON.stringify(model)} selection={selection} parentName={parentName} />;
     });
 }
 
@@ -273,7 +286,6 @@ function NestedArrayProperties({
     parentPath,
     parentModel,
     elements,
-    framework,
     onlyShowToDepth,
 }: {
     parentId: string;
@@ -281,21 +293,12 @@ function NestedArrayProperties({
     parentPath: string[];
     parentModel: JsonModelProperty;
     elements: JsonArray['elements'];
-    framework: Framework;
     onlyShowToDepth?: number;
 }) {
     const { type } = elements;
 
     if (type === 'primitive') {
-        return (
-            <PrimitivePropertyView
-                id={parentId}
-                model={parentModel}
-                name={parentName}
-                framework={framework}
-                path={parentPath}
-            />
-        );
+        return <PrimitivePropertyView id={parentId} model={parentModel} name={parentName} path={parentPath} />;
     } else if (type === 'nested-object') {
         const {
             model: { properties },
@@ -305,7 +308,6 @@ function NestedArrayProperties({
                 parentName={parentName}
                 properties={properties}
                 parentPath={parentPath}
-                framework={framework}
                 onlyShowToDepth={onlyShowToDepth}
             />
         );
@@ -315,7 +317,6 @@ function NestedArrayProperties({
                 parentName={parentName}
                 elements={elements}
                 parentPath={parentPath}
-                framework={framework}
                 onlyShowToDepth={onlyShowToDepth}
             />
         );
@@ -329,16 +330,15 @@ function ArrayPropertyView({
     name,
     path,
     model,
-    framework,
     onlyShowToDepth,
 }: {
     id: string;
     name: string;
     path: string[];
     model: JsonModelProperty;
-    framework: Framework;
     onlyShowToDepth?: number;
 }) {
+    const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
     const propertyType = getPropertyType(model.desc.tsType);
@@ -359,7 +359,7 @@ function ArrayPropertyView({
                         className={styles.description}
                         dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
                     ></div>
-                    <div className={styles.actions}></div>
+                    <Actions propName={name} />
                 </td>
             </tr>
             {showChildren && (
@@ -369,7 +369,6 @@ function ArrayPropertyView({
                     parentPath={nestedArrayPropertiesPath}
                     parentModel={model}
                     elements={elements}
-                    framework={framework}
                     onlyShowToDepth={onlyShowToDepth}
                 />
             )}
@@ -382,14 +381,13 @@ function FunctionPropertyView({
     name,
     model,
     path,
-    framework,
 }: {
     id: string;
     name: string;
     model: JsonModelProperty;
     path: string[];
-    framework: Framework;
 }) {
+    const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
     const propertyType = getPropertyType(model.desc.tsType);
@@ -406,13 +404,13 @@ function FunctionPropertyView({
                     className={styles.description}
                     dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
                 ></div>
-                <div className={styles.actions}></div>
+                <Actions propName={name} />
             </td>
         </tr>
     );
 }
 
-export function JsObjectPropertyView({ selection, framework, parentName }: Props) {
+export function JsObjectPropertyView({ selection, parentName }: Props) {
     const { type, path, model, onlyShowToDepth } = selection;
     const id = getSelectionReferenceId(selection);
 
@@ -423,7 +421,6 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                 parentName={parentName}
                 parentPath={path}
                 properties={properties}
-                framework={framework}
                 onlyShowToDepth={onlyShowToDepth}
             />
         );
@@ -432,15 +429,7 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
         const propertyType = model.desc.type;
         const propertyId = id!;
         if (propertyType === 'primitive') {
-            return (
-                <PrimitivePropertyView
-                    id={propertyId}
-                    model={model}
-                    name={propName}
-                    framework={framework}
-                    path={path}
-                />
-            );
+            return <PrimitivePropertyView id={propertyId} model={model} name={propName} path={path} />;
         } else if (propertyType === 'nested-object') {
             return (
                 <NestedObjectPropertyView
@@ -448,7 +437,6 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     name={propName}
                     path={path}
                     model={model}
-                    framework={framework}
                     onlyShowToDepth={onlyShowToDepth}
                 />
             );
@@ -459,14 +447,11 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     name={propName}
                     path={path}
                     model={model}
-                    framework={framework}
                     onlyShowToDepth={onlyShowToDepth}
                 />
             );
         } else if (propertyType === 'function') {
-            return (
-                <FunctionPropertyView id={propertyId} model={model} name={propName} framework={framework} path={path} />
-            );
+            return <FunctionPropertyView id={propertyId} model={model} name={propName} path={path} />;
         } else if (propertyType === 'union') {
             const elements = model.desc;
             return (
@@ -474,7 +459,6 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     parentName={propName}
                     elements={elements}
                     parentPath={path}
-                    framework={framework}
                     onlyShowToDepth={onlyShowToDepth}
                 />
             );
@@ -486,15 +470,7 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
         const name = parentName!;
 
         if (propertyType === 'primitive') {
-            return (
-                <PrimitivePropertyView
-                    id={unionNestedObjectId}
-                    model={model}
-                    name={name}
-                    framework={framework}
-                    path={path}
-                />
-            );
+            return <PrimitivePropertyView id={unionNestedObjectId} model={model} name={name} path={path} />;
         } else if (propertyType === 'nested-object') {
             const nestedObjectModel = {
                 desc: model,
@@ -511,7 +487,6 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     // NOTE: No `name`, as it's a union nested object
                     path={nestedObjectPath}
                     model={nestedObjectModel}
-                    framework={framework}
                     onlyShowToDepth={onlyShowToDepth}
                 />
             );
@@ -522,7 +497,6 @@ export function JsObjectPropertyView({ selection, framework, parentName }: Props
                     name={name}
                     path={path}
                     model={model}
-                    framework={framework}
                     onlyShowToDepth={onlyShowToDepth}
                 />
             );

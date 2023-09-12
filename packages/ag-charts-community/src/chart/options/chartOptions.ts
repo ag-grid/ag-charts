@@ -1,5 +1,8 @@
 import type { AgChartBackgroundImage } from '../background/backgroundOptions';
+import type { AgAnimationOptions } from '../interaction/animationOptions';
+import type { AgContextMenuOptions } from './contextOptions';
 import type { AgBaseChartListeners } from './eventOptions';
+import type { AgChartLegendOptions } from './legendOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextWrap } from './types';
 
@@ -103,6 +106,12 @@ export interface AgBaseThemeableChartOptions {
     highlight?: AgChartHighlightOptions;
     /** HTML overlays */
     overlays?: AgChartOverlaysOptions;
+    /** Global configuration that applies to all tooltips in the chart. */
+    tooltip?: AgChartTooltipOptions;
+    /** Configuration for the chart legend. */
+    legend?: AgChartLegendOptions;
+    animation?: AgAnimationOptions;
+    contextMenu?: AgContextMenuOptions;
 }
 
 /** Configuration common to all charts.  */
@@ -117,8 +126,6 @@ export interface AgBaseChartOptions<TData = any[]> extends AgBaseThemeableChartO
     height?: PixelSize;
     /** By default, the chart will resize automatically to fill the container element. Set this to `false` to disable this behaviour. If `width` or `height` are specified, auto-sizing will be active for the other unspecified dimension.<br/><strong>Important:</strong> if this config is set to `true`, make sure to give the chart's `container` element an explicit size, otherwise you will run into a chicken and egg situation where the container expects to size itself according to the content and the chart expects to size itself according to the container. */
     autoSize?: boolean;
-    /** Global configuration that applies to all tooltips in the chart. */
-    tooltip?: AgChartTooltipOptions;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners;
 }

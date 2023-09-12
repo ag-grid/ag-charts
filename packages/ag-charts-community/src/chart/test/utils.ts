@@ -5,14 +5,21 @@ import * as pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import * as fs from 'fs';
 
-import { Chart } from '../chart';
-import { CartesianChart } from '../cartesianChart';
-import { PolarChart } from '../polarChart';
-import { HierarchyChart } from '../hierarchyChart';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions, AgPolarChartOptions } from '../agChartOptions';
-import { AnimationManager } from '../interaction/animationManager';
-import { resetIds } from '../../util/id';
+import { _ModuleSupport, type _Scene } from '../../main';
 import * as mockCanvas from './mock-canvas';
+
+const { AnimationManager, resetIds } = _ModuleSupport;
+
+type Chart = {
+    autoSize: boolean;
+    width: number;
+    height: number;
+    scene: _Scene.Scene;
+    axes: { type: 'string' }[];
+    series: { type: 'string' }[];
+    waitForUpdate: (timeoutMs: number) => Promise<void>;
+};
 
 export interface TestCase {
     options: AgChartOptions;
@@ -44,7 +51,8 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
 }
 
 export function deproxy(chartOrProxy: Chart | AgChartInstance): Chart {
-    const isChartInstance = chartOrProxy instanceof Chart || (chartOrProxy as any)?.className != null;
+    const isChartInstance =
+        chartOrProxy?.constructor?.name !== 'AgChartInstanceProxy' || (chartOrProxy as any)?.className != null;
     return isChartInstance ? (chartOrProxy as any) : (chartOrProxy as any).chart;
 }
 
@@ -130,7 +138,7 @@ export function cartesianChartAssertions(params?: { type?: string; axisTypes?: s
 
     return async (chartOrProxy: Chart | AgChartInstance) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart).toBeInstanceOf(CartesianChart);
+        expect(chart?.constructor?.name).toEqual('CartesianChart');
         expect(chart.axes).toHaveLength(axisTypes.length);
         expect(chart.axes.map((a) => a.type)).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
@@ -142,7 +150,7 @@ export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return async (chartOrProxy: Chart | AgChartInstance) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart).toBeInstanceOf(PolarChart);
+        expect(chart?.constructor?.name).toEqual('PolarChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -153,7 +161,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return async (chartOrProxy: Chart | AgChartInstance) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart).toBeInstanceOf(HierarchyChart);
+        expect(chart?.constructor?.name).toEqual('HierarchyChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };

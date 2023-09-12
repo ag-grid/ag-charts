@@ -3,11 +3,9 @@ import styles from './ApiDocumentation.module.scss';
 import type { FunctionComponent, ReactNode } from 'react';
 import type { JsObjectSelection } from '../types';
 import { JsObjectPropertyView } from './JsObjectPropertyView';
-import type { Framework } from '@ag-grid-types';
 
 interface Props {
     selection: JsObjectSelection;
-    framework: Framework;
 }
 
 function JsObjectDetailsContainer({ children }: { children: ReactNode }) {
@@ -20,10 +18,10 @@ function JsObjectDetailsContainer({ children }: { children: ReactNode }) {
     );
 }
 
-export const JsObjectDetails: FunctionComponent<Props> = ({ selection, framework }) => {
+export const JsObjectDetails: FunctionComponent<Props> = ({ selection }) => {
     return (
         <JsObjectDetailsContainer>
-            <JsObjectPropertyView selection={selection} framework={framework} />
+            <JsObjectPropertyView selection={selection} />
             {/* For debugging
             <tr>
                 <td colSpan={2}>

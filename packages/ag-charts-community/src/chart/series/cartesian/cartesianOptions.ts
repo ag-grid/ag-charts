@@ -1,18 +1,15 @@
-import type { AgAnimationOptions } from '../../interaction/animationOptions';
 import type {
     AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
     AgBaseAxisOptions,
     AgBaseAxisLabelOptions,
 } from '../../options/axisOptions';
-import type { AgContextMenuOptions } from '../../options/contextOptions';
 import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
     AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
 } from '../../options/crossLineOptions';
-import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
 import type { AgNavigatorOptions } from '../../options/navigatorOptions';
 import type { PixelSize, Ratio } from '../../options/types';
 import type { AgZoomOptions } from '../../options/zoomOptions';
@@ -46,13 +43,7 @@ export interface AgBaseCartesianChartOptions {
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
     series?: AgCartesianSeriesOptions[];
-    /** Configuration for the chart legend. */
-    legend?: AgCartesianChartLegendOptions;
-    /** Configuration for the chart navigator. */
-    navigator?: AgNavigatorOptions;
 
-    animation?: AgAnimationOptions;
-    contextMenu?: AgContextMenuOptions;
     /** Configuration for zoom. */
     zoom?: AgZoomOptions;
 }
@@ -146,8 +137,6 @@ export interface AgCartesianAxisThemeOptions<T> {
 export interface AgBaseCartesianThemeOptions extends AgBaseThemeableChartOptions {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
-    /** Configuration for the chart legend. */
-    legend?: AgCartesianChartLegendOptions;
     /** Configuration for the chart navigator. */
     navigator?: AgNavigatorOptions;
 }
@@ -188,11 +177,6 @@ export interface AgTimeAxisThemeOptions
         AgCartesianAxisThemeOptions<AgTimeAxisOptions>,
         AgCartesianAxesCrossLineThemeOptions {}
 
-export interface AgCartesianChartLegendOptions extends AgChartBaseLegendOptions {
-    /** Whether or not to show the legend. By default, the chart displays a legend when there is more than one series present. */
-    enabled?: boolean;
-}
-
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
@@ -200,11 +184,6 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     position?: AgCrossLineLabelPosition;
     /** The rotation of the crossLine label in degrees. */
     rotation?: number;
-}
-
-export interface AgCartesianChartLegendOptions extends AgChartBaseLegendOptions {
-    /** Whether or not to show the legend. By default, the chart displays a legend when there is more than one series present. */
-    enabled?: boolean;
 }
 
 export interface AgAxisCategoryTickOptions extends AgAxisBaseTickOptions {}

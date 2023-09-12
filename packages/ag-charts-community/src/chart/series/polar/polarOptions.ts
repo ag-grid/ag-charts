@@ -1,6 +1,3 @@
-import type { AgAnimationOptions } from '../../interaction/animationOptions';
-import type { AgContextMenuOptions } from '../../options/contextOptions';
-import type { AgChartBaseLegendOptions } from '../../options/legendOptions';
 import type { AgPieSeriesOptions } from './pieOptions';
 import type { AgAngleCategoryAxisOptions } from '../../options/polarAxisOptions';
 import type { AgRadiusNumberAxisOptions } from '../../options/radiusAxisOptions';
@@ -21,21 +18,17 @@ export type AgPolarAxisOptions = AgAngleCategoryAxisOptions | AgRadiusNumberAxis
 export interface AgBasePolarChartOptions {
     /** Series configurations. */
     series?: AgPolarSeriesOptions[];
-    /** Configuration for the chart legend. */
-    legend?: AgPolarChartLegendOptions;
 
-    animation?: AgAnimationOptions;
-    contextMenu?: AgContextMenuOptions;
     /** Axis configurations. */
     axes?: AgPolarAxisOptions[];
 }
 
-export interface AgBasePolarThemeOptions extends AgBaseThemeableChartOptions {
-    /** Configuration for the chart legend. */
-    legend?: AgPolarChartLegendOptions;
+export interface AgPolarAxesTheme {
+    'angle-category': AgAngleCategoryAxisOptions;
+    'radius-number': AgRadiusNumberAxisOptions;
 }
 
-export interface AgPolarChartLegendOptions extends AgChartBaseLegendOptions {
-    /** Whether or not to show the legend. The legend is shown by default. */
-    enabled?: boolean;
+export interface AgBasePolarThemeOptions extends AgBaseThemeableChartOptions {
+    /** Axis configurations. */
+    axes?: AgPolarAxesTheme;
 }

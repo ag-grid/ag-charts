@@ -155,27 +155,25 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
     if ('axes' in mergedOptions) {
         let validAxesTypes = true;
         for (const { type: axisType } of mergedOptions.axes ?? []) {
-            if (!checkAxisType(axisType)) {
-                validAxesTypes = false;
-            }
+            validAxesTypes = validAxesTypes && checkAxisType(axisType);
         }
 
-        if (!validAxesTypes) {
-            mergedOptions.axes = (defaultOverrides as AgCartesianChartOptions).axes;
-        } else {
-            mergedOptions.axes = mergedOptions.axes?.map((axis: any) => {
-                const axisType = axis.type;
-                const axisDefaults = (defaultOverrides as AgCartesianChartOptions).axes?.find(
+        const axisSource = validAxesTypes ? mergedOptions.axes : (defaultOverrides as AgCartesianChartOptions).axes;
+        mergedOptions.axes = axisSource?.map((axis: any) => {
+            const axisType = axis.type;
+            let axisDefaults: {} | undefined;
+            if (validAxesTypes) {
+                axisDefaults = (defaultOverrides as AgCartesianChartOptions).axes?.find(
                     ({ type }) => type === axisType
                 );
-                const axesTheme = jsonMerge([
-                    axesThemes[axisType] ?? {},
-                    axesThemes[axisType]?.[axis.position ?? 'unknown'] ?? {},
-                    axisDefaults ?? {},
-                ]);
-                return prepareAxis(axis, axesTheme);
-            });
-        }
+            }
+            const axesTheme = jsonMerge([
+                axesThemes[axisType] ?? {},
+                axesThemes[axisType]?.[axis.position ?? 'unknown'] ?? {},
+                axisDefaults,
+            ]);
+            return prepareAxis(axis, axesTheme);
+        });
         prepareLegendEnabledOption<T>(options, mergedOptions);
     }
 
