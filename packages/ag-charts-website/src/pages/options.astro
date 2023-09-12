@@ -28,24 +28,65 @@ const menuItems = [
     },
 ];
 
+const dummySeries = [
+    'All',
+    'Bar',
+    'Column',
+    'Line',
+    'Area',
+    'Scatter',
+    'Bubble',
+    'Pie',
+    'Donut',
+    'Combination',
+    'Histogram',
+    'Heatmap',
+    'Range',
+    'Box Plot',
+    'Error Bar',
+    'Waterfall',
+    'Radar',
+    'Nightingale',
+    'Radial Column',
+    'Radial Bar',
+    'Treemap',
+    'Sunburst',
+    'Icicle',
+    'Funnel',
+    'Pyramid',
+    'Bullet',
+];
+
 // TODO: Use `AgChartOptions`
 const interfaceName = 'AgCartesianChartOptions';
 ---
 
 <Layout>
     <div class="topBar">
-        <div class="page-margin">
-            <ul class="topBarInner list-style-none">
-                {
-                    menuItems.map(({ name, url }) => {
-                        return (
-                            <li>
-                                <a href={urlWithBaseUrl(url)}>{name}</a>
-                            </li>
-                        );
-                    })
-                }
-            </ul>
+        <div class="topBarInner page-margin">
+            <nav>
+                <ul class="list-style-none">
+                    {
+                        menuItems.map(({ name, url }) => {
+                            return (
+                                <li>
+                                    <a href={urlWithBaseUrl(url)}>{name}</a>
+                                </li>
+                            );
+                        })
+                    }
+                </ul>
+            </nav>
+            <label
+                >Series:
+                <select>
+                    {
+                        dummySeries.map((series) => {
+                            return <option>{series}</option>;
+                        })
+                    };
+                </select>
+            </label>
         </div>
     </div>
     <div class="container">
@@ -87,19 +128,15 @@ const interfaceName = 'AgCartesianChartOptions';
     }
 
     .topBarInner {
-        position: relative;
         display: flex;
-        flex-wrap: wrap;
-        gap: $size-1;
+        justify-content: space-between;
+        align-items: center;
         padding-top: $size-1;
         padding-bottom: $size-1;
+    }
 
+    nav ul {
+        display: flex;
         gap: $size-3;
-    }
-
-    .menu {
-    }
-
-    .content {
     }
 </style>

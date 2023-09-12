@@ -13,9 +13,33 @@ $indent: 24px;
     cursor: pointer;
 }
 
+.expandableSnippet,
+.expandableSnippet pre,
+.expandableSnippet pre > code {
+    --sticky-offset: 56px; // top bar height
+
+    min-height: calc(100vh - var(--sticky-offset));
+}
+
+.expandableSnippet {
+    position: sticky;
+    top: var(--sticky-offset);
+    width: 420px;
+    height: calc(100vh - var(--sticky-offset));
+    overflow-y: auto;
+}
+
+.expandableSnippet pre {
+    margin-bottom: 0;
+    border-radius: 0;
+    border: none;
+}
+
 .expandableSnippet pre > code {
     --code-line-height: calc(28 / 16);
 
+    padding-top: calc(var(--code-line-height) * 2 * 1em);
+    padding-bottom: calc(var(--code-line-height) * 4 * 1em);
     line-height: var(--code-line-height);
     background-size: 1px calc(1em * var(--code-line-height) * 2);
 }

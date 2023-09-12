@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import type { FunctionComponent } from 'react';
 import { JsObjectView } from './JsObjectView';
 import styles from './JsObjectProperties.module.scss';
@@ -25,11 +26,13 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     return (
         <div className={styles.container}>
             <JsObjectPropertiesViewConfigContext.Provider value={config}>
-                <JsObjectView breadcrumbs={breadcrumbs} handleSelection={handleSelection} model={model} />
+                <div className={styles.objectViewOuter}>
+                    <JsObjectView breadcrumbs={breadcrumbs} handleSelection={handleSelection} model={model} />
+                </div>
 
                 <FrameworkContext.Provider value={framework}>
                     <OptionsDataContext.Provider value={optionsData}>
-                        <div className="font-size-responsive">
+                        <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
                             {heading && (
                                 <header>
                                     <h1 className="font-size-gigantic">{heading}</h1>
