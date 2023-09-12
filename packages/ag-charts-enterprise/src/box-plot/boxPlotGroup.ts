@@ -1,5 +1,5 @@
-import type { AgBoxPlotSeriesFormat, AgBoxPlotWhiskerOptions } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { BoxPlotStyleOptions, _ModuleSupport } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 enum GroupTags {
@@ -9,22 +9,6 @@ enum GroupTags {
     Whisker,
     Cap,
 }
-
-const seriesFormatKeys: (keyof AgBoxPlotSeriesFormat)[] = [
-    'fill',
-    'fillOpacity',
-    'stroke',
-    'strokeWidth',
-    'strokeOpacity',
-];
-
-const whiskerFormatKeys: (keyof AgBoxPlotWhiskerOptions)[] = [
-    'stroke',
-    'strokeWidth',
-    'strokeOpacity',
-    'lineDash',
-    'lineDashOffset',
-];
 
 export class BoxPlotGroup extends _Scene.Group {
     constructor() {
@@ -41,20 +25,24 @@ export class BoxPlotGroup extends _Scene.Group {
         ]);
     }
 
-    updateDatumStyles(datum: BoxPlotNodeDatum, formatOverrides: AgBoxPlotSeriesFormat = {}, invertAxes = false) {
+    updateDatumStyles(
+        datum: BoxPlotNodeDatum,
+        activeStyles: _ModuleSupport.DeepRequired<BoxPlotStyleOptions>,
+        invertAxes = false
+    ) {
+        const { xValue: axisValue, minValue, q1Value, medianValue, q3Value, maxValue, bandwidth } = datum;
+
         const {
-            xValue: axisValue,
-            whisker: whiskerOptions,
-            minValue,
-            q1Value,
-            medianValue,
-            q3Value,
-            maxValue,
-            bandwidth,
-            cap,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
             lineDash,
             lineDashOffset,
-        } = datum;
+            cap,
+            whisker: whiskerStyles,
+        } = activeStyles;
 
         const selection = _Scene.Selection.select(this, _Scene.Rect);
         const boxes = selection.selectByTag<_Scene.Rect>(GroupTags.Box);
@@ -63,22 +51,8 @@ export class BoxPlotGroup extends _Scene.Group {
         const whiskers = selection.selectByTag<_Scene.Line>(GroupTags.Whisker);
         const caps = selection.selectByTag<_Scene.Line>(GroupTags.Cap);
 
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = _ModuleSupport.defaultsByKeys(
-            seriesFormatKeys,
-            formatOverrides,
-            datum
-        );
-
-        const whiskerProperties = _ModuleSupport.defaultsByKeys(whiskerFormatKeys, whiskerOptions, {
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        });
-
-        if (whiskerProperties.strokeWidth > bandwidth) {
-            whiskerProperties.strokeWidth = bandwidth;
+        if (whiskerStyles.strokeWidth > bandwidth) {
+            whiskerStyles.strokeWidth = bandwidth;
         }
 
         const capStart = Math.round(axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2);
@@ -117,14 +91,14 @@ export class BoxPlotGroup extends _Scene.Group {
 
             whiskers[0].setProperties({
                 x: Math.floor(axisValue + bandwidth / 2),
-                y1: Math.round(minValue - whiskerProperties.strokeWidth / 2),
+                y1: Math.round(minValue - whiskerStyles.strokeWidth / 2),
                 y2: q1Value,
             });
 
             whiskers[1].setProperties({
                 x: Math.floor(axisValue + bandwidth / 2),
                 y1: q3Value,
-                y2: Math.round(maxValue + whiskerProperties.strokeWidth / 2),
+                y2: Math.round(maxValue + whiskerStyles.strokeWidth / 2),
             });
         } else {
             outline.setProperties({ x: q1Value, y: axisValue, width: q3Value - q1Value, height: bandwidth });
@@ -158,14 +132,14 @@ export class BoxPlotGroup extends _Scene.Group {
             caps[1].setProperties({ x: maxValue, y1: capStart, y2: capEnd });
 
             whiskers[0].setProperties({
-                x1: Math.round(minValue + whiskerProperties.strokeWidth / 2),
+                x1: Math.round(minValue + whiskerStyles.strokeWidth / 2),
                 x2: q1Value,
                 y: Math.floor(axisValue + bandwidth / 2),
             });
 
             whiskers[1].setProperties({
                 x1: q3Value,
-                x2: Math.round(maxValue - whiskerProperties.strokeWidth / 2),
+                x2: Math.round(maxValue - whiskerStyles.strokeWidth / 2),
                 y: Math.floor(axisValue + bandwidth / 2),
             });
         }
@@ -179,7 +153,7 @@ export class BoxPlotGroup extends _Scene.Group {
 
         // stroke only elements
         for (const element of [...whiskers, ...caps]) {
-            element.setProperties(whiskerProperties);
+            element.setProperties(whiskerStyles);
         }
 
         outline.setProperties({ stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, fillOpacity: 0 });

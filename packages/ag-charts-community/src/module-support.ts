@@ -1,10 +1,12 @@
 export * from './util/validation';
 export * from './util/default';
+export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
 export * from './util/module';
 export * from './util/moduleContext';
 export * from './util/navigator-module';
 export * from './util/object';
 export * from './util/proxy';
+export * from './util/types';
 export * from './chart/background/backgroundModule';
 export * from './chart/chartAxisDirection';
 export { assignJsonApplyConstructedArray } from './chart/chartOptions';

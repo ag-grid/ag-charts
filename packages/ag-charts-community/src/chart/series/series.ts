@@ -11,6 +11,7 @@ import {
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
+    OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
     STRING,
@@ -228,6 +229,15 @@ export class SeriesItemHighlightStyle {
 
     @Validate(OPT_NUMBER(0))
     strokeWidth?: number = undefined;
+
+    @Validate(OPT_NUMBER(0, 1))
+    strokeOpacity?: number = undefined;
+
+    @Validate(OPT_LINE_DASH)
+    lineDash?: number[] = undefined;
+
+    @Validate(OPT_NUMBER(0))
+    lineDashOffset?: number = undefined;
 }
 
 class SeriesHighlightStyle {

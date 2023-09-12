@@ -11,7 +11,9 @@ import type { BoxPlotNodeDatum } from './boxPlotTypes';
 const {
     CartesianSeries,
     ChartAxisDirection,
+    extractDecoratedProperties,
     keyProperty,
+    mergeDefaults,
     NUMBER,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
@@ -376,7 +378,10 @@ export class BoxPlotSeries extends CartesianSeries<
         return datumSelection.update(data);
     }
 
-    protected async updateDatumNodes(opts: {
+    protected async updateDatumNodes({
+        datumSelection,
+        isHighlight: highlighted,
+    }: {
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -393,28 +398,67 @@ export class BoxPlotSeries extends CartesianSeries<
             ctx: { callbackCache },
         } = this;
         const invertAxes = direction === 'vertical';
-        opts.datumSelection.each((boxPlotGroup, selectDatum) => {
-            let formatStyles: AgBoxPlotSeriesFormat | undefined;
-            const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = selectDatum;
+        datumSelection.each((boxPlotGroup, selectDatum) => {
+            const {
+                datum,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cap,
+                whisker,
+            } = selectDatum;
+
+            let activeStyles: AgBoxPlotSeriesFormat = {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cap: extractDecoratedProperties(cap),
+                whisker: extractDecoratedProperties(whisker),
+            };
+
             if (formatter) {
-                formatStyles = callbackCache.call(formatter, {
+                const formatStyles = callbackCache.call(formatter, {
                     datum,
+                    seriesId,
+                    highlighted,
+                    ...activeStyles,
                     xKey,
                     minKey,
                     q1Key,
                     medianKey,
                     q3Key,
                     maxKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    seriesId,
-                    highlighted: false,
                 });
+                if (formatStyles) {
+                    activeStyles = mergeDefaults(formatStyles, activeStyles);
+                }
             }
-            boxPlotGroup.updateDatumStyles(selectDatum, formatStyles, invertAxes);
+
+            if (highlighted) {
+                activeStyles = mergeDefaults(this.highlightStyle.item, activeStyles);
+            }
+
+            activeStyles.whisker = mergeDefaults(activeStyles.whisker ?? {}, {
+                stroke: activeStyles.stroke,
+                strokeWidth: activeStyles.strokeWidth,
+                strokeOpacity: activeStyles.strokeOpacity,
+                lineDash: activeStyles.lineDash,
+                lineDashOffset: activeStyles.lineDashOffset,
+            });
+
+            boxPlotGroup.updateDatumStyles(
+                selectDatum,
+                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesFormat>,
+                invertAxes
+            );
         });
     }
 

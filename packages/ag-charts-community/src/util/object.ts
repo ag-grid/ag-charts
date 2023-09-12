@@ -1,4 +1,4 @@
-import type { Mutable } from './types';
+import { isDecoratedObject, listDecoratedProperties } from './decorator';
 
 export function deepMerge(target: any, source: any) {
     if (isPlainObject(target) && isPlainObject(source)) {
@@ -31,12 +31,17 @@ function isPlainObject(x: any): x is Object {
     return isObject(x) && x.constructor === Object;
 }
 
-export function defaultsByKeys<T, K extends keyof T>(keys: K[], ...sources: T[]) {
-    const target = {} as T;
+export function mergeDefaults<T extends Record<string, any>>(...sources: T[]) {
+    const target: Record<string, any> = {};
     for (const source of sources) {
+        const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
         for (const key of keys) {
-            target[key] ??= source[key];
+            if (isObject(target[key]) && isObject(source[key])) {
+                target[key] = mergeDefaults(target[key], source[key]);
+            } else {
+                target[key] ??= source[key];
+            }
         }
     }
-    return target as Mutable<Required<T>>;
+    return target as T;
 }
