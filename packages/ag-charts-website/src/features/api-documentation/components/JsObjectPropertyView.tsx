@@ -18,6 +18,7 @@ import { OptionsDataContext } from '../utils/optionsDataContext';
 import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 import { FrameworkContext } from '../utils/frameworkContext';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import { LinkIcon } from '@components/link-icon/LinkIcon';
 
 interface Props {
     selection: JsObjectSelection;
@@ -65,9 +66,7 @@ function NameHeading({ id, name, path }: { id: string; name?: string; path: stri
                 {pathSeparator}
                 {displayNameSplit && <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>}
             </span>
-            <a href={`#${id}`} className="docs-header-icon">
-                <Icon name="link" />
-            </a>
+            <LinkIcon href={`#${id}`} />
         </h6>
     );
 }
