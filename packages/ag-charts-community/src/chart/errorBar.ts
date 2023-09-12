@@ -27,7 +27,7 @@ export class ErrorBarConfig {
     }
 }
 
-export class ErrorBar extends Path {
+export class ErrorBarNode extends Path {
     public points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
 
     updatePath() {

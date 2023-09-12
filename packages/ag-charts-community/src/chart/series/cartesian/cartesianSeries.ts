@@ -26,7 +26,7 @@ import { StateMachine } from '../../../motion/states';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Logger } from '../../../util/logger';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesStateManager';
-import { ErrorBar } from '../../errorBar';
+import { ErrorBarNode } from '../../errorBar';
 import type { ErrorBarConfig } from '../../errorBar';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
@@ -54,7 +54,7 @@ interface SubGroup<C extends SeriesNodeDataContext, SceneNodeType extends Node> 
     datumSelection: NodeDataSelection<SceneNodeType, C>;
     labelSelection: LabelDataSelection<Text, C>;
     markerSelection?: NodeDataSelection<Marker, C>;
-    errorBarSelection?: NodeDataSelection<ErrorBar, C>;
+    errorBarSelection?: NodeDataSelection<ErrorBarNode, C>;
 }
 interface SeriesOpts {
     pathsPerSeries: number;
@@ -345,8 +345,8 @@ export abstract class CartesianSeries<
         return new MarkerShape();
     }
 
-    protected errorBarFactory(): ErrorBar {
-        return new ErrorBar();
+    protected errorBarFactory(): ErrorBarNode {
+        return new ErrorBarNode();
     }
 
     private async updateSeriesGroups() {
@@ -843,13 +843,13 @@ export abstract class CartesianSeries<
 
     protected async updateErrorBarSelection(opts: {
         nodeData: C['nodeData'];
-        errorBarSelection: NodeDataSelection<ErrorBar, C>;
+        errorBarSelection: NodeDataSelection<ErrorBarNode, C>;
         seriesIdx: number;
-    }): Promise<NodeDataSelection<ErrorBar, C>> {
+    }): Promise<NodeDataSelection<ErrorBarNode, C>> {
         return opts.errorBarSelection.update(opts.nodeData, undefined, undefined);
     }
     protected async updateErrorBarNodes(opts: {
-        errorBarSelection: NodeDataSelection<ErrorBar, C>;
+        errorBarSelection: NodeDataSelection<ErrorBarNode, C>;
         isHighlight: boolean;
         seriesIdx: number;
     }): Promise<void> {
