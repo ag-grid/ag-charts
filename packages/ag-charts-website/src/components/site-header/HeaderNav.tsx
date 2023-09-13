@@ -21,6 +21,10 @@ const links = [
         url: pathJoin(SITE_BASE_URL, 'documentation'),
     },
     {
+        name: 'API',
+        url: pathJoin(SITE_BASE_URL, 'options'),
+    },
+    {
         name: 'Pricing',
         url: 'https://ag-grid.com/license-pricing/',
     },

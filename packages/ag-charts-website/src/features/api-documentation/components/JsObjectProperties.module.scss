@@ -1,21 +1,27 @@
 @use '../../../design-system' as *;
 
 .container {
+    --jsObjectWidth: 420px;
+
     display: flex;
-    gap: $size-4;
+    width: 100%;
+    padding-right: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
+}
 
-    > div:first-child {
-        $sticky-offset: $site-header-height + $size-4;
+.objectViewOuter {
+    --right-margin: max(#{$size-6}, calc(50vw - var(--max-page-width) / 2 - var(--jsObjectWidth)));
 
-        position: sticky;
-        top: $sticky-offset;
-        max-height: calc(100vh - #{$sticky-offset + $size-4});
-        width: min(50%, 540px);
-        flex-shrink: 0;
-        overflow-y: auto;
+    border-right: 1px solid var(--border-color);
+    min-width: var(--jsObjectWidth);
+    margin-right: var(--right-margin);
+}
 
-        pre {
-            max-height: 100%;
-        }
+.referenceOuter {
+    width: 100%;
+    margin-bottom: $size-9;
+
+    header {
+        margin-top: $size-4;
+        margin-bottom: $size-4;
     }
 }

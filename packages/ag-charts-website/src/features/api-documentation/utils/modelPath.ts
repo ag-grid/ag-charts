@@ -125,5 +125,6 @@ export function getTopSelection({
         path: [],
         model,
         onlyShowToDepth: hideChildren ? 0 : undefined,
+        isRoot: true,
     };
 }

@@ -243,6 +243,7 @@ interface JsSelectionBase {
     path: string[];
     model: JsonModelProperty;
     onlyShowToDepth?: number;
+    isRoot?: boolean;
 }
 
 export type JsModelSelectionProperty = JsSelectionBase & {
@@ -263,6 +264,14 @@ export type JsObjectSelection =
     | JsModelSelectionProperty
     | JsObjectSelectionProperty
     | JsObjectSelectionUnionNestedObject;
+
+export interface TopLevelHeaderData {
+    path: string[];
+    heading: string;
+    propertyType: string;
+    description: string;
+    descriptionWithoutDefault: string;
+}
 
 export interface JsObjectViewProps {
     model: JsonModel;

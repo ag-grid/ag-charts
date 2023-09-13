@@ -46,6 +46,18 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({ model, brea
     };
     return (
         <div className={styles.expandableSnippet} role="presentation">
+            <header>
+                <h3>Options Reference</h3>
+                <p className="text-secondary font-size-small">
+                    A comprehensive interactive explorer for the <b>AgChartOptions</b> structure.
+                </p>
+
+                <div className={styles.searchOuter}>
+                    <input className={styles.searchInput} type="search" placeholder="Search properties..." />
+                    <Icon svgClasses={styles.searchIcon} name={'search'} />
+                </div>
+            </header>
+
             <pre className={classnames('code', 'language-ts')}>
                 <code className={'language-ts'}>
                     <SelectionContext.Provider value={{ handleSelection }}>
@@ -261,8 +273,11 @@ function UnionNestedObject({
                                 toggleExpand={toggleExpand}
                                 onSelection={handleUnionNestedObjectSelection}
                                 style="unionTypeProperty"
-                            />{' '}
-                            = <DiscriminatorType discriminatorType={discriminatorType} />
+                            />
+                            <span onClick={handleUnionNestedObjectSelection}>
+                                {' '}
+                                = <DiscriminatorType discriminatorType={discriminatorType} />
+                            </span>
                         </>
                     )}
                     {!isExpanded && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}

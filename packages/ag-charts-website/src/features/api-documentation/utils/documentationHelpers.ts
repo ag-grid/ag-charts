@@ -468,3 +468,15 @@ export function splitName(name?: string) {
             return `${cv}<wbr />` + acc;
         });
 }
+
+export function formatPropertyDocumentation(model: Omit<JsonModelProperty, 'desc'>): string[] {
+    const { documentation } = model;
+    const defaultValue = model.default;
+    const result: string[] = documentation?.trim() ? [formatJsDocString(documentation.trim())] : [];
+
+    if (Object.hasOwn(model, 'default')) {
+        result.push('Default: `' + JSON.stringify(defaultValue) + '`');
+    }
+
+    return result.filter((v) => !!v?.trim());
+}

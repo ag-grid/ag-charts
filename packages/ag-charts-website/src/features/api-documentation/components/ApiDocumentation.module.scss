@@ -92,6 +92,10 @@
         font-size: var(--font-size-medium);
     }
 
+    :hover :global(a.docs-header-icon) {
+        opacity: 0.5;
+    }
+
     :global(a.docs-header-icon) {
         position: absolute;
         bottom: -0.125em;
