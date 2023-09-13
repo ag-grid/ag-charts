@@ -13,11 +13,9 @@
         "main": "packages/ag-charts-enterprise/src/main.ts",
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
         "rollupConfig": "packages/ag-charts-enterprise/rollup.config.cjs",
-        "assets": [{ "input": "./", "glob": "LICENSE.*", "output": "./" }],
         "project": "packages/ag-charts-enterprise/package.json",
         "compiler": "tsc",
-        "format": ["cjs"],
-        "generateExportsField": true
+        "format": ["cjs"]
       },
       "configurations": {
         "watch": {
@@ -78,10 +76,10 @@
       "dependsOn": ["build"],
       "outputs": ["dist/packages/ag-charts-enterprise.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-enterprise/dist",
+        "cwd": "packages/ag-charts-enterprise",
         "commands": [
-          { "command": "mkdir -p ../../../dist/packages/" },
-          { "command": "yarn pack -f ../../../dist/packages/ag-charts-enterprise.tgz" }
+          { "command": "mkdir -p ../../dist/packages/" },
+          { "command": "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz" }
         ]
       }
     }

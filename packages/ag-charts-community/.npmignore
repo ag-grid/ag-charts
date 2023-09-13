@@ -16,3 +16,4 @@ dist/**/*.test.*
 
 !dist/
 !dist/src
+dist/package.json
