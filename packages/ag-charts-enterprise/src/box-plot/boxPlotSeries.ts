@@ -394,13 +394,18 @@ export class BoxPlotSeries extends CartesianSeries<
         return false;
     }
 
+    private highlightedIds: string[] = [];
+
     protected async updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        seriesIdx: number;
     }) {
-        const { nodeData, datumSelection } = opts;
-        const data = nodeData ?? [];
-        return datumSelection.update(data);
+        const data = opts.nodeData ?? [];
+        if (opts.seriesIdx === -1) {
+            this.highlightedIds = data.map((datum) => datum.itemId);
+        }
+        return opts.datumSelection.update(data);
     }
 
     protected async updateDatumNodes({
@@ -478,6 +483,9 @@ export class BoxPlotSeries extends CartesianSeries<
                 lineDash: activeStyles.lineDash,
                 lineDashOffset: activeStyles.lineDashOffset,
             });
+
+            // hide duplicates of highlighted nodes
+            boxPlotGroup.opacity = highlighted || !this.highlightedIds.includes(selectDatum.itemId) ? 1 : 0;
 
             boxPlotGroup.updateDatumStyles(
                 selectDatum,
