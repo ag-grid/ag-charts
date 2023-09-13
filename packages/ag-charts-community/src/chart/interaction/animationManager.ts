@@ -38,6 +38,10 @@ interface AnimationThrottleOptions {
     throttleGroup?: string;
 }
 
+type AnimationWithThrottleOptions<T> =
+    | (AnimationOptions<T> & AnimationThrottleOptions)
+    | (AnimationManyOptions<T> & AnimationThrottleOptions);
+
 /**
  * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
  * preventing duplicate animations and handling their lifecycle.
@@ -227,15 +231,9 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
      * within the duration of the former animation, run this new animation to completion immediately.
      */
     public animateWithThrottle<T>(id: AnimationId, opts: AnimationOptions<T> & AnimationThrottleOptions) {
-        const throttleId = opts.throttleId ?? id;
+        const options = this.throttle<T, AnimationOptions<T> & AnimationThrottleOptions>(id, opts);
 
-        if (this.throttles[throttleId] && opts.duration && Date.now() - this.throttles[throttleId] < opts.duration) {
-            opts.delay = 0;
-            opts.duration = 1;
-        }
-
-        this.throttles[throttleId] = Date.now();
-        this.animate(id, { ...opts });
+        this.animate(id, options);
     }
 
     /**
@@ -250,6 +248,12 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         props: Array<Pick<AnimationOptions<T>, 'from' | 'to'>>,
         opts: AnimationManyOptions<T> & AnimationThrottleOptions
     ) {
+        const options = this.throttle<T, AnimationManyOptions<T> & AnimationThrottleOptions>(id, opts);
+
+        return this.animateMany(id, props, options);
+    }
+
+    private throttle<T, OT extends AnimationWithThrottleOptions<T>>(id: AnimationId, opts: OT) {
         const { throttleGroup } = opts;
         const throttleId = opts.throttleId ?? id;
 
@@ -277,7 +281,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         this.throttles[throttleId] = now;
 
-        return this.animateMany(id, props, { ...opts, onStop });
+        return { ...opts, onStop };
     }
 
     public defaultDuration() {
