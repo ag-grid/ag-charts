@@ -1,5 +1,5 @@
-import type { BoxPlotStyleOptions, _ModuleSupport } from 'ag-charts-community';
-import { _Scene } from 'ag-charts-community';
+import type { BoxPlotStyleOptions } from 'ag-charts-community';
+import { _Scene, _ModuleSupport } from 'ag-charts-community';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 enum GroupTags {
@@ -30,7 +30,12 @@ export class BoxPlotGroup extends _Scene.Group {
         activeStyles: _ModuleSupport.DeepRequired<BoxPlotStyleOptions>,
         invertAxes = false
     ) {
-        const { xValue: axisValue, minValue, q1Value, medianValue, q3Value, maxValue, bandwidth } = datum;
+        const { xValue: axisValue, medianValue, bandwidth } = datum;
+        let { minValue, q1Value, q3Value, maxValue } = datum;
+
+        if (invertAxes) {
+            [maxValue, q3Value, q1Value, minValue] = [minValue, q1Value, q3Value, maxValue];
+        }
 
         const {
             fill,
@@ -55,93 +60,53 @@ export class BoxPlotGroup extends _Scene.Group {
             whiskerStyles.strokeWidth = bandwidth;
         }
 
+        outline.setProperties({ x: q1Value, y: axisValue, width: q3Value - q1Value, height: bandwidth });
+
+        boxes[0].setProperties({
+            x: q1Value,
+            y: axisValue,
+            width: Math.round(medianValue - q1Value + strokeWidth / 2),
+            height: bandwidth,
+        });
+
+        boxes[1].setProperties({
+            x: Math.round(medianValue - strokeWidth / 2),
+            y: axisValue,
+            width: Math.floor(q3Value - medianValue + strokeWidth / 2),
+            height: bandwidth,
+        });
+
+        const medianStart = Math.max(Math.round(medianValue - strokeWidth / 2), q1Value + strokeWidth);
+        const medianEnd = Math.min(Math.round(medianValue + strokeWidth / 2), q3Value - strokeWidth);
+
+        median.setProperties({
+            visible: medianStart < medianEnd,
+            x: medianStart,
+            y: axisValue + strokeWidth,
+            width: medianEnd - medianStart,
+            height: Math.max(0, bandwidth - strokeWidth * 2),
+        });
+
         const capStart = Math.round(axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2);
         const capEnd = Math.round(axisValue + (bandwidth * (1 + cap.lengthRatio)) / 2);
 
+        caps[0].setProperties({ x: minValue, y1: capStart, y2: capEnd });
+        caps[1].setProperties({ x: maxValue, y1: capStart, y2: capEnd });
+
+        whiskers[0].setProperties({
+            x1: Math.round(minValue + whiskerStyles.strokeWidth / 2),
+            x2: q1Value,
+            y: Math.floor(axisValue + bandwidth / 2),
+        });
+
+        whiskers[1].setProperties({
+            x1: q3Value,
+            x2: Math.round(maxValue - whiskerStyles.strokeWidth / 2),
+            y: Math.floor(axisValue + bandwidth / 2),
+        });
+
         if (invertAxes) {
-            outline.setProperties({ x: axisValue, y: q3Value, width: bandwidth, height: q1Value - q3Value });
-
-            boxes[0].setProperties({
-                x: axisValue,
-                y: q3Value,
-                width: bandwidth,
-                height: Math.round(medianValue - q3Value + strokeWidth / 2),
-            });
-
-            boxes[1].setProperties({
-                x: axisValue,
-                y: Math.round(medianValue - strokeWidth / 2),
-                width: bandwidth,
-                height: Math.floor(q1Value - medianValue + strokeWidth / 2),
-            });
-
-            const medianY1 = Math.max(Math.round(medianValue - strokeWidth / 2), q3Value + strokeWidth);
-            const medianY2 = Math.min(Math.round(medianValue + strokeWidth / 2), q1Value - strokeWidth);
-
-            median.setProperties({
-                visible: medianY1 < medianY2,
-                x: axisValue + strokeWidth,
-                y: medianY1,
-                width: Math.max(0, bandwidth - strokeWidth * 2),
-                height: medianY2 - medianY1,
-            });
-
-            caps[0].setProperties({ x1: capStart, x2: capEnd, y: minValue });
-            caps[1].setProperties({ x1: capStart, x2: capEnd, y: maxValue });
-
-            whiskers[0].setProperties({
-                x: Math.floor(axisValue + bandwidth / 2),
-                y1: Math.round(minValue - whiskerStyles.strokeWidth / 2),
-                y2: q1Value,
-            });
-
-            whiskers[1].setProperties({
-                x: Math.floor(axisValue + bandwidth / 2),
-                y1: q3Value,
-                y2: Math.round(maxValue + whiskerStyles.strokeWidth / 2),
-            });
-        } else {
-            outline.setProperties({ x: q1Value, y: axisValue, width: q3Value - q1Value, height: bandwidth });
-
-            boxes[0].setProperties({
-                x: q1Value,
-                y: axisValue,
-                width: Math.round(medianValue - q1Value + strokeWidth / 2),
-                height: bandwidth,
-            });
-
-            boxes[1].setProperties({
-                x: Math.round(medianValue - strokeWidth / 2),
-                y: axisValue,
-                width: Math.floor(q3Value - medianValue + strokeWidth / 2),
-                height: bandwidth,
-            });
-
-            const medianX1 = Math.max(Math.round(medianValue - strokeWidth / 2), q1Value + strokeWidth);
-            const medianX2 = Math.min(Math.round(medianValue + strokeWidth / 2), q3Value - strokeWidth);
-
-            median.setProperties({
-                visible: medianX1 < medianX2,
-                x: medianX1,
-                y: axisValue + strokeWidth,
-                width: medianX2 - medianX1,
-                height: Math.max(0, bandwidth - strokeWidth * 2),
-            });
-
-            caps[0].setProperties({ x: minValue, y1: capStart, y2: capEnd });
-            caps[1].setProperties({ x: maxValue, y1: capStart, y2: capEnd });
-
-            whiskers[0].setProperties({
-                x1: Math.round(minValue + whiskerStyles.strokeWidth / 2),
-                x2: q1Value,
-                y: Math.floor(axisValue + bandwidth / 2),
-            });
-
-            whiskers[1].setProperties({
-                x1: q3Value,
-                x2: Math.round(maxValue - whiskerStyles.strokeWidth / 2),
-                y: Math.floor(axisValue + bandwidth / 2),
-            });
+            _ModuleSupport.invertShapeDirection(outline, median, ...boxes, ...caps, ...whiskers);
         }
 
         // fill only elements
