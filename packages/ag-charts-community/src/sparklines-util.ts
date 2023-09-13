@@ -5,7 +5,7 @@ export * from './util/json';
 export * from './util/angle';
 export * from './util/zip';
 
-export { extent, normalisedExtent } from './util/array';
+export { extent, normalisedExtent, normalisedExtentWithMetadata } from './util/array';
 export { toFixed, isEqual as isNumberEqual } from './util/number';
 export { tickFormat } from './util/numberFormat';
 export { interpolate as interpolateString } from './util/string';

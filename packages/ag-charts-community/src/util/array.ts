@@ -29,7 +29,15 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
     return extent;
 }
 
-export function normalisedExtent(d: number[], min: number, max: number): number[] & { clipped: boolean } {
+export function normalisedExtent(d: number[], min: number, max: number): number[] {
+    return normalisedExtentWithMetadata(d, min, max).extent;
+}
+
+export function normalisedExtentWithMetadata(
+    d: number[],
+    min: number,
+    max: number
+): { extent: number[]; clipped: boolean } {
     let clipped = false;
 
     if (d.length > 2) {
@@ -46,5 +54,5 @@ export function normalisedExtent(d: number[], min: number, max: number): number[
     if (d[0] > d[1]) {
         d = [];
     }
-    return Object.assign(d, { clipped });
+    return { extent: d, clipped };
 }

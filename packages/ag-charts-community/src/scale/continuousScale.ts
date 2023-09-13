@@ -82,11 +82,6 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         );
     }
 
-    /** Override point for special convert() handling by sub-classes. */
-    protected specialConvert(x: D, _domainStart: D, _domainEnd: D) {
-        return x;
-    }
-
     invert(x: number) {
         this.refresh();
         const domain = this.getDomain().map((d) => this.transform(d));

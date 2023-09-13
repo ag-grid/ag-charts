@@ -2,7 +2,7 @@ import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, predicateWithMessage, Vali
 import { Default } from '../../util/default';
 import { LogScale } from '../../scale/logScale';
 import { NumberAxis } from './numberAxis';
-import { normalisedExtent } from '../../util/array';
+import { normalisedExtentWithMetadata } from '../../util/array';
 import { Logger } from '../../util/logger';
 import type { ModuleContext } from '../../util/moduleContext';
 
@@ -20,12 +20,11 @@ export class LogAxis extends NumberAxis {
     normaliseDataDomain(d: number[]) {
         const { min, max } = this;
 
-        const domain = normalisedExtent(d, min, max);
-        const clipped = domain.clipped;
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
-        const isInverted = domain[0] > domain[1];
-        const crossesZero = domain[0] < 0 && domain[1] > 0;
-        const hasZeroExtent = domain[0] === 0 && domain[1] === 0;
+        const isInverted = extent[0] > extent[1];
+        const crossesZero = extent[0] < 0 && extent[1] > 0;
+        const hasZeroExtent = extent[0] === 0 && extent[1] === 0;
         const invalidDomain = isInverted || crossesZero || hasZeroExtent;
 
         if (invalidDomain) {
@@ -38,14 +37,14 @@ export class LogAxis extends NumberAxis {
                 Logger.warn(`the data domain has 0 extent, no data is rendered.`);
             }
         }
-        if (domain[0] === 0) {
-            domain[0] = 1;
+        if (extent[0] === 0) {
+            extent[0] = 1;
         }
-        if (domain[1] === 0) {
-            domain[1] = -1;
+        if (extent[1] === 0) {
+            extent[1] = -1;
         }
 
-        return { domain: [...domain], clipped };
+        return { domain: extent, clipped };
     }
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max'), NON_ZERO_NUMBER()))

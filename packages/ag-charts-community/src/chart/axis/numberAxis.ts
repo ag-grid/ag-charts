@@ -1,6 +1,6 @@
 import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
-import { normalisedExtent } from '../../util/array';
+import { normalisedExtentWithMetadata } from '../../util/array';
 import { Validate, GREATER_THAN, AND, LESS_THAN, NUMBER_OR_NAN } from '../../util/validation';
 import { Default } from '../../util/default';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
@@ -25,9 +25,9 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
 
     normaliseDataDomain(d: number[]) {
         const { min, max } = this;
-        const domain = normalisedExtent(d, min, max);
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
-        return { domain: [...domain], clipped: domain.clipped };
+        return { domain: extent, clipped };
     }
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
