@@ -16,7 +16,7 @@ export const HEATMAP_SERIES_THEME = {
         fontWeight: undefined,
         fontSize: 12,
         fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-        color: 'rgb(70, 70, 70)',
+        color: _Theme.DEFAULT_LABEL_COLOUR,
         __overrides__: _Theme.OVERRIDE_SERIES_LABEL_DEFAULTS,
     },
 };

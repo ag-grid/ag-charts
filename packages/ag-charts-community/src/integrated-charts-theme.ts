@@ -11,6 +11,11 @@ export {
     EXTENDS_SERIES_DEFAULTS,
     OVERRIDE_SERIES_LABEL_DEFAULTS,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_SHADOW_COLOUR,
+    DEFAULT_AXIS_GRID_COLOUR,
+    DEFAULT_BACKGROUND_COLOUR,
 } from './chart/themes/chartTheme';
 
 export const themes = Object.entries(themeFactories).reduce((obj, [name, factory]) => {
