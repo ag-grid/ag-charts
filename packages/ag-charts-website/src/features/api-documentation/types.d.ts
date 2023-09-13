@@ -243,6 +243,7 @@ interface JsSelectionBase {
     path: string[];
     model: JsonModelProperty;
     onlyShowToDepth?: number;
+    isRoot?: boolean;
 }
 
 export type JsModelSelectionProperty = JsSelectionBase & {

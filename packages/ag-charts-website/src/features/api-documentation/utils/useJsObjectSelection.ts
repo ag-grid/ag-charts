@@ -33,7 +33,6 @@ function scrollToId(id?: string) {
 const ROOT_HEADING = 'AgChartOptions'; // TODO: Get this from the data;
 function getTopLevelHeader(selection: JsObjectSelection): TopLevelHeaderData | undefined {
     const { type, path, model } = selection;
-    const isRoot = type === 'model' && path.length === 0;
     const description = formatPropertyDocumentation(model).join('\n');
     const descriptionWithoutDefault = removeDefaultValue(description);
     const output = {
@@ -42,7 +41,7 @@ function getTopLevelHeader(selection: JsObjectSelection): TopLevelHeaderData | u
         descriptionWithoutDefault,
     };
 
-    if (isRoot) {
+    if (selection.isRoot) {
         return Object.assign({}, output, {
             heading: ROOT_HEADING,
             propertyType: getPropertyType(model.tsType),

@@ -19,10 +19,12 @@ import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { HeadingPath } from './HeadingPath';
 import { MetaList } from './MetaList';
+import type { boolean } from 'astro/zod';
 
 interface Props {
     selection: JsObjectSelection;
     parentName?: string;
+    isRoot?: boolean;
 }
 
 function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
@@ -112,11 +114,13 @@ function NestedObjectProperties({
     parentPath,
     properties,
     onlyShowToDepth,
+    isRoot,
 }: {
     parentName?: string;
     parentPath: string[];
     properties: JsonModel['properties'];
     onlyShowToDepth?: number;
+    isRoot?: boolean;
 }) {
     return (
         <>
@@ -127,6 +131,7 @@ function NestedObjectProperties({
                     path: parentPath,
                     model,
                     onlyShowToDepth,
+                    isRoot,
                 };
                 return <JsObjectPropertyView key={propName} selection={selection} parentName={parentName} />;
             })}
@@ -140,12 +145,14 @@ function NestedObjectPropertyView({
     path,
     model,
     onlyShowToDepth,
+    isRoot,
 }: {
     id: string;
     name?: string;
     path: string[];
     model: JsonModelProperty;
     onlyShowToDepth?: number;
+    isRoot?: boolean;
 }) {
     const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
@@ -156,23 +163,26 @@ function NestedObjectPropertyView({
     } = model.desc as JsonObjectProperty;
     const nestedObjectPropertiesPath = name ? path.concat(name) : path;
     const showChildren = onlyShowToDepth === undefined ? true : path.length < onlyShowToDepth;
+    const showTopLevel = path.length > 0 || isRoot;
 
     return (
         <>
-            <tr id={id}>
-                <td role="presentation" className={styles.leftColumn}>
-                    <NameHeading id={id} name={name} path={path} />
-                    <MetaList propertyType={propertyType} model={model} description={description} />
-                </td>
-                <td className={styles.rightColumn}>
-                    <div
-                        role="presentation"
-                        className={styles.description}
-                        dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
-                    ></div>
-                    <Actions propName={name} />
-                </td>
-            </tr>
+            {showTopLevel && (
+                <tr id={id}>
+                    <td role="presentation" className={styles.leftColumn}>
+                        <NameHeading id={id} name={name} path={path} />
+                        <MetaList propertyType={propertyType} model={model} description={description} />
+                    </td>
+                    <td className={styles.rightColumn}>
+                        <div
+                            role="presentation"
+                            className={styles.description}
+                            dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
+                        ></div>
+                        <Actions propName={name} />
+                    </td>
+                </tr>
+            )}
             {showChildren && (
                 <NestedObjectProperties
                     parentName={name}
@@ -190,11 +200,13 @@ function UnionProperties({
     parentPath,
     elements,
     onlyShowToDepth,
+    isRoot,
 }: {
     parentName: string;
     parentPath: string[];
     elements: JsonUnionType;
     onlyShowToDepth?: number;
+    isRoot?: boolean;
 }) {
     return elements.options.map((model, index) => {
         const selection: JsObjectSelectionUnionNestedObject = {
@@ -203,6 +215,7 @@ function UnionProperties({
             path: parentPath,
             model,
             onlyShowToDepth,
+            isRoot,
         };
         return <JsObjectPropertyView key={JSON.stringify(model)} selection={selection} parentName={parentName} />;
     });
@@ -215,6 +228,7 @@ function NestedArrayProperties({
     parentModel,
     elements,
     onlyShowToDepth,
+    isRoot,
 }: {
     parentId: string;
     parentName: string;
@@ -222,6 +236,7 @@ function NestedArrayProperties({
     parentModel: JsonModelProperty;
     elements: JsonArray['elements'];
     onlyShowToDepth?: number;
+    isRoot?: boolean;
 }) {
     const { type } = elements;
 
@@ -237,6 +252,7 @@ function NestedArrayProperties({
                 properties={properties}
                 parentPath={parentPath}
                 onlyShowToDepth={onlyShowToDepth}
+                isRoot={isRoot}
             />
         );
     } else if (type === 'union') {
@@ -246,6 +262,7 @@ function NestedArrayProperties({
                 elements={elements}
                 parentPath={parentPath}
                 onlyShowToDepth={onlyShowToDepth}
+                isRoot={isRoot}
             />
         );
     } else {
@@ -259,12 +276,14 @@ function ArrayPropertyView({
     path,
     model,
     onlyShowToDepth,
+    isRoot,
 }: {
     id: string;
     name: string;
     path: string[];
     model: JsonModelProperty;
     onlyShowToDepth?: number;
+    isRoot?: boolean;
 }) {
     const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
@@ -273,23 +292,26 @@ function ArrayPropertyView({
     const { elements } = model.desc as JsonArray;
     const nestedArrayPropertiesPath = name ? path.concat(name) : path;
     const showChildren = onlyShowToDepth === undefined ? true : path.length < onlyShowToDepth;
+    const showTopLevel = path.length > 0 || isRoot;
 
     return (
         <>
-            <tr id={id}>
-                <td role="presentation" className={styles.leftColumn}>
-                    <NameHeading id={id} name={name} path={path} />
-                    <MetaList propertyType={propertyType} model={model} description={description} />
-                </td>
-                <td className={styles.rightColumn}>
-                    <div
-                        role="presentation"
-                        className={styles.description}
-                        dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
-                    ></div>
-                    <Actions propName={name} />
-                </td>
-            </tr>
+            {showTopLevel && (
+                <tr id={id}>
+                    <td role="presentation" className={styles.leftColumn}>
+                        <NameHeading id={id} name={name} path={path} />
+                        <MetaList propertyType={propertyType} model={model} description={description} />
+                    </td>
+                    <td className={styles.rightColumn}>
+                        <div
+                            role="presentation"
+                            className={styles.description}
+                            dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
+                        ></div>
+                        <Actions propName={name} />
+                    </td>
+                </tr>
+            )}
             {showChildren && (
                 <NestedArrayProperties
                     parentId={id}
@@ -298,6 +320,7 @@ function ArrayPropertyView({
                     parentModel={model}
                     elements={elements}
                     onlyShowToDepth={onlyShowToDepth}
+                    isRoot={isRoot}
                 />
             )}
         </>
@@ -339,7 +362,7 @@ function FunctionPropertyView({
 }
 
 export function JsObjectPropertyView({ selection, parentName }: Props) {
-    const { type, path, model, onlyShowToDepth } = selection;
+    const { type, path, model, onlyShowToDepth, isRoot } = selection;
     const id = getSelectionReferenceId(selection);
 
     if (type === 'model') {
@@ -350,6 +373,7 @@ export function JsObjectPropertyView({ selection, parentName }: Props) {
                 parentPath={path}
                 properties={properties}
                 onlyShowToDepth={onlyShowToDepth}
+                isRoot={isRoot}
             />
         );
     } else if (type === 'property') {
@@ -366,6 +390,7 @@ export function JsObjectPropertyView({ selection, parentName }: Props) {
                     path={path}
                     model={model}
                     onlyShowToDepth={onlyShowToDepth}
+                    isRoot={isRoot}
                 />
             );
         } else if (propertyType === 'array') {
@@ -376,6 +401,7 @@ export function JsObjectPropertyView({ selection, parentName }: Props) {
                     path={path}
                     model={model}
                     onlyShowToDepth={onlyShowToDepth}
+                    isRoot={isRoot}
                 />
             );
         } else if (propertyType === 'function') {
@@ -388,6 +414,7 @@ export function JsObjectPropertyView({ selection, parentName }: Props) {
                     elements={elements}
                     parentPath={path}
                     onlyShowToDepth={onlyShowToDepth}
+                    isRoot={isRoot}
                 />
             );
         }
@@ -416,6 +443,7 @@ export function JsObjectPropertyView({ selection, parentName }: Props) {
                     path={nestedObjectPath}
                     model={nestedObjectModel}
                     onlyShowToDepth={onlyShowToDepth}
+                    isRoot={isRoot}
                 />
             );
         } else if (propertyType === 'array') {
@@ -426,6 +454,7 @@ export function JsObjectPropertyView({ selection, parentName }: Props) {
                     path={path}
                     model={model}
                     onlyShowToDepth={onlyShowToDepth}
+                    isRoot={isRoot}
                 />
             );
         }
