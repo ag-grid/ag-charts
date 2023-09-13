@@ -20,13 +20,17 @@ const currentVersion = versions.values().next().value;
 let [semverPart, oldSuffix] = currentVersion.split('-');
 
 const suffix = oldSuffix?.split('.')[0] ?? 'beta';
-const todayStr = new Date().toISOString().split('T')[0].replaceAll('-', '');
-let index = 0;
+const now = new Date();
+const todayStr = now.toISOString().split('T')[0].replaceAll('-', '');
+let time = -1;
 let newVersion;
 let newSuffix;
 do {
-    newSuffix = `${suffix}.${todayStr}${index > 0 ? '.' + index : ''}`;
+    if (newSuffix != null) {
+        time = now.getUTCHours() * 100 + now.getUTCMinutes();
+    }
+    newSuffix = `${suffix}.${todayStr}${time >= 0 ? '.' + time : ''}`;
     newVersion = `${semverPart}-${newSuffix}`;
-} while (newSuffix <= oldSuffix);
+} while (newSuffix === oldSuffix);
 
 console.log(newVersion);
