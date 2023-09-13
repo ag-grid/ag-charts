@@ -260,7 +260,7 @@ function UnionNestedObject({
                     {isExpanded && <div className={styles.expanderBar}></div>}
                     <span className={classnames('token', 'punctuation')}>
                         {isExpanded && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
-                        {' { '}
+                        {'{ '}
                     </span>
                     {!isExpanded && (
                         <>
