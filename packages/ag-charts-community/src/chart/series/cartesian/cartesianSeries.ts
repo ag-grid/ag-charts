@@ -85,13 +85,13 @@ export class CartesianSeriesNodeBaseClickEvent<Datum extends { datum: any }> ext
 }
 
 export class CartesianSeriesNodeClickEvent<
-    Datum extends { datum: any },
+    Datum extends { datum: any }
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeClick';
 }
 
 export class CartesianSeriesNodeDoubleClickEvent<
-    Datum extends { datum: any },
+    Datum extends { datum: any }
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeDoubleClick';
 }
@@ -111,7 +111,7 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
 
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
-    N extends Node = Group,
+    N extends Node = Group
 > extends Series<C> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
