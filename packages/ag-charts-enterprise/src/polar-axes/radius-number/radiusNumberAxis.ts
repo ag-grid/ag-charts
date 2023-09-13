@@ -17,7 +17,7 @@ const {
 } = _ModuleSupport;
 const { LinearScale } = _Scale;
 const { Arc, Caption, Group, Path, Selection } = _Scene;
-const { normalisedExtent, toRadians } = _Util;
+const { normalisedExtentWithMetadata, toRadians } = _Util;
 
 class RadiusNumberAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
@@ -202,7 +202,9 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
 
     normaliseDataDomain(d: number[]) {
         const { min, max } = this;
-        return normalisedExtent(d, min, max);
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+
+        return { domain: extent, clipped };
     }
 
     protected createTick() {

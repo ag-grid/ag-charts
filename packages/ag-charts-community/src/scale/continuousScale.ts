@@ -1,6 +1,6 @@
 import { Logger } from '../util/logger';
 import type { TimeInterval } from '../util/time/interval';
-import type { Scale } from './scale';
+import type { Scale, ScaleConvertParams } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
     static readonly defaultTickCount = 5;
@@ -60,14 +60,14 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return this.domain;
     }
 
-    strictClampByDefault = false;
+    defaultClampMode: ScaleConvertParams['clampMode'] = 'raw';
 
-    convert(x: D, params?: { strict: boolean }) {
+    convert(x: D, opts?: ScaleConvertParams) {
+        const clampMode = opts?.clampMode ?? this.defaultClampMode;
         if (!this.domain || this.domain.length < 2) {
             return NaN;
         }
         this.refresh();
-        const strict = params?.strict ?? this.strictClampByDefault;
 
         const domain = this.getDomain().map((d) => this.transform(d));
         const [d0, d1] = domain;
@@ -77,10 +77,12 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
         x = this.transform(x);
 
-        if (x < d0) {
-            return strict ? NaN : r0;
-        } else if (x > d1) {
-            return strict ? NaN : r1;
+        if (clampMode === 'clamped') {
+            if (x < d0) {
+                return r0;
+            } else if (x > d1) {
+                return r1;
+            }
         }
 
         if (d0 === d1) {

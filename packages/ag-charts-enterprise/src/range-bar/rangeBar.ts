@@ -386,8 +386,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
             const yLowValue = Math.min(rawLowValue, rawHighValue);
             const yHighValue = Math.max(rawLowValue, rawHighValue);
-            const yLow = Math.round(yScale.convert(yLowValue, { strict: false }));
-            const yHigh = Math.round(yScale.convert(yHighValue, { strict: false }));
+            const yLow = Math.round(yScale.convert(yLowValue));
+            const yHigh = Math.round(yScale.convert(yHighValue));
 
             const y = yHigh;
             const bottomY = yLow;

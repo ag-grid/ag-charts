@@ -34,6 +34,7 @@ export class PolarChart extends Chart {
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
+            clipSeries: false,
             series: { rect: fullSeriesRect, paddedRect: shrinkRect, visible: true },
             axes: [],
         });
@@ -68,12 +69,14 @@ export class PolarChart extends Chart {
     }
 
     private computeSeriesRect(shrinkRect: BBox) {
-        const { seriesAreaPadding } = this;
+        const {
+            seriesArea: { padding },
+        } = this;
 
-        shrinkRect.shrink(seriesAreaPadding.left, 'left');
-        shrinkRect.shrink(seriesAreaPadding.top, 'top');
-        shrinkRect.shrink(seriesAreaPadding.right, 'right');
-        shrinkRect.shrink(seriesAreaPadding.bottom, 'bottom');
+        shrinkRect.shrink(padding.left, 'left');
+        shrinkRect.shrink(padding.top, 'top');
+        shrinkRect.shrink(padding.right, 'right');
+        shrinkRect.shrink(padding.bottom, 'bottom');
 
         this.seriesRect = shrinkRect;
     }

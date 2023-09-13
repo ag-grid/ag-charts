@@ -227,10 +227,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            if (!this.checkRangeXY(x, y, xAxis, yAxis)) {
-                continue;
-            }
-
             const text = labelKey ? String(values[labelDataIdx]) : '';
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 

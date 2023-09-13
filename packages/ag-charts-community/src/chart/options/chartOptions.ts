@@ -28,6 +28,13 @@ export interface AgSeriesAreaPaddingOptions {
     left?: PixelSize;
 }
 
+export interface AgSeriesAreaOptions {
+    /** Controls whether to strictly clip the series rendering to the series area. */
+    clip?: boolean;
+    /** Configuration for the padding around the series area. */
+    padding?: AgSeriesAreaPaddingOptions;
+}
+
 export interface AgChartOverlayOptions {
     /** Text to render in the overlay. */
     text?: string;
@@ -92,8 +99,8 @@ export interface AgChartHighlightOptions {
 export interface AgBaseThemeableChartOptions {
     /** Configuration for the padding shown around the chart. */
     padding?: AgChartPaddingOptions;
-    /** Configuration for the padding around the series area. */
-    seriesAreaPadding?: AgSeriesAreaPaddingOptions;
+    /** Configuration relating to the series area. */
+    seriesArea?: AgSeriesAreaOptions;
     /** Configuration for the background shown behind the chart. */
     background?: AgChartBackground;
     /** Configuration for the title shown at the top of the chart. */

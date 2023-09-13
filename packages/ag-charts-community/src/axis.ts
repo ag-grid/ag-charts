@@ -130,7 +130,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     @Validate(BOOLEAN)
     nice: boolean = true;
 
-    dataDomain: D[] = [];
+    dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
 
     protected _scale: S;
     get scale(): S {
@@ -318,7 +318,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return this.inRangeEx(x, width, tolerance) === 0;
     }
 
-    inRangeEx(x: number, width = 0, tolerance = 0): -1 | 0 | 1 {
+    private inRangeEx(x: number, width = 0, tolerance = 0): -1 | 0 | 1 {
         const { range } = this;
         // Account for inverted ranges, for example [500, 100] as well as [100, 500]
         const min = Math.min(range[0], range[1]);
@@ -366,16 +366,16 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private setDomain() {
         const {
             scale,
-            dataDomain,
+            dataDomain: { domain },
             tick: { values: tickValues },
         } = this;
         if (tickValues && scale instanceof ContinuousScale) {
             const [tickMin, tickMax] = extent(tickValues) ?? [Infinity, -Infinity];
-            const min = Math.min(scale.fromDomain(dataDomain[0]), tickMin);
-            const max = Math.max(scale.fromDomain(dataDomain[1]), tickMax);
+            const min = Math.min(scale.fromDomain(domain[0]), tickMin);
+            const max = Math.max(scale.fromDomain(domain[1]), tickMax);
             scale.domain = [scale.toDomain(min), scale.toDomain(max)];
         } else {
-            scale.domain = dataDomain;
+            scale.domain = domain;
         }
     }
 
@@ -1379,8 +1379,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    normaliseDataDomain(d: D[]): D[] {
-        return d;
+    normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
+        return { domain: d, clipped: false };
     }
 
     getLayoutState(): AxisLayout {

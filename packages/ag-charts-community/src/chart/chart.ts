@@ -18,7 +18,7 @@ import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import type { AgChartOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartInstance } from './agChartOptions';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import type { Point } from '../scene/point';
-import { BOOLEAN, STRING_UNION, Validate } from '../util/validation';
+import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
 import { sleep } from '../util/async';
 import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
 import { Tooltip } from './tooltip/tooltip';
@@ -35,7 +35,7 @@ import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import type { Module, ModuleInstance, RootModule } from '../util/module';
-import { LayoutService } from './layout/layoutService';
+import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
 import { DataService } from './dataService';
 import { UpdateService } from './updateService';
 import { ChartUpdateType } from './chartUpdateType';
@@ -92,6 +92,13 @@ function initialiseSpecialOverrides(opts: Partial<SpecialOverrides>): SpecialOve
         window: globalWindow,
         overrideDevicePixelRatio: opts.overrideDevicePixelRatio,
     };
+}
+
+class SeriesArea {
+    @Validate(OPT_BOOLEAN)
+    clip?: boolean = undefined;
+
+    padding = new Padding(0);
 }
 
 export abstract class Chart extends Observable implements AgChartInstance {
@@ -192,7 +199,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     padding = new Padding(20);
 
-    seriesAreaPadding = new Padding(0);
+    seriesArea = new SeriesArea();
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -333,6 +340,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // eslint-disable-next-line sonarjs/no-duplicate-string
         this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect));
         this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect));
+        this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e));
 
         // Add interaction listeners last so child components are registered first.
         this.interactionManager.addListener('click', (event) => this.onClick(event));
@@ -960,6 +968,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         ({ shrinkRect } = this.layoutService.dispatchPerformLayout('before-series', { shrinkRect }));
 
         return shrinkRect;
+    }
+
+    private layoutComplete({ clipSeries, series: { paddedRect } }: LayoutCompleteEvent): void {
+        if (this.seriesArea.clip || clipSeries) {
+            this.seriesRoot.setClipRectInGroupCoordinateSpace(paddedRect);
+        } else {
+            this.seriesRoot.setClipRectInGroupCoordinateSpace();
+        }
     }
 
     private positionPadding(shrinkRect: BBox) {

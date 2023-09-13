@@ -145,10 +145,10 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const values = extent(domain) ?? domain;
 
         this.dataDomain = this.normaliseDataDomain(values);
-        this.scale.domain = this.dataDomain;
+        this.scale.domain = this.dataDomain.domain;
     }
 
-    normaliseDataDomain(d: any[]): any[] {
+    normaliseDataDomain(d: any[]) {
         // Prevent duplicate categories.
         const values = d.filter((s, i, arr) => arr.indexOf(s) === i);
 
@@ -161,7 +161,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         this.resizeTickTree();
 
-        return values;
+        return { domain: values, clipped: false };
     }
 
     /**

@@ -286,8 +286,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             yLow: number
         ): [_ModuleSupport.AreaPathPoint & { size: number }, _ModuleSupport.AreaPathPoint & { size: number }] => {
             const x = xScale.convert(xValue) + xOffset;
-            const yHighCoordinate = yScale.convert(yHigh, { strict: false });
-            const yLowCoordinate = yScale.convert(yLow, { strict: false });
+            const yHighCoordinate = yScale.convert(yHigh);
+            const yLowCoordinate = yScale.convert(yLow);
 
             return [
                 { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, yValue: yHigh },

@@ -184,7 +184,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             processedData,
             dataModel,
             axes,
-            marker: { enabled: markerEnabled, size: markerSize, strokeWidth },
+            marker: { enabled: markerEnabled, size: markerSize },
             ctx: { callbackCache },
         } = this;
 
@@ -207,7 +207,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
 
         let moveTo = true;
-        let prevXInRange: undefined | -1 | 0 | 1 = undefined;
         let nextPoint: UngroupedDataItem<any, any> | undefined = undefined;
         let actualLength = 0;
         for (let i = 0; i < processedData.data.length; i++) {
@@ -216,32 +215,17 @@ export class LineSeries extends CartesianSeries<LineContext> {
             const yDatum = values[yIdx];
 
             if (yDatum === undefined) {
-                prevXInRange = undefined;
                 moveTo = true;
             } else {
                 const x = xScale.convert(xDatum) + xOffset;
                 if (isNaN(x)) {
-                    prevXInRange = undefined;
                     moveTo = true;
                     nextPoint = undefined;
                     continue;
                 }
-                const tolerance = (xScale.bandwidth ?? markerSize * 0.5 + (strokeWidth ?? 0)) + 1;
 
                 nextPoint =
                     processedData.data[i + 1]?.values[yIdx] === undefined ? undefined : processedData.data[i + 1];
-                const nextXDatum = processedData.data[i + 1]?.values[xIdx];
-                const xInRange = xAxis.inRangeEx(x, 0, tolerance);
-                const nextXInRange = nextPoint && xAxis.inRangeEx(xScale.convert(nextXDatum) + xOffset, 0, tolerance);
-                if (xInRange === -1 && nextXInRange === -1) {
-                    moveTo = true;
-                    continue;
-                }
-                if (xInRange === 1 && prevXInRange === 1) {
-                    moveTo = true;
-                    continue;
-                }
-                prevXInRange = xInRange;
 
                 const y = yScale.convert(yDatum) + yOffset;
 

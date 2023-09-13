@@ -97,9 +97,11 @@ const options: AgChartOptions = {
       },
     },
   ],
-  seriesAreaPadding: {
-    left: 20,
-    bottom: 15,
+  seriesArea: {
+    padding: {
+      left: 20,
+      bottom: 15,
+    },
   },
 }
 

@@ -538,7 +538,7 @@ export class BoxPlotSeries extends CartesianSeries<
         for (const [searchId, [{ def }]] of defs) {
             if (Object.prototype.hasOwnProperty.call(values, searchId)) {
                 const { scale } = def.type === 'key' ? xAxis : yAxis;
-                result[searchId] = Math.round(scale.convert((values as any)[searchId], { strict: false }));
+                result[searchId] = Math.round(scale.convert((values as any)[searchId]));
             }
         }
         return result;

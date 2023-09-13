@@ -1,6 +1,6 @@
 import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
-import { normalisedExtent } from '../../util/array';
+import { normalisedExtentWithMetadata } from '../../util/array';
 import { Validate, GREATER_THAN, AND, LESS_THAN, NUMBER_OR_NAN } from '../../util/validation';
 import { Default } from '../../util/default';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
@@ -21,12 +21,13 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
 
     constructor(moduleCtx: ModuleContext, scale = new LinearScale() as LinearScale | LogScale) {
         super(moduleCtx, scale);
-        scale.strictClampByDefault = true;
     }
 
     normaliseDataDomain(d: number[]) {
         const { min, max } = this;
-        return normalisedExtent(d, min, max);
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+
+        return { domain: extent, clipped };
     }
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
@@ -57,7 +58,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
             throw new Error('AG Charts - dataDomain not calculated, cannot perform tick calculation.');
         }
 
-        const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain, primaryTickCount ?? 0);
+        const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain.domain, primaryTickCount ?? 0);
 
         this.scale.nice = false;
         this.scale.domain = d;

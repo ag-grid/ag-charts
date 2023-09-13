@@ -32,14 +32,16 @@ export class CartesianChart extends Chart {
         this.seriesRoot.translationX = Math.floor(seriesRect.x);
         this.seriesRoot.translationY = Math.floor(seriesRect.y);
 
-        const { seriesRoot, seriesAreaPadding } = this;
+        const {
+            seriesArea: { padding },
+        } = this;
 
         // Recreate padding object to prevent issues with getters in `BBox.shrink()`
         const seriesPaddedRect = seriesRect.clone().grow({
-            top: seriesAreaPadding.top,
-            right: seriesAreaPadding.right,
-            bottom: seriesAreaPadding.bottom,
-            left: seriesAreaPadding.left,
+            top: padding.top,
+            right: padding.right,
+            bottom: padding.bottom,
+            left: padding.left,
         });
 
         this.hoverRect = seriesPaddedRect;
@@ -47,15 +49,10 @@ export class CartesianChart extends Chart {
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
+            clipSeries,
             series: { rect: seriesRect, paddedRect: seriesPaddedRect, visible: visibility.series },
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });
-
-        if (clipSeries) {
-            seriesRoot.setClipRectInGroupCoordinateSpace(seriesRect);
-        } else {
-            seriesRoot.setClipRectInGroupCoordinateSpace();
-        }
 
         return shrinkRect;
     }
@@ -265,7 +262,7 @@ export class CartesianChart extends Chart {
         const paddedRect = bounds.clone();
         const reversedAxes = this.axes.slice().reverse();
         directions.forEach((dir) => {
-            const padding = this.seriesAreaPadding[dir];
+            const padding = this.seriesArea.padding[dir];
             const axis = reversedAxes.find((axis) => axis.position === dir);
             if (axis) {
                 axis.seriesAreaPadding = padding;
@@ -367,9 +364,8 @@ export class CartesianChart extends Chart {
         const { min = 0, max = 1 } = zoom ?? {};
         axis.visibleRange = [min, max];
 
-        if (!clipSeries && (axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1)) {
-            clipSeries = true;
-        }
+        const rangeClipped = axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
+        clipSeries ||= rangeClipped;
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const paddedBoundsCoefficient = 0.3;

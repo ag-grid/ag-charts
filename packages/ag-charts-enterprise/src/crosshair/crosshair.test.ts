@@ -318,11 +318,13 @@ describe('Crosshair', () => {
         it(`should layout correctly with series area padding`, async () => {
             const options: AgChartOptions = TEST_CASE;
             prepareEnterpriseTestOptions(options);
-            options.seriesAreaPadding = {
-                left: 100,
-                right: 100,
-                bottom: 100,
-                top: 100,
+            options.seriesArea = {
+                padding: {
+                    left: 100,
+                    right: 100,
+                    bottom: 100,
+                    top: 100,
+                },
             };
 
             chart = AgEnterpriseCharts.create(options);

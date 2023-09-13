@@ -10,6 +10,9 @@ export class LogScale extends ContinuousScale<number> {
 
     public constructor() {
         super([1, 10], [0, 1]);
+
+        // Handling <1 and crossing 0 cases is tricky, easiest solution is to default to clamping.
+        this.defaultClampMode = 'clamped';
     }
 
     toDomain(d: number): number {

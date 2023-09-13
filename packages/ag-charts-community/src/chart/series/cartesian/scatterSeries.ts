@@ -261,10 +261,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            if (!this.checkRangeXY(x, y, xAxis, yAxis)) {
-                continue;
-            }
-
             let text = String(labelKey ? values[labelDataIdx] : yDatum);
             if (label.formatter) {
                 text = callbackCache.call(label.formatter, { value: text, seriesId, datum }) ?? '';

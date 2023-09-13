@@ -26,7 +26,7 @@ export interface ChartAxis {
     clipTickLines(x: number, y: number, width: number, height: number): void;
     computeBBox(): BBox;
     crossLines?: any[];
-    dataDomain: any[];
+    dataDomain: { domain: any[]; clipped: boolean };
     destroy(): void;
     detachAxis(naxisGroup: Node, gridGroup: Node): void;
     direction: ChartAxisDirection;
@@ -36,7 +36,6 @@ export interface ChartAxis {
     gridPadding: number;
     id: string;
     inRange(x: number, width?: number, tolerance?: number): boolean;
-    inRangeEx(x: number, width?: number, tolerance?: number): -1 | 0 | 1;
     isModuleEnabled(module: any): boolean;
     keys: string[];
     label: ChartAxisLabel;

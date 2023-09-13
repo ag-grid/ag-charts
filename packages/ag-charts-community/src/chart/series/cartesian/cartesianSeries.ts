@@ -1,6 +1,5 @@
 import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMode, SeriesNodePickMatch } from '../series';
 import { Series, SeriesNodeBaseClickEvent } from '../series';
-import type { ChartAxis } from '../../chartAxis';
 import { SeriesMarker } from '../seriesMarker';
 import { isContinuous, isDiscrete } from '../../../util/value';
 import { Path } from '../../../scene/shape/path';
@@ -243,20 +242,6 @@ export abstract class CartesianSeries<
             ((isContinuousX && isContinuous(x)) || (!isContinuousX && isDiscrete(x))) &&
             ((isContinuousY && isContinuous(y)) || (!isContinuousY && isDiscrete(y)));
         return isValidDatum ? [x, y] : undefined;
-    }
-
-    /**
-     * Note: we are passing the xAxis and yAxis because the calling code is supposed to make sure
-     *       that series has both of them defined, and also to avoid one level of indirection,
-     *       e.g. `this.xAxis!.inRange(x)`, both of which are suboptimal in tight loops where this method is used.
-     * @param x A range value to be plotted along the x-axis.
-     * @param y A range value to be plotted along the y-axis.
-     * @param xAxis The series' x-axis.
-     * @param yAxis The series' y-axis.
-     * @returns
-     */
-    protected checkRangeXY(x: number, y: number, xAxis: ChartAxis, yAxis: ChartAxis): boolean {
-        return !isNaN(x) && !isNaN(y) && xAxis.inRange(x) && yAxis.inRange(y);
     }
 
     async update({ seriesRect }: { seriesRect?: BBox }) {
