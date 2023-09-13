@@ -25,7 +25,6 @@ import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from 
 import { StateMachine } from '../../../motion/states';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Logger } from '../../../util/logger';
-import type { SeriesGroupZIndexSubOrderType } from '../seriesStateManager';
 import { ErrorBars } from '../../errorBar';
 import type { ErrorBarConfig } from '../../errorBar';
 
