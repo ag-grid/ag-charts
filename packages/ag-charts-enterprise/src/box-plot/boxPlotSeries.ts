@@ -314,7 +314,7 @@ export class BoxPlotSeries extends CartesianSeries<
 
             const nodeData: BoxPlotNodeDatum = {
                 series: this,
-                itemId: String(xValue),
+                itemId: xValue,
                 datum,
                 xKey,
                 yValue: 0,
