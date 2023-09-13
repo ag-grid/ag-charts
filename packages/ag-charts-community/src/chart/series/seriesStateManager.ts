@@ -5,8 +5,6 @@ export type SeriesGrouping = {
     stackCount: number;
 };
 
-export type SeriesGroupZIndexSubOrderType = 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'errorBar' | 'paths';
-
 export class SeriesStateManager {
     private readonly groups: {
         [type: string]: {

@@ -31,7 +31,7 @@ import type { ModuleContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
 import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
-import type { SeriesGrouping, SeriesGroupZIndexSubOrderType } from './seriesStateManager';
+import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
 
@@ -503,7 +503,10 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
     }
 
-    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
+    getGroupZIndexSubOrder(
+        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
+        subIndex = 0
+    ): ZIndexSubOrder {
         let mainAdjust = 0;
         switch (type) {
             case 'data':
