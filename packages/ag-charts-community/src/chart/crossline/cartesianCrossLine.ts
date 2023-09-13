@@ -232,8 +232,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         let [yStart, yEnd] = this.getRange();
 
         let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, { mode: 'clamped' })),
-            scale.convert(yEnd, { mode: 'clamped' }) + bandwidth,
+            Number(scale.convert(yStart, { clampMode: 'clamped' })),
+            scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth,
         ];
         clampedYStart = clippedRangeClamper(clampedYStart);
         clampedYEnd = clippedRangeClamper(clampedYEnd);

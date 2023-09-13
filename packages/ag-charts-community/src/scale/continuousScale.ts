@@ -1,6 +1,6 @@
 import { Logger } from '../util/logger';
 import type { TimeInterval } from '../util/time/interval';
-import type { Scale, ScaleClampParams } from './scale';
+import type { Scale, ScaleConvertParams } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
     static readonly defaultTickCount = 5;
@@ -44,10 +44,10 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return this.domain;
     }
 
-    defaultClampMode: ScaleClampParams['mode'] = 'raw';
+    defaultClampMode: ScaleConvertParams['clampMode'] = 'raw';
 
-    convert(x: D, opts?: ScaleClampParams) {
-        const clampMode = opts?.mode ?? this.defaultClampMode;
+    convert(x: D, opts?: ScaleConvertParams) {
+        const clampMode = opts?.clampMode ?? this.defaultClampMode;
         if (!this.domain || this.domain.length < 2) {
             return NaN;
         }
