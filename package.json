@@ -127,7 +127,6 @@
       "packages/ag-charts-vue3",
       "packages/ag-charts-website",
       "packages/ag-charts-website-e2e",
-      "libraries/ag-charts-community-test",
       "plugins/ag-charts-build-tools"
     ],
     "nohoist": [
