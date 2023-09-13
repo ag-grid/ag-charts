@@ -27,7 +27,6 @@ const {
     updateLabel,
     CategoryAxis,
     SMALLEST_KEY_INTERVAL,
-    calculateStep,
     STRING_UNION,
     Motion,
     diff,
@@ -347,19 +346,12 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             domain.push(String(groupIdx));
         }
 
-        let xBandWidth = xScale.bandwidth;
-
-        if (xScale instanceof ContinuousScale) {
-            const rangeExtent = Math.max(xAxis.range[0], xAxis.range[1]);
-            const xDomain = xAxis.scale.getDomain?.();
-            const domainExtent = xDomain?.[1] - xDomain?.[0];
-            const step = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
-
-            xBandWidth = step;
+        if (xScale instanceof _Scale.ContinuousScale) {
+            xScale.smallestBandwidthInterval = smallestDataInterval?.x ?? 1;
         }
 
         groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
+        groupScale.range = [0, xScale.bandwidth ?? 0];
 
         if (xAxis instanceof CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;

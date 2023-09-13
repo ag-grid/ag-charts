@@ -13,6 +13,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     maxTickCount = Infinity;
     niceDomain: any[] = null as any;
 
+    smallestBandwidthInterval = 1;
+
     protected constructor(public domain: D[], public range: number[]) {}
 
     protected transform(x: D) {
@@ -20,6 +22,20 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     }
     protected transformInvert(x: D) {
         return x;
+    }
+
+    get bandwidth() {
+        const domain = this.getDomain();
+        const maxRange = Math.max(...this.range);
+        const intervals = (domain[1] - domain[0]) / this.smallestBandwidthInterval + 1;
+
+        // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
+        // Allow a maximum number of bands to ensure the step does not fall below 1 pixel.
+        // This means there could be some overlap of the bands in the chart.
+        const maxBands = Math.floor(maxRange); // A minimum of 1px per bar/column means the maximum number of bands will equal the available range
+        const bands = Math.min(intervals, maxBands);
+
+        return maxRange / Math.max(1, bands);
     }
 
     fromDomain(d: D): number {

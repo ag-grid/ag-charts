@@ -51,7 +51,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import type { RectConfig } from './barUtil';
-import { getRectConfig, updateRect, checkCrisp, calculateStep } from './barUtil';
+import { getRectConfig, updateRect, checkCrisp } from './barUtil';
 import { updateLabel, createLabelData } from './labelUtil';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
@@ -314,15 +314,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             smallestDataInterval,
         } = this;
 
-        let xBandWidth = xScale.bandwidth;
-
         if (xScale instanceof ContinuousScale) {
-            const rangeExtent = Math.max(xAxis.range[0], xAxis.range[1]);
-            const xDomain = xAxis.scale.getDomain?.();
-            const domainExtent = xDomain?.[1] - xDomain?.[0];
-            const step = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
-
-            xBandWidth = step;
+            xScale.smallestBandwidthInterval = smallestDataInterval?.x ?? 1;
         }
 
         const domain = [];
@@ -331,7 +324,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             domain.push(String(groupIdx));
         }
         groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
+        groupScale.range = [0, xScale.bandwidth ?? 0];
 
         if (xAxis instanceof CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;

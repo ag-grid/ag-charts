@@ -9,7 +9,6 @@ import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const {
-    calculateStep,
     CartesianSeries,
     ChartAxisDirection,
     extent,
@@ -250,13 +249,8 @@ export class BoxPlotSeries extends CartesianSeries<
             smallestDataInterval,
         } = this;
 
-        let xBandWidth = xAxis.scale.bandwidth;
-
         if (xAxis.scale instanceof _Scale.ContinuousScale) {
-            const rangeExtent = Math.max(...xAxis.range);
-            const xDomain = xAxis.scale.getDomain?.();
-            const domainExtent = xDomain?.[1] - xDomain?.[0];
-            xBandWidth = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
+            xAxis.scale.smallestBandwidthInterval = smallestDataInterval?.x ?? 1;
         }
 
         const domain = [];
@@ -265,7 +259,7 @@ export class BoxPlotSeries extends CartesianSeries<
             domain.push(String(groupIdx));
         }
         groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
+        groupScale.range = [0, xAxis.scale.bandwidth ?? 0];
 
         if (xAxis instanceof _ModuleSupport.CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;
