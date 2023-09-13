@@ -8,7 +8,7 @@
     ".": {
       "import": "./dist/main.esm.js",
       "require": "./dist/main.cjs.js",
-      "types": "./dist/main.cjs.d.ts"
+      "types": "./dist/src/main.cjs.d.ts"
     }
   },
   "private": false,
