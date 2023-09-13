@@ -31,6 +31,6 @@ do {
     }
     newSuffix = `${suffix}.${todayStr}${time >= 0 ? '.' + time : ''}`;
     newVersion = `${semverPart}-${newSuffix}`;
-} while (newSuffix === oldSuffix);
+} while (newSuffix <= oldSuffix);
 
 console.log(newVersion);
