@@ -22,11 +22,82 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Basic Radar Line" name="basic-radar-line" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Simple Radar Line" name="simple-radar-line" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Polar Axes
+## Customisation
 
-Please see [Polar Axes](../polar-axes/) to learn how to modify the axes of the Radar chart.
+### Axis Shape
+
+There are two Polar Axis shape types:
+
+-   `polygon` where categories are connected with straight lines (default for Radar series).
+-   `circle` where axis grid is drawn using circles (default for Radial Column and Nightingale).
+
+To change the default shape, please use the axis `shape` property (it should be modified for both axes):
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+        shape: 'circle',
+    },
+    {
+        type: 'radius-number',
+        shape: 'circle',
+    },
+];
+```
+
+{% chartExampleRunner title="Axis Shape" name="axis-shape" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Axis Label Orientation
+
+Use `label.orientation` property to change the orientation of polar axis labels by providing one of the options: `fixed`, `parallel` or `perpendicular`. The next example demonstrates how this property works:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+        label: {
+            orientation: 'parallel',
+        },
+    },
+    {
+        type: 'radius-number',
+    },
+],
+```
+
+{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Radius Axis Position
+
+`positionAngle` can change the position of Radius Axis line and `label.rotation` will change the rotation angle of axis labels:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+    },
+    {
+        type: 'radius-number',
+        positionAngle: 90,
+        label: {
+            rotation: -90,
+        },
+    },
+],
+```
+
+{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Series / Axis Styling
+
+There are many ways to modify a look of polar grid lines and labels:
+
+{% chartExampleRunner title="Series-Axis-Styling" name="series-axis-styling" type="generated" options="{ \"enterprise\": true }" /%}
+
+Please see the API reference for more details.
 
 ## API Reference
 
