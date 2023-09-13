@@ -248,6 +248,7 @@ export function diff(
         calculate: (processedData) => {
             const diff = {
                 changed: false,
+                moved: [] as any[],
                 added: [] as any[],
                 updated: [] as any[],
                 removed: [] as any[],
@@ -256,6 +257,7 @@ export function diff(
                 removedIndices: [] as number[],
             };
 
+            const moved = new Map<string, any>();
             const added = new Map<string, any>();
             const updated = new Map<string, any>();
             const removed = new Map<string, any>();
@@ -282,6 +284,8 @@ export function diff(
                     if (updateMovedDatums || !arraysEqual(removed.get(datumId).values, datum.values)) {
                         updated.set(datumId, datum);
                         updatedIndices.set(datumId, i);
+
+                        moved.set(datumId, datum);
                     }
                     removed.delete(datumId);
                     removedIndices.delete(datumId);
@@ -293,7 +297,10 @@ export function diff(
                 if (added.has(prevId)) {
                     if (updateMovedDatums || !arraysEqual(added.get(prevId).values, prev.values)) {
                         updated.set(prevId, prev);
-                        updatedIndices.set(prevId, i);
+                        const updatedIndex = added.get(prevId);
+                        updatedIndices.set(prevId, updatedIndex);
+
+                        moved.set(prevId, prev);
                     }
                     added.delete(prevId);
                     addedIndices.delete(prevId);
@@ -308,6 +315,7 @@ export function diff(
             diff.added = Array.from(added.keys());
             diff.updated = Array.from(updated.keys());
             diff.removed = Array.from(removed.keys());
+            diff.moved = Array.from(moved.keys());
             diff.addedIndices = Array.from(addedIndices.values());
             diff.updatedIndices = Array.from(updatedIndices.values());
             diff.removedIndices = Array.from(removedIndices.values());
