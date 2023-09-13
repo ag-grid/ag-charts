@@ -6,7 +6,7 @@ import type {
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
@@ -346,12 +346,11 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             domain.push(String(groupIdx));
         }
 
-        if (xScale instanceof _Scale.ContinuousScale) {
-            xScale.smallestBandwidthInterval = smallestDataInterval?.x ?? 1;
-        }
+        const xBandWidth =
+            xScale instanceof ContinuousScale ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth;
 
         groupScale.domain = domain;
-        groupScale.range = [0, xScale.bandwidth ?? 0];
+        groupScale.range = [0, xBandWidth ?? 0];
 
         if (xAxis instanceof CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;

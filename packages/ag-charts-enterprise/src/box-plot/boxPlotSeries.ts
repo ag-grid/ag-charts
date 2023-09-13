@@ -249,9 +249,10 @@ export class BoxPlotSeries extends CartesianSeries<
             smallestDataInterval,
         } = this;
 
-        if (xAxis.scale instanceof _Scale.ContinuousScale) {
-            xAxis.scale.smallestBandwidthInterval = smallestDataInterval?.x ?? 1;
-        }
+        const xBandWidth =
+            xAxis.scale instanceof _Scale.ContinuousScale
+                ? xAxis.scale.calcBandwidth(smallestDataInterval?.x)
+                : xAxis.scale.bandwidth;
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
@@ -259,7 +260,7 @@ export class BoxPlotSeries extends CartesianSeries<
             domain.push(String(groupIdx));
         }
         groupScale.domain = domain;
-        groupScale.range = [0, xAxis.scale.bandwidth ?? 0];
+        groupScale.range = [0, xBandWidth ?? 0];
 
         if (xAxis instanceof _ModuleSupport.CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;

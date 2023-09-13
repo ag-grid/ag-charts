@@ -314,9 +314,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             smallestDataInterval,
         } = this;
 
-        if (xScale instanceof ContinuousScale) {
-            xScale.smallestBandwidthInterval = smallestDataInterval?.x ?? 1;
-        }
+        const xBandWidth =
+            xScale instanceof ContinuousScale ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth;
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
@@ -324,7 +323,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             domain.push(String(groupIdx));
         }
         groupScale.domain = domain;
-        groupScale.range = [0, xScale.bandwidth ?? 0];
+        groupScale.range = [0, xBandWidth ?? 0];
 
         if (xAxis instanceof CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;
