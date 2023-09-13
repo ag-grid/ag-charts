@@ -103,18 +103,3 @@ export function checkCrisp(visibleRange: number[] = []): boolean {
     const isZoomed = visibleMin !== 0 || visibleMax !== 1;
     return !isZoomed;
 }
-
-/**
- *  Used to calculate the bandwidth when the axis is continuous
- * */
-export function calculateStep(range: number, domain: number, smallestInterval?: number): number | undefined {
-    const intervals = domain / (smallestInterval ?? 1) + 1;
-
-    // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
-    // Allow a maximum number of bands to ensure the step does not fall below 1 pixel.
-    // This means there could be some overlap of the bands in the chart.
-    const maxBands = Math.floor(range); // A minimum of 1px per bar/column means the maximum number of bands will equal the available range
-    const bands = Math.min(intervals, maxBands);
-
-    return range / Math.max(1, bands);
-}

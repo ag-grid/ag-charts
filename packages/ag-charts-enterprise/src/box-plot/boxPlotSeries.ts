@@ -11,6 +11,7 @@ import type { BoxPlotNodeDatum } from './boxPlotTypes';
 const {
     CartesianSeries,
     ChartAxisDirection,
+    extent,
     extractDecoratedProperties,
     keyProperty,
     mergeDefaults,
@@ -21,6 +22,7 @@ const {
     OPT_STRING,
     SeriesNodePickMode,
     SeriesTooltip,
+    SMALLEST_KEY_INTERVAL,
     STRING_UNION,
     Validate,
     valueProperty,
@@ -159,6 +161,8 @@ export class BoxPlotSeries extends CartesianSeries<
      */
     private groupScale = new _Scale.BandScale<string>();
 
+    protected smallestDataInterval?: { x: number; y: number } = undefined;
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -173,24 +177,32 @@ export class BoxPlotSeries extends CartesianSeries<
 
         if (!xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
 
+        const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
+
         const { dataModel, processedData } = await dataController.request(this.id, data, {
             props: [
-                keyProperty(this, xKey, false, { id: `xValue` }),
+                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, minKey, true, { id: `minValue` }),
                 valueProperty(this, q1Key, true, { id: `q1Value` }),
                 valueProperty(this, medianKey, true, { id: `medianValue` }),
                 valueProperty(this, q3Key, true, { id: `q3Value` }),
                 valueProperty(this, maxKey, true, { id: `maxValue` }),
+                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
             ],
             dataVisible: this.visible,
         });
 
         this.dataModel = dataModel;
         this.processedData = processedData;
+
+        this.smallestDataInterval = {
+            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            y: Infinity,
+        };
     }
 
     getDomain(direction: _ModuleSupport.ChartAxisDirection) {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
         if (direction === this.getBarDirection()) {
@@ -198,10 +210,17 @@ export class BoxPlotSeries extends CartesianSeries<
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
             return this.fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
-        } else {
-            const { index } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
-            return processedData.domain.keys[index];
         }
+
+        const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const keys = processedData.domain.keys[index];
+        if (def.type === 'key' && def.valueType === 'category') {
+            return keys;
+        }
+
+        const keysExtent = extent(keys) ?? [NaN, NaN];
+        const scalePadding = smallestDataInterval && isFinite(smallestDataInterval.x) ? smallestDataInterval.x : 0;
+        return this.fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
     }
 
     async createNodeData() {
@@ -227,7 +246,13 @@ export class BoxPlotSeries extends CartesianSeries<
             whisker,
             groupScale,
             ctx: { seriesStateManager },
+            smallestDataInterval,
         } = this;
+
+        const xBandWidth =
+            xAxis.scale instanceof _Scale.ContinuousScale
+                ? xAxis.scale.calcBandwidth(smallestDataInterval?.x)
+                : xAxis.scale.bandwidth;
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
@@ -235,7 +260,7 @@ export class BoxPlotSeries extends CartesianSeries<
             domain.push(String(groupIdx));
         }
         groupScale.domain = domain;
-        groupScale.range = [0, xAxis.scale.bandwidth ?? 0];
+        groupScale.range = [0, xBandWidth ?? 0];
 
         if (xAxis instanceof _ModuleSupport.CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;
@@ -332,19 +357,20 @@ export class BoxPlotSeries extends CartesianSeries<
             return [];
         }
 
-        return [
-            {
-                legendType: 'category',
-                id,
-                seriesId: id,
-                enabled: visible,
-                label: {
-                    text: legendItemName ?? yName ?? id,
-                },
-                legendItemName,
-                marker: { fill, stroke, fillOpacity, strokeOpacity },
-            } as _ModuleSupport.CategoryLegendDatum,
-        ];
+        const categoryLegend: _ModuleSupport.CategoryLegendDatum = {
+            legendType: 'category',
+            id,
+            itemId: id,
+            seriesId: id,
+            enabled: visible,
+            label: {
+                text: legendItemName ?? yName ?? id,
+            },
+            legendItemName,
+            marker: { fill, fillOpacity, stroke, strokeOpacity },
+        };
+
+        return [categoryLegend];
     }
 
     protected getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<any> {

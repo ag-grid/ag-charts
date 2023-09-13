@@ -51,7 +51,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import type { RectConfig } from './barUtil';
-import { getRectConfig, updateRect, checkCrisp, calculateStep } from './barUtil';
+import { getRectConfig, updateRect, checkCrisp } from './barUtil';
 import { updateLabel, createLabelData } from './labelUtil';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
@@ -314,16 +314,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             smallestDataInterval,
         } = this;
 
-        let xBandWidth = xScale.bandwidth;
-
-        if (xScale instanceof ContinuousScale) {
-            const rangeExtent = Math.max(xAxis.range[0], xAxis.range[1]);
-            const xDomain = xAxis.scale.getDomain?.();
-            const domainExtent = xDomain?.[1] - xDomain?.[0];
-            const step = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
-
-            xBandWidth = step;
-        }
+        const xBandWidth =
+            xScale instanceof ContinuousScale ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth;
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);

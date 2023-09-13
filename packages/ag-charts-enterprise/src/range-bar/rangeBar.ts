@@ -6,7 +6,7 @@ import type {
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
@@ -27,7 +27,6 @@ const {
     updateLabel,
     CategoryAxis,
     SMALLEST_KEY_INTERVAL,
-    calculateStep,
     STRING_UNION,
     Motion,
     diff,
@@ -347,16 +346,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             domain.push(String(groupIdx));
         }
 
-        let xBandWidth = xScale.bandwidth;
-
-        if (xScale instanceof ContinuousScale) {
-            const rangeExtent = Math.max(xAxis.range[0], xAxis.range[1]);
-            const xDomain = xAxis.scale.getDomain?.();
-            const domainExtent = xDomain?.[1] - xDomain?.[0];
-            const step = calculateStep(rangeExtent, domainExtent, smallestDataInterval?.x);
-
-            xBandWidth = step;
-        }
+        const xBandWidth =
+            xScale instanceof ContinuousScale ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth;
 
         groupScale.domain = domain;
         groupScale.range = [0, xBandWidth ?? 0];

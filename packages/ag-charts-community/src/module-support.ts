@@ -1,3 +1,4 @@
+export * from './util/array';
 export * from './util/validation';
 export * from './util/default';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
@@ -6,6 +7,7 @@ export * from './util/moduleContext';
 export * from './util/navigator-module';
 export * from './util/object';
 export * from './util/proxy';
+export * from './util/shapes';
 export * from './util/types';
 export * from './chart/background/backgroundModule';
 export * from './chart/chartAxisDirection';
