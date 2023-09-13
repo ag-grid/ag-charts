@@ -190,11 +190,11 @@ abstract class AgChartInternal {
             mixinOpts['debug'] = true;
         }
 
-        const { overrideDevicePixelRatio, document, window } = userOptions;
+        const { overrideDevicePixelRatio, document, window: userWindow } = userOptions;
         delete userOptions['overrideDevicePixelRatio'];
         delete (userOptions as any)['document'];
         delete (userOptions as any)['window'];
-        const specialOverrides = { overrideDevicePixelRatio, document, window };
+        const specialOverrides = { overrideDevicePixelRatio, document, window: userWindow };
 
         const processedOptions = prepareOptions(userOptions, mixinOpts);
         let chart = proxy?.chart;
@@ -206,6 +206,11 @@ abstract class AgChartInternal {
             proxy = new AgChartInstanceProxy(chart);
         } else {
             proxy.chart = chart;
+        }
+
+        if (AgChartInternal.DEBUG() === true && typeof window !== 'undefined') {
+            (window as any).agChartInstances ??= {};
+            (window as any).agChartInstances[chart.id] = chart;
         }
 
         const chartToUpdate = chart;

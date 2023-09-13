@@ -2491,9 +2491,11 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       "yName": "Minimum Distance",
     },
   ],
-  "seriesAreaPadding": {
-    "bottom": 15,
-    "left": 20,
+  "seriesArea": {
+    "padding": {
+      "bottom": 15,
+      "left": 20,
+    },
   },
   "subtitle": {
     "color": "rgb(140, 140, 140)",

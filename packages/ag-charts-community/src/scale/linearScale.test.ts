@@ -23,13 +23,13 @@ test('convert linear', () => {
     scale.domain = [-100, 100];
     scale.range = [0, 100];
 
-    expect(scale.convert(0, { strict: false })).toBe(50);
+    expect(scale.convert(0, { mode: 'clamped' })).toBe(50);
 
-    expect(scale.convert(-100, { strict: false })).toBe(0);
-    expect(scale.convert(100, { strict: false })).toBe(100);
+    expect(scale.convert(-100, { mode: 'clamped' })).toBe(0);
+    expect(scale.convert(100, { mode: 'clamped' })).toBe(100);
 
-    expect(scale.convert(-100, { strict: true })).toBe(0);
-    expect(scale.convert(100, { strict: true })).toBe(100);
+    expect(scale.convert(-100, { mode: 'raw' })).toBe(0);
+    expect(scale.convert(100, { mode: 'raw' })).toBe(100);
 });
 
 test('convert linear clamp', () => {
@@ -38,11 +38,11 @@ test('convert linear clamp', () => {
     scale.domain = [-100, 100];
     scale.range = [0, 100];
 
-    expect(scale.convert(-300, { strict: false })).toBe(0);
-    expect(scale.convert(300, { strict: false })).toBe(100);
+    expect(scale.convert(-300, { mode: 'clamped' })).toBe(0);
+    expect(scale.convert(300, { mode: 'clamped' })).toBe(100);
 
-    expect(scale.convert(-300, { strict: true })).toBeNaN();
-    expect(scale.convert(300, { strict: true })).toBeNaN();
+    expect(scale.convert(-300, { mode: 'raw' })).toBe(-100);
+    expect(scale.convert(300, { mode: 'raw' })).toBe(200);
 });
 
 test('convert linear with zero width domain', () => {
@@ -51,7 +51,7 @@ test('convert linear with zero width domain', () => {
     scale.domain = [100, 100];
     scale.range = [0, 100];
 
-    expect(scale.convert(100, { strict: false })).toBe(50);
+    expect(scale.convert(100, { mode: 'clamped' })).toBe(50);
 });
 
 test('invert linear', () => {

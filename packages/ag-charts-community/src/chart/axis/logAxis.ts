@@ -45,7 +45,7 @@ export class LogAxis extends NumberAxis {
             domain[1] = -1;
         }
 
-        return { domain, clipped };
+        return { domain: [...domain], clipped };
     }
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max'), NON_ZERO_NUMBER()))

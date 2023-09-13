@@ -27,7 +27,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         const { min, max } = this;
         const domain = normalisedExtent(d, min, max);
 
-        return { domain, clipped: domain.clipped };
+        return { domain: [...domain], clipped: domain.clipped };
     }
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
