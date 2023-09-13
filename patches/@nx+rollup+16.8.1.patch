@@ -1,8 +1,8 @@
 diff --git a/node_modules/@nx/rollup/src/executors/rollup/rollup.impl.js b/node_modules/@nx/rollup/src/executors/rollup/rollup.impl.js
-index e7e92ae..59998b2 100644
+index 6ee58a4..c9ebab4 100644
 --- a/node_modules/@nx/rollup/src/executors/rollup/rollup.impl.js
 +++ b/node_modules/@nx/rollup/src/executors/rollup/rollup.impl.js
-@@ -126,6 +126,7 @@ function createRollupOptions(options, dependencies, context, packageJson, source
+@@ -120,6 +120,7 @@ function createRollupOptions(options, dependencies, context, packageJson, source
                      tsconfigOverride: {
                          compilerOptions: createTsCompilerOptions(config, dependencies, options),
                      },

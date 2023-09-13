@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@nx/devkit": "16.7.1",
+    "@nx/devkit": "16.8.1",
     "typescript": "^4.9.5",
     "glob": "8.0.3",
     "tslib": "2.6.0"

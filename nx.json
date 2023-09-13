@@ -46,7 +46,7 @@
   },
   "workspaceLayout": {
     "appsDir": "packages",
-    "libsDir": "packages"
+    "libsDir": "libraries"
   },
   "tasksRunnerOptions": {
     "default": {
