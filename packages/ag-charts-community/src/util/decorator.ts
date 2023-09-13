@@ -88,7 +88,22 @@ export function addTransformToInstanceProperty(
 
         setters.push(setTransform);
         if (getTransform) {
-            getters.splice(0, 0, getTransform);
+            getters.unshift(getTransform);
         }
     };
+}
+
+export function isDecoratedObject(target: any) {
+    return CONFIG_KEY in target;
+}
+
+export function listDecoratedProperties(target: any) {
+    return Object.keys(target?.[CONFIG_KEY] ?? {});
+}
+
+export function extractDecoratedProperties(target: any) {
+    return listDecoratedProperties(target).reduce((result, key) => {
+        result[key] = target[key] ?? null;
+        return result;
+    }, {} as Record<string, any>);
 }

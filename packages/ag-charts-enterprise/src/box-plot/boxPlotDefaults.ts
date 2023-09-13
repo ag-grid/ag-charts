@@ -7,7 +7,7 @@ export const BOX_PLOT_SERIES_DEFAULTS: AgCartesianChartOptions = {
             position: 'left',
             groupPaddingInner: 0.2,
             crosshair: {
-                enabled: true,
+                enabled: false,
                 snap: false,
             },
         },

@@ -11,7 +11,9 @@ import type { BoxPlotNodeDatum } from './boxPlotTypes';
 const {
     CartesianSeries,
     ChartAxisDirection,
+    extractDecoratedProperties,
     keyProperty,
+    mergeDefaults,
     NUMBER,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
@@ -265,7 +267,13 @@ export class BoxPlotSeries extends CartesianSeries<
             const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
                 dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
 
-            if (minValue > q1Value || q1Value > medianValue || medianValue > q3Value || q3Value > maxValue) {
+            if (
+                [minValue, q1Value, medianValue, q3Value, maxValue].some((value) => typeof value !== 'number') ||
+                minValue > q1Value ||
+                q1Value > medianValue ||
+                medianValue > q3Value ||
+                q3Value > maxValue
+            ) {
                 return;
             }
 
@@ -278,7 +286,7 @@ export class BoxPlotSeries extends CartesianSeries<
                 maxValue,
             });
 
-            scaledValues.xValue += groupScale.convert(String(groupIndex));
+            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
 
             const nodeData: BoxPlotNodeDatum = {
                 series: this,
@@ -310,7 +318,7 @@ export class BoxPlotSeries extends CartesianSeries<
             id,
             data,
             xKey,
-            xName,
+            yName,
             showInLegend,
             visible,
             legendItemName,
@@ -328,11 +336,10 @@ export class BoxPlotSeries extends CartesianSeries<
             {
                 legendType: 'category',
                 id,
-                itemId: xKey,
                 seriesId: id,
                 enabled: visible,
                 label: {
-                    text: legendItemName ?? xName ?? xKey,
+                    text: legendItemName ?? yName ?? id,
                 },
                 legendItemName,
                 marker: { fill, stroke, fillOpacity, strokeOpacity },
@@ -352,7 +359,9 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     getTooltipHtml(_seriesDatum: any): string {
-        return '';
+        // TODO remove when implementing the tooltip
+        this.tooltip.enabled = false;
+        return '<span>Tooltip Placeholder</span>';
     }
 
     protected isLabelEnabled(): boolean {
@@ -368,21 +377,87 @@ export class BoxPlotSeries extends CartesianSeries<
         return datumSelection.update(data);
     }
 
-    protected async updateDatumNodes(opts: {
+    protected async updateDatumNodes({
+        datumSelection,
+        isHighlight: highlighted,
+    }: {
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
-        const insertAxes = this.direction === 'vertical';
-        opts.datumSelection.each((boxPlot, datum) => {
-            let format: AgBoxPlotSeriesFormat | undefined;
-            if (this.formatter) {
-                format = this.formatter({
-                    ...datum,
-                    seriesId: this.id,
-                    highlighted: false,
+        const {
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            direction,
+            formatter,
+            id: seriesId,
+            ctx: { callbackCache },
+        } = this;
+        const invertAxes = direction === 'vertical';
+        datumSelection.each((boxPlotGroup, selectDatum) => {
+            const {
+                datum,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cap,
+                whisker,
+            } = selectDatum;
+
+            let activeStyles: AgBoxPlotSeriesFormat = {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cap: extractDecoratedProperties(cap),
+                whisker: extractDecoratedProperties(whisker),
+            };
+
+            if (formatter) {
+                const formatStyles = callbackCache.call(formatter, {
+                    datum,
+                    seriesId,
+                    highlighted,
+                    ...activeStyles,
+                    xKey,
+                    minKey,
+                    q1Key,
+                    medianKey,
+                    q3Key,
+                    maxKey,
                 });
+                if (formatStyles) {
+                    activeStyles = mergeDefaults(formatStyles, activeStyles);
+                }
             }
-            boxPlot.updateDatumStyles(datum, format, insertAxes);
+
+            if (highlighted) {
+                activeStyles = mergeDefaults(this.highlightStyle.item, activeStyles);
+            }
+
+            activeStyles.whisker = mergeDefaults(activeStyles.whisker ?? {}, {
+                stroke: activeStyles.stroke,
+                strokeWidth: activeStyles.strokeWidth,
+                strokeOpacity: activeStyles.strokeOpacity,
+                lineDash: activeStyles.lineDash,
+                lineDashOffset: activeStyles.lineDashOffset,
+            });
+
+            boxPlotGroup.updateDatumStyles(
+                selectDatum,
+                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesFormat>,
+                invertAxes
+            );
         });
     }
 
