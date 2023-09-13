@@ -11,8 +11,10 @@ export interface ChartLegend {
     listeners: AgChartLegendListeners;
 }
 
+export type ChartLegendType = 'category' | 'gradient';
+
 export interface ChartLegendDatum {
-    legendType: string;
+    legendType: ChartLegendType;
     seriesId: string;
     enabled: boolean;
 }

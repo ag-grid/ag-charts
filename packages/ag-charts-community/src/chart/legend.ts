@@ -793,10 +793,10 @@ export class Legend {
         event.consume();
 
         if (toggleSeriesVisible) {
-            const legendData = chartSeries.reduce(
-                (ls, s) => [...ls, ...s.getLegendData('category')],
-                [] as CategoryLegendDatum[]
-            );
+            const legendData: CategoryLegendDatum[] = [];
+            chartSeries.forEach((series) => {
+                legendData.push(...(series.getLegendData('category') as CategoryLegendDatum[]));
+            });
 
             const numVisibleItems: any = {};
             legendData.forEach((d) => {

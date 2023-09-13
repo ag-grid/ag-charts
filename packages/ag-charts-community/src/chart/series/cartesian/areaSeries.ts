@@ -1,6 +1,6 @@
 import type { Selection } from '../../../scene/selection';
 import type { DropShadow } from '../../../scene/dropShadow';
-import type { CategoryLegendDatum } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesTooltip, keyProperty, valueProperty, groupAccumulativeValueProperty } from '../series';
@@ -645,7 +645,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         });
     }
 
-    getLegendData(legendType: string): CategoryLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const { data, id, xKey, yKey, yName, marker, fill, stroke, fillOpacity, strokeOpacity, visible } = this;
 
         if (!data?.length || !xKey || !yKey || legendType !== 'category') {
@@ -655,7 +655,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         // Area stacks should be listed in the legend in reverse order, for symmetry with the
         // vertical stack display order.
         return [
-            {
+            <CategoryLegendDatum>{
                 legendType: 'category',
                 id,
                 itemId: yKey,

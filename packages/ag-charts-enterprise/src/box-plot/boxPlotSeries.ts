@@ -337,7 +337,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return [context];
     }
 
-    getLegendData(legendType: string): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
         const {
             id,
             data,

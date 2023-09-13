@@ -655,7 +655,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         });
     }
 
-    getLegendData(legendType: string): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, visible } = this;
 
         if (legendType !== 'category') {

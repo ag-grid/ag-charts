@@ -714,7 +714,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         });
     }
 
-    getLegendData(legendType: string): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, visible } = this;
 
         if (legendType !== 'category') {

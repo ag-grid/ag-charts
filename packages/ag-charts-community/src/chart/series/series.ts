@@ -1,5 +1,5 @@
 import { Group } from '../../scene/group';
-import type { ChartLegendDatum } from '../legendDatum';
+import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
@@ -746,7 +746,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return new SeriesNodeDoubleClickEvent(event, datum, this);
     }
 
-    abstract getLegendData(legendType: string): ChartLegendDatum[];
+    abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum[];
 
     protected toggleSeriesItem(_itemId: any, enabled: boolean): void {
         this.visible = enabled;

@@ -499,7 +499,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    getLegendData(legendType: string): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
         const { id, data, angleKey, radiusKey, radiusName, visible, marker, stroke, strokeOpacity } = this;
 
         if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {

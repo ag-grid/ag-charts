@@ -13,7 +13,7 @@ import {
 } from '../series';
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import type { ChartAxis } from '../../chartAxis';
@@ -597,7 +597,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         });
     }
 
-    getLegendData(legendType: string): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const {
             id,
             data,

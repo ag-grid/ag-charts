@@ -1,7 +1,7 @@
 import type { Selection } from '../../../scene/selection';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -504,7 +504,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    getLegendData(legendType: string): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const { id, data, xKey, yKey, yName, title, visible, marker } = this;
         const { fill, stroke, fillOpacity, strokeOpacity } = marker;
 

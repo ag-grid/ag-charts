@@ -44,7 +44,7 @@ import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService'
 import { DataService } from './dataService';
 import { UpdateService } from './updateService';
 import { ChartUpdateType } from './chartUpdateType';
-import type { CategoryLegendDatum, ChartLegendDatum, ChartLegend } from './legendDatum';
+import type { CategoryLegendDatum, ChartLegendDatum, ChartLegend, ChartLegendType } from './legendDatum';
 import { Logger } from '../util/logger';
 import { ActionOnSet } from '../util/proxy';
 import { ChartHighlight } from './chartHighlight';
@@ -55,7 +55,6 @@ import { SeriesStateManager } from './series/seriesStateManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { Legend } from './legend';
-import { getLegendKeys } from './factory/legendTypes';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
@@ -384,16 +383,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         delete (this as any)[module.optionsKey];
     }
 
-    private legends: Record<string, ChartLegend> = {};
+    private legends: Map<ChartLegendType, ChartLegend> = new Map();
 
     private attachLegend(
-        legendType: string,
+        legendType: ChartLegendType,
         legendKey: string,
         legendConstructor: new (moduleContext: ModuleContext) => ChartLegend
     ) {
         const legend = new legendConstructor(this.getModuleContext());
         (this as any)[legendKey] = legend;
-        this.legends[legendType] = legend;
+        this.legends.set(legendType, legend);
         legend.attachLegend(this.scene.root);
         return legend;
     }
@@ -411,7 +410,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.modules[module.optionsKey]?.instance?.destroy();
         delete this.modules[module.optionsKey];
         delete (this as any)[module.optionsKey];
-        delete this.legends[module.identifier];
+        this.legends.delete(module.identifier);
     }
 
     isModuleEnabled(module: Module) {
@@ -472,7 +471,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltipManager.destroy();
         this.tooltip.destroy();
         Object.values(this.legends).forEach((legend) => legend.destroy());
-        this.legends = {};
+        this.legends.clear();
         this.overlays.noData.hide();
         SizeMonitor.unobserve(this.element);
 
@@ -920,15 +919,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return new Map(labels.map((l, i) => [visibleSeries[i], l]));
     }
 
-    private applyLegendOptions?: (legendKey: string, legend: ChartLegend) => void = undefined;
-
-    setLegendInit(initLegend: (legendKey: string, legend: ChartLegend) => void) {
-        this.applyLegendOptions = initLegend;
-    }
-
     private async updateLegend() {
-        Object.entries(this.legends).forEach(([legendType, legend]) => {
-            const legendKey = getLegendKeys()[legendType];
+        this.legends.forEach((legend, legendType) => {
             const legendData: ChartLegendDatum[] = [];
             this.series
                 .filter((s) => s.showInLegend)
@@ -936,7 +928,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     const data = series.getLegendData(legendType);
                     legendData.push(...data);
                 });
-            this.applyLegendOptions?.(legendKey, legend);
 
             if (legendType === 'category') {
                 this.validateLegendData(legendData);

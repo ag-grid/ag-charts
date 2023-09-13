@@ -9,7 +9,7 @@ export const GRADIENT_LEGEND_THEME = {
     stop: {
         padding: 8,
         label: {
-            color: 'rgb(70, 70, 70)',
+            color: _Theme.DEFAULT_LABEL_COLOUR,
             fontStyle: undefined,
             fontWeight: undefined,
             fontSize: 12,

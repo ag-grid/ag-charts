@@ -373,7 +373,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     const completeOptions = jsonMerge([chart.processedOptions ?? {}, processedOptions], noDataCloneMergeOptions);
     const modulesChanged = applyModules(chart, completeOptions);
 
-    const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend'];
+    const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners'];
     if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
         // Append axes to defaults.
         skip.push('axes');
@@ -403,20 +403,21 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
             forceNodeDataRefresh = true;
         }
     }
-    applyLegend(chart, processedOptions);
 
     const seriesOpts = processedOptions.series as any[];
     const seriesDataUpdate = !!processedOptions.data || seriesOpts?.some((s) => s.data != null);
     const legendKeys = getLegendKeys();
     const optionsHaveLegend = Object.values(legendKeys).some(
-        (legendKey) => (processedOptions as any)[legendKey] != undefined
+        (legendKey) => (processedOptions as any)[legendKey] != null
     );
-    const otherRefreshUpdate = Boolean(processedOptions.title ?? processedOptions.subtitle);
+    const otherRefreshUpdate = processedOptions.title != null && processedOptions.subtitle != null;
     forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     if (processedOptions.data) {
         chart.data = processedOptions.data;
     }
-
+    if (processedOptions.legend?.listeners) {
+        Object.assign(chart.legend!.listeners, processedOptions.legend.listeners ?? {});
+    }
     if (processedOptions.listeners) {
         chart.updateAllSeriesListeners();
     }
@@ -441,7 +442,7 @@ function applyModules(chart: Chart, options: AgChartOptions) {
 
     let modulesChanged = false;
     const processModules = <T extends Module<ModuleInstance>>(
-        moduleType: string,
+        moduleType: Module['type'],
         add: (module: T) => void,
         remove: (module: T) => void
     ) => {
@@ -534,16 +535,6 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
 
     chart.axes = createAxis(chart, optAxes);
     return true;
-}
-
-function applyLegend(chart: Chart, options: AgChartOptions) {
-    const skip = ['listeners'];
-    chart.setLegendInit((legendKey, legend) => {
-        applyOptionValues(legend, (options as any)[legendKey] ?? {}, { skip });
-        if (chart.legend && options.legend?.listeners) {
-            Object.assign(chart.legend.listeners!, options.legend.listeners);
-        }
-    });
 }
 
 function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
