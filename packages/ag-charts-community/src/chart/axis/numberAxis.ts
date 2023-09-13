@@ -21,7 +21,6 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
 
     constructor(moduleCtx: ModuleContext, scale = new LinearScale() as LinearScale | LogScale) {
         super(moduleCtx, scale);
-        scale.strictClampByDefault = true;
     }
 
     normaliseDataDomain(d: number[]) {

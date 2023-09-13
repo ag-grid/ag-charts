@@ -23,7 +23,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         super(moduleCtx, new TimeScale());
 
         const { scale } = this;
-        scale.strictClampByDefault = true;
         this.refreshScale();
 
         this.datumFormatter = scale.tickFormat({

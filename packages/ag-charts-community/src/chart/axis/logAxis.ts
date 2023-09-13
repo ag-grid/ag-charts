@@ -72,6 +72,5 @@ export class LogAxis extends NumberAxis {
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new LogScale());
-        this.scale.strictClampByDefault = true;
     }
 }

@@ -456,8 +456,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
                 trailingSubtotal = cumulativeValue ?? 0;
             }
 
-            const currY = Math.round(yScale.convert(cumulativeValue, { strict: false }));
-            const trailY = Math.round(yScale.convert(trailingValue, { strict: false }));
+            const currY = Math.round(yScale.convert(cumulativeValue));
+            const trailY = Math.round(yScale.convert(trailingValue));
 
             const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
             const isPositive = (value ?? 0) >= 0;

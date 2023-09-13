@@ -276,8 +276,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         const createPathCoordinates = (xDatum: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
             const x = xScale.convert(xDatum) + xOffset;
 
-            const prevYCoordinate = yScale.convert(lastYEnd, { strict: false });
-            const currYCoordinate = yScale.convert(yEnd, { strict: false });
+            const prevYCoordinate = yScale.convert(lastYEnd);
+            const currYCoordinate = yScale.convert(yEnd);
 
             return [
                 { x, y: currYCoordinate, yValue: yEnd },
@@ -301,7 +301,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             }
 
             const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(currY, { strict: false });
+            const y = yScale.convert(currY);
 
             return { x, y, size: marker.size };
         };

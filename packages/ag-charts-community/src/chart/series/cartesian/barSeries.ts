@@ -383,8 +383,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 return;
             }
 
-            const y = yScale.convert(currY, { strict: false });
-            const bottomY = yScale.convert(prevY, { strict: false });
+            const y = yScale.convert(currY);
+            const bottomY = yScale.convert(prevY);
 
             const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
             const rect = {
