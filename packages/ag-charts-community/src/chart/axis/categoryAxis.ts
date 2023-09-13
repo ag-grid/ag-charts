@@ -34,7 +34,7 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
         return this.scale.paddingOuter;
     }
 
-    normaliseDataDomain(d: (string | object)[]): (string | object)[] {
+    normaliseDataDomain(d: (string | object)[]) {
         const domain = [];
         const uniqueValues = new Set();
         for (const v of d) {
@@ -45,7 +45,7 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
                 domain.push(v);
             }
         }
-        return domain;
+        return { domain, clipped: false };
     }
 
     protected calculateDomain() {

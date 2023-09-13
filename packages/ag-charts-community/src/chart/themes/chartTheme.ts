@@ -216,15 +216,6 @@ export class ChartTheme {
 
     private static getChartDefaults() {
         return {
-            seriesArea: {
-                clip: true,
-                padding: {
-                    top: 5,
-                    bottom: 5,
-                    left: 5,
-                    right: 5,
-                },
-            },
             background: {
                 visible: true,
                 fill: DEFAULT_BACKGROUND_COLOUR as unknown as string,
@@ -389,9 +380,6 @@ export class ChartTheme {
                     fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
                     color: DEFAULT_LABEL_COLOUR as unknown as string,
                 },
-            },
-            seriesArea: {
-                clip: false,
             },
         },
         area: {

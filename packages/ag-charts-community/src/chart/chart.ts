@@ -18,7 +18,7 @@ import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import type { AgChartOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartInstance } from './agChartOptions';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import type { Point } from '../scene/point';
-import { BOOLEAN, STRING_UNION, Validate } from '../util/validation';
+import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
 import { sleep } from '../util/async';
 import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
 import { Tooltip } from './tooltip/tooltip';
@@ -95,8 +95,8 @@ function initialiseSpecialOverrides(opts: Partial<SpecialOverrides>): SpecialOve
 }
 
 class SeriesArea {
-    @Validate(BOOLEAN)
-    clip = false;
+    @Validate(OPT_BOOLEAN)
+    clip?: boolean = undefined;
 
     padding = new Padding(0);
 }

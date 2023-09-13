@@ -202,7 +202,9 @@ export class RadiusNumberAxis extends _ModuleSupport.PolarAxis {
 
     normaliseDataDomain(d: number[]) {
         const { min, max } = this;
-        return normalisedExtent(d, min, max);
+        const domain = normalisedExtent(d, min, max);
+
+        return { domain, clipped: domain.clipped };
     }
 
     protected createTick() {

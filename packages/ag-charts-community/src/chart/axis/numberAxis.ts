@@ -25,7 +25,9 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
 
     normaliseDataDomain(d: number[]) {
         const { min, max } = this;
-        return normalisedExtent(d, min, max);
+        const domain = normalisedExtent(d, min, max);
+
+        return { domain, clipped: domain.clipped };
     }
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
@@ -56,7 +58,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
             throw new Error('AG Charts - dataDomain not calculated, cannot perform tick calculation.');
         }
 
-        const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain, primaryTickCount ?? 0);
+        const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain.domain, primaryTickCount ?? 0);
 
         this.scale.nice = false;
         this.scale.domain = d;

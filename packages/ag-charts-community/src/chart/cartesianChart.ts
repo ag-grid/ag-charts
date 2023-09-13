@@ -364,9 +364,8 @@ export class CartesianChart extends Chart {
         const { min = 0, max = 1 } = zoom ?? {};
         axis.visibleRange = [min, max];
 
-        if (!clipSeries && (axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1)) {
-            clipSeries = true;
-        }
+        const rangeClipped = axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
+        clipSeries ||= rangeClipped;
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const paddedBoundsCoefficient = 0.3;

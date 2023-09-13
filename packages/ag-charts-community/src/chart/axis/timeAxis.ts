@@ -38,6 +38,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 
     normaliseDataDomain(d: Date[]) {
         let { min, max } = this;
+        let clipped = false;
 
         if (typeof min === 'number') {
             min = new Date(min);
@@ -50,16 +51,18 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
             d = (extent(d) ?? [0, 1000]).map((x) => new Date(x));
         }
         if (min instanceof Date) {
+            clipped ||= min > d[0];
             d = [min, d[1]];
         }
         if (max instanceof Date) {
+            clipped ||= max < d[1];
             d = [d[0], max];
         }
         if (d[0] > d[1]) {
             d = [];
         }
 
-        return d;
+        return { domain: d, clipped };
     }
 
     protected createTick() {

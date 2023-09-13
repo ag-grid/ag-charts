@@ -374,11 +374,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             const yRawValue = values[0][yRawIndex];
             const barX = x + groupScale.convert(String(groupIndex));
 
-            // Bars outside of visible range are not rendered, so we create node data
-            // only for the visible subset of user data.
-            if (!xAxis.inRange(barX, barWidth)) {
-                return;
-            }
             if (isNaN(currY)) {
                 return;
             }
