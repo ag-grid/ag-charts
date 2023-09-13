@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-vue",
   "description": "AG Charts Vue Component",
-  "version": "9.0.0-beta.20230911",
+  "version": "9.0.0-beta.20230913",
   "author": "Sean Landsman <sean@thelandsmans.com>",
   "license": "MIT",
   "main": "main.js",
@@ -31,7 +31,7 @@
     "@types/node": "12.20.20",
     "@vue/cli-plugin-typescript": "3.12.1",
     "@vue/cli-service": "3.12.1",
-    "ag-charts-community": "9.0.0-beta.20230911",
+    "ag-charts-community": "9.0.0-beta.20230913",
     "rimraf": "3.0.2",
     "typescript": "^5.1.6",
     "vue": "2.6.10",
@@ -40,7 +40,7 @@
     "vue-template-compiler": "2.6.10"
   },
   "peerDependencies": {
-    "ag-charts-community": "9.0.0-beta.20230911",
+    "ag-charts-community": "9.0.0-beta.20230913",
     "vue": ">= 2.2 <= 2.5.17 || >= 2.5.20",
     "vue-property-decorator": "^7.2.0 || ^8.0.0 || ^9.1.2"
   },
