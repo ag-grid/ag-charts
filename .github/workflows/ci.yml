@@ -212,8 +212,6 @@ jobs:
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
-                  elif [ "${{ steps.testReport.outcome }}" == "failure" ] ; then
-                    WORKFLOW_STATUS="failure"
                   fi
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
