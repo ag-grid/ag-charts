@@ -17,14 +17,18 @@ export function deepMerge(target: any, source: any) {
         });
         return result;
     }
-    if ((Array.isArray(target) && !Array.isArray(source)) || (isObject(target) && !isObject(source))) {
+    if ((Array.isArray(target) && !Array.isArray(source)) || (isObjectLike(target) && !isObjectLike(source))) {
         return target;
     }
     return source;
 }
 
+function isObjectLike(value: any): value is Object {
+    return typeof value === 'object' && value !== null;
+}
+
 function isObject(value: any): value is Object {
-    return value && typeof value === 'object';
+    return isObjectLike(value) && !Array.isArray(value);
 }
 
 function isPlainObject(x: any): x is Object {

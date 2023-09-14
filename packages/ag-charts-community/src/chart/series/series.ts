@@ -544,29 +544,21 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         const keys = properties?.[resolvedDirection];
         const values: string[] = [];
 
-        const flatten = (...array: any[]) => {
-            for (const value of array) {
-                addValue(value);
-            }
-        };
-
-        const addValue = (value: any) => {
-            if (Array.isArray(value)) {
-                flatten(...value);
-            } else if (typeof value === 'object') {
-                flatten(Object.values(value));
-            } else {
-                values.push(value);
-            }
-        };
-
         if (!keys) return values;
 
-        keys.forEach((key) => {
-            const value = (this as any)[key];
+        const addValues = (...items: any[]) => {
+            for (const value of items) {
+                if (Array.isArray(value)) {
+                    addValues(...value);
+                } else if (typeof value === 'object') {
+                    addValues(...Object.values(value));
+                } else {
+                    values.push(value);
+                }
+            }
+        };
 
-            addValue(value);
-        });
+        addValues(...keys.map((key) => (this as any)[key]));
 
         return values;
     }

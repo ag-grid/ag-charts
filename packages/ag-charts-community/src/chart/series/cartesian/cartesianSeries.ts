@@ -264,8 +264,10 @@ export abstract class CartesianSeries<
             this.markNodeDataDirty();
         }
 
-        await this.updateSelections(seriesHighlighted, visible);
-        await this.updateNodes(seriesHighlighted, visible);
+        const highlightItems = await this.updateHighlightSelection(seriesHighlighted);
+
+        await this.updateSelections(visible);
+        await this.updateNodes(highlightItems, seriesHighlighted, visible);
         this.errorBarUpdater.update();
 
         const animationData = this.getAnimationData(seriesRect);
@@ -275,9 +277,7 @@ export abstract class CartesianSeries<
         this.animationState.transition('update', animationData);
     }
 
-    protected async updateSelections(seriesHighlighted: boolean | undefined, anySeriesItemEnabled: boolean) {
-        await this.updateHighlightSelection(seriesHighlighted);
-
+    protected async updateSelections(anySeriesItemEnabled: boolean) {
         if (!anySeriesItemEnabled) {
             return;
         }
@@ -315,11 +315,7 @@ export abstract class CartesianSeries<
         subGroup.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection, seriesIdx });
         subGroup.labelSelection = await this.updateLabelSelection({ labelData, labelSelection, seriesIdx });
         if (markerSelection) {
-            subGroup.markerSelection = await this.updateMarkerSelection({
-                nodeData,
-                markerSelection,
-                seriesIdx,
-            });
+            subGroup.markerSelection = await this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx });
         }
     }
 
@@ -432,7 +428,11 @@ export abstract class CartesianSeries<
         return result;
     }
 
-    protected async updateNodes(seriesHighlighted: boolean | undefined, anySeriesItemEnabled: boolean) {
+    protected async updateNodes(
+        highlightedItems: C['nodeData'] | undefined,
+        seriesHighlighted: boolean | undefined,
+        anySeriesItemEnabled: boolean
+    ) {
         const {
             highlightSelection,
             highlightLabelSelection,
@@ -505,7 +505,7 @@ export abstract class CartesianSeries<
                     return;
                 }
 
-                await this.updateDatumNodes({ datumSelection, isHighlight: false, seriesIdx });
+                await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false, seriesIdx });
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
                     await this.updateMarkerNodes({ markerSelection, isHighlight: false, seriesIdx });
@@ -560,6 +560,8 @@ export abstract class CartesianSeries<
             items: labelItems,
             highlightLabelSelection,
         });
+
+        return highlightItems;
     }
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
@@ -773,6 +775,7 @@ export abstract class CartesianSeries<
     }
     protected async updateDatumNodes(_opts: {
         datumSelection: NodeDataSelection<N, C>;
+        highlightedItems?: C['nodeData'];
         isHighlight: boolean;
         seriesIdx: number;
     }): Promise<void> {
@@ -853,6 +856,7 @@ export abstract class CartesianSeries<
         labelSelection: LabelDataSelection<Text, C>;
         seriesIdx: number;
     }): Promise<LabelDataSelection<Text, C>>;
+
     protected abstract updateLabelNodes(opts: {
         labelSelection: LabelDataSelection<Text, C>;
         seriesIdx: number;
