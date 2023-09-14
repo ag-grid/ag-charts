@@ -10,7 +10,7 @@ on:
         branches: [latest]
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+    group: ${{ github.workflow }}-${{ github.event.number || github.event.head_commit.id }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
 
 jobs:
