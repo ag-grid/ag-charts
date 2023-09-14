@@ -1,13 +1,14 @@
 import { memo } from '../../util/memo';
 import type {
     GroupValueProcessorDefinition,
+    ProcessedData,
     ProcessorOutputPropertyDefinition,
     PropertyId,
     PropertyValueProcessorDefinition,
     ReducerOutputPropertyDefinition,
-    ProcessedData,
     ScopeProvider,
 } from './dataModel';
+import { arraysEqual } from '../../util/array';
 
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<number> = {
     type: 'reducer',
@@ -329,16 +330,4 @@ export function diff(
 
 export function createDatumId(keys: string[]) {
     return keys.join('___');
-}
-
-function arraysEqual(a: any[], b: any[]): boolean {
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-
-    for (let i = 0; i < a.length; i++) {
-        if (Array.isArray(a[i]) && Array.isArray(b[i])) return arraysEqual(a[i], b[i]);
-        if (a[i] !== b[i]) return false;
-    }
-
-    return true;
 }
