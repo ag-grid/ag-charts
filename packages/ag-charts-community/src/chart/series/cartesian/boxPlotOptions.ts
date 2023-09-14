@@ -8,7 +8,7 @@ import type {
     StrokeOptions,
 } from './commonOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
-import type { Ratio } from '../../options/types';
+import type { CssColor, Ratio } from '../../options/types';
 
 interface BoxPlotUniqueOptions {
     // required
@@ -33,6 +33,12 @@ export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
 export type AgBoxPlotSeriesFormatterParams<DatumType> = AgSeriesFormatterParams<DatumType> &
     Readonly<BoxPlotUniqueOptions & Omit<AxisOptions, 'yKey'> & FillOptions & StrokeOptions>;
+
+export interface AgBoxPlotSeriesTooltipRendererParams
+    extends BoxPlotUniqueOptions,
+        Omit<AgCartesianSeriesTooltipRendererParams, 'yKey'> {
+    fill?: CssColor;
+}
 
 export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineDashOptions {
     /** Options to style chart's caps **/

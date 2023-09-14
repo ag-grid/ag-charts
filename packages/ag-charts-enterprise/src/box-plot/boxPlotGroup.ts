@@ -90,8 +90,8 @@ export class BoxPlotGroup extends _Scene.Group {
             height: Math.max(0, bandwidth - strokeWidth * 2),
         });
 
-        const capStart = Math.round(axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2);
-        const capEnd = Math.round(axisValue + (bandwidth * (1 + cap.lengthRatio)) / 2);
+        const capStart = Math.floor(axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2);
+        const capEnd = Math.ceil(axisValue + (bandwidth * (1 + cap.lengthRatio)) / 2);
 
         caps[0].setProperties({ x: minValue, y1: capStart, y2: capEnd });
         caps[1].setProperties({ x: maxValue, y1: capStart, y2: capEnd });

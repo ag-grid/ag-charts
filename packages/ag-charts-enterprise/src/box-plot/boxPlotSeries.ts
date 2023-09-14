@@ -1,4 +1,9 @@
-import type { _Scene, AgBoxPlotSeriesStyles, AgBoxPlotSeriesFormatterParams } from 'ag-charts-community';
+import type {
+    _Scene,
+    AgBoxPlotSeriesFormatterParams,
+    AgBoxPlotSeriesStyles,
+    AgBoxPlotSeriesTooltipRendererParams,
+} from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
@@ -150,7 +155,7 @@ export class BoxPlotSeries extends CartesianSeries<
 
     readonly whisker = new BoxPlotSeriesWhisker();
 
-    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>>();
+    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>();
     /**
      * Used to get the position of items within each group.
      */
@@ -415,11 +420,27 @@ export class BoxPlotSeries extends CartesianSeries<
             .map(([key, name, axis]) => _Util.sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
             .join(title ? '<br/>' : ', ');
 
-        const activeStyles = this.getFormattedStyles(nodeDatum);
+        const { fill } = this.getFormattedStyles(nodeDatum);
 
         return this.tooltip.toTooltipHtml(
-            { title, content, backgroundColor: activeStyles.fill },
-            { datum, seriesId, highlighted: false, ...activeStyles, xKey, minKey, q1Key, medianKey, q3Key, maxKey }
+            { title, content, backgroundColor: fill },
+            {
+                datum,
+                seriesId,
+                fill,
+                xKey,
+                minKey,
+                q1Key,
+                medianKey,
+                q3Key,
+                maxKey,
+                xName,
+                minName,
+                q1Name,
+                medianName,
+                q3Name,
+                maxName,
+            }
         );
     }
 
