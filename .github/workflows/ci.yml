@@ -11,7 +11,7 @@ on:
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
-    cancel-in-progress: ${{ github.ref != 'latest' }}
+    cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
 
 jobs:
     execute_blt:
@@ -172,7 +172,7 @@ jobs:
     report:
         runs-on: ubuntu-latest
         needs: [execute_blt, test]
-        if: always()
+        if: cancelled() != true
         steps:
             - name: Checkout
               id: checkout

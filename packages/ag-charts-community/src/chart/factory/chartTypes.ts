@@ -5,7 +5,6 @@ export type ChartType = 'cartesian' | 'polar' | 'hierarchy';
 const TYPES: Record<string, ChartType> = {
     area: 'cartesian',
     bar: 'cartesian',
-    column: 'cartesian',
     histogram: 'cartesian',
     line: 'cartesian',
     scatter: 'cartesian',
