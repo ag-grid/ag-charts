@@ -1,5 +1,5 @@
-import type { BoxPlotStyleOptions } from 'ag-charts-community';
-import { _Scene, _ModuleSupport } from 'ag-charts-community';
+import type { AgBoxPlotSeriesStyles } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 enum GroupTags {
@@ -27,11 +27,14 @@ export class BoxPlotGroup extends _Scene.Group {
 
     updateDatumStyles(
         datum: BoxPlotNodeDatum,
-        activeStyles: _ModuleSupport.DeepRequired<BoxPlotStyleOptions>,
+        activeStyles: _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
         invertAxes = false
     ) {
-        const { xValue: axisValue, medianValue, bandwidth } = datum;
-        let { minValue, q1Value, q3Value, maxValue } = datum;
+        const {
+            bandwidth,
+            scaledValues: { xValue: axisValue, medianValue },
+        } = datum;
+        let { minValue, q1Value, q3Value, maxValue } = datum.scaledValues;
 
         if (invertAxes) {
             [maxValue, q3Value, q1Value, minValue] = [minValue, q1Value, q3Value, maxValue];

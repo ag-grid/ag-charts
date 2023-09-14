@@ -31,9 +31,10 @@ function isPlainObject(x: any): x is Object {
     return isObject(x) && x.constructor === Object;
 }
 
-export function mergeDefaults<T extends Record<string, any>>(...sources: T[]) {
+export function mergeDefaults<T extends Record<string, any>>(...sources: (T | undefined)[]) {
     const target: Record<string, any> = {};
     for (const source of sources) {
+        if (!source) continue;
         const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
         for (const key of keys) {
             if (isObject(target[key]) && isObject(source[key])) {
