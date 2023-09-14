@@ -9,7 +9,6 @@ import type { JsonModel } from './model';
 import { getSelectionReferenceId } from './getObjectReferenceId';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { getTopLevelSelection, getTopSelection } from './modelPath';
-import { TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
 import { formatPropertyDocumentation, removeDefaultValue } from './documentationHelpers';
 import { getPropertyType } from './getPropertyType';
 
@@ -86,7 +85,7 @@ export function useJsObjectSelection({ model, config }: { model: JsonModel; conf
             } else if (isTopLevelSelection) {
                 const { propName } = newSelection as JsObjectSelectionProperty;
                 const shouldHideChildren = config?.hideChildrenProperties?.includes(propName);
-                const shouldLimitChildren = TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN.includes(propName);
+                const shouldLimitChildren = config?.limitChildrenProperties?.includes(propName);
 
                 let shouldLimitChildrenDepth;
                 if (shouldHideChildren) {
@@ -105,7 +104,7 @@ export function useJsObjectSelection({ model, config }: { model: JsonModel; conf
                 try {
                     const [newTopLevelPathItem] = newSelection.path;
                     if (selectionHasChanged({ selection: topLevelSelection, newSelection })) {
-                        const newTopLevelSelection = getTopLevelSelection({ selection: newSelection, model });
+                        const newTopLevelSelection = getTopLevelSelection({ selection: newSelection, model, config });
                         if (newTopLevelSelection) {
                             setTopLevelSelection(newTopLevelSelection);
                         } else {

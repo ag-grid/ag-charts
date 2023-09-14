@@ -303,6 +303,10 @@ export interface JsObjectPropertiesViewConfig {
      * Properties where the children are hidden in the nav and the details view
      */
     hideChildrenProperties?: string[];
+    /**
+     * Properties where the number of children shown on the details view is limited
+     */
+    limitChildrenProperties?: string[];
 }
 
 export interface InterfaceDocumentationProps {

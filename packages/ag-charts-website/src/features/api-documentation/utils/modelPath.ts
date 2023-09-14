@@ -1,6 +1,6 @@
 import type { JsonArray, JsonModel, JsonObjectProperty, JsonUnionType } from '@features/api-documentation/utils/model';
-import type { JsObjectSelection } from '../types';
-import { TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN, UNION_DISCRIMINATOR_PROP } from '../constants';
+import type { JsObjectPropertiesViewConfig, JsObjectSelection } from '../types';
+import { UNION_DISCRIMINATOR_PROP } from '../constants';
 
 /*
  * Get regex to extract the path item regex if it has a discriminator value
@@ -56,9 +56,11 @@ export function getUnionPathInfo({
 export function getTopLevelSelection({
     selection,
     model,
+    config,
 }: {
     selection: JsObjectSelection;
     model: JsonModel;
+    config?: JsObjectPropertiesViewConfig;
 }): JsObjectSelection | undefined {
     const [topLevelPathItem] = selection.path;
     const topLevelModel = model.properties[topLevelPathItem];
@@ -66,7 +68,7 @@ export function getTopLevelSelection({
         return;
     }
 
-    const shouldLimitChildren = TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN.includes(topLevelPathItem);
+    const shouldLimitChildren = config?.limitChildrenProperties?.includes(topLevelPathItem);
     if (shouldLimitChildren) {
         let innerOption: JsonObjectProperty;
         let path = selection.path;
