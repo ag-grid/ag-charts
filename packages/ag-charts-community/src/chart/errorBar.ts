@@ -53,12 +53,17 @@ export class ErrorBarNode extends Path {
 }
 
 export class ErrorBars {
-    public groupNode?: Group = undefined;
-    private selection?: Selection<ErrorBarNode> = undefined;
-    private nodeData: (ErrorBarPoints | undefined)[] = new Array(0);
+    public groupNode: Group;
+    private selection: Selection<ErrorBarNode>;
+    private nodeData: (ErrorBarPoints | undefined)[] = [];
+
+    constructor(parent: Node) {
+        this.groupNode = new Group({ name: `${parent.id}-series-errorBars` });
+        parent.appendChild(this.groupNode);
+        this.selection = Selection.select(this.groupNode, () => this.errorBarFactory());
+    }
 
     createNodeData(
-        parent: Node,
         processedData: ProcessedData<any>,
         xIndex?: number,
         _yIndex?: number, // This is will be used when the scatterplot errorbars are implemented
@@ -66,10 +71,8 @@ export class ErrorBars {
         yScale?: Scale<any, any, any>,
         config?: ErrorBarConfig
     ) {
-        this.selection = undefined;
-
         const { nodeData } = this;
-        const { yLowerKey = undefined, yUpperKey = undefined } = config ?? {};
+        const { yLowerKey, yUpperKey } = config ?? {};
         if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined || _yIndex === undefined) {
             return;
         }
@@ -94,20 +97,11 @@ export class ErrorBars {
                 nodeData[i] = undefined;
             }
         }
-
-        if (this.groupNode === undefined) {
-            this.groupNode = new Group({ name: `${parent.id}-series-errorBars` });
-            parent.appendChild(this.groupNode);
-        }
-
-        this.selection = Selection.select(this.groupNode, () => this.errorBarFactory());
     }
 
     update() {
-        if (this.selection != undefined) {
-            this.selection.update(this.nodeData, undefined, undefined);
-            this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
-        }
+        this.selection.update(this.nodeData, undefined, undefined);
+        this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
     }
 
     private updateNode(node: ErrorBarNode, _datum: any, index: number) {

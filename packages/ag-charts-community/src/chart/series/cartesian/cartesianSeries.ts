@@ -116,7 +116,7 @@ export abstract class CartesianSeries<
     legendItemName?: string = undefined;
 
     errorBar?: ErrorBarConfig = undefined;
-    errorBarUpdater: ErrorBars = new ErrorBars();
+    errorBarUpdater: ErrorBars = new ErrorBars(this.contentGroup);
 
     private _contextNodeData: C[] = [];
     get contextNodeData(): C[] {
@@ -308,7 +308,6 @@ export abstract class CartesianSeries<
             this._contextNodeData = await this.createNodeData();
             if (this.processedData !== undefined && this.errorBar !== undefined) {
                 this.errorBarUpdater.createNodeData(
-                    this.contentGroup,
                     this.processedData,
                     this.dataModel?.resolveProcessedDataIndexById(this, `xValue`).index,
                     this.dataModel?.resolveProcessedDataIndexById(this, `yValue`).index,
