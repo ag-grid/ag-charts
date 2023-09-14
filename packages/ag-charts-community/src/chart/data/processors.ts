@@ -297,8 +297,7 @@ export function diff(
                 if (added.has(prevId)) {
                     if (updateMovedDatums || !arraysEqual(added.get(prevId).values, prev.values)) {
                         updated.set(prevId, prev);
-                        const updatedIndex = added.get(prevId);
-                        updatedIndices.set(prevId, updatedIndex);
+                        updatedIndices.set(prevId, i);
 
                         moved.set(prevId, prev);
                     }
