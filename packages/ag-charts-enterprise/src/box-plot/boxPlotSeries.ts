@@ -358,7 +358,7 @@ export class BoxPlotSeries extends CartesianSeries<
             seriesId: id,
             enabled: visible,
             label: {
-                text: legendItemName ?? yName ?? id,
+                text: legendItemName ?? yName ?? `Box Plot #${id.substring(id.lastIndexOf('-') + 1)}`,
             },
             legendItemName,
             marker: { fill, fillOpacity, stroke, strokeOpacity },
