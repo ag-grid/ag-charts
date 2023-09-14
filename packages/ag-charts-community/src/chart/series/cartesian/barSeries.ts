@@ -553,10 +553,10 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
         const { xName, yName, fill, stroke, tooltip, formatter, id: seriesId, stackGroup } = this;
         const strokeWidth = this.getStrokeWidth(this.strokeWidth);
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
+        const xString = xAxis.formatDatum(xValue);
+        const yString = yAxis.formatDatum(yValue);
         const title = sanitizeHtml(yName);
-        const content = xString + ': ' + yString;
+        const content = sanitizeHtml(xString + ': ' + yString);
 
         let format: AgBarSeriesFormat | undefined = undefined;
 
