@@ -24,7 +24,7 @@ export function deepMerge(target: any, source: any) {
 }
 
 function isObject(value: any): value is Object {
-    return value && typeof value === 'object';
+    return typeof value === 'object' && !Array.isArray(value) && value !== null;
 }
 
 function isPlainObject(x: any): x is Object {

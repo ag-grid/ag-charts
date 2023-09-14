@@ -427,25 +427,22 @@ export class BoxPlotSeries extends CartesianSeries<
         return false;
     }
 
-    private highlightedIds: string[] = [];
-
     protected async updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
-        if (opts.seriesIdx === -1) {
-            this.highlightedIds = data.map((datum) => datum.itemId);
-        }
         return opts.datumSelection.update(data);
     }
 
     protected async updateDatumNodes({
         datumSelection,
+        highlightedItems,
         isHighlight: highlighted,
     }: {
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
         const invertAxes = this.direction === 'vertical';
@@ -467,7 +464,8 @@ export class BoxPlotSeries extends CartesianSeries<
             });
 
             // hide duplicates of highlighted nodes
-            boxPlotGroup.opacity = highlighted || !this.highlightedIds.includes(selectDatum.itemId) ? 1 : 0;
+            boxPlotGroup.opacity =
+                highlighted || !highlightedItems?.some((datum) => datum.itemId === nodeDatum.itemId) ? 1 : 0;
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
