@@ -199,8 +199,8 @@ function buildPages(
             return {
                 indices: colIndices,
                 bboxes: colBBoxes,
-                columnHeight,
-                columnWidth,
+                columnHeight: Math.ceil(columnHeight),
+                columnWidth: Math.ceil(columnWidth),
             };
         });
 
