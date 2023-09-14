@@ -1,10 +1,5 @@
-import type {
-    _Scene,
-    AgBoxPlotSeriesFormat,
-    AgBoxPlotSeriesFormatterParams,
-    AgCartesianSeriesTooltipRendererParams,
-} from 'ag-charts-community';
-import { _ModuleSupport, _Scale } from 'ag-charts-community';
+import type { _Scene, AgBoxPlotSeriesStyles, AgBoxPlotSeriesFormatterParams } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
@@ -149,13 +144,13 @@ export class BoxPlotSeries extends CartesianSeries<
     direction: 'vertical' | 'horizontal' = 'horizontal';
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesFormat = undefined;
+    formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesStyles = undefined;
 
     readonly cap = new BoxPlotSeriesCap();
 
     readonly whisker = new BoxPlotSeriesWhisker();
 
-    readonly tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>>();
     /**
      * Used to get the position of items within each group.
      */
@@ -318,9 +313,8 @@ export class BoxPlotSeries extends CartesianSeries<
                 itemId: xValue,
                 datum,
                 xKey,
-                yValue: 0,
                 bandwidth: Math.round(barWidth),
-                ...scaledValues,
+                scaledValues,
                 cap,
                 whisker,
                 fill,
@@ -384,10 +378,49 @@ export class BoxPlotSeries extends CartesianSeries<
         return new BoxPlotSeriesNodeDoubleClickEvent(event, datum, this);
     }
 
-    getTooltipHtml(_seriesDatum: any): string {
-        // TODO remove when implementing the tooltip
-        this.tooltip.enabled = false;
-        return '<span>Tooltip Placeholder</span>';
+    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): string {
+        const {
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            xName,
+            yName,
+            minName,
+            q1Name,
+            medianName,
+            q3Name,
+            maxName,
+            id: seriesId,
+        } = this;
+        const { datum } = nodeDatum;
+
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
+
+        if (!xAxis || !yAxis || !xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return '';
+
+        const title = _Util.sanitizeHtml(yName);
+        const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
+            [xKey, xName, xAxis],
+            [minKey, minName, yAxis],
+            [q1Key, q1Name, yAxis],
+            [medianKey, medianName, yAxis],
+            [q3Key, q3Name, yAxis],
+            [maxKey, maxName, yAxis],
+        ];
+        const content = contentData
+            .map(([key, name, axis]) => _Util.sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
+            .join(title ? '<br/>' : ', ');
+
+        const activeStyles = this.getFormattedStyles(nodeDatum);
+
+        return this.tooltip.toTooltipHtml(
+            { title, content, backgroundColor: activeStyles.fill },
+            { datum, seriesId, highlighted: false, ...activeStyles, xKey, minKey, q1Key, medianKey, q3Key, maxKey }
+        );
     }
 
     protected isLabelEnabled(): boolean {
@@ -415,81 +448,30 @@ export class BoxPlotSeries extends CartesianSeries<
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
-        const {
-            xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
-            direction,
-            formatter,
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
-        const invertAxes = direction === 'vertical';
-        datumSelection.each((boxPlotGroup, selectDatum) => {
-            const {
-                datum,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cap,
-                whisker,
-            } = selectDatum;
-
-            let activeStyles: AgBoxPlotSeriesFormat = {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cap: extractDecoratedProperties(cap),
-                whisker: extractDecoratedProperties(whisker),
-            };
-
-            if (formatter) {
-                const formatStyles = callbackCache.call(formatter, {
-                    datum,
-                    seriesId,
-                    highlighted,
-                    ...activeStyles,
-                    xKey,
-                    minKey,
-                    q1Key,
-                    medianKey,
-                    q3Key,
-                    maxKey,
-                });
-                if (formatStyles) {
-                    activeStyles = mergeDefaults(formatStyles, activeStyles);
-                }
-            }
+        const invertAxes = this.direction === 'vertical';
+        datumSelection.each((boxPlotGroup, nodeDatum) => {
+            let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
             if (highlighted) {
                 activeStyles = mergeDefaults(this.highlightStyle.item, activeStyles);
             }
 
-            activeStyles.whisker = mergeDefaults(activeStyles.whisker ?? {}, {
-                stroke: activeStyles.stroke,
-                strokeWidth: activeStyles.strokeWidth,
-                strokeOpacity: activeStyles.strokeOpacity,
-                lineDash: activeStyles.lineDash,
-                lineDashOffset: activeStyles.lineDashOffset,
+            const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = activeStyles;
+
+            activeStyles.whisker = mergeDefaults(activeStyles.whisker, {
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
             });
 
             // hide duplicates of highlighted nodes
             boxPlotGroup.opacity = highlighted || !this.highlightedIds.includes(selectDatum.itemId) ? 1 : 0;
 
             boxPlotGroup.updateDatumStyles(
-                selectDatum,
-                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesFormat>,
+                nodeDatum,
+                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
                 invertAxes
             );
         });
@@ -511,6 +493,51 @@ export class BoxPlotSeries extends CartesianSeries<
 
     protected nodeFactory() {
         return new BoxPlotGroup();
+    }
+
+    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyles {
+        const {
+            xKey,
+            minKey,
+            q1Key,
+            medianKey,
+            q3Key,
+            maxKey,
+            formatter,
+            id: seriesId,
+            ctx: { callbackCache },
+        } = this;
+        const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
+            nodeDatum;
+        const activeStyles: AgBoxPlotSeriesStyles = {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cap: extractDecoratedProperties(cap),
+            whisker: extractDecoratedProperties(whisker),
+        };
+        if (formatter) {
+            const formatStyles = callbackCache.call(formatter, {
+                datum,
+                seriesId,
+                highlighted,
+                ...activeStyles,
+                xKey,
+                minKey,
+                q1Key,
+                medianKey,
+                q3Key,
+                maxKey,
+            });
+            if (formatStyles) {
+                return mergeDefaults(formatStyles, activeStyles);
+            }
+        }
+        return activeStyles;
     }
 
     getBandScalePadding() {

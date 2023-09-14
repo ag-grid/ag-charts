@@ -11,23 +11,18 @@ import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { Ratio } from '../../options/types';
 
 interface BoxPlotUniqueOptions {
+    // required
     minKey?: string;
-    minName?: string;
     q1Key?: string;
-    q1Name?: string;
     medianKey?: string;
-    medianName?: string;
     q3Key?: string;
-    q3Name?: string;
     maxKey?: string;
+    // optional
+    minName?: string;
+    q1Name?: string;
+    medianName?: string;
+    q3Name?: string;
     maxName?: string;
-}
-
-export interface BoxPlotStyleOptions extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Options to style chart's caps **/
-    cap?: AgBoxPlotCapOptions;
-    /** Options to style chart's whiskers **/
-    whisker?: AgBoxPlotWhiskerOptions;
 }
 
 export interface AgBoxPlotCapOptions {
@@ -39,7 +34,7 @@ export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 export type AgBoxPlotSeriesFormatterParams<DatumType> = AgSeriesFormatterParams<DatumType> &
     Readonly<BoxPlotUniqueOptions & Omit<AxisOptions, 'yKey'> & FillOptions & StrokeOptions>;
 
-export interface AgBoxPlotSeriesFormat extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineDashOptions {
     /** Options to style chart's caps **/
     cap?: AgBoxPlotCapOptions;
     /** Options to style chart's whiskers **/
@@ -48,7 +43,7 @@ export interface AgBoxPlotSeriesFormat extends FillOptions, StrokeOptions, LineD
 
 export interface AgBoxPlotSeriesThemeableOptions<DatumType = any>
     extends AgBaseSeriesThemeableOptions,
-        BoxPlotStyleOptions {
+        AgBoxPlotSeriesStyles {
     /** Bar rendering direction.
      * <br/>
      * **NOTE**: This option affects the layout direction of X and Y data values.
@@ -57,7 +52,7 @@ export interface AgBoxPlotSeriesThemeableOptions<DatumType = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgBoxPlotSeriesFormatterParams<DatumType>) => AgBoxPlotSeriesFormat;
+    formatter?: (params: AgBoxPlotSeriesFormatterParams<DatumType>) => AgBoxPlotSeriesStyles;
 }
 
 export interface AgBoxPlotSeriesOptions<DatumType = any>
