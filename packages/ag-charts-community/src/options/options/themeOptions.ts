@@ -1,4 +1,4 @@
-import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
+import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from '../options/chartOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';

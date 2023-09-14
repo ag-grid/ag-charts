@@ -1,4 +1,4 @@
-import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../agChartOptions';
+import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/agChartOptions';
 import type { Rect } from '../../../scene/shape/rect';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';

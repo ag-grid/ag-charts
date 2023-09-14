@@ -15,7 +15,7 @@ import type {
     AgPolarChartOptions,
     AgScatterSeriesOptions,
     AgTreemapSeriesOptions,
-} from './agChartOptions';
+} from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
 import { Circle } from './marker/circle';

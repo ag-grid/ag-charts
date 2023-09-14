@@ -4,7 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgAxisTimeTickOptions,
     AgAxisCategoryTickOptions,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
 import * as examples from './examples';

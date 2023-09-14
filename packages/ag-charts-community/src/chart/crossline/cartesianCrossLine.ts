@@ -37,7 +37,7 @@ import type {
     FontWeight,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import { calculateLabelRotation } from '../label';
 import type { CrossLine, CrossLineType } from './crossLine';
 

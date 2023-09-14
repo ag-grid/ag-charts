@@ -1,4 +1,4 @@
-import type { AgCartesianChartOptions, AgChartOptions } from '../agChartOptions';
+import type { AgCartesianChartOptions, AgChartOptions } from '../../options/agChartOptions';
 import {
     DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
     DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,

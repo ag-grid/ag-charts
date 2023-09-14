@@ -12,7 +12,7 @@ import {
     setupMockCanvas,
     waitForChartStability,
 } from '../test/utils';
-import type { AgChartOptions } from '../agChartOptions';
+import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgChart } from '../agChartV2';
 import * as examples from './test/examples';
 import type { Chart } from '../chart';

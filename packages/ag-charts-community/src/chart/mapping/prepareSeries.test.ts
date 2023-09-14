@@ -4,7 +4,7 @@ import { groupSeriesByType, processSeriesOptions } from './prepareSeries';
 import { addGroupableSeriesType, addStackableSeriesType, addStackedByDefaultSeriesType } from '../factory/seriesTypes';
 import { clearDoOnceFlags } from '../../util/function';
 
-import type { AgBarSeriesOptions, AgLineSeriesOptions, AgAreaSeriesOptions } from '../agChartOptions';
+import type { AgBarSeriesOptions, AgLineSeriesOptions, AgAreaSeriesOptions } from '../../options/agChartOptions';
 
 function switchSeriesType(
     type: 'bar' | 'line' | 'area',

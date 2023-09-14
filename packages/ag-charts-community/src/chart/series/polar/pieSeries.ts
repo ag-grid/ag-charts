@@ -46,7 +46,7 @@ import type {
     AgTooltipRendererResult,
     AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
 import { StateMachine } from '../../../motion/states';
 import * as easing from '../../../motion/easing';

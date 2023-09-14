@@ -14,7 +14,7 @@ import {
     prepareTestOptions,
 } from './test/utils';
 import * as examples from './test/examples';
-import type { AgCartesianChartOptions } from './agChartOptions';
+import type { AgCartesianChartOptions } from '../options/agChartOptions';
 import { seedRandom } from './test/random';
 
 expect.extend({ toMatchImageSnapshot });

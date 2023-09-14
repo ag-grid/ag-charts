@@ -12,7 +12,7 @@ import {
     STRING,
     Validate,
 } from '../../util/validation';
-import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../chart/agChartOptions';
+import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../options/agChartOptions';
 import { Default } from '../../util/default';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 

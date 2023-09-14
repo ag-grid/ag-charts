@@ -1,4 +1,4 @@
-import type { AgCartesianAxisPosition } from '../chart/agChartOptions';
+import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { DataService } from '../chart/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';

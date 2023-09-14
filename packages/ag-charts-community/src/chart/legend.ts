@@ -15,7 +15,7 @@ import type {
     FontStyle,
     FontWeight,
     AgChartLegendOrientation,
-} from './agChartOptions';
+} from '../options/agChartOptions';
 import { getMarker } from './marker/util';
 import { createId } from '../util/id';
 import { HdpiCanvas } from '../canvas/hdpiCanvas';

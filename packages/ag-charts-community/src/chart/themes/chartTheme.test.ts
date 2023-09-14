@@ -5,7 +5,7 @@ import type {
     AgChartInstance,
     AgChartTheme,
     AgPolarChartOptions,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import type { AreaSeries } from '../series/cartesian/areaSeries';
 import type { BarSeries } from '../series/cartesian/barSeries';
 import type { PieSeries } from '../series/polar/pieSeries';

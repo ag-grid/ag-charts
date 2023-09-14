@@ -4,7 +4,7 @@ import type {
     AgPolarSeriesOptions,
     AgHierarchySeriesOptions,
     AgChartOptions,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import type { SeriesGrouping } from '../series/seriesStateManager';
 import { isStackableSeries, isGroupableSeries, isSeriesStackedByDefault } from '../factory/seriesTypes';
 import { windowValue } from '../../util/window';

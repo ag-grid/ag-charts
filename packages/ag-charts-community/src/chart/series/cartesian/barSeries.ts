@@ -46,7 +46,7 @@ import type {
     AgBarSeriesLabelPlacement,
     FontStyle,
     FontWeight,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
