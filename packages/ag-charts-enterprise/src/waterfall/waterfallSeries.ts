@@ -32,9 +32,11 @@ const {
     updateRect,
     checkCrisp,
     updateLabel,
+    Motion,
+    diff,
 } = _ModuleSupport;
 const { ContinuousScale, Rect } = _Scene;
-const { sanitizeHtml, isContinuous } = _Util;
+const { sanitizeHtml, isContinuous, zipObject, scaleNumber } = _Util;
 
 const WATERFALL_LABEL_PLACEMENTS: AgWaterfallSeriesLabelPlacement[] = ['start', 'end', 'inside'];
 const OPT_WATERFALL_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
@@ -170,7 +172,12 @@ class WaterfallSeriesItems {
     readonly total: WaterfallSeriesItem = new WaterfallSeriesItem();
 }
 
-type SeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
+const SERIES_ITEM_TYPES = ['positive' as const, 'negative' as const, 'total' as const, 'subtotal' as const];
+type SeriesItemType = (typeof SERIES_ITEM_TYPES)[number];
+function isSeriesItemType(s: any): s is SeriesItemType {
+    return SERIES_ITEM_TYPES.indexOf(s) >= 0;
+}
+
 interface TotalMeta {
     totalType: 'subtotal' | 'total';
     index: number;
@@ -284,6 +291,11 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             }
         });
 
+        const animationProp = [];
+        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
+            animationProp.push(diff(this.processedData));
+        }
+
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, dataWithTotals, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
@@ -316,6 +328,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
                     missingValue: undefined,
                     validation: totalTypeValue,
                 }),
+                ...animationProp,
             ],
             dataVisible: this.visible,
         });
@@ -323,6 +336,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         this.processedData = processedData;
 
         this.updateSeriesItemTypes();
+        this.animationState.transition('updateData');
     }
 
     getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -390,12 +404,16 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         const { yKey = '', xKey = '', processedData } = this;
         if (processedData?.type !== 'ungrouped') return [];
 
-        const contexts: WaterfallContext[] = [];
-
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`).index;
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
-        const contextIndexMap = new Map<SeriesItemType, number>();
+
+        const contexts: WaterfallContext[] = Object.keys(SERIES_ITEM_TYPES).map((itemId) => ({
+            itemId,
+            nodeData: [],
+            labelData: [],
+            pointData: [],
+        }));
 
         const pointData: WaterfallNodePointDatum[] = [];
 
@@ -439,7 +457,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
         let trailingSubtotal = 0;
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
-            const datumType = values[totalTypeIndex];
+            const datumType = values[totalTypeIndex] as 'total' | 'subtotal' | undefined;
+            if (datumType != null && !isSeriesItemType(datumType)) return;
 
             const isSubtotal = this.isSubtotal(datumType);
             const isTotal = this.isTotal(datumType);
@@ -462,25 +481,12 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
             const isPositive = (value ?? 0) >= 0;
 
-            const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { fill, stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
+            const itemId = this.getSeriesItemType(isPositive, datumType);
+            const { fill, stroke, strokeWidth, label } = this.getItemConfig(itemId);
 
             const y = (isPositive ? currY : trailY) - offset;
             const bottomY = (isPositive ? trailY : currY) + offset;
             const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
-
-            const itemId = seriesItemType;
-            let contextIndex = contextIndexMap.get(itemId);
-            if (contextIndex === undefined) {
-                contextIndex = contexts.length;
-                contextIndexMap.set(itemId, contextIndex);
-            }
-            contexts[contextIndex] ??= {
-                itemId,
-                nodeData: [],
-                labelData: [],
-                pointData: [],
-            };
 
             const rect = {
                 x: barAlongX ? bottomY : x,
@@ -542,12 +548,13 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
                 }),
             };
 
+            const contextIndex = SERIES_ITEM_TYPES.indexOf(itemId);
             contexts[contextIndex].nodeData.push(nodeDatum);
             contexts[contextIndex].labelData.push(nodeDatum);
         });
 
         const connectorLinesEnabled = this.line.enabled;
-        if (contexts.length > 0 && yCurrIndex !== undefined && connectorLinesEnabled) {
+        if (connectorLinesEnabled) {
             contexts[0].pointData = pointData;
         }
 
@@ -590,11 +597,11 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         });
     }
 
-    private isSubtotal(datumType: SeriesItemType) {
+    private isSubtotal(datumType?: SeriesItemType) {
         return datumType === 'subtotal';
     }
 
-    private isTotal(datumType: SeriesItemType) {
+    private isTotal(datumType?: SeriesItemType) {
         return datumType === 'total';
     }
 
@@ -621,13 +628,15 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         }
     }
 
+    datumSelectionGarbageCollection = false;
     protected async updateDatumSelection(opts: {
         nodeData: WaterfallNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        return datumSelection.update(data);
+
+        return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
     protected async updateDatumNodes(opts: {
@@ -829,64 +838,72 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
         const duration = this.ctx.animationManager.defaultDuration();
+        const labelDuration = duration / 5;
+        const labelDelay = duration;
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
-            this.animateRects(datumSelections[contextDataIndex], duration);
-            this.animateLabels(labelSelections[contextDataIndex], duration);
+            this.scaleInAnimateRects(datumSelections[contextDataIndex], duration);
+            this.animateLabels(labelSelections[contextDataIndex], labelDuration, labelDelay);
 
             if (contextDataIndex !== 0 || !pointData) {
                 return;
             }
 
             const [lineNode] = paths[contextDataIndex];
-            if (this.direction === 'vertical') {
-                this.animateConnectorLinesVertical(lineNode, pointData, duration);
-            } else {
-                this.animateConnectorLinesHorizontal(lineNode, pointData, duration);
-            }
+            this.animateConnectorLines(lineNode, pointData, duration);
         });
     }
 
-    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
-        const horizontal = this.direction === 'horizontal';
+    protected scaleInAnimateRects(
+        datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>,
+        duration: number,
+        delay: number = 0
+    ) {
+        const horizontal = this.isHorizontal();
         const yAxis = this.getValueAxis();
+        const yZero = yAxis?.scale.convert(0) ?? 0;
         datumSelection.each((rect, datum) => {
-            this.ctx.animationManager.animateMany(
-                `${this.id}_empty-update-ready_${rect.id}`,
-                [
-                    { from: yAxis?.scale.convert(0) ?? 0, to: horizontal ? datum.x : datum.y },
-                    { from: 0, to: horizontal ? datum.width : datum.height },
-                ],
-                {
-                    duration,
-                    ease: _ModuleSupport.Motion.easeOut,
-                    onUpdate([val, widthOrHeight]) {
-                        if (horizontal) {
-                            rect.x = val;
-                            rect.width = widthOrHeight;
+            const widthOrHeight = horizontal ? datum.width : datum.height;
+            const xOrY = horizontal ? datum.x : datum.y;
+            const props = [
+                { from: yZero, to: xOrY },
+                { from: 0, to: widthOrHeight },
+            ];
 
-                            rect.y = datum.y;
-                            rect.height = datum.height;
-                        } else {
-                            rect.y = val;
-                            rect.height = widthOrHeight;
+            this.ctx.animationManager.animateMany(`${this.id}_empty-update-ready_${rect.id}`, props, {
+                duration,
+                delay,
+                ease: Motion.easeOut,
+                onUpdate([val, widthOrHeight]) {
+                    if (horizontal) {
+                        rect.x = val;
+                        rect.width = widthOrHeight;
 
-                            rect.x = datum.x;
-                            rect.width = datum.width;
-                        }
-                    },
-                }
-            );
+                        rect.y = datum.y;
+                        rect.height = datum.height;
+                    } else {
+                        rect.y = val;
+                        rect.height = widthOrHeight;
+
+                        rect.x = datum.x;
+                        rect.width = datum.width;
+                    }
+                },
+            });
         });
     }
 
-    protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>, duration: number) {
+    protected animateLabels(
+        labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>,
+        duration: number,
+        delay: number
+    ) {
         labelSelection.each((label) => {
             this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
                 from: 0,
                 to: 1,
-                delay: duration,
-                duration: duration / 5,
+                delay,
+                duration,
                 onUpdate: (opacity) => {
                     label.opacity = opacity;
                 },
@@ -894,91 +911,195 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         });
     }
 
-    protected animateConnectorLinesHorizontal(
-        lineNode: _Scene.Path,
-        pointData: WaterfallNodePointDatum[],
-        duration: number
+    protected animateLabelsWithThrottle(
+        labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>,
+        duration: number,
+        delay: number,
+        labelThrottleGroup: string,
+        reverse: boolean
     ) {
-        const { path: linePath } = lineNode;
-
-        this.updateLineNode(lineNode);
-
-        const valueAxis = this.getValueAxis();
-        const startX = valueAxis?.scale.convert(0);
-        const endX = pointData.reduce((end, point) => {
-            if (point.x > end) {
-                end = point.x;
-            }
-            return end;
-        }, 0);
-
-        const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
-            return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
-        };
-
-        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
-            from: startX,
-            to: endX,
-            duration,
-            ease: _ModuleSupport.Motion.easeOut,
-            onUpdate(pointX) {
-                linePath.clear({ trackChanges: true });
-
-                pointData.forEach((point, index) => {
-                    const x = scale(pointX, startX, endX, startX, point.x);
-                    const x2 = scale(pointX, startX, endX, startX, point.x2);
-                    if (index !== 0) {
-                        linePath.lineTo(x, point.y);
-                    }
-                    linePath.moveTo(x2, point.y2);
-                });
-
-                lineNode.checkPathDirty();
-            },
+        labelSelection.each((label) => {
+            label.opacity = 0;
+            this.ctx.animationManager.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
+                from: reverse ? 1 : 0,
+                to: reverse ? 0 : 1,
+                delay,
+                duration,
+                throttleId: `${this.id}_labels`,
+                throttleGroup: labelThrottleGroup,
+                onUpdate: (opacity) => {
+                    label.opacity = opacity;
+                },
+            });
         });
     }
 
-    protected animateConnectorLinesVertical(
+    animateWaitingUpdateReady(animationData: WaterfallAnimationData) {
+        const { datumSelections, labelSelections, contextData, paths } = animationData;
+        const { processedData } = this;
+        const diff = processedData?.reduced?.diff;
+
+        if (!diff?.changed) {
+            this.resetSelectionRectsAndPaths(animationData);
+            return;
+        }
+
+        const totalDuration = this.ctx.animationManager.defaultDuration();
+        let sectionDuration = totalDuration;
+
+        if (diff.added.length > 0 || diff.removed.length > 0) {
+            sectionDuration = Math.floor(totalDuration / 2);
+        }
+
+        const labelDuration = sectionDuration / 5;
+        const labelDelay = sectionDuration;
+        const rectThrottleGroup = `${this.id}_${Math.random()}`;
+        const labelThrottleGroup = `${this.id}_${Math.random()}`;
+
+        const addedIds = zipObject(diff.added, true); // if moved between selections from positive to negative it doesn't work, renders in the corner when scaling out as no previous rect.x
+
+        contextData.forEach(({ pointData }, contextDataIndex) => {
+            this.animateLabelsWithThrottle(
+                labelSelections[contextDataIndex],
+                labelDuration,
+                labelDelay,
+                labelThrottleGroup,
+                false
+            );
+
+            const scaleOutDuration = sectionDuration / 2;
+            const scaleInDelay = scaleOutDuration;
+            this.scaleOutAnimateRects(datumSelections[contextDataIndex], scaleOutDuration, rectThrottleGroup, addedIds);
+            this.scaleInAnimateRects(datumSelections[contextDataIndex], scaleOutDuration, scaleInDelay);
+
+            if (contextDataIndex !== 0 || !pointData) {
+                return;
+            }
+
+            const [lineNode] = paths[contextDataIndex];
+            this.animateConnectorLines(lineNode, pointData, sectionDuration, true, sectionDuration);
+        });
+    }
+
+    protected scaleOutAnimateRects(
+        datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>,
+        duration: number,
+        rectThrottleGroup: string,
+        addedIds: {
+            [key: string]: boolean;
+        }
+    ) {
+        const horizontal = this.isHorizontal();
+        const lastNodeIndex = datumSelection.nodes().length - 1;
+
+        datumSelection.each((rect, datum, index) => {
+            const datumId = this.getDatumId(datum);
+            const isAdded = datumId !== undefined && addedIds[datumId] !== undefined;
+
+            if (isAdded) {
+                return;
+            }
+
+            const { itemId } = datum;
+            const isPositive = itemId === 'positive';
+            const isLast = index === lastNodeIndex;
+
+            const { x, y, width, height } = rect;
+
+            let startX = x;
+            let endX = x;
+            let startWidth = width;
+            let endWidth = width;
+            let startY = y;
+            let endY = isPositive ? y + height : y;
+            let startHeight = height;
+            let endHeight = 0;
+
+            if (horizontal) {
+                startX = x;
+                endX = isPositive ? x : x + width;
+                startWidth = width;
+                endWidth = 0;
+                startY = y;
+                endY = y;
+                startHeight = height;
+                endHeight = height;
+            }
+
+            const props = [
+                { from: startX, to: endX },
+                { from: startWidth, to: endWidth },
+                { from: startY, to: endY },
+                { from: startHeight, to: endHeight },
+            ];
+
+            this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${rect.id}`, props, {
+                duration,
+                ease: Motion.easeOut,
+                throttleId: `${this.id}_rects`,
+                throttleGroup: rectThrottleGroup,
+                onUpdate([x, width, y, height]) {
+                    rect.x = x;
+                    rect.width = width;
+                    rect.y = y;
+                    rect.height = height;
+                },
+                onComplete() {
+                    if (isLast) datumSelection.cleanup();
+                },
+                onStop() {
+                    if (isLast) datumSelection.cleanup();
+                },
+            });
+        });
+    }
+
+    protected animateConnectorLines(
         lineNode: _Scene.Path,
         pointData: WaterfallNodePointDatum[],
-        duration: number
+        duration: number,
+        reset: boolean = false,
+        delay: number = 0
     ) {
         const { path: linePath } = lineNode;
 
-        this.updateLineNode(lineNode);
+        if (reset) {
+            this.resetConnectorLinesPath({ pointData, lineNode });
+        } else {
+            this.updateLineNode(lineNode);
+        }
 
         const valueAxis = this.getValueAxis();
-        const startY = valueAxis?.scale.convert(0);
-        const endY = pointData.reduce((end, point) => {
-            if (point.y < end) {
-                end = point.y;
-            }
-            return end;
-        }, Infinity);
+        const start = valueAxis?.scale.convert(0);
 
-        const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
-            return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
+        const horizontal = this.isHorizontal();
+        const coordinates = horizontal ? this.scaleHorizontalCoordinates : this.scaleVerticalCoordinates;
+
+        const updateOpacity = (ratio: number) => {
+            lineNode.opacity = ratio;
+        };
+        const updatePath = (ratio: number) => {
+            linePath.clear({ trackChanges: true });
+            pointData.forEach((point, index) => {
+                const { x, x2, y, y2 } = coordinates(ratio, start, point);
+                if (index !== 0) {
+                    linePath.lineTo(x, y);
+                }
+                linePath.moveTo(x2, y2);
+            });
+
+            lineNode.checkPathDirty();
         };
 
-        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
-            from: startY,
-            to: endY,
+        const updateFn = reset ? updateOpacity : updatePath;
+
+        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_connector_lines_fade_${!!reset}`, {
+            from: 0,
+            to: 1,
             duration,
-            ease: _ModuleSupport.Motion.easeOut,
-            onUpdate(pointY) {
-                linePath.clear({ trackChanges: true });
-
-                pointData.forEach((point, index) => {
-                    const y = scale(pointY, startY, endY, startY, point.y);
-                    const y2 = scale(pointY, startY, endY, startY, point.y2);
-                    if (index !== 0) {
-                        linePath.lineTo(point.x, y);
-                    }
-                    linePath.moveTo(point.x2, y2);
-                });
-
-                lineNode.checkPathDirty();
-            },
+            delay,
+            ease: Motion.easeOut,
+            onUpdate: updateFn,
         });
     }
 
@@ -995,10 +1116,15 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     }
 
     resetSelectionRectsAndPaths({ datumSelections, contextData, paths }: WaterfallAnimationData) {
-        this.resetConnectorLinesPath({ contextData, paths });
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });
+        if (paths.length === 0) {
+            return;
+        }
+        const [lineNode] = paths[0];
+        const pointData = contextData[0].pointData;
+        this.resetConnectorLinesPath({ pointData, lineNode });
     }
 
     resetSelectionRects(selection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
@@ -1008,27 +1134,21 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             rect.width = datum.width;
             rect.height = datum.height;
         });
+        selection.cleanup();
     }
 
     resetConnectorLinesPath({
-        contextData,
-        paths,
+        pointData,
+        lineNode,
     }: {
-        contextData: Array<WaterfallContext>;
-        paths: Array<Array<_Scene.Path>>;
+        pointData: WaterfallContext['pointData'];
+        lineNode: _Scene.Path;
     }) {
-        if (paths.length === 0) {
-            return;
-        }
-
-        const [lineNode] = paths[0];
-
         this.updateLineNode(lineNode);
 
         const { path: linePath } = lineNode;
         linePath.clear({ trackChanges: true });
 
-        const { pointData } = contextData[0];
         if (!pointData) {
             return;
         }
@@ -1040,6 +1160,44 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         });
 
         lineNode.checkPathDirty();
+    }
+
+    private scaleHorizontalCoordinates(
+        ratio: number,
+        start: number,
+        point: Readonly<_Scene.SizedPoint> & {
+            readonly x2: number;
+            readonly y2: number;
+        }
+    ) {
+        const x = scaleNumber(ratio, 0, 1, start, point.x);
+        const x2 = scaleNumber(ratio, 0, 1, start, point.x2);
+
+        return {
+            x,
+            x2,
+            y: point.y,
+            y2: point.y2,
+        };
+    }
+
+    private scaleVerticalCoordinates(
+        ratio: number,
+        start: number,
+        point: Readonly<_Scene.SizedPoint> & {
+            readonly x2: number;
+            readonly y2: number;
+        }
+    ) {
+        const y = scaleNumber(ratio, 0, 1, start, point.y);
+        const y2 = scaleNumber(ratio, 0, 1, start, point.y2);
+
+        return {
+            x: point.x,
+            x2: point.x2,
+            y,
+            y2,
+        };
     }
 
     protected updateLineNode(lineNode: _Scene.Path) {
@@ -1061,20 +1219,28 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     }
 
     protected getBarDirection() {
-        if (this.direction === 'horizontal') {
+        if (this.isHorizontal()) {
             return ChartAxisDirection.X;
         }
         return ChartAxisDirection.Y;
     }
 
     protected getCategoryDirection() {
-        if (this.direction === 'horizontal') {
+        if (this.isHorizontal()) {
             return ChartAxisDirection.Y;
         }
         return ChartAxisDirection.X;
     }
 
+    private isHorizontal() {
+        return this.direction === 'horizontal';
+    }
+
     getBandScalePadding() {
         return { inner: 0.2, outer: 0.3 };
+    }
+
+    private getDatumId(datum: WaterfallNodeDatum) {
+        return `${datum.xValue}`;
     }
 }

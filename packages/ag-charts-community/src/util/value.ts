@@ -28,3 +28,7 @@ export function checkDatum<T>(value: T, isContinuousScale: boolean): T | string 
 }
 
 export const isNumber = (v: any) => typeof v === 'number' && Number.isFinite(v);
+
+export const scaleNumber = (value: number, start1: number, end1: number, start2: number, end2: number) => {
+    return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
+};
