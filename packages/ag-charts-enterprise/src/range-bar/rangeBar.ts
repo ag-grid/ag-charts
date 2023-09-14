@@ -939,6 +939,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             rect.width = datum.width;
             rect.height = datum.height;
         });
+        selection.cleanup();
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {
