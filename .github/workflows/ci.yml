@@ -172,7 +172,7 @@ jobs:
     report:
         runs-on: ubuntu-latest
         needs: [execute_blt, test]
-        if: !cancelled()
+        if: cancelled() != true
         steps:
             - name: Checkout
               id: checkout
