@@ -1,7 +1,7 @@
 /**
  * Scroll to href location on page and update url
  */
-export function smoothScrollIntoView(href: string) {
+export function smoothScrollIntoView({ href }: { href: string }) {
     document.querySelector(href)?.scrollIntoView({
         behavior: 'smooth',
     });

@@ -20,12 +20,12 @@ function selectionHasChanged({
 
 function scrollToId(id?: string) {
     // Scroll to top to reset scroll position
-    smoothScrollIntoView('#top');
+    smoothScrollIntoView({ href: '#top' });
 
     if (id) {
         // Wait for one render cycle before scrolling to position
         setTimeout(() => {
-            smoothScrollIntoView(`#${id}`);
+            smoothScrollIntoView({ href: `#${id}` });
         }, 0);
     }
 }
@@ -95,7 +95,7 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
                         : newSelection.onlyShowToDepth;
                 setTopLevelSelection({ ...newSelection, onlyShowToDepth });
                 setSelection(newSelection);
-                smoothScrollIntoView('#top');
+                smoothScrollIntoView({ href: '#top' });
             } else {
                 try {
                     const [newTopLevelPathItem] = newSelection.path;
