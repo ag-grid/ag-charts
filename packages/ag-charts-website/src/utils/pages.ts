@@ -91,6 +91,13 @@ export const urlWithBaseUrl = (url: string = '') => {
     return url.match(regex) ? url.replace(regex, substitution) : url;
 };
 
+export const getPathFromUrlPathname = (pathname: string) => {
+    const regex = new RegExp(`^${SITE_BASE_URL}(.*)`);
+    const substitution = '$1';
+
+    return pathname.replace(regex, substitution);
+};
+
 // TODO: Figure out published packages
 export const isUsingPublishedPackages = () => false;
 export const isPreProductionBuild = () => false;

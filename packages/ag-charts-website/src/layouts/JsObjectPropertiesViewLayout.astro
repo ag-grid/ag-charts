@@ -1,16 +1,19 @@
 ---
 import Layout from '@layouts/Layout.astro';
-import { urlWithBaseUrl } from '@utils/pages';
+import { getPathFromUrlPathname, urlWithBaseUrl } from '@utils/pages';
+import { pathJoin } from '@utils/pathJoin';
+
+const { pathname } = Astro.url;
+const pagePath = pathJoin('/', getPathFromUrlPathname(pathname));
 
 const menuItems = [
     {
         name: 'Options API',
         url: '/options',
-        active: true,
     },
     {
         name: 'Themes API',
-        url: '/theme',
+        url: '/themes-api',
     },
     {
         name: 'API Explorer',
@@ -54,7 +57,8 @@ const dummySeries = [
             <nav>
                 <ul class="list-style-none">
                     {
-                        menuItems.map(({ name, url, active }) => {
+                        menuItems.map(({ name, url }) => {
+                            const active = pagePath === url;
                             return (
                                 <li class={active ? 'active' : ''}>
                                     <a href={urlWithBaseUrl(url)}>{name}</a>
