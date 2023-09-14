@@ -65,9 +65,20 @@
         "script": "lint:circular"
       }
     },
+    "lint-depcruise": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/ag-charts-community",
+        "commands": [
+          {
+            "command": "npx depcruise src"
+          }
+        ]
+      }
+    },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint-eslint", "lint-circular"],
+      "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
       "configurations": {
         "fix": {}
       }
