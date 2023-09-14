@@ -299,6 +299,10 @@ export interface JsObjectPropertiesViewConfig {
     expandAll?: boolean;
     lookupRoot?: string;
     hideMore?: boolean;
+    /**
+     * Properties where the children are hidden in the nav and the details view
+     */
+    hideChildrenProperties?: string[];
 }
 
 export interface InterfaceDocumentationProps {

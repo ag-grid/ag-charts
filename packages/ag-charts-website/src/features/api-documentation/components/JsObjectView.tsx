@@ -13,7 +13,7 @@ import type {
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
-import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, UNION_DISCRIMINATOR_PROP } from '../constants';
+import { UNION_DISCRIMINATOR_PROP } from '../constants';
 import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 
 const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
@@ -431,7 +431,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             console.warn(`AG Docs - unhandled sub-type: ${desc['type']}`);
     }
 
-    const shouldHideChildren = TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN.includes(propName);
+    const shouldHideChildren = config.hideChildrenProperties?.includes(propName);
     const expandable = !shouldHideChildren && !!collapsePropertyRendering;
 
     let propertyValue;

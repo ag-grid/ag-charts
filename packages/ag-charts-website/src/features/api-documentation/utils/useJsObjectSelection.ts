@@ -1,10 +1,15 @@
 import { useCallback, useState } from 'react';
-import type { JsObjectSelection, JsObjectSelectionProperty, TopLevelHeaderData } from '../types';
+import type {
+    JsObjectPropertiesViewConfig,
+    JsObjectSelection,
+    JsObjectSelectionProperty,
+    TopLevelHeaderData,
+} from '../types';
 import type { JsonModel } from './model';
 import { getSelectionReferenceId } from './getObjectReferenceId';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { getTopLevelSelection, getTopSelection } from './modelPath';
-import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
+import { TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
 import { formatPropertyDocumentation, removeDefaultValue } from './documentationHelpers';
 import { getPropertyType } from './getPropertyType';
 
@@ -59,7 +64,7 @@ function getTopLevelHeader(selection: JsObjectSelection): TopLevelHeaderData | u
     }
 }
 
-export function useJsObjectSelection({ model }: { model: JsonModel }) {
+export function useJsObjectSelection({ model, config }: { model: JsonModel; config?: JsObjectPropertiesViewConfig }) {
     const rootSelection = getTopSelection({ model, hideChildren: true });
     const [topLevelSelection, setTopLevelSelection] = useState<JsObjectSelection>(rootSelection);
     const [selection, setSelection] = useState<JsObjectSelection>(rootSelection);
@@ -80,7 +85,7 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
                 scrollToId(id);
             } else if (isTopLevelSelection) {
                 const { propName } = newSelection as JsObjectSelectionProperty;
-                const shouldHideChildren = TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN.includes(propName);
+                const shouldHideChildren = config?.hideChildrenProperties?.includes(propName);
                 const shouldLimitChildren = TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN.includes(propName);
 
                 let shouldLimitChildrenDepth;

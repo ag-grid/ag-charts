@@ -53,7 +53,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     framework,
 }) => {
     const model = buildModel(interfaceName, interfaceLookup, codeLookup);
-    const { topLevelSelection, topLevelHeader, handleSelection } = useJsObjectSelection({ model });
+    const { topLevelSelection, topLevelHeader, handleSelection } = useJsObjectSelection({ model, config });
 
     return (
         <div className={styles.container}>
