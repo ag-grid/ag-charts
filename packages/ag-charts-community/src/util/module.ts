@@ -2,7 +2,7 @@ import type { ChartAxis } from '../chart/chartAxis';
 import type { Series } from '../chart/series/series';
 import type { ChartLegend } from '../chart/legendDatum';
 import type { JsonApplyParams } from './json';
-import type { AxisContext, ModuleContext, ModuleContextWithParent } from './moduleContext';
+import type { AxisContext, ModuleContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 import type { AgChartOptions } from '../chart/agChartOptions';
 
 export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
@@ -85,12 +85,20 @@ export interface SeriesModule extends BaseModule {
     swapDefaultAxesCondition?: (opts: AgChartOptions) => boolean;
 }
 
+export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
+    type: 'series-option';
+
+    seriesTypes: 'line' | 'scatter' | 'bar';
+    instanceConstructor: new (ctx: SeriesContext) => M;
+}
+
 export type Module<M extends ModuleInstance = ModuleInstance> =
     | RootModule<M>
     | AxisModule
     | AxisOptionModule
     | LegendModule
-    | SeriesModule;
+    | SeriesModule
+    | SeriesOptionModule;
 
 export abstract class BaseModuleInstance {
     protected readonly destroyFns: (() => void)[] = [];

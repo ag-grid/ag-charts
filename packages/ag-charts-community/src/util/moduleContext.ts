@@ -11,6 +11,7 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
+import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from './callbackCache';
 
@@ -48,4 +49,8 @@ export interface AxisContext {
     scaleBandwidth: () => number;
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
+}
+
+export interface SeriesContext {
+    contentNode: Node;
 }

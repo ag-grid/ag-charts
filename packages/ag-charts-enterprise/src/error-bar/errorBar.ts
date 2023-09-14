@@ -1,15 +1,10 @@
-import type { Scale } from '../scale/scale';
-import { Group } from '../scene/group';
-import type { Node } from '../scene/node';
-import type { Point } from '../scene/point';
-import { Selection } from '../scene/selection';
-import { Path } from '../scene/shape/path';
-import { OPT_STRING, Validate } from '../util/validation';
-import type { ProcessedData } from './data/dataModel';
+import { _Scale, _Scene, _Util, _ModuleSupport } from 'ag-charts-community';
+
+const { Validate, OPT_STRING } = _ModuleSupport;
 
 export interface ErrorBarPoints {
-    readonly yLowerPoint: Point;
-    readonly yUpperPoint: Point;
+    readonly yLowerPoint: _Scene.Point;
+    readonly yUpperPoint: _Scene.Point;
 }
 
 export class ErrorBarConfig {
@@ -31,7 +26,7 @@ export class ErrorBarConfig {
     }
 }
 
-export class ErrorBarNode extends Path {
+export class ErrorBarNode extends _Scene.Path {
     public points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
 
     updatePath() {
@@ -52,23 +47,25 @@ export class ErrorBarNode extends Path {
     }
 }
 
-export class ErrorBars {
-    public groupNode: Group;
-    private selection: Selection<ErrorBarNode>;
+export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    private readonly groupNode: _Scene.Group;
+    private readonly selection: _Scene.Selection<ErrorBarNode>;
     private nodeData: (ErrorBarPoints | undefined)[] = [];
 
-    constructor(parent: Node) {
-        this.groupNode = new Group({ name: `${parent.id}-series-errorBars` });
+    constructor(ctx: _ModuleSupport.SeriesContext) {
+        super();
+        const parent = ctx.contentNode;
+        this.groupNode = new _Scene.Group({ name: `${parent.id}-series-errorBars` });
         parent.appendChild(this.groupNode);
-        this.selection = Selection.select(this.groupNode, () => this.errorBarFactory());
+        this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
     }
 
     createNodeData(
-        processedData: ProcessedData<any>,
+        processedData: _ModuleSupport.ProcessedData<any>,
         xIndex?: number,
         _yIndex?: number, // This is will be used when the scatterplot errorbars are implemented
-        xScale?: Scale<any, any, any>,
-        yScale?: Scale<any, any, any>,
+        xScale?: _Scale.Scale<any, any, any>,
+        yScale?: _Scale.Scale<any, any, any>,
         config?: ErrorBarConfig
     ) {
         const { nodeData } = this;
@@ -77,7 +74,7 @@ export class ErrorBars {
             return;
         }
 
-        const convert = (scale: Scale<any, any, any>, value: any) => {
+        const convert = (scale: _Scale.Scale<any, any, any>, value: any) => {
             const offset = (scale.bandwidth ?? 0) / 2;
             return scale.convert(value) + offset;
         };
