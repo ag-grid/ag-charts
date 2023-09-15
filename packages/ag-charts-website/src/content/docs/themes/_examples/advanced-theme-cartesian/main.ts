@@ -73,7 +73,6 @@ var myTheme: AgChartTheme = {
 var options: AgChartOptions = {
   theme: myTheme,
   container: document.getElementById("myChart"),
-  autoSize: true,
   title: {
     text: "Cartesian Chart Theming",
   },

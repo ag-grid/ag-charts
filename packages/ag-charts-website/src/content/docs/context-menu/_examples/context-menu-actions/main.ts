@@ -5,7 +5,6 @@ import {
 
 const options: AgCartesianChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   title: {
     text: "Sweaters made",
   },

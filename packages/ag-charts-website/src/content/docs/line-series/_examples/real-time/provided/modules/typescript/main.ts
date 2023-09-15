@@ -18,7 +18,6 @@ function getData() {
 
 const options: AgChartOptions = {
   container: document.getElementById('myChart'),
-  autoSize: true,
   data: getData(),
   series: [
     {

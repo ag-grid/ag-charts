@@ -3,7 +3,6 @@ import { maleHeightWeight, femaleHeightWeight } from './height-weight-data'
 
 const options: AgChartOptions = {
   container: document.getElementById('myChart'),
-  autoSize: true,
   title: {
     text: 'Weight vs Height',
   },

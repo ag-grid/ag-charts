@@ -12,7 +12,6 @@ const ChartExample = () => {
     const [updating, setUpdating] = useState(false);
     const [options, setOptions] = useState<AgChartOptions>({
 
-        autoSize: true,
         data: getData(),
         series: [
             {

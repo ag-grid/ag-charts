@@ -27,7 +27,6 @@ var myTheme: AgChartTheme = {
 const options: AgChartOptions = {
   theme: myTheme,
   container: document.getElementById("myChart"),
-  autoSize: true,
   title: {
     text: "Custom Chart Theme Example",
   },

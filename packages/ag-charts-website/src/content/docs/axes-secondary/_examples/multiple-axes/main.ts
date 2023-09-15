@@ -3,7 +3,6 @@ import { getData } from "./data";
 
 const options: AgChartOptions = {
   container: document.querySelector("#myChart") as HTMLElement,
-  autoSize: true,
   data: getData(),
   theme: {
     palette: {
