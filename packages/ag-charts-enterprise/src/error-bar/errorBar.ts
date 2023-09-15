@@ -72,33 +72,36 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             );
         }
         this.cartesianSeries = ctx.series as CartesianSeries<any, any>;
-        const { contentGroup, processedData, dataModel, axes } = this.cartesianSeries;
+        const { contentGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({ name: `${contentGroup.id}-series-errorBars` });
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
-        if (processedData !== undefined) {
-            this.createNodeData(
-                processedData,
-                dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `xValue`).index,
-                dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `yValue`).index,
-                axes[ChartAxisDirection.X]?.scale,
-                axes[ChartAxisDirection.Y]?.scale
-            );
+        const listener = this.cartesianSeries.addListener('data-model', (event) => this.onDataProcessed(event));
+        this.destroyFns.push(() => this.cartesianSeries.removeListener(listener));
+    }
+
+    onDataProcessed(event: {
+        dataModel: _ModuleSupport.DataModel<any, any, any>;
+        processedData: _ModuleSupport.ProcessedData<any>;
+    }) {
+        if (event.dataModel !== undefined && event.processedData !== undefined) {
+            this.createNodeData(event.dataModel, event.processedData);
+            this.update();
         }
     }
 
     createNodeData(
-        processedData: _ModuleSupport.ProcessedData<any>,
-        xIndex?: number,
-        _yIndex?: number, // This is will be used when the scatterplot errorbars are implemented
-        xScale?: _Scale.Scale<any, any, any>,
-        yScale?: _Scale.Scale<any, any, any>
+        dataModel: _ModuleSupport.DataModel<any, any, any>,
+        processedData: _ModuleSupport.ProcessedData<any>
     ) {
         const { nodeData, config } = this;
         const { yLowerKey, yUpperKey } = config ?? {};
-        if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined || _yIndex === undefined) {
+        const xIndex = dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `xValue`).index;
+        const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
+        if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined) {
             return;
         }
 
