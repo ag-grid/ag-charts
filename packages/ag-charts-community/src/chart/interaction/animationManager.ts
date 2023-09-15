@@ -19,7 +19,7 @@ interface AnimationEvent {
  * preventing duplicate animations and handling their lifecycle.
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
-    private readonly controllers: Set<IAnimation> = new Set();
+    private readonly controllers: Map<string, IAnimation> = new Map();
 
     private isPlaying = false;
     private requestId: number | null = null;
@@ -46,14 +46,18 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         disableInteractions = true,
         ...opts
     }: AnimationOptions<T> & { disableInteractions?: boolean }) {
-        const id = Math.random();
+        if (opts.id != null) {
+            this.controllers.get(opts.id)?.stop();
+        }
+
+        const id = opts.id ?? Math.random().toString();
         const controller = new Animation({
             ...opts,
             delay: this.skipAnimations ? 0 : opts.delay,
             duration: this.skipAnimations ? 0 : opts.duration,
             autoplay: this.isPlaying ? opts.autoplay : false,
             onPlay: (controller) => {
-                this.controllers.add(controller);
+                this.controllers.set(id, controller);
                 this.requestAnimation();
                 if (disableInteractions) {
                     this.interactionManager.pause(`animation_${id}`);
@@ -61,7 +65,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 opts.onPlay?.(controller);
             },
             onStop: (controller) => {
-                this.controllers.delete(controller);
+                this.controllers.delete(id);
                 if (this.controllers.size === 0) {
                     this.cancelAnimation();
                 }
@@ -70,7 +74,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 }
                 opts.onStop?.(controller);
             },
-        } as AnimationOptions);
+        });
 
         // Initialise the animation immediately without requesting a frame to prevent flashes
         opts.onUpdate?.(opts.from, controller);
