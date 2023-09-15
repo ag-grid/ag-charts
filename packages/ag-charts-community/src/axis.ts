@@ -1449,8 +1449,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
-
-        const addedCount = Object.keys(diff.added).length;
         const removedCount = Object.keys(diff.removed).length;
 
         if (removedCount === diff.tickCount) {
@@ -1458,35 +1456,22 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        const totalDuration = this.animationManager.defaultDuration();
-        let sectionDuration = Math.floor(totalDuration / 2);
-        if (addedCount > 0 && removedCount > 0) {
-            sectionDuration = Math.floor(totalDuration / 3);
-        }
-        const options = {
-            delay: removedCount > 0 ? sectionDuration : 0,
-            duration: sectionDuration,
-        };
-
         const animationGroup = `${this.id}_${Math.random()}`;
 
         tickLabelGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLabelGroupSelection, diff, options, node, datum, animationGroup);
+            this.animateSelectionNode(tickLabelGroupSelection, diff, node, datum, animationGroup);
         });
-
         gridLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(gridLineGroupSelection, diff, options, node, datum, animationGroup);
+            this.animateSelectionNode(gridLineGroupSelection, diff, node, datum, animationGroup);
         });
-
         tickLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLineGroupSelection, diff, options, node, datum, animationGroup);
+            this.animateSelectionNode(tickLineGroupSelection, diff, node, datum, animationGroup);
         });
     }
 
     private animateSelectionNode(
         selection: Selection<Text | Line, any>,
         diff: AxisUpdateDiff,
-        options: { delay: number; duration: number },
         node: Text | Line,
         datum: TickDatum,
         animationGroup: string
@@ -1495,24 +1480,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let translate = { from: node.translationY, to: roundedTranslationY };
         let opacity = { from: 1, to: 1 };
 
-        const { duration } = options;
-        let { delay } = options;
-
         const datumId = datum.tickLabel;
         if (diff.added[datumId]) {
             translate = { from: roundedTranslationY, to: roundedTranslationY };
             opacity = { from: 0, to: 1 };
-            delay += duration;
         } else if (diff.removed[datumId]) {
             opacity = { from: 1, to: 0 };
-            delay = 0;
         }
 
+        const duration = this.animationManager.defaultDuration();
         const props = [translate, opacity];
 
         this.animationManager.animateManyWithThrottle(`${this.id}_ready-update_${node.id}`, props, {
             disableInteractions: false,
-            delay,
             duration,
             ease: easing.easeOut,
             throttleId: this.id,
