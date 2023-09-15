@@ -15,7 +15,22 @@ const options: AgChartOptions = {
             type: 'nightingale',
             angleKey: 'quarter',
             radiusKey: 'air',
-            radiusName: 'Sales',
+            radiusName: 'Mountain air',
+            grouped: true,
+        },
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'winds',
+            radiusName: 'Polar winds',
+            grouped: true,
+        },
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'holes',
+            radiusName: 'Donut holes',
+            grouped: true,
         },
     ],
     axes: [
@@ -24,7 +39,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            innerRadiusRatio: 0.25,
+            innerRadiusRatio: 0.2,
         },
     ],
 };
