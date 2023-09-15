@@ -1,5 +1,5 @@
-import type { IColor } from '../util/color';
-import { Color } from '../util/color';
+import type { IColor } from './util/color';
+import { Color } from './util/color';
 
 export function interpolateNumber(a: number, b: number) {
     return (d: number) => Number(a) * (1 - d) + Number(b) * d;
