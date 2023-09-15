@@ -136,8 +136,15 @@ export abstract class CartesianSeries<
     protected datumSelectionGarbageCollection = true;
     protected markerSelectionGarbageCollection = true;
 
-    public dataModel?: DataModel<any, any, any>;
-    public processedData?: ProcessedData<any>;
+    private _dataModel?: DataModel<any, any, any>;
+    private _processedData?: ProcessedData<any>;
+
+    get dataModel(): DataModel<any, any, any> | undefined {
+        return this._dataModel;
+    }
+    get processedData(): ProcessedData<any> | undefined {
+        return this._processedData;
+    }
 
     protected constructor({
         pathsPerSeries = 1,
@@ -229,6 +236,20 @@ export abstract class CartesianSeries<
 
         this._contextNodeData.splice(0, this._contextNodeData.length);
         this.subGroups.splice(0, this.subGroups.length);
+    }
+
+    public addDataListener() {
+        // TODO(olegat)
+    }
+
+    public removeDataListener() {
+        // TODO(olegat)
+    }
+
+    protected onDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
+        this._dataModel = dataModel;
+        this._processedData = processedData;
+        // TODO(olegat): this.dispatchDataProcessed(dataModel, processedData);
     }
 
     /**

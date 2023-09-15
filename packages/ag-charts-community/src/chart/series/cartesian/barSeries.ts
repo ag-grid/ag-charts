@@ -223,8 +223,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             dataVisible: this.visible,
         });
 
-        this.dataModel = dataModel;
-        this.processedData = processedData;
+        this.onDataProcessed(dataModel, processedData);
 
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,

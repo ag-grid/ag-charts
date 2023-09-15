@@ -213,8 +213,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             dataVisible: visible,
         });
 
-        this.dataModel = dataModel;
-        this.processedData = processedData;
+        this.onDataProcessed(dataModel, processedData);
     }
 
     getDomain(direction: ChartAxisDirection): any[] {
