@@ -13,7 +13,7 @@ import type {
 } from '../../options/agChartOptions';
 import { _ModuleSupport, type _Scene } from '../../main';
 import * as mockCanvas from './mock-canvas';
-import type { IAnimation } from 'packages/ag-charts-community/src/animte/animation';
+import type { IAnimation } from '../../motion/animation';
 
 const { AnimationManager, resetIds } = _ModuleSupport;
 

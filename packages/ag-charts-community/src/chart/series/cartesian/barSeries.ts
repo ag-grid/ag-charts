@@ -49,7 +49,7 @@ import type {
 } from '../../../options/agChartOptions';
 import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
-import * as easing from '../../../animte/easing';
+import * as easing from '../../../motion/easing';
 import type { RectConfig } from './barUtil';
 import { getRectConfig, updateRect, checkCrisp } from './barUtil';
 import { updateLabel, createLabelData } from './labelUtil';
@@ -657,7 +657,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     },
                     to: { x: datum.x, y: datum.y, width: datum.width, height: datum.height },
                     duration,
-                    ease: easing.easeOutSine,
+                    ease: easing.easeOut,
                     onUpdate(props) {
                         rect.setProperties(props);
                     },
@@ -715,7 +715,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 let from = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
                 let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
 
-                let delay = diff.removed.length > 0 ? sectionDuration : 0;
                 let cleanup = false;
 
                 const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
@@ -734,7 +733,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 } else if (isRemoved) {
                     from = to;
                     to = context;
-                    delay = 0;
                     cleanup = true;
                 }
 
@@ -742,8 +740,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     id: `${this.id}_waiting-update-ready_${rect.id}`,
                     from,
                     to,
-                    delay,
-                    ease: easing.easeOutSine,
+                    ease: easing.easeOut,
                     // throttleId: `${this.id}_rects`,
                     // throttleGroup: rectThrottleGroup,
                     onUpdate(props) {

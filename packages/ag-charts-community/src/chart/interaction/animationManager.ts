@@ -1,8 +1,8 @@
 import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
 import { Logger } from '../../util/logger';
-import type { AnimationOptions, AnimationValue, IAnimation } from '../../animte/animation';
-import { Animation } from '../../animte/animation';
+import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
+import { Animation } from '../../motion/animation';
 import { onContentLoaded } from '../../util/document';
 
 const DEFAULT_DURATION = 1000;

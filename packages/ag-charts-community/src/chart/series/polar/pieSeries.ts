@@ -49,7 +49,7 @@ import type {
 } from '../../../options/agChartOptions';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
 import { StateMachine } from '../../../motion/states';
-import * as easing from '../../../animte/easing';
+import * as easing from '../../../motion/easing';
 import { createDatumId, normalisePropertyTo } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { Has } from '../../../util/types';
@@ -1667,7 +1667,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 from: { startAngle: rotation, endAngle: rotation },
                 to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
                 duration,
-                ease: easing.easeOutSine,
+                ease: easing.easeOut,
                 onUpdate(props) {
                     sector.setProperties(props);
                 },
@@ -1799,7 +1799,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 from,
                 to,
                 duration,
-                ease: easing.easeOutSine,
+                ease: easing.easeOut,
                 // throttleId: this.id,
                 // throttleGroup,
                 onUpdate(props) {
@@ -1862,7 +1862,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 duration: clearDuration,
                 from: 1,
                 to: 0,
-                ease: easing.easeOutSine,
+                ease: easing.easeOut,
                 onUpdate(opacity) {
                     sector.opacity = opacity;
                 },

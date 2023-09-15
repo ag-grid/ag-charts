@@ -43,7 +43,7 @@ import { AxisTick } from './chart/axis/axisTick';
 import type { ChartAxis, BoundSeries, ChartAxisLabel, ChartAxisLabelFlipFlag } from './chart/chartAxis';
 import type { AnimationManager } from './chart/interaction/animationManager';
 import type { InteractionEvent } from './chart/interaction/interactionManager';
-import * as easing from './animte/easing';
+import * as easing from './motion/easing';
 import { StateMachine } from './motion/states';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
@@ -1490,7 +1490,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             id: `${this.id}_ready-update_${node.id}`,
             from,
             to,
-            ease: easing.easeOutSine,
+            ease: easing.easeOut,
             disableInteractions: false,
             // throttleId: this.id,
             // throttleGroup: animationGroup,

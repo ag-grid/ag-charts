@@ -37,7 +37,7 @@ import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from 
 import { fixNumericExtent } from '../../data/dataModel';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
-import * as easing from '../../../animte/easing';
+import * as easing from '../../../motion/easing';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 
@@ -592,7 +592,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                     from: { y: startingY, height: 0 },
                     to: { y: datum.y, height: datum.height },
                     duration,
-                    ease: easing.easeOutSine,
+                    ease: easing.easeOut,
                     onUpdate(props) {
                         rect.setProperties({ ...props, x: datum.x, width: datum.width });
                     },
@@ -690,7 +690,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                     to,
                     delay,
                     duration: sectionDuration,
-                    ease: easing.easeOutSine,
+                    ease: easing.easeOut,
                     disableInteractions: true,
                     onUpdate(props) {
                         rect.setProperties(props);

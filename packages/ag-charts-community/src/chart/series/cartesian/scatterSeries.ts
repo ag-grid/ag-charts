@@ -27,7 +27,7 @@ import type {
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
-import * as easing from '../../../animte/easing';
+import * as easing from '../../../motion/easing';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
@@ -632,7 +632,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                     from,
                     to,
                     duration,
-                    ease: easing.easeOutSine,
+                    ease: easing.easeOut,
                     onUpdate(props) {
                         marker.setProperties(props);
                     },
