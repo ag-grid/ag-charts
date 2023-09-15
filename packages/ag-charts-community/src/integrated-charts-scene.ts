@@ -25,6 +25,7 @@ export { getMarker } from './chart/marker/util';
 export { Circle } from './chart/marker/circle';
 export { Diamond } from './chart/marker/diamond';
 export { Square } from './chart/marker/square';
+export { Triangle } from './chart/marker/triangle';
 export { Tooltip, toTooltipHtml } from './chart/tooltip/tooltip';
 export type { TooltipMeta } from './chart/tooltip/tooltip';
 export { HdpiCanvas } from './canvas/hdpiCanvas';
