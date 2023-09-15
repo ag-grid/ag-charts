@@ -27,8 +27,6 @@ import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from 
 import { StateMachine } from '../../../motion/states';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Logger } from '../../../util/logger';
-import { ErrorBars } from '../../errorBar';
-import type { ErrorBarConfig } from '../../errorBar';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -117,9 +115,6 @@ export abstract class CartesianSeries<
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
 
-    errorBar?: ErrorBarConfig = undefined;
-    errorBarUpdater: ErrorBars = new ErrorBars(this.contentGroup);
-
     private _contextNodeData: C[] = [];
     get contextNodeData(): C[] {
         return this._contextNodeData?.slice();
@@ -141,8 +136,8 @@ export abstract class CartesianSeries<
     protected datumSelectionGarbageCollection = true;
     protected markerSelectionGarbageCollection = true;
 
-    protected dataModel?: DataModel<any, any, any>;
-    protected processedData?: ProcessedData<any>;
+    public dataModel?: DataModel<any, any, any>;
+    public processedData?: ProcessedData<any>;
 
     protected constructor({
         pathsPerSeries = 1,
@@ -271,7 +266,6 @@ export abstract class CartesianSeries<
 
         await this.updateSelections(visible);
         await this.updateNodes(highlightItems, seriesHighlighted, visible);
-        this.errorBarUpdater.update();
 
         const animationData = this.getAnimationData(seriesRect);
         if (resize) {
@@ -294,16 +288,6 @@ export abstract class CartesianSeries<
                 Logger.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
             }
             this._contextNodeData = await this.createNodeData();
-            if (this.processedData !== undefined && this.errorBar !== undefined) {
-                this.errorBarUpdater.createNodeData(
-                    this.processedData,
-                    this.dataModel?.resolveProcessedDataIndexById(this, `xValue`).index,
-                    this.dataModel?.resolveProcessedDataIndexById(this, `yValue`).index,
-                    this.axes[ChartAxisDirection.X]?.scale,
-                    this.axes[ChartAxisDirection.Y]?.scale,
-                    this.errorBar
-                );
-            }
             await this.updateSeriesGroups();
         }
 

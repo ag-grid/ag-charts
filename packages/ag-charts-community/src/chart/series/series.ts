@@ -792,6 +792,6 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     }
 
     createModuleContext() : SeriesContext {
-        return {...this.ctx};
+        return {...this.ctx, series: this};
     }
 }

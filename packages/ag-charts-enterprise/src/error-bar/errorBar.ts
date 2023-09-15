@@ -1,15 +1,15 @@
-import type { Scale } from '../scale/scale';
-import { Group } from '../scene/group';
-import type { Node } from '../scene/node';
-import type { Point } from '../scene/point';
-import { Selection } from '../scene/selection';
-import { Path } from '../scene/shape/path';
-import { OPT_STRING, Validate } from '../util/validation';
-import type { ProcessedData } from './data/dataModel';
+import { _Scale, _Scene, _Util, _ModuleSupport } from 'ag-charts-community';
+
+const { ChartAxisDirection, Validate, OPT_STRING } = _ModuleSupport;
+
+type CartesianSeries<
+    C extends _ModuleSupport.SeriesNodeDataContext<any, any>,
+    N extends _Scene.Node
+> = _ModuleSupport.CartesianSeries<C, N>;
 
 export interface ErrorBarPoints {
-    readonly yLowerPoint: Point;
-    readonly yUpperPoint: Point;
+    readonly yLowerPoint: _Scene.Point;
+    readonly yUpperPoint: _Scene.Point;
 }
 
 export class ErrorBarConfig {
@@ -31,7 +31,7 @@ export class ErrorBarConfig {
     }
 }
 
-export class ErrorBarNode extends Path {
+export class ErrorBarNode extends _Scene.Path {
     public points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
 
     updatePath() {
@@ -52,32 +52,57 @@ export class ErrorBarNode extends Path {
     }
 }
 
-export class ErrorBars {
-    public groupNode: Group;
-    private selection: Selection<ErrorBarNode>;
+export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    private readonly cartesianSeries: _ModuleSupport.CartesianSeries<any, any>;
+    private readonly groupNode: _Scene.Group;
+    private readonly selection: _Scene.Selection<ErrorBarNode>;
     private nodeData: (ErrorBarPoints | undefined)[] = [];
 
-    constructor(parent: Node) {
-        this.groupNode = new Group({ name: `${parent.id}-series-errorBars` });
-        parent.appendChild(this.groupNode);
-        this.selection = Selection.select(this.groupNode, () => this.errorBarFactory());
+    config: ErrorBarConfig = new ErrorBarConfig('', '');
+
+    constructor(ctx: _ModuleSupport.SeriesContext) {
+        super();
+
+        const supportedSeriesTypes = ['line'];
+        if (!supportedSeriesTypes.includes(ctx.series.type)) {
+            throw new Error(
+                `AG Charts - unsupported series type '${
+                    ctx.series.type
+                }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
+            );
+        }
+        this.cartesianSeries = ctx.series as CartesianSeries<any, any>;
+        const { contentGroup, processedData, dataModel, axes } = this.cartesianSeries;
+
+        this.groupNode = new _Scene.Group({ name: `${contentGroup.id}-series-errorBars` });
+        contentGroup.appendChild(this.groupNode);
+        this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
+
+        if (processedData !== undefined) {
+            this.createNodeData(
+                processedData,
+                dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `xValue`).index,
+                dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `yValue`).index,
+                axes[ChartAxisDirection.X]?.scale,
+                axes[ChartAxisDirection.Y]?.scale
+            );
+        }
     }
 
     createNodeData(
-        processedData: ProcessedData<any>,
+        processedData: _ModuleSupport.ProcessedData<any>,
         xIndex?: number,
         _yIndex?: number, // This is will be used when the scatterplot errorbars are implemented
-        xScale?: Scale<any, any, any>,
-        yScale?: Scale<any, any, any>,
-        config?: ErrorBarConfig
+        xScale?: _Scale.Scale<any, any, any>,
+        yScale?: _Scale.Scale<any, any, any>
     ) {
-        const { nodeData } = this;
+        const { nodeData, config } = this;
         const { yLowerKey, yUpperKey } = config ?? {};
         if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined || _yIndex === undefined) {
             return;
         }
 
-        const convert = (scale: Scale<any, any, any>, value: any) => {
+        const convert = (scale: _Scale.Scale<any, any, any>, value: any) => {
             const offset = (scale.bandwidth ?? 0) / 2;
             return scale.convert(value) + offset;
         };
