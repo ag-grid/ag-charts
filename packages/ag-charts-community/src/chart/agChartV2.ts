@@ -32,6 +32,7 @@ import {
     type Module,
     type ModuleInstance,
     type RootModule,
+    type SeriesOptionModule,
 } from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
@@ -552,11 +553,22 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
     for (const seriesOptions of options ?? []) {
         const path = `series[${index++}]`;
         const seriesInstance = getSeries(seriesOptions.type ?? 'unknown', moduleContext);
+        applySeriesOptionModules(seriesInstance, seriesOptions);
         applySeriesValues(seriesInstance, seriesOptions, { path, index });
         series.push(seriesInstance);
     }
 
     return series;
+}
+
+function applySeriesOptionModules(series: Series, options: AgBaseSeriesOptions<any>) {
+    const seriesOptionModules = REGISTERED_MODULES.filter((m): m is SeriesOptionModule => m.type === 'series-option');
+
+    for (const mod of seriesOptionModules) {
+        if (mod.optionsKey in options) {
+            series.getModuleMap().addModule(mod);
+        }
+    }
 }
 
 function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {

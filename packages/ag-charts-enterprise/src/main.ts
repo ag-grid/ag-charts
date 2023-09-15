@@ -19,6 +19,7 @@ import { RangeBarModule } from './range-bar/main';
 import { RangeAreaModule } from './range-area/rangeAreaModule';
 import { LicenseManager } from './license/licenseManager';
 import { BoxPlotModule } from './box-plot/boxPlotModule';
+import { ErrorBarsModule } from './error-bar/errorBarModule';
 
 export { RadiusNumberAxisModule } from './polar-axes/radius-number/radiusNumberAxisModule';
 
@@ -30,6 +31,7 @@ _ModuleSupport.registerModule(BackgroundModule);
 _ModuleSupport.registerModule(BoxPlotModule);
 _ModuleSupport.registerModule(ContextMenuModule);
 _ModuleSupport.registerModule(CrosshairModule);
+_ModuleSupport.registerModule(ErrorBarsModule);
 _ModuleSupport.registerModule(GradientLegendModule);
 _ModuleSupport.registerModule(HeatmapModule);
 _ModuleSupport.registerModule(NightingaleModule);
