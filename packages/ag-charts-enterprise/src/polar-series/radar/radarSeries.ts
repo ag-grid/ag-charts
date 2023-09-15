@@ -625,10 +625,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
-    protected abstract get breakMissingPoints(): boolean;
-
-    protected getLinePoints(): RadarLinePoint[] {
-        const { nodeData, breakMissingPoints } = this;
+    protected getLinePoints(options: { breakMissingPoints: boolean }): RadarLinePoint[] {
+        const { nodeData } = this;
+        const { breakMissingPoints } = options;
         if (nodeData.length === 0) {
             return [];
         }
@@ -692,8 +691,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         pathNode.checkPathDirty();
     }
 
-    protected animatePaths(points: RadarLinePoint[], totalDuration: number, timePassed: number) {
-        this.animateSinglePath(this.getLineNode(), points, totalDuration, timePassed);
+    protected animatePaths(totalDuration: number, timePassed: number) {
+        const linePoints = this.getLinePoints({ breakMissingPoints: true });
+        this.animateSinglePath(this.getLineNode(), linePoints, totalDuration, timePassed);
     }
 
     animateEmptyUpdateReady() {
@@ -702,8 +702,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
 
         const { markerSelection, labelSelection } = this;
-
-        const points = this.getLinePoints();
 
         const duration = this.ctx.animationManager.defaultDuration();
         const markerDuration = 200;
@@ -719,7 +717,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
             ...animationOptions,
             duration,
-            onUpdate: (timePassed) => this.animatePaths(points, duration, timePassed),
+            onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
         markerSelection.each((marker, datum) => {
@@ -764,7 +762,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         if (lineNode) {
             const { path: linePath } = lineNode;
-            const linePoints = this.getLinePoints();
+            const linePoints = this.getLinePoints({ breakMissingPoints: true });
 
             lineNode.fill = undefined;
             lineNode.stroke = this.stroke;
