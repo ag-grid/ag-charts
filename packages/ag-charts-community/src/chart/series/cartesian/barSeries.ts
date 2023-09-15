@@ -716,13 +716,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return;
         }
 
-        const totalDuration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
-
-        let sectionDuration = totalDuration;
-        if (diff.added.length > 0 || diff.removed.length > 0) {
-            sectionDuration = Math.floor(totalDuration / 2);
-        }
 
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
@@ -740,8 +735,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     { from: rect.y, to: datum.y },
                     { from: rect.height, to: datum.height },
                 ];
-                let delay = diff.removed.length > 0 ? sectionDuration : 0;
-                const duration = sectionDuration;
                 let cleanup = false;
 
                 let contextX = startingX;
@@ -773,12 +766,10 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                         { from: datum.y, to: contextY },
                         { from: datum.height, to: contextHeight },
                     ];
-                    delay = 0;
                     cleanup = true;
                 }
 
                 this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${rect.id}`, props, {
-                    delay,
                     duration,
                     ease: easing.easeOut,
                     throttleId: `${this.id}_rects`,
@@ -803,7 +794,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 this.ctx.animationManager.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
-                    delay: totalDuration,
+                    delay: duration,
                     duration: labelDuration,
                     throttleId: `${this.id}_labels`,
                     throttleGroup: labelThrottleGroup,
