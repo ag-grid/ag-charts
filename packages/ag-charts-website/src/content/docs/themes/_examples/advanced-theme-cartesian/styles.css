@@ -4,10 +4,6 @@
     flex-direction: column;
 }
 
-#chart1 {
-    height: 50%;
-}
-
-#chart2 {
-    height: 50%;
+#myChart {
+    height: 100%;
 }

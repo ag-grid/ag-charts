@@ -60,16 +60,16 @@ var myTheme = {
         strokes: ['black'],
     },
     overrides: {
-        cartesian: {
+        common: {
             title: {
                 fontSize: 24,
             },
+        },
+        bar: {
             series: {
-                bar: {
-                    label: {
-                        enabled: true,
-                        color: 'black',
-                    },
+                label: {
+                    enabled: true,
+                    color: 'black',
                 },
             },
         },
@@ -85,6 +85,8 @@ The theme shown in the above snippet is applied to the chart in the example belo
 
 ### Example: Advanced Theme
 
-This example demonstrates a more advanced theme, providing different settings for different series and axis types.
+These examples demonstrate a more advanced theme, providing different settings for different series and axis types.
 
-{% chartExampleRunner title="Advanced Themes" name="advanced-theme" type="multi" options="{ \"exampleHeight\": 680 }" /%}
+{% chartExampleRunner title="Advanced Themes - Cartesian" name="advanced-theme-cartesian" type="generated" /%}
+
+{% chartExampleRunner title="Advanced Themes - Polar" name="advanced-theme-polar" type="generated" /%}
