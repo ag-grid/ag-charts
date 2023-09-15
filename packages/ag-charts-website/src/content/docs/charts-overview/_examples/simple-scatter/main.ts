@@ -3,7 +3,6 @@ import { getData } from "./data"
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data: getData(),
   title: {
     text: "Height vs Weight for Major League Baseball Players",

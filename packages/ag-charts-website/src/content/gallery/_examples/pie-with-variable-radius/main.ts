@@ -8,7 +8,6 @@ const usdShortFormatter = new Intl.NumberFormat('en-US', usdShortOptions);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    autoSize: true,
     title: {
         text: 'The GDP of Baltic States',
         fontSize: 18,

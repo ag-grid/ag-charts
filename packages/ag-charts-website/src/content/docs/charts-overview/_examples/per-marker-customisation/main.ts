@@ -43,7 +43,6 @@ function calculateColour(size: number) {
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data: getData().filter(function (d) {
     return d.magnitude > 4
   }),

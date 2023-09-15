@@ -3,7 +3,6 @@ import { getData, getRandomisedData, getRemovedData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    autoSize: true,
     animation: {
         enabled: true,
     },

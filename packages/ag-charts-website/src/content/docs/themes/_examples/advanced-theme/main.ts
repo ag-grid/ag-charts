@@ -1,4 +1,5 @@
 import { AgChart, AgChartOptions, AgChartTheme } from "ag-charts-community"
+import { getData } from "./data"
 
 var myTheme: AgChartTheme = {
   baseTheme: "ag-default-dark",
@@ -11,24 +12,9 @@ var myTheme: AgChartTheme = {
       title: {
         fontSize: 24,
       },
-    },
-    cartesian: {
       padding: {
         left: 70,
         right: 70,
-      },
-      series: {
-        line: {
-          marker: {
-            shape: "circle",
-          },
-        },
-        bar: {
-          label: {
-            enabled: true,
-            color: "white",
-          },
-        },
       },
       axes: {
         category: {
@@ -49,7 +35,22 @@ var myTheme: AgChartTheme = {
         },
       },
     },
-    polar: {
+    line: {
+      series: {
+        marker: {
+          shape: "circle",
+        },
+      },
+    },
+    bar: {
+      series: {
+        label: {
+          enabled: true,
+          color: "white",
+        },
+      },
+    },
+    pie: {
       padding: {
         top: 40,
         bottom: 40,
@@ -58,35 +59,24 @@ var myTheme: AgChartTheme = {
         position: "left",
       },
       series: {
-        pie: {
-          calloutLabel: {
-            enabled: true,
-          },
-          calloutLine: {
-            colors: ["gray"],
-          },
+        calloutLabel: {
+          enabled: true,
+        },
+        calloutLine: {
+          colors: ["gray"],
         },
       },
     },
   },
 }
 
-var data = [
-  { label: "Android", v1: 5.67, v2: 8.63, v3: 8.14, v4: 6.45, v5: 1.37 },
-  { label: "iOS", v1: 7.01, v2: 8.04, v3: 2.93, v4: 6.78, v5: 5.45 },
-  { label: "BlackBerry", v1: 7.54, v2: 1.98, v3: 9.88, v4: 1.38, v5: 4.44 },
-  { label: "Symbian", v1: 9.27, v2: 4.21, v3: 2.53, v4: 6.31, v5: 4.44 },
-  { label: "Windows", v1: 2.8, v2: 1.908, v3: 7.48, v4: 5.29, v5: 8.8 },
-]
-
-var chartOptions1: AgChartOptions = {
+var options: AgChartOptions = {
   theme: myTheme,
-  container: document.getElementById("chart1"),
-  autoSize: true,
+  container: document.getElementById("myChart"),
   title: {
-    text: "Cartesian Chart Theming",
+    text: "Multi-Type Chart Theme",
   },
-  data: data,
+  data: getData(),
   series: [
     {
       type: "bar",
@@ -118,22 +108,29 @@ var chartOptions1: AgChartOptions = {
   ],
 }
 
-var chartOptions2: AgChartOptions = {
-  theme: myTheme,
-  container: document.getElementById("chart2"),
-  autoSize: true,
-  title: {
-    text: "Polar Chart Theming",
-  },
-  data: data,
-  series: [
-    {
-      type: "pie",
-      angleKey: "v4",
-      calloutLabelKey: "label",
-    },
-  ],
-}
+const chart = AgChart.create(options);
 
-var chart1 = AgChart.create(chartOptions1)
-var chart2 = AgChart.create(chartOptions2)
+function applyOptions(type: 'bar' | 'pie') {
+  if (type === 'pie') {
+    options.series = [
+      {
+        type: "pie",
+        angleKey: "v4",
+        calloutLabelKey: "label",
+      },
+    ];
+  } else {
+    const names = ['Reliability', 'Ease of use', 'Performance', 'Price'];
+    options.series = [
+      ...names.map((yName, idx) => ({
+        type: idx <= 2 ? 'bar' as const : 'line' as const,
+        xKey: "label",
+        yKey: `v${idx + 1}`,
+        stacked: idx <= 2,
+        yName,
+      })),
+    ];
+  }
+  
+  AgChart.update(chart, options)
+}

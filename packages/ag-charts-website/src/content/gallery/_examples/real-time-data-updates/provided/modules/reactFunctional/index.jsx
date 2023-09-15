@@ -8,7 +8,6 @@ import { createRoot } from 'react-dom/client';
 const ChartExample = () => {
     const chartRef = useRef(null);
     const [options, setOptions] = useState({
-        autoSize: true,
         data: getData(),
         theme: {
             palette: {

@@ -2,7 +2,6 @@ import { AgChartOptions, AgChart } from 'ag-charts-community'
 
 const options: AgChartOptions = {
   container: document.getElementById('myChart'),
-  autoSize: true,
   title: {
     text: 'Fuel Spending (2019)',
   },

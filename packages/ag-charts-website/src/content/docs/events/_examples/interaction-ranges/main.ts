@@ -2,7 +2,6 @@ import { AgCartesianChartOptions, AgChart } from "ag-charts-community"
 
 let options: AgCartesianChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data: [
     {
       quarter: "Q1",

@@ -29,7 +29,6 @@ const buildSeries = () => {
 
 const options: AgCartesianChartOptions = {
   container: document.getElementById('myChart'),
-  autoSize: true,
   data,
   series: buildSeries(),
   axes: [

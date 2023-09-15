@@ -7,7 +7,6 @@ const total = data.reduce((sum, d) => sum + d["count"], 0)
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data,
   title: {
     text: "Dwelling Fires (UK)",

@@ -7,7 +7,6 @@ import { getData } from "./data"
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   animation: {
     enabled: true,
   },

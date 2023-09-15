@@ -11,7 +11,6 @@ const ChartExample = () => {
     const [updating, setUpdating] = useState(false);
     const [options, setOptions] = useState({
 
-        autoSize: true,
         data: getData(),
         series: [
             {
