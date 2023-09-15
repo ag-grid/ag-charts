@@ -1845,11 +1845,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             to: 1,
             delay: duration,
             duration: labelDuration,
+            throttleId: this.id,
+            throttleGroup,
         };
 
         this.calloutLabelSelection.each((label) => {
             label.opacity = 0;
-            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+            this.ctx.animationManager.animateWithThrottle<number>(`${this.id}_waiting-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1859,7 +1861,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         this.sectorLabelSelection.each((label) => {
             label.opacity = 0;
-            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+            this.ctx.animationManager.animateWithThrottle<number>(`${this.id}_waiting-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
@@ -1869,7 +1871,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         this.innerLabelsSelection.each((label) => {
             label.opacity = 0;
-            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_${label.id}`, {
+            this.ctx.animationManager.animateWithThrottle<number>(`${this.id}_waiting-update-ready_${label.id}`, {
                 ...labelAnimationOptions,
                 onUpdate(opacity) {
                     label.opacity = opacity;
