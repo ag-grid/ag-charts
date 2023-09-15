@@ -1,6 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
-export class ErrorBarsPlaceholder extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {}
+import type { _ModuleSupport } from 'ag-charts-community';
+import { ErrorBars } from './errorBar';
 
 export const ErrorBarsModule: _ModuleSupport.SeriesOptionModule = {
     type: 'series-option',
@@ -8,5 +7,5 @@ export const ErrorBarsModule: _ModuleSupport.SeriesOptionModule = {
     optionsKey: 'errorBar',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    instanceConstructor: ErrorBarsPlaceholder,
+    instanceConstructor: ErrorBars,
 };
