@@ -271,8 +271,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             dataVisible: this.visible,
             groupByFn,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
+        this.onDataProcessed(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
