@@ -2,7 +2,7 @@ import type { ChartAxis } from '../chart/chartAxis';
 import type { Series } from '../chart/series/series';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { JsonApplyParams } from './json';
-import type { AxisContext, ModuleContext, ModuleContextWithParent } from './moduleContext';
+import type { AxisContext, ModuleContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 import type { AgBaseChartThemeOverrides, AgChartOptions } from '../options/agChartOptions';
 
 export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
@@ -26,7 +26,7 @@ export interface ModuleInstance {
     destroy(): void;
 }
 
-interface BaseModule {
+export interface BaseModule {
     optionsKey: string;
     packageType: 'community' | 'enterprise';
     chartTypes: ('cartesian' | 'polar' | 'hierarchy')[];
@@ -93,12 +93,20 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType> extends Bas
     swapDefaultAxesCondition?: (opts: AgChartOptions) => boolean;
 }
 
+export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
+    type: 'series-option';
+
+    identifier: string;
+    instanceConstructor: new (ctx: SeriesContext) => M;
+}
+
 export type Module<M extends ModuleInstance = ModuleInstance> =
     | RootModule<M>
     | AxisModule
     | AxisOptionModule
     | LegendModule
-    | SeriesModule<RequiredSeriesType>;
+    | SeriesModule<RequiredSeriesType>
+    | SeriesOptionModule;
 
 export abstract class BaseModuleInstance {
     protected readonly destroyFns: (() => void)[] = [];
