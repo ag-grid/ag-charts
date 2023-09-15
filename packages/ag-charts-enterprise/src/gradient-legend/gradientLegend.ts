@@ -125,7 +125,9 @@ export class GradientLegend {
         this.destroyFns.push(() => this.layoutService.removeListener(layoutListener));
 
         this.highlightManager = ctx.highlightManager;
-        const highlightListener = this.highlightManager.addListener('highlight-change', () => this.onChartHoverChange());
+        const highlightListener = this.highlightManager.addListener('highlight-change', () =>
+            this.onChartHoverChange()
+        );
         this.destroyFns.push(() => this.highlightManager.removeListener(highlightListener));
 
         this.gradientRect = new Rect();
@@ -345,7 +347,8 @@ export class GradientLegend {
             return;
         }
 
-        let t = Math.max(0, Math.min(1, (hightighted.colorValue ?? 0 - colorDomain[0]) / (colorDomain[1] - colorDomain[0])));
+        let t = (hightighted.colorValue ?? 0 - colorDomain[0]) / (colorDomain[1] - colorDomain[0]);
+        t = Math.max(0, Math.min(1, t));
         if (reverseOrder) {
             t = 1 - t;
         }
