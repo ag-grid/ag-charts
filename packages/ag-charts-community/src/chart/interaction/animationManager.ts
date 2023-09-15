@@ -46,6 +46,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         disableInteractions = true,
         ...opts
     }: AnimationOptions<T> & { disableInteractions?: boolean }) {
+        if (this.skipAnimations) {
+            opts.onUpdate?.(opts.to, null);
+            return null;
+        }
+
         if (opts.id != null) {
             this.controllers.get(opts.id)?.stop();
         }
@@ -53,8 +58,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         const id = opts.id ?? Math.random().toString();
         const controller = new Animation({
             ...opts,
-            delay: this.skipAnimations ? 0 : opts.delay,
-            duration: this.skipAnimations ? 0 : opts.duration,
             autoplay: this.isPlaying ? opts.autoplay : false,
             onPlay: (controller) => {
                 this.controllers.set(id, controller);

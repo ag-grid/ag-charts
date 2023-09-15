@@ -758,7 +758,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
                 from: { cord: (horizontal ? datum.nodeMidPoint?.x : datum.nodeMidPoint?.y) ?? 0, dimension: 0 },
                 to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
                 duration,
-                ease: _ModuleSupport.Motion.easeOutSine,
+                ease: _ModuleSupport.Motion.easeOut,
                 onUpdate({ cord, dimension }) {
                     rect.setProperties(
                         horizontal
@@ -822,7 +822,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
                     from,
                     to,
                     duration: sectionDuration,
-                    ease: Motion.easeOutSine,
+                    ease: Motion.easeOut,
                     // throttleId: `${this.id}_rects`,
                     // throttleGroup: rectThrottleGroup,
                     onUpdate(props) {

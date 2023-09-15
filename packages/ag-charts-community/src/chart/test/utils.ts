@@ -13,7 +13,7 @@ import type {
 } from '../../options/agChartOptions';
 import { _ModuleSupport, type _Scene } from '../../main';
 import * as mockCanvas from './mock-canvas';
-import type { IAnimation } from '../../motion/animation';
+import { Animation } from '../../motion/animation';
 
 const { AnimationManager, resetIds } = _ModuleSupport;
 
@@ -302,17 +302,25 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 }
 
 export function spyOnAnimationManager(totalDuration: number, ratio: number) {
-    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation(({ from, to, delay, onUpdate }) => {
-        const delayRatio = delay ? delay / totalDuration : 0;
-        if (ratio < delayRatio) {
-            onUpdate?.(from as number, null as unknown as IAnimation);
+    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation(({ delay = 0, ...opts }) => {
+        const controller = new Animation({ ...opts, delay, duration: Math.max(0, totalDuration - (delay ?? 0)) });
+        // console.log(opts, { ratio });
+        if (totalDuration * ratio < delay) {
+            opts.onUpdate?.(opts.from, controller);
         } else {
+            const delayRatio = delay ? delay / totalDuration : 0;
             const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
-            onUpdate?.(
-                ((to as number) - (from as number)) * squashedRatio + (from as number),
-                null as unknown as IAnimation
-            );
+            controller.update(totalDuration * squashedRatio);
         }
+        //         const delayRatio = delay ? delay / totalDuration : 0;
+        //         if (ratio < delayRatio) {
+        //             onUpdate?.(from as number, null as unknown as IAnimation);
+        //         } else {
+        //             const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
+        //             onUpdate?.(
+        //                 ((to as number) - (from as number)) * squashedRatio + (from as number),
+        //                 null as unknown as IAnimation
+        //             );
         return Promise.resolve() as any;
     });
 }

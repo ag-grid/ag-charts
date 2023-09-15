@@ -828,11 +828,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     protected toggleSeriesItem(): void {}
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
-
         contextData.forEach(({ pointData }, contextDataIndex) => {
-            this.animateRects(datumSelections[contextDataIndex], duration);
-            this.animateLabels(labelSelections[contextDataIndex], duration);
+            this.animateRects(datumSelections[contextDataIndex]);
+            this.animateLabels(labelSelections[contextDataIndex]);
 
             if (contextDataIndex !== 0 || !pointData) {
                 return;
@@ -840,14 +838,14 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
             const [lineNode] = paths[contextDataIndex];
             if (this.direction === 'vertical') {
-                this.animateConnectorLinesVertical(lineNode, pointData, duration);
+                this.animateConnectorLinesVertical(lineNode, pointData);
             } else {
-                this.animateConnectorLinesHorizontal(lineNode, pointData, duration);
+                this.animateConnectorLinesHorizontal(lineNode, pointData);
             }
         });
     }
 
-    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
+    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
         const horizontal = this.direction === 'horizontal';
         const yAxis = this.getValueAxis();
         datumSelection.each((rect, datum) => {
@@ -855,8 +853,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
                 id: `${this.id}_empty-update-ready_${rect.id}`,
                 from: { cord: yAxis?.scale.convert(0) ?? 0, dimension: 0 },
                 to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
-                duration,
-                ease: _ModuleSupport.Motion.easeOutSine,
+                ease: _ModuleSupport.Motion.easeOut,
                 onUpdate({ cord, dimension }) {
                     rect.setProperties(
                         horizontal
@@ -868,7 +865,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         });
     }
 
-    protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>, duration: number) {
+    protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>) {
+        const duration = this.ctx.animationManager.defaultDuration();
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready_labels`,
             from: 0,
@@ -883,11 +881,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         });
     }
 
-    protected animateConnectorLinesHorizontal(
-        lineNode: _Scene.Path,
-        pointData: WaterfallNodePointDatum[],
-        duration: number
-    ) {
+    protected animateConnectorLinesHorizontal(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[]) {
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -909,8 +903,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             id: `${this.id}_empty-update-ready`,
             from: startX,
             to: endX,
-            duration,
-            ease: _ModuleSupport.Motion.easeOutSine,
+            ease: _ModuleSupport.Motion.easeOut,
             onUpdate(pointX) {
                 linePath.clear({ trackChanges: true });
 
@@ -928,11 +921,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         });
     }
 
-    protected animateConnectorLinesVertical(
-        lineNode: _Scene.Path,
-        pointData: WaterfallNodePointDatum[],
-        duration: number
-    ) {
+    protected animateConnectorLinesVertical(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[]) {
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -954,8 +943,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             id: `${this.id}_empty-update-ready`,
             from: startY,
             to: endY,
-            duration,
-            ease: _ModuleSupport.Motion.easeOutSine,
+            ease: _ModuleSupport.Motion.easeOut,
             onUpdate(pointY) {
                 linePath.clear({ trackChanges: true });
 
