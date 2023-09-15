@@ -18,6 +18,17 @@ const options: AgChartOptions = {
             radiusName: 'Sales',
         },
     ],
+    axes: [
+        {
+            type: 'angle-category',
+            label: {
+                orientation: 'perpendicular',
+            },
+        },
+        {
+            type: 'radius-number',
+        },
+    ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);
