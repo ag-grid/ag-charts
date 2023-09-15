@@ -74,7 +74,7 @@ var options: AgChartOptions = {
   theme: myTheme,
   container: document.getElementById("myChart"),
   title: {
-    text: "Cartesian Chart Theming",
+    text: "Multi-Type Chart Theme",
   },
   data: getData(),
   series: [
@@ -108,4 +108,29 @@ var options: AgChartOptions = {
   ],
 }
 
-AgChart.create(options)
+const chart = AgChart.create(options);
+
+function applyOptions(type: 'bar' | 'pie') {
+  if (type === 'pie') {
+    options.series = [
+      {
+        type: "pie",
+        angleKey: "v4",
+        calloutLabelKey: "label",
+      },
+    ];
+  } else {
+    const names = ['Reliability', 'Ease of use', 'Performance', 'Price'];
+    options.series = [
+      ...names.map((yName, idx) => ({
+        type: idx <= 2 ? 'bar' as const : 'line' as const,
+        xKey: "label",
+        yKey: `v${idx + 1}`,
+        stacked: idx <= 2,
+        yName,
+      })),
+    ];
+  }
+  
+  AgChart.update(chart, options)
+}
