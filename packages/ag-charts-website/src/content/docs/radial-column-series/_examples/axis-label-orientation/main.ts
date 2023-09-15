@@ -5,7 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `Night & Gale Inc revenue by product category`,
+        text: `Night & Gale Inc revenue`,
     },
     subtitle: {
         text: 'in million U.S. dollars',
@@ -33,12 +33,14 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'angle-category',
+            label: {
+                orientation: 'perpendicular',
+            },
         },
         {
             type: 'radius-number',
-            innerRadiusRatio: 0.75,
         },
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

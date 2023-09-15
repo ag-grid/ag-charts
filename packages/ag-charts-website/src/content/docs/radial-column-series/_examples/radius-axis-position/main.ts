@@ -5,7 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `Night & Gale Inc revenue by product category`,
+        text: `Night & Gale Inc revenue`,
     },
     subtitle: {
         text: 'in million U.S. dollars',
@@ -30,6 +30,18 @@ const options: AgChartOptions = {
             radiusName: 'Donut holes',
         },
     ],
+    axes: [
+        {
+            type: 'angle-category',
+        },
+        {
+            type: 'radius-number',
+            positionAngle: 360 / 5,
+            label: {
+                rotation: -360 / 5,
+            },
+        },
+    ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);
