@@ -49,3 +49,5 @@ export interface AxisContext {
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
 }
+
+export interface SeriesContext extends ModuleContext {}
