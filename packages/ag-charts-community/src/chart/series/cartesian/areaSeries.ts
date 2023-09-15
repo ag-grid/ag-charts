@@ -652,27 +652,25 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
             return [];
         }
 
-        // Area stacks should be listed in the legend in reverse order, for symmetry with the
-        // vertical stack display order.
-        return [
-            <CategoryLegendDatum>{
-                legendType: 'category',
-                id,
-                itemId: yKey,
-                seriesId: id,
-                enabled: visible,
-                label: {
-                    text: yName ?? yKey,
-                },
-                marker: {
-                    shape: marker.shape,
-                    fill: marker.fill ?? fill,
-                    stroke: marker.stroke ?? stroke,
-                    fillOpacity: marker.fillOpacity ?? fillOpacity,
-                    strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
-                },
+        const legendDatum: CategoryLegendDatum = {
+            legendType: 'category',
+            id,
+            itemId: yKey,
+            seriesId: id,
+            enabled: visible,
+            label: {
+                text: yName ?? yKey,
             },
-        ];
+            marker: {
+                shape: marker.shape,
+                fill: marker.fill ?? fill,
+                stroke: marker.stroke ?? stroke,
+                fillOpacity: marker.fillOpacity ?? fillOpacity,
+                strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
+            },
+        };
+
+        return [legendDatum];
     }
 
     animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths, seriesRect }: AreaAnimationData) {
