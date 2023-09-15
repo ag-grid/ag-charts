@@ -12,7 +12,7 @@ import type { Point } from '../../scene/point';
 import { BOOLEAN, OPT_COLOR_STRING, Validate } from '../../util/validation';
 import { calculateLabelRotation } from '../label';
 import type { ModuleContext } from '../../util/moduleContext';
-import type { AgAxisCaptionFormatterParams } from '../agChartOptions';
+import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { CartesianAxis } from './cartesianAxis';

@@ -4,7 +4,7 @@ import type {
     AgCartesianCrossLineOptions,
     AgChartThemePalette,
     AgTooltipPositionOptions,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import {
     DEFAULT_CARTESIAN_CHART_OVERRIDES,
     DEFAULT_BAR_CHART_OVERRIDES,

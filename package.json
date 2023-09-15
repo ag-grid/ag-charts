@@ -59,6 +59,7 @@
     "chokidar": "^3.5.3",
     "classnames": "^2.3.2",
     "cypress": "^13.0.0",
+    "dependency-cruiser": "^13.1.5",
     "eslint": "8.46.0",
     "eslint-config-prettier": "8.1.0",
     "eslint-plugin-check-file": "^2.6.2",

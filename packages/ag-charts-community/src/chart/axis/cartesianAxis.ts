@@ -2,7 +2,7 @@ import { Axis } from '../../axis';
 import type { Scale } from '../../scale/scale';
 import type { AxisContext } from '../../util/moduleContext';
 import { Validate, NUMBER, POSITION } from '../../util/validation';
-import type { AgCartesianAxisPosition } from '../agChartOptions';
+import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { assignJsonApplyConstructedArray } from '../chartOptions';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';

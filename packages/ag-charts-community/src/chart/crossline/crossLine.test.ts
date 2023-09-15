@@ -10,7 +10,11 @@ import {
     setupMockCanvas,
     waitForChartStability,
 } from '../test/utils';
-import type { AgCartesianChartOptions, AgCartesianCrossLineOptions, AgCrossLineLabelPosition } from '../agChartOptions';
+import type {
+    AgCartesianChartOptions,
+    AgCartesianCrossLineOptions,
+    AgCrossLineLabelPosition,
+} from '../../options/agChartOptions';
 import { AgChart } from '../agChartV2';
 import * as examples from './test/examples';
 import type { Chart } from '../chart';

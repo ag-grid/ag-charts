@@ -16,7 +16,10 @@ import type { Point } from '../../../scene/point';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { jsonDiff } from '../../../util/json';
 import type { BBox } from '../../../scene/bbox';
-import type { AgCartesianSeriesMarkerFormatterParams, AgCartesianSeriesMarkerFormat } from '../../agChartOptions';
+import type {
+    AgCartesianSeriesMarkerFormatterParams,
+    AgCartesianSeriesMarkerFormat,
+} from '../../../options/agChartOptions';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { getMarker } from '../../marker/util';
 import type { DataModel, ProcessedData } from '../../data/dataModel';

@@ -32,7 +32,7 @@ import type {
     FontStyle,
     FontWeight,
     AgHistogramSeriesTooltipRendererParams,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';

@@ -10,7 +10,7 @@ import type {
     InteractionRange,
     AgTooltipPositionType,
     AgChartTheme,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';

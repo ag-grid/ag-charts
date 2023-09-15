@@ -6,7 +6,7 @@ import type {
     AgLineSeriesOptions,
     AgPolarChartOptions,
     AgScatterSeriesOptions,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import { DATA_APPLE_REVENUE_BY_PRODUCT, DATA_BROWSER_MARKET_SHARE } from '../../test/data';
 import {
     DATA_MALE_HEIGHT_WEIGHT,

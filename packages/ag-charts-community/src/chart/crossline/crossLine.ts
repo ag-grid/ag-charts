@@ -1,7 +1,7 @@
 import type { Group } from '../../scene/group';
 import type { Scale } from '../../scale/scale';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../agChartOptions';
+import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../../options/agChartOptions';
 
 export type CrossLineType = 'line' | 'range';
 

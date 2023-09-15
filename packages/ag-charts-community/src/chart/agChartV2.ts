@@ -1,4 +1,9 @@
-import type { AgChartOptions, AgChartInstance, AgBaseAxisOptions, AgBaseSeriesOptions } from './agChartOptions';
+import type {
+    AgChartOptions,
+    AgChartInstance,
+    AgBaseAxisOptions,
+    AgBaseSeriesOptions,
+} from '../options/agChartOptions';
 import { CartesianChart } from './cartesianChart';
 import { PolarChart } from './polarChart';
 import { HierarchyChart } from './hierarchyChart';

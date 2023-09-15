@@ -6,7 +6,10 @@ import type { Marker } from '../../marker/marker';
 import type { Text } from '../../../scene/shape/text';
 import type { Path } from '../../../scene/shape/path';
 import type { Point } from '../../../scene/point';
-import type { AgCartesianSeriesMarkerFormat, AgCartesianSeriesMarkerFormatterParams } from '../../agChartOptions';
+import type {
+    AgCartesianSeriesMarkerFormat,
+    AgCartesianSeriesMarkerFormatterParams,
+} from '../../../options/agChartOptions';
 import type { SeriesNodeDataContext } from '../series';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';

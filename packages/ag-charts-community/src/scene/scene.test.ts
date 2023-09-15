@@ -3,7 +3,7 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { AgChart } from './../chart/agChartV2';
 import * as examples from '../chart/test/examples';
 import { extractImageData, waitForChartStability, setupMockCanvas, IMAGE_SNAPSHOT_DEFAULTS } from '../chart/test/utils';
-import type { AgCartesianChartOptions, AgChartBaseLegendOptions, AgChartInstance } from '../chart/agChartOptions';
+import type { AgCartesianChartOptions, AgChartLegendOptions, AgChartInstance } from '../options/agChartOptions';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -40,7 +40,7 @@ describe('Scene', () => {
             chart = AgChart.create(options);
             await waitForChartStability(chart);
 
-            (options.legend as AgChartBaseLegendOptions).position = 'top';
+            (options.legend as AgChartLegendOptions).position = 'top';
             AgChart.update(chart, options);
 
             await compare();
@@ -54,7 +54,7 @@ describe('Scene', () => {
             chart = AgChart.create(options);
             await waitForChartStability(chart);
 
-            (options.legend as AgChartBaseLegendOptions).position = 'top';
+            (options.legend as AgChartLegendOptions).position = 'top';
             AgChart.update(chart, options);
 
             await compare();

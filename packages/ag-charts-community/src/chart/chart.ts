@@ -15,7 +15,12 @@ import type { ChartAxisDirection } from './chartAxisDirection';
 import { createId } from '../util/id';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
-import type { AgChartOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartInstance } from './agChartOptions';
+import type {
+    AgChartOptions,
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgChartInstance,
+} from '../options/agChartOptions';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import type { Point } from '../scene/point';
 import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';

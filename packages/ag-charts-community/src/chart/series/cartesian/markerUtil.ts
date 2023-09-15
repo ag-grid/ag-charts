@@ -3,7 +3,7 @@ import type {
     AgSeriesHighlightMarkerStyle,
     AgCartesianSeriesMarkerFormat,
     AgSeriesMarkerFormatterParams,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import type { Marker } from '../../marker/marker';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
