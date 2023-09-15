@@ -1491,16 +1491,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         datum: TickDatum,
         _animationGroup: string
     ) {
-        const roundedTranslationY = Math.round(datum.translationY);
         let from = { translationY: node.translationY, opacity: 1 };
-        const to = { translationY: roundedTranslationY, opacity: 1 };
+        const to = { translationY: Math.round(datum.translationY), opacity: 1 };
 
         const { duration } = options;
         let { delay } = options;
 
         const datumId = datum.tickLabel;
         if (diff.added[datumId]) {
-            from = { translationY: roundedTranslationY, opacity: 0 };
+            from = { translationY: to.translationY, opacity: 0 };
             delay += duration;
         } else if (diff.removed[datumId]) {
             to.opacity = 0;
