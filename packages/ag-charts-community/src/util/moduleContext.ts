@@ -11,7 +11,7 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
-import type { Node } from '../scene/node';
+import type { Group } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from './callbackCache';
 
@@ -51,6 +51,6 @@ export interface AxisContext {
     scaleInvert(position: number): any;
 }
 
-export interface SeriesContext {
-    contentNode: Node;
+export interface SeriesContext extends ModuleContext {
+    contentGroup: Group;
 }

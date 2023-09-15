@@ -54,7 +54,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
-        const parent = ctx.contentNode;
+        const parent = ctx.contentGroup;
         this.groupNode = new _Scene.Group({ name: `${parent.id}-series-errorBars` });
         parent.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());

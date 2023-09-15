@@ -27,7 +27,7 @@ export interface ModuleInstance {
     destroy(): void;
 }
 
-interface BaseModule {
+export interface BaseModule {
     optionsKey: string;
     packageType: 'community' | 'enterprise';
     chartTypes: ('cartesian' | 'polar' | 'hierarchy')[];
@@ -88,7 +88,7 @@ export interface SeriesModule extends BaseModule {
 export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'series-option';
 
-    seriesTypes: 'line' | 'scatter' | 'bar';
+    identifier: string;
     instanceConstructor: new (ctx: SeriesContext) => M;
 }
 
