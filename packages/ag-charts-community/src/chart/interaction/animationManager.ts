@@ -151,7 +151,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
             this.debugLog('AnimationManager - onAnimationFrame()', { controllersCount: this.controllers.size });
 
-            this.controllers.forEach((controller) => controller.update(deltaTime));
+            for (const controller of this.controllers.values()) {
+                controller.update(deltaTime);
+            }
+
             this.listeners.dispatch('animation-frame', { type: 'animation-frame', deltaMs: deltaTime });
         };
 
