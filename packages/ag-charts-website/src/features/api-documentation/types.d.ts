@@ -300,9 +300,9 @@ export interface JsObjectPropertiesViewConfig {
     lookupRoot?: string;
     hideMore?: boolean;
     /**
-     * Properties where the children are hidden in the nav and the details view
+     * Properties where the children are hidden in the nav
      */
-    hideChildrenProperties?: string[];
+    hideChildrenInNavProperties?: string[];
     /**
      * Properties where the number of children shown on the details view is limited
      */

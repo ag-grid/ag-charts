@@ -84,13 +84,10 @@ export function useJsObjectSelection({ model, config }: { model: JsonModel; conf
                 scrollToId(id);
             } else if (isTopLevelSelection) {
                 const { propName } = newSelection as JsObjectSelectionProperty;
-                const shouldHideChildren = config?.hideChildrenProperties?.includes(propName);
                 const shouldLimitChildren = config?.limitChildrenProperties?.includes(propName);
 
                 let shouldLimitChildrenDepth;
-                if (shouldHideChildren) {
-                    shouldLimitChildrenDepth = 0;
-                } else if (shouldLimitChildren) {
+                if (shouldLimitChildren) {
                     shouldLimitChildrenDepth = 1;
                 }
                 const onlyShowToDepth =

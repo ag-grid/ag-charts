@@ -431,7 +431,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             console.warn(`AG Docs - unhandled sub-type: ${desc['type']}`);
     }
 
-    const shouldHideChildren = config.hideChildrenProperties?.includes(propName);
+    const shouldHideChildren = config.hideChildrenInNavProperties?.includes(propName);
     const expandable = !shouldHideChildren && !!collapsePropertyRendering;
 
     let propertyValue;
