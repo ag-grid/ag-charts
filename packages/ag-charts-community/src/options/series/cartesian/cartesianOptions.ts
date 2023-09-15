@@ -10,9 +10,7 @@ import type {
     AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
 } from '../../options/crossLineOptions';
-import type { AgNavigatorOptions } from '../../options/navigatorOptions';
 import type { PixelSize, Ratio } from '../../options/types';
-import type { AgZoomOptions } from '../../options/zoomOptions';
 import type { AgCrosshairOptions } from '../../options/crosshairOptions';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 import type { AgBaseThemeableChartOptions } from '../../options/chartOptions';
@@ -43,9 +41,6 @@ export interface AgBaseCartesianChartOptions {
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
     series?: AgCartesianSeriesOptions[];
-
-    /** Configuration for zoom. */
-    zoom?: AgZoomOptions;
 }
 
 export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {
@@ -137,8 +132,6 @@ export interface AgCartesianAxisThemeOptions<T> {
 export interface AgBaseCartesianThemeOptions extends AgBaseThemeableChartOptions {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
-    /** Configuration for the chart navigator. */
-    navigator?: AgNavigatorOptions;
 }
 
 export interface AgCartesianAxesCrossLineThemeOptions {
