@@ -3,7 +3,6 @@ import { getData } from "./data";
 
 const options: AgChartOptions = {
   container: document.body,
-  autoSize: true,
   data: getData(),
   theme: {
     overrides: {

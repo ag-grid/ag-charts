@@ -3,7 +3,6 @@ import {maleHeightWeight, femaleHeightWeight} from './height-weight-data'
 
 const options: AgCartesianChartOptions = {
   container: document.getElementById('myChart'),
-  autoSize: true,
   title: {
     text: 'Weight vs Height (by gender)',
   },

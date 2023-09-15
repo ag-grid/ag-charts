@@ -10,7 +10,8 @@ import type {
     InteractionRange,
     AgTooltipPositionType,
     AgChartTheme,
-} from '../agChartOptions';
+    AgCommonThemeableChartOptions,
+} from '../../options/agChartOptions';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
@@ -37,6 +38,21 @@ export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-b
 const BOLD: FontWeight = 'bold';
 const INSIDE: AgBarSeriesLabelOptions['placement'] = 'inside';
 const BOTTOM: AgChartLegendPosition = 'bottom';
+
+type ChartTypeConfig = {
+    seriesTypes: string[];
+    commonOptions: (keyof AgCommonThemeableChartOptions)[];
+};
+const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
+    cartesian: { seriesTypes: CHART_TYPES.cartesianTypes, commonOptions: ['zoom', 'navigator'] },
+    polar: { seriesTypes: CHART_TYPES.polarTypes, commonOptions: [] },
+    hierarchy: { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] },
+};
+const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce(
+    (r, { commonOptions }) => [...r, ...commonOptions],
+    [] as (keyof AgCommonThemeableChartOptions)[]
+);
+
 export class ChartTheme {
     readonly palette: AgChartThemePalette;
 
@@ -628,7 +644,15 @@ export class ChartTheme {
                     defaults[seriesType] = deepMerge(defaults[seriesType], overrideOpts);
                 }
             };
-            applyOverrides(CHART_TYPES.seriesTypes, common);
+            for (const [, { seriesTypes, commonOptions }] of Object.entries(CHART_TYPE_CONFIG)) {
+                const cleanedCommon = { ...common };
+                for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
+                    if (!commonOptions.includes(commonKey)) {
+                        delete cleanedCommon[commonKey];
+                    }
+                }
+                applyOverrides(seriesTypes, cleanedCommon);
+            }
 
             CHART_TYPES.seriesTypes.forEach((s) => {
                 const seriesType = s as keyof AgChartThemeOverrides;
@@ -643,17 +667,10 @@ export class ChartTheme {
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        const typeToAliases = {
-            cartesian: CHART_TYPES.cartesianTypes,
-            polar: CHART_TYPES.polarTypes,
-            hierarchy: CHART_TYPES.hierarchyTypes,
-            groupedCategory: [],
-        };
-        Object.entries(typeToAliases).forEach(([nextType, aliases]) => {
-            const type = nextType as ChartType;
-            const typeDefaults = getChartDefaults(type) as any;
+        Object.entries(CHART_TYPE_CONFIG).forEach(([nextType, { seriesTypes }]) => {
+            const typeDefaults = getChartDefaults(nextType as ChartType) as any;
 
-            aliases.forEach((next) => {
+            seriesTypes.forEach((next) => {
                 const alias = next as keyof AgChartThemeOverrides;
                 if (!config[alias]) {
                     config[alias] = {};

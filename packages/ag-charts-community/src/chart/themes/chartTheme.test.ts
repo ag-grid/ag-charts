@@ -5,7 +5,7 @@ import type {
     AgChartInstance,
     AgChartTheme,
     AgPolarChartOptions,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import type { AreaSeries } from '../series/cartesian/areaSeries';
 import type { BarSeries } from '../series/cartesian/barSeries';
 import type { PieSeries } from '../series/polar/pieSeries';
@@ -66,6 +66,8 @@ describe('ChartTheme', () => {
                         //     height: 20,
                         // },
                     },
+                    // Special cases, as they are in 'common' but only apply to cartesian charts.
+                    navigator: {},
                 },
                 bar: {
                     series: {
@@ -227,6 +229,10 @@ describe('ChartTheme', () => {
                 strokes: ['cyan'],
             },
             overrides: {
+                common: {
+                    // Special cases, as they are in 'common' but only apply to cartesian charts.
+                    navigator: {},
+                },
                 pie: {
                     title: {
                         fontSize: 24,
@@ -318,6 +324,8 @@ describe('ChartTheme', () => {
                     background: {
                         fill: 'red',
                     },
+                    // Special cases, as they are in 'common' but only apply to cartesian charts.
+                    navigator: {},
                 },
                 bar: {
                     series: {

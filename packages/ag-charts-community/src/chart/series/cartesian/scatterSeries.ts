@@ -23,7 +23,7 @@ import type {
     AgScatterSeriesTooltipRendererParams,
     AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';

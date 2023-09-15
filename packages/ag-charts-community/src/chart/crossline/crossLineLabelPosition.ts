@@ -1,6 +1,6 @@
 import type { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';
-import type { AgCartesianAxisPosition } from '../agChartOptions';
+import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
 
 export type CrossLineLabelPosition =
     | 'top'

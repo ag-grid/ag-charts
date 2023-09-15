@@ -19,7 +19,7 @@ import {
     STRING,
     Validate,
 } from '../../util/validation';
-import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../agChartOptions';
+import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../../options/agChartOptions';
 
 class PaginationLabel {
     @Validate(COLOR_STRING)

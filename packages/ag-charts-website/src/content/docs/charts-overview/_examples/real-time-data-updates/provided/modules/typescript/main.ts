@@ -43,7 +43,6 @@ function getData() {
 
 const options: AgCartesianChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data: getData(),
   theme: {
     palette: {

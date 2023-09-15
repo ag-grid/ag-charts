@@ -4,7 +4,7 @@ import type {
     AgChartOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
-} from '../agChartOptions';
+} from '../../options/agChartOptions';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 

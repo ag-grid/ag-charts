@@ -22,7 +22,11 @@ import { Layers } from '../layers';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { BBox } from '../../scene/bbox';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, InteractionRange } from '../agChartOptions';
+import type {
+    AgSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+    InteractionRange,
+} from '../../options/agChartOptions';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';

@@ -34,7 +34,7 @@ import type {
     AgTreemapSeriesFormatterParams,
     AgTreemapSeriesFormat,
     TextWrap,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import { Logger } from '../../../util/logger';
 
 type TreeDatum = {

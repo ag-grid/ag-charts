@@ -20,7 +20,7 @@ import { axisLabelsOverlap } from './util/labelPlacement';
 import { ContinuousScale } from './scale/continuousScale';
 import { Matrix } from './scene/matrix';
 import { TimeScale } from './scale/timeScale';
-import type { AgAxisCaptionFormatterParams, AgAxisGridStyle, TextWrap } from './chart/agChartOptions';
+import type { AgAxisCaptionFormatterParams, AgAxisGridStyle, TextWrap } from './options/agChartOptions';
 import { LogScale } from './scale/logScale';
 import { extent } from './util/array';
 import { ChartAxisDirection } from './chart/chartAxisDirection';
@@ -1449,8 +1449,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
-
-        const addedCount = Object.keys(diff.added).length;
         const removedCount = Object.keys(diff.removed).length;
 
         if (removedCount === diff.tickCount) {
@@ -1458,35 +1456,22 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        const totalDuration = this.animationManager.defaultDuration();
-        let sectionDuration = Math.floor(totalDuration / 2);
-        if (addedCount > 0 && removedCount > 0) {
-            sectionDuration = Math.floor(totalDuration / 3);
-        }
-        const options = {
-            delay: removedCount > 0 ? sectionDuration : 0,
-            duration: sectionDuration,
-        };
-
         const animationGroup = `${this.id}_${Math.random()}`;
 
         tickLabelGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLabelGroupSelection, diff, options, node, datum, animationGroup);
+            this.animateSelectionNode(tickLabelGroupSelection, diff, node, datum, animationGroup);
         });
-
         gridLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(gridLineGroupSelection, diff, options, node, datum, animationGroup);
+            this.animateSelectionNode(gridLineGroupSelection, diff, node, datum, animationGroup);
         });
-
         tickLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLineGroupSelection, diff, options, node, datum, animationGroup);
+            this.animateSelectionNode(tickLineGroupSelection, diff, node, datum, animationGroup);
         });
     }
 
     private animateSelectionNode(
         selection: Selection<Text | Line, any>,
         diff: AxisUpdateDiff,
-        options: { delay: number; duration: number },
         node: Text | Line,
         datum: TickDatum,
         _animationGroup: string
@@ -1494,24 +1479,17 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let from = { translationY: node.translationY, opacity: 1 };
         const to = { translationY: Math.round(datum.translationY), opacity: 1 };
 
-        const { duration } = options;
-        let { delay } = options;
-
         const datumId = datum.tickLabel;
         if (diff.added[datumId]) {
             from = { translationY: to.translationY, opacity: 0 };
-            delay += duration;
         } else if (diff.removed[datumId]) {
             to.opacity = 0;
-            delay = 0;
         }
 
         this.animationManager.animate({
             id: `${this.id}_ready-update_${node.id}`,
             from,
             to,
-            delay,
-            duration,
             ease: easing.easeOutSine,
             disableInteractions: false,
             // throttleId: this.id,

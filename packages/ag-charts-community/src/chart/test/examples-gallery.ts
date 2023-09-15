@@ -1,4 +1,4 @@
-import type { AgChartOptions } from '../agChartOptions';
+import type { AgChartOptions } from '../../options/agChartOptions';
 import type { Chart } from '../chart';
 import * as examples from './examples';
 import { cartesianChartAssertions, hierarchyChartAssertions, polarChartAssertions, repeat } from './utils';

@@ -37,7 +37,7 @@ import type {
     AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { normaliseGroupTo } from '../../data/processors';

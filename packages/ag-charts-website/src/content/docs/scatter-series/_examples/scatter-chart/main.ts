@@ -2,7 +2,6 @@ import { AgChart, AgChartOptions } from 'ag-charts-community';
 import { getData } from "./data";
 
 const options: AgChartOptions = {
-  autoSize: true,
   title: {
     text: 'Mean Sea Level (mm)',
   },

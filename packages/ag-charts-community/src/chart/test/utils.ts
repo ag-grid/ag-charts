@@ -5,7 +5,12 @@ import * as pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import * as fs from 'fs';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions, AgPolarChartOptions } from '../agChartOptions';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgPolarChartOptions,
+} from '../../options/agChartOptions';
 import { _ModuleSupport, type _Scene } from '../../main';
 import * as mockCanvas from './mock-canvas';
 import type { IAnimation } from 'packages/ag-charts-community/src/animte/animation';

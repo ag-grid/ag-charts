@@ -68,7 +68,6 @@ const AREA_AND_COLUMN: AgCartesianSeriesOptions[] = [
 
 const options: AgCartesianChartOptions = {
   container: document.querySelector("#myChart") as HTMLElement,
-  autoSize: true,
   data: getData(),
   theme: {
     palette: {

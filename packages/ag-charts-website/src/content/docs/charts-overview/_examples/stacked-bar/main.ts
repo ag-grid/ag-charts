@@ -12,7 +12,6 @@ function getTotal(datum: any) {
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data: getData().sort(function (a: any, b: any) {
     return getTotal(b) - getTotal(a)
   }),

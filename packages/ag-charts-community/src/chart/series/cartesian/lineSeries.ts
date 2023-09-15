@@ -28,7 +28,7 @@ import type {
     FontStyle,
     FontWeight,
     AgCartesianSeriesMarkerFormat,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';

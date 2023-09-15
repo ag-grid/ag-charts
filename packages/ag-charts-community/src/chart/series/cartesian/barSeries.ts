@@ -46,7 +46,7 @@ import type {
     AgBarSeriesLabelPlacement,
     FontStyle,
     FontWeight,
-} from '../../agChartOptions';
+} from '../../../options/agChartOptions';
 import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
 import * as easing from '../../../animte/easing';
@@ -702,13 +702,8 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return;
         }
 
-        const totalDuration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
-
-        let sectionDuration = totalDuration;
-        if (diff.added.length > 0 || diff.removed.length > 0) {
-            sectionDuration = Math.floor(totalDuration / 2);
-        }
 
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
@@ -748,7 +743,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     from,
                     to,
                     delay,
-                    duration: sectionDuration,
                     ease: easing.easeOutSine,
                     // throttleId: `${this.id}_rects`,
                     // throttleGroup: rectThrottleGroup,
@@ -769,7 +763,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 id: `${this.id}_waiting-update-ready_labels`,
                 from: 0,
                 to: 1,
-                delay: totalDuration,
+                delay: duration,
                 duration: labelDuration,
                 // throttleId: `${this.id}_labels`,
                 // throttleGroup: labelThrottleGroup,

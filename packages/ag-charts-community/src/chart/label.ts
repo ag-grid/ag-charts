@@ -1,6 +1,6 @@
 import { BOOLEAN, NUMBER, OPT_FONT_STYLE, OPT_FONT_WEIGHT, COLOR_STRING, STRING, Validate } from '../util/validation';
 import { getFont } from '../scene/shape/text';
-import type { FontStyle, FontWeight } from './agChartOptions';
+import type { FontStyle, FontWeight } from '../options/agChartOptions';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
