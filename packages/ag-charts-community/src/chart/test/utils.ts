@@ -13,9 +13,8 @@ import type {
 } from '../../options/agChartOptions';
 import { _ModuleSupport, type _Scene } from '../../main';
 import * as mockCanvas from './mock-canvas';
-import { Animation } from '../../motion/animation';
 
-const { AnimationManager, resetIds } = _ModuleSupport;
+const { Animation, AnimationManager, resetIds } = _ModuleSupport;
 
 type Chart = {
     autoSize: boolean;
@@ -312,15 +311,6 @@ export function spyOnAnimationManager(totalDuration: number, ratio: number) {
             const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
             controller.update(totalDuration * squashedRatio);
         }
-        //         const delayRatio = delay ? delay / totalDuration : 0;
-        //         if (ratio < delayRatio) {
-        //             onUpdate?.(from as number, null as unknown as IAnimation);
-        //         } else {
-        //             const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
-        //             onUpdate?.(
-        //                 ((to as number) - (from as number)) * squashedRatio + (from as number),
-        //                 null as unknown as IAnimation
-        //             );
         return Promise.resolve() as any;
     });
 }

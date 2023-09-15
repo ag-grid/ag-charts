@@ -120,7 +120,6 @@ export class Animation<T extends AnimationValue> implements IAnimation {
             return this;
         }
 
-        console.log(this.ease.toString());
         const delta = this.ease(clamp(0, (this.elapsed - this.delay) / this.duration, 1));
         const value = this.interpolate(this.isReverse ? 1 - delta : delta);
 
