@@ -3,11 +3,11 @@ title: 'Nightingale Series'
 enterprise: true
 ---
 
-**Nightingale** series (also known as _Rose chart_, _Wind Rose_, _Polar area_, _Coxcomb chart_) represents a dataset in the form of a polar area diagram.
+Nightingale Series (also known as _Rose chart_, _Wind Rose_, _Polar area_, _Coxcomb chart_) represents a dataset in the form of a polar area diagram.
 
-## Single Series
+## Simple Nightingale
 
-To create a basic Nightingale chart, use a data array where each item has one category value (for the angle axis) and one numeric value (for the radius axis).
+To create a basic Nightingale Series, use a data array where each item has one category value (for the angle axis) and one numeric value (for the radius axis).
 
 A minimal Nightingale series configuration will look like:
 
@@ -18,14 +18,14 @@ series: [
         angleKey: 'product',
         radiusKey: 'sales',
     },
-];
+],
 ```
 
-{% chartExampleRunner title="Basic Nightingale Chart" name="basic-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Simple Nightingale Chart" name="simple-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Stacked Nightingale
 
-When multiple Nightingale series are provided, their sectors will be stacked for each category by default:
+When multiple Nightingale Series are provided, their sectors will be stacked for each category by default:
 
 ```js
 series: [
@@ -67,7 +67,27 @@ series: [
 
 {% chartExampleRunner title="Grouped Nightingale Chart" name="group-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Axis Styling
+## Customisation
+
+### Inner Radius
+
+To create a hole in the middle, use the `innerRadiusRatio` option in the polar `radius` axis:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+    },
+    {
+        type: 'radius-number',
+        innerRadiusRatio: 0.2,
+    },
+],
+```
+
+{% chartExampleRunner title="Inner Radius" name="inner-radius" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Category Padding
 
 It's possible to set a padding between elements in a polar chart's `angle` axis by using two options:
 
@@ -84,12 +104,34 @@ axes: [
     {
         type: 'radius-number',
     },
-];
+],
 ```
 
-{% chartExampleRunner title="Nightingale Sector Padding" name="nightingale-padding" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Category Padding" name="category-padding" type="generated" options="{ \"enterprise\": true }" /%}
 
-To create a hole in the middle, use the `innerRadiusRatio` option in the polar `radius` axis:
+### Axis Label Orientation
+
+Use `label.orientation` property to change the orientation of polar axis labels by providing one of the options: `fixed`, `parallel` or `perpendicular`. The next example demonstrates how this property works:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+        label: {
+            orientation: 'perpendicular',
+        },
+    },
+    {
+        type: 'radius-number',
+    },
+],
+```
+
+{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Radius Axis Position
+
+`positionAngle` can change the position of Radius Axis line and `label.rotation` will change the rotation angle of axis labels:
 
 ```js
 axes: [
@@ -98,15 +140,22 @@ axes: [
     },
     {
         type: 'radius-number',
-        innerRadiusRatio: 0.5,
+        positionAngle: 90,
+        label: {
+            rotation: -90,
+        },
     },
-];
+],
 ```
 
-{% chartExampleRunner title="Nightingale Hole in the Middle" name="nightingale-hole" type="generated" options="{ \"enterprise\": true }" /%}
-
-Please see the API reference for more polar axes style options.
+{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 
 {% interfaceDocumentation interfaceName="AgNightingaleSeriesOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgAngleCategoryAxisOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgAngleCategoryAxisLabelOptions" config="{ \"showSnippets\": false }" /%}
+
+{% interfaceDocumentation interfaceName="AgRadiusNumberAxisOptions" config="{ \"showSnippets\": false }" /%}

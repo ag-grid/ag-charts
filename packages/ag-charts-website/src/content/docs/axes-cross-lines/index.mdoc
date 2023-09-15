@@ -78,3 +78,63 @@ The example below demonstrates these configurations, note the following:
 -   The bottom X axis has a cross line of type `range`; the `range` property is used to configure the range of the cross line boundaries.
 
 {% chartExampleRunner title="Customising Cross Lines" name="axis-cross-lines-customising" type="generated" /%}
+
+## Polar Axes Cross Lines
+
+Cross lines are lines or shaded areas in a chart that can highlight important information like trends and thresholds, making them useful for data analysis. To add a cross line at a specific data value on an axis, you need to specify the `crossLines` property on the `axis` options object.
+
+The following snippet shows how to add a cross line and range for Angle Axis:
+
+```js
+axes: [
+    {
+        type: 'angle-category',
+        crossLines: [
+            {
+                type: 'line',
+                value: 'Meeting Deadlines',
+                label: {
+                    text: 'Useless Skill',
+                },
+            },
+            {
+                type: 'range',
+                range: ['Communication', 'Team Player'],
+                label: {
+                    text: 'Valuable Skills',
+                },
+            },
+        ],
+    },
+];
+```
+
+{% chartExampleRunner title="Polar Axis Angle Crosslines" name="polar-axes-crosslines-angle" type="generated" options="{ \"enterprise\": true }" /%}
+
+The following snippet shows how to add a cross line and range for Radius Axis:
+
+```js
+axes: [
+    {
+        type: 'radius-number',
+        crossLines: [
+            {
+                type: 'line',
+                value: 5,
+                label: {
+                    text: 'Useless Skill',
+                },
+            },
+            {
+                type: 'range',
+                range: [7, 10],
+                label: {
+                    text: 'Excellent',
+                },
+            },
+        ],
+    },
+];
+```
+
+{% chartExampleRunner title="Polar Axis Radius Crosslines" name="polar-axes-crosslines-radius" type="generated" options="{ \"enterprise\": true }" /%}

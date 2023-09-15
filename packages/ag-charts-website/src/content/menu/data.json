@@ -51,12 +51,7 @@
                     { "title": "Axis Domain", "path": "axes-domain" },
                     { "title": "Axis Labels", "path": "axes-labels" },
                     { "title": "Grid Lines", "path": "axes-grid-lines" },
-                    { "title": "Secondary Axes", "path": "axes-secondary" },
-                    {
-                        "title": "Polar Axes",
-                        "path": "polar-axes",
-                        "isEnterprise": true
-                    }
+                    { "title": "Secondary Axes", "path": "axes-secondary" }
                 ]
             },
             {
