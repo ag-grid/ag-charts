@@ -50,4 +50,6 @@ export interface AxisContext {
     scaleInvert(position: number): any;
 }
 
-export interface SeriesContext extends ModuleContext {}
+export interface SeriesContext extends ModuleContext {
+    series: { type: string };
+}
