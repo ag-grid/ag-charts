@@ -3,8 +3,10 @@ import type { AgAnimationOptions } from '../interaction/animationOptions';
 import type { AgContextMenuOptions } from './contextOptions';
 import type { AgBaseChartListeners } from './eventOptions';
 import type { AgChartLegendOptions } from './legendOptions';
+import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextWrap } from './types';
+import type { AgZoomOptions } from './zoomOptions';
 
 export interface AgChartPaddingOptions {
     /** The number of pixels of padding at the top of the chart area. */
@@ -119,6 +121,10 @@ export interface AgBaseThemeableChartOptions {
     legend?: AgChartLegendOptions;
     animation?: AgAnimationOptions;
     contextMenu?: AgContextMenuOptions;
+
+    // Cartesian-specific options - special care required.
+    zoom?: AgZoomOptions;
+    navigator?: AgNavigatorOptions;
 }
 
 /** Configuration common to all charts.  */
