@@ -1,6 +1,6 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { BOOLEAN, NUMBER, ActionOnSet, Validate } = _ModuleSupport;
+const { BOOLEAN, ActionOnSet, Validate } = _ModuleSupport;
 
 export class Animation extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Animation>({
@@ -11,16 +11,6 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
     })
     @Validate(BOOLEAN)
     public enabled = true;
-
-    @ActionOnSet<Animation>({
-        newValue(value: number | undefined) {
-            if (!this.animationManager) return;
-            this.animationManager.defaultOptions.duration = value;
-            this.animationManager.skipAnimations = value === 0;
-        },
-    })
-    @Validate(NUMBER(0))
-    public duration?: number;
 
     animationManager: _ModuleSupport.AnimationManager;
 

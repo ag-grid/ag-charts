@@ -1,4 +1,4 @@
-import interpolate from '../interpolate/value';
+import { interpolateValue } from '../interpolate/value';
 
 interface EasingOpts<T> {
     from: T;
@@ -7,15 +7,15 @@ interface EasingOpts<T> {
 
 export type Easing<T> = (opts: EasingOpts<T>) => (time: number) => T;
 
-function createEase<T>(fn: (x: number) => number): Easing<T> {
+function createEase<T>(easeFn: (x: number) => number): Easing<T> {
     return ({ from, to }) => {
-        const interp = interpolate(from, to);
-        return (time: number) => interp(fn(time));
+        const interpolate = interpolateValue(from, to);
+        return (time: number) => interpolate(easeFn(time));
     };
 }
 
 export function linear<T>({ from, to }: EasingOpts<T>): (time: number) => T {
-    return interpolate(from, to);
+    return interpolateValue(from, to);
 }
 
 // https://easings.net/

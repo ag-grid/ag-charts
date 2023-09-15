@@ -1,6 +1,14 @@
 import { Logger } from './logger';
+import { clamp } from './number';
 
-export class Color {
+export interface IColor {
+    readonly r: number;
+    readonly g: number;
+    readonly b: number;
+    readonly a: number;
+}
+
+export class Color implements IColor {
     readonly r: number;
     readonly g: number;
     readonly b: number;
@@ -19,11 +27,11 @@ export class Color {
      * @param a Alpha (opacity) component.
      */
     constructor(r: number, g: number, b: number, a: number = 1) {
-        // NaN is treated as 0.
-        this.r = Math.min(1, Math.max(0, r || 0));
-        this.g = Math.min(1, Math.max(0, g || 0));
-        this.b = Math.min(1, Math.max(0, b || 0));
-        this.a = Math.min(1, Math.max(0, a || 0));
+        // NaN is treated as 0
+        this.r = clamp(0, r || 0, 1);
+        this.g = clamp(0, g || 0, 1);
+        this.b = clamp(0, b || 0, 1);
+        this.a = clamp(0, a || 0, 1);
     }
 
     /**

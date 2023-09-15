@@ -41,7 +41,7 @@ export * from './chart/axis/categoryAxis';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/legendDatum';
-export * as Motion from './motion/easing';
+export * as Motion from './animte/easing';
 export * from './motion/states';
 export { resetIds } from './util/id';
 

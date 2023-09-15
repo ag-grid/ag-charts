@@ -27,7 +27,7 @@ import type {
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
-import * as easing from '../../../motion/easing';
+import * as easing from '../../../animte/easing';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
@@ -546,7 +546,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 marker.translationX = datum.point.x;
                 marker.translationY = datum.point.y;
 
-                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${marker.id}`, {
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_empty-update-ready_${marker.id}`,
                     from: 0,
                     to,
                     duration,
@@ -558,16 +559,17 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
 
         labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label) => {
-                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                    from: 0,
-                    to: 1,
-                    delay: duration,
-                    duration: labelDuration,
-                    onUpdate: (opacity) => {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_labels`,
+                from: 0,
+                to: 1,
+                delay: duration,
+                duration: labelDuration,
+                onUpdate: (opacity) => {
+                    labelSelection.each((label) => {
                         label.opacity = opacity;
-                    },
-                });
+                    });
+                },
             });
         });
     }
@@ -604,58 +606,47 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 const markerFormat = this.animateFormatter(marker, datum);
                 const size = markerFormat?.size ?? datum.point.size ?? 0;
 
-                if (removedIds[datumId] || addedIds[datumId]) {
-                    let from = 0;
-                    let to = 0;
+                type AnimationProps = { size: number; translationX?: number; translationY?: number };
+                let from: AnimationProps = { size: 0 };
+                let to: AnimationProps = { size: 0 };
 
+                if (removedIds[datumId] || addedIds[datumId]) {
                     if (removedIds[datumId]) {
-                        from = size;
+                        from = { size };
                     } else if (addedIds[datumId]) {
-                        to = size;
+                        to = { size };
                         marker.translationX = datum.point.x;
                         marker.translationY = datum.point.y;
                     }
-
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${marker.id}`, {
-                        from,
-                        to,
-                        duration,
-                        ease: easing.easeOut,
-                        onUpdate(size) {
-                            marker.size = size;
-                        },
-                        onStop: () => {
-                            if (cleanup) this.resetMarkers(markerSelection);
-                        },
-                        onComplete: () => {
-                            if (cleanup) this.resetMarkers(markerSelection);
-                        },
-                    });
                 } else {
-                    this.ctx.animationManager.animateMany(
-                        `${this.id}_waiting-update-ready_${marker.id}`,
-                        [
-                            { from: marker.size, to: size },
-                            { from: marker.translationX, to: datum.point.x },
-                            { from: marker.translationY, to: datum.point.y },
-                        ],
-                        {
-                            duration,
-                            ease: easing.easeOut,
-                            onUpdate([size, x, y]) {
-                                marker.size = size;
-                                marker.translationX = x;
-                                marker.translationY = y;
-                            },
-                            onStop: () => {
-                                if (cleanup) this.resetMarkers(markerSelection);
-                            },
-                            onComplete: () => {
-                                if (cleanup) this.resetMarkers(markerSelection);
-                            },
-                        }
-                    );
+                    from = {
+                        size: marker.size,
+                        translationX: marker.translationX,
+                        translationY: marker.translationY,
+                    };
+                    to = { size, translationX: datum.point.x, translationY: datum.point.y };
                 }
+
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_waiting-update-ready_${marker.id}`,
+                    from,
+                    to,
+                    duration,
+                    ease: easing.easeOutSine,
+                    onUpdate(props) {
+                        marker.setProperties(props);
+                    },
+                    onStop: () => {
+                        if (cleanup) {
+                            this.resetMarkers(markerSelection);
+                        }
+                    },
+                    onComplete: () => {
+                        if (cleanup) {
+                            this.resetMarkers(markerSelection);
+                        }
+                    },
+                });
             });
         });
 
@@ -664,7 +655,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 const datumId = this.getDatumId(datum);
 
                 if (addedIds[datumId]) {
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
+                    this.ctx.animationManager.animate({
+                        id: `${this.id}_waiting-update-ready_${label.id}`,
                         from: 0,
                         to: 1,
                         delay: duration,
@@ -674,7 +666,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                         },
                     });
                 } else if (removedIds[datumId]) {
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
+                    this.ctx.animationManager.animate({
+                        id: `${this.id}_waiting-update-ready_${label.id}`,
                         from: 1,
                         to: 0,
                         duration: labelDuration,

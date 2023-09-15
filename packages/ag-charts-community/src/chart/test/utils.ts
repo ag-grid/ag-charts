@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions, AgPolarChartOptions } from '../agChartOptions';
 import { _ModuleSupport, type _Scene } from '../../main';
 import * as mockCanvas from './mock-canvas';
+import type { IAnimation } from 'packages/ag-charts-community/src/animte/animation';
 
 const { AnimationManager, resetIds } = _ModuleSupport;
 
@@ -296,20 +297,17 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 }
 
 export function spyOnAnimationManager(totalDuration: number, ratio: number) {
-    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation((_id, { from, to, delay, onUpdate }) => {
+    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation(({ from, to, delay, onUpdate }) => {
         const delayRatio = delay ? delay / totalDuration : 0;
         if (ratio < delayRatio) {
-            onUpdate?.(from as number);
+            onUpdate?.(from as number, null as unknown as IAnimation);
         } else {
             const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
-            onUpdate?.(((to as number) - (from as number)) * squashedRatio + (from as number));
+            onUpdate?.(
+                ((to as number) - (from as number)) * squashedRatio + (from as number),
+                null as unknown as IAnimation
+            );
         }
-        return Promise.resolve() as any;
-    });
-
-    jest.spyOn(AnimationManager.prototype, 'animateMany').mockImplementation((_id, props, { onUpdate }) => {
-        const ratioProps = props.map(({ from, to }) => ((to as number) - (from as number)) * ratio + (from as number));
-        onUpdate?.(ratioProps);
         return Promise.resolve() as any;
     });
 }

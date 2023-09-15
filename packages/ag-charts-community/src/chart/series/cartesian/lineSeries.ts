@@ -525,7 +525,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 to: lineLength,
             };
 
-            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready`,
                 ...animationOptions,
                 duration,
                 onUpdate(length) {
@@ -569,7 +570,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 const size = datum.point?.size ?? 0;
                 marker.opacity = 1;
 
-                this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${marker.id}`, {
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_empty-update-ready_${marker.id}`,
                     ...animationOptions,
                     to: format?.size ?? size,
                     delay,
@@ -582,7 +584,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
             labelSelections[contextDataIndex].each((label, _, index) => {
                 const delay = (nodeLengths[index] / lineLength) * duration;
-                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_empty-update-ready_${label.id}`,
                     from: 0,
                     to: 1,
                     delay,
@@ -710,7 +713,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
             const markerFormats: Record<string, AgCartesianSeriesMarkerFormat | undefined> = {};
 
             // Animate all nodes using a single animation to ensure the line is drawn correctly from node to node
-            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready`, {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_waiting-update-ready`,
                 from: 0,
                 to: 1,
                 duration,
@@ -951,7 +955,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 });
             });
 
-            this.ctx.animationManager.animate(`${this.id}_animate-clearing-update-empty`, {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_animate-clearing-update-empty`,
                 from: 1,
                 to: 0,
                 duration: clearDuration,

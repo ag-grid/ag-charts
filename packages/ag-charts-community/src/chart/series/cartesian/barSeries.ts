@@ -49,7 +49,7 @@ import type {
 } from '../../agChartOptions';
 import { LogAxis } from '../../axis/logAxis';
 import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
-import * as easing from '../../../motion/easing';
+import * as easing from '../../../animte/easing';
 import type { RectConfig } from './barUtil';
 import { getRectConfig, updateRect, checkCrisp } from './barUtil';
 import { updateLabel, createLabelData } from './labelUtil';
@@ -642,55 +642,41 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
         const duration = this.ctx.animationManager.defaultDuration();
-        const labelDuration = 200;
-
+        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum) => {
-                let contextX = startingX;
-                let contextWidth = 0;
-                let contextY = datum.y;
-                let contextHeight = datum.height;
-
-                if (this.getBarDirection() === ChartAxisDirection.Y) {
-                    contextX = datum.x;
-                    contextWidth = datum.width;
-                    contextY = startingY;
-                    contextHeight = 0;
-                }
-
-                const props = [
-                    { from: contextX, to: datum.x },
-                    { from: contextWidth, to: datum.width },
-                    { from: contextY, to: datum.y },
-                    { from: contextHeight, to: datum.height },
-                ];
-
-                this.ctx.animationManager.animateMany(`${this.id}_empty-update-ready_${rect.id}`, props, {
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_empty-update-ready_${rect.id}`,
+                    from: {
+                        x: isVertical ? datum.x : startingX,
+                        y: isVertical ? startingY : datum.y,
+                        width: isVertical ? datum.width : 0,
+                        height: isVertical ? 0 : datum.height,
+                    },
+                    to: { x: datum.x, y: datum.y, width: datum.width, height: datum.height },
                     duration,
-                    ease: easing.easeOut,
-                    onUpdate([x, width, y, height]) {
-                        rect.x = x;
-                        rect.width = width;
-                        rect.y = y;
-                        rect.height = height;
+                    ease: easing.easeOutSine,
+                    onUpdate(props) {
+                        rect.setProperties(props);
                     },
                 });
             });
         });
 
         labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label) => {
-                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                    from: 0,
-                    to: 1,
-                    delay: duration,
-                    duration: labelDuration,
-                    onUpdate: (opacity) => {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_labels`,
+                from: 0,
+                to: 1,
+                duration: 200,
+                delay: duration,
+                onUpdate(opacity) {
+                    labelSelection.each((label) => {
                         label.opacity = opacity;
-                    },
-                });
+                    });
+                },
             });
         });
     }
@@ -729,98 +715,76 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         const addedIds = zipObject(diff.added, true);
         const removedIds = zipObject(diff.removed, true);
 
-        const rectThrottleGroup = `${this.id}_${Math.random()}`;
-        const labelThrottleGroup = `${this.id}_${Math.random()}`;
-
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum) => {
-                let props = [
-                    { from: rect.x, to: datum.x },
-                    { from: rect.width, to: datum.width },
-                    { from: rect.y, to: datum.y },
-                    { from: rect.height, to: datum.height },
-                ];
+                let from = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+                let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
+
                 let delay = diff.removed.length > 0 ? sectionDuration : 0;
-                const duration = sectionDuration;
                 let cleanup = false;
-
-                let contextX = startingX;
-                let contextWidth = 0;
-                let contextY = datum.y;
-                let contextHeight = datum.height;
-
-                if (this.getBarDirection() === ChartAxisDirection.Y) {
-                    contextX = datum.x;
-                    contextWidth = datum.width;
-                    contextY = startingY;
-                    contextHeight = 0;
-                }
 
                 const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
                 const isRemoved = datum.xValue !== undefined && removedIds[datum.xValue] !== undefined;
+                const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
+
+                const context = {
+                    x: isVertical ? datum.x : startingX,
+                    y: isVertical ? startingY : datum.y,
+                    width: isVertical ? datum.width : 0,
+                    height: isVertical ? 0 : datum.height,
+                };
 
                 if (isAdded) {
-                    props = [
-                        { from: contextX, to: datum.x },
-                        { from: contextWidth, to: datum.width },
-                        { from: contextY, to: datum.y },
-                        { from: contextHeight, to: datum.height },
-                    ];
+                    from = context;
                 } else if (isRemoved) {
-                    props = [
-                        { from: datum.x, to: contextX },
-                        { from: datum.width, to: contextWidth },
-                        { from: datum.y, to: contextY },
-                        { from: datum.height, to: contextHeight },
-                    ];
+                    from = to;
+                    to = context;
                     delay = 0;
                     cleanup = true;
                 }
 
-                this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${rect.id}`, props, {
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_waiting-update-ready_${rect.id}`,
+                    from,
+                    to,
                     delay,
-                    duration,
-                    ease: easing.easeOut,
-                    throttleId: `${this.id}_rects`,
-                    throttleGroup: rectThrottleGroup,
-                    onUpdate([x, width, y, height]) {
-                        rect.x = x;
-                        rect.width = width;
-                        rect.y = y;
-                        rect.height = height;
+                    duration: sectionDuration,
+                    ease: easing.easeOutSine,
+                    // throttleId: `${this.id}_rects`,
+                    // throttleGroup: rectThrottleGroup,
+                    onUpdate(props) {
+                        rect.setProperties(props);
                     },
                     onComplete() {
-                        if (cleanup) datumSelection.cleanup();
+                        if (cleanup) {
+                            datumSelection.cleanup();
+                        }
                     },
                 });
             });
         });
 
         labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label) => {
-                label.opacity = 0;
-
-                this.ctx.animationManager.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
-                    from: 0,
-                    to: 1,
-                    delay: totalDuration,
-                    duration: labelDuration,
-                    throttleId: `${this.id}_labels`,
-                    throttleGroup: labelThrottleGroup,
-                    onUpdate: (opacity) => {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_waiting-update-ready_labels`,
+                from: 0,
+                to: 1,
+                delay: totalDuration,
+                duration: labelDuration,
+                // throttleId: `${this.id}_labels`,
+                // throttleGroup: labelThrottleGroup,
+                onUpdate(opacity) {
+                    labelSelection.each((label) => {
                         label.opacity = opacity;
-                    },
-                });
+                    });
+                },
             });
         });
     }
 
     resetSelectionRects(selection: Selection<Rect, BarNodeDatum>) {
-        selection.each((rect, datum) => {
-            rect.x = datum.x;
-            rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
+        selection.each((rect, { x, y, width, height }) => {
+            rect.setProperties({ x, y, width, height });
         });
         selection.cleanup();
     }

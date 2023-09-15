@@ -42,6 +42,7 @@ export abstract class Shape extends Node {
         for (const key of keys) {
             (this as any)[key] = styles[key];
         }
+        return this;
     }
 
     /**

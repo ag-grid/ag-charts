@@ -203,27 +203,23 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
 
         itemSelection.each((node, datum) => {
             const columnWidth = this.getColumnWidth(datum);
-            this.ctx.animationManager.animateMany<number>(
-                `${this.id}_empty-update-ready_${node.id}`,
-                [
-                    { from: axisInnerRadius, to: datum.innerRadius },
-                    { from: axisInnerRadius, to: datum.outerRadius },
-                ],
-                {
-                    duration,
-                    onUpdate: ([innerRadius, outerRadius]) => {
-                        this.drawColumnShape(
-                            node,
-                            columnWidth,
-                            axisInnerRadius,
-                            this.radius,
-                            innerRadius,
-                            outerRadius,
-                            isAxisCircle
-                        );
-                    },
-                }
-            );
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${node.id}`,
+                from: { innerRadius: axisInnerRadius, outerRadius: axisInnerRadius },
+                to: { innerRadius: datum.innerRadius, outerRadius: datum.outerRadius },
+                duration,
+                onUpdate: ({ innerRadius, outerRadius }) => {
+                    this.drawColumnShape(
+                        node,
+                        columnWidth,
+                        axisInnerRadius,
+                        this.radius,
+                        innerRadius,
+                        outerRadius,
+                        isAxisCircle
+                    );
+                },
+            });
         });
     }
 }

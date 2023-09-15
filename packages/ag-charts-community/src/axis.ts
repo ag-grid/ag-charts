@@ -43,7 +43,7 @@ import { AxisTick } from './chart/axis/axisTick';
 import type { ChartAxis, BoundSeries, ChartAxisLabel, ChartAxisLabelFlipFlag } from './chart/chartAxis';
 import type { AnimationManager } from './chart/interaction/animationManager';
 import type { InteractionEvent } from './chart/interaction/interactionManager';
-import * as easing from './motion/easing';
+import * as easing from './animte/easing';
 import { StateMachine } from './motion/states';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
@@ -1489,37 +1489,36 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         options: { delay: number; duration: number },
         node: Text | Line,
         datum: TickDatum,
-        animationGroup: string
+        _animationGroup: string
     ) {
         const roundedTranslationY = Math.round(datum.translationY);
-        let translate = { from: node.translationY, to: roundedTranslationY };
-        let opacity = { from: 1, to: 1 };
+        let from = { translationY: node.translationY, opacity: 1 };
+        const to = { translationY: roundedTranslationY, opacity: 1 };
 
         const { duration } = options;
         let { delay } = options;
 
         const datumId = datum.tickLabel;
         if (diff.added[datumId]) {
-            translate = { from: roundedTranslationY, to: roundedTranslationY };
-            opacity = { from: 0, to: 1 };
+            from = { translationY: roundedTranslationY, opacity: 0 };
             delay += duration;
         } else if (diff.removed[datumId]) {
-            opacity = { from: 1, to: 0 };
+            to.opacity = 0;
             delay = 0;
         }
 
-        const props = [translate, opacity];
-
-        this.animationManager.animateManyWithThrottle(`${this.id}_ready-update_${node.id}`, props, {
-            disableInteractions: false,
+        this.animationManager.animate({
+            id: `${this.id}_ready-update_${node.id}`,
+            from,
+            to,
             delay,
             duration,
-            ease: easing.easeOut,
-            throttleId: this.id,
-            throttleGroup: animationGroup,
-            onUpdate([translationY, opacity]) {
-                node.translationY = translationY;
-                node.opacity = opacity;
+            ease: easing.easeOutSine,
+            disableInteractions: false,
+            // throttleId: this.id,
+            // throttleGroup: animationGroup,
+            onUpdate(props) {
+                node.setProperties(props);
             },
             onComplete() {
                 selection.cleanup();
