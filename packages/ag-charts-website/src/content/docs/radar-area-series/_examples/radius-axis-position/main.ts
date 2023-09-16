@@ -27,9 +27,9 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            positionAngle: 360 / 5,
+            positionAngle: 72,
             label: {
-                rotation: -360 / 5,
+                rotation: -72,
             },
         },
     ],

@@ -16,21 +16,18 @@ const options: AgChartOptions = {
             angleKey: 'quarter',
             radiusKey: 'air',
             radiusName: 'Mountain air',
-            grouped: true,
         },
         {
             type: 'nightingale',
             angleKey: 'quarter',
             radiusKey: 'winds',
             radiusName: 'Polar winds',
-            grouped: true,
         },
         {
             type: 'nightingale',
             angleKey: 'quarter',
             radiusKey: 'holes',
             radiusName: 'Donut holes',
-            grouped: true,
         },
     ],
     axes: [

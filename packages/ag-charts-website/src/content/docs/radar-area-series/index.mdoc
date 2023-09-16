@@ -79,7 +79,7 @@ This configuration is used in the example below:
 
 ### Axis Label Orientation
 
-To change Polar Axis Label orientation, use the `label.orientation` property with these options:
+To change Angle Axis Label orientation, use the `label.orientation` property with these options:
 
 -   `fixed`: Labels have fixed orientation (default).
 -   `parallel`: Labels align parallel to the axis.
@@ -101,7 +101,7 @@ axes: [
 ],
 ```
 
-This is demonstrated in the example below:
+The result of setting the `label.orientation` to `'parallel'` is shown in the example below:
 
 {% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
 
@@ -116,15 +116,15 @@ axes: [
     },
     {
         type: 'radius-number',
-        positionAngle: 90,
+        positionAngle: 72,
         label: {
-            rotation: -90,
+            rotation: -72,
         },
     },
 ],
 ```
 
-This is demonstrated in the example below:
+The results of these `positionAngle` and `label.rotation` settings is shown in the example below:
 
 {% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
 
