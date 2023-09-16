@@ -3,58 +3,62 @@ title: 'Radar Area Series'
 enterprise: true
 ---
 
-A Radar Area series (which are similar to _[Radar Line](../radar-line-series/) series_) represent a dataset in a form of an area drawn over a radial grid.
-It can be very useful when you need to compare some datasets across **multiple categories**.
+A Radar Area Series, also called a _Spider Area_, shows the magnitude of various datasets within shared categories,
+making it easier to gauge area-based trends.
 
 ## Simple Radar Area
 
-To plot a basic Radar Area we need an array of data, where every item will have a single category value (for the angle axis) and a single numeric value (for the radius axis).
-
-A minimal Radar Area series configuration will look like:
-
-```js
-series: [
-    {
-        type: 'radar-line',
-        angleKey: 'subject',
-        radiusKey: 'grade',
-    },
-];
-```
-
-{% chartExampleRunner title="Basic Radar Area" name="basic-radar-area" type="generated" options="{ \"enterprise\": true }" /%}
-
-## Multiple Series Radar Area
-
-A Radar Area chart can have multiple series:
+To create a Radar Area Series, use the `radar-area` series type.
 
 ```js
 series: [
     {
         type: 'radar-area',
         angleKey: 'subject',
-        radiusKey: `Mike's grades`,
+        radiusKey: 'mike',
+        radiusName: `Mike's Grades`,
     },
     {
         type: 'radar-area',
         angleKey: 'subject',
-        radiusKey: `Tony's grades`,
+        radiusKey: 'tony',
+        radiusName: `Tony's Grades`,
     },
 ],
 ```
 
-{% chartExampleRunner title="Radar Area With Multiple Series" name="radar-area-multiple-series" type="generated" options="{ \"enterprise\": true }" /%}
+In this configuration:
+
+-   `angleKey` is set to 'subject', which is the shared category for the Angle Axis.
+-   `radiusKey` specifies the numerical datasets, 'mike' and 'tony', for the Radius Axis.
+-   `radiusName` labels each series, such as "Mike's Grades" and "Tony's Grades".
+
+Corresponding sample data:
+
+```js
+[
+    { subject: 'Maths',   mike: 7.0, tony: 4.2 },
+    { subject: 'Physics', mike: 4.3, tony: 8.5 },
+    ...
+]
+```
+
+Here, `subject` is a common category, while `mike` and `tony` are distinct numerical datasets.
+
+The Radar Area Chart shown below is created with this series configuration.
+
+{% chartExampleRunner title="Simple Radar Area" name="simple-radar-area" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Customisation
 
 ### Axis Shape
 
-There are two Polar Axis shape types:
+For Polar Axes, there are two shape options:
 
--   `polygon` where categories are connected with straight lines (default for Radar series).
--   `circle` where axis grid is drawn using circles (default for Radial Column and Nightingale).
+-   `polygon`: Categories are connected with straight lines (default).
+-   `circle`: Axis grid is composed of concentric circles.
 
-To change the default shape, please use the axis `shape` property (it should be modified for both axes):
+To switch to the `circle` shape, use the following `axes` configuration:
 
 ```js
 axes: [
@@ -66,14 +70,22 @@ axes: [
         type: 'radius-number',
         shape: 'circle',
     },
-];
+],
 ```
+
+This configuration is used in the example below:
 
 {% chartExampleRunner title="Axis Shape" name="axis-shape" type="generated" options="{ \"enterprise\": true }" /%}
 
 ### Axis Label Orientation
 
-Use `label.orientation` property to change the orientation of polar axis labels by providing one of the options: `fixed`, `parallel` or `perpendicular`. The next example demonstrates how this property works:
+To change Polar Axis Label orientation, use the `label.orientation` property with these options:
+
+-   `fixed`: Labels have fixed orientation (default).
+-   `parallel`: Labels align parallel to the axis.
+-   `perpendicular`: Labels align perpendicular to the axis.
+
+For example, change Axis Labels to a `parallel` orientation using:
 
 ```js
 axes: [
@@ -89,11 +101,13 @@ axes: [
 ],
 ```
 
+This is demonstrated in the example below:
+
 {% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
 
 ### Radius Axis Position
 
-`positionAngle` can change the position of Radius Axis line and `label.rotation` will change the rotation angle of axis labels:
+Customise Radius Axis line position with `positionAngle` and axis label rotation using `label.rotation`:
 
 ```js
 axes: [
@@ -110,13 +124,9 @@ axes: [
 ],
 ```
 
+This is demonstrated in the example below:
+
 {% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
-
-### Series / Axis Styling
-
-There are many ways to modify a look of polar grid lines and labels:
-
-{% chartExampleRunner title="Series-Axis-Styling" name="series-axis-styling" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

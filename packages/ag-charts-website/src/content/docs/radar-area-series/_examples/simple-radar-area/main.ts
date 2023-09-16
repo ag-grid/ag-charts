@@ -11,13 +11,16 @@ const options: AgChartOptions = {
         {
             type: 'radar-area',
             angleKey: 'subject',
-            radiusKey: 'grades',
-            radiusName: `Grades`,
+            radiusKey: 'mike',
+            radiusName: `Mike's Grades`,
+        },
+        {
+            type: 'radar-area',
+            angleKey: 'subject',
+            radiusKey: 'tony',
+            radiusName: `Tony's Grades`,
         },
     ],
-    legend: {
-        enabled: true,
-    },
 };
 
-const chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);
