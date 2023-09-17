@@ -46,9 +46,9 @@ export interface AgWaterfallSeriesLabelOptions extends AgCartesianSeriesLabelOpt
 export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 
 export interface AgWaterfallSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
-    /** Bar rendering direction.
-     * <br/>
-     * **NOTE**: This option affects the layout direction of X and Y data values.
+    /**
+     * Sets the bar orientation. When `vertical` (default), bars are vertical with categories on the x-axis.
+     * When set to `horizontal`, bars run horizontally with categories on the y-axis.
      */
     direction?: 'horizontal' | 'vertical';
     /** Configuration used for the waterfall series item types. */
