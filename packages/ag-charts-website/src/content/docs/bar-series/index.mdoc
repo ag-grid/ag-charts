@@ -2,36 +2,36 @@
 title: 'Bar and Column Series'
 ---
 
-Bar series are commonly used to show values for a discrete set of objects, such as item categories, specific items, or time periods such as years or quarters.
+A Bar Series visualises numerical data with proportional bars that can be grouped or stacked, and displayed in either
+vertical or horizontal layouts.
 
-Because bar series are just transposed column series and have the same configuration, this section covers both series at once.
+## Simple Bar
 
-## Column Series
-
-### Regular Columns
-
-To create a column chart, we need to use series type `'bar'`. We also have to provide the `xKey` and `yKey` properties.
-
-A minimal `'bar'` series config would therefore look like this:
+By default, multiple bar series are grouped, enabling side-by-side comparison of various data sets in the same category.
+To create a Bar Series, use the `bar` series type.
 
 ```js
 series: [
-    {
-        type: 'bar',
-        xKey: 'quarter',
-        yKey: 'iphone',
-    },
+    { type: 'bar', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
+    { type: 'bar', xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
+    { type: 'bar', xKey: 'quarter', yKey: 'ipad', yName: 'iPad' },
+    { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables' },
+    { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services' },
 ];
 ```
 
-In the snippet above we are using `'iphone'` as the `yKey`, to show revenue per quarter for this product. Using this simple series config produces the following chart:
+In this configuration:
 
-{% chartExampleRunner title="Regular Column Series" name="regular-column" type="generated" /%}
+-   `xKey` defines the categories, and is mapped to the [Category Axis](/charts-axes-types/#category).
+-   `yKey` provides the numerical values, corresponding to the [Number Axis](/charts-axes-types/#number).
+-   `yName` configures display names, reflected in [Tooltip Headers](/tooltips) and [Legend Items](/legend).
 
-### Stacked Columns
+{% chartExampleRunner title="Simple Bar" name="simple-bar" type="generated" /%}
 
-If the goal is to show the total quarterly revenue for each product category, multiple stacked series can be used
-by adding more `column`-type series.
+## Stacked Bars
+
+Stacked bars are useful for visualising data in a cumulative manner across different categories. To stack bars enable
+the `stacked` series option.
 
 ```js
 series: [
@@ -43,33 +43,32 @@ series: [
 ];
 ```
 
-This example demonstrates stacked columns using the `series` configuration above. Additionally:
+{% chartExampleRunner title="Stacked Bars" name="stacked-bars" type="generated" /%}
 
--   We set `yName` on each series to configure the display names to provide tooltip headers and legend entries.
+## Grouped Stacks
 
-{% chartExampleRunner title="Stacked Column Series" name="stacked-column" type="generated" /%}
+The `stackGroup` property allows for stacking bars in distinct sets by specifying which series are grouped together.
+Series with an unspecified `stackGroup` will be stacked together by default.
 
-### Grouped Columns
-
-If we want to show quarterly revenue for each product category as grouped columns, we can simply take the [stacked column](#stacked-columns) config from the example above and omit the `stacked` property.
-
-This will produce the following chart:</p>
-
-{% chartExampleRunner title="Grouped Column Series" name="grouped-column" type="generated" /%}
-
-### Grouped Stacks
-
-Stacks can be displayed in separate groups. The IDs of such groups should be specified in `stackGroup` property for each series (if left unset for some series, such series will be stacked together).
+```js
+series: [
+    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stackGroup: 'Devices' },
+    { type: 'bar', xKey: 'quarter', yKey: 'mac', stackGroup: 'Devices' },
+    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'Devices' },
+    { type: 'bar', xKey: 'quarter', yKey: 'wearables' },
+    { type: 'bar', xKey: 'quarter', yKey: 'services' },
+];
+```
 
 {% chartExampleRunner title="Grouped Stack Series" name="grouped-stack" type="generated" /%}
 
-### Grouped Stacks with a Shared Legend
+## Grouped Stacks with a Shared Legend
 
 Providing a matching `legendItemName` allows us to create multiple bar series that have synchronised legend items. When a legend item is clicked, all items that have a matching `legendItemName` will be toggled together.
 
 {% chartExampleRunner title="Grouped Stacks with a Shared Legend" name="grouped-stack-shared" type="generated" /%}
 
-### Normalized Columns
+## Normalized Columns
 
 Going back to our [stacked column](#stacked-columns) example, if we wanted to normalize the totals so that each column's segments add up to a certain value, for example 100, we could add the following to our `series` config:
 
@@ -83,7 +82,7 @@ It's possible to use any non-zero value to normalize to.
 
 {% chartExampleRunner title="Normalized Column Series" name="normalized-column" type="generated" /%}
 
-### Column Labels
+## Column Labels
 
 It's possible to add labels to columns, by adding the following to the series config:
 
