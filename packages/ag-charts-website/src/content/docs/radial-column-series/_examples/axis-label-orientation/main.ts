@@ -34,7 +34,7 @@ const options: AgChartOptions = {
         {
             type: 'angle-category',
             label: {
-                orientation: 'perpendicular',
+                orientation: 'parallel',
             },
         },
         {

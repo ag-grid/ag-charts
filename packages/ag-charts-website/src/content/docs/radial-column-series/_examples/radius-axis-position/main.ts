@@ -36,9 +36,10 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            positionAngle: 360 / 5,
+            innerRadiusRatio: 0.25,
+            positionAngle: 90,
             label: {
-                rotation: -360 / 5,
+                rotation: -90,
             },
         },
     ],

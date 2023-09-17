@@ -37,11 +37,11 @@ const options: AgChartOptions = {
         {
             type: 'angle-category',
             groupPaddingInner: 0.5,
-            paddingInner: 0.4,
+            paddingInner: 0.5,
         },
         {
             type: 'radius-number',
-            innerRadiusRatio: 0.25,
+            innerRadiusRatio: 0.2,
         },
     ],
 };

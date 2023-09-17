@@ -36,7 +36,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            innerRadiusRatio: 0.25,
+            innerRadiusRatio: 0.2,
         },
     ],
 };
