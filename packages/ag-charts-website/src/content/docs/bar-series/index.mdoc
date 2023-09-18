@@ -7,7 +7,10 @@ vertical or horizontal layouts.
 
 ## Simple Bar
 
-By default, multiple bar series are grouped, enabling side-by-side comparison of various data sets in the same category.
+By default, bar are grouped, enabling side-by-side comparison of data against the same category.
+
+{% chartExampleRunner title="Simple Bar" name="simple-bar" type="generated" /%}
+
 To create a Bar Series, use the `bar` series type.
 
 ```js
@@ -26,26 +29,40 @@ In this configuration:
 -   `yKey` provides the numerical values, corresponding to the [Number Axis](/charts-axes-types/#number).
 -   `yName` configures display names, reflected in [Tooltip Headers](/tooltips) and [Legend Items](/legend).
 
-{% chartExampleRunner title="Simple Bar" name="simple-bar" type="generated" /%}
+## Horizontal Bar
 
-## Stacked Bars
+{% chartExampleRunner title="Horizontal Bars" name="horizontal-bar" type="generated" options="{ \"enterprise\": true }" /%}
 
-Stacked bars are useful for visualising data in a cumulative manner across different categories. To stack bars enable
-the `stacked` series option.
+To show a Horizontal Bar Series, set `direction: 'horizontal'`.
+
+```js
+series: [
+    { type: 'bar', direction: 'horizontal', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
+    ...
+],
+```
+
+When the `direction` is `'horizontal'` the `xKey` will define categories on the y-axis, while the `yKey` will represent numerical
+values along the x-axis.
+
+## Stacked Bar
+
+Stacked bars are useful for visualising data in a cumulative manner across different categories.
+
+{% chartExampleRunner title="Stacked Bars" name="stacked-bars" type="generated" /%}
+
+To stack bars enable the `stacked` series option.
 
 ```js
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true },
-    { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true },
-    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stacked: true },
-    { type: 'bar', xKey: 'quarter', yKey: 'wearables', stacked: true },
-    { type: 'bar', xKey: 'quarter', yKey: 'services', stacked: true },
+    ...
 ];
 ```
 
-{% chartExampleRunner title="Stacked Bars" name="stacked-bars" type="generated" /%}
-
 ## Grouped Stacks
+
+{% chartExampleRunner title="Grouped Stack Series" name="grouped-stack" type="generated" /%}
 
 The `stackGroup` property allows for stacking bars in distinct sets by specifying which series are grouped together.
 Series with an unspecified `stackGroup` will be stacked together by default.
@@ -60,13 +77,11 @@ series: [
 ];
 ```
 
-{% chartExampleRunner title="Grouped Stack Series" name="grouped-stack" type="generated" /%}
-
-## Grouped Stacks with a Shared Legend
-
-Providing a matching `legendItemName` allows us to create multiple bar series that have synchronised legend items. When a legend item is clicked, all items that have a matching `legendItemName` will be toggled together.
+### Shared Legend
 
 {% chartExampleRunner title="Grouped Stacks with a Shared Legend" name="grouped-stack-shared" type="generated" /%}
+
+Providing a matching `legendItemName` allows us to create multiple bar series that have synchronised legend items. When a legend item is clicked, all items that have a matching `legendItemName` will be toggled together.
 
 ## Normalized Columns
 
@@ -112,25 +127,6 @@ It's best to avoid using labels with grouped columns (or bars), because columns 
 {% /note %}
 
 To learn more about label configuration please refer to the [API reference](#reference-AgBarSeriesOptions-label) below.
-
-## Bar Series
-
-`'bar'` series configuration is similar to the `'bar'` series configuration and all the same modes (stacked, grouped, normalized) apply to bars just as they do to columns.
-
-To create a bar chart all you need to do is use `type: 'bar'` instead of `type: 'bar'` in the `series` options.
-
-```js
-series: [{
-    type: 'bar',
-    xKey: 'quarter',
-    yKey: 'iphone',
-    ...
-}]
-```
-
-With this simple change we go from [stacked columns](#stacked-columns) to stacked bars:
-
-{% chartExampleRunner title="Stacked Bar Series" name="stacked-bar" type="generated" /%}
 
 ## API Reference
 
