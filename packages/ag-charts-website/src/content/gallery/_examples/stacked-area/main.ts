@@ -76,11 +76,8 @@ const options: AgChartOptions = {
             position: 'bottom',
             label: {
                 format: '%b',
-                autoRotate: true,
             },
-            tick: {
-                interval: time.month,
-            },
+            nice: false
         },
         {
             type: 'number',
@@ -97,4 +94,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

@@ -92,9 +92,6 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            label: {
-                rotation: 30,
-            },
         },
         {
             type: 'number',
@@ -111,4 +108,4 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

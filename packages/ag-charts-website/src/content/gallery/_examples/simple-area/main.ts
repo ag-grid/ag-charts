@@ -65,9 +65,6 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            tick: {
-                interval: time.year.every(2),
-            },
         },
         {
             type: 'number',
@@ -84,4 +81,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

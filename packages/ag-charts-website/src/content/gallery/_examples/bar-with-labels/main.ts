@@ -5,7 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Change in Number of Jobs in UK\n(June to September)',
+        text: 'Change in Number of Jobs',
         fontSize: 18,
         spacing: 25,
     },
@@ -44,10 +44,10 @@ const options: AgChartOptions = {
             position: 'bottom',
             title: {
                 enabled: true,
-                text: 'Change in number of jobs (thousands)',
+                text: 'Change / thousands',
             },
         },
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

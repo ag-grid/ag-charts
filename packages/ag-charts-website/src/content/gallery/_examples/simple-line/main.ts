@@ -3,7 +3,6 @@ import {
     AgEnterpriseCharts,
     AgChartOptions,
     AgTooltipRendererResult,
-    time,
 } from 'ag-charts-enterprise';
 import { getData } from './data';
 
@@ -34,8 +33,6 @@ const options: AgChartOptions = {
     },
     title: {
         text: 'Road fuel prices',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
@@ -68,14 +65,11 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            tick: {
-                interval: time.month.every(2),
-            },
             title: {
                 text: 'Date',
             },
             label: {
-                autoRotate: true,
+                format: '%b',
             },
         },
         {
@@ -91,4 +85,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

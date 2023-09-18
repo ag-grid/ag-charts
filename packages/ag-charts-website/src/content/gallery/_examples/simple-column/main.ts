@@ -11,8 +11,6 @@ const options: AgChartOptions = {
     data: getData(),
     title: {
         text: 'Total Visitors to Museums and Galleries',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Digital, Culture, Media & Sport',
@@ -60,4 +58,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

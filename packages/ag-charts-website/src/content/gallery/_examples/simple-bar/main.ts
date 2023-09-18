@@ -14,9 +14,7 @@ const options: AgChartOptions = {
         },
     },
     title: {
-        text: 'Gross Weekly Earnings\nby Occupation',
-        fontSize: 18,
-        spacing: 25,
+        text: 'Gross Weekly Earnings',
     },
     footnote: {
         text: 'Source: Office for National Statistics',
@@ -39,10 +37,10 @@ const options: AgChartOptions = {
             position: 'bottom',
             title: {
                 enabled: true,
-                text: '£/week',
+                text: '£ / Week',
             },
         },
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);
