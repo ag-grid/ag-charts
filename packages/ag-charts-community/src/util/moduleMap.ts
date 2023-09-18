@@ -12,10 +12,10 @@ export interface ModuleContextInitialiser<C extends ModuleContext> {
 export class ModuleMap<M extends Module<C, I>, C extends ModuleContext, I extends ModuleInstance = ModuleInstance> {
     private readonly modules: Record<string, { instance: I }> = {};
     private moduleContext?: C;
-    private moduleContextInitialiser: ModuleContextInitialiser<C>;
+    private parent: ModuleContextInitialiser<C>;
 
-    constructor(moduleContextInitialiser: ModuleContextInitialiser<C>) {
-        this.moduleContextInitialiser = moduleContextInitialiser;
+    constructor(parent: ModuleContextInitialiser<C>) {
+        this.parent = parent;
     }
 
     addModule(module: M) {
@@ -23,8 +23,12 @@ export class ModuleMap<M extends Module<C, I>, C extends ModuleContext, I extend
             throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
         }
 
+        if (module.optionsKey in this.parent) {
+            throw new Error(`AG Charts - class already has option key '${module.optionsKey}'`);
+        }
+
         if (this.moduleContext == null) {
-            this.moduleContext = this.moduleContextInitialiser.createModuleContext();
+            this.moduleContext = this.parent.createModuleContext();
         }
 
         const moduleInstance = new module.instanceConstructor({
@@ -32,13 +36,13 @@ export class ModuleMap<M extends Module<C, I>, C extends ModuleContext, I extend
         });
         this.modules[module.optionsKey] = { instance: moduleInstance };
 
-        (this as any)[module.optionsKey] = moduleInstance;
+        (this.parent as any)[module.optionsKey] = moduleInstance;
     }
 
     removeModule(module: M) {
         this.modules[module.optionsKey]?.instance?.destroy();
         delete this.modules[module.optionsKey];
-        delete (this as any)[module.optionsKey];
+        delete (this.parent as any)[module.optionsKey];
     }
 
     isModuleEnabled(module: M) {

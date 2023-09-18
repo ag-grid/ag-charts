@@ -12,25 +12,6 @@ export interface ErrorBarPoints {
     readonly yUpperPoint: _Scene.Point;
 }
 
-export class ErrorBarConfig {
-    @Validate(OPT_STRING)
-    yLowerKey: string = '';
-
-    @Validate(OPT_STRING)
-    yLowerName?: string = undefined;
-
-    @Validate(OPT_STRING)
-    yUpperKey: string = '';
-
-    @Validate(OPT_STRING)
-    yUpperName?: string = undefined;
-
-    constructor(yLowerKey: string, yUpperKey: string) {
-        this.yLowerKey = yLowerKey;
-        this.yUpperKey = yUpperKey;
-    }
-}
-
 export class ErrorBarNode extends _Scene.Path {
     public points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
 
@@ -53,12 +34,22 @@ export class ErrorBarNode extends _Scene.Path {
 }
 
 export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    @Validate(OPT_STRING)
+    yLowerKey: string = '';
+
+    @Validate(OPT_STRING)
+    yLowerName?: string = undefined;
+
+    @Validate(OPT_STRING)
+    yUpperKey: string = '';
+
+    @Validate(OPT_STRING)
+    yUpperName?: string = undefined;
+
     private readonly cartesianSeries: _ModuleSupport.CartesianSeries<any, any>;
     private readonly groupNode: _Scene.Group;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
     private nodeData: (ErrorBarPoints | undefined)[] = [];
-
-    config: ErrorBarConfig = new ErrorBarConfig('', '');
 
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
@@ -96,8 +87,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        const { nodeData, config } = this;
-        const { yLowerKey, yUpperKey } = config ?? {};
+        const { yLowerKey, yUpperKey, nodeData } = this;
         const xIndex = dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `xValue`).index;
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
