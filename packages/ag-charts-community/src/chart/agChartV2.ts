@@ -25,7 +25,14 @@ import {
     type SeriesOptionsTypes,
 } from './mapping/types';
 import { windowValue } from '../util/window';
-import type { AxisOptionModule, SeriesOptionModule, LegendModule, Module, ModuleInstance, RootModule } from '../util/module';
+import type {
+    AxisOptionModule,
+    SeriesOptionModule,
+    LegendModule,
+    Module,
+    ModuleInstance,
+    RootModule,
+} from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
