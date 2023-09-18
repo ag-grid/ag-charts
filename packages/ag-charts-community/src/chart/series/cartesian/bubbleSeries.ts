@@ -190,7 +190,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
                 valueProperty(this, sizeKey, true, { id: `sizeValue` }),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-                ...(!animationManager.skipAnimations && this.processedData ? [diff(this.processedData)] : []),
+                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
             ],
             dataVisible: this.visible,
         });

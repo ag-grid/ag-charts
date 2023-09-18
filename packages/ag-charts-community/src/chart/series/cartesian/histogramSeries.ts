@@ -262,7 +262,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             };
         };
 
-        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
             props.push(diff(this.processedData, false));
         }
 
