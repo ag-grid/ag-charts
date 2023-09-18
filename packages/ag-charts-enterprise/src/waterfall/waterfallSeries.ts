@@ -189,13 +189,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 
-    set data(input: any[] | undefined) {
-        this._data = input;
-    }
-    get data() {
-        return this._data;
-    }
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -1081,4 +1074,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     getBandScalePadding() {
         return { inner: 0.2, outer: 0.3 };
     }
+
+    protected onDataChange() {}
 }
