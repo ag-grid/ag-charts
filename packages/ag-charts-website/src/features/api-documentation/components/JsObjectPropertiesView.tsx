@@ -27,10 +27,14 @@ function TopLevelHeader({
     if (!topLevelHeader) {
         return null;
     }
+
+    const pathSeparator = topLevelHeader.heading && topLevelHeader.path.length > 0 ? '.' : '';
+
     return (
         <header>
             <h1 className="font-size-gigantic">
                 <HeadingPath path={topLevelHeader.path} />
+                {pathSeparator}
                 {topLevelHeader.heading}
             </h1>
             <p>{topLevelHeader.descriptionWithoutDefault}</p>

@@ -305,6 +305,8 @@ export interface JsObjectPropertiesViewConfig {
     hideChildrenInNavProperties?: string[];
     /**
      * Properties where the number of children shown on the details view is limited
+     *
+     * The property can also be a `.` separated path with wildcard `*` eg, `overrides.*`
      */
     limitChildrenProperties?: string[];
 }

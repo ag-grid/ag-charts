@@ -1,6 +1,8 @@
 import type { JsonArray, JsonModel, JsonObjectProperty, JsonUnionType } from '@features/api-documentation/utils/model';
-import type { JsObjectPropertiesViewConfig, JsObjectSelection } from '../types';
+import type { JsObjectPropertiesViewConfig, JsObjectSelection, JsObjectSelectionProperty } from '../types';
 import { UNION_DISCRIMINATOR_PROP } from '../constants';
+import { getShouldLimitChildren } from './getShouldLimitChildren';
+import { getShouldLimitParent } from './getShouldLimitParent';
 
 /*
  * Get regex to extract the path item regex if it has a discriminator value
@@ -53,6 +55,27 @@ export function getUnionPathInfo({
     };
 }
 
+function getTopLevelNestedObject({ model, path }: { model: JsonModel; path: string[] }) {
+    let topLevelModel = model;
+    for (let i = 0; i < path.length; i++) {
+        const item = path[i];
+        const propertyObj = topLevelModel.properties[item];
+        const { type } = propertyObj.desc;
+
+        if (type === 'nested-object') {
+            topLevelModel = propertyObj.desc.model;
+        } else if (type === 'primitive') {
+            // Keep top level nested object as is
+        } else {
+            // eslint-disable-next-line no-console
+            console.warn(`Top level nested object type not supported: ${type}`, { model, path });
+            break;
+        }
+    }
+
+    return topLevelModel;
+}
+
 export function getTopLevelSelection({
     selection,
     model,
@@ -63,56 +86,97 @@ export function getTopLevelSelection({
     config?: JsObjectPropertiesViewConfig;
 }): JsObjectSelection | undefined {
     const [topLevelPathItem] = selection.path;
-    const topLevelModel = model.properties[topLevelPathItem];
+    const topLevelName = topLevelPathItem || (selection as JsObjectSelectionProperty).propName;
+    const topLevelModel = model.properties[topLevelName];
     if (!topLevelModel) {
         return;
     }
 
-    const shouldLimitChildren = config?.limitChildrenProperties?.includes(topLevelPathItem);
-    if (shouldLimitChildren) {
-        let innerOption: JsonObjectProperty;
-        let path = selection.path;
+    const pathItem = (selection as JsObjectSelectionProperty).propName;
+    const shouldLimitChildren = getShouldLimitChildren({
+        config,
+        path: selection.path,
+        pathItem,
+    });
+    const shouldLimitParent = getShouldLimitParent({
+        config,
+        path: selection.path,
+        pathItem: (selection as JsObjectSelectionProperty).propName,
+    });
+
+    let topLevelSelection: JsObjectSelection;
+    if (selection.path.length === 0) {
+        topLevelSelection = {
+            type: 'property',
+            path: [],
+            propName: (selection as JsObjectSelectionProperty).propName,
+            model: topLevelModel,
+        };
+    } else if (shouldLimitChildren || shouldLimitParent) {
         if (selection.type === 'property') {
-            const topLevelArray = (topLevelModel.desc as JsonArray).elements as JsonUnionType;
-            const pathDiscriminator = selection.path[1];
+            if (topLevelModel.desc.type === 'array') {
+                const { path } = selection;
+                const topLevelArray = (topLevelModel.desc as JsonArray).elements as JsonUnionType;
+                const pathDiscriminator = path[1];
 
-            const regex = createUnionNestedObjectPathItemRegex();
-            const [_, _preValue, value] = regex.exec(pathDiscriminator) || [];
+                const regex = createUnionNestedObjectPathItemRegex();
+                const [_, _preValue, value] = regex.exec(pathDiscriminator) || [];
 
-            innerOption = topLevelArray.options.find((option) => {
-                const jsonObjectOption = option as JsonObjectProperty;
-                return (
-                    (jsonObjectOption.model as JsonModel).properties[UNION_DISCRIMINATOR_PROP].desc.tsType ===
-                    `'${value}'`
-                );
-            }) as JsonObjectProperty;
+                const innerOption = topLevelArray.options.find((option) => {
+                    const jsonObjectOption = option as JsonObjectProperty;
+                    return (
+                        (jsonObjectOption.model as JsonModel).properties[UNION_DISCRIMINATOR_PROP].desc.tsType ===
+                        `'${value}'`
+                    );
+                }) as JsonObjectProperty;
+
+                topLevelSelection = {
+                    type: 'model',
+                    path,
+                    model: innerOption.model,
+                };
+            } else if (topLevelModel.desc.type === 'nested-object') {
+                const { propName } = selection;
+                const path = selection.path.concat(propName);
+                const topLevelObject = getTopLevelNestedObject({
+                    model,
+                    path,
+                });
+
+                topLevelSelection = {
+                    type: 'model',
+                    path,
+                    model: topLevelObject,
+                };
+            }
         } else if (selection.type === 'unionNestedObject') {
             const topLevelArray = (topLevelModel.desc as JsonArray).elements as JsonUnionType;
             const { index } = selection;
 
-            innerOption = topLevelArray.options[index] as JsonObjectProperty;
+            const innerOption = topLevelArray.options[index] as JsonObjectProperty;
 
             const { pathItem } = getUnionPathInfo({ model: innerOption.model, index });
-            path = selection.path.concat(pathItem);
+            const path = selection.path.concat(pathItem);
+            topLevelSelection = {
+                type: 'model',
+                path,
+                model: innerOption.model,
+            };
         }
 
-        if (!innerOption!) {
-            throw new Error('No inner option found');
+        if (!topLevelSelection!) {
+            throw new Error('No top level selection found');
         }
-
-        return {
-            type: 'model',
-            path,
-            model: innerOption.model,
+    } else {
+        topLevelSelection = {
+            type: 'property',
+            path: [],
+            propName: topLevelPathItem,
+            model: topLevelModel,
         };
     }
 
-    return {
-        type: 'property',
-        path: [],
-        propName: topLevelPathItem,
-        model: topLevelModel,
-    };
+    return topLevelSelection;
 }
 
 export function getTopSelection({
