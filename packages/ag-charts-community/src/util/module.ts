@@ -94,7 +94,7 @@ export type Module<M extends ModuleInstance = ModuleInstance> =
     | AxisModule
     | AxisOptionModule
     | LegendModule
-    | SeriesModule<any>;
+    | SeriesModule<RequiredSeriesType>;
 
 export abstract class BaseModuleInstance {
     protected readonly destroyFns: (() => void)[] = [];
