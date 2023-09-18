@@ -1,6 +1,5 @@
 import { Selection } from '../../../scene/selection';
 import { Label } from '../../label';
-import type { SeriesNodeDatum } from '../series';
 import { SeriesTooltip, HighlightStyle, SeriesNodeBaseClickEvent } from '../series';
 import { HierarchySeries } from './hierarchySeries';
 import { Group } from '../../../scene/group';
@@ -36,6 +35,7 @@ import type {
     TextWrap,
 } from '../../../options/agChartOptions';
 import { Logger } from '../../../util/logger';
+import type { SeriesNodeDatum } from '../../chartSeries';
 
 type TreeDatum = {
     [prop: string]: any;

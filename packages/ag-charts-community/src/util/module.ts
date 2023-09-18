@@ -1,12 +1,12 @@
 import type { ChartAxis } from '../chart/chartAxis';
-import type { Series } from '../chart/series/series';
+import type { ChartSeries } from '../chart/chartSeries';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { JsonApplyParams } from './json';
 import type { AxisContext, ModuleContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 import type { AgBaseChartThemeOverrides, AgChartOptions } from '../options/agChartOptions';
 
 export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
-export type SeriesConstructor = new (moduleContext: ModuleContext) => Series<any>;
+export type SeriesConstructor = new (moduleContext: ModuleContext) => ChartSeries;
 export type LegendConstructor = new (moduleContext: ModuleContext) => ChartLegend;
 
 interface SeriesPaletteOptions {

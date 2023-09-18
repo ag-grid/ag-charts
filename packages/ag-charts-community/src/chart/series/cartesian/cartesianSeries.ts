@@ -1,4 +1,4 @@
-import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMode, SeriesNodePickMatch } from '../series';
+import type { SeriesNodeDataContext, SeriesNodePickMatch } from '../series';
 import { Series, SeriesNodeBaseClickEvent } from '../series';
 import { SeriesMarker } from '../seriesMarker';
 import { isContinuous, isDiscrete } from '../../../util/value';
@@ -28,6 +28,7 @@ import { StateMachine } from '../../../motion/states';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Logger } from '../../../util/logger';
 import { Listeners } from '../../../util/listeners';
+import type { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,

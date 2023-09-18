@@ -1,4 +1,3 @@
-import type { Series } from '../series/series';
 import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { HistogramSeries } from '../series/cartesian/histogramSeries';
@@ -11,6 +10,7 @@ import { registerChartSeriesType } from './chartTypes';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/module';
 import type { ModuleContext } from '../../util/moduleContext';
 import type { AgBarSeriesOptions, AgChartOptions } from '../../options/agChartOptions';
+import type { ChartSeries } from '../chartSeries';
 
 const BUILT_IN_SERIES_FACTORIES: Record<string, SeriesConstructor> = {
     area: AreaSeries,
@@ -67,7 +67,7 @@ export function registerSeries(
     registerChartSeriesType(seriesType, chartType);
 }
 
-export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {
+export function getSeries(chartType: string, moduleCtx: ModuleContext): ChartSeries {
     const seriesConstructor = SERIES_FACTORIES[chartType] ?? BUILT_IN_SERIES_FACTORIES[chartType];
     if (seriesConstructor) {
         return new seriesConstructor(moduleCtx);

@@ -1,7 +1,7 @@
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Selection } from '../../../scene/selection';
-import type { SeriesNodeDatum, SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
+import type { SeriesNodeDataContext } from '../series';
+import { SeriesTooltip, valueProperty, keyProperty } from '../series';
 import { extent } from '../../../util/array';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
@@ -34,6 +34,7 @@ import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
+import { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
     readonly point: SeriesNodeDatum['point'] & {

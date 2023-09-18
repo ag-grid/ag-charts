@@ -7,7 +7,6 @@ import type { DropShadow } from '../../../scene/dropShadow';
 import { LinearScale } from '../../../scale/linearScale';
 import { Sector } from '../../../scene/shape/sector';
 import { BBox } from '../../../scene/bbox';
-import type { SeriesNodeDatum } from './../series';
 import {
     HighlightStyle,
     SeriesTooltip,
@@ -57,6 +56,7 @@ import type { DataController } from '../../data/dataController';
 import type { DataModel } from '../../data/dataModel';
 import { diff } from '../../data/processors';
 import { zipObject } from '../../../util/zip';
+import type { SeriesNodeDatum } from '../../chartSeries';
 
 class PieSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;

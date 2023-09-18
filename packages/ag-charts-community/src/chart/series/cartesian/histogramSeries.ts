@@ -3,7 +3,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, Series, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
+import { SeriesTooltip, Series, valueProperty, keyProperty } from '../series';
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
 import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -40,6 +40,7 @@ import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
+import { SeriesNodePickMode } from '../../chartSeries';
 
 const HISTOGRAM_AGGREGATIONS = ['count', 'sum', 'mean'];
 const HISTOGRAM_AGGREGATION = predicateWithMessage(

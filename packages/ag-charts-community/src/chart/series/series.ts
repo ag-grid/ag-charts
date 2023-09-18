@@ -19,7 +19,7 @@ import {
 } from '../../util/validation';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Layers } from '../layers';
-import type { Point, SizedPoint } from '../../scene/point';
+import type { Point } from '../../scene/point';
 import type { BBox } from '../../scene/bbox';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type {
@@ -40,35 +40,8 @@ import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
 import { ModuleMap, ModuleContextInitialiser } from '../../util/moduleMap';
 import type { SeriesOptionModule } from '../../util/module';
-
-/**
- * Processed series datum used in node selections,
- * contains information used to render pie sectors, bars, markers, etc.
- */
-export interface SeriesNodeDatum {
-    // For example, in `sectorNode.datum.seriesDatum`:
-    // `sectorNode` - represents a pie sector
-    // `datum` - contains metadata derived from the immutable series datum and used
-    //           to set the properties of the node, such as start/end angles
-    // `datum` - raw series datum, an element from the `series.data` array
-    readonly series: Series<any>;
-    readonly itemId?: any;
-    readonly datum: any;
-    readonly point?: Readonly<SizedPoint>;
-    nodeMidPoint?: Readonly<Point>;
-}
-
-/** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
-export enum SeriesNodePickMode {
-    /** Pick matches based upon pick coordinates being inside a matching shape/marker. */
-    EXACT_SHAPE_MATCH,
-    /** Pick matches by nearest category/X-axis value, then distance within that category/X-value. */
-    NEAREST_BY_MAIN_AXIS_FIRST,
-    /** Pick matches by nearest category value, then distance within that category. */
-    NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
-    /** Pick matches based upon distance to ideal position */
-    NEAREST_NODE,
-}
+import type { ChartSeries, SeriesNodeDatum } from '../chartSeries';
+import { SeriesNodePickMode } from '../chartSeries';
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -210,7 +183,7 @@ export class SeriesNodeBaseClickEvent<Datum extends { datum: any }> implements T
     readonly event: Event;
     readonly seriesId: string;
 
-    constructor(nativeEvent: Event, datum: Datum, series: Series) {
+    constructor(nativeEvent: Event, datum: Datum, series: ChartSeries) {
         this.event = nativeEvent;
         this.datum = datum.datum;
         this.seriesId = series.id;
@@ -325,13 +298,12 @@ export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext>;
 
 export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext>
     extends Observable
-    implements ModuleContextInitialiser<SeriesContext>
+    implements ModuleContextInitialiser<SeriesContext>, ChartSeries
 {
     protected static readonly highlightedZIndex = 1000000000000;
 
     @Validate(STRING)
     readonly id = createId(this);
-
     readonly canHaveAxes: boolean;
 
     get type(): string {
@@ -358,7 +330,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     chart?: {
         mode: 'standalone' | 'integrated';
         debug: boolean;
-        placeLabels(): Map<Series<any>, PlacedLabel[]>;
+        placeLabels(): Map<ChartSeries, PlacedLabel[]>;
         getSeriesRect(): Readonly<BBox> | undefined;
     };
 

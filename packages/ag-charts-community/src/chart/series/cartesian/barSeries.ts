@@ -4,13 +4,7 @@ import type { Text } from '../../../scene/shape/text';
 import { BandScale } from '../../../scale/bandScale';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { SeriesNodeDataContext } from '../series';
-import {
-    SeriesTooltip,
-    SeriesNodePickMode,
-    keyProperty,
-    valueProperty,
-    groupAccumulativeValueProperty,
-} from '../series';
+import { SeriesTooltip, keyProperty, valueProperty, groupAccumulativeValueProperty } from '../series';
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
 import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -55,6 +49,7 @@ import { getRectConfig, updateRect, checkCrisp } from './barUtil';
 import { updateLabel, createLabelData } from './labelUtil';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
+import { SeriesNodePickMode } from '../../chartSeries';
 
 const BAR_LABEL_PLACEMENTS: AgBarSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_BAR_LABEL_PLACEMENT: ValidatePredicate = (v: any, ctx) =>

@@ -7,7 +7,6 @@ import type {
 import { CartesianChart } from './cartesianChart';
 import { PolarChart } from './polarChart';
 import { HierarchyChart } from './hierarchyChart';
-import type { Series } from './series/series';
 import { getAxis } from './factory/axisTypes';
 import { getSeries } from './factory/seriesTypes';
 import { PieTitle } from './series/polar/pieSeries';
@@ -40,6 +39,7 @@ import { getJsonApplyOptions } from './chartOptions';
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
 import { getLegendKeys } from './factory/legendTypes';
+import type { ChartSeries } from './chartSeries';
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -544,8 +544,8 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
     return true;
 }
 
-function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
-    const series: Series<any>[] = [];
+function createSeries(chart: Chart, options: SeriesOptionsTypes[]): ChartSeries[] {
+    const series: ChartSeries[] = [];
     const moduleContext = chart.getModuleContext();
 
     let index = 0;
@@ -560,7 +560,7 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
     return series;
 }
 
-function applySeriesOptionModules(series: Series, options: AgBaseSeriesOptions<any>) {
+function applySeriesOptionModules(series: ChartSeries, options: AgBaseSeriesOptions<any>) {
     const seriesOptionModules = REGISTERED_MODULES.filter((m): m is SeriesOptionModule => m.type === 'series-option');
 
     for (const mod of seriesOptionModules) {
@@ -637,10 +637,10 @@ function applyOptionValues<T extends object, S>(
 }
 
 function applySeriesValues(
-    target: Series<any>,
+    target: ChartSeries,
     options?: AgBaseSeriesOptions<any>,
     { path, index }: { path?: string; index?: number } = {}
-): Series<any> {
+): ChartSeries {
     const skip: string[] = ['series[].listeners', 'series[].seriesGrouping'];
     const jsonApplyOptions = getJsonApplyOptions();
     const ctrs = jsonApplyOptions.constructors ?? {};
@@ -659,7 +659,7 @@ function applySeriesValues(
         idx: index ?? -1,
     };
 
-    const result = jsonApply(target, options, applyOpts);
+    const result = jsonApply(target, options as any, applyOpts);
 
     const listeners = options?.listeners;
     if (listeners != null) {

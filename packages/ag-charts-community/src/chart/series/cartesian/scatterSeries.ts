@@ -1,6 +1,6 @@
 import type { Selection } from '../../../scene/selection';
 import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
+import { SeriesTooltip, valueProperty, keyProperty } from '../series';
 import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
@@ -29,6 +29,7 @@ import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
 import * as easing from '../../../motion/easing';
 import { getMarkerConfig, updateMarker } from './markerUtil';
+import { SeriesNodePickMode } from '../../chartSeries';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;

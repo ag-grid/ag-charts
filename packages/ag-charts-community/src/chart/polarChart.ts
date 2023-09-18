@@ -4,11 +4,11 @@ import { PolarSeries } from './series/polar/polarSeries';
 import { toRadians } from '../util/angle';
 import { Padding } from '../util/padding';
 import { BBox } from '../scene/bbox';
-import type { SeriesNodeDatum } from './series/series';
 import { PieSeries } from './series/polar/pieSeries';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { PolarAxis } from './axis/polarAxis';
 import { Layers } from './layers';
+import type { SeriesNodeDatum } from './chartSeries';
 
 export class PolarChart extends Chart {
     static className = 'PolarChart';
