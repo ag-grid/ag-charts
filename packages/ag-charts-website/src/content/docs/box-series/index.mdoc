@@ -3,26 +3,97 @@ title: 'Box Plot Series'
 enterprise: true
 ---
 
-TODO
+A Box Plot Series visually represents the distribution and statistical summary of a dataset. It uses boxes and whiskers
+to display key metrics like the median and quartiles, offering a comprehensive snapshot of the data's spread and central
+tendency.
 
-#### Basic Box Plot Series
+## Simple Box Plot
 
-{% chartExampleRunner title="Basic Box Plot Series" name="regular-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+In this configuration, each box plot is associated with a specific data point, identified by the `xKey`.
+The five essential statistical measures represented in the box plot are defined by the following keys:
 
-#### Customized Box Plot Series
+-   `minKey` indicates the property containing the minimum (lowest) data value.
+-   `q1Key` corresponds to the property containing the first quartile (25th percentile) data value.
+-   `medianKey` specifies the property for the median (50th percentile) data value.
+-   `q3Key` represents the property for the third quartile (75th percentile) data value.
+-   `maxKey` identifies the property containing the maximum (highest) data value.
+
+```js
+series: [
+    {
+        type: 'box-plot',
+        xKey: 'role',
+        minKey: 'min',
+        q1Key: 'q1',
+        medianKey: 'median',
+        q3Key: 'q3',
+        maxKey: 'max',
+    },
+],
+```
+
+{% chartExampleRunner title="Simple Box Plot" name="simple-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Customisation
+
+### Styling Box Plot
+
+Default styling properties affect all Box Plot elements, including boxes, whiskers, and caps. To style whiskers and caps
+separately from box outlines, use the `whisker` property. For cap length adjustment, use `cap.lengthRatio` with a value
+between 0 and 1 (default is 0.5).
+
+```js
+series: [
+    {
+        // common props
+        type: 'box-plot',
+        xKey: 'label',
+        minKey: 'min',
+        q1Key: 'q1',
+        medianKey: 'median',
+        q3Key: 'q3',
+        maxKey: 'max',
+        // styling props
+        strokeWidth: 1,
+        cap: { lengthRatio: 0.8 },
+        whisker: { stroke: 'red', strokeWidth: 3, lineDash: [2, 1] },
+    },
+],
+```
 
 {% chartExampleRunner title="Basic Box Plot Series" name="custom-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
 
-#### Grouped Box Plot Series
+### Vertical Box Plot
 
-{% chartExampleRunner title="Basic Box Plot Series" name="grouped-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+You can render a Box Plot vertically by setting the `direction` property of the series to `'vertical'`.
 
-#### Inverted Box Plot Series
+```js
+series: [
+    {
+        type: 'box-plot',
+        direction: 'vertical',
+        xKey: 'department',
+        minKey: 'min',
+        q1Key: 'q1',
+        medianKey: 'median',
+        q3Key: 'q3',
+        maxKey: 'max',
+    },
+],
+```
 
 {% chartExampleRunner title="Basic Box Plot Series" name="invert-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
 
-## API Reference
+{% note %}
+`xKey` defines the categories axis regardless of the series `direction`.
+{% /note %}
 
-### Box Plot Series
+### Box Plots Outliers
+
+To create a box plot chart with outliers, combine the box plot series with a scatter series, as demonstrated in the example below.
+
+{% chartExampleRunner title="Basic Box Plot Series" name="outliers-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+
+## API Reference
 
 {% interfaceDocumentation interfaceName="AgBoxPlotSeriesOptions" config="{ \"showSnippets\": false }" /%}
