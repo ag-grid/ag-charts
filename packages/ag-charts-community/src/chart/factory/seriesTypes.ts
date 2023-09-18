@@ -7,7 +7,7 @@ import { PieSeries } from '../series/polar/pieSeries';
 import { TreemapSeries } from '../series/hierarchy/treemapSeries';
 import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
-import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/module';
+import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/coreModules';
 import type { ModuleContext } from '../../util/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { BubbleSeries } from '../series/cartesian/bubbleSeries';

@@ -1,10 +1,8 @@
 import type { BaseModule, ModuleInstance } from './baseModule';
-export type { BaseModule, ModuleInstance } from './baseModule';
-
 import type { ChartAxis } from '../chart/chartAxis';
 import type { Series } from '../chart/series/series';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
-import type { AxisContext, ModuleContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
+import type { ModuleContext } from './moduleContext';
 import type { AgBaseChartThemeOverrides, AgChartOptions } from '../options/agChartOptions';
 
 export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
@@ -32,16 +30,6 @@ export interface RootModule<M extends ModuleInstance = ModuleInstance> extends B
     themeTemplate?: {};
 }
 
-export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
-    type: 'axis-option';
-
-    axisTypes: ('category' | 'number' | 'log' | 'time')[];
-
-    instanceConstructor: new (ctx: ModuleContextWithParent<AxisContext>) => M;
-
-    themeTemplate: {};
-}
-
 export interface AxisModule extends BaseModule {
     type: 'axis';
 
@@ -64,7 +52,7 @@ type RequiredSeriesType = NonNullable<NonNullable<AgChartOptions['series']>[numb
 type ExtensibleTheme<SeriesType extends RequiredSeriesType> = NonNullable<
     AgBaseChartThemeOverrides[SeriesType]
 >['series'] & { __extends__?: string };
-export interface SeriesModule<SeriesType extends RequiredSeriesType> extends BaseModule {
+export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType> extends BaseModule {
     type: 'series';
 
     identifier: SeriesType;
@@ -77,53 +65,4 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType> extends Bas
     groupable?: boolean;
     stackedByDefault?: boolean;
     swapDefaultAxesCondition?: (opts: AgChartOptions) => boolean;
-}
-
-export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
-    type: 'series-option';
-
-    identifier: string;
-    instanceConstructor: new (ctx: SeriesContext) => M;
-}
-
-export type Module<M extends ModuleInstance = ModuleInstance> =
-    | RootModule<M>
-    | AxisModule
-    | AxisOptionModule
-    | LegendModule
-    | SeriesModule<RequiredSeriesType>
-    | SeriesOptionModule;
-
-export abstract class BaseModuleInstance {
-    protected readonly destroyFns: (() => void)[] = [];
-
-    destroy() {
-        for (const destroyFn of this.destroyFns) {
-            destroyFn();
-        }
-    }
-}
-
-export const REGISTERED_MODULES: Module[] = [];
-export function registerModule(module: Module) {
-    const otherModule = REGISTERED_MODULES.find((other) => {
-        return (
-            module.type === other.type &&
-            module.optionsKey === other.optionsKey &&
-            module.identifier === other.identifier
-        );
-    });
-
-    if (otherModule) {
-        if (module.packageType === 'enterprise' && otherModule.packageType === 'community') {
-            // Replace the community module with an enterprise version
-            const index = REGISTERED_MODULES.indexOf(otherModule);
-            REGISTERED_MODULES.splice(index, 1, module);
-        } else {
-            // Skip if the module is already registered
-        }
-    } else {
-        // Simply register the module
-        REGISTERED_MODULES.push(module);
-    }
 }
