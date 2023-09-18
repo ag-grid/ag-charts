@@ -1,7 +1,9 @@
+import type { BaseModule, ModuleInstance } from './baseModule';
+export type { BaseModule, ModuleInstance } from './baseModule';
+
 import type { ChartAxis } from '../chart/chartAxis';
 import type { Series } from '../chart/series/series';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
-import type { JsonApplyParams } from './json';
 import type { AxisContext, ModuleContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 import type { AgBaseChartThemeOverrides, AgChartOptions } from '../options/agChartOptions';
 
@@ -21,19 +23,6 @@ interface SeriesPaletteFactoryParams {
     colorsCount: number;
 }
 export type SeriesPaletteFactory = (params: SeriesPaletteFactoryParams) => SeriesPaletteOptions;
-
-export interface ModuleInstance {
-    destroy(): void;
-}
-
-export interface BaseModule {
-    optionsKey: string;
-    packageType: 'community' | 'enterprise';
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy')[];
-    identifier?: string;
-
-    optionConstructors?: JsonApplyParams['constructors'];
-}
 
 export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'root';
