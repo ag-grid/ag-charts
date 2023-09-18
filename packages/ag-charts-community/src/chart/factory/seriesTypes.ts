@@ -11,10 +11,12 @@ import { registerChartSeriesType } from './chartTypes';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/module';
 import type { ModuleContext } from '../../util/moduleContext';
 import type { AgBarSeriesOptions, AgChartOptions } from '../../options/agChartOptions';
+import { BubbleSeries } from '../series/cartesian/bubbleSeries';
 
 const BUILT_IN_SERIES_FACTORIES: Record<string, SeriesConstructor> = {
     area: AreaSeries,
     bar: BarSeries,
+    bubble: BubbleSeries,
     histogram: HistogramSeries,
     line: LineSeries,
     pie: PieSeries,

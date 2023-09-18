@@ -16,7 +16,7 @@ import {
 
 expect.extend({ toMatchImageSnapshot });
 
-describe('ScatterSeries', () => {
+describe('BubbleSeries', () => {
     const compare = async () => {
         await waitForChartStability(chart);
 
@@ -48,21 +48,25 @@ describe('ScatterSeries', () => {
                             ...(result[0] ?? {}),
                             [`x${i}`]: 0,
                             [`y${i}`]: i,
+                            [`s${i}`]: 0.5,
                         },
                         {
                             ...(result[1] ?? {}),
                             [`x${i}`]: 1,
                             [`y${i}`]: 30 - i,
+                            [`s${i}`]: 0.5,
                         },
                     ],
                     [{}, {}]
                 ),
                 series: repeat(null, 30).map((_, i) => ({
-                    type: 'scatter',
+                    type: 'bubble',
                     xKey: `x${i}`,
                     yKey: `y${i}`,
+                    sizeKey: `s${i}`,
                     marker: {
-                        size: 50,
+                        size: 20,
+                        maxSize: 50,
                     },
                 })),
                 legend: { enabled: false },
@@ -81,10 +85,10 @@ describe('ScatterSeries', () => {
         });
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+            it(`for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE should animate at ${ratio * 100}%`, async () => {
                 spyOnAnimationManager(1200, ratio);
 
-                const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
+                const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options) as Chart;
