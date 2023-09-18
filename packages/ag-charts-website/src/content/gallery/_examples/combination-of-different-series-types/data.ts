@@ -1,6 +1,5 @@
-// Source: https://www.gov.uk/government/statistical-data-sets/structure-of-the-livestock-industry-in-england-at-december
 // Source: http://beefandlamb.ahdb.org.uk/markets/industry-reports/uk-statistics/
-export function getData(): any[] {
+export function getData() {
     return [
         { year: '2013', male: 1480, female: 3843, exportedTonnes: 105311 },
         { year: '2014', male: 1440, female: 3868, exportedTonnes: 112260 },

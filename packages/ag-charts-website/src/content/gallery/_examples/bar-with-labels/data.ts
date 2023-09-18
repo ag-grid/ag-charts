@@ -1,4 +1,4 @@
-export function getData(): any[] {
+export function getData() {
     return [
         { job: 'Agriculture', change: 17 },
         { job: 'Recreation', change: 30 },

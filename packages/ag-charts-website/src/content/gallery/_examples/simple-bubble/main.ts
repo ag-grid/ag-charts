@@ -8,8 +8,6 @@ const options: AgChartOptions = {
     }),
     title: {
         text: 'Worldwide Earthquakes',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: US Geological Survey',
@@ -26,10 +24,6 @@ const options: AgChartOptions = {
             marker: {
                 size: 5,
                 maxSize: 100,
-                fill: '#41874b',
-                stroke: '#41874b',
-                fillOpacity: 0.5,
-                strokeOpacity: 0.5,
             },
         },
     ],
@@ -59,4 +53,4 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

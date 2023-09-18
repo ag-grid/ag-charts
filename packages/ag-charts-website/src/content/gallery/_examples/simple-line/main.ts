@@ -17,22 +17,8 @@ const tooltip = {
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            line: {
-                series: {
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 3,
-                            dimOpacity: 0.2,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
-        text: 'Road fuel prices',
+        text: 'Road Fuel Prices',
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
@@ -42,22 +28,12 @@ const options: AgChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'petrol',
-            stroke: '#01c185',
-            marker: {
-                stroke: '#01c185',
-                fill: '#01c185',
-            },
             tooltip,
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'diesel',
-            stroke: '#000000',
-            marker: {
-                stroke: '#000000',
-                fill: '#000000',
-            },
             tooltip,
         },
     ],
@@ -76,7 +52,7 @@ const options: AgChartOptions = {
             position: 'left',
             type: 'number',
             title: {
-                text: 'Price in pence',
+                text: 'Price in Pence',
             },
             label: {
                 autoRotate: true,

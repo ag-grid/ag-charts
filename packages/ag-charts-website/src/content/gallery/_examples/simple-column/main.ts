@@ -20,13 +20,7 @@ const options: AgChartOptions = {
             type: 'bar',
             xKey: 'year',
             yKey: 'visitors',
-            fill: '#0084e7',
-            strokeWidth: 0,
-            shadow: {
-                xOffset: 3,
-            },
             label: {
-                enabled: true,
                 color: '#eeeeee',
                 formatter: ({ value }) => formatNumber(value),
             },
@@ -49,7 +43,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             title: {
-                text: 'Total visitors',
+                text: 'Total Visitors',
             },
             label: {
                 formatter: ({ value }) => formatNumber(value),

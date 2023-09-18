@@ -1,4 +1,4 @@
-export function getData(): any[] {
+export function getData() {
     return [
         {
             date: new Date(2015, 0, 1),

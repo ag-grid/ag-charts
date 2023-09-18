@@ -1,4 +1,4 @@
-export function getData(): any[] {
+export function getData() {
     return [
         {
             type: 'Terraced House',

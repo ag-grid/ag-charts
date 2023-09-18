@@ -4,15 +4,6 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            bar: {
-                series: {
-                    strokeWidth: 0,
-                },
-            },
-        },
-    },
     title: {
         text: 'Gross Weekly Earnings',
     },
