@@ -149,7 +149,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
             ],
         });
-        this.onDataProcessed(dataModel, processedData);
+        this.dataModel = dataModel;
+        this.processedData = processedData;
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;

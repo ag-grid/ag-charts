@@ -192,7 +192,8 @@ export class BoxPlotSeries extends CartesianSeries<
             dataVisible: this.visible,
         });
 
-        this.onDataProcessed(dataModel, processedData);
+        this.dataModel = dataModel;
+        this.processedData = processedData;
 
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
