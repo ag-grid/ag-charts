@@ -4,18 +4,16 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'UK Government Budget',
+        text: 'IBM HR Analytics',
     },
     subtitle: {
-        text: 'All values in £ billions',
+        text: 'Employee Salaries Distribution by Role',
     },
     data: getData(),
     series: [
         {
             type: 'box-plot',
-            xKey: 'label',
-            xName: 'State',
-            yName: 'Billions of GBP',
+            xKey: 'role',
             minKey: 'min',
             q1Key: 'q1',
             medianKey: 'median',
