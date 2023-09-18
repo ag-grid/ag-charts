@@ -4,7 +4,7 @@ import { HeatmapSeries } from './heatmapSeries';
 import { HEATMAP_DEFAULTS } from './heatmapDefaults';
 import { HEATMAP_SERIES_THEME } from './heatmapThemes';
 
-export const HeatmapModule: _ModuleSupport.SeriesModule = {
+export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

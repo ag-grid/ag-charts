@@ -4,7 +4,7 @@ import { WaterfallSeries } from './waterfallSeries';
 import { WATERFALL_DEFAULTS } from './waterfallDefaults';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
-export const WaterfallModule: _ModuleSupport.SeriesModule = {
+export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
