@@ -89,11 +89,11 @@ const EXAMPLES: Record<string, TestCase> = {
     },
     BUBBLE_SERIES_LABELS: {
         options: examples.BUBBLE_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bubble'] }),
     },
     GROUPED_BUBBLE_SERIES_LABELS: {
         options: examples.GROUPED_BUBBLE_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('scatter', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('bubble', 2) }),
     },
     PIE_SERIES_LABELS: {
         options: examples.PIE_SERIES_LABELS,

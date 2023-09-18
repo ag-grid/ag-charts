@@ -15,7 +15,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: 'scatter',
+      type: 'bubble',
       xKey: 'hour',
       xName: 'Time',
       yKey: 'day',

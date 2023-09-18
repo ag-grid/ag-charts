@@ -910,7 +910,7 @@ const BUBBLE_BASIC: AgCartesianChartOptions = {
     ...COMMON,
     series: [
         {
-            type: 'scatter',
+            type: 'bubble',
             xKey: 'gold',
             xName: 'Gold',
             yKey: 'silver',

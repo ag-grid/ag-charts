@@ -160,14 +160,14 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
                 formatter: undefined,
                 placement: INSIDE,
             },
             shadow: {
                 enabled: false,
-                color: DEFAULT_SHADOW_COLOUR as unknown as string,
+                color: DEFAULT_SHADOW_COLOUR,
                 xOffset: 3,
                 yOffset: 3,
                 blur: 5,
@@ -221,7 +221,6 @@ export class ChartTheme {
             enabled: true,
             shape: 'circle',
             size: 6,
-            maxSize: 30,
             strokeWidth: 1,
             formatter: undefined,
         };
@@ -388,6 +387,25 @@ export class ChartTheme {
                 ...ChartTheme.getScatterSeriesDefaults(),
                 marker: {
                     ...ChartTheme.getCartesianSeriesMarkerDefaults(),
+                },
+                label: {
+                    enabled: false,
+                    fontStyle: undefined,
+                    fontWeight: undefined,
+                    fontSize: 12,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
+                },
+            },
+        },
+        bubble: {
+            ...ChartTheme.getChartDefaults(),
+            axes: this.cartesianAxisDefault,
+            series: {
+                ...ChartTheme.getScatterSeriesDefaults(),
+                marker: {
+                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
+                    maxSize: 30,
                 },
                 label: {
                     enabled: false,
