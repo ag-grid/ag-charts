@@ -3,7 +3,7 @@ import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 import { BOX_PLOT_SERIES_DEFAULTS } from './boxPlotDefaults';
 import { BoxPlotSeries } from './boxPlotSeries';
 
-export const BoxPlotModule: _ModuleSupport.SeriesModule = {
+export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

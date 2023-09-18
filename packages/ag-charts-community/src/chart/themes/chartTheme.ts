@@ -22,19 +22,19 @@ const palette: AgChartThemePalette = {
     strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
 };
 
-export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults');
-export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults');
-export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults');
-export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults');
-export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults');
-export const OVERRIDE_SERIES_LABEL_DEFAULTS = Symbol('override-series-label-defaults');
-export const DEFAULT_FONT_FAMILY = Symbol('default-font');
-export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour');
-export const DEFAULT_MUTED_LABEL_COLOUR = Symbol('default-muted-label-colour');
-export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour');
-export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour');
-export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour');
-export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour');
+export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults') as unknown as string;
+export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults') as unknown as string;
+export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults') as unknown as string;
+export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults') as unknown as string;
+export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults') as unknown as string;
+export const OVERRIDE_SERIES_LABEL_DEFAULTS = Symbol('override-series-label-defaults') as unknown as string;
+export const DEFAULT_FONT_FAMILY = Symbol('default-font') as unknown as string;
+export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour') as unknown as string;
+export const DEFAULT_MUTED_LABEL_COLOUR = Symbol('default-muted-label-colour') as unknown as string;
+export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour') as unknown as string;
+export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string;
+export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
+export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour') as unknown as string;
 
 const BOLD: FontWeight = 'bold';
 const INSIDE: AgBarSeriesLabelOptions['placement'] = 'inside';
@@ -75,17 +75,17 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: BOLD,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
             },
             label: {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
                 padding: 5,
                 rotation: undefined,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
+                color: DEFAULT_LABEL_COLOUR,
                 formatter: undefined,
                 avoidCollisions: true,
             },
@@ -100,7 +100,7 @@ export class ChartTheme {
             },
             gridStyle: [
                 {
-                    stroke: DEFAULT_AXIS_GRID_COLOUR as unknown as string,
+                    stroke: DEFAULT_AXIS_GRID_COLOUR,
                     lineDash: [4, 2],
                 },
             ],
@@ -114,9 +114,9 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 5,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR,
                 },
             },
         };
@@ -235,7 +235,7 @@ export class ChartTheme {
         return {
             background: {
                 visible: true,
-                fill: DEFAULT_BACKGROUND_COLOUR as unknown as string,
+                fill: DEFAULT_BACKGROUND_COLOUR,
             },
             padding: {
                 top: 20,
@@ -249,8 +249,8 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: BOLD,
                 fontSize: 16,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             subtitle: {
@@ -259,8 +259,8 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             footnote: {
@@ -269,7 +269,7 @@ export class ChartTheme {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
                 spacing: 30,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -288,11 +288,11 @@ export class ChartTheme {
                         padding: 8,
                     },
                     label: {
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
+                        color: DEFAULT_LABEL_COLOUR,
                         fontStyle: undefined,
                         fontWeight: undefined,
                         fontSize: 12,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                        fontFamily: DEFAULT_FONT_FAMILY,
                         formatter: undefined,
                     },
                 },
@@ -302,16 +302,16 @@ export class ChartTheme {
                         size: 12,
                     },
                     activeStyle: {
-                        fill: DEFAULT_LABEL_COLOUR as unknown as string,
+                        fill: DEFAULT_LABEL_COLOUR,
                     },
                     inactiveStyle: {
-                        fill: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
+                        fill: DEFAULT_MUTED_LABEL_COLOUR,
                     },
                     highlightStyle: {
-                        fill: DEFAULT_LABEL_COLOUR as unknown as string,
+                        fill: DEFAULT_LABEL_COLOUR,
                     },
                     label: {
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
+                        color: DEFAULT_LABEL_COLOUR,
                     },
                 },
             },
@@ -375,8 +375,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                     formatter: undefined,
                 },
             },
@@ -394,8 +394,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                 },
             },
         },
@@ -411,7 +411,7 @@ export class ChartTheme {
                 lineDashOffset: 0,
                 shadow: {
                     enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
+                    color: DEFAULT_SHADOW_COLOUR,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -427,8 +427,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                     formatter: undefined,
                 },
             },
@@ -448,13 +448,13 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                     formatter: undefined,
                 },
                 shadow: {
                     enabled: true,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
+                    color: DEFAULT_SHADOW_COLOUR,
                     xOffset: 0,
                     yOffset: 0,
                     blur: 5,
@@ -473,8 +473,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: BOLD,
                     fontSize: 14,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                     spacing: 0,
                 },
                 calloutLabel: {
@@ -482,8 +482,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                     offset: 3,
                     minAngle: 0,
                 },
@@ -492,8 +492,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                     positionOffset: 0,
                     positionRatio: 0.5,
                 },
@@ -511,7 +511,7 @@ export class ChartTheme {
                 innerRadiusOffset: 0,
                 shadow: {
                     enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
+                    color: DEFAULT_SHADOW_COLOUR,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -520,8 +520,8 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
                     margin: 2,
                 },
             },
@@ -537,14 +537,14 @@ export class ChartTheme {
                 colorDomain: [-5, 5],
                 colorRange: ['#cb4b3f', '#6acb64'],
                 groupFill: '#272931',
-                groupStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR as unknown as string,
+                groupStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
                 groupStrokeWidth: 1,
-                tileStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR as unknown as string,
+                tileStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
                 tileStrokeWidth: 1,
                 gradient: true,
                 tileShadow: {
                     enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
+                    color: DEFAULT_SHADOW_COLOUR,
                     xOffset: 3,
                     yOffset: 3,
                     blur: 5,
@@ -561,20 +561,20 @@ export class ChartTheme {
                 nodeGap: 0,
                 title: {
                     enabled: true,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR,
                     fontStyle: undefined,
                     fontWeight: BOLD,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 2,
                 },
                 subtitle: {
                     enabled: true,
-                    color: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
+                    color: DEFAULT_MUTED_LABEL_COLOUR,
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 9,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 2,
                 },
                 labels: {
@@ -583,8 +583,8 @@ export class ChartTheme {
                         fontStyle: undefined,
                         fontWeight: BOLD,
                         fontSize: 18,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
+                        fontFamily: DEFAULT_FONT_FAMILY,
+                        color: DEFAULT_LABEL_COLOUR,
                         wrapping: 'on-space',
                     },
                     medium: {
@@ -592,8 +592,8 @@ export class ChartTheme {
                         fontStyle: undefined,
                         fontWeight: BOLD,
                         fontSize: 14,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
+                        fontFamily: DEFAULT_FONT_FAMILY,
+                        color: DEFAULT_LABEL_COLOUR,
                         wrapping: 'on-space',
                     },
                     small: {
@@ -601,8 +601,8 @@ export class ChartTheme {
                         fontStyle: undefined,
                         fontWeight: BOLD,
                         fontSize: 10,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
+                        fontFamily: DEFAULT_FONT_FAMILY,
+                        color: DEFAULT_LABEL_COLOUR,
                         wrapping: 'on-space',
                     },
                     value: {
@@ -611,8 +611,8 @@ export class ChartTheme {
                             fontStyle: undefined,
                             fontWeight: undefined,
                             fontSize: 12,
-                            fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                            color: DEFAULT_LABEL_COLOUR as unknown as string,
+                            fontFamily: DEFAULT_FONT_FAMILY,
+                            color: DEFAULT_LABEL_COLOUR,
                         },
                     },
                 },
@@ -781,7 +781,7 @@ export class ChartTheme {
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
 
         const properties = new Map();
-        properties.set(DEFAULT_FONT_FAMILY as unknown as string, 'Verdana, sans-serif');
+        properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         properties.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
         properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(219, 219, 219)');

@@ -18,6 +18,7 @@ import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatte
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
+import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rangeAreaOptions';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -83,6 +84,9 @@ export interface AgWaterfallSeriesThemeOverrides extends AgBaseCartesianThemeOpt
 export interface AgRangeBarSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgRangeBarSeriesThemeableOptions;
 }
+export interface AgRangeAreaSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgRangeAreaSeriesThemeableOptions;
+}
 export interface AgPieSeriesThemeOverrides extends AgBasePolarThemeOptions {
     series?: AgPieSeriesThemeableOptions;
 }
@@ -120,6 +124,7 @@ export interface AgBaseChartThemeOverrides {
     heatmap?: AgHeatmapSeriesThemeOverrides;
     waterfall?: AgWaterfallSeriesThemeOverrides;
     'range-bar'?: AgRangeBarSeriesThemeOverrides;
+    'range-area'?: AgRangeAreaSeriesThemeOverrides;
 
     pie?: AgPieSeriesThemeOverrides;
     'radar-line'?: AgRadarLineSeriesThemeOverrides;

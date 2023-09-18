@@ -4,7 +4,7 @@ import { RangeAreaSeries } from './rangeArea';
 import { RANGE_AREA_DEFAULTS } from './rangeAreaDefaults';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
-export const RangeAreaModule: _ModuleSupport.SeriesModule = {
+export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
