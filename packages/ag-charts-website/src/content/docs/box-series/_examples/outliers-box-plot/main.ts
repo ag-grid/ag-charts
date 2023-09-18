@@ -31,6 +31,4 @@ const options: AgChartOptions = {
     ],
 };
 
-console.log(getOutliersData());
-
 AgEnterpriseCharts.create(options);
