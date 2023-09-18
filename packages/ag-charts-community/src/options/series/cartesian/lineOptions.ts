@@ -35,6 +35,6 @@ export interface AgLineSeriesOptions<DatumType = any>
     yName?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
-    /** TODO(olegat) writeme */
+    /** Configuration for the series error bars. */
     errorBar?: AgErrorBarOptions;
 }
