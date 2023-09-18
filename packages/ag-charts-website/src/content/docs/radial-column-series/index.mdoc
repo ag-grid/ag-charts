@@ -11,24 +11,9 @@ To create a Radial Column Series, use the `radial-column` series type.
 
 ```js
 series: [
-    {
-        type: 'radial-column',
-        angleKey: 'quarter',
-        radiusKey: 'air',
-        radiusName: 'Mountain air',
-    },
-    {
-        type: 'radial-column',
-        angleKey: 'quarter',
-        radiusKey: 'winds',
-        radiusName: 'Polar winds',
-    },
-    {
-        type: 'radial-column',
-        angleKey: 'quarter',
-        radiusKey: 'holes',
-        radiusName: 'Donut holes',
-    },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Mountain air' },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Polar winds' },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'holes', radiusName: 'Donut holes' },
 ],
 ```
 
@@ -64,24 +49,9 @@ To stack columns in a Radial Column Series, enable the `stacked` series property
 
 ```js
 series: [
-    {
-        type: 'radial-column',
-        angleKey: 'quarter',
-        radiusKey: 'air',
-        stacked: true,
-    },
-    {
-        type: 'radial-column',
-        angleKey: 'quarter',
-        radiusKey: 'winds',
-        stacked: true,
-    },
-    {
-        type: 'radial-column',
-        angleKey: 'quarter',
-        radiusKey: 'holes',
-        stacked: true,
-    },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'air', stacked: true },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'winds', stacked: true },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'holes', stacked: true },
 ],
 ```
 
@@ -99,13 +69,8 @@ changed via the `innerRadiusRatio` option on the Radius Number Axis.
 
 ```js
 axes: [
-    {
-        type: 'angle-category',
-    },
-    {
-        type: 'radius-number',
-        innerRadiusRatio: 0.2,
-    },
+    { type: 'angle-category' },
+    { type: 'radius-number' innerRadiusRatio: 0.2 },
 ],
 ```
 
@@ -124,15 +89,8 @@ These options are used to control the padding between different elements on the 
 
 ```js
 axes: [
-    {
-        type: 'angle-category',
-        groupPaddingInner: 0.5,
-        paddingInner: 0.5,
-    },
-    {
-        type: 'radius-number',
-        innerRadiusRatio: 0.2,
-    },
+    { type: 'angle-category', groupPaddingInner: 0.5, paddingInner: 0.5 },
+    { type: 'radius-number', innerRadiusRatio: 0.2 },
 ],
 ```
 
@@ -159,9 +117,7 @@ axes: [
             orientation: 'parallel',
         },
     },
-    {
-        type: 'radius-number',
-    },
+    { type: 'radius-number' },
 ],
 ```
 
@@ -175,9 +131,7 @@ Customise Radius Axis line position with `positionAngle` and axis label rotation
 
 ```js
 axes: [
-    {
-        type: 'angle-category',
-    },
+    { type: 'angle-category' },
     {
         type: 'radius-number',
         positionAngle: 90,
