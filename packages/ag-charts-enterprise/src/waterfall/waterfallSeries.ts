@@ -319,7 +319,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             ],
             dataVisible: this.visible,
         });
-        this.onDataProcessed(dataModel, processedData);
+        this.dataModel = dataModel;
+        this.processedData = processedData;
 
         this.updateSeriesItemTypes();
     }

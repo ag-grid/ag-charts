@@ -133,7 +133,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             ],
             dataVisible: this.visible,
         });
-        this.onDataProcessed(dataModel, processedData);
+        this.dataModel = dataModel;
+        this.processedData = processedData;
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;

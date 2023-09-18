@@ -208,7 +208,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             ],
             dataVisible: this.visible,
         });
-        this.onDataProcessed(dataModel, processedData);
+        this.dataModel = dataModel;
+        this.processedData = processedData;
     }
 
     getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {

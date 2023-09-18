@@ -152,7 +152,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
             props,
             dataVisible: this.visible,
         });
-        this.onDataProcessed(dataModel, processedData);
+        this.dataModel = dataModel;
+        this.processedData = processedData;
 
         this.checkAnimationUpdateDataTransition();
     }
