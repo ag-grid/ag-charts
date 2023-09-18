@@ -1,4 +1,4 @@
-import type { _Scale} from 'ag-charts-community';
+import type { _Scale } from 'ag-charts-community';
 import { _Scene, _Util, _ModuleSupport } from 'ag-charts-community';
 
 const { ChartAxisDirection, Validate, OPT_STRING } = _ModuleSupport;
