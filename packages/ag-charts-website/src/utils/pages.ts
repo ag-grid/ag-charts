@@ -214,3 +214,22 @@ export function getDevFiles(): DevFileRoute[] {
 
     return result;
 }
+
+export function getModelInterfaces() {
+    return [
+        {
+            params: {
+                interfaceName: 'AgCartesianChartOptions',
+            },
+        },
+        {
+            params: {
+                interfaceName: 'AgChartTheme',
+            },
+        },
+    ];
+}
+
+export const getModelInterfaceUrl = ({ interfaceName }: { interfaceName: string }) => {
+    return pathJoin(SITE_BASE_URL, 'debug', 'interface-models', `${interfaceName}.json`);
+};
