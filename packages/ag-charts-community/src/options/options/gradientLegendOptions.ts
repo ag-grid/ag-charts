@@ -1,5 +1,5 @@
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from '../options/types';
-import type { AgChartLegendPosition, AgChartLegendOrientation } from './legendOptions';
+import type { AgChartLegendPosition } from './legendOptions';
 
 export interface AgGradientLegendLabelFormatterParams {
     value: string;
@@ -10,8 +10,6 @@ export interface AgGradientLegendOptions {
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
     position?: AgChartLegendPosition;
-    /** How the legend items should be arranged. */
-    orientation?: AgChartLegendOrientation;
     /** Gradient bar configuration. */
     gradient?: AgGradientLegendBarOptions;
     /** The spacing in pixels to use outside the legend. */
