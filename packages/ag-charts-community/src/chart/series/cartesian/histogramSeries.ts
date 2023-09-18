@@ -6,7 +6,7 @@ import type { SeriesNodeDataContext } from '../series';
 import { SeriesTooltip, Series, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -546,10 +546,10 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const { id, data, xKey, yName, visible, fill, stroke, fillOpacity, strokeOpacity } = this;
 
-        if (!data || data.length === 0) {
+        if (!data || data.length === 0 || legendType !== 'category') {
             return [];
         }
 

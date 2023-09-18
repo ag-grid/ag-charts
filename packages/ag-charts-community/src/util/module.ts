@@ -1,6 +1,6 @@
 import type { ChartAxis } from '../chart/chartAxis';
 import type { Series } from '../chart/series/series';
-import type { ChartLegend } from '../chart/legendDatum';
+import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { JsonApplyParams } from './json';
 import type { AxisContext, ModuleContext, ModuleContextWithParent } from './moduleContext';
 import type { AgChartOptions } from '../options/agChartOptions';
@@ -66,8 +66,10 @@ export interface AxisModule extends BaseModule {
 export interface LegendModule extends BaseModule {
     type: 'legend';
 
-    identifier: string;
+    identifier: ChartLegendType;
     instanceConstructor: LegendConstructor;
+
+    themeTemplate?: {};
 }
 
 export interface SeriesModule extends BaseModule {

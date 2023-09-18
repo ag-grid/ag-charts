@@ -469,10 +469,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    getLegendData(): any[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): GradientLegendDatum[] {
         const { data, dataModel, xKey, yKey } = this;
 
-        if (!(data?.length && xKey && yKey && dataModel)) {
+        if (!(data?.length && xKey && yKey && dataModel && legendType === 'gradient')) {
             return [];
         }
 
@@ -492,7 +492,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     colorDomain,
                     colorRange: this.colorRange,
                 },
-            ] as GradientLegendDatum[];
+            ];
         }
         return [];
     }

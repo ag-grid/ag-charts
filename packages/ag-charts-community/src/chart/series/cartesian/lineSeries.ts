@@ -6,7 +6,7 @@ import { extent } from '../../../util/array';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
 import type { Text } from '../../../scene/shape/text';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -453,10 +453,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const { id, data, xKey, yKey, yName, visible, title, marker, stroke, strokeOpacity } = this;
 
-        if (!(data?.length && xKey && yKey)) {
+        if (!(data?.length && xKey && yKey && legendType === 'category')) {
             return [];
         }
 
