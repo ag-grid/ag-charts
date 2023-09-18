@@ -349,7 +349,7 @@ export class GradientLegend {
         }
 
         const orientation = this.getOrientation();
-        const size = this.item.label.fontSize;
+        const size = this.stop.label.fontSize;
         let x: number;
         let y: number;
         let rotation: number;
@@ -363,7 +363,7 @@ export class GradientLegend {
             rotation = Math.PI / 2;
         }
 
-        arrow.fill = this.item.label.color;
+        arrow.fill = this.stop.label.color;
         arrow.size = size;
         arrow.translationX = x;
         arrow.translationY = y;
