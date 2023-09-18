@@ -14,10 +14,6 @@ export interface AgGradientLegendOptions {
     orientation?: AgChartLegendOrientation;
     /** Gradient bar configuration. */
     gradient?: AgGradientLegendBarOptions;
-    /** Used to constrain the width of the legend. */
-    maxWidth?: PixelSize;
-    /** Used to constrain the height of the legend. */
-    maxHeight?: PixelSize;
     /** The spacing in pixels to use outside the legend. */
     spacing?: PixelSize;
     /** Configuration for the legend gradient stops that consist of a color and a label. */
