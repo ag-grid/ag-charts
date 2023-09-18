@@ -20,7 +20,20 @@ series: [
 ],
 ```
 
-Here the `xKey` and `yKey` define categories for the [Category Axes](/charts-axes-types/#category), and the `colorKey` supplies numerical values for the Colour Scale.
+In this configuration:
+
+- `xKey` is set to 'month', which is the category for the X Axis.
+- `yKey` is set to 'year', which is the category for the Y Axis.
+- `colorKey` supplies numerical values for the Colour Scale (set to 'temperature' in this example).
+
+The corresponding sample data looks like:
+
+```js
+data: [
+    { year: '2010', month: 'January', temperature: 1.2 },
+    { year: '2010', month: 'February', temperature: 1.9 },
+],
+```
 
 The following example shows a simple Heatmap Series using default options.
 
@@ -145,6 +158,60 @@ gradientLegend: {
 ```
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Position
+
+By default the Gradient Legend is placed at the bottom of the chart. But it can be positioned to the side using the `position` config:
+
+```js
+gradientLegend: {
+    enabled: true,
+    position: 'right',
+},
+```
+
+{% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Controlling The Size of The Legend
+
+There are a few options to control the size of the bar on the Gradient Legend.
+
+```js
+gradientLegend: {
+    enabled: true,
+    gradient: {
+        thickness: 50,
+        preferredLength: 400,
+    },
+},
+```
+
+- `thickness` controls the thickness (or width) of the gradient bar.
+- `preferredLength` sets the initial length of the bar. It is called *preferred*, because if the Legend or it's labels appear outside of the chart, the bar will shrink.
+
+{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Labels
+
+There are a number of configs that affect font, colour and padding of the labels.
+
+```js
+gradientLegend: {
+    enabled: true,
+    stop: {
+        label: {
+            fontSize: 20,
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontFamily: 'serif',
+            color: 'red',
+        },
+        padding: 20,
+    },
+},
+```
+
+{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

@@ -53,8 +53,6 @@ export interface AgGradientLegendLabelOptions {
 export interface AgGradientLegendStopOptions {
     /** Configuration for the legend labels. */
     label?: AgGradientLegendLabelOptions;
-    /** Used to constrain the width of legend items. */
-    maxWidth?: PixelSize;
     /** The spacing in pixels to use between gradient and labels. */
     padding?: PixelSize;
 }

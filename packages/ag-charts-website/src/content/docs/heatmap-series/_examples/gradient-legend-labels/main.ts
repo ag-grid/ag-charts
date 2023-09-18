@@ -23,6 +23,16 @@ const options: AgChartOptions = {
     ],
     gradientLegend: {
         enabled: true,
+        stop: {
+            label: {
+                fontSize: 20,
+                fontStyle: 'italic',
+                fontWeight: 'bold',
+                fontFamily: 'serif',
+                color: 'red',
+            },
+            padding: 20,
+        },
     },
 };
 
