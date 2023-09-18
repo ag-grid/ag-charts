@@ -9,6 +9,7 @@ export * from './options/crosshairOptions';
 export * from './options/chartOptions';
 export * from './options/crossLineOptions';
 export * from './options/dropShadowOptions';
+export * from './options/errorBarOptions';
 export * from './options/eventOptions';
 export * from './options/labelOptions';
 export * from './options/legendOptions';
