@@ -1777,7 +1777,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         sortedDatumIds.forEach((datumId, index) => {
             const sector = sectorsByDatum[datumId];
             const { datum } = sector;
-            // const cleanup = index === sectors.length - 1;
+            const cleanup = index === sectors.length - 1;
             const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
             const replacement = shiftedSectors[index];
 
@@ -1826,9 +1826,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                     sector.fillOpacity = fillOpacity;
                 },
                 onComplete: () => {
-                    // TODO: Calling reset here causes a discrepancy between the data and the sectors, such that
-                    // sectors that were previously removed then shown do not get rendered.
-                    // if (cleanup) this.resetSectors();
+                    if (cleanup) this.resetSectors();
                 },
             });
 
