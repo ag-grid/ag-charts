@@ -4,7 +4,7 @@ import { RadarLineSeries } from './radarLineSeries';
 import { POLAR_DEFAULTS } from '../polarDefaults';
 import { RADAR_LINE_SERIES_THEME } from './radarLineThemes';
 
-export const RadarLineModule: _ModuleSupport.SeriesModule = {
+export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

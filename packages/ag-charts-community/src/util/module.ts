@@ -1,9 +1,9 @@
 import type { ChartAxis } from '../chart/chartAxis';
 import type { Series } from '../chart/series/series';
-import type { ChartLegend } from '../chart/legendDatum';
+import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { JsonApplyParams } from './json';
 import type { AxisContext, ModuleContext, ModuleContextWithParent } from './moduleContext';
-import type { AgChartOptions } from '../options/agChartOptions';
+import type { AgBaseChartThemeOverrides, AgChartOptions } from '../options/agChartOptions';
 
 export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
 export type SeriesConstructor = new (moduleContext: ModuleContext) => Series<any>;
@@ -18,7 +18,6 @@ interface SeriesPaletteOptions {
 }
 interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
-    seriesCount: number;
     colorsCount: number;
 }
 export type SeriesPaletteFactory = (params: SeriesPaletteFactoryParams) => SeriesPaletteOptions;
@@ -66,18 +65,24 @@ export interface AxisModule extends BaseModule {
 export interface LegendModule extends BaseModule {
     type: 'legend';
 
-    identifier: string;
+    identifier: ChartLegendType;
     instanceConstructor: LegendConstructor;
+
+    themeTemplate?: {};
 }
 
-export interface SeriesModule extends BaseModule {
+type RequiredSeriesType = NonNullable<NonNullable<AgChartOptions['series']>[number]['type']>;
+type ExtensibleTheme<SeriesType extends RequiredSeriesType> = NonNullable<
+    AgBaseChartThemeOverrides[SeriesType]
+>['series'] & { __extends__?: string };
+export interface SeriesModule<SeriesType extends RequiredSeriesType> extends BaseModule {
     type: 'series';
 
-    identifier: string;
+    identifier: SeriesType;
     instanceConstructor: SeriesConstructor;
 
-    seriesDefaults: {};
-    themeTemplate: {};
+    seriesDefaults: AgChartOptions;
+    themeTemplate: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory;
     stackable?: boolean;
     groupable?: boolean;
@@ -90,7 +95,7 @@ export type Module<M extends ModuleInstance = ModuleInstance> =
     | AxisModule
     | AxisOptionModule
     | LegendModule
-    | SeriesModule;
+    | SeriesModule<RequiredSeriesType>;
 
 export abstract class BaseModuleInstance {
     protected readonly destroyFns: (() => void)[] = [];

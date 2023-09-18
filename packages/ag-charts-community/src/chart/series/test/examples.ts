@@ -475,7 +475,7 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
     },
     series: [
         {
-            type: 'scatter',
+            type: 'bubble',
             title: 'Male',
             data: DATA_MALE_HEIGHT_WEIGHT,
             xKey: 'height',
@@ -496,7 +496,7 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'scatter',
+            type: 'bubble',
             title: 'Female',
             data: DATA_FEMALE_HEIGHT_WEIGHT,
             xKey: 'height',

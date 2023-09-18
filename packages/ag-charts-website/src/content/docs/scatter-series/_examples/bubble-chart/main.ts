@@ -11,7 +11,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: 'scatter',
+      type: 'bubble',
       title: 'Male',
       data: maleHeightWeight,
       xKey: 'height',
@@ -29,7 +29,7 @@ const options: AgChartOptions = {
       },
     },
     {
-      type: 'scatter',
+      type: 'bubble',
       title: 'Female',
       data: femaleHeightWeight,
       xKey: 'height',

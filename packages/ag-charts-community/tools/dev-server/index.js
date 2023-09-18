@@ -44,7 +44,7 @@ async function getDocExamples() {
         }
         return examples;
     };
-    const docExamples = await loadExamples(`${DOC_PAGES_DIR}/charts-*/_examples/*/index.html`, (dir) => {
+    const docExamples = await loadExamples(`${DOC_PAGES_DIR}/*/_examples/*/index.html`, (dir) => {
         const id = dir.substring(dir.lastIndexOf('/') + 1);
         // @ts-ignore
         const category = dir.split('/').at(-3);

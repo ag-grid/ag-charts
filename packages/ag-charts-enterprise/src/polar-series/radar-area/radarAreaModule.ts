@@ -4,7 +4,7 @@ import { RadarAreaSeries } from './radarAreaSeries';
 import { POLAR_DEFAULTS } from '../polarDefaults';
 import { RADAR_AREA_SERIES_THEME } from './radarAreaThemes';
 
-export const RadarAreaModule: _ModuleSupport.SeriesModule = {
+export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

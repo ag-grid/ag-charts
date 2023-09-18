@@ -2,6 +2,7 @@ import type { AgChartBackgroundImage } from '../background/backgroundOptions';
 import type { AgAnimationOptions } from '../interaction/animationOptions';
 import type { AgContextMenuOptions } from './contextOptions';
 import type { AgBaseChartListeners } from './eventOptions';
+import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
@@ -119,6 +120,8 @@ export interface AgBaseThemeableChartOptions {
     tooltip?: AgChartTooltipOptions;
     /** Configuration for the chart legend. */
     legend?: AgChartLegendOptions;
+    /** Configuration for the gradient legend. */
+    gradientLegend?: AgGradientLegendOptions;
     animation?: AgAnimationOptions;
     contextMenu?: AgContextMenuOptions;
 

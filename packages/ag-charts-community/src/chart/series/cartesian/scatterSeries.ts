@@ -1,11 +1,10 @@
 import type { Selection } from '../../../scene/selection';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { ColorScale } from '../../../scale/colorScale';
-import { LinearScale } from '../../../scale/linearScale';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeBaseClickEvent } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { getMarker } from '../../marker/util';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -31,7 +30,6 @@ import * as easing from '../../../motion/easing';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
-    readonly sizeValue: any;
     readonly label: MeasuredLabel;
     readonly fill: string | undefined;
 }
@@ -43,35 +41,9 @@ class ScatterSeriesLabel extends Label {
     formatter?: (params: AgScatterSeriesLabelFormatterParams<any>) => string = undefined;
 }
 
-class ScatterSeriesNodeBaseClickEvent extends CartesianSeriesNodeBaseClickEvent<any> {
-    readonly sizeKey?: string;
-
-    constructor(
-        sizeKey: string | undefined,
-        xKey: string,
-        yKey: string,
-        nativeEvent: MouseEvent,
-        datum: ScatterNodeDatum,
-        series: ScatterSeries
-    ) {
-        super(xKey, yKey, nativeEvent, datum, series);
-        this.sizeKey = sizeKey;
-    }
-}
-
-class ScatterSeriesNodeClickEvent extends ScatterSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
-}
-
-class ScatterSeriesNodeDoubleClickEvent extends ScatterSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
-}
-
 export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<ScatterNodeDatum>> {
     static className = 'ScatterSeries';
     static type = 'scatter' as const;
-
-    private sizeScale = new LinearScale();
 
     readonly marker = new CartesianSeriesMarker();
 
@@ -90,9 +62,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
     yName?: string = undefined;
 
     @Validate(OPT_STRING)
-    sizeName?: string = 'Size';
-
-    @Validate(OPT_STRING)
     labelName?: string = 'Label';
 
     @Validate(OPT_STRING)
@@ -100,9 +69,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
     @Validate(OPT_STRING)
     yKey?: string = undefined;
-
-    @Validate(OPT_STRING)
-    sizeKey?: string = undefined;
 
     @Validate(OPT_STRING)
     colorKey?: string = undefined;
@@ -141,10 +107,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         const {
             xKey = '',
             yKey = '',
-            sizeKey,
             labelKey,
             axes,
-            marker,
             data,
             ctx: { animationManager },
         } = this;
@@ -163,7 +127,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
                 valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-                ...(sizeKey ? [valueProperty(this, sizeKey, true, { id: `sizeValue` })] : []),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
                 ...(!animationManager.skipAnimations && this.processedData ? [diff(this.processedData)] : []),
@@ -172,12 +135,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
         this.dataModel = dataModel;
         this.processedData = processedData;
-
-        if (sizeKey) {
-            const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
-            const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];
-            this.sizeScale.domain = marker.domain ? marker.domain : processedSize;
-        }
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
@@ -203,21 +160,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         return this.fixNumericExtent(extent(domain), axis);
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: ScatterNodeDatum): ScatterSeriesNodeClickEvent {
-        return new ScatterSeriesNodeClickEvent(this.sizeKey, this.xKey ?? '', this.yKey ?? '', event, datum, this);
-    }
-
-    protected getNodeDoubleClickEvent(event: MouseEvent, datum: ScatterNodeDatum): ScatterSeriesNodeDoubleClickEvent {
-        return new ScatterSeriesNodeDoubleClickEvent(
-            this.sizeKey,
-            this.xKey ?? '',
-            this.yKey ?? '',
-            event,
-            datum,
-            this
-        );
-    }
-
     async createNodeData() {
         const {
             visible,
@@ -238,20 +180,17 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const sizeDataIdx = this.sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : -1;
         const colorDataIdx = this.colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
         const labelDataIdx = this.labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
 
-        const { colorScale, sizeKey, colorKey, id: seriesId } = this;
+        const { colorScale, colorKey, id: seriesId } = this;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const { sizeScale, marker } = this;
+        const { marker } = this;
         const nodeData: ScatterNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
-
-        sizeScale.range = [marker.size, marker.maxSize];
 
         const font = label.getFont();
         let actualLength = 0;
@@ -267,7 +206,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             }
 
             const size = HdpiCanvas.getTextSize(text, font);
-            const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
             nodeData[actualLength++] = {
@@ -278,8 +216,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,
-                sizeValue: values[sizeDataIdx],
-                point: { x, y, size: markerSize },
+                point: { x, y, size: marker.size },
                 nodeMidPoint: { x, y },
                 fill,
                 label: {
@@ -342,7 +279,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             ctx,
         } = this;
 
-        this.sizeScale.range = [marker.size, marker.maxSize];
         const customMarker = typeof marker.shape === 'function';
 
         markerSelection.each((node, datum) => {
@@ -427,8 +363,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             tooltip,
             xName,
             yName,
-            sizeKey,
-            sizeName,
             labelKey,
             labelName,
             id: seriesId,
@@ -462,7 +396,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             datum,
             xValue,
             yValue,
-            sizeValue,
             label: { text: labelText },
         } = nodeDatum;
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
@@ -471,10 +404,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         let content =
             `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
             `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (sizeKey) {
-            content += `<br><b>${sanitizeHtml(sizeName ?? sizeKey)}</b>: ${sanitizeHtml(sizeValue)}`;
-        }
 
         if (labelKey) {
             content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(labelText)}<br>` + content;
@@ -494,8 +423,6 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             yKey,
             yValue,
             yName,
-            sizeKey,
-            sizeName,
             labelKey,
             labelName,
             title,
@@ -504,11 +431,11 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const { id, data, xKey, yKey, yName, title, visible, marker } = this;
         const { fill, stroke, fillOpacity, strokeOpacity } = marker;
 
-        if (!(data?.length && xKey && yKey)) {
+        if (!(data?.length && xKey && yKey && legendType === 'category')) {
             return [];
         }
 

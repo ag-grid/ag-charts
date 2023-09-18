@@ -11,7 +11,7 @@ const options: AgCartesianChartOptions = {
   },
   series: [
     {
-      type: 'scatter',
+      type: 'bubble',
       title: 'Male',
       data: maleHeightWeight,
       xKey: 'height',
@@ -33,7 +33,7 @@ const options: AgCartesianChartOptions = {
       },
     },
     {
-      type: 'scatter',
+      type: 'bubble',
       title: 'Female',
       data: femaleHeightWeight,
       xKey: 'height',

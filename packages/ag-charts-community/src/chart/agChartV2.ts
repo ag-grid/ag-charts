@@ -25,13 +25,14 @@ import {
     type SeriesOptionsTypes,
 } from './mapping/types';
 import { windowValue } from '../util/window';
-import type { AxisOptionModule, Module, RootModule } from '../util/module';
+import type { AxisOptionModule, LegendModule, Module, ModuleInstance, RootModule } from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
 // Deliberately imported via `module-support` so that internal module registration happens.
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
+import { getLegendKeys } from './factory/legendTypes';
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -372,7 +373,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     const completeOptions = jsonMerge([chart.processedOptions ?? {}, processedOptions], noDataCloneMergeOptions);
     const modulesChanged = applyModules(chart, completeOptions);
 
-    const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend'];
+    const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners'];
     if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
         // Append axes to defaults.
         skip.push('axes');
@@ -402,16 +403,21 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
             forceNodeDataRefresh = true;
         }
     }
-    applyLegend(chart, processedOptions);
 
     const seriesOpts = processedOptions.series as any[];
     const seriesDataUpdate = !!processedOptions.data || seriesOpts?.some((s) => s.data != null);
-    const otherRefreshUpdate = processedOptions.legend ?? processedOptions.title ?? processedOptions.subtitle;
-    forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || !!otherRefreshUpdate;
+    const legendKeys = getLegendKeys();
+    const optionsHaveLegend = Object.values(legendKeys).some(
+        (legendKey) => (processedOptions as any)[legendKey] != null
+    );
+    const otherRefreshUpdate = processedOptions.title != null && processedOptions.subtitle != null;
+    forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     if (processedOptions.data) {
         chart.data = processedOptions.data;
     }
-
+    if (processedOptions.legend?.listeners) {
+        Object.assign(chart.legend!.listeners, processedOptions.legend.listeners ?? {});
+    }
     if (processedOptions.listeners) {
         chart.updateAllSeriesListeners();
     }
@@ -435,20 +441,36 @@ function applyModules(chart: Chart, options: AgChartOptions) {
     };
 
     let modulesChanged = false;
-    const rootModules = REGISTERED_MODULES.filter((m): m is RootModule => m.type === 'root');
-    for (const next of rootModules) {
-        const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
-        const isEnabled = chart.isModuleEnabled(next);
+    const processModules = <T extends Module<ModuleInstance>>(
+        moduleType: Module['type'],
+        add: (module: T) => void,
+        remove: (module: T) => void
+    ) => {
+        const modules = REGISTERED_MODULES.filter((m): m is T => m.type === moduleType);
+        for (const next of modules) {
+            const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
+            const isEnabled = chart.isModuleEnabled(next);
 
-        if (shouldBeEnabled === isEnabled) continue;
-        modulesChanged = true;
+            if (shouldBeEnabled === isEnabled) continue;
+            modulesChanged = true;
 
-        if (shouldBeEnabled) {
-            chart.addModule(next);
-        } else {
-            chart.removeModule(next);
+            if (shouldBeEnabled) {
+                add(next);
+            } else {
+                remove(next);
+            }
         }
-    }
+    };
+    processModules<RootModule>(
+        'root',
+        (next) => chart.addModule(next),
+        (next) => chart.removeModule(next)
+    );
+    processModules<LegendModule>(
+        'legend',
+        (next) => chart.addLegendModule(next),
+        (next) => chart.removeLegendModule(next)
+    );
 
     return modulesChanged;
 }
@@ -513,16 +535,6 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
 
     chart.axes = createAxis(chart, optAxes);
     return true;
-}
-
-function applyLegend(chart: Chart, options: AgChartOptions) {
-    const skip = ['listeners'];
-    chart.setLegendInit((legend) => {
-        applyOptionValues(legend, options.legend ?? {}, { skip });
-        if (options.legend?.listeners) {
-            Object.assign(chart.legend?.listeners!, options.legend.listeners ?? {});
-        }
-    });
 }
 
 function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {

@@ -171,7 +171,7 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
     }
 
     for (const group of grouped) {
-        const seriesType = String(group.opts[0].type);
+        const seriesType = group.opts[0].type ?? 'line';
         if (isGroupableSeries(seriesType) || isStackableSeries(seriesType)) {
             result.push(...addSeriesGroupingMeta(group));
         } else {

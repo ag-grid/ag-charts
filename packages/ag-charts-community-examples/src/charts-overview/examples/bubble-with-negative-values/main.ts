@@ -16,7 +16,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "scatter",
+      type: "bubble",
       title: "Most populous cities",
       xKey: "lon",
       xName: "Longitude",

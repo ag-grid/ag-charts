@@ -11,6 +11,7 @@ interface HighlightNodeDatum {
     readonly datum: any;
     readonly xKey?: string;
     readonly yKey?: string;
+    readonly colorValue?: number;
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;
     readonly domain?: [number, number];

@@ -1,7 +1,9 @@
+import type { ChartLegendDatum, ChartLegendType } from './legendDatum';
+
 interface Series {
     id: string;
     type: string;
-    getLegendData(): any[];
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[];
 }
 
 type SeriesGetter = () => Series[];

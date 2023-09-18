@@ -789,8 +789,12 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         );
     }
 
-    getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, seriesItemTypes } = this;
+
+        if (legendType !== 'category') {
+            return [];
+        }
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
