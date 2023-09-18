@@ -22,7 +22,7 @@ const {
     POSITION,
     STRING,
 } = _ModuleSupport;
-const { BBox, Group, Rect, Selection, Text } = _Scene;
+const { BBox, Group, Rect, Selection, Text, Triangle } = _Scene;
 const { createId, tickFormat } = _Util;
 
 class GradientLegendLabel {
@@ -70,6 +70,7 @@ export class GradientLegend {
     private readonly group: _Scene.Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
     private readonly gradientRect: _Scene.Rect;
     private readonly textSelection: _Scene.Selection<_Scene.Text, number>;
+    private readonly arrow: _Scene.Triangle;
 
     @Validate(BOOLEAN)
     enabled = true;
@@ -111,17 +112,27 @@ export class GradientLegend {
     private destroyFns: Function[] = [];
 
     private readonly layoutService: _ModuleSupport.ModuleContext['layoutService'];
+    private readonly highlightManager: _ModuleSupport.HighlightManager;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         this.layoutService = ctx.layoutService;
         const layoutListener = this.layoutService.addListener('start-layout', (e) => this.update(e.shrinkRect));
         this.destroyFns.push(() => this.layoutService.removeListener(layoutListener));
 
+        this.highlightManager = ctx.highlightManager;
+        const highlightListener = this.highlightManager.addListener('highlight-change', () =>
+            this.onChartHoverChange()
+        );
+        this.destroyFns.push(() => this.highlightManager.removeListener(highlightListener));
+
         this.gradientRect = new Rect();
         this.group.append(this.gradientRect);
+        this.arrow = new Triangle();
+        this.group.append(this.arrow);
         const textContainer = new Group();
         this.group.append(textContainer);
         this.textSelection = Selection.select(textContainer, Text);
+
         this.destroyFns.push(() => this.detachLegend());
     }
 
@@ -137,6 +148,9 @@ export class GradientLegend {
         this.group.parent?.removeChild(this.group);
     }
 
+    private latestGradientBox: _Scene.BBox | undefined;
+    private latestColorDomain: number[] | undefined;
+
     private update(shrinkRect: _Scene.BBox) {
         const data = this.data[0];
 
@@ -150,10 +164,14 @@ export class GradientLegend {
         const { gradientBox, newShrinkRect, translateX, translateY } = this.getMeasurements(colorDomain, shrinkRect);
         this.updateGradientRect(colorRange, gradientBox);
         this.updateText(colorDomain, gradientBox);
+        this.updateArrow(colorDomain, gradientBox);
 
         this.group.visible = true;
         this.group.translationX = translateX;
         this.group.translationY = translateY;
+
+        this.latestGradientBox = gradientBox;
+        this.latestColorDomain = colorDomain;
 
         return { shrinkRect: newShrinkRect };
     }
@@ -271,7 +289,7 @@ export class GradientLegend {
                 node.textAlign = 'start';
                 node.textBaseline = 'middle';
                 node.x = gradientBox.width + padding;
-                node.y = gradientBox.y + gradientBox.height * t;
+                node.y = gradientBox.y + gradientBox.height * (1 - t);
             } else {
                 node.textAlign = 'center';
                 node.textBaseline = 'top';
@@ -315,6 +333,44 @@ export class GradientLegend {
         });
     }
 
+    private updateArrow(colorDomain: number[], gradientBox: _Scene.BBox) {
+        const { arrow, reverseOrder } = this;
+
+        const hightighted = this.highlightManager.getActiveHighlight();
+        if (!hightighted) {
+            arrow.visible = false;
+            return;
+        }
+
+        let t = (hightighted.colorValue ?? 0 - colorDomain[0]) / (colorDomain[1] - colorDomain[0]);
+        t = Math.max(0, Math.min(1, t));
+        if (reverseOrder) {
+            t = 1 - t;
+        }
+
+        const orientation = this.getOrientation();
+        const size = this.item.label.fontSize;
+        let x: number;
+        let y: number;
+        let rotation: number;
+        if (orientation === 'horizontal') {
+            x = gradientBox.x + gradientBox.width * t;
+            y = gradientBox.y - size / 2;
+            rotation = Math.PI;
+        } else {
+            x = gradientBox.x - size / 2;
+            y = gradientBox.y + gradientBox.height * (1 - t);
+            rotation = Math.PI / 2;
+        }
+
+        arrow.fill = this.item.label.color;
+        arrow.size = size;
+        arrow.translationX = x;
+        arrow.translationY = y;
+        arrow.rotation = rotation;
+        arrow.visible = true;
+    }
+
     private formatDomain(domain: number[]) {
         const formatter = this.stop.label.formatter;
         if (formatter) {
@@ -344,5 +400,11 @@ export class GradientLegend {
 
     computeBBox(): _Scene.BBox {
         return this.group.computeBBox();
+    }
+
+    private onChartHoverChange() {
+        if (this.enabled && this.latestGradientBox && this.latestColorDomain) {
+            this.updateArrow(this.latestColorDomain, this.latestGradientBox);
+        }
     }
 }
