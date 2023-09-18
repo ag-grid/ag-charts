@@ -143,25 +143,9 @@ export abstract class CartesianSeries<
     protected datumSelectionGarbageCollection = true;
     protected markerSelectionGarbageCollection = true;
 
-    // At the time of writing, error-bars are the only feature that listen for
-    // data model changes. This is because error bars are a special kind of
-    // module that attach themselves to a series, rather than a complete series
-    // of its own like most enterprise module.
-    //
-    // Error-bars are only support on some cartesian-type series, so adding
-    // listeners in the CartesianSeries makes sense right. However, in the
-    // future it might make sense to generalise this feature by moving it into
-    // the base class or into a manager class.
-    private _dataModel?: DataModel<any, any, any>;
-    private _processedData?: ProcessedData<any>;
-    private _dataModelListeners = new Listeners<DataEventType, (event: DataEvent) => void>();
-
-    get dataModel(): DataModel<any, any, any> | undefined {
-        return this._dataModel;
-    }
-    get processedData(): ProcessedData<any> | undefined {
-        return this._processedData;
-    }
+    protected dataModel?: DataModel<any, any, any>;
+    protected processedData?: ProcessedData<any>;
+    private dataModelListeners = new Listeners<DataEventType, (event: DataEvent) => void>();
 
     protected constructor({
         pathsPerSeries = 1,
@@ -256,17 +240,15 @@ export abstract class CartesianSeries<
     }
 
     public addListener(type: DataEventType, listener: (event: DataEvent) => void) {
-        return this._dataModelListeners.addListener(type, listener);
+        return this.dataModelListeners.addListener(type, listener);
     }
 
     public removeListener(listenerSymbol: Symbol) {
-        this._dataModelListeners.removeListener(listenerSymbol);
+        this.dataModelListeners.removeListener(listenerSymbol);
     }
 
-    protected onDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
-        this._dataModel = dataModel;
-        this._processedData = processedData;
-        this._dataModelListeners.dispatch( 'data-model', {dataModel: dataModel, processedData: processedData} );
+    protected fireDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
+        this.dataModelListeners.dispatch('data-model', { dataModel: dataModel, processedData: processedData });
     }
 
     /**
