@@ -3,15 +3,11 @@ title: 'Heatmap Series'
 enterprise: true
 ---
 
-Heatmap series are using color-coding to represent numeric values in a form of a matrix.
+A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.
 
-For example, a heatmap series could be used to visualise the daily activity of team members, or compare monthly mean temperatures.
+## Simple Heatmap
 
-## Basic configuration
-
-To plot a basic heatmap we need an array of data, where every item will have 2 category value and a single numeric value to be encoded as a colour.
-
-A minimal heatmap series configuration will look like:
+To plot a basic `heatmap` we need an array of data, where every item will have 2 category values and a single numeric value.
 
 ```js
 series: [
@@ -21,11 +17,135 @@ series: [
         yKey: 'year',
         colorKey: 'temperature',
     },
-];
+],
 ```
 
-{% chartExampleRunner title="Basic Heatmap" name="basic-heatmap" type="generated" options="{ \"enterprise\": true }" /%}
+Here the `xKey` and `yKey` define categories for the [Category Axes](/charts-axes-types/#category), and the `colorKey` supplies numerical values for the Colour Scale.
 
-### API Reference
+The following example shows a simple Heatmap Series using default options.
+
+{% chartExampleRunner title="Simple Heatmap" name="simple-heatmap" type="generated" options="{ \"enterprise\": true }" /%}
+
+## Customisation
+
+### Colour Range
+
+Series items colours can be customised via the `colorRange` configuration array.
+
+```js
+series: [
+    {
+        type: 'heatmap',
+        xKey: 'month',
+        yKey: 'year',
+        colorKey: 'temperature',
+        colorRange: [
+            '#4A90E2',
+            '#FF6B6B',
+        ],
+    },
+],
+```
+
+The example below demonstrates Colour Range customisations.
+
+{% chartExampleRunner title="Customising Colour Range" name="customising-color-range" type="generated" options="{ \"enterprise\": true }" /%}
+
+Colour Range can also have more than 2 values.
+
+```js
+series: [
+    {
+        type: 'heatmap',
+        xKey: 'month',
+        yKey: 'year',
+        colorKey: 'temperature',
+        colorRange: [
+            '#4A90E2',
+            '#FF6B6B',
+            '#00FF6B',
+            '#00FFFF',
+        ],
+    },
+],
+```
+
+{% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" options="{ \"enterprise\": true }" /%}
+
+### Colour Domain
+
+The `colorDomain` property can help with a better mapping of colours and numeric values. By default the Colour Domain is automatically calculated based on minimal and maximal values from the data. Supplying values for Colour Domain will define the miminum and maximum numeric values that will map to the first and the last colours from the `colorRange`.
+
+```js
+series: [
+    {
+        type: 'heatmap',
+        xKey: 'month',
+        yKey: 'year',
+        colorKey: 'temperature',
+        colorRange: [
+            '#4A90E2',
+            '#FF6B6B',
+        ],
+        colorDomain: [
+            0,
+            20,
+        ],
+    },
+],
+```
+
+{% chartExampleRunner title="Customising Colour Domain" name="customising-color-domain" type="generated" options="{ \"enterprise\": true }" /%}
+
+Supplying 3 and more values to `colorDomain` will create a non-linear gradient.
+
+```js
+series: [
+    {
+        type: 'heatmap',
+        xKey: 'month',
+        yKey: 'year',
+        colorKey: 'temperature',
+        colorRange: [
+            '#4A90E2',
+            '#777777',
+            '#FF6B6B',
+        ],
+        colorDomain: [
+            -10,
+            0,
+            20,
+        ],
+    },
+],
+```
+
+{% chartExampleRunner title="Colour Domain With Many Values" name="color-domain-with-many-values" type="generated" options="{ \"enterprise\": true }" /%}
+
+{% note %}
+When 3 or more values are supplied for the Colour Domain, the number of colours in the Colour Range should be exactly the same.
+{% /note %}
+
+## Gradient Legend
+
+The Gradient Legend helps for better understanding of colour coding of the Heatmap Series. In order to add a Gradient Legend, `gradientLegend.enabled = true` should be added to the root of the chart options.
+
+```js
+series: [
+    {
+        type: 'heatmap',
+        xKey: 'month',
+        yKey: 'year',
+        colorKey: 'temperature',
+    },
+],
+gradientLegend: {
+    enabled: true,
+},
+```
+
+{% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" options="{ \"enterprise\": true }" /%}
+
+## API Reference
 
 {% interfaceDocumentation interfaceName="AgHeatmapSeriesOptions" config="{ \"showSnippets\": false }" /%}
