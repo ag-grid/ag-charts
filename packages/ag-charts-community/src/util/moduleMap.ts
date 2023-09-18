@@ -1,4 +1,4 @@
-import type { BaseModule, ModuleInstance } from './module';
+import type { BaseModule, ModuleInstance } from './baseModule';
 import type { ModuleContext } from './moduleContext';
 
 interface Module<C extends ModuleContext, I extends ModuleInstance = ModuleInstance> extends BaseModule {
