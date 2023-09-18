@@ -39,7 +39,7 @@ import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
-import type {  Module } from '../util/module';
+import type { Module } from '../util/module';
 import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
 import { DataService } from './dataService';
 import { UpdateService } from './updateService';
