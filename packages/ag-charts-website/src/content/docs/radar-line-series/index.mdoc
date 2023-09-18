@@ -8,6 +8,8 @@ for easy visual comparison.
 
 ## Simple Radar Line
 
+{% chartExampleRunner title="Simple Radar Line" name="simple-radar-line" type="generated" options="{ \"enterprise\": true }" /%}
+
 To create a Radar Line Series, use the `radar-line` series type.
 
 ```js
@@ -23,32 +25,18 @@ In this configuration:
 -   `radiusKey` specifies the numerical datasets, 'mike' and 'tony', for the Radius Axis.
 -   `radiusName` labels each series, such as "Mike's Grades" and "Tony's Grades".
 
-Corresponding sample data:
-
-```js
-[
-    { subject: 'Maths',   mike: 7.0, tony: 4.2 },
-    { subject: 'Physics', mike: 4.3, tony: 8.5 },
-    ...
-]
-```
-
-Here, `subject` is a common category, while `mike` and `tony` are distinct numerical datasets.
-
-The Radar Line Chart shown below is created with this series configuration.
-
-{% chartExampleRunner title="Simple Radar Line" name="simple-radar-line" type="generated" options="{ \"enterprise\": true }" /%}
-
 ## Customisation
 
 ### Axis Shape
 
+{% chartExampleRunner title="Axis Shape" name="axis-shape" type="generated" options="{ \"enterprise\": true }" /%}
+
 For Polar Axes, there are two shape options:
 
--   `polygon`: Categories are connected with straight lines (default).
--   `circle`: Axis grid is composed of concentric circles.
+-   `polygon`: connected with straight lines (default).
+-   `circle`: composed of concentric circles.
 
-To switch to the `circle` shape, use the following `axes` configuration:
+The following configuration uses the `circle` shape on both axes:
 
 ```js
 axes: [
@@ -57,11 +45,9 @@ axes: [
 ],
 ```
 
-This configuration is used in the example below:
-
-{% chartExampleRunner title="Axis Shape" name="axis-shape" type="generated" options="{ \"enterprise\": true }" /%}
-
 ### Axis Label Orientation
+
+{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
 
 To change Angle Axis Label orientation, use the `label.orientation` property with these options:
 
@@ -83,11 +69,9 @@ axes: [
 ],
 ```
 
-The result of setting the `label.orientation` to `'parallel'` is shown in the example below:
-
-{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
-
 ### Radius Axis Position
+
+{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
 
 Customise Radius Axis line position with `positionAngle` and axis label rotation using `label.rotation`:
 
@@ -103,10 +87,6 @@ axes: [
     },
 ],
 ```
-
-The results of these `positionAngle` and `label.rotation` settings is shown in the example below:
-
-{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 
