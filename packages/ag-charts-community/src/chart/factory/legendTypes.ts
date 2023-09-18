@@ -1,4 +1,4 @@
-import type { LegendConstructor } from '../../util/module';
+import type { LegendConstructor } from '../../util/coreModules';
 import type { ModuleContext } from '../../util/moduleContext';
 import { Legend } from '../legend';
 import type { ChartLegend, ChartLegendType } from '../legendDatum';

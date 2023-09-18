@@ -17,7 +17,7 @@ import { getChartTheme } from './themes';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
 import { Logger } from '../../util/logger';
-import type { SeriesPaletteFactory } from '../../util/module';
+import type { SeriesPaletteFactory } from '../../util/coreModules';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import {

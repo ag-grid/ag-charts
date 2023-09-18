@@ -25,14 +25,6 @@ import {
     type SeriesOptionsTypes,
 } from './mapping/types';
 import { windowValue } from '../util/window';
-import type {
-    AxisOptionModule,
-    SeriesOptionModule,
-    LegendModule,
-    Module,
-    ModuleInstance,
-    RootModule,
-} from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
@@ -40,6 +32,10 @@ import { getJsonApplyOptions } from './chartOptions';
 import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
 import { getLegendKeys } from './factory/legendTypes';
+import type { Module } from '../util/module';
+import type { ModuleInstance } from '../util/baseModule';
+import type { LegendModule, RootModule } from '../util/coreModules';
+import type { AxisOptionModule, SeriesOptionModule } from '../util/optionModules';
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 

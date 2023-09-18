@@ -38,8 +38,9 @@ import { ActionOnSet } from '../../util/proxy';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
-import { ModuleMap, ModuleContextInitialiser } from '../../util/moduleMap';
-import type { SeriesOptionModule } from '../../util/module';
+import type { ModuleContextInitialiser } from '../../util/moduleMap';
+import { ModuleMap } from '../../util/moduleMap';
+import type { SeriesOptionModule } from '../../util/optionModules';
 
 /**
  * Processed series datum used in node selections,
