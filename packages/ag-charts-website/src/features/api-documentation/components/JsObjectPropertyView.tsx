@@ -312,7 +312,7 @@ function ArrayPropertyView({
                     </td>
                 </tr>
             )}
-            {showChildren && (
+            {showChildren && elements.type !== 'primitive' && (
                 <NestedArrayProperties
                     parentId={id}
                     parentName={name}
