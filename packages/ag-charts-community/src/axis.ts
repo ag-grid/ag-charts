@@ -20,7 +20,7 @@ import { axisLabelsOverlap } from './util/labelPlacement';
 import { ContinuousScale } from './scale/continuousScale';
 import { Matrix } from './scene/matrix';
 import { TimeScale } from './scale/timeScale';
-import type { AgAxisCaptionFormatterParams, AgAxisGridStyle, TextWrap } from './options/agChartOptions';
+import type { AgAxisCaptionFormatterParams, AgAxisGridStyle } from './options/agChartOptions';
 import { LogScale } from './scale/logScale';
 import { extent } from './util/array';
 import { ChartAxisDirection } from './chart/chartAxisDirection';
@@ -478,7 +478,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         this.updateScale();
         this.updatePosition({ rotation, sideFlag });
-        this.updateLine();
+
+        this.lineNode.setProperties({
+            x: 0,
+            y1: this.range[0],
+            y2: this.range[1],
+            stroke: this.line.color,
+            strokeWidth: this.line.width,
+            visible: this.line.enabled,
+        });
 
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.generateTicks({
             primaryTickCount,
@@ -1092,38 +1100,28 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateSelections(data: TickDatum[]) {
-        const gridData = this.gridLength ? data : [];
-        const gridLineGroupSelection = this.gridLineGroupSelection.update(
-            gridData,
+        const getDatumId = (datum: TickDatum) => datum.tickId;
+        this.gridLineGroupSelection.update(
+            this.gridLength ? data : [],
             (group) => {
-                const node = new Line();
-                node.tag = Tags.GridLine;
-                group.append(node);
+                group.append(new Line({ tag: Tags.GridLine }));
             },
-            (datum: TickDatum) => datum.tickId
+            getDatumId
         );
-        const tickLineGroupSelection = this.tickLineGroupSelection.update(
+        this.tickLineGroupSelection.update(
             data,
             (group) => {
-                const line = new Line();
-                line.tag = Tags.TickLine;
-                group.appendChild(line);
+                group.appendChild(new Line({ tag: Tags.TickLine }));
             },
-            (datum: TickDatum) => datum.tickId
+            getDatumId
         );
-        const tickLabelGroupSelection = this.tickLabelGroupSelection.update(
+        this.tickLabelGroupSelection.update(
             data,
             (group) => {
-                const text = new Text();
-                text.tag = Tags.TickLabel;
-                group.appendChild(text);
+                group.appendChild(new Text({ tag: Tags.TickLabel }));
             },
-            (datum: TickDatum) => datum.tickId
+            getDatumId
         );
-
-        this.tickLineGroupSelection = tickLineGroupSelection;
-        this.tickLabelGroupSelection = tickLabelGroupSelection;
-        this.gridLineGroupSelection = gridLineGroupSelection;
     }
 
     protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
@@ -1131,19 +1129,17 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (gridLength === 0 || gridStyle.length === 0) {
             return;
         }
-        const styleCount = gridStyle.length;
         this.gridLineGroupSelection.each((line, _, index) => {
-            const style = gridStyle[index % styleCount];
-
-            line.x1 = gridPadding;
-            line.x2 = -sideFlag * gridLength + gridPadding;
-            line.y1 = 0;
-            line.y2 = 0;
-
-            line.stroke = style.stroke;
-            line.strokeWidth = tick.width;
-            line.lineDash = style.lineDash;
-            line.fill = undefined;
+            const style = gridStyle[index % gridStyle.length];
+            line.setProperties({
+                x1: gridPadding,
+                x2: -sideFlag * gridLength + gridPadding,
+                y: 0,
+                fill: undefined,
+                stroke: style.stroke,
+                strokeWidth: tick.width,
+                lineDash: style.lineDash,
+            });
         });
     }
 
@@ -1160,38 +1156,37 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         textAlign: CanvasTextAlign;
         labelX: number;
     }) {
-        const {
-            label,
-            label: { enabled: labelsEnabled },
-        } = this;
+        const { label } = this;
 
-        if (!labelsEnabled) {
+        if (!label.enabled) {
             return;
         }
 
         // Apply label option values
         tickLabelGroupSelection.each((node, datum) => {
-            const { tickLabel } = datum;
-            node.fontStyle = label.fontStyle;
-            node.fontWeight = label.fontWeight;
-            node.fontSize = label.fontSize;
-            node.fontFamily = label.fontFamily;
-            node.fill = label.color;
-            node.text = tickLabel;
-            const userHidden = node.text === '' || node.text == undefined;
+            node.setProperties({
+                fill: label.color,
+                text: datum.tickLabel,
+                fontFamily: label.fontFamily,
+                fontSize: label.fontSize,
+                fontStyle: label.fontStyle,
+                fontWeight: label.fontWeight,
+            });
 
-            if (userHidden) {
+            if (node.text === '' || node.text == undefined) {
                 node.visible = false; // hide empty labels
                 return;
             }
 
             // Position labels
-            node.textBaseline = textBaseline;
-            node.textAlign = textAlign;
-            node.x = labelX;
-            node.rotationCenterX = labelX;
-            node.rotation = combinedRotation;
-            node.visible = true;
+            node.setProperties({
+                visible: true,
+                x: labelX,
+                rotationCenterX: labelX,
+                rotation: combinedRotation,
+                textAlign,
+                textBaseline,
+            });
         });
     }
 
@@ -1211,26 +1206,16 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const maxLabelHeight = maxHeight ?? defaultMaxLabelHeight;
 
         tickData.ticks.forEach((tickDatum) => {
-            const { tickLabel } = tickDatum;
-            const wrapping: TextWrap = 'hyphenate';
-            const wrappedTickLabel = Text.wrap(tickLabel, maxLabelWidth, maxLabelHeight, labelProps, wrapping);
-            tickDatum.tickLabel = wrappedTickLabel;
+            tickDatum.tickLabel = Text.wrap(
+                tickDatum.tickLabel,
+                maxLabelWidth,
+                maxLabelHeight,
+                labelProps,
+                'hyphenate'
+            );
         });
 
         return { tickData, index, autoRotation: 0, terminate: true };
-    }
-
-    private updateLine() {
-        // Render axis line.
-        const { lineNode, range: requestedRange } = this;
-
-        lineNode.x1 = 0;
-        lineNode.x2 = 0;
-        lineNode.y1 = requestedRange[0];
-        lineNode.y2 = requestedRange[1];
-        lineNode.strokeWidth = this.line.width;
-        lineNode.stroke = this.line.color;
-        lineNode.visible = this.line.enabled;
     }
 
     protected updateTitle({
@@ -1240,7 +1225,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         anyTickVisible: boolean;
         sideFlag: ChartAxisLabelFlipFlag;
     }): void {
-        const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
         const {
             rotation,
             title,
@@ -1251,12 +1235,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             tickLabelGroup,
             moduleCtx: { callbackCache },
         } = this;
-        const { formatter = identityFormatter } = this.title ?? {};
 
         if (!title) {
             _titleCaption.enabled = false;
             return;
         }
+
+        const { formatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue } = title;
 
         _titleCaption.enabled = title.enabled;
         _titleCaption.fontFamily = title.fontFamily;
@@ -1289,14 +1274,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 }
             }
 
-            if (sideFlag === -1) {
-                titleNode.y = Math.floor(titleRotationFlag * (-padding - bboxYDimension));
-            } else {
-                titleNode.y = Math.floor(-padding - bboxYDimension);
-            }
-            titleNode.textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
-
-            titleNode.text = callbackCache.call(formatter, this.getTitleFormatterParams());
+            titleNode.setProperties({
+                y:
+                    sideFlag === -1
+                        ? Math.floor(titleRotationFlag * (-padding - bboxYDimension))
+                        : Math.floor(-padding - bboxYDimension),
+                textBaseline: titleRotationFlag === 1 ? 'bottom' : 'top',
+                text: callbackCache.call(formatter, this.getTitleFormatterParams()),
+            });
         }
 
         titleNode.visible = titleVisible;
