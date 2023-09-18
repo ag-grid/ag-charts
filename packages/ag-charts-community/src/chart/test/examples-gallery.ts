@@ -71,11 +71,11 @@ export const EXAMPLES: Record<string, TestCase> = {
     },
     BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: {
         options: examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bubble'] }),
     },
     BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE: {
         options: examples.BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'category'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'category'], seriesTypes: ['bubble'] }),
     },
     SIMPLE_AREA_GRAPH_EXAMPLE: {
         options: examples.SIMPLE_AREA_GRAPH_EXAMPLE,
