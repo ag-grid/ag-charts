@@ -767,9 +767,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private initSeries(series: Series<any>) {
         series.chart = this;
-        // if (!series.data) {
-        //     series.data = this.data;
-        // }
         series.setChartData(this.data);
         this.addSeriesListeners(series);
 
