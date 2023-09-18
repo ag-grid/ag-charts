@@ -1889,7 +1889,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    async resetSectors() {
+    resetSectors() {
         const sectors = this.sortSectorsByData(this.groupSelection.cleanup().selectByTag<Sector>(PieNodeTag.Sector));
 
         sectors.forEach((sector, index) => {

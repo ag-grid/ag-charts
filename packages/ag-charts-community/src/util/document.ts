@@ -1,5 +1,5 @@
 export function onContentLoaded(handler: CallableFunction) {
-    if (document.readyState === 'complete') {
+    if (typeof document === 'undefined' || document.readyState === 'complete') {
         handler();
     } else {
         window.addEventListener('DOMContentLoaded', () => handler());
