@@ -5,10 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `Night & Gale Inc revenue`,
-    },
-    subtitle: {
-        text: 'in million U.S. dollars',
+        text: `Revenue by product category`,
     },
     series: [
         {

@@ -5,20 +5,20 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Harbour Bank Financial Report (in £ millions)',
+        text: 'KPIs by Department',
     },
     series: [
         {
             type: 'radar-line',
-            angleKey: 'classification',
-            radiusKey: 'january_balance',
-            radiusName: `January Balance`,
+            angleKey: 'department',
+            radiusKey: 'employeeRetention',
+            radiusName: 'Employee Retention',
         },
         {
             type: 'radar-line',
-            angleKey: 'classification',
-            radiusKey: 'february_balance',
-            radiusName: `February Balance`,
+            angleKey: 'department',
+            radiusKey: 'efficiency',
+            radiusName: 'Efficiency',
         },
     ],
     axes: [
@@ -27,9 +27,9 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            positionAngle: 60,
+            positionAngle: 72,
             label: {
-                rotation: -60,
+                rotation: -72,
             },
         },
     ],

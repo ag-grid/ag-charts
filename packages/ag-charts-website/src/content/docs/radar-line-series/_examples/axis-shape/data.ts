@@ -1,10 +1,29 @@
 export function getData() {
     return [
-        { classification: 'Cash and Equivalents', january_balance: 500, february_balance: 600 },
-        { classification: 'Accounts Receivable', january_balance: 450, february_balance: 550 },
-        { classification: 'Investments', january_balance: 250, february_balance: 300 },
-        { classification: 'Customer Deposits', january_balance: 450, february_balance: 520 },
-        { classification: 'Short-Term Borrowings', january_balance: 300, february_balance: 350 },
-        { classification: 'Common Stock', january_balance: 400, february_balance: 450 },
+        {
+            department: 'Sales',            
+            employeeRetention: 60,
+            efficiency: 75,            
+        },
+        {
+            department: 'Engineering',            
+            employeeRetention: 95,
+            efficiency: 90,            
+        },
+        {
+            department: 'HR',            
+            employeeRetention: 85,
+            efficiency: 60,            
+        },
+        {
+            department: 'Marketing',            
+            employeeRetention: 70,
+            efficiency: 60,            
+        },
+        {
+            department: 'Finance',            
+            employeeRetention: 85,
+            efficiency: 80,            
+        },
     ];
 }
