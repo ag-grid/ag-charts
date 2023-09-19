@@ -1,17 +1,10 @@
 import type { Series } from '../series/series';
-import { PieSeries } from '../series/polar/pieSeries';
-import { TreemapSeries } from '../series/hierarchy/treemapSeries';
 import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/module';
 import type { ModuleContext } from '../../util/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import type { SeriesOptionsTypes } from '../mapping/types';
-
-const BUILT_IN_SERIES_FACTORIES: Record<string, SeriesConstructor> = {
-    pie: PieSeries,
-    treemap: TreemapSeries,
-};
 
 const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
@@ -57,7 +50,7 @@ export function registerSeries(
 }
 
 export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {
-    const seriesConstructor = SERIES_FACTORIES[chartType] ?? BUILT_IN_SERIES_FACTORIES[chartType];
+    const seriesConstructor = SERIES_FACTORIES[chartType];
     if (seriesConstructor) {
         return new seriesConstructor(moduleCtx);
     }

@@ -1,11 +1,9 @@
 import { jsonMerge, jsonWalk } from '../../util/json';
 import { deepMerge } from '../../util/object';
 import type {
-    FontWeight,
     AgChartThemePalette,
     AgChartThemeOptions,
     AgChartThemeOverrides,
-    AgChartLegendPosition,
     InteractionRange,
     AgChartTheme,
     AgCommonThemeableChartOptions,
@@ -15,6 +13,8 @@ import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartT
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
 import {
+    BOLD,
+    BOTTOM,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
@@ -36,9 +36,6 @@ const palette: AgChartThemePalette = {
     fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
     strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
 };
-
-const BOLD: FontWeight = 'bold';
-const BOTTOM: AgChartLegendPosition = 'bottom';
 
 type ChartTypeConfig = {
     seriesTypes: string[];
@@ -277,168 +274,6 @@ export class ChartTheme {
         },
     };
 
-    private static readonly polarDefaults: Partial<AgChartThemeOverrides> = {
-        pie: {
-            ...ChartTheme.getChartDefaults(),
-            series: {
-                ...ChartTheme.getSeriesDefaults(),
-                title: {
-                    enabled: true,
-                    fontStyle: undefined,
-                    fontWeight: BOLD,
-                    fontSize: 14,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                    spacing: 0,
-                },
-                calloutLabel: {
-                    enabled: true,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                    offset: 3,
-                    minAngle: 0,
-                },
-                sectorLabel: {
-                    enabled: true,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                    positionOffset: 0,
-                    positionRatio: 0.5,
-                },
-                calloutLine: {
-                    length: 10,
-                    strokeWidth: 2,
-                },
-                fillOpacity: 1,
-                strokeOpacity: 1,
-                strokeWidth: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-                rotation: 0,
-                outerRadiusOffset: 0,
-                innerRadiusOffset: 0,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
-                innerLabels: {
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                    margin: 2,
-                },
-            },
-        },
-    };
-
-    private static readonly hierarchyDefaults: Partial<AgChartThemeOverrides> = {
-        treemap: {
-            ...ChartTheme.getChartDefaults(),
-            series: {
-                ...ChartTheme.getSeriesDefaults(),
-                showInLegend: false,
-                colorDomain: [-5, 5],
-                colorRange: ['#cb4b3f', '#6acb64'],
-                groupFill: '#272931',
-                groupStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
-                groupStrokeWidth: 1,
-                tileStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
-                tileStrokeWidth: 1,
-                gradient: true,
-                tileShadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
-                labelShadow: {
-                    enabled: true,
-                    color: 'rgba(0, 0, 0, 0.4)',
-                    xOffset: 1.5,
-                    yOffset: 1.5,
-                    blur: 5,
-                },
-                highlightGroups: true,
-                nodePadding: 2,
-                nodeGap: 0,
-                title: {
-                    enabled: true,
-                    color: DEFAULT_LABEL_COLOUR,
-                    fontStyle: undefined,
-                    fontWeight: BOLD,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    padding: 2,
-                },
-                subtitle: {
-                    enabled: true,
-                    color: DEFAULT_MUTED_LABEL_COLOUR,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 9,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    padding: 2,
-                },
-                labels: {
-                    large: {
-                        enabled: true,
-                        fontStyle: undefined,
-                        fontWeight: BOLD,
-                        fontSize: 18,
-                        fontFamily: DEFAULT_FONT_FAMILY,
-                        color: DEFAULT_LABEL_COLOUR,
-                        wrapping: 'on-space',
-                    },
-                    medium: {
-                        enabled: true,
-                        fontStyle: undefined,
-                        fontWeight: BOLD,
-                        fontSize: 14,
-                        fontFamily: DEFAULT_FONT_FAMILY,
-                        color: DEFAULT_LABEL_COLOUR,
-                        wrapping: 'on-space',
-                    },
-                    small: {
-                        enabled: true,
-                        fontStyle: undefined,
-                        fontWeight: BOLD,
-                        fontSize: 10,
-                        fontFamily: DEFAULT_FONT_FAMILY,
-                        color: DEFAULT_LABEL_COLOUR,
-                        wrapping: 'on-space',
-                    },
-                    value: {
-                        style: {
-                            enabled: true,
-                            fontStyle: undefined,
-                            fontWeight: undefined,
-                            fontSize: 12,
-                            fontFamily: DEFAULT_FONT_FAMILY,
-                            color: DEFAULT_LABEL_COLOUR,
-                        },
-                    },
-                },
-            },
-        },
-    };
-
-    private static readonly defaults: AgChartThemeOverrides = {
-        ...ChartTheme.polarDefaults,
-        ...ChartTheme.hierarchyDefaults,
-    };
-
     constructor(options?: AgChartTheme) {
         options = deepMerge({}, options ?? {}) as AgChartThemeOptions;
         const { overrides = null, palette = null } = options;
@@ -497,7 +332,7 @@ export class ChartTheme {
     }
 
     private getDefaults(): AgChartThemeOverrides {
-        let defaults = deepMerge({}, ChartTheme.defaults);
+        let defaults = {};
 
         const getChartTypeDefaults = (chartType: ChartType) => {
             return {

@@ -1,3 +1,5 @@
+import type { AgChartLegendPosition, FontWeight } from '../../options/agChartOptions';
+
 export const EXTENDS_CHART_DEFAULTS = Symbol('extends-chart-defaults') as unknown as string;
 export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults') as unknown as string;
 export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults') as unknown as string;
@@ -13,3 +15,6 @@ export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour') as un
 export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour') as unknown as string;
+
+export const BOLD: FontWeight = 'bold';
+export const BOTTOM: AgChartLegendPosition = 'bottom';

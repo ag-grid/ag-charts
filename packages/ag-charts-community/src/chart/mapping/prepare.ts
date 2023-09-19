@@ -14,12 +14,7 @@ import { processSeriesOptions } from './prepareSeries';
 import { Logger } from '../../util/logger';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
-import {
-    addSeriesPaletteFactory,
-    getSeriesDefaults,
-    getSeriesPaletteFactory,
-    isDefaultAxisSwapNeeded,
-} from '../factory/seriesTypes';
+import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
 import {
     type AxesOptionsTypes,
     type SeriesOptionsTypes,
@@ -220,8 +215,6 @@ function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext
     const removeOptions = { stacked: DELETE, grouped: DELETE } as T;
     return jsonMerge([...defaults, paletteOptions, input, removeOptions], noDataCloneMergeOptions);
 }
-
-addSeriesPaletteFactory('pie', ({ takeColors, colorsCount }) => takeColors(colorsCount));
 
 function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: PreparationContext, input: T): T {
     const paletteFactory = getSeriesPaletteFactory(input.type!);
