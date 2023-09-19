@@ -66,7 +66,7 @@ export interface AgWaterfallSeriesOptions<DatumType = any>
     extends AgWaterfallSeriesThemeableOptions<DatumType>,
         AgBaseSeriesOptions<DatumType> {
     /** Configuration for the Waterfall series. */
-    type?: 'waterfall';
+    type: 'waterfall';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-values from the data. */

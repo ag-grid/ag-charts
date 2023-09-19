@@ -7,6 +7,9 @@ import {
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/chartTheme';
+import { NumberAxis } from '../../axis/numberAxis';
+import { CategoryAxis } from '../../axis/categoryAxis';
+import { singleSeriesPaletteFactory } from '../../mapping/defaults';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
@@ -21,11 +24,11 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     seriesDefaults: {
         axes: [
             {
-                type: 'number',
+                type: NumberAxis.type,
                 position: 'bottom',
             },
             {
-                type: 'category',
+                type: CategoryAxis.type,
                 position: 'left',
             },
         ],
@@ -56,11 +59,5 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             blur: 5,
         },
     },
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills: [fill],
-            strokes: [stroke],
-        } = takeColors(1);
-        return { fill, stroke };
-    },
+    paletteFactory: singleSeriesPaletteFactory,
 };

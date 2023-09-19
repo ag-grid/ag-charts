@@ -1,7 +1,7 @@
 import type { AgBaseRadarSeriesOptions } from './radarOptions';
 
 export interface AgRadarLineSeriesOptions<DatumType = any> extends AgBaseRadarSeriesOptions<DatumType> {
-    type?: 'radar-line';
+    type: 'radar-line';
 }
 
 /**

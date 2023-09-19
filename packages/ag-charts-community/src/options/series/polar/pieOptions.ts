@@ -163,9 +163,9 @@ export interface AgPieSeriesThemeableOptions<DatumType = any> extends AgBaseSeri
 export interface AgPieSeriesOptions<DatumType = any>
     extends Omit<AgPieSeriesThemeableOptions<DatumType>, 'innerLabels'>,
         AgBaseSeriesOptions<DatumType> {
-    type?: 'pie';
+    type: 'pie';
     /** The key to use to retrieve angle values from the data. */
-    angleKey?: string;
+    angleKey: string;
     /** A human-readable description of the angle values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     angleName?: string;
     /** The key to use to retrieve radius values from the data. */
