@@ -105,7 +105,14 @@ function transformer(sourceFile: string, dataFile?: string) {
             j.property(
                 'init',
                 j.identifier('series'),
-                j.objectExpression([j.property('init', j.identifier('fillOpacity'), j.literal(0.6))])
+                j.objectExpression([
+                    j.property('init', j.identifier('fillOpacity'), j.literal(0.6)),
+                    j.property(
+                        'init',
+                        j.identifier('shadow'),
+                        j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
+                    ),
+                ])
             ),
         ])
     );
@@ -262,34 +269,6 @@ function transformer(sourceFile: string, dataFile?: string) {
             )
         );
     }
-
-    // Series
-    optionsExpression
-        .find(j.Property, {
-            key: {
-                name: 'series',
-            },
-        })
-        .find(j.ObjectExpression)
-        .forEach((path) => {
-            const seriesPropertyNode = path.node;
-            let nodeProperties = seriesPropertyNode.properties;
-
-            nodeProperties = filterPropertyKeys({
-                removePropertyKeys: ['fill', 'stroke', 'shadow'],
-                properties: nodeProperties,
-            });
-
-            nodeProperties.push(
-                j.property(
-                    'init',
-                    j.identifier('shadow'),
-                    j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
-                )
-            );
-
-            seriesPropertyNode.properties = nodeProperties;
-        });
 
     // Remove any padding
     const paddingPropertyNode = j.property(
