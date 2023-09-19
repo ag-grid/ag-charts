@@ -4,6 +4,7 @@ import type {
     AgBaseAxisOptions,
     AgBaseSeriesOptions,
 } from '../options/agChartOptions';
+import { Debug } from '../util/debug';
 import { CartesianChart } from './cartesianChart';
 import { PolarChart } from './polarChart';
 import { HierarchyChart } from './hierarchyChart';
@@ -24,7 +25,6 @@ import {
     optionsType,
     type SeriesOptionsTypes,
 } from './mapping/types';
-import { windowValue } from '../util/window';
 import {
     REGISTERED_MODULES,
     type AxisOptionModule,
@@ -39,6 +39,8 @@ import { getJsonApplyOptions } from './chartOptions';
 import { setupModules } from './factory/setupModules';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
+
+const debug = Debug.create(true, 'opts');
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
