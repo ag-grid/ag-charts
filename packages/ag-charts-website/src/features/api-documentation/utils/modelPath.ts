@@ -76,6 +76,58 @@ function getTopLevelNestedObject({ model, path }: { model: JsonModel; path: stri
     return topLevelModel;
 }
 
+function pathMatches({ pathMatcher, pathToCheck }: { pathMatcher: string[]; pathToCheck: string[] }): boolean {
+    let doesMatch = false;
+    for (let i = 0; i < pathMatcher.length; i++) {
+        const matchItem = pathMatcher[i];
+        const checkItem = pathToCheck[i];
+        const isWildcard = matchItem === '*';
+
+        doesMatch = isWildcard ? true : matchItem === checkItem;
+
+        if (!doesMatch) {
+            break;
+        }
+    }
+
+    return doesMatch;
+}
+
+export function getLastTopLevelPath({
+    path,
+    pathItem,
+    config,
+}: {
+    path: string[];
+    pathItem: string;
+    config?: JsObjectPropertiesViewConfig;
+}): string[] {
+    const topLevelParentProperties = config?.topLevelParentProperties;
+    if (!topLevelParentProperties) {
+        return [];
+    }
+
+    const checkPath = path.concat(pathItem);
+    let topLevelPath: string[] = [];
+    topLevelParentProperties.forEach((property, index) => {
+        const propertyPath = property.split('.');
+
+        if (
+            pathMatches({
+                pathMatcher: propertyPath,
+                pathToCheck: checkPath,
+            })
+        ) {
+            const propertyPathLength = propertyPath.length;
+            if (propertyPathLength > topLevelPath.length) {
+                topLevelPath = checkPath.slice(0, propertyPathLength);
+            }
+        }
+    });
+
+    return topLevelPath;
+}
+
 export function getTopLevelSelection({
     selection,
     model,
@@ -137,7 +189,11 @@ export function getTopLevelSelection({
                 };
             } else if (topLevelModel.desc.type === 'nested-object') {
                 const { propName } = selection;
-                const path = selection.path.concat(propName);
+                const path = getLastTopLevelPath({
+                    config,
+                    path: selection.path,
+                    pathItem: propName,
+                });
                 const topLevelObject = getTopLevelNestedObject({
                     model,
                     path,

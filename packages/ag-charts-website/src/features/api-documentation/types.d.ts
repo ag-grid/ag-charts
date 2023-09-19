@@ -309,6 +309,13 @@ export interface JsObjectPropertiesViewConfig {
      * The property can also be a `.` separated path with wildcard `*` eg, `overrides.*`
      */
     limitChildrenProperties?: string[];
+
+    /**
+     * Properties to limit the top level parents
+     *
+     * The most specific parent is used
+     */
+    topLevelParentProperties?: string[];
 }
 
 export interface InterfaceDocumentationProps {
