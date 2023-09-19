@@ -62,8 +62,6 @@ export interface AgSeriesMarker {
     shape?: MarkerShape;
     /** The size in pixels of the markers. */
     size?: PixelSize;
-    /** For series where the size of the marker is determined by the data, this determines the largest size a marker can be in pixels. */
-    maxSize?: PixelSize;
     /** The colour to use for marker fills. If this is not specified, the markers will take their fill from the series. */
     fill?: CssColor;
     /** Opacity of the marker fills. */

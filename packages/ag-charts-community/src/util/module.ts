@@ -18,7 +18,6 @@ interface SeriesPaletteOptions {
 }
 interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
-    seriesCount: number;
     colorsCount: number;
 }
 export type SeriesPaletteFactory = (params: SeriesPaletteFactoryParams) => SeriesPaletteOptions;

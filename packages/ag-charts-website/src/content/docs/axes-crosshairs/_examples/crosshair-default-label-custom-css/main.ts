@@ -9,7 +9,7 @@ const options: AgCartesianChartOptions = {
   data: getData(),
   series: [
     {
-      type: "scatter",
+      type: "bubble",
       sizeKey: "planetRadius",
       yKey: "equilibriumTemp",
       xKey: "distance",

@@ -37,19 +37,6 @@ import {
     optionsType,
 } from './types';
 
-function countArrayElements<T extends any[] | any[][]>(input: T): number {
-    let count = 0;
-    for (const next of input) {
-        if (next instanceof Array) {
-            count += countArrayElements(next);
-        }
-        if (next != null) {
-            count++;
-        }
-    }
-    return count;
-}
-
 function takeColours(context: PreparationContext, colours: string[], maxCount: number): string[] {
     const result = [];
 
@@ -266,6 +253,10 @@ addSeriesPaletteFactory('scatter', (params) => {
     const { fill, stroke } = singleSeriesPaletteFactory(params);
     return { marker: { fill, stroke } };
 });
+addSeriesPaletteFactory('bubble', (params) => {
+    const { fill, stroke } = singleSeriesPaletteFactory(params);
+    return { marker: { fill, stroke } };
+});
 addSeriesPaletteFactory('line', (params) => {
     const { fill, stroke } = singleSeriesPaletteFactory(params);
     return {
@@ -284,11 +275,8 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
         palette: { fills, strokes },
     } = context;
 
-    const inputAny = input as any;
-    const seriesCount = countArrayElements(inputAny['yKeys'] ?? []) || 1; // Defaults to 1 if no yKeys.
     const colorsCount = Math.max(fills.length, strokes.length);
     return paletteFactory({
-        seriesCount,
         colorsCount,
         takeColors: (count) => {
             const colors = {

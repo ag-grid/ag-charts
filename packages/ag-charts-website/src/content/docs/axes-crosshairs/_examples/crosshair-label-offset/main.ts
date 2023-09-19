@@ -16,7 +16,7 @@ const options : AgCartesianChartOptions = {
   },
   series: [
     {
-      type: 'scatter',
+      type: 'bubble',
       sizeKey: 'planetRadius',
       yKey: 'equilibriumTemp',
       xKey: 'planetRadius',

@@ -8,6 +8,8 @@ falling bars to create a cascading waterfall effect.
 
 ## Simple Waterfall
 
+{% chartExampleRunner title="Simple Waterfall" name="simple-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
+
 The Waterfall Series is designed to display a single series and is created using the `waterfall` series type.
 
 ```js
@@ -23,10 +25,6 @@ series: [
 The `xKey` defines categories for the [Category Axis](/charts-axes-types/#category), and the `yKey` supplies numerical
 values for the [Number Axis](/charts-axes-types/#number).
 
-The following example shows a simple Waterfall Series using default options.
-
-{% chartExampleRunner title="Simple Waterfall" name="simple-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
-
 {% note %}
 Legend toggling is disabled in Waterfall Series to avoid misleading or incorrect data representation.
 {% /note %}
@@ -38,6 +36,8 @@ These values are automatically calculated based on the following criteria:
 
 -   **Total**: Accumulates all values from the starting point (zero) up to the current point.
 -   **Subtotal**: Begins at the last Total or Subtotal and sums up to the current point.
+
+{% chartExampleRunner title="Total Subtotal Values" name="total-subtotal-values" type="generated" options="{ \"enterprise\": true }" /%}
 
 Total and Subtotal values are added to the `totals` array within the `series` options object.
 
@@ -62,18 +62,13 @@ In this configuration:
 -   `index` determines the position in the data after which the Total or Subtotal will appear.
 -   `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](/charts-axes-types/#category).
 
-Note the following in the example:
-
--   'Total Revenue' and 'Total Expenditure' use `totalType: 'subtotal'` to introduce subtotals.
--   'Total Borrowing' uses `totalType: 'total'` to indicate an overall total.
-
-{% chartExampleRunner title="Total Subtotal Values" name="total-subtotal-values" type="generated" options="{ \"enterprise\": true }" /%}
-
 ## Customisation
 
 ### Series Items
 
-Series items can be customised via the `item` configuration object.
+{% chartExampleRunner title="Customising Series Items" name="customising-series-items" type="generated" options="{ \"enterprise\": true }" /%}
+
+Series items are be customised via the `item` configuration object.
 
 ```js
 series: [
@@ -100,7 +95,7 @@ series: [
 ],
 ```
 
-In the `item` configuration:
+In this configuration:
 
 -   `positive` and `negative` change Positive/Negative series items.
 -   `total` changes Total/Subtotal series items.
@@ -108,11 +103,9 @@ In the `item` configuration:
 Note that the `total` series item also contains a `name` property to change the total name to 'Total / Subtotal' in the
 Total legend item and tooltips.
 
-The example below demonstrates these series item customisations.
-
-{% chartExampleRunner title="Customising Series Items" name="customising-series-items" type="generated" options="{ \"enterprise\": true }" /%}
-
 ### Connector Lines
+
+{% chartExampleRunner title="Customising Connector Lines" name="customising-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
 
 Connector lines between the bars can be customised using the `line` property.
 
@@ -132,11 +125,9 @@ series: [
 
 To remove the connector lines, set `line.enabled` to `false`.
 
-The following example shows a simple Waterfall Series with `red` connector lines between the bars.
-
-{% chartExampleRunner title="Customising Connector Lines" name="customising-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
-
 ## Horizontal Waterfall
+
+{% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
 To show a Horizontal Waterfall Series, set `direction: 'horizontal'`.
 
@@ -153,8 +144,6 @@ series: [
 
 When the `direction` is `'horizontal'` the `xKey` will define categories on the y-axis, while the `yKey` will represent numerical
 values along the x-axis.
-
-{% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

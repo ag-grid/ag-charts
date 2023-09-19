@@ -18,7 +18,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "scatter",
+      type: "bubble",
       xKey: "depth",
       xName: "Depth",
       yKey: "magnitude",

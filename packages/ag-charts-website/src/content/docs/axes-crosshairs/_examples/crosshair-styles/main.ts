@@ -12,7 +12,7 @@ const options : AgCartesianChartOptions = {
   },
   series: [
     {
-      type: 'scatter',
+      type: 'bubble',
       sizeKey: 'planetRadius',
       yKey: 'eccentricity',
       xKey: 'distance',
