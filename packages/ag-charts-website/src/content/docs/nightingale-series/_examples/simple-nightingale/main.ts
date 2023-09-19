@@ -14,19 +14,19 @@ const options: AgChartOptions = {
         {
             type: 'nightingale',
             angleKey: 'quarter',
-            radiusKey: 'air',
+            radiusKey: 'turbines',
             radiusName: 'Turbines',
         },
         {
             type: 'nightingale',
             angleKey: 'quarter',
-            radiusKey: 'winds',
+            radiusKey: 'compressors',
             radiusName: 'Compressors',
         },
         {
             type: 'nightingale',
             angleKey: 'quarter',
-            radiusKey: 'holes',
+            radiusKey: 'smoke_detectors',
             radiusName: 'Smoke Detectors',
         },
     ],

@@ -14,19 +14,19 @@ const options: AgChartOptions = {
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'air',
+            radiusKey: 'turbines',
             radiusName: 'Turbines',
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'winds',
+            radiusKey: 'compressors',
             radiusName: 'Compressors',
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'holes',
+            radiusKey: 'smoke_detectors',
             radiusName: 'Smoke Detectors',
         },
     ],

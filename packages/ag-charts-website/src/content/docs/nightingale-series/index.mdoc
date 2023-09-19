@@ -14,16 +14,16 @@ To create a Nightingale Series, use the `nightingale` series type.
 
 ```js
 series: [
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Turbines' },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Compressors' },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'holes', radiusName: 'Smoke Detectors' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'turbines', radiusName: 'Turbines' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'compressors', radiusName: 'Compressors' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'smoke_detectors', radiusName: 'Smoke Detectors' },
 ],
 ```
 
 In this configuration:
 
 -   `angleKey` is set to 'quarter', which is the shared category for the Angle Axis.
--   `radiusKey` specifies the numerical datasets, 'air', 'winds' and 'holes', for the Radius Axis.
+-   `radiusKey` specifies the numerical datasets, 'turbines', 'compressors' and 'smoke_detectors', for the Radius Axis.
 -   `radiusName` labels each series, such as 'Turbines', 'Compressors' and 'Smoke Detectors'.
 
 ## Grouped Nightingale
@@ -36,9 +36,9 @@ To group sectors in a Nightingale Series, enable the `grouped` series property.
 
 ```js
 series: [
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'air', grouped: true },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'winds', grouped: true },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'holes', grouped: true },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'turbines', grouped: true },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'compressors', grouped: true },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'smoke_detectors', grouped: true },
 ],
 ```
 
