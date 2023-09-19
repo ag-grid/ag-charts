@@ -2,25 +2,18 @@ import { toArray } from './array';
 import { Logger } from './logger';
 import { windowValue } from './window';
 
-type ConsoleFunction = (...logContent: any[]) => void;
-type DebugLogger = ConsoleFunction & { table: ConsoleFunction };
+type DebugLogger = (...logContent: any[]) => void;
 
 export const Debug = {
     create(...debugSelectors: Array<boolean | string>): DebugLogger {
-        function debugLogger(...logContent: any[]) {
+        return (...logContent: any[]) => {
             if (Debug.check(...debugSelectors)) {
+                if (typeof logContent[0] === 'function') {
+                    logContent = toArray(logContent[0]());
+                }
                 Logger.log(...logContent);
             }
-        }
-
-        debugLogger.table = (...logContent: any[]) => {
-            if (Debug.check(...debugSelectors)) {
-                // eslint-disable-next-line no-console
-                console.table(...logContent);
-            }
         };
-
-        return debugLogger;
     },
 
     check(...debugSelectors: Array<boolean | string>) {
