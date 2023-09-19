@@ -352,7 +352,7 @@ export class GradientLegend {
         } else {
             const d0 = colorDomain[i - 1];
             const d1 = colorDomain[i];
-            t = ((i - 1) + (colorValue - d0) / (d1 - d0))  / (colorDomain.length - 1);
+            t = (i - 1 + (colorValue - d0) / (d1 - d0)) / (colorDomain.length - 1);
         }
         if (reverseOrder) {
             t = 1 - t;
