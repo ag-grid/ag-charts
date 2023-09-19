@@ -18,11 +18,10 @@
 
     span {
         display: block;
-        font-size: var(--font-size-small);
         flex-grow: 1;
         padding: $size-1 $size-2;
-        border-top: 1px solid var(--bright-blue-gray);
         line-height: var(--line-height-tight);
+        border-top: 1px solid var(--bright-blue-gray);
         transition: color $default-transition-timing;
     }
 }

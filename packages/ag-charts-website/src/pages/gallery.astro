@@ -154,14 +154,23 @@ const { series } = galleryData;
 
     .menu a {
         --text-color: var(--secondary-text-color); // only applies to the icon?
-        color: var(--secondary-text-color);
         --icon-size: 1.75em;
 
         display: flex;
         align-items: center;
+        color: var(--secondary-text-color);
+
+        :global(.icon) {
+            opacity: 0.75;
+            transition: opacity $default-transition-timing, fill $default-transition-timing;
+        }
 
         &:hover {
             --text-color: var(--link-hover-color);
+
+            :global(.icon) {
+                opacity: 1;
+            }
         }
     }
 
