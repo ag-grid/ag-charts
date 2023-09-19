@@ -14,16 +14,16 @@ To create a Radar Line Series, use the `radar-line` series type.
 
 ```js
 series: [
-    { type: 'radar-line', angleKey: 'subject', radiusKey: 'mike', radiusName: `Mike's Grades` },
-    { type: 'radar-line', angleKey: 'subject', radiusKey: 'tony', radiusName: `Tony's Grades` },
+    { type: 'radar-line', angleKey: 'department', radiusKey: 'employeeRetention', radiusName: `Employee Retention` },
+    { type: 'radar-line', angleKey: 'department', radiusKey: 'efficiency', radiusName: `Efficiency` },
 ],
 ```
 
 In this configuration:
 
--   `angleKey` is set to 'subject', which is the shared category for the Angle Axis.
--   `radiusKey` specifies the numerical datasets, 'mike' and 'tony', for the Radius Axis.
--   `radiusName` labels each series, such as "Mike's Grades" and "Tony's Grades".
+-   `angleKey` is set to 'department', which is the shared category for the Angle Axis.
+-   `radiusKey` specifies the numerical datasets, 'employeeRetention' and 'efficiency', for the Radius Axis.
+-   `radiusName` labels each series, such as "Employee Retention" and "Efficiency".
 
 ## Customisation
 

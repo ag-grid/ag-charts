@@ -490,7 +490,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         this.updateSelections(tickData.ticks);
 
-        if (this.animationManager.skipAnimations) {
+        if (this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
         } else {
             const diff = this.calculateUpdateDiff(previous, tickData);

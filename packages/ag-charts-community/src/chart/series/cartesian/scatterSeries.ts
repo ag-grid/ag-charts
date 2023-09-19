@@ -129,7 +129,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-                ...(!animationManager.skipAnimations && this.processedData ? [diff(this.processedData)] : []),
+                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
             ],
             dataVisible: this.visible,
         });

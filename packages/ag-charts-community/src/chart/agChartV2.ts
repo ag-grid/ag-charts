@@ -1,27 +1,22 @@
-// Deliberately imported via `module-support` so that internal module registration happens.
-import { REGISTERED_MODULES } from '../module-support';
 import type {
+    AgChartOptions,
+    AgChartInstance,
     AgBaseAxisOptions,
     AgBaseSeriesOptions,
-    AgChartInstance,
-    AgChartOptions,
 } from '../options/agChartOptions';
-import { Debug } from '../util/debug';
-import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
-import { Logger } from '../util/logger';
-import type { AxisOptionModule, LegendModule, Module, ModuleInstance, RootModule } from '../util/module';
-import type { TypedEventListener } from '../util/observable';
 import { CartesianChart } from './cartesianChart';
-import type { Chart, SpecialOverrides } from './chart';
-import type { ChartAxis } from './chartAxis';
-import { getJsonApplyOptions } from './chartOptions';
-import { ChartUpdateType } from './chartUpdateType';
-import { getAxis } from './factory/axisTypes';
-import { getLegendKeys } from './factory/legendTypes';
-import { getSeries } from './factory/seriesTypes';
-import { setupModules } from './factory/setupModules';
+import { PolarChart } from './polarChart';
 import { HierarchyChart } from './hierarchyChart';
-import { noDataCloneMergeOptions, prepareOptions } from './mapping/prepare';
+import type { Series } from './series/series';
+import { getAxis } from './factory/axisTypes';
+import { getSeries } from './factory/seriesTypes';
+import { PieTitle } from './series/polar/pieSeries';
+import type { ChartAxis } from './chartAxis';
+import type { Chart, SpecialOverrides } from './chart';
+import { ChartUpdateType } from './chartUpdateType';
+import type { TypedEventListener } from '../util/observable';
+import { jsonDiff, jsonMerge, jsonApply } from '../util/json';
+import { prepareOptions, noDataCloneMergeOptions } from './mapping/prepare';
 import {
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
@@ -29,11 +24,21 @@ import {
     optionsType,
     type SeriesOptionsTypes,
 } from './mapping/types';
-import { PolarChart } from './polarChart';
-import { PieTitle } from './series/polar/pieSeries';
-import type { Series } from './series/series';
+import { windowValue } from '../util/window';
+import {
+    REGISTERED_MODULES,
+    type AxisOptionModule,
+    type LegendModule,
+    type Module,
+    type ModuleInstance,
+    type RootModule,
+} from '../util/module';
+import { Logger } from '../util/logger';
+import { getJsonApplyOptions } from './chartOptions';
 
-const debug = Debug.create(true, 'opts');
+import { setupModules } from './factory/setupModules';
+import { getLegendKeys } from './factory/legendTypes';
+import { registerInbuiltModules } from './factory/registerInbuiltModules';
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -181,6 +186,7 @@ abstract class AgChartInternal {
     static initialiseModules() {
         if (AgChartInternal.initialised) return;
 
+        registerInbuiltModules();
         setupModules();
 
         AgChartInternal.initialised = true;

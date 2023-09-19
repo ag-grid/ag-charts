@@ -133,7 +133,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datums and
         // automatically garbage collect the marker selection.
-        if (this.ctx.animationManager.skipAnimations) {
+        if (this.ctx.animationManager.isSkipped()) {
             this.markerSelectionGarbageCollection = true;
         } else {
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
@@ -144,7 +144,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
-        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
             props.push(diff(this.processedData));
         }
 
@@ -1059,7 +1059,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     }
 
     private getDatumId(datum: LineNodeDatum) {
-        if (this.ctx.animationManager.skipAnimations) return '';
+        if (this.ctx.animationManager.isSkipped()) return '';
         return createDatumId([`${datum.xValue}`]);
     }
 

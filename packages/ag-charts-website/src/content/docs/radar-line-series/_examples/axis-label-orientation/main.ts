@@ -5,20 +5,20 @@ const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'School Grades',
+        text: 'KPIs by Department',
     },
     series: [
         {
             type: 'radar-line',
-            angleKey: 'subject',
-            radiusKey: 'mike',
-            radiusName: `Mike's grades`,
+            angleKey: 'department',
+            radiusKey: 'employeeRetention',
+            radiusName: 'Employee Retention',
         },
         {
             type: 'radar-line',
-            angleKey: 'subject',
-            radiusKey: 'tony',
-            radiusName: `Tony's grades`,
+            angleKey: 'department',
+            radiusKey: 'efficiency',
+            radiusName: 'Efficiency',
         },
     ],
     axes: [

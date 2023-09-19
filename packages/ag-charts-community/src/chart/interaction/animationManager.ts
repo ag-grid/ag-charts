@@ -59,11 +59,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     private requestId?: number;
     private lastTime?: number;
     private readyToPlay = false;
+    private skipAnimations = false;
 
     private interactionManager: InteractionManager;
 
     public defaultOptions: Partial<Pick<AnimationOptions<any>, 'duration'>> = {};
-    public skipAnimations = false;
 
     constructor(interactionManager: InteractionManager, window: Window) {
         super();
@@ -281,6 +281,14 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     public defaultDuration() {
         return this.defaultOptions.duration ?? DEFAULT_DURATION;
+    }
+
+    public skip(skip = true) {
+        this.skipAnimations = skip;
+    }
+
+    public isSkipped() {
+        return this.skipAnimations;
     }
 
     private createDriver(id: AnimationId, disableInteractions?: boolean): Driver {

@@ -83,7 +83,7 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
     const preprocessed = seriesOptions.map((series: SeriesOptions & { stacked?: boolean; grouped?: boolean }) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
-        const sType = series.type ?? '';
+        const sType = series.type ?? 'line';
         const groupable = isGroupableSeries(sType);
         const stackable = isStackableSeries(sType);
         const stackedByDefault = isSeriesStackedByDefault(sType);

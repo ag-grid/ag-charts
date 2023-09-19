@@ -46,9 +46,9 @@ export interface AgHistogramSeriesThemeableOptions<_DatumType = any> extends AgB
 export interface AgHistogramSeriesOptions<DatumType = any>
     extends AgHistogramSeriesThemeableOptions<DatumType>,
         AgBaseSeriesOptions<DatumType> {
-    type?: 'histogram';
+    type: 'histogram';
     /** The key to use to retrieve x-values from the data. */
-    xKey?: string;
+    xKey: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** The key to use to retrieve y-values from the data. */
