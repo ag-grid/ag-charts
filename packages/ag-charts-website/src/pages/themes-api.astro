@@ -1,0 +1,31 @@
+---
+import type { Framework } from '@ag-grid-types';
+import { JsObjectPropertiesView } from '@features/api-documentation/components/JsObjectPropertiesView';
+import JsObjectPropertiesViewLayout from '@layouts/JsObjectPropertiesViewLayout.astro';
+import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
+import { getEntry } from 'astro:content';
+
+const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
+const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+
+const optionsData = (await getEntry('options-reference', 'data')).data;
+
+const framework = Astro.params.framework as Framework;
+
+const interfaceName = 'AgChartTheme';
+---
+
+<JsObjectPropertiesViewLayout>
+    <JsObjectPropertiesView
+        client:load
+        interfaceName={interfaceName}
+        interfaceLookup={interfaceLookup}
+        codeLookup={codeLookup}
+        breadcrumbs={['options', 'theme']}
+        framework={framework}
+        optionsData={optionsData}
+        config={{
+            limitChildrenProperties: ['overrides', 'overrides.*', 'overrides.*.axes', 'overrides.*.series'],
+        }}
+    />
+</JsObjectPropertiesViewLayout>
