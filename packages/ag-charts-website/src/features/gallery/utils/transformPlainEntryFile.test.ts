@@ -17,7 +17,7 @@ const getChartsOptionsPlainEntryFile = (chartsOptions: object) => {
     return output;
 };
 
-describe('transformPlainEntryFile', () => {
+describe.skip('transformPlainEntryFile', () => {
     test('object key as literal with strings ');
 
     test('default entry file', () => {

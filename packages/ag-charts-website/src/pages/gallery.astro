@@ -38,7 +38,7 @@ const { series } = galleryData;
             {
                 series.map((series: GalleryExampleChartType) => (
                     <div class="chart-type">
-                        <h2 id={series.name}>
+                        <h3 id={series.name}>
                             <span>{series.title} Charts</span>
 
                             {series.enterprise && (
@@ -51,12 +51,12 @@ const { series } = galleryData;
                                 class="font-size-small"
                                 href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}
                             >
-                                View {series.title.toLowerCase()} charts documentation
+                                View {series.title} Series Documentation
                                 <span class="arrow-icon">
                                     <Icon client:only name="arrowRight" />
                                 </span>
                             </a>
-                        </h2>
+                        </h3>
                         <div class="gallery-list">
                             {series.examples.map(({ title, name }: GalleryExample) => (
                                 <GalleryExampleLink
@@ -96,8 +96,8 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
-        --menu-width: 14rem;
+        --horizontal-padding: max(calc((25vw - var(--max-page-width)) / 2), calc(var(--horizontal-margin) / 2));
+        --menu-width: 12rem;
         --gallery-list-gap: #{$size-3};
 
         display: flex;
@@ -153,7 +153,8 @@ const { series } = galleryData;
     }
 
     .menu a {
-        --text-color: var(--secondary-text-color);
+        --text-color: var(--secondary-text-color); // only applies to the icon?
+        color: var(--secondary-text-color);
         --icon-size: 1.75em;
 
         display: flex;
@@ -170,7 +171,7 @@ const { series } = galleryData;
     }
 
     .menu .enterpriseIcon {
-        --icon-size: 18px;
+        --icon-size: 15px;
     }
 
     .menu-scroll-indicator {
@@ -197,11 +198,11 @@ const { series } = galleryData;
         padding: $site-header-height var(--horizontal-padding) 0;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: 0 var(--horizontal-padding) 0 $size-3;
+            padding: 0 var(--horizontal-padding) 0 $size-3 !important;
         }
     }
 
-    .chart-type h2 {
+    .chart-type h3 {
         display: flex;
         flex-wrap: wrap;
         flex-direction: row;
@@ -216,7 +217,7 @@ const { series } = galleryData;
         }
     }
 
-    .chart-type:first-child h2 {
+    .chart-type:first-child h3 {
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding-top: $size-4;
         }
@@ -229,10 +230,11 @@ const { series } = galleryData;
         margin-right: $size-half;
     }
 
-    .chart-type h2 a {
+    .chart-type h3 a {
         position: relative;
         width: 100%;
         font-weight: var(--font-weight-normal);
+        margin-bottom: $size-1;
 
         &:hover .arrow-icon {
             --text-color: var(--link-hover-color);
