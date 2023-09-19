@@ -1,5 +1,5 @@
 // Source: https://datatopics.worldbank.org/world-development-indicators/
-export function getData(): any[] {
+export function getData() {
     return [
         { country: 'Latvia', population: 1902000, gdpPerCapita: 17600 },
         { country: 'Lithuania', population: 2795000, gdpPerCapita: 20000 },

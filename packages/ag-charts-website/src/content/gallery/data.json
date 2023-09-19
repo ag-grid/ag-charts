@@ -223,8 +223,8 @@
             ]
         },
         {
-            "title": "Donut",
-            "name": "donut",
+            "title": "Doughnut",
+            "name": "doughnut",
             "icon": "chartsDonut",
             "enterprise": false,
             "examples": [

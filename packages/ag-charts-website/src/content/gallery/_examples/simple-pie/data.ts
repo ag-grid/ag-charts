@@ -1,5 +1,5 @@
 // Source: https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/populationcharacteristicsresearchtables
-export function getData(): any[] {
+export function getData() {
     return [
         { religion: 'Christian', population: 4159000 },
         { religion: 'Buddhist', population: 97000 },

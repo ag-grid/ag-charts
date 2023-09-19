@@ -1,4 +1,4 @@
-import { AgEnterpriseCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
+import { AgEnterpriseCharts, AgPieSeriesTooltipRendererParams, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
 import { getData2020, getData2022 } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US', {
@@ -7,20 +7,17 @@ const numFormatter = new Intl.NumberFormat('en-US', {
 });
 
 const sharedSeriesOptions: AgPolarSeriesOptions = {
+    type: 'pie',
     sectorLabelKey: 'share',
     angleKey: 'share',
     sectorLabel: {
-        color: 'white',
-        fontWeight: 'bold',
         formatter: ({ datum, sectorLabelKey }) => {
             return numFormatter.format(datum[sectorLabelKey!]);
         },
     },
-    fills: ['#49afda', '#57cc8b', '#f4b944', '#fb7451', '#b7b5ba'],
-    strokeWidth: 0,
     legendItemKey: 'browser',
     tooltip: {
-        renderer: ({ datum, color, sectorLabelKey }) => {
+        renderer: ({ datum, color, sectorLabelKey }: AgPieSeriesTooltipRendererParams) => {
             return [
                 `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; color: white; font-weight: bold;">`,
                 datum['year'],
@@ -31,59 +28,36 @@ const sharedSeriesOptions: AgPolarSeriesOptions = {
             ].join('\n');
         },
     },
-    highlightStyle: {
-        item: {
-            fillOpacity: 0,
-            stroke: '#535455',
-            strokeWidth: 1,
-        },
-    },
 };
 
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Desktop Browser Market Share 2020 vs 2022',
-        fontSize: 18,
-        spacing: 25,
-    },
-    padding: {
-        top: 32,
-        right: 20,
-        bottom: 20,
-        left: 20,
     },
     series: [
         {
-            type: 'pie',
             ...sharedSeriesOptions,
             data: getData2020(),
             outerRadiusRatio: 0.5,
             showInLegend: false,
             title: {
                 text: 'January 2020',
-                fontWeight: 'bold',
             },
         },
         {
-            type: 'pie',
             ...sharedSeriesOptions,
             data: getData2022(),
             innerRadiusRatio: 0.7,
             title: {
                 text: 'September 2022',
-                fontWeight: 'bold',
             },
             calloutLabelKey: 'browser',
             calloutLabel: {
                 minAngle: 25,
             },
-            calloutLine: {
-                strokeWidth: 1,
-            },
-            strokes: ['black'],
         },
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);
