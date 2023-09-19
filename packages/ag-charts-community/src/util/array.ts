@@ -76,5 +76,8 @@ export function arraysEqual(a: any[], b: any[]): boolean {
 }
 
 export function toArray<T>(value: T): T[] {
+    if (typeof value === 'undefined') {
+        return [];
+    }
     return Array.isArray(value) ? value : [value];
 }
