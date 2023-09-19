@@ -33,9 +33,8 @@ import {
 } from './chart/label';
 import { Logger } from './util/logger';
 import type { AxisLayout } from './chart/layout/layoutService';
-import type { ModuleInstance } from './util/baseModule';
 import type { AxisOptionModule } from './util/optionModules';
-import type { AxisContext, ModuleContext } from './util/moduleContext';
+import type { AxisContext, ModuleContext, ModuleContextWithParent } from './util/moduleContext';
 import { AxisLabel } from './chart/axis/axisLabel';
 import { AxisLine } from './chart/axis/axisLine';
 import type { AxisTitle } from './chart/axis/axisTitle';
@@ -46,6 +45,7 @@ import type { AnimationManager } from './chart/interaction/animationManager';
 import type { InteractionEvent } from './chart/interaction/interactionManager';
 import * as easing from './motion/easing';
 import { StateMachine } from './motion/states';
+import { ModuleMap } from './util/moduleMap';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
 const GRID_STYLE = predicateWithMessage(
@@ -111,6 +111,8 @@ type AxisUpdateDiff = {
     added: { [key: string]: true };
     removed: { [key: string]: true };
 };
+
+export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleContextWithParent<AxisContext>>;
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -214,8 +216,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected axisContext?: AxisContext;
 
-    protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
-
     private animationManager: AnimationManager;
     private animationState: AxisStateMachine;
 
@@ -266,11 +266,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     destroy() {
-        for (const [key, module] of Object.entries(this.modules)) {
-            module.instance.destroy();
-            delete this.modules[key];
-            delete (this as any)[key];
-        }
+        this.moduleMap.destroy();
         this.destroyFns.forEach((f) => f());
     }
 
@@ -1394,6 +1390,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
+    private readonly moduleMap: AxisModuleMap = new ModuleMap<AxisOptionModule, ModuleContextWithParent<AxisContext>>(
+        this
+    );
+
+    getModuleMap(): AxisModuleMap {
+        return this.moduleMap;
+    }
+
+    public createModuleContext(): ModuleContextWithParent<AxisContext> {
+        return { ...this.moduleCtx, parent: this.createAxisContext() };
+    }
+
     protected createAxisContext(): AxisContext {
         const keys = () => {
             return this.boundSeries
@@ -1413,34 +1421,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             scaleConvert: (val) => this.scale.convert(val),
             scaleInvert: (val) => this.scale.invert?.(val) ?? undefined,
         };
-    }
-
-    addModule(module: AxisOptionModule) {
-        if (this.modules[module.optionsKey] != null) {
-            throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
-        }
-
-        if (this.axisContext == null) {
-            this.axisContext = this.createAxisContext();
-        }
-
-        const moduleInstance = new module.instanceConstructor({
-            ...this.moduleCtx,
-            parent: this.axisContext,
-        });
-        this.modules[module.optionsKey] = { instance: moduleInstance };
-
-        (this as any)[module.optionsKey] = moduleInstance;
-    }
-
-    removeModule(module: AxisOptionModule) {
-        this.modules[module.optionsKey]?.instance?.destroy();
-        delete this.modules[module.optionsKey];
-        delete (this as any)[module.optionsKey];
-    }
-
-    isModuleEnabled(module: AxisOptionModule) {
-        return this.modules[module.optionsKey] != null;
     }
 
     animateReadyUpdate(diff: AxisUpdateDiff) {

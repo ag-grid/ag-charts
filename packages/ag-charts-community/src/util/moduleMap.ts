@@ -18,6 +18,14 @@ export class ModuleMap<M extends Module<C, I>, C extends ModuleContext, I extend
         this.parent = parent;
     }
 
+    destroy() {
+        for (const [key, module] of Object.entries(this.modules)) {
+            module.instance.destroy();
+            delete this.modules[key];
+            delete (this as any)[key];
+        }
+    }
+
     addModule(module: M) {
         if (this.modules[module.optionsKey] != null) {
             throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
