@@ -1,5 +1,5 @@
 // Source: https://www.gov.uk/government/statistical-data-sets/banana-prices
-export function getData(): any[] {
+export function getData() {
     return [
         {
             week: 1,

@@ -5,8 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Vehicle weight distribution',
-        fontSize: 18,
+        text: 'Vehicle Weight Distribution',
     },
     subtitle: {
         text: 'USA 1987',
@@ -19,19 +18,16 @@ const options: AgChartOptions = {
             type: 'histogram',
             xKey: 'curb-weight',
             xName: 'Curb weight',
-            fillOpacity: 0.5,
-            fill: '#8888ff',
-            stroke: '#000',
             bins: [
                 [0, 2000],
                 [2000, 3000],
-                [3000, 4500],
+                [3000, 4000],
             ],
             areaPlot: true,
             tooltip: {
                 renderer: (params) => {
-                    var paramsMax = params.datum.domain[1];
-                    var sizeName = paramsMax === 2000 ? 'small' : paramsMax === 3000 ? 'medium' : 'large';
+                    const paramsMax = params.datum.domain[1];
+                    const sizeName = paramsMax === 2000 ? 'small' : paramsMax === 3000 ? 'medium' : 'large';
 
                     return {
                         content:
@@ -54,9 +50,6 @@ const options: AgChartOptions = {
             title: {
                 text: 'Curb weight (pounds)',
             },
-            tick: {
-                interval: 500,
-            },
         },
         {
             position: 'left',
@@ -70,4 +63,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

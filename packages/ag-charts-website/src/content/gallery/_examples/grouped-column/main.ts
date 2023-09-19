@@ -4,28 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            bar: {
-                series: {
-                    strokeWidth: 0,
-                    highlightStyle: {
-                        item: {
-                            strokeWidth: 1,
-                        },
-                        series: {
-                            strokeWidth: 1,
-                            dimOpacity: 0.2,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Regular Internet Users',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Office for National Statistics',
@@ -54,4 +34,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);
