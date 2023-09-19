@@ -1,3 +1,4 @@
+import type { ModuleMap } from '../module/moduleMap';
 import type {
     AgAxisLabelFormatterParams,
     AgCartesianAxisPosition,
@@ -23,7 +24,6 @@ export interface BoundSeries {
 export type ChartAxisLabelFlipFlag = 1 | -1;
 
 export interface ChartAxis {
-    addModule(module: any): void;
     attachAxis(axisGroup: Node, gridGroup: Node): void;
     boundSeries: BoundSeries[];
     calculatePadding(min: number, _max: number): [number, number];
@@ -37,11 +37,11 @@ export interface ChartAxis {
     direction: ChartAxisDirection;
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;
+    getModuleMap(): ModuleMap<any, any, any>;
     gridLength: number;
     gridPadding: number;
     id: string;
     inRange(x: number, width?: number, tolerance?: number): boolean;
-    isModuleEnabled(module: any): boolean;
     keys: string[];
     label: ChartAxisLabel;
     linkedTo?: ChartAxis;
@@ -49,7 +49,6 @@ export interface ChartAxis {
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: number[];
-    removeModule(module: any): void;
     rotation: number;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
