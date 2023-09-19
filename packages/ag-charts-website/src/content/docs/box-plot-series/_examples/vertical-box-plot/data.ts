@@ -9,7 +9,7 @@ export function getData() {
             max: 14852,
         },
         {
-            department: 'Research & Development',
+            department: 'R&D',
             min: 1009,
             q1: 2741,
             median: 4377,
@@ -17,7 +17,7 @@ export function getData() {
             max: 14814,
         },
         {
-            department: 'Human Resources',
+            department: 'HR',
             min: 1555,
             q1: 2696,
             median: 4071,
