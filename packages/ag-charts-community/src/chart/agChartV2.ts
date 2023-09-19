@@ -25,14 +25,20 @@ import {
     type SeriesOptionsTypes,
 } from './mapping/types';
 import { windowValue } from '../util/window';
-import type { AxisOptionModule, LegendModule, Module, ModuleInstance, RootModule } from '../util/module';
+import {
+    REGISTERED_MODULES,
+    type AxisOptionModule,
+    type LegendModule,
+    type Module,
+    type ModuleInstance,
+    type RootModule,
+} from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
-// Deliberately imported via `module-support` so that internal module registration happens.
-import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
 import { getLegendKeys } from './factory/legendTypes';
+import { registerInbuiltModules } from './factory/registerInbuiltModules';
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -182,6 +188,7 @@ abstract class AgChartInternal {
     static initialiseModules() {
         if (AgChartInternal.initialised) return;
 
+        registerInbuiltModules();
         setupModules();
 
         AgChartInternal.initialised = true;

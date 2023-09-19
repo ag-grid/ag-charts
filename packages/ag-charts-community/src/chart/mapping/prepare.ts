@@ -5,19 +5,13 @@ import type {
     AgChartThemePalette,
     AgTooltipPositionOptions,
 } from '../../options/agChartOptions';
-import {
-    DEFAULT_CARTESIAN_CHART_OVERRIDES,
-    DEFAULT_BAR_CHART_OVERRIDES,
-    DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES,
-    swapAxes,
-} from './defaults';
+import { swapAxes } from './defaults';
 import type { JsonMergeOptions } from '../../util/json';
 import { jsonMerge, DELETE, jsonWalk } from '../../util/json';
 import { getChartTheme } from './themes';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
 import { Logger } from '../../util/logger';
-import type { SeriesPaletteFactory } from '../../util/module';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import {
@@ -87,18 +81,7 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
         defaultSeriesType = 'pie';
     }
 
-    let defaultOverrides = {};
-    const seriesDefaults = getSeriesDefaults(type);
-    if (seriesDefaults) {
-        defaultOverrides = seriesDefaults;
-    } else if (type === 'bar') {
-        defaultOverrides = DEFAULT_BAR_CHART_OVERRIDES;
-    } else if (type === 'scatter' || type === 'histogram') {
-        defaultOverrides = DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES;
-    } else if (isAgCartesianChartOptions(options)) {
-        defaultOverrides = DEFAULT_CARTESIAN_CHART_OVERRIDES;
-    }
-
+    let defaultOverrides = getSeriesDefaults(type);
     if (isDefaultAxisSwapNeeded(options)) {
         defaultOverrides = swapAxes(defaultOverrides);
     }
@@ -239,31 +222,6 @@ function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext
 }
 
 addSeriesPaletteFactory('pie', ({ takeColors, colorsCount }) => takeColors(colorsCount));
-const singleSeriesPaletteFactory: SeriesPaletteFactory = ({ takeColors }) => {
-    const {
-        fills: [fill],
-        strokes: [stroke],
-    } = takeColors(1);
-    return { fill, stroke };
-};
-addSeriesPaletteFactory('area', singleSeriesPaletteFactory);
-addSeriesPaletteFactory('bar', singleSeriesPaletteFactory);
-addSeriesPaletteFactory('histogram', singleSeriesPaletteFactory);
-addSeriesPaletteFactory('scatter', (params) => {
-    const { fill, stroke } = singleSeriesPaletteFactory(params);
-    return { marker: { fill, stroke } };
-});
-addSeriesPaletteFactory('bubble', (params) => {
-    const { fill, stroke } = singleSeriesPaletteFactory(params);
-    return { marker: { fill, stroke } };
-});
-addSeriesPaletteFactory('line', (params) => {
-    const { fill, stroke } = singleSeriesPaletteFactory(params);
-    return {
-        stroke: fill,
-        marker: { fill, stroke },
-    };
-});
 
 function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: PreparationContext, input: T): T {
     const paletteFactory = getSeriesPaletteFactory(input.type!);

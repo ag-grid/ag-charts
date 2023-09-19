@@ -50,9 +50,6 @@ class GradientLegendLabel {
 
 class GradientLegendStop {
     readonly label = new GradientLegendLabel();
-    /** Used to constrain the width of legend items. */
-    @Validate(OPT_NUMBER(0))
-    maxWidth?: number = undefined;
     @Validate(NUMBER(0))
     padding = 8;
 }
@@ -73,7 +70,7 @@ export class GradientLegend {
     private readonly arrow: _Scene.Triangle;
 
     @Validate(BOOLEAN)
-    enabled = true;
+    enabled = false;
 
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';

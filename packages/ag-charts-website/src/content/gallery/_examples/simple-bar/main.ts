@@ -4,19 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            bar: {
-                series: {
-                    strokeWidth: 0,
-                },
-            },
-        },
-    },
     title: {
-        text: 'Gross Weekly Earnings\nby Occupation',
-        fontSize: 18,
-        spacing: 25,
+        text: 'Gross Weekly Earnings',
     },
     footnote: {
         text: 'Source: Office for National Statistics',
@@ -39,10 +28,10 @@ const options: AgChartOptions = {
             position: 'bottom',
             title: {
                 enabled: true,
-                text: '£/week',
+                text: '£ / Week',
             },
         },
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

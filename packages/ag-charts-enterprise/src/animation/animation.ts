@@ -6,7 +6,7 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
     @ActionOnSet<Animation>({
         newValue(value: boolean) {
             if (!this.animationManager) return;
-            this.animationManager.skipAnimations = !value;
+            this.animationManager.skip(!value);
         },
     })
     @Validate(BOOLEAN)
@@ -16,7 +16,7 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
         newValue(value: number | undefined) {
             if (!this.animationManager) return;
             this.animationManager.defaultOptions.duration = value;
-            this.animationManager.skipAnimations = value === 0;
+            this.animationManager.skip(value === 0);
         },
     })
     @Validate(NUMBER(0))
@@ -27,6 +27,6 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.animationManager = ctx.animationManager;
-        this.animationManager.skipAnimations = false;
+        this.animationManager.skip(false);
     }
 }

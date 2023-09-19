@@ -217,7 +217,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         const isContinuousY = this.getValueAxis()?.scale instanceof ContinuousScale;
 
         const animationProp = [];
-        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
             animationProp.push(diff(this.processedData));
         }
 

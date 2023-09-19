@@ -302,6 +302,8 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 }
 
 export function spyOnAnimationManager(totalDuration: number, ratio: number) {
+    jest.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
+
     jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation((_id, { from, to, delay, onUpdate }) => {
         const delayRatio = delay ? delay / totalDuration : 0;
         if (ratio < delayRatio) {

@@ -3,26 +3,11 @@ import { data } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    theme: {
-        palette: {
-            fills: ['#5BC0EB', '#FDE74C', '#9BC53D', '#E55934', '#FA7921', '#fa3081'],
-            strokes: ['#5BC0EB', '#FDE74C', '#9BC53D', '#E55934', '#FA7921', '#fa3081'],
-        },
-        overrides: {
-            line: { series: { strokeWidth: 3, marker: { enabled: false } } },
-        },
-    },
     title: {
         text: 'Earthquake Magnitudes by Source',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: US Geological Survey',
-    },
-    padding: {
-        left: 40,
-        right: 40,
     },
     series: [
         {
@@ -70,13 +55,6 @@ const options: AgChartOptions = {
             },
         },
     ],
-    legend: {
-        item: {
-            marker: {
-                strokeWidth: 0,
-            },
-        },
-    },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

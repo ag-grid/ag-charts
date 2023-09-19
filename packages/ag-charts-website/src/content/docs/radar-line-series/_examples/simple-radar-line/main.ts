@@ -5,20 +5,20 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'School Grades',
+        text: 'KPIs by Department',
     },
     series: [
         {
             type: 'radar-line',
-            angleKey: 'subject',
-            radiusKey: 'mike',
-            radiusName: `Mike's Grades`,
+            angleKey: 'department',
+            radiusKey: 'employeeRetention',
+            radiusName: 'Employee Retention',
         },
         {
             type: 'radar-line',
-            angleKey: 'subject',
-            radiusKey: 'tony',
-            radiusName: `Tony's Grades`,
+            angleKey: 'department',
+            radiusKey: 'efficiency',
+            radiusName: 'Efficiency',
         },
     ],
 };

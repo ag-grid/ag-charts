@@ -1,9 +1,29 @@
 export function getData() {
     return [
-        { subject: 'Maths', mike: 7.0, tony: 4.2 },
-        { subject: 'Physics', mike: 4.3, tony: 8.5 },
-        { subject: 'Biology', mike: 3.0, tony: 3.0 },
-        { subject: 'History', mike: 6.5, tony: 4.3 },
-        { subject: 'P.E.', mike: 9.8, tony: 6.4 },
+        {
+            department: 'Sales',            
+            employeeRetention: 40,
+            efficiency: 75,            
+        },
+        {
+            department: 'Engineering',            
+            employeeRetention: 45,
+            efficiency: 90,            
+        },
+        {
+            department: 'HR',            
+            employeeRetention: 80,
+            efficiency: 60,            
+        },
+        {
+            department: 'Marketing',            
+            employeeRetention: 80,
+            efficiency: 60,            
+        },
+        {
+            department: 'Finance',            
+            employeeRetention: 85,
+            efficiency: 50,            
+        },
     ];
 }

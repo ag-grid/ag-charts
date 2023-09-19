@@ -4,6 +4,7 @@ import { setupModules } from '../factory/setupModules';
 import * as examples from '../test/examples';
 import { ChartTheme } from '../themes/chartTheme';
 import { prepareOptions } from './prepare';
+import { registerInbuiltModules } from '../factory/registerInbuiltModules';
 
 type TestCase = {
     options: AgChartOptions;
@@ -268,6 +269,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
 
 describe('prepare', () => {
     beforeAll(() => {
+        registerInbuiltModules();
         setupModules();
     });
 

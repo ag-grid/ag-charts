@@ -19,9 +19,15 @@ const options: AgChartOptions = {
 
             colorKey: 'temperature',
             colorName: 'Temperature',
-            colorRange: ['aliceblue', 'orange'],
         },
     ],
+    gradientLegend: {
+        enabled: true,
+        gradient: {
+            thickness: 50,
+            preferredLength: 400,
+        },
+    },
 };
 
 const chart = AgEnterpriseCharts.create(options);

@@ -11,4 +11,7 @@ export const HEATMAP_DEFAULTS: AgCartesianChartOptions = {
             position: 'bottom',
         },
     ],
+    gradientLegend: {
+        enabled: true,
+    },
 };
