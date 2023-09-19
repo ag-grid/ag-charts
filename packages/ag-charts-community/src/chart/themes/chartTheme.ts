@@ -7,7 +7,6 @@ import type {
     AgChartThemeOverrides,
     AgChartLegendPosition,
     InteractionRange,
-    AgTooltipPositionType,
     AgChartTheme,
     AgCommonThemeableChartOptions,
 } from '../../options/agChartOptions';
@@ -27,6 +26,7 @@ export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults')
 export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults') as unknown as string;
 export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults') as unknown as string;
 export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults') as unknown as string;
+export const EXTENDS_CARTESIAN_MARKER_DEFAULTS = Symbol('extends-cartesian-marker-defaults') as unknown as string;
 export const OVERRIDE_SERIES_LABEL_DEFAULTS = Symbol('override-series-label-defaults') as unknown as string;
 export const DEFAULT_FONT_FAMILY = Symbol('default-font') as unknown as string;
 export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour') as unknown as string;
@@ -142,47 +142,6 @@ export class ChartTheme {
                 },
             },
             nodeClickRange: 'exact' as InteractionRange,
-        };
-    }
-
-    private static getLineSeriesDefaults() {
-        const seriesDefaults = ChartTheme.getSeriesDefaults();
-        return {
-            ...seriesDefaults,
-            tooltip: {
-                ...seriesDefaults.tooltip,
-                format: undefined,
-                position: {
-                    type: 'node' as AgTooltipPositionType,
-                },
-            },
-        };
-    }
-
-    private static getAreaSeriesDefaults() {
-        const seriesDefaults = ChartTheme.getSeriesDefaults();
-        return {
-            ...seriesDefaults,
-            nodeClickRange: 'nearest' as InteractionRange,
-            tooltip: {
-                ...seriesDefaults.tooltip,
-                position: {
-                    type: 'node' as AgTooltipPositionType,
-                },
-            },
-        };
-    }
-
-    private static getScatterSeriesDefaults() {
-        const seriesDefaults = ChartTheme.getSeriesDefaults();
-        return {
-            ...seriesDefaults,
-            tooltip: {
-                ...seriesDefaults.tooltip,
-                position: {
-                    type: 'node' as AgTooltipPositionType,
-                },
-            },
         };
     }
 
@@ -314,133 +273,6 @@ export class ChartTheme {
         },
         time: {
             ...ChartTheme.getAxisDefaults(),
-        },
-    };
-
-    private static readonly cartesianDefaults: Partial<AgChartThemeOverrides> = {
-        line: {
-            ...ChartTheme.getChartDefaults(),
-            axes: ChartTheme.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getLineSeriesDefaults(),
-                strokeWidth: 2,
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-                marker: {
-                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
-                    fillOpacity: 1,
-                    strokeOpacity: 1,
-                },
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                    formatter: undefined,
-                },
-            },
-        },
-        scatter: {
-            ...ChartTheme.getChartDefaults(),
-            axes: ChartTheme.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getScatterSeriesDefaults(),
-                marker: {
-                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
-                },
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                },
-            },
-        },
-        bubble: {
-            ...ChartTheme.getChartDefaults(),
-            axes: ChartTheme.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getScatterSeriesDefaults(),
-                marker: {
-                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
-                    maxSize: 30,
-                },
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                },
-            },
-        },
-        area: {
-            ...ChartTheme.getChartDefaults(),
-            axes: ChartTheme.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getAreaSeriesDefaults(),
-                fillOpacity: 0.8,
-                strokeOpacity: 1,
-                strokeWidth: 2,
-                lineDash: [0],
-                lineDashOffset: 0,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
-                marker: {
-                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
-                    fillOpacity: 1,
-                    strokeOpacity: 1,
-                    enabled: false,
-                },
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                    formatter: undefined,
-                },
-            },
-        },
-        histogram: {
-            ...ChartTheme.getChartDefaults(),
-            axes: ChartTheme.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getSeriesDefaults(),
-                strokeWidth: 1,
-                fillOpacity: 1,
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
-                    formatter: undefined,
-                },
-                shadow: {
-                    enabled: true,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 0,
-                    yOffset: 0,
-                    blur: 5,
-                },
-            },
         },
     };
 
@@ -602,7 +434,6 @@ export class ChartTheme {
     };
 
     private static readonly defaults: AgChartThemeOverrides = {
-        ...ChartTheme.cartesianDefaults,
         ...ChartTheme.polarDefaults,
         ...ChartTheme.hierarchyDefaults,
     };
@@ -761,6 +592,7 @@ export class ChartTheme {
         extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
+        extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
 
         const properties = new Map();
         properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');

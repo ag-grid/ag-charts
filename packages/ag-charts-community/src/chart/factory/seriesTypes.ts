@@ -1,8 +1,4 @@
 import type { Series } from '../series/series';
-import { AreaSeries } from '../series/cartesian/areaSeries';
-import { HistogramSeries } from '../series/cartesian/histogramSeries';
-import { LineSeries } from '../series/cartesian/lineSeries';
-import { ScatterSeries } from '../series/cartesian/scatterSeries';
 import { PieSeries } from '../series/polar/pieSeries';
 import { TreemapSeries } from '../series/hierarchy/treemapSeries';
 import type { ChartType } from './chartTypes';
@@ -10,16 +6,10 @@ import { registerChartSeriesType } from './chartTypes';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/module';
 import type { ModuleContext } from '../../util/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
-import { BubbleSeries } from '../series/cartesian/bubbleSeries';
 import type { SeriesOptionsTypes } from '../mapping/types';
 
 const BUILT_IN_SERIES_FACTORIES: Record<string, SeriesConstructor> = {
-    area: AreaSeries,
-    bubble: BubbleSeries,
-    histogram: HistogramSeries,
-    line: LineSeries,
     pie: PieSeries,
-    scatter: ScatterSeries,
     treemap: TreemapSeries,
 };
 
@@ -27,8 +17,8 @@ const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
 const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
-const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>(['area']);
-const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>([]);
+const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
+const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
 const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: AgChartOptions) => boolean> = {};
 
