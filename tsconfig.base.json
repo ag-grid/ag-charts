@@ -17,10 +17,10 @@
     "importsNotUsedAsValues": "error",
     "paths": {
       "ag-charts-build-tools": ["plugins/ag-charts-build-tools/src/index.ts"],
-      "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],
+      "ag-charts-community": ["packages/ag-charts-community/src/main.ts", "packages/ag-charts-community/src/"],
       "ag-charts-community-examples": ["packages/ag-charts-community-examples/src/index.ts"],
       "ag-charts-community-test": ["packages/ag-charts-community/src/main-test.ts"],
-      "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"]
+      "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts", "packages/ag-charts-enterprise/src/"]
     }
   },
   "exclude": ["node_modules", "tmp"]
