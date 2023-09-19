@@ -15,19 +15,19 @@ const options: AgChartOptions = {
             type: 'nightingale',
             angleKey: 'quarter',
             radiusKey: 'air',
-            radiusName: 'Mountain air',
+            radiusName: 'Turbines',
         },
         {
             type: 'nightingale',
             angleKey: 'quarter',
             radiusKey: 'winds',
-            radiusName: 'Polar winds',
+            radiusName: 'Compressors',
         },
         {
             type: 'nightingale',
             angleKey: 'quarter',
             radiusKey: 'holes',
-            radiusName: 'Donut holes',
+            radiusName: 'Smoke Detectors',
         },
     ],
     axes: [
