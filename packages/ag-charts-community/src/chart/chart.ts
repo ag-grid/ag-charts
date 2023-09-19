@@ -311,7 +311,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.callbackCache = new CallbackCache();
 
         this.animationManager = new AnimationManager(this.interactionManager, window);
-        this.animationManager.skipAnimations = true;
+        this.animationManager.skip();
         this.animationManager.play();
 
         this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
