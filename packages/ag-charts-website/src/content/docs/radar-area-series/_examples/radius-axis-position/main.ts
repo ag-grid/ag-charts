@@ -5,20 +5,20 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'School Grades',
+        text: 'Prosperity Bank Financial Report (in £ millions)',
     },
     series: [
         {
             type: 'radar-area',
-            angleKey: 'subject',
-            radiusKey: 'mike',
-            radiusName: `Mike's grades`,
+            angleKey: 'classification',
+            radiusKey: 'january_balance',
+            radiusName: `January Balance`,
         },
         {
             type: 'radar-area',
-            angleKey: 'subject',
-            radiusKey: 'tony',
-            radiusName: `Tony's grades`,
+            angleKey: 'classification',
+            radiusKey: 'february_balance',
+            radiusName: `February Balance`,
         },
     ],
     axes: [
@@ -27,9 +27,9 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            positionAngle: 72,
+            positionAngle: 60,
             label: {
-                rotation: -72,
+                rotation: -60,
             },
         },
     ],

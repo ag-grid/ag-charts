@@ -14,16 +14,16 @@ To create a Radar Line Series, use the `radar-line` series type.
 
 ```js
 series: [
-    { type: 'radar-line', angleKey: 'subject', radiusKey: 'mike', radiusName: `Mike's Grades` },
-    { type: 'radar-line', angleKey: 'subject', radiusKey: 'tony', radiusName: `Tony's Grades` },
+    { type: 'radar-line', angleKey: 'classification', radiusKey: 'january_balance', radiusName: `January Balance` },
+    { type: 'radar-line', angleKey: 'classification', radiusKey: 'february_balance', radiusName: `February Balance` },
 ],
 ```
 
 In this configuration:
 
--   `angleKey` is set to 'subject', which is the shared category for the Angle Axis.
--   `radiusKey` specifies the numerical datasets, 'mike' and 'tony', for the Radius Axis.
--   `radiusName` labels each series, such as "Mike's Grades" and "Tony's Grades".
+-   `angleKey` is set to 'classification', which is the shared category for the Angle Axis.
+-   `radiusKey` specifies the numerical datasets, 'january_balance' and 'february_balance', for the Radius Axis.
+-   `radiusName` labels each series, such as "January Balance" and "February Balance".
 
 ## Customisation
 
@@ -80,9 +80,9 @@ axes: [
     { type: 'angle-category' },
     {
         type: 'radius-number',
-        positionAngle: 72,
+        positionAngle: 60,
         label: {
-            rotation: -72,
+            rotation: -60,
         },
     },
 ],

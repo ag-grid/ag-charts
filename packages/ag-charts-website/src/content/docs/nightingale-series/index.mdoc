@@ -14,9 +14,9 @@ To create a Nightingale Series, use the `nightingale` series type.
 
 ```js
 series: [
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Mountain air' },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Polar winds' },
-    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'holes', radiusName: 'Donut holes' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Turbines' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Compressors' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'holes', radiusName: 'Smoke Detectors' },
 ],
 ```
 
@@ -24,7 +24,7 @@ In this configuration:
 
 -   `angleKey` is set to 'quarter', which is the shared category for the Angle Axis.
 -   `radiusKey` specifies the numerical datasets, 'air', 'winds' and 'holes', for the Radius Axis.
--   `radiusName` labels each series, such as 'Mountain air', 'Polar winds' and 'Donut holes'.
+-   `radiusName` labels each series, such as 'Turbines', 'Compressors' and 'Smoke Detectors'.
 
 ## Grouped Nightingale
 
@@ -112,9 +112,9 @@ axes: [
     { type: 'angle-category' },
     {
         type: 'radius-number',
-        positionAngle: 68,
+        positionAngle: 90,
         label: {
-            rotation: -68,
+            rotation: -90,
         },
     },
 ],
