@@ -686,7 +686,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -745,7 +744,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -1758,7 +1756,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1777,7 +1774,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -1817,7 +1813,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1836,7 +1831,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -1876,7 +1870,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1895,7 +1888,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -1935,7 +1927,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1954,7 +1945,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -1994,7 +1984,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2013,7 +2002,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -2053,7 +2041,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2072,7 +2059,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -2112,7 +2098,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2131,7 +2116,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -2171,7 +2155,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2190,7 +2173,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {},
         "renderer": [Function],
       },
@@ -3770,7 +3752,6 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -4056,7 +4037,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -4848,15 +4828,8 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#19A0AA",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -4874,7 +4847,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -4907,15 +4879,8 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#F15F36",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -4933,7 +4898,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -5207,16 +5171,9 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5234,7 +5191,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -5268,16 +5224,9 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(226, 188, 34, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5295,7 +5244,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -5571,16 +5519,11 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5598,7 +5541,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 0,
@@ -5631,16 +5573,11 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5658,7 +5595,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 1,
@@ -5691,16 +5627,11 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5718,7 +5649,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 2,
@@ -5751,16 +5681,11 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5778,7 +5703,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 3,
@@ -5811,16 +5735,11 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5838,7 +5757,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 4,
@@ -5871,16 +5789,11 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5898,7 +5811,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 5,
@@ -5931,16 +5843,11 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5958,7 +5865,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 6,
@@ -8900,16 +8806,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#00c851",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8961,16 +8860,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ffbb33",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9022,16 +8914,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ff4444",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9327,15 +9212,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#f1c40f",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9386,15 +9264,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#e67e22",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9445,15 +9316,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#2ecc71",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9504,15 +9368,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#3498db",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9563,15 +9420,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#9b59b6",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9622,15 +9472,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#34495e",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10440,7 +10283,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12652,16 +12494,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12679,7 +12514,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12713,16 +12547,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12740,7 +12567,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12774,16 +12600,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#57b757",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12801,7 +12620,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12835,16 +12653,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#41a9c9",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12862,7 +12673,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13127,16 +12937,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#5BC0EB",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13154,7 +12957,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13187,16 +12989,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FDE74C",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13214,7 +13009,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13247,16 +13041,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#9BC53D",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13274,7 +13061,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13307,16 +13093,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#E55934",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13334,7 +13113,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13367,16 +13145,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FA7921",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13394,7 +13165,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "normalizedTo": undefined,
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,

@@ -5,7 +5,6 @@ import type {
     AgChartThemePalette,
     AgChartThemeOptions,
     AgChartThemeOverrides,
-    AgBarSeriesLabelOptions,
     AgChartLegendPosition,
     InteractionRange,
     AgTooltipPositionType,
@@ -22,6 +21,7 @@ const palette: AgChartThemePalette = {
     strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
 };
 
+export const EXTENDS_CHART_DEFAULTS = Symbol('extends-chart-defaults') as unknown as string;
 export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults') as unknown as string;
 export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults') as unknown as string;
 export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults') as unknown as string;
@@ -37,7 +37,6 @@ export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown 
 export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour') as unknown as string;
 
 const BOLD: FontWeight = 'bold';
-const INSIDE: AgBarSeriesLabelOptions['placement'] = 'inside';
 const BOTTOM: AgChartLegendPosition = 'bottom';
 
 type ChartTypeConfig = {
@@ -143,35 +142,6 @@ export class ChartTheme {
                 },
             },
             nodeClickRange: 'exact' as InteractionRange,
-        };
-    }
-
-    private static getBarSeriesDefaults() {
-        return {
-            ...ChartTheme.getSeriesDefaults(),
-            fillOpacity: 1,
-            strokeOpacity: 1,
-            normalizedTo: undefined,
-            strokeWidth: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
-            label: {
-                enabled: false,
-                fontStyle: undefined,
-                fontWeight: undefined,
-                fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
-                formatter: undefined,
-                placement: INSIDE,
-            },
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
         };
     }
 
@@ -348,13 +318,6 @@ export class ChartTheme {
     };
 
     private static readonly cartesianDefaults: Partial<AgChartThemeOverrides> = {
-        bar: {
-            ...ChartTheme.getChartDefaults(),
-            axes: ChartTheme.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getBarSeriesDefaults(),
-            },
-        },
         line: {
             ...ChartTheme.getChartDefaults(),
             axes: ChartTheme.cartesianAxisDefault,
@@ -791,6 +754,7 @@ export class ChartTheme {
 
     protected getTemplateParameters() {
         const extensions = new Map();
+        extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
         extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
         extensions.set(EXTENDS_AXES_LABEL_DEFAULTS, ChartTheme.getAxisDefaults().label);
         extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);

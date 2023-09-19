@@ -5,12 +5,7 @@ import type {
     AgChartThemePalette,
     AgTooltipPositionOptions,
 } from '../../options/agChartOptions';
-import {
-    DEFAULT_CARTESIAN_CHART_OVERRIDES,
-    DEFAULT_BAR_CHART_OVERRIDES,
-    DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES,
-    swapAxes,
-} from './defaults';
+import { DEFAULT_CARTESIAN_CHART_OVERRIDES, DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES, swapAxes } from './defaults';
 import type { JsonMergeOptions } from '../../util/json';
 import { jsonMerge, DELETE, jsonWalk } from '../../util/json';
 import { getChartTheme } from './themes';
@@ -91,8 +86,6 @@ export function prepareOptions<T extends AgChartOptions>(newOptions: T, fallback
     const seriesDefaults = getSeriesDefaults(type);
     if (seriesDefaults) {
         defaultOverrides = seriesDefaults;
-    } else if (type === 'bar') {
-        defaultOverrides = DEFAULT_BAR_CHART_OVERRIDES;
     } else if (type === 'scatter' || type === 'histogram') {
         defaultOverrides = DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES;
     } else if (isAgCartesianChartOptions(options)) {
@@ -247,7 +240,6 @@ const singleSeriesPaletteFactory: SeriesPaletteFactory = ({ takeColors }) => {
     return { fill, stroke };
 };
 addSeriesPaletteFactory('area', singleSeriesPaletteFactory);
-addSeriesPaletteFactory('bar', singleSeriesPaletteFactory);
 addSeriesPaletteFactory('histogram', singleSeriesPaletteFactory);
 addSeriesPaletteFactory('scatter', (params) => {
     const { fill, stroke } = singleSeriesPaletteFactory(params);
