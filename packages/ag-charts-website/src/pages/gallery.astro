@@ -96,13 +96,18 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: max(calc((25vw - var(--max-page-width)) / 2), calc(var(--horizontal-margin) / 2));
-        --menu-width: 12rem;
+        --horizontal-padding: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
+        --menu-width: 14rem;
         --gallery-list-gap: #{$size-3};
 
         display: flex;
         flex-direction: row;
         position: relative;
+        background-color: var(--ghost-blue);
+
+        @media screen and (min-width: $breakpoint-gallery-large) {
+            --menu-width: 17rem;
+        }
     }
 
     .menu {
@@ -113,6 +118,8 @@ const { series } = galleryData;
         top: $site-header-height;
         padding-top: calc($size-7 + $size-2);
         padding-left: var(--horizontal-padding);
+        background-color: var(--white);
+        border-right: solid 1px var(--bright-blue-gray);
         overflow-y: scroll;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
@@ -125,6 +132,11 @@ const { series } = galleryData;
             border-bottom: 1px solid var(--border-color);
             overflow-x: scroll;
             z-index: 1;
+        }
+
+        @media screen and (min-width: $breakpoint-gallery-large) {
+            width: calc(var(--menu-width) + $size-6);
+            padding-left: $size-6;
         }
     }
 
@@ -207,7 +219,11 @@ const { series } = galleryData;
         padding: $site-header-height var(--horizontal-padding) 0;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: 0 var(--horizontal-padding) 0 $size-3 !important;
+            padding: 0 var(--horizontal-padding) 0 $size-6;
+        }
+
+        @media screen and (min-width: $breakpoint-gallery-large) {
+            padding-left: max(calc(var(--horizontal-padding) - var(--menu-width) - #{$size-6}), $size-6);
         }
     }
 

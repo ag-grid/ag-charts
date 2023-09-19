@@ -1,14 +1,30 @@
 @use '../../../design-system' as *;
 
 .link {
+    position: relative;
     display: flex;
     flex-direction: column;
     border-radius: var(--border-radius);
-    box-shadow: 0 0 4px var(--border-color);
-    transition: border-color $default-transition-timing;
+    border: 1px solid var(--bright-blue-gray);
+    background-color: var(--white);
 
-    &:hover {
-        box-shadow: 0 0 4px var(--link-hover-color);
+    &::after {
+        $border-width: 2px;
+
+        content: '';
+        position: absolute;
+        top: $border-width * -1;
+        right: $border-width * -1;
+        bottom: $border-width * -1;
+        left: $border-width * -1;
+        border-radius: calc(var(--border-radius) + 1px);
+        border: $border-width solid var(--link-hover-color);
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    &:hover::after {
+        opacity: 1;
     }
 
     img {
@@ -22,6 +38,5 @@
         padding: $size-1 $size-2;
         line-height: var(--line-height-tight);
         border-top: 1px solid var(--bright-blue-gray);
-        transition: color $default-transition-timing;
     }
 }
