@@ -2,8 +2,8 @@ import { themes as themeFactories } from './chart/mapping/themes';
 import type { ChartTheme as ChartThemeType } from './chart/themes/chartTheme';
 
 export { getChartTheme } from './chart/mapping/themes';
+export { ChartTheme } from './chart/themes/chartTheme';
 export {
-    ChartTheme,
     EXTENDS_AXES_DEFAULTS,
     EXTENDS_AXES_LABEL_DEFAULTS,
     EXTENDS_AXES_LINE_DEFAULTS,
@@ -16,7 +16,7 @@ export {
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
-} from './chart/themes/chartTheme';
+} from './chart/themes/symbols';
 
 export const themes = Object.entries(themeFactories).reduce((obj, [name, factory]) => {
     obj[name as keyof typeof themeFactories] = factory();

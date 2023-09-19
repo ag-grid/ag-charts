@@ -4,7 +4,7 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/chartTheme';
+} from '../../themes/symbols';
 import { singleSeriesPaletteFactory } from '../../mapping/defaults';
 import { HistogramSeries } from './histogramSeries';
 import { NumberAxis } from '../../axis/numberAxis';

@@ -6,7 +6,7 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/chartTheme';
+} from '../../themes/symbols';
 import { NumberAxis } from '../../axis/numberAxis';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { singleSeriesPaletteFactory } from '../../mapping/defaults';

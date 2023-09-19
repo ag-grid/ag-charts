@@ -5,7 +5,7 @@ import {
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/chartTheme';
+} from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
 import { DEFAULT_CARTESIAN_CHART_OVERRIDES, singleSeriesPaletteFactory } from '../../mapping/defaults';
 

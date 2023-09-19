@@ -14,27 +14,28 @@ import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
+import {
+    DEFAULT_AXIS_GRID_COLOUR,
+    DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_SHADOW_COLOUR,
+    DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+    EXTENDS_AXES_DEFAULTS,
+    EXTENDS_AXES_LABEL_DEFAULTS,
+    EXTENDS_AXES_LINE_DEFAULTS,
+    EXTENDS_AXES_TICK_DEFAULTS,
+    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+    EXTENDS_CHART_DEFAULTS,
+    EXTENDS_SERIES_DEFAULTS,
+    OVERRIDE_SERIES_LABEL_DEFAULTS,
+} from './symbols';
 
 const palette: AgChartThemePalette = {
     fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
     strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
 };
-
-export const EXTENDS_CHART_DEFAULTS = Symbol('extends-chart-defaults') as unknown as string;
-export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults') as unknown as string;
-export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults') as unknown as string;
-export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults') as unknown as string;
-export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults') as unknown as string;
-export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults') as unknown as string;
-export const EXTENDS_CARTESIAN_MARKER_DEFAULTS = Symbol('extends-cartesian-marker-defaults') as unknown as string;
-export const OVERRIDE_SERIES_LABEL_DEFAULTS = Symbol('override-series-label-defaults') as unknown as string;
-export const DEFAULT_FONT_FAMILY = Symbol('default-font') as unknown as string;
-export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour') as unknown as string;
-export const DEFAULT_MUTED_LABEL_COLOUR = Symbol('default-muted-label-colour') as unknown as string;
-export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour') as unknown as string;
-export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string;
-export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
-export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour') as unknown as string;
 
 const BOLD: FontWeight = 'bold';
 const BOTTOM: AgChartLegendPosition = 'bottom';

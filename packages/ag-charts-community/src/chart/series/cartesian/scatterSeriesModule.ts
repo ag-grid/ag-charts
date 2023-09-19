@@ -4,7 +4,7 @@ import {
     DEFAULT_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/chartTheme';
+} from '../../themes/symbols';
 import { singleSeriesPaletteFactory } from '../../mapping/defaults';
 import { ScatterSeries } from './scatterSeries';
 import { NumberAxis } from '../../axis/numberAxis';
