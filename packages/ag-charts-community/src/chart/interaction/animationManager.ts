@@ -1,8 +1,8 @@
-import { BaseManager } from './baseManager';
-import type { InteractionManager } from './interactionManager';
 import type { AnimationControls, AnimationOptions as BaseAnimationOptions, Driver } from '../../motion/animate';
 import { animate as baseAnimate } from '../../motion/animate';
-import { Logger } from '../../util/logger';
+import { Debug } from '../../util/debug';
+import { BaseManager } from './baseManager';
+import type { InteractionManager } from './interactionManager';
 
 const DEFAULT_DURATION = 1000;
 
@@ -47,7 +47,9 @@ type AnimationWithThrottleOptions<T> =
  * preventing duplicate animations and handling their lifecycle.
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent<AnimationEventType>> {
+    private readonly debug = Debug.create(true, 'animation');
     private readonly controllers: Record<AnimationId, AnimationControls> = {};
+
     private throttles: Record<string, number> = {};
     private throttleGroups: Set<string> = new Set();
 
@@ -62,7 +64,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     public defaultOptions: Partial<Pick<AnimationOptions<any>, 'duration'>> = {};
     public skipAnimations = false;
-    public debug = false;
 
     constructor(interactionManager: InteractionManager, window: Window) {
         super();
@@ -84,9 +85,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         this.isPlaying = true;
 
-        if (this.debug) {
-            Logger.debug('AnimationManager.play()');
-        }
+        this.debug('AnimationManager.play()');
 
         for (const id in this.controllers) {
             this.controllers[id].play();
@@ -101,9 +100,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.isPlaying = false;
         this.cancelAnimationFrame();
 
-        if (this.debug) {
-            Logger.debug('AnimationManager.pause()');
-        }
+        this.debug('AnimationManager.pause()');
 
         for (const id in this.controllers) {
             this.controllers[id].pause();
@@ -114,9 +111,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.isPlaying = false;
         this.cancelAnimationFrame();
 
-        if (this.debug) {
-            Logger.debug('AnimationManager.stop()');
-        }
+        this.debug('AnimationManager.stop()');
 
         for (const id in this.controllers) {
             this.controllers[id].stop();
@@ -330,9 +325,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             const deltaMs = time - this.lastTime;
             this.lastTime = time;
 
-            if (this.debug) {
-                Logger.debug('AnimationManager - frame()', { updaterCount: this.updaters.length });
-            }
+            this.debug('AnimationManager - frame()', { updaterCount: this.updaters.length });
 
             this.updaters.forEach(([_, update]) => update(deltaMs));
 

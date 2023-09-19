@@ -1,6 +1,7 @@
 import { Scene } from '../scene/scene';
 import { Group } from '../scene/group';
 import { Text } from '../scene/shape/text';
+import { Debug } from '../util/debug';
 import type { Series, SeriesNodeDatum } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { Padding } from '../util/padding';
@@ -127,15 +128,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     readonly overlays: ChartOverlays;
     readonly highlight: ChartHighlight;
 
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.scene.debug.consoleLog = value;
-            if (this.animationManager) {
-                this.animationManager.debug = value;
-            }
-        },
-    })
-    public debug;
+    // @ActionOnSet<Chart>({
+    //     newValue(value) {
+    //         this.scene.debug.consoleLog = value;
+    //         if (this.animationManager) {
+    //             this.animationManager.debug = value;
+    //         }
+    //     },
+    // })
+    // public debug;
+
+    private readonly debug = Debug.create();
 
     private extraDebugStats: Record<string, number> = {};
 
@@ -291,7 +294,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.style.position = 'relative';
 
         this.scene = scene ?? new Scene(this.specialOverrides);
-        this.scene.debug.consoleLog = false;
         this.scene.root = root;
         this.scene.container = element;
         this.autoSize = true;
@@ -319,7 +321,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.overlays = new ChartOverlays(this.element);
         this.highlight = new ChartHighlight();
         this.container = container;
-        this.debug = false;
 
         SizeMonitor.observe(this.element, (size) => {
             let { width, height } = size;
@@ -505,12 +506,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return result;
     }
 
-    log(...opts: any[]) {
-        if (this.debug) {
-            Logger.debug(...opts);
-        }
-    }
-
     disablePointer(highlightOnly = false) {
         if (!highlightOnly) {
             this.tooltipManager.removeTooltip(this.id);
@@ -609,7 +604,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this._performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
 
-        this.log('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
+        this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
         const splits: Record<string, number> = { start: performance.now() };
 
         switch (performUpdateType) {
@@ -625,7 +620,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 await this.performLayout();
                 this.handleOverlays();
-                this.log('Chart.performUpdate() - seriesRect', this.seriesRect);
+                this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
                 splits['⌖'] = performance.now();
 
             // eslint-disable-next-line no-fallthrough
@@ -660,7 +655,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const end = performance.now();
-        this.log('Chart.performUpdate() - end', {
+        this.debug('Chart.performUpdate() - end', {
             chart: this,
             durationMs: Math.round((end - splits['start']) * 100) / 100,
             count,
@@ -698,14 +693,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 // Reschedule if canvas size hasn't been set yet to avoid a race.
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { seriesToUpdate, backOffMs });
 
-                this.log('Chart.checkFirstAutoSize() - backing off until first size update', backOffMs);
+                this.debug('Chart.checkFirstAutoSize() - backing off until first size update', backOffMs);
                 return false;
             }
 
             // After several failed passes, continue and accept there maybe a redundant
             // render. Sometimes this case happens when we already have the correct
             // width/height, and we end up never rendering the chart in that scenario.
-            this.log('Chart.checkFirstAutoSize() - timeout for first size update.');
+            this.debug('Chart.checkFirstAutoSize() - timeout for first size update.');
         }
         this._performUpdateNoRenderCount = 0;
 
@@ -869,7 +864,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private resize(width?: number, height?: number, source?: string) {
         width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : this.scene.canvas.width);
         height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : this.scene.canvas.height);
-        this.log(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
+        this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
         if (!width || !height || !Number.isFinite(width) || !Number.isFinite(height)) return;
 
         if (this.scene.resize(width, height)) {

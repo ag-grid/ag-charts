@@ -74,3 +74,7 @@ export function arraysEqual(a: any[], b: any[]): boolean {
 
     return true;
 }
+
+export function toArray<T>(value: T): T[] {
+    return Array.isArray(value) ? value : [value];
+}

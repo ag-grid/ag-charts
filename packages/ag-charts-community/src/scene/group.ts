@@ -4,7 +4,6 @@ import { BBox } from './bbox';
 import type { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { compoundAscending, ascendingStringNumberUndefined } from '../util/compare';
-import { Logger } from '../util/logger';
 
 type OffscreenCanvasRenderingContext2D = any;
 
@@ -137,8 +136,7 @@ export class Group extends Node {
     private lastBBox?: BBox = undefined;
 
     render(renderCtx: RenderContext) {
-        const { opts: { name = undefined } = {} } = this;
-        const { _debug: { consoleLog = false } = {} } = this;
+        const { opts: { name = undefined } = {}, _debug: debug = () => {} } = this;
         const { dirty, dirtyZIndex, layer, children, clipRect, dirtyTransform } = this;
         let { ctx, forceRender, clipBBox } = renderCtx;
         const { resized, stats } = renderCtx;
@@ -156,8 +154,8 @@ export class Group extends Node {
             }
         }
 
-        if (name && consoleLog) {
-            Logger.debug({ name, group: this, isDirty, isChildDirty, dirtyTransform, renderCtx, forceRender });
+        if (name) {
+            debug({ name, group: this, isDirty, isChildDirty, dirtyTransform, renderCtx, forceRender });
         }
 
         if (dirtyTransform) {
@@ -172,9 +170,8 @@ export class Group extends Node {
         }
 
         if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
-            if (name && consoleLog && stats) {
-                const counts = this.nodeCount;
-                Logger.debug({ name, result: 'skipping', renderCtx, counts, group: this });
+            if (name && stats) {
+                debug({ name, result: 'skipping', renderCtx, counts: this.nodeCount, group: this });
             }
 
             if (layer && stats) {
@@ -204,9 +201,7 @@ export class Group extends Node {
                 // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
                 const { width, height, x, y } = clipBBox;
 
-                if (consoleLog) {
-                    Logger.debug({ name, clipBBox, ctxTransform: ctx.getTransform(), renderCtx, group: this });
-                }
+                debug({ name, clipBBox, ctxTransform: ctx.getTransform(), renderCtx, group: this });
 
                 this.clipCtx(ctx, x, y, width, height);
             }
@@ -229,9 +224,7 @@ export class Group extends Node {
             const { x, y, width, height } = clipRect;
             ctx.save();
 
-            if (consoleLog) {
-                Logger.debug({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this });
-            }
+            debug({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this });
 
             this.clipCtx(ctx, x, y, width, height);
 
@@ -300,9 +293,8 @@ export class Group extends Node {
             layer.context.verifyDepthZero?.();
         }
 
-        if (name && consoleLog && stats) {
-            const counts = this.nodeCount;
-            Logger.debug({ name, result: 'rendered', skipped, renderCtx, counts, group: this });
+        if (name && stats) {
+            debug({ name, result: 'rendered', skipped, renderCtx, counts: this.nodeCount, group: this });
         }
     }
 
