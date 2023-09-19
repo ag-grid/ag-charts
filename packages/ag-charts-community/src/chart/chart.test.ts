@@ -15,6 +15,7 @@ import type {
     AgPolarChartOptions,
     AgScatterSeriesOptions,
     AgTreemapSeriesOptions,
+    AgChartInstance,
 } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
@@ -474,10 +475,17 @@ describe('Chart', () => {
             return { chart, chartProxy, chartOptions };
         }
 
+        async function updateChart(chartProxy: AgChartInstance, options: object) {
+            const chartOptions = prepareTestOptions(options);
+            AgChart.update(chartProxy, chartOptions);
+            const chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+        }
+
         it('Chart data inherited only when Series data is not defined ', async () => {
             const moreData = datasets.economy.data;
             const lessData = datasets.economy.data.slice(0, 2);
-            const { chart } = await createChart({
+            const { chart, chartProxy } = await createChart({
                 data: moreData,
                 series: [
                     {
@@ -497,14 +505,42 @@ describe('Chart', () => {
             expect(chart.series[0].data).toEqual(moreData);
             expect(chart.series[1].data).toEqual(lessData);
 
-            chart.series[0].data = lessData;
-            chart.series[1].data = null;
+            await updateChart(chartProxy, {
+                data: moreData,
+                series: [
+                    {
+                        type: 'bar',
+                        data: lessData,
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                    },
+                    {
+                        type: 'bar',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey2,
+                    },
+                ],
+            });
 
             expect(chart.data).toEqual(moreData);
             expect(chart.series[0].data).toEqual(lessData);
             expect(chart.series[1].data).toEqual(moreData);
 
-            chart.series[0].data = null;
+            await updateChart(chartProxy, {
+                data: moreData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                    },
+                    {
+                        type: 'bar',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey2,
+                    },
+                ],
+            });
 
             expect(chart.series[0].data).toEqual(chart.data);
             expect(chart.series[1].data).toEqual(chart.data);
