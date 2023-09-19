@@ -73,7 +73,7 @@ export class GradientLegend {
     private readonly arrow: _Scene.Triangle;
 
     @Validate(BOOLEAN)
-    enabled = true;
+    enabled = false;
 
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';

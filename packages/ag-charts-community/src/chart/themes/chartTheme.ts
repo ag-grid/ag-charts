@@ -400,7 +400,7 @@ export class ChartTheme {
         },
         bubble: {
             ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
+            axes: ChartTheme.cartesianAxisDefault,
             series: {
                 ...ChartTheme.getScatterSeriesDefaults(),
                 marker: {
