@@ -128,16 +128,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     readonly overlays: ChartOverlays;
     readonly highlight: ChartHighlight;
 
-    // @ActionOnSet<Chart>({
-    //     newValue(value) {
-    //         this.scene.debug.consoleLog = value;
-    //         if (this.animationManager) {
-    //             this.animationManager.debug = value;
-    //         }
-    //     },
-    // })
-    // public debug;
-
     private readonly debug = Debug.create();
 
     private extraDebugStats: Record<string, number> = {};
