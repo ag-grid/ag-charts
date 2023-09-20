@@ -1,3 +1,5 @@
+export const prerender = true;
+
 import { getEntry } from 'astro:content';
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
 import { JSDOM } from 'jsdom';

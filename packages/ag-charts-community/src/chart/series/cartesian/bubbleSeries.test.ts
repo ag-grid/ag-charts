@@ -97,4 +97,83 @@ describe('BubbleSeries', () => {
             });
         }
     });
+
+    describe('remove animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, 1);
+
+                const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
+                prepareTestOptions(options);
+
+                chart = AgChart.create(options) as Chart;
+                await waitForChartStability(chart);
+
+                AgChart.updateDelta(chart, { data: options.data!.slice(4) });
+                spyOnAnimationManager(1200, ratio);
+
+                await waitForChartStability(chart);
+                await compare();
+            });
+        }
+    });
+
+    describe('add animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, 1);
+
+                const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
+                prepareTestOptions(options);
+
+                chart = AgChart.create(options) as Chart;
+                await waitForChartStability(chart);
+
+                AgChart.updateDelta(chart, { data: options.data!.slice(4) });
+                spyOnAnimationManager(1200, 1);
+
+                await waitForChartStability(chart);
+
+                AgChart.update(chart, options);
+                spyOnAnimationManager(1200, ratio);
+
+                await waitForChartStability(chart);
+                await compare();
+            });
+        }
+    });
+
+    describe('update animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, 1);
+
+                const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
+                prepareTestOptions(options);
+
+                chart = AgChart.create(options) as Chart;
+                await waitForChartStability(chart);
+
+                AgChart.updateDelta(chart, {
+                    data: options.data!.map((d: any, i: number) => (i % 2 === 0 ? { ...d, lat: d.lat * 2 } : d)),
+                });
+                spyOnAnimationManager(1200, ratio);
+
+                await waitForChartStability(chart);
+                await compare();
+            });
+        }
+    });
 });

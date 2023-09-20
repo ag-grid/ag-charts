@@ -135,6 +135,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.skipAnimations) {
             // Initialise the animation with the final values immediately and then stop the animation
             opts.onUpdate?.(opts.to);
+            opts.onComplete?.();
             return;
         }
 

@@ -15,9 +15,12 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
     });
 
     return (
-        <a className={classnames(styles.link, className)} href={getPageUrl(exampleName)}>
+        <a
+            className={classnames(styles.link, className, 'font-size-responsive', 'font-size-small', 'text-secondary')}
+            href={getPageUrl(exampleName)}
+        >
             <img src={imageUrl} alt={label} />
-            <span className="font-size-responsive font-size-medium">{label}</span>
+            <span>{label}</span>
         </a>
     );
 };

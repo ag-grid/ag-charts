@@ -155,7 +155,11 @@ export class LineSeries extends CartesianSeries<LineContext> {
         this.dataModel = dataModel;
         this.processedData = processedData;
 
-        this.checkAnimationUpdateDataTransition();
+        if (processedData.reduced?.diff?.added && processedData.reduced?.diff?.removed) {
+            this.animationTransitionClear();
+        } else {
+            this.animationState.transition('updateData');
+        }
     }
 
     getDomain(direction: ChartAxisDirection): any[] {
