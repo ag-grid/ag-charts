@@ -1,3 +1,4 @@
+import type { AgErrorBarOptions } from '../../options/errorBarOptions';
 import type { AgSeriesListeners } from '../../options/eventOptions';
 import type { AgSeriesTooltip } from '../../options/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -34,4 +35,6 @@ export interface AgLineSeriesOptions<DatumType = any>
     yName?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
+    /** Configuration for the series error bars. */
+    errorBar?: AgErrorBarOptions;
 }

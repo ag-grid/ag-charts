@@ -1,7 +1,7 @@
 import { RangeSelector } from '../shapes/rangeSelector';
 import { NavigatorMask } from './navigatorMask';
 import { NavigatorHandle } from './navigatorHandle';
-import type { ModuleInstance } from '../../util/module';
+import type { ModuleInstance } from '../../util/baseModule';
 import { BaseModuleInstance } from '../../util/module';
 import { BOOLEAN, NUMBER, Validate } from '../../util/validation';
 import type { LayoutCompleteEvent, LayoutContext } from '../layout/layoutService';

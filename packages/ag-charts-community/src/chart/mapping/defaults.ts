@@ -2,7 +2,7 @@ import type { AgCartesianChartOptions, AgChartOptions } from '../../options/agCh
 import { NumberAxis } from '../axis/numberAxis';
 import { CategoryAxis } from '../axis/categoryAxis';
 import { isAgCartesianChartOptions } from './types';
-import type { SeriesPaletteFactory } from '../../util/module';
+import type { SeriesPaletteFactory } from '../../util/coreModules';
 
 export const DEFAULT_CARTESIAN_CHART_OVERRIDES: AgCartesianChartOptions = {
     axes: [

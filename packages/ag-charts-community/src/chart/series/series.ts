@@ -31,13 +31,16 @@ import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
-import type { ModuleContext } from '../../util/moduleContext';
+import type { ModuleContext, SeriesContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
 import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
+import type { ModuleContextInitialiser } from '../../util/moduleMap';
+import { ModuleMap } from '../../util/moduleMap';
+import type { SeriesOptionModule } from '../../util/optionModules';
 
 /**
  * Processed series datum used in node selections,
@@ -319,7 +322,12 @@ export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
 const NO_HIGHLIGHT = 'no-highlight';
 const OTHER_HIGHLIGHTED = 'other-highlighted';
 
-export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext> extends Observable {
+export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext>;
+
+export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext>
+    extends Observable
+    implements ModuleContextInitialiser<SeriesContext>
+{
     protected static readonly highlightedZIndex = 1000000000000;
 
     @Validate(STRING)
@@ -776,5 +784,15 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
 
         return [min, max];
+    }
+
+    private readonly moduleMap: SeriesModuleMap = new ModuleMap<SeriesOptionModule, SeriesContext>(this);
+
+    getModuleMap(): SeriesModuleMap {
+        return this.moduleMap;
+    }
+
+    createModuleContext(): SeriesContext {
+        return { ...this.ctx, series: this };
     }
 }
