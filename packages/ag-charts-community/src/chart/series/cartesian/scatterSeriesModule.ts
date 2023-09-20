@@ -5,7 +5,7 @@ import {
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { singleSeriesPaletteFactory } from '../../mapping/defaults';
+import { markerPaletteFactory } from '../../mapping/defaults';
 import { ScatterSeries } from './scatterSeries';
 import { NumberAxis } from '../../axis/numberAxis';
 
@@ -43,8 +43,5 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             color: DEFAULT_LABEL_COLOUR,
         },
     },
-    paletteFactory: (params) => {
-        const { fill, stroke } = singleSeriesPaletteFactory(params);
-        return { marker: { fill, stroke } };
-    },
+    paletteFactory: markerPaletteFactory,
 };

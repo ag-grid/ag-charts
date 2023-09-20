@@ -7,7 +7,7 @@ import {
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
-import { DEFAULT_CARTESIAN_CHART_OVERRIDES, singleSeriesPaletteFactory } from '../../mapping/defaults';
+import { DEFAULT_CARTESIAN_CHART_OVERRIDES, markerPaletteFactory } from '../../mapping/defaults';
 
 export const AreaSeriesModule: SeriesModule<'area'> = {
     type: 'series',
@@ -55,5 +55,12 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             formatter: undefined,
         },
     },
-    paletteFactory: singleSeriesPaletteFactory,
+    paletteFactory: (params) => {
+        const { marker } = markerPaletteFactory(params);
+        return {
+            stroke: marker.stroke,
+            fill: marker.fill,
+            marker,
+        };
+    },
 };

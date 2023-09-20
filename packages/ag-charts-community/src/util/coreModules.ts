@@ -9,18 +9,27 @@ export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
 export type SeriesConstructor = new (moduleContext: ModuleContext) => Series<any>;
 export type LegendConstructor = new (moduleContext: ModuleContext) => ChartLegend;
 
-interface SeriesPaletteOptions {
-    stroke?: string;
-    fill?: string;
-    fills?: string[];
-    strokes?: string[];
-    marker?: { fill?: string; stroke?: string };
-}
-interface SeriesPaletteFactoryParams {
+export type SeriesPaletteOptions<
+    SeriesType extends RequiredSeriesType,
+    SeriesOpts = NonNullable<AgChartOptions['series']>[number] & { type: SeriesType },
+    ColourKeys = 'stroke' | 'fill' | 'fills' | 'strokes' | 'colors',
+    NestedKeys = 'marker' | 'calloutLine'
+> = {
+    [K in keyof SeriesOpts & ColourKeys]: NonNullable<SeriesOpts[K]>;
+} & {
+    [K in keyof SeriesOpts & NestedKeys]: {
+        [K2 in keyof NonNullable<SeriesOpts[K]> & ColourKeys]: NonNullable<NonNullable<SeriesOpts[K]>[K2]>;
+    };
+};
+
+export interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
     colorsCount: number;
 }
-export type SeriesPaletteFactory = (params: SeriesPaletteFactoryParams) => SeriesPaletteOptions;
+
+export type SeriesPaletteFactory<SeriesType extends RequiredSeriesType = RequiredSeriesType> = (
+    params: SeriesPaletteFactoryParams
+) => SeriesPaletteOptions<SeriesType>;
 
 export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'root';
@@ -63,7 +72,7 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
 
     seriesDefaults: AgChartOptions;
     themeTemplate: ExtensibleTheme<SeriesType>;
-    paletteFactory?: SeriesPaletteFactory;
+    paletteFactory?: SeriesPaletteFactory<SeriesType>;
     stackable?: boolean;
     groupable?: boolean;
     stackedByDefault?: boolean;

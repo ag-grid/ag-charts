@@ -78,5 +78,14 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
             margin: 2,
         },
     },
-    paletteFactory: ({ takeColors, colorsCount }) => takeColors(colorsCount),
+    paletteFactory: ({ takeColors, colorsCount }) => {
+        const { fills, strokes } = takeColors(colorsCount);
+        return {
+            fills,
+            strokes,
+            calloutLine: {
+                colors: strokes,
+            },
+        };
+    },
 };

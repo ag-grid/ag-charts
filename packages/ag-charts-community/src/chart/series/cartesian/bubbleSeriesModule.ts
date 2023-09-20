@@ -5,7 +5,7 @@ import {
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { singleSeriesPaletteFactory } from '../../mapping/defaults';
+import { markerPaletteFactory } from '../../mapping/defaults';
 import { BubbleSeries } from './bubbleSeries';
 import { NumberAxis } from '../../axis/numberAxis';
 
@@ -44,8 +44,5 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             color: DEFAULT_LABEL_COLOUR,
         },
     },
-    paletteFactory: (params) => {
-        const { fill, stroke } = singleSeriesPaletteFactory(params);
-        return { marker: { fill, stroke } };
-    },
+    paletteFactory: markerPaletteFactory,
 };

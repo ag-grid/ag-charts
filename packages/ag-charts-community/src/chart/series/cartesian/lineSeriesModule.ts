@@ -5,7 +5,7 @@ import {
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { DEFAULT_CARTESIAN_CHART_OVERRIDES, singleSeriesPaletteFactory } from '../../mapping/defaults';
+import { DEFAULT_CARTESIAN_CHART_OVERRIDES, markerPaletteFactory } from '../../mapping/defaults';
 import { LineSeries } from './lineSeries';
 
 export const LineSeriesModule: SeriesModule<'line'> = {
@@ -44,10 +44,10 @@ export const LineSeriesModule: SeriesModule<'line'> = {
         },
     },
     paletteFactory: (params) => {
-        const { fill, stroke } = singleSeriesPaletteFactory(params);
+        const { marker } = markerPaletteFactory(params);
         return {
-            stroke: fill,
-            marker: { fill, stroke },
+            stroke: marker.stroke,
+            marker,
         };
     },
 };
