@@ -32,8 +32,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         fillOpacity: 1,
-        strokeOpacity: 0,
-        strokeWidth: 1,
+        strokeWidth: 0,
         lineDash: [0],
         lineDashOffset: 0,
         label: {
