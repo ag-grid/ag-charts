@@ -295,7 +295,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 strokeWidth: marker.strokeWidth ?? 1,
             });
 
-            const config = { ...styles, point: datum.point, visible, customMarker, animatedMarker: true };
+            const config = { ...styles, point: datum.point, visible, customMarker, animatedMarker: !highlighted };
             updateMarker({ node, config });
         });
 

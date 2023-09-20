@@ -93,7 +93,9 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
                     this._garbage.push(datumId);
                 }
             }
-        } else {
+        }
+
+        if (!getDatumId) {
             // Reset the node data by index
             for (let i = 0; i < this._data.length; i++) {
                 this._nodes[i].datum = this._data[i];
@@ -118,6 +120,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             this._nodes.splice(this._garbageSimpleLength).forEach((node) => {
                 this._parent.removeChild(node);
             });
+            this._garbageSimpleLength = 0;
             return this;
         }
 

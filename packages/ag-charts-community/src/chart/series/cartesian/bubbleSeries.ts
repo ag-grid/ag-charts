@@ -374,7 +374,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
                 strokeWidth: marker.strokeWidth ?? 1,
             });
 
-            const config = { ...styles, point: datum.point, visible, customMarker, animatedMarker: true };
+            const config = { ...styles, point: datum.point, visible, customMarker, animatedMarker: !highlighted };
             updateMarker({ node, config });
         });
 

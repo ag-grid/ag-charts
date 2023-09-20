@@ -38,6 +38,21 @@ describe('selection', () => {
                     expect(datum).toBe(changedData[index]);
                 });
             });
+
+            it('should remove and add data', () => {
+                const selection = new Selection(new TestNode(), TestNode);
+                const data = ['a', 'b', 'c'];
+                const changedData = ['a', 'c'];
+                selection.update(data);
+                selection.update(changedData);
+                selection.update(data);
+
+                expect(selection.nodes()).toHaveLength(data.length);
+                selection.each((node, datum, index) => {
+                    expect(node).toBeInstanceOf(TestNode);
+                    expect(datum).toBe(data[index]);
+                });
+            });
         });
 
         describe('with manual garbage collection', () => {
