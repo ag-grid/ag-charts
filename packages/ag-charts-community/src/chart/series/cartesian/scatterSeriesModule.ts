@@ -32,6 +32,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
         },
         marker: {
             __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+            fillOpacity: 0.8,
         },
         label: {
             enabled: false,
