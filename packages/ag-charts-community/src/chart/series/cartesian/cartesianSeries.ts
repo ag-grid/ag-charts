@@ -1,33 +1,33 @@
-import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMode, SeriesNodePickMatch } from '../series';
-import { Series, SeriesNodeBaseClickEvent } from '../series';
-import { SeriesMarker } from '../seriesMarker';
-import { isContinuous, isDiscrete } from '../../../util/value';
-import { Path } from '../../../scene/shape/path';
-import { Selection } from '../../../scene/selection';
-import type { Marker } from '../../marker/marker';
-import { Group } from '../../../scene/group';
-import { Text } from '../../../scene/shape/text';
-import type { Node, ZIndexSubOrder } from '../../../scene/node';
-import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
-import { CategoryAxis } from '../../axis/categoryAxis';
-import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { Layers } from '../../layers';
-import type { Point } from '../../../scene/point';
-import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
-import { jsonDiff } from '../../../util/json';
-import type { BBox } from '../../../scene/bbox';
+import { StateMachine } from '../../../motion/states';
 import type {
-    AgCartesianSeriesMarkerFormatterParams,
     AgCartesianSeriesMarkerFormat,
+    AgCartesianSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
+import type { BBox } from '../../../scene/bbox';
+import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import { Group } from '../../../scene/group';
+import type { Node, ZIndexSubOrder } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
+import { Selection } from '../../../scene/selection';
+import { Path } from '../../../scene/shape/path';
+import { Text } from '../../../scene/shape/text';
+import { Debug } from '../../../util/debug';
+import { jsonDiff } from '../../../util/json';
+import type { PointLabelDatum } from '../../../util/labelPlacement';
+import { Listeners } from '../../../util/listeners';
+import type { ModuleContext } from '../../../util/moduleContext';
+import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
+import { isContinuous, isDiscrete } from '../../../util/value';
+import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
-import { StateMachine } from '../../../motion/states';
-import type { ModuleContext } from '../../../util/moduleContext';
-import { Logger } from '../../../util/logger';
-import { Listeners } from '../../../util/listeners';
+import { Layers } from '../../layers';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
+import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { Series, SeriesNodeBaseClickEvent } from '../series';
+import { SeriesMarker } from '../seriesMarker';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -138,6 +138,7 @@ export abstract class CartesianSeries<
     private subGroupId: number = 0;
 
     private readonly opts: SeriesOpts;
+    private readonly debug = Debug.create();
 
     protected animationState: CartesianStateMachine;
     protected datumSelectionGarbageCollection = true;
@@ -304,9 +305,8 @@ export abstract class CartesianSeries<
         if (this.nodeDataRefresh) {
             this.nodeDataRefresh = false;
 
-            if (this.chart?.debug) {
-                Logger.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
-            }
+            this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
+
             this._contextNodeData = await this.createNodeData();
             await this.updateSeriesGroups();
         }

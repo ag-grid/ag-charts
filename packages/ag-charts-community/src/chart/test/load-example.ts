@@ -56,7 +56,7 @@ export function loadExampleOptions(
         return exampleRunFn(agCharts, AgChart, time, Marker, require);
     } catch (error: any) {
         Logger.error(`unable to read example data for [${name}]; error: ${error.message}`);
-        Logger.debug(evalExpr);
+        Logger.log(evalExpr);
         return [];
     }
 }

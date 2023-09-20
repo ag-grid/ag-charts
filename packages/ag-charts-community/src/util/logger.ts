@@ -2,7 +2,7 @@
 import { doOnce } from './function';
 
 export const Logger = {
-    debug(...logContent: any[]) {
+    log(...logContent: any[]) {
         console.log(...logContent);
     },
 
@@ -16,6 +16,10 @@ export const Logger = {
         } else {
             console.error(`AG Charts - ${message}`, ...logContent);
         }
+    },
+
+    table(...logContent: any[]) {
+        console.table(...logContent);
     },
 
     warnOnce(message: any, ...logContent: any[]) {

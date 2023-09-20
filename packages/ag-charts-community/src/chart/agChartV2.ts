@@ -4,6 +4,7 @@ import type {
     AgBaseAxisOptions,
     AgBaseSeriesOptions,
 } from '../options/agChartOptions';
+import { Debug } from '../util/debug';
 import { CartesianChart } from './cartesianChart';
 import { PolarChart } from './polarChart';
 import { HierarchyChart } from './hierarchyChart';
@@ -24,7 +25,6 @@ import {
     optionsType,
     type SeriesOptionsTypes,
 } from './mapping/types';
-import { windowValue } from '../util/window';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
@@ -35,6 +35,8 @@ import { type Module, REGISTERED_MODULES } from '../util/module';
 import type { ModuleInstance } from '../util/baseModule';
 import type { LegendModule, RootModule } from '../util/coreModules';
 import type { AxisOptionModule, SeriesOptionModule } from '../util/optionModules';
+
+const debug = Debug.create(true, 'opts');
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -178,8 +180,6 @@ class AgChartInstanceProxy implements AgChartInstance {
 }
 
 abstract class AgChartInternal {
-    static DEBUG = () => (windowValue('agChartsDebug') as string | boolean) ?? false;
-
     static initialised = false;
     static initialiseModules() {
         if (AgChartInternal.initialised) return;
@@ -194,10 +194,6 @@ abstract class AgChartInternal {
         AgChartInternal.initialiseModules();
 
         debug('>>> AgChartV2.createOrUpdate() user options', userOptions);
-        const mixinOpts: any = {};
-        if (AgChartInternal.DEBUG() === true) {
-            mixinOpts['debug'] = true;
-        }
 
         const { overrideDevicePixelRatio, document, window: userWindow } = userOptions;
         delete userOptions['overrideDevicePixelRatio'];
@@ -205,7 +201,7 @@ abstract class AgChartInternal {
         delete (userOptions as any)['window'];
         const specialOverrides = { overrideDevicePixelRatio, document, window: userWindow };
 
-        const processedOptions = prepareOptions(userOptions, mixinOpts);
+        const processedOptions = prepareOptions(userOptions);
         let chart = proxy?.chart;
         if (chart == null || chartType(userOptions as any) !== chartType(chart.processedOptions as any)) {
             chart = AgChartInternal.createChartInstance(processedOptions, specialOverrides, chart);
@@ -217,7 +213,7 @@ abstract class AgChartInternal {
             proxy.chart = chart;
         }
 
-        if (AgChartInternal.DEBUG() === true && typeof window !== 'undefined') {
+        if (Debug.check() && typeof window !== 'undefined') {
             (window as any).agChartInstances ??= {};
             (window as any).agChartInstances[chart.id] = chart;
         }
@@ -363,12 +359,6 @@ abstract class AgChartInternal {
 
         debug('AgChartV2.updateDelta() - applying delta', processedOptions);
         applyChartOptions(chart, processedOptions, userOptions);
-    }
-}
-
-function debug(message?: any, ...optionalParams: any[]): void {
-    if ([true, 'opts'].includes(AgChartInternal.DEBUG())) {
-        Logger.debug(message, ...optionalParams);
     }
 }
 
