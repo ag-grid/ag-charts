@@ -393,7 +393,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected _gridLength: number = 0;
     set gridLength(value: number) {
         // Was visible and now invisible, or was invisible and now visible.
-        if (this._gridLength ^ value) {
+        if ((this._gridLength && !value) || (!this._gridLength && value)) {
             this.gridLineGroupSelection.clear();
         }
 
