@@ -9,7 +9,7 @@ export function getShouldLimitChildren({
 }: {
     config?: JsObjectPropertiesViewConfig;
     path: string[];
-    pathItem: string;
+    pathItem?: string;
 }): boolean {
     const limitChildrenProperties = config?.limitChildrenProperties;
 
@@ -17,6 +17,9 @@ export function getShouldLimitChildren({
         return false;
     }
 
+    const checkPath = pathItem === undefined ? path : path.concat(pathItem);
+    const checkPrePath = checkPath.slice(0, checkPath.length - 1);
+    const lastCheckPathItem = checkPath[checkPath.length - 1];
     let shouldLimitChildren = false;
     limitChildrenProperties.map((property) => {
         const propertyPath = property.split(PROPERTY_SEPARATOR);
@@ -24,11 +27,11 @@ export function getShouldLimitChildren({
         const hasWildcard = lastPathItem === '*';
         const prePath = propertyPath.slice(0, propertyPath.length - 1);
 
-        if (JSON.stringify(path) === JSON.stringify(prePath)) {
+        if (JSON.stringify(checkPrePath) === JSON.stringify(prePath)) {
             if (hasWildcard) {
                 shouldLimitChildren = true;
             } else {
-                if (lastPathItem === pathItem) {
+                if (lastPathItem === lastCheckPathItem) {
                     shouldLimitChildren = true;
                 }
             }

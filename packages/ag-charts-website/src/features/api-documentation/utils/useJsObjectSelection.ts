@@ -90,9 +90,16 @@ export function useJsObjectSelection({ model, config }: { model: JsonModel; conf
                     newSelection.onlyShowToDepth === undefined
                         ? shouldLimitChildrenDepth
                         : newSelection.onlyShowToDepth;
+
                 try {
+                    const selectionChanged = selectionHasChanged({
+                        selection: topLevelSelection,
+                        newSelection,
+                        config,
+                    });
                     const [newTopLevelPathItem] = newSelection.path;
-                    if (selectionHasChanged({ selection: topLevelSelection, newSelection })) {
+
+                    if (selectionChanged) {
                         const newTopLevelSelection = getTopLevelSelection({ selection: newSelection, model, config });
                         if (newTopLevelSelection) {
                             setTopLevelSelection({ ...newTopLevelSelection, onlyShowToDepth });

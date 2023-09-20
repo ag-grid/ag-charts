@@ -1,4 +1,4 @@
-import type { JsObjectSelection } from '../types';
+import type { JsModelSelectionProperty, JsObjectPropertiesViewConfig, JsObjectSelection } from '../types';
 import { selectionHasChanged } from './selectionHasChanged';
 
 describe('selectionHasChanged', () => {
@@ -114,6 +114,27 @@ describe('selectionHasChanged', () => {
             selectionHasChanged({
                 selection: selection1,
                 newSelection: selection2,
+            })
+        ).toEqual(true);
+    });
+
+    it('is true for selection with different should limit children value', () => {
+        const selection1 = {
+            path: ['item1'],
+        } as JsModelSelectionProperty;
+        const selection2 = {
+            path: ['item1'],
+            propName: 'selection',
+        } as JsObjectSelection;
+        const config: JsObjectPropertiesViewConfig = {
+            limitChildrenProperties: ['item1'],
+        };
+
+        expect(
+            selectionHasChanged({
+                selection: selection1,
+                newSelection: selection2,
+                config,
             })
         ).toEqual(true);
     });

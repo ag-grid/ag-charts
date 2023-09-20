@@ -81,4 +81,37 @@ describe('getShouldLimitChildren', () => {
 
         expect(getShouldLimitChildren(options)).toEqual(true);
     });
+
+    it('is true for empty pathItem', () => {
+        const options = {
+            config: {
+                limitChildrenProperties: ['axes'],
+            },
+            path: ['axes'],
+        };
+
+        expect(getShouldLimitChildren(options)).toEqual(true);
+    });
+
+    it('is false for empty pathItem with wildcard that does not match', () => {
+        const options = {
+            config: {
+                limitChildrenProperties: ['axes.*'],
+            },
+            path: ['axes'],
+        };
+
+        expect(getShouldLimitChildren(options)).toEqual(false);
+    });
+
+    it('is true for empty pathItem with wildcard that matches', () => {
+        const options = {
+            config: {
+                limitChildrenProperties: ['axes.*'],
+            },
+            path: ['axes', 'something'],
+        };
+
+        expect(getShouldLimitChildren(options)).toEqual(true);
+    });
 });
