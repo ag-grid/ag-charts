@@ -378,12 +378,26 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     abstract tooltip: SeriesTooltip<any>;
 
     protected _data?: any[] = undefined;
+    protected _chartData?: any[] = undefined;
+
     set data(input: any[] | undefined) {
         this._data = input;
+        this.onDataChange();
+    }
+
+    get data() {
+        return this._data ?? this._chartData;
+    }
+
+    protected onDataChange() {
         this.nodeDataRefresh = true;
     }
-    get data() {
-        return this._data;
+
+    setChartData(input: unknown[]) {
+        this._chartData = input;
+        if (this.data === input) {
+            this.onDataChange();
+        }
     }
 
     hasData() {

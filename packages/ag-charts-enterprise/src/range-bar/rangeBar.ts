@@ -158,13 +158,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     @Validate(NUMBER(0))
     strokeWidth: number = 1;
 
-    set data(input: any[] | undefined) {
-        this._data = input;
-    }
-    get data() {
-        return this._data;
-    }
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -971,4 +964,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     getBandScalePadding() {
         return { inner: 0.2, outer: 0.3 };
     }
+
+    protected onDataChange() {}
 }
