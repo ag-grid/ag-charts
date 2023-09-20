@@ -314,9 +314,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * @param tolerance Expands the range on both ends by this amount.
      */
     inRange(x: number, width = 0, tolerance = 0): boolean {
-        const { range } = this;
-        const min = Math.min(...range);
-        const max = Math.max(...range);
+        const min = Math.min(...this.range);
+        const max = Math.max(...this.range);
         return x + width >= min - tolerance && x <= max + tolerance;
     }
 
@@ -394,8 +393,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected _gridLength: number = 0;
     set gridLength(value: number) {
         // Was visible and now invisible, or was invisible and now visible.
-        if ((this._gridLength && !value) || (!this._gridLength && value)) {
-            this.gridLineGroupSelection = this.gridLineGroupSelection.clear();
+        if (this._gridLength ^ value) {
+            this.gridLineGroupSelection.clear();
         }
 
         this._gridLength = value;
@@ -1336,12 +1335,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected createAxisContext(): AxisContext {
-        const keys = () => this.boundSeries.flatMap((s) => s.getKeys(this.direction));
         return {
             axisId: this.id,
             direction: this.direction,
             continuous: this.scale instanceof ContinuousScale,
-            keys,
+            keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),
             scaleValueFormatter: (specifier: string) => this.scale.tickFormat?.({ specifier }) ?? undefined,
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),
@@ -1354,9 +1352,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
         }
 
-        if (this.axisContext == null) {
-            this.axisContext = this.createAxisContext();
-        }
+        this.axisContext ??= this.createAxisContext();
 
         const moduleInstance = new module.instanceConstructor({
             ...this.moduleCtx,
