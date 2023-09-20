@@ -34,6 +34,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     // If garbage collection is set to false, you must call `selection.cleanup()` to remove deleted nodes
     private _garbage: (string | number)[] = [];
     private _garbageCollection: boolean = true;
+    private _garbageSimpleLength: number = 0;
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
         this._nodes.forEach((node, i) => iterate(node, node.datum, i));
@@ -76,10 +77,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
                 this._nodes.push(node);
             });
         } else if (data.length < old.length) {
-            // Destroy any nodes that are in excess of the new data
-            this._nodes.splice(data.length).forEach((node) => {
-                parent.removeChild(node);
-            });
+            this._garbageSimpleLength = data.length;
         }
 
         // Copy the data into a new array to prevent mutation and duplicates
@@ -95,15 +93,17 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
                     this._garbage.push(datumId);
                 }
             }
+        }
 
-            if (this._garbageCollection) {
-                this.cleanup();
-            }
-        } else {
+        if (!getDatumId) {
             // Reset the node data by index
-            for (let i = 0; i < data.length; i++) {
+            for (let i = 0; i < this._data.length; i++) {
                 this._nodes[i].datum = this._data[i];
             }
+        }
+
+        if (this._garbageCollection) {
+            this.cleanup();
         }
 
         return this;
@@ -115,6 +115,15 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     }
 
     cleanup() {
+        if (this._garbageSimpleLength > 0) {
+            // Destroy any nodes that are in excess of the new data
+            this._nodes.splice(this._garbageSimpleLength).forEach((node) => {
+                this._parent.removeChild(node);
+            });
+            this._garbageSimpleLength = 0;
+            return this;
+        }
+
         if (this._garbage.length === 0) return this;
 
         this._garbage.forEach((datumId) => {
