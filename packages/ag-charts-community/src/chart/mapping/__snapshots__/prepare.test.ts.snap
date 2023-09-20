@@ -45,7 +45,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
-        "size": 6,
         "width": 3,
       },
       "title": {
@@ -54,7 +53,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "time",
@@ -62,11 +61,8 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -82,7 +78,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       },
       "line": {
         "color": "#326baf",
-        "width": 1,
+        "width": 0,
       },
       "nice": false,
       "position": "right",
@@ -116,7 +112,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "fontSize": 10,
     "fontStyle": "italic",
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Northern Ireland Statistics and Research Agency",
     "wrapping": "hyphenate",
   },
@@ -365,6 +361,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -398,7 +395,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "fontFamily": "Georgia, Times New Roman, Times, Serif",
     "fontSize": 22,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Marriage Statistics (Northern Ireland)",
     "wrapping": "hyphenate",
@@ -419,11 +416,8 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -445,9 +439,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -455,7 +447,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -463,11 +455,8 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "keys": [
@@ -486,13 +475,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -501,7 +489,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Number of cattle",
       },
       "type": "number",
@@ -509,11 +497,8 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "keys": [
@@ -531,13 +516,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "right",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -546,7 +530,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Exports (tonnes)",
       },
       "type": "number",
@@ -565,7 +549,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board",
     "wrapping": "hyphenate",
   },
@@ -663,12 +647,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -692,7 +676,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       },
       "showInLegend": true,
       "stroke": "#c16068",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -721,12 +704,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -750,7 +733,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       },
       "showInLegend": true,
       "stroke": "#a2bf8a",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -824,6 +806,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -862,7 +845,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Cattle Holdings and Beef Exports (UK)",
     "wrapping": "hyphenate",
@@ -883,11 +866,8 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -909,9 +889,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -919,7 +897,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -927,11 +905,8 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -946,13 +921,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -961,7 +935,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Volume (hectolitres)",
       },
       "type": "number",
@@ -980,7 +954,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: HM Revenue & Customs",
     "wrapping": "hyphenate",
   },
@@ -1095,7 +1069,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#f3622d",
+      "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Still wine",
@@ -1142,7 +1116,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#fba71b",
+      "stroke": "#b07513",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Sparkling wine",
@@ -1189,7 +1163,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#57b757",
+      "stroke": "#3d803d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Made-wine",
@@ -1236,7 +1210,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#41a9c9",
+      "stroke": "#2d768d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Whisky",
@@ -1283,7 +1257,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#4258c9",
+      "stroke": "#2e3e8d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Potable spirits",
@@ -1330,7 +1304,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#9a42c8",
+      "stroke": "#6c2e8c",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Beer",
@@ -1377,7 +1351,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#c84164",
+      "stroke": "#8c2d46",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Cider",
@@ -1399,6 +1373,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -1444,7 +1419,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Taxed Alcohol Consumption (UK)",
     "wrapping": "hyphenate",
@@ -1465,11 +1440,8 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -1491,9 +1463,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -1501,7 +1471,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -1509,11 +1479,8 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -1528,13 +1495,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -1543,7 +1509,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Waste collected (tonnes)",
       },
       "type": "number",
@@ -1562,7 +1528,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Environmental Agency",
     "wrapping": "hyphenate",
   },
@@ -1660,12 +1626,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -1689,7 +1655,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#aa4520",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1717,12 +1682,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -1746,7 +1711,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#b07513",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1774,12 +1738,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -1803,7 +1767,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#3d803d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1831,12 +1794,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -1860,7 +1823,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#2d768d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1888,12 +1850,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -1917,7 +1879,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#2e3e8d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1945,12 +1906,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -1974,7 +1935,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#6c2e8c",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -2002,12 +1962,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -2031,7 +1991,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#8c2d46",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -2059,12 +2018,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -2088,7 +2047,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#5f5f5f",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -2108,6 +2066,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -2129,7 +2088,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "WEEE Collected in UK",
     "wrapping": "hyphenate",
@@ -2151,11 +2110,8 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -2170,13 +2126,12 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -2185,7 +2140,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Depth (m)",
       },
       "type": "number",
@@ -2193,11 +2148,8 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -2212,13 +2164,12 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -2227,7 +2178,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Minimum distance (km)",
       },
       "type": "number",
@@ -2246,7 +2197,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: US Geological Survey",
     "wrapping": "hyphenate",
   },
@@ -2391,6 +2342,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -2400,7 +2352,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Worldwide Earthquakes",
     "wrapping": "hyphenate",
@@ -2421,11 +2373,8 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -2446,9 +2395,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -2456,7 +2403,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "time",
@@ -2464,11 +2411,8 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -2483,13 +2427,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -2498,7 +2441,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Magnitude",
       },
       "type": "number",
@@ -2516,7 +2459,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: US Geological Survey",
     "wrapping": "hyphenate",
   },
@@ -2818,6 +2761,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -2857,7 +2801,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Earthquake Magnitudes by Source",
     "wrapping": "hyphenate",
@@ -2878,11 +2822,8 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -2904,9 +2845,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -2914,7 +2853,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -2922,11 +2861,8 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -2941,13 +2877,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -2956,7 +2891,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Thousand tonnes of oil equivalent",
       },
       "type": "number",
@@ -2975,7 +2910,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
   },
@@ -3081,10 +3016,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#FA7921",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#af5517",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -3136,10 +3073,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#5BC0EB",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#4086a4",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -3191,10 +3130,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#9BC53D",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#6c8a2b",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -3246,10 +3187,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#E55934",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#a03e24",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -3301,10 +3244,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#FDE74C",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#b1a235",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -3340,6 +3285,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -3380,7 +3326,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Changes in UK Energy Stock",
     "wrapping": "hyphenate",
@@ -3401,11 +3347,8 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -3427,9 +3370,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -3437,7 +3378,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -3445,11 +3386,8 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -3464,13 +3402,12 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -3479,7 +3416,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "£/week",
       },
       "type": "number",
@@ -3498,7 +3435,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
@@ -3597,12 +3534,12 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -3626,7 +3563,6 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       },
       "showInLegend": true,
       "stroke": "#aa4520",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -3646,6 +3582,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -3664,7 +3601,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Gross Weekly Earnings
 by Occupation",
@@ -3686,11 +3623,8 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -3712,9 +3646,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -3722,7 +3654,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -3730,11 +3662,8 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -3749,13 +3678,12 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -3764,7 +3692,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Change in number of jobs (thousands)",
       },
       "type": "number",
@@ -3783,7 +3711,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
@@ -3911,8 +3839,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       },
       "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
-      "strokeOpacity": 1,
-      "strokeWidth": 1,
+      "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
         "position": {},
@@ -3931,6 +3858,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -3940,7 +3868,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Change in Number of Jobs in UK
 (June to September)",
@@ -3992,8 +3920,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "position": "bottom",
       "tick": {
         "color": "black",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -4001,7 +3928,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -4030,8 +3957,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "position": "left",
       "tick": {
         "color": "black",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -4039,7 +3965,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -4058,7 +3984,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Footnote",
     "wrapping": "hyphenate",
   },
@@ -4198,6 +4124,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "time distribution of commits",
     "wrapping": "hyphenate",
   },
@@ -4207,7 +4134,8 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
+    "spacing": 20,
     "text": "Punch Card of Github",
     "wrapping": "hyphenate",
   },
@@ -4227,11 +4155,8 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -4246,8 +4171,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "max": 180,
       "min": -180,
@@ -4255,7 +4179,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -4264,7 +4188,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Longitude",
       },
       "type": "number",
@@ -4272,11 +4196,8 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -4291,8 +4212,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "max": 90,
       "min": -90,
@@ -4300,7 +4220,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -4309,7 +4229,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Latitude",
       },
       "type": "number",
@@ -4328,7 +4248,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Simple Maps",
     "wrapping": "hyphenate",
   },
@@ -4470,6 +4390,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -4479,7 +4400,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Most Populous Cities",
     "wrapping": "hyphenate",
@@ -4500,11 +4421,8 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -4526,9 +4444,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -4536,7 +4452,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -4544,11 +4460,8 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -4563,13 +4476,12 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -4578,7 +4490,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -4597,7 +4509,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service",
     "wrapping": "hyphenate",
   },
@@ -4688,12 +4600,12 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -4717,8 +4629,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       },
       "showInLegend": true,
       "stroke": "#19A0AA",
-      "strokeOpacity": 1,
-      "strokeWidth": 1,
+      "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
         "position": {},
@@ -4739,12 +4650,12 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -4768,8 +4679,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       },
       "showInLegend": true,
       "stroke": "#F15F36",
-      "strokeOpacity": 1,
-      "strokeWidth": 1,
+      "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
         "position": {},
@@ -4789,6 +4699,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -4821,7 +4732,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Changes in Prison Population",
     "wrapping": "hyphenate",
@@ -4842,11 +4753,8 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -4868,9 +4776,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -4878,7 +4784,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -4886,11 +4792,8 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -4905,13 +4808,12 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -4920,7 +4822,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "%",
       },
       "type": "number",
@@ -4939,7 +4841,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
@@ -5032,12 +4934,12 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5061,7 +4963,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       },
       "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5085,12 +4986,12 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5114,7 +5015,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       },
       "showInLegend": true,
       "stroke": "rgba(226, 188, 34, 0.9)",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5135,6 +5035,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -5169,7 +5070,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Annual Growth in Pay",
     "wrapping": "hyphenate",
@@ -5190,11 +5091,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -5216,9 +5114,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -5226,7 +5122,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -5234,11 +5130,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -5253,13 +5146,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -5268,7 +5160,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -5287,7 +5179,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
@@ -5382,12 +5274,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5411,7 +5303,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "showInLegend": true,
       "stroke": "#aa4520",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5436,12 +5327,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5465,7 +5356,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "showInLegend": true,
       "stroke": "#b07513",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5490,12 +5380,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5519,7 +5409,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "showInLegend": true,
       "stroke": "#3d803d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5544,12 +5433,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5573,7 +5462,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "showInLegend": true,
       "stroke": "#2d768d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5598,12 +5486,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5627,7 +5515,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "showInLegend": true,
       "stroke": "#2e3e8d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5652,12 +5539,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5681,7 +5568,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "showInLegend": true,
       "stroke": "#6c2e8c",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5706,12 +5592,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -5735,7 +5621,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "showInLegend": true,
       "stroke": "#8c2d46",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5755,6 +5640,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -5782,7 +5668,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Regular Internet Users",
     "wrapping": "hyphenate",
@@ -5803,11 +5689,8 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -5822,14 +5705,13 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
         "interval": 500,
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -5838,7 +5720,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Curb weight (pounds)",
       },
       "type": "number",
@@ -5846,11 +5728,8 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -5865,13 +5744,12 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -5880,7 +5758,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -5899,7 +5777,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: UCI",
     "wrapping": "hyphenate",
   },
@@ -6025,13 +5903,6 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "shadow": {
-        "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
-        "enabled": true,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
       "showInLegend": true,
       "stroke": "#000",
       "strokeOpacity": 1,
@@ -6054,6 +5925,7 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "USA 1987",
     "wrapping": "hyphenate",
   },
@@ -6063,7 +5935,8 @@ exports[`prepare #prepareOptions for HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE it sh
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
+    "spacing": 20,
     "text": "Vehicle weight distribution",
     "wrapping": "hyphenate",
   },
@@ -6083,11 +5956,8 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -6109,9 +5979,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -6119,7 +5987,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Week",
       },
       "type": "category",
@@ -6127,11 +5995,8 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -6146,8 +6011,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "max": 1,
       "min": 0.2,
@@ -6155,7 +6019,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -6164,7 +6028,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "£ per kg",
       },
       "type": "number",
@@ -6183,7 +6047,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Environment, Food and Rural Affairs",
     "wrapping": "hyphenate",
   },
@@ -6345,7 +6209,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#be2a2c",
+      "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6486,7 +6350,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#002d62",
+      "stroke": "#ce1126",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6533,7 +6397,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#1b4e9e",
+      "stroke": "#fade4b",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6580,7 +6444,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#f6d24a",
+      "stroke": "#be2a2c",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6674,7 +6538,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#e88532",
+      "stroke": "#469c65",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6721,7 +6585,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#000000",
+      "stroke": "#fed100",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6768,7 +6632,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#006847",
+      "stroke": "#ce1126",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6815,7 +6679,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#c22b38",
+      "stroke": "#1e5190",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6862,7 +6726,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#042279",
+      "stroke": "#bf2b30",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7025,6 +6889,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -7089,7 +6954,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Imported Banana Prices",
     "wrapping": "hyphenate",
@@ -7110,11 +6975,8 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "base": 10,
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -7130,13 +6992,12 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -7145,7 +7006,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Population",
       },
       "type": "log",
@@ -7153,11 +7014,8 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -7172,13 +7030,12 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -7187,7 +7044,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Year",
       },
       "type": "number",
@@ -7206,7 +7063,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Footnote",
     "wrapping": "hyphenate",
   },
@@ -7327,7 +7184,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#f3622d",
+      "stroke": "#aa4520",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7349,6 +7206,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "log scale",
     "wrapping": "hyphenate",
   },
@@ -7358,7 +7216,8 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 16,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
+    "spacing": 20,
     "text": "World Population Over Time",
     "wrapping": "hyphenate",
   },
@@ -7386,7 +7245,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Footnote",
     "wrapping": "hyphenate",
   },
@@ -7477,36 +7336,36 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       },
       "labels": {
         "large": {
-          "color": "white",
+          "color": "rgb(70, 70, 70)",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 18,
           "fontStyle": undefined,
-          "fontWeight": "bold",
+          "fontWeight": "normal",
           "wrapping": "on-space",
         },
         "medium": {
-          "color": "white",
+          "color": "rgb(70, 70, 70)",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 14,
           "fontStyle": undefined,
-          "fontWeight": "bold",
+          "fontWeight": "normal",
           "wrapping": "on-space",
         },
         "small": {
-          "color": "white",
+          "color": "rgb(70, 70, 70)",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 10,
           "fontStyle": undefined,
-          "fontWeight": "bold",
+          "fontWeight": "normal",
           "wrapping": "on-space",
         },
         "value": {
           "formatter": [Function],
           "style": {
-            "color": "white",
+            "color": "rgb(70, 70, 70)",
             "enabled": true,
             "fontFamily": "Verdana, sans-serif",
             "fontSize": 12,
@@ -7521,7 +7380,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       "showInLegend": false,
       "sizeKey": "valuation",
       "subtitle": {
-        "color": "white",
+        "color": "rgb(140, 140, 140)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 9,
@@ -7544,7 +7403,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "padding": 2,
       },
       "tooltip": {
@@ -7563,6 +7422,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Area represents market cap. Color represents change from the day before.",
     "wrapping": "hyphenate",
   },
@@ -7572,7 +7432,8 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 16,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
+    "spacing": 20,
     "text": "S&P 500 index stocks categorized by sectors and industries.",
     "wrapping": "hyphenate",
   },
@@ -7592,11 +7453,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -7618,9 +7476,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -7628,7 +7484,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -7636,11 +7492,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -7656,13 +7509,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -7671,7 +7523,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Normalized Percentage Energy",
       },
       "type": "number",
@@ -7690,7 +7542,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
   },
@@ -7796,10 +7648,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#f3622d",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#aa4520",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7857,10 +7711,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#fba71b",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#b07513",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7918,10 +7774,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#57b757",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#3d803d",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7979,10 +7837,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#41a9c9",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#2d768d",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -8040,10 +7900,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#4258c9",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#2e3e8d",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -8101,10 +7963,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#9a42c8",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#6c2e8c",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -8162,10 +8026,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#c84164",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#8c2d46",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -8207,6 +8073,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -8230,7 +8097,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "UK Energy Sources",
     "wrapping": "hyphenate",
@@ -8251,11 +8118,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -8277,9 +8141,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -8287,7 +8149,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -8295,11 +8157,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -8315,13 +8174,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -8330,7 +8188,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -8349,7 +8207,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
@@ -8442,12 +8300,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -8472,7 +8330,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       },
       "showInLegend": true,
       "stroke": "#006428",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -8496,12 +8353,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -8526,7 +8383,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       },
       "showInLegend": true,
       "stroke": "#996500",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -8550,12 +8406,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -8580,7 +8436,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       },
       "showInLegend": true,
       "stroke": "#a10000",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -8601,6 +8456,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -8637,7 +8493,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Internet Users by Geographical Location",
     "wrapping": "hyphenate",
@@ -8658,11 +8514,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -8684,9 +8537,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -8694,7 +8545,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -8702,11 +8553,8 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -8722,13 +8570,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -8737,7 +8584,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -8756,7 +8603,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Education",
     "wrapping": "hyphenate",
   },
@@ -8847,12 +8694,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -8877,7 +8724,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "showInLegend": true,
       "stroke": "#f39c12",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -8899,12 +8745,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -8929,7 +8775,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "showInLegend": true,
       "stroke": "#d35400",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -8951,12 +8796,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -8981,7 +8826,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "showInLegend": true,
       "stroke": "#27ae60",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -9003,12 +8847,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -9033,7 +8877,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "showInLegend": true,
       "stroke": "#2980b9",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -9055,12 +8898,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -9085,7 +8928,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "showInLegend": true,
       "stroke": "#8e44ad",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -9107,12 +8949,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -9137,7 +8979,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "showInLegend": true,
       "stroke": "#2c3e50",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -9158,6 +8999,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -9199,7 +9041,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Ethnic Diversity of School Pupils",
     "wrapping": "hyphenate",
@@ -9220,11 +9062,8 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -9244,14 +9083,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -9259,7 +9096,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "time",
@@ -9267,11 +9104,8 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -9286,13 +9120,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -9301,7 +9134,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Total visitors",
       },
       "type": "number",
@@ -9320,7 +9153,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
   },
@@ -9432,10 +9265,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#f3622d",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#aa4520",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -9494,10 +9329,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#fba71b",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#b07513",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -9556,10 +9393,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#57b757",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#3d803d",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -9618,10 +9457,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
+        "fill": "#41a9c9",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#2d768d",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -9658,6 +9499,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -9679,7 +9521,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Tate Galleries",
     "wrapping": "hyphenate",
@@ -9700,11 +9542,8 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -9726,9 +9565,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -9736,7 +9573,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Year",
       },
       "type": "category",
@@ -9744,11 +9581,8 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -9763,13 +9597,12 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -9778,7 +9611,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Total visitors",
       },
       "type": "number",
@@ -9797,7 +9630,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
   },
@@ -9900,7 +9733,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": [Function],
         "placement": "inside",
       },
@@ -9924,7 +9757,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       },
       "showInLegend": true,
       "stroke": "#aa4520",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -9944,6 +9776,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -9953,7 +9786,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Museums and Galleries",
     "wrapping": "hyphenate",
@@ -9983,7 +9816,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Home Office",
     "wrapping": "hyphenate",
   },
@@ -10050,6 +9883,16 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       },
       "calloutLabelKey": "type",
       "calloutLine": {
+        "colors": [
+          "#aa4520",
+          "#b07513",
+          "#3d803d",
+          "#2d768d",
+          "#2e3e8d",
+          "#6c2e8c",
+          "#8c2d46",
+          "#5f5f5f",
+        ],
         "length": 10,
         "strokeWidth": 2,
       },
@@ -10145,7 +9988,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 14,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "spacing": 0,
         "text": "Annual Count",
       },
@@ -10165,6 +10008,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -10174,7 +10018,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Dwelling Fires (UK)",
     "wrapping": "hyphenate",
@@ -10195,11 +10039,8 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -10214,14 +10055,13 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
         "interval": 20,
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -10230,7 +10070,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Engine Size (Cubic inches)",
       },
       "type": "number",
@@ -10238,11 +10078,8 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -10257,13 +10094,12 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -10272,7 +10108,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Frequency",
       },
       "type": "number",
@@ -10291,7 +10127,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: UCI",
     "wrapping": "hyphenate",
   },
@@ -10402,13 +10238,6 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "shadow": {
-        "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
-        "enabled": true,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
       "showInLegend": true,
       "stroke": "#aa4520",
       "strokeOpacity": 1,
@@ -10431,6 +10260,7 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "USA 1987",
     "wrapping": "hyphenate",
   },
@@ -10440,7 +10270,8 @@ exports[`prepare #prepareOptions for SIMPLE_HISTOGRAM_CHART_EXAMPLE it should pr
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
+    "spacing": 20,
     "text": "Engine size distribution",
     "wrapping": "hyphenate",
   },
@@ -10460,11 +10291,8 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -10485,14 +10313,12 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -10500,7 +10326,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Date",
       },
       "type": "time",
@@ -10508,11 +10334,8 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -10528,13 +10351,12 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -10543,7 +10365,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Price in pence",
       },
       "type": "number",
@@ -10562,7 +10384,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
   },
@@ -10746,6 +10568,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -10769,7 +10592,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Road fuel prices",
     "wrapping": "hyphenate",
@@ -10798,7 +10621,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
@@ -10866,6 +10689,16 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       },
       "calloutLabelKey": "religion",
       "calloutLine": {
+        "colors": [
+          "#aa4520",
+          "#b07513",
+          "#3d803d",
+          "#2d768d",
+          "#2e3e8d",
+          "#6c2e8c",
+          "#8c2d46",
+          "#5f5f5f",
+        ],
         "length": 10,
         "strokeWidth": 2,
       },
@@ -10940,7 +10773,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 14,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "spacing": 0,
       },
       "tooltip": {
@@ -10959,6 +10792,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -10968,7 +10802,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Religions of London Population",
     "wrapping": "hyphenate",
@@ -10989,11 +10823,8 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -11008,13 +10839,12 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -11023,7 +10853,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Weight (pounds)",
       },
       "type": "number",
@@ -11031,11 +10861,8 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -11050,13 +10877,12 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -11065,7 +10891,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Height (inches)",
       },
       "type": "number",
@@ -11084,7 +10910,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Statistics Online Computational Resource",
     "wrapping": "hyphenate",
   },
@@ -11218,6 +11044,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -11227,7 +11054,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Height vs Weight for Major League Baseball Players",
     "wrapping": "hyphenate",
@@ -11248,11 +11075,8 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -11274,14 +11098,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "interval": CountableTimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": undefined,
         },
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -11289,7 +11111,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "time",
@@ -11297,11 +11119,8 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -11316,13 +11135,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -11331,7 +11149,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Total visitors",
       },
       "type": "number",
@@ -11350,7 +11168,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
   },
@@ -11455,10 +11273,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
+        "fill": "#5BC0EB",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#4086a4",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -11515,10 +11335,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
+        "fill": "#FDE74C",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#b1a235",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -11575,10 +11397,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
+        "fill": "#9BC53D",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#6c8a2b",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -11635,10 +11459,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
+        "fill": "#E55934",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#a03e24",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -11695,10 +11521,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
+        "fill": "#FA7921",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#af5517",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -11755,10 +11583,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
+        "fill": "#fa3081",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
+        "stroke": "#af225a",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -11800,6 +11630,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -11846,7 +11677,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Science Museums",
     "wrapping": "hyphenate",
@@ -11867,11 +11698,8 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -11893,9 +11721,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -11903,7 +11729,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -11911,11 +11737,8 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -11930,14 +11753,13 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "nice": false,
       "position": "top",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -11946,7 +11768,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -11965,7 +11787,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Ministry of Housing, Communities & Local Government",
     "wrapping": "hyphenate",
   },
@@ -12058,12 +11880,12 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12087,7 +11909,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       },
       "showInLegend": true,
       "stroke": "#aa4520",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12111,12 +11932,12 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12140,7 +11961,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       },
       "showInLegend": true,
       "stroke": "#b07513",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12164,12 +11984,12 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12193,7 +12013,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       },
       "showInLegend": true,
       "stroke": "#3d803d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12217,12 +12036,12 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12246,7 +12065,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       },
       "showInLegend": true,
       "stroke": "#2d768d",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12267,6 +12085,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -12291,7 +12110,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "UK Housing Stock",
     "wrapping": "hyphenate",
@@ -12312,11 +12131,8 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "groupPaddingInner": 0.1,
@@ -12338,9 +12154,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "size": 6,
-        "width": 1,
+        "width": 0,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -12348,7 +12162,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "category",
@@ -12356,11 +12170,8 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -12375,13 +12186,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -12390,7 +12200,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -12409,7 +12219,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: Transport for London",
     "wrapping": "hyphenate",
   },
@@ -12501,12 +12311,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12530,7 +12340,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       },
       "showInLegend": true,
       "stroke": "#4086a4",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12553,12 +12362,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12582,7 +12391,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       },
       "showInLegend": true,
       "stroke": "#b1a235",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12605,12 +12413,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12634,7 +12442,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       },
       "showInLegend": true,
       "stroke": "#6c8a2b",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12657,12 +12464,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12686,7 +12493,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       },
       "showInLegend": true,
       "stroke": "#a03e24",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12709,12 +12515,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         },
       },
       "label": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": undefined,
+        "fontWeight": "normal",
         "formatter": undefined,
         "placement": "inside",
       },
@@ -12738,7 +12544,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       },
       "showInLegend": true,
       "stroke": "#af5517",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -12759,6 +12564,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "Victoria Line (2010)",
     "wrapping": "hyphenate",
   },
@@ -12799,7 +12605,8 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
+    "spacing": 20,
     "text": "Average Station Entries",
     "wrapping": "hyphenate",
   },
@@ -12819,11 +12626,8 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -12838,14 +12642,13 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
         "interval": 500,
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -12854,7 +12657,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Curb weight (pounds)",
       },
       "type": "number",
@@ -12862,11 +12665,8 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
     {
       "gridStyle": [
         {
-          "lineDash": [
-            4,
-            2,
-          ],
-          "stroke": "rgb(219, 219, 219)",
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
         },
       ],
       "label": {
@@ -12881,13 +12681,12 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
         "rotation": undefined,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
-        "width": 1,
+        "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 6,
+        "size": 0,
         "width": 1,
       },
       "title": {
@@ -12896,7 +12695,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontStyle": undefined,
-        "fontWeight": "bold",
+        "fontWeight": "normal",
         "text": "Axis Title",
       },
       "type": "number",
@@ -12915,7 +12714,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 30,
+    "spacing": 20,
     "text": "Source: UCI",
     "wrapping": "hyphenate",
   },
@@ -13041,13 +12840,6 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "shadow": {
-        "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
-        "enabled": true,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
       "showInLegend": true,
       "stroke": "#000",
       "strokeOpacity": 1,
@@ -13070,6 +12862,7 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
+    "spacing": 20,
     "text": "USA 1987",
     "wrapping": "hyphenate",
   },
@@ -13079,7 +12872,8 @@ exports[`prepare #prepareOptions for XY_HISTOGRAM_WITH_MEAN_EXAMPLE it should pr
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontStyle": undefined,
-    "fontWeight": "bold",
+    "fontWeight": "normal",
+    "spacing": 20,
     "text": "Vehicle weight distribution",
     "wrapping": "hyphenate",
   },
