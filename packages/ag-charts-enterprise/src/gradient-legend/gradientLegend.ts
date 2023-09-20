@@ -113,14 +113,10 @@ export class GradientLegend {
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         this.layoutService = ctx.layoutService;
-        const layoutListener = this.layoutService.addListener('start-layout', (e) => this.update(e.shrinkRect));
-        this.destroyFns.push(() => this.layoutService.removeListener(layoutListener));
+        this.destroyFns.push(this.layoutService.addListener('start-layout', (e) => this.update(e.shrinkRect)));
 
         this.highlightManager = ctx.highlightManager;
-        const highlightListener = this.highlightManager.addListener('highlight-change', () =>
-            this.onChartHoverChange()
-        );
-        this.destroyFns.push(() => this.highlightManager.removeListener(highlightListener));
+        this.destroyFns.push(this.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()));
 
         this.gradientRect = new Rect();
         this.group.append(this.gradientRect);

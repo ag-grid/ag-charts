@@ -161,8 +161,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of types) {
-            const interactionEvent = this.buildEvent({ event, ...coords, type });
-            this.listeners.cancellableDispatch(type, () => interactionEvent.consumed, interactionEvent);
+            const interactionEvent = this.buildEvent({ type, event, ...coords });
+            for (const listener of this.listeners.getListenersByType(type)) {
+                if (interactionEvent.consumed) break;
+                listener.handler(interactionEvent);
+            }
         }
     }
 

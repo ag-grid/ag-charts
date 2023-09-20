@@ -1,82 +1,51 @@
 import { Logger } from './logger';
 
-type Listener<H extends Function> = {
+type Handler = (...args: any[]) => any;
+
+export type Listener<H extends Handler> = {
     symbol?: Symbol;
     handler: H;
 };
 
-export class Listeners<Types extends string, Handler extends (...any: any[]) => any> {
-    protected readonly registeredListeners: { [I in Types]?: Listener<Handler>[] } = {};
+export class Listeners<EventType extends string, EventHandler extends Handler> {
+    protected readonly registeredListeners: Map<EventType, Listener<EventHandler>[]> = new Map();
 
-    public addListener<T extends Types, H extends Handler>(type: T, cb: H): Symbol {
-        const symbol = Symbol(type);
+    public addListener(eventType: EventType, handler: EventHandler) {
+        const record = { symbol: Symbol(eventType), handler };
 
-        if (!this.registeredListeners[type]) {
-            this.registeredListeners[type] = [];
+        if (this.registeredListeners.has(eventType)) {
+            this.registeredListeners.get(eventType)!.push(record);
+        } else {
+            this.registeredListeners.set(eventType, [record]);
         }
 
-        this.registeredListeners[type]?.push({ symbol, handler: cb as any });
-
-        return symbol;
+        return () => this.removeListener(record.symbol);
     }
 
-    public dispatch(type: Types, ...params: Parameters<Handler>): ReturnType<Handler>[] {
-        const listeners: Listener<Handler>[] = this.registeredListeners[type] ?? [];
-        const results: ReturnType<Handler>[] = [];
-        for (const listener of listeners) {
+    public removeListener(eventSymbol: symbol) {
+        for (const [type, listeners] of this.registeredListeners.entries()) {
+            const matchIndex = listeners.findIndex((listener) => listener.symbol === eventSymbol);
+            if (matchIndex >= 0) {
+                listeners.splice(matchIndex, 1);
+                if (listeners.length === 0) {
+                    this.registeredListeners.delete(type);
+                }
+                break;
+            }
+        }
+    }
+
+    public dispatch(eventType: EventType, ...params: Parameters<EventHandler>) {
+        for (const listener of this.getListenersByType(eventType)) {
             try {
-                results.push(listener.handler(...params));
+                listener.handler(...params);
             } catch (e) {
                 Logger.errorOnce(e);
-                results.push(undefined as any);
             }
         }
-        return results;
     }
 
-    public cancellableDispatch(
-        type: Types,
-        cancelled: () => boolean,
-        ...params: Parameters<Handler>
-    ): ReturnType<Handler>[] {
-        const listeners = this.registeredListeners[type] ?? [];
-
-        const results: ReturnType<Handler>[] = [];
-        for (const listener of listeners) {
-            if (cancelled()) break;
-
-            results.push(listener.handler(...params));
-        }
-
-        return results;
-    }
-
-    public reduceDispatch(
-        type: Types,
-        reduceFn: (output: ReturnType<Handler>, ...params: Parameters<Handler>) => Parameters<Handler>,
-        ...params: Parameters<Handler>
-    ): ReturnType<Handler> | undefined {
-        const listeners = this.registeredListeners[type] ?? [];
-        let listenerResult = undefined;
-        for (const listener of listeners) {
-            listenerResult = listener.handler(...params);
-            params = reduceFn(listenerResult, ...params);
-        }
-
-        return listenerResult;
-    }
-
-    public removeListener(listenerSymbol: Symbol) {
-        for (const type in this.registeredListeners) {
-            const listeners = this.registeredListeners[type];
-            const match = listeners?.findIndex((entry: Listener<any>) => entry.symbol === listenerSymbol);
-
-            if (match != null && match >= 0) {
-                listeners?.splice(match, 1);
-            }
-            if (match != null && listeners?.length === 0) {
-                delete this.registeredListeners[type as Types];
-            }
-        }
+    public getListenersByType(eventType: EventType): Listener<EventHandler>[] {
+        return this.registeredListeners.get(eventType) ?? [];
     }
 }
