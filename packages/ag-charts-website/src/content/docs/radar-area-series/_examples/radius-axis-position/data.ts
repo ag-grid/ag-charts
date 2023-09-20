@@ -1,29 +1,29 @@
 export function getData() {
     return [
         {
-            department: 'Sales',            
+            department: 'Sales',
             quality: 40,
-            efficiency: 75,            
+            efficiency: 75,
         },
         {
-            department: 'Engineering',            
+            department: 'Engineering',
             quality: 45,
-            efficiency: 90,            
+            efficiency: 90,
         },
         {
-            department: 'HR',            
+            department: 'HR',
             quality: 80,
-            efficiency: 60,            
+            efficiency: 60,
         },
         {
-            department: 'Marketing',            
+            department: 'Marketing',
             quality: 80,
-            efficiency: 60,            
+            efficiency: 60,
         },
         {
-            department: 'Finance',            
+            department: 'Finance',
             quality: 85,
-            efficiency: 50,            
+            efficiency: 50,
         },
     ];
 }
