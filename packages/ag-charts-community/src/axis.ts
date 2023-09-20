@@ -1192,12 +1192,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             tickLabelGroup,
             moduleCtx: { callbackCache },
         } = this;
-        const { formatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue } = this.title ?? {};
 
         if (!title) {
             _titleCaption.enabled = false;
             return;
         }
+
+        const { formatter = (params) => params.defaultValue } = title;
 
         _titleCaption.enabled = title.enabled;
         _titleCaption.fontFamily = title.fontFamily;
