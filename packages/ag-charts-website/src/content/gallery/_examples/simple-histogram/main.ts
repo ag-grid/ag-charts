@@ -5,8 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Engine size distribution',
-        fontSize: 18,
+        text: 'Engine Size Distribution',
     },
     subtitle: {
         text: 'USA 1987',
@@ -19,7 +18,6 @@ const options: AgChartOptions = {
             type: 'histogram',
             xKey: 'engine-size',
             xName: 'Engine Size',
-            fillOpacity: 0.5,
         },
     ],
     axes: [
@@ -27,11 +25,8 @@ const options: AgChartOptions = {
             position: 'bottom',
             type: 'number',
             title: {
-                text: 'Engine Size (Cubic inches)',
-            },
-            tick: {
-                interval: 20,
-            },
+                text: 'Engine Size (Cubic Inches)',
+            }
         },
         {
             position: 'left',
@@ -43,4 +38,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

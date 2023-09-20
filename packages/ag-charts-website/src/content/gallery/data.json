@@ -27,6 +27,11 @@
                     "name": "100--stacked-bar"
                 },
                 {
+                    "title": "Grouped and Stacked Bars",
+                    "description": "Column and bar charts can also be used to represent negative values alongside positive ones.",
+                    "name": "grouped-stack-bar"
+                },
+                {
                     "title": "Bar With Labels",
                     "description": "Using labels in a <a href='./simple-bar/'>bar chart</a> can be useful to highlight the values of each bar.",
                     "name": "bar-with-labels"
@@ -63,6 +68,11 @@
                     "title": "Column With Negative Values",
                     "description": "Column and bar charts can also be used to represent negative values alongside positive ones.",
                     "name": "column-with-negative-values"
+                },
+                {
+                    "title": "Grouped and Stacked Columns",
+                    "description": "Column and bar charts can also be used to represent negative values alongside positive ones.",
+                    "name": "grouped-stack-column"
                 }
             ]
         },
@@ -81,6 +91,11 @@
                     "title": "Line With Gaps",
                     "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
                     "name": "line-with-gaps"
+                },
+                {
+                    "title": "Multiple Line Series",
+                    "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
+                    "name": "line-legend-pagination"
                 }
             ]
         },
@@ -172,26 +187,6 @@
             ]
         },
         {
-            "title": "Donut",
-            "name": "donut",
-            "icon": "chartsDonut",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Doughnut",
-                    "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
-                    "name": "simple-doughnut"
-                }
-            ]
-        },
-        {
-            "title": "Combination",
-            "name": "combination",
-            "icon": "chartsCombination",
-            "enterprise": false,
-            "examples": []
-        },
-        {
             "title": "Histogram",
             "name": "histogram",
             "icon": "chartsHistogram",
@@ -213,6 +208,39 @@
                     "name": "xy-histogram-with-mean-aggregation"
                 }
             ]
+        },
+        {
+            "title": "Scatter",
+            "name": "scatter",
+            "icon": "chartsScatter",
+            "enterprise": false,
+            "examples": [
+                {
+                    "title": "Simple Scatter",
+                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                    "name": "simple-scatter"
+                }
+            ]
+        },
+        {
+            "title": "Donut",
+            "name": "donut",
+            "icon": "chartsDonut",
+            "enterprise": false,
+            "examples": [
+                {
+                    "title": "Simple Doughnut",
+                    "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                    "name": "simple-doughnut"
+                }
+            ]
+        },
+        {
+            "title": "Combination",
+            "name": "combination",
+            "icon": "chartsCombination",
+            "enterprise": false,
+            "examples": []
         },
         {
             "title": "Heatmap",

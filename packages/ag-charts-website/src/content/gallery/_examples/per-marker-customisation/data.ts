@@ -1,5 +1,5 @@
 // Source: https://earthquake.usgs.gov/earthquakes/search/
-export function getData(): any[] {
+export function getData() {
     return [
         { time: '2020-02-07T23:53:29.340Z', depth: 12, magnitude: 2.72, minDistance: 0.0904 },
         { time: '2020-02-07T22:54:56.883Z', depth: 35, magnitude: 4.2, minDistance: 4.86 },

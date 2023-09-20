@@ -1,39 +1,19 @@
-import { AgEnterpriseCharts, AgChartOptions, time } from 'ag-charts-enterprise';
+import { AgEnterpriseCharts, AgChartOptions, AgCartesianSeriesTooltipRendererParams } from 'ag-charts-enterprise';
 import { getData } from './data';
 
+const tooltip = {
+    renderer: ({ xValue, yValue }: AgCartesianSeriesTooltipRendererParams) => {
+        const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(
+            xValue
+        );
+        return { content: `${date}: ${Math.round(yValue / 100) / 10 + 'k'}` };
+    },
+}
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['#5BC0EB', '#FDE74C', '#9BC53D', '#E55934', '#FA7921', '#fa3081'],
-            strokes: ['#4086a4', '#b1a235', '#6c8a2b', '#a03e24', '#af5517', '#af225a'],
-        },
-        overrides: {
-            area: {
-                series: {
-                    marker: { enabled: true },
-                    highlightStyle: {
-                        series: {
-                            dimOpacity: 0.2,
-                        },
-                    },
-                    tooltip: {
-                        renderer: ({ xValue, yValue }) => {
-                            const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(
-                                xValue
-                            );
-                            return { content: `${date}: ${Math.round(yValue / 100) / 10 + 'k'}` };
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Total Visitors to Science Museums',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Digital, Culture, Media & Sport',
@@ -46,6 +26,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'National Media Museum',
             yName: 'National Media Museum',
+            tooltip
         },
         {
             type: 'area',
@@ -53,14 +34,23 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'National Railway Museum',
             yName: 'National Railway Museum',
+            tooltip
         },
-        { type: 'area', xKey: 'date', stacked: true, yKey: 'Locomotion', yName: 'Locomotion' },
+        {
+            type: 'area',
+            xKey: 'date',
+            stacked: true,
+            yKey: 'Locomotion',
+            yName: 'Locomotion',
+            tooltip
+        },
         {
             type: 'area',
             xKey: 'date',
             yKey: 'Museum of Science and Industry, Manchester',
             yName: 'Museum of Science and Industry, Manchester',
             stacked: true,
+            tooltip
         },
         {
             type: 'area',
@@ -68,6 +58,7 @@ const options: AgChartOptions = {
             yKey: 'National Coal Mining Museum for England',
             yName: 'National Coal Mining Museum for England',
             stacked: true,
+            tooltip
         },
     ],
     axes: [
@@ -76,11 +67,8 @@ const options: AgChartOptions = {
             position: 'bottom',
             label: {
                 format: '%b',
-                autoRotate: true,
             },
-            tick: {
-                interval: time.month,
-            },
+            nice: false
         },
         {
             type: 'number',
@@ -97,4 +85,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

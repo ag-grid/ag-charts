@@ -4,42 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['#330066', '#99CCFF'],
-            strokes: ['#330066', '#99CCFF'],
-        },
-        overrides: {
-            bar: {
-                legend: {
-                    position: 'bottom',
-                },
-                axes: {
-                    category: {
-                        gridStyle: [],
-                    },
-                    number: {
-                        tick: {},
-                    },
-                },
-                series: {
-                    highlightStyle: {
-                        item: {
-                            fill: 'rgb(40,40,40)',
-                            strokeWidth: 0,
-                        },
-                        series: {
-                            dimOpacity: 0.3,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Changes in Prison Population',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service',
@@ -144,4 +110,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

@@ -1,33 +1,11 @@
 import { AgEnterpriseCharts, AgChartOptions, Marker } from 'ag-charts-enterprise';
 import { getData } from './data';
 
-var markerSize = 10;
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
-            strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
-        },
-        overrides: {
-            line: {
-                series: {
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 3,
-                            dimOpacity: 0.2,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Taxed Alcohol Consumption (UK)',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: HM Revenue & Customs',
@@ -39,7 +17,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'stillWine',
             marker: {
-                size: markerSize,
                 shape: 'circle',
             },
         },
@@ -49,7 +26,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'sparklingWine',
             marker: {
-                size: markerSize,
                 shape: 'cross',
             },
         },
@@ -59,7 +35,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'madeWine',
             marker: {
-                size: markerSize,
                 shape: 'diamond',
             },
         },
@@ -69,7 +44,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'whisky',
             marker: {
-                size: markerSize,
                 shape: 'plus',
             },
         },
@@ -79,7 +53,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'potableSpirits',
             marker: {
-                size: markerSize,
                 shape: 'square',
             },
         },
@@ -89,7 +62,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'beer',
             marker: {
-                size: markerSize,
                 shape: 'triangle',
             },
         },
@@ -99,7 +71,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'cider',
             marker: {
-                size: markerSize,
                 shape: heartFactory(),
             },
         },
@@ -128,7 +99,7 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);
 
 function heartFactory() {
     class Heart extends Marker {

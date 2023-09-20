@@ -49,11 +49,11 @@ export interface AgHeatmapSeriesOptions<DatumType = any>
     extends AgHeatmapSeriesThemeableOptions<DatumType>,
         AgBaseSeriesOptions<DatumType> {
     /** Configuration for the heatmap series. */
-    type?: 'heatmap';
+    type: 'heatmap';
     /** The key to use to retrieve x-values from the data. */
-    xKey?: string;
+    xKey: string;
     /** The key to use to retrieve y-values from the data. */
-    yKey?: string;
+    yKey: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */

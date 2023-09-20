@@ -23,7 +23,7 @@ export interface AgNightingaleSeriesThemeableOptions<DatumType = any>
 export interface AgNightingaleSeriesOptions<DatumType = any>
     extends AgNightingaleSeriesThemeableOptions<DatumType>,
         AgBaseRadialColumnSeriesOptions<DatumType> {
-    type?: 'nightingale';
+    type: 'nightingale';
 }
 
 export interface AgNightingaleSeriesTooltipRendererParams extends AgRadialColumnSeriesTooltipRendererParams {}

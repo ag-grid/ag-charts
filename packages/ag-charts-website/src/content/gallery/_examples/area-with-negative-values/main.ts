@@ -4,29 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['#FA7921', '#5BC0EB', '#9BC53D', '#E55934', '#FDE74C'],
-            strokes: ['#af5517', '#4086a4', '#6c8a2b', '#a03e24', '#b1a235'],
-        },
-        overrides: {
-            area: {
-                series: {
-                    fillOpacity: 0.6,
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 3,
-                            dimOpacity: 0.1,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Changes in UK Energy Stock',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
@@ -72,10 +51,10 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             title: {
-                text: 'Thousand tonnes of oil equivalent',
+                text: 'Thousand Tonnes of Oil Equivalent',
             },
         },
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

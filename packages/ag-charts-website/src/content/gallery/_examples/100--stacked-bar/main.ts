@@ -4,29 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['#00c851', '#ffbb33', '#ff4444'],
-            strokes: ['#006428', '#996500', '#a10000'],
-        },
-        overrides: {
-            bar: {
-                series: {
-                    strokeWidth: 0,
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 1,
-                            dimOpacity: 0.2,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Internet Users by Geographical Location',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Office for National Statistics',
@@ -64,9 +43,6 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'left',
-            label: {
-                rotation: -30,
-            },
         },
         {
             type: 'number',
@@ -78,4 +54,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

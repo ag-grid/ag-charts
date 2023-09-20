@@ -24,13 +24,13 @@ export interface AgRadarSeriesThemeableOptions<DatumType = any>
 export interface AgBaseRadarSeriesOptions<DatumType = any>
     extends AgRadarSeriesThemeableOptions<DatumType>,
         AgBaseSeriesOptions<DatumType> {
-    type?: 'radar-line' | 'radar-area';
+    type: 'radar-line' | 'radar-area';
     /** The key to use to retrieve angle values from the data. */
-    angleKey?: string;
+    angleKey: string;
     /** A human-readable description of the angle values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     angleName?: string;
     /** The key to use to retrieve radius values from the data. */
-    radiusKey?: string;
+    radiusKey: string;
     /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     radiusName?: string;
 

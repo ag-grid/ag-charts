@@ -39,27 +39,27 @@ export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
 export const getSeriesTypeName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
     const { series } = galleryData;
 
-    const foundseries = series.find(({ examples }) => {
-        const foundExample = examples.find(({ example }) => {
-            return example === exampleName;
+    const foundSeries = series.find(({ examples }) => {
+        const foundExample = examples.find(({ name }) => {
+            return name === exampleName;
         });
 
         return Boolean(foundExample);
     });
 
-    return foundseries?.name;
+    return foundSeries?.title;
 };
 
 export const getExampleName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
     const { series } = galleryData;
     let result;
     series.forEach(({ examples }) => {
-        const foundExample = examples.find(({ example }) => {
-            return example === exampleName;
+        const foundExample = examples.find(({ name }) => {
+            return name === exampleName;
         });
 
         if (foundExample) {
-            result = foundExample.name;
+            result = foundExample.title;
         }
     });
 

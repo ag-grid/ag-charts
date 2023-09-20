@@ -1,5 +1,5 @@
 // Source: http://wiki.stat.ucla.edu/socr/index.php/SOCR_Data_MLB_HeightsWeights
-export function getData(): any[] {
+export function getData() {
     return [
         { team: 'BAL', height: 74, weight: 180 },
         { team: 'BAL', height: 74, weight: 215 },

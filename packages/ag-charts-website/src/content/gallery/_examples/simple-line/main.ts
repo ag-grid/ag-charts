@@ -3,7 +3,6 @@ import {
     AgEnterpriseCharts,
     AgChartOptions,
     AgTooltipRendererResult,
-    time,
 } from 'ag-charts-enterprise';
 import { getData } from './data';
 
@@ -18,24 +17,8 @@ const tooltip = {
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            line: {
-                series: {
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 3,
-                            dimOpacity: 0.2,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
-        text: 'Road fuel prices',
-        fontSize: 18,
-        spacing: 25,
+        text: 'Road Fuel Prices',
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
@@ -45,22 +28,12 @@ const options: AgChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'petrol',
-            stroke: '#01c185',
-            marker: {
-                stroke: '#01c185',
-                fill: '#01c185',
-            },
             tooltip,
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'diesel',
-            stroke: '#000000',
-            marker: {
-                stroke: '#000000',
-                fill: '#000000',
-            },
             tooltip,
         },
     ],
@@ -68,21 +41,18 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            tick: {
-                interval: time.month.every(2),
-            },
             title: {
                 text: 'Date',
             },
             label: {
-                autoRotate: true,
+                format: '%b',
             },
         },
         {
             position: 'left',
             type: 'number',
             title: {
-                text: 'Price in pence',
+                text: 'Price in Pence',
             },
             label: {
                 autoRotate: true,
@@ -91,4 +61,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

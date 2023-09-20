@@ -50,9 +50,6 @@ class GradientLegendLabel {
 
 class GradientLegendStop {
     readonly label = new GradientLegendLabel();
-    /** Used to constrain the width of legend items. */
-    @Validate(OPT_NUMBER(0))
-    maxWidth?: number = undefined;
     @Validate(NUMBER(0))
     padding = 8;
 }
@@ -73,7 +70,7 @@ export class GradientLegend {
     private readonly arrow: _Scene.Triangle;
 
     @Validate(BOOLEAN)
-    enabled = true;
+    enabled = false;
 
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
@@ -336,14 +333,24 @@ export class GradientLegend {
     private updateArrow(colorDomain: number[], gradientBox: _Scene.BBox) {
         const { arrow, reverseOrder } = this;
 
-        const hightighted = this.highlightManager.getActiveHighlight();
-        if (!hightighted) {
+        const highlighted = this.highlightManager.getActiveHighlight();
+        if (!highlighted) {
             arrow.visible = false;
             return;
         }
 
-        let t = (hightighted.colorValue ?? 0 - colorDomain[0]) / (colorDomain[1] - colorDomain[0]);
-        t = Math.max(0, Math.min(1, t));
+        let t: number;
+        const colorValue = highlighted.colorValue ?? 0;
+        const i = colorDomain.findIndex((d) => colorValue < d);
+        if (i === 0) {
+            t = 0;
+        } else if (i < 0) {
+            t = 1;
+        } else {
+            const d0 = colorDomain[i - 1];
+            const d1 = colorDomain[i];
+            t = (i - 1 + (colorValue - d0) / (d1 - d0)) / (colorDomain.length - 1);
+        }
         if (reverseOrder) {
             t = 1 - t;
         }

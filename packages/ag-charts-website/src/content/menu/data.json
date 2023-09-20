@@ -160,7 +160,7 @@
                     {
                         "title": "Box Plot",
                         "icon": "chartsBoxPlot",
-                        "path": "box-series",
+                        "path": "box-plot-series",
                         "isEnterprise": true
                     },
                     {

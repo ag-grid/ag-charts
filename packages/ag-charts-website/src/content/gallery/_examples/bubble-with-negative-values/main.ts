@@ -6,8 +6,6 @@ const options: AgChartOptions = {
     data: getData(),
     title: {
         text: 'Most Populous Cities',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Simple Maps',
@@ -27,8 +25,6 @@ const options: AgChartOptions = {
             marker: {
                 size: 5,
                 maxSize: 100,
-                fillOpacity: 0.5,
-                strokeOpacity: 0.5,
             },
         },
     ],
@@ -56,4 +52,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

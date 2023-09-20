@@ -95,7 +95,7 @@ export interface AgRangeAreaSeriesOptions<DatumType = any>
     extends AgRangeAreaSeriesThemeableOptions<DatumType>,
         AgBaseSeriesOptions<DatumType> {
     /** Configuration for the RangeArea series. */
-    type?: 'range-area';
+    type: 'range-area';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-low-values from the data. */

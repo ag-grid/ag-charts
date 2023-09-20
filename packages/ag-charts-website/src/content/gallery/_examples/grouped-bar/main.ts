@@ -4,29 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['rgba(0, 117, 163, 0.9)', 'rgba(226, 188, 34, 0.9)'],
-            strokes: ['rgba(0, 117, 163, 0.9)', 'rgba(226, 188, 34, 0.9)'],
-        },
-        overrides: {
-            bar: {
-                series: {
-                    strokeWidth: 0,
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 1,
-                            dimOpacity: 0.2,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Annual Growth in Pay',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Office for National Statistics',
@@ -56,11 +35,10 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'bottom',
             title: {
-                enabled: true,
                 text: '%',
             },
         },
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

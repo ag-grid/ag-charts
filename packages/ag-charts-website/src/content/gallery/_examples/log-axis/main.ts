@@ -37,7 +37,6 @@ const options: AgCartesianChartOptions = {
             },
             label: {
                 format: ',.0f',
-                fontSize: 10,
             },
         },
         {
@@ -46,14 +45,11 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Year',
             },
-            label: {
-                fontSize: 10,
-            },
         },
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+const chart = AgEnterpriseCharts.create(options);
 
 function useNumberAxis() {
     options.subtitle = {

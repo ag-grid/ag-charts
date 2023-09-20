@@ -8,15 +8,16 @@ Prerequisites:
 
 ## Common commands
 
-| Command              | Description                         |
-| -------------------- | ----------------------------------- |
-| `nx dev`             | Run Astro dev server                |
-| `nx build`           | Build all the packages              |
-| `nx lint`            | Check all packages with ESLint      |
-| `nx run lint -c fix` | Fix all auto-fixable ESLint errors  |
-| `nx test`            | Run all tests                       |
-| `nx format --all`    | Reformat all packages with prettier |
-| `nx reset`           | Clear the NX cache                  |
+| Command                    | Description                                                              |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `nx dev`                   | Run Astro dev server                                                     |
+| `nx build`                 | Build all the packages                                                   |
+| `nx lint`                  | Check all packages with ESLint                                           |
+| `nx run lint -c fix`       | Fix all auto-fixable ESLint errors                                       |
+| `nx test`                  | Run all tests                                                            |
+| `nx format --all`          | Reformat all packages with prettier                                      |
+| `nx reset`                 | Clear the NX cache                                                       |
+| `nx run-many -t build-tsc` | Run alternative `tsc` compile (provides more complete compile reporting) |
 
 To skip the `nx` cache use `--skip-nx-cache`.
 

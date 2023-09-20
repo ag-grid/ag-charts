@@ -1,8 +1,7 @@
 import { Navigator } from '../chart/navigator/navigator';
 import type { Module } from './module';
-import { registerModule } from './module';
 
-export const CHART_NAVIGATOR_MODULE: Module = {
+export const NavigatorModule: Module = {
     type: 'root',
     optionsKey: 'navigator',
     packageType: 'community',
@@ -39,5 +38,3 @@ export const CHART_NAVIGATOR_MODULE: Module = {
         },
     },
 };
-
-registerModule(CHART_NAVIGATOR_MODULE);

@@ -1,5 +1,5 @@
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from '../options/types';
-import type { AgChartLegendPosition, AgChartLegendOrientation } from './legendOptions';
+import type { AgChartLegendPosition } from './legendOptions';
 
 export interface AgGradientLegendLabelFormatterParams {
     value: string;
@@ -10,14 +10,8 @@ export interface AgGradientLegendOptions {
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
     position?: AgChartLegendPosition;
-    /** How the legend items should be arranged. */
-    orientation?: AgChartLegendOrientation;
     /** Gradient bar configuration. */
     gradient?: AgGradientLegendBarOptions;
-    /** Used to constrain the width of the legend. */
-    maxWidth?: PixelSize;
-    /** Used to constrain the height of the legend. */
-    maxHeight?: PixelSize;
     /** The spacing in pixels to use outside the legend. */
     spacing?: PixelSize;
     /** Configuration for the legend gradient stops that consist of a color and a label. */
@@ -53,8 +47,6 @@ export interface AgGradientLegendLabelOptions {
 export interface AgGradientLegendStopOptions {
     /** Configuration for the legend labels. */
     label?: AgGradientLegendLabelOptions;
-    /** Used to constrain the width of legend items. */
-    maxWidth?: PixelSize;
     /** The spacing in pixels to use between gradient and labels. */
     padding?: PixelSize;
 }

@@ -5,7 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Vehicle fuel efficiency by engine size',
+        text: 'Vehicle Fuel Efficiency',
         fontSize: 18,
     },
     subtitle: {
@@ -21,9 +21,6 @@ const options: AgChartOptions = {
             xName: 'Engine Size',
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
-            fill: '#41874b',
-            stroke: '#41874b',
-            fillOpacity: 0.5,
             aggregation: 'mean',
         },
         {
@@ -40,7 +37,7 @@ const options: AgChartOptions = {
             type: 'number',
             title: {
                 enabled: true,
-                text: 'Engine Size (Cubic inches)',
+                text: 'Engine Size (Cubic Inches)',
             },
         },
         {
@@ -56,4 +53,4 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

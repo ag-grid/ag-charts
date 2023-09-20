@@ -1,7 +1,7 @@
 // https://datahub.io/machine-learning/autos#readme
 // https://pkgstore.datahub.io/machine-learning/autos/autos_json/data/8b17c4a98f7851fb204697f43a5185fe/autos_json.json
 
-export function getData(): any[] {
+export function getData() {
     return [
         {
             'curb-weight': 2548,
@@ -143,12 +143,6 @@ export function getData(): any[] {
         },
         {
             'curb-weight': 2734,
-        },
-        {
-            'curb-weight': 4066,
-        },
-        {
-            'curb-weight': 4066,
         },
         {
             'curb-weight': 3950,

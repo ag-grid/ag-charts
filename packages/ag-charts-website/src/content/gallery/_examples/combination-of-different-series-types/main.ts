@@ -4,20 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['#c16068', '#a2bf8a', '#80a0c3'],
-            strokes: ['#c16068', '#a2bf8a', '#80a0c3'],
-        },
-        overrides: {
-            bar: { series: { strokeWidth: 0 } },
-            line: { series: { strokeWidth: 5, marker: { enabled: false } } },
-        },
-    },
     title: {
         text: 'Cattle Holdings and Beef Exports (UK)',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board',
@@ -74,14 +62,6 @@ const options: AgChartOptions = {
             },
         },
     ],
-    legend: {
-        item: {
-            marker: {
-                shape: 'square',
-                strokeWidth: 0,
-            },
-        },
-    },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

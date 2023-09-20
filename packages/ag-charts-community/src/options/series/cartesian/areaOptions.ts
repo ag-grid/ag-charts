@@ -27,13 +27,13 @@ export interface AgAreaSeriesThemeableOptions<DatumType = any>
 export interface AgAreaSeriesOptions<DatumType = any>
     extends AgAreaSeriesThemeableOptions<DatumType>,
         AgBaseSeriesOptions<DatumType> {
-    type?: 'area';
+    type: 'area';
     /** The number to normalise the area stacks to. For example, if `normalizedTo` is set to `100`, the stacks will all be scaled proportionally so that their total height is always 100. */
     normalizedTo?: number;
     /** The key to use to retrieve x-values from the data. */
-    xKey?: string;
+    xKey: string;
     /** The key to use to retrieve y-values from the data. */
-    yKey?: string;
+    yKey: string;
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */

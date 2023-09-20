@@ -1,12 +1,12 @@
 import type { AgChartThemeOptions } from '../../options/agChartOptions';
+import { ChartTheme } from './chartTheme';
 import {
-    ChartTheme,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
-} from './chartTheme';
+} from './symbols';
 
 export class DarkTheme extends ChartTheme {
     protected getTemplateParameters() {

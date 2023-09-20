@@ -26,6 +26,17 @@
         }
       }
     },
+    "build-tsc": {
+      "executor": "@nx/js:tsc",
+      "inputs": ["tsDefaults"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "main": "packages/ag-charts-community/src/main.ts",
+        "outputPath": "dist/packages/ag-charts-community/out-tsc",
+        "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
+        "compiler": "tsc"
+      }
+    },
     "interface-metadata": {
       "executor": "ag-charts-build-tools:generate-code-reference-files",
       "inputs": ["{projectRoot}/src"],

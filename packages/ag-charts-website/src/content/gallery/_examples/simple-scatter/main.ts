@@ -6,8 +6,6 @@ const options: AgChartOptions = {
     data: getData(),
     title: {
         text: 'Height vs Weight for Major League Baseball Players',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Statistics Online Computational Resource',
@@ -18,10 +16,7 @@ const options: AgChartOptions = {
             xKey: 'weight',
             yKey: 'height',
             marker: {
-                fillOpacity: 0.5,
-                strokeOpacity: 0,
                 size: 12,
-                fill: '#002D72',
             },
         },
     ],
@@ -30,17 +25,17 @@ const options: AgChartOptions = {
             position: 'bottom',
             type: 'number',
             title: {
-                text: 'Weight (pounds)',
+                text: 'Weight (Pounds)',
             },
         },
         {
             position: 'left',
             type: 'number',
             title: {
-                text: 'Height (inches)',
+                text: 'Height (Inches)',
             },
         },
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

@@ -13,6 +13,7 @@ const numFormatter = new Intl.NumberFormat("en-US", {
 })
 
 const sharedSeriesOptions: AgPieSeriesOptions = {
+  type: 'pie',
   sectorLabelKey: "share",
   angleKey: "share",
   sectorLabel: {
@@ -64,7 +65,6 @@ const options: AgPolarChartOptions = {
   },
   series: [
     {
-      type: "pie",
       ...sharedSeriesOptions,
       data: getData2020(),
       outerRadiusRatio: 0.5,
@@ -75,7 +75,6 @@ const options: AgPolarChartOptions = {
       },
     },
     {
-      type: "pie",
       ...sharedSeriesOptions,
       data: getData2022(),
       innerRadiusRatio: 0.7,

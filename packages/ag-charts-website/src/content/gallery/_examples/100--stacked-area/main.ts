@@ -4,24 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            area: {
-                series: {
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 4,
-                            dimOpacity: 0.3,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'UK Energy Sources',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
@@ -96,7 +80,6 @@ const options: AgChartOptions = {
                 format: '#{.0f}%',
             },
             title: {
-                enabled: true,
                 text: 'Normalized Percentage Energy',
             },
         },
@@ -106,4 +89,4 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

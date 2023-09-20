@@ -1,0 +1,105 @@
+---
+title: 'Box Plot Series'
+enterprise: true
+---
+
+A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.
+
+## Simple Box Plot
+
+{% chartExampleRunner title="Simple Box Plot" name="simple-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+
+To create a Box Plot Series, use the `box-plot` series type.
+
+```js
+series: [
+    {
+        type: 'box-plot',
+        xKey: 'role',
+        yName: 'Salary Range',
+        minKey: 'min',
+        q1Key: 'q1',
+        medianKey: 'median',
+        q3Key: 'q3',
+        maxKey: 'max',
+    },
+],
+```
+
+In this configuration:
+
+-   `xKey` sets the box plot's category.
+-   `yName` specifies the tooltip title.
+-   `minKey` maps to the minimum value.
+-   `q1Key` maps to the first quartile (Q1).
+-   `medianKey` maps to the median.
+-   `q3Key` maps to the third quartile (Q3).
+-   `maxKey` maps to the maximum value.
+
+Note the default orientation of a Box Plot is horizontal.
+
+## Vertical Box Plot
+
+{% chartExampleRunner title="Vertical Box Plot" name="vertical-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+
+To show a Vertical Box Plot, set `direction: 'vertical'`.
+
+```js
+series: [
+    {
+        type: 'box-plot',
+        direction: 'vertical',
+        xKey: 'department',
+        ...
+    },
+],
+```
+
+Note that the `xKey` specifies the category values, regardless of series orientation.
+
+## Box Plot Customisations
+
+{% chartExampleRunner title="Box Plot Customisations" name="box-plot-customisations" type="generated" options="{ \"enterprise\": true }" /%}
+
+Default styling applies to all elements of a Box Plot, such as boxes, whiskers, and caps.
+
+To customise whiskers and caps independently, use the `whisker` property. To adjust cap length, set `cap.lengthRatio`
+between 0 and 1 (default set at 0.5).
+
+```js
+series: [
+    {
+        type: 'box-plot',
+        // styling props
+        strokeWidth: 1,
+        cap: { lengthRatio: 0.8 },
+        whisker: { stroke: 'red', strokeWidth: 3, lineDash: [2, 1] },
+        ...
+    },
+],
+```
+
+## Box Plot Outliers
+
+{% chartExampleRunner title="Box Plot Outliers" name="box-plot-outliers" type="generated" options="{ \"enterprise\": true }" /%}
+
+To include outliers in a Box Plot, combine a Box Plot Series with a [Scatter Series](./scatter-series/).
+
+```js
+series: [
+    {
+        data: boxPlotData,
+        type: 'box-plot',
+        ...
+    },
+    {
+        data: outliersData,
+        type: 'scatter',
+        ...
+    },
+],
+```
+
+## API Reference
+
+{% interfaceDocumentation interfaceName="AgBoxPlotSeriesOptions" config="{ \"showSnippets\": false }" /%}
