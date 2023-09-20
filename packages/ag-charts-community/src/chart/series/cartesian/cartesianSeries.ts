@@ -829,14 +829,8 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
-    protected checkAnimationUpdateDataTransition() {
-        const diff = this.processedData?.reduced?.diff;
-
-        if (diff?.added.length > 0 && diff?.removed.length > 0) {
-            this.animationState.transition('clear', this.getAnimationData());
-        } else {
-            this.animationState.transition('updateData');
-        }
+    protected animationTransitionClear() {
+        this.animationState.transition('clear', this.getAnimationData());
     }
 
     private getAnimationData(seriesRect?: BBox) {

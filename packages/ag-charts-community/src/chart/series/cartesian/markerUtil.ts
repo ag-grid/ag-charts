@@ -25,6 +25,7 @@ export type Style = {
 export type MarkerConfig = Style & {
     point: SizedPoint;
     customMarker: boolean;
+    animatedMarker?: boolean;
 };
 
 export function getMarkerConfig<ExtraParams extends {}>({
@@ -88,17 +89,31 @@ export function getMarkerConfig<ExtraParams extends {}>({
 }
 
 export function updateMarker({ node, config }: { node: Marker; config: MarkerConfig }) {
-    const { point, size, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, visible = true, customMarker } = config;
+    const {
+        point,
+        size,
+        fill,
+        stroke,
+        strokeWidth,
+        fillOpacity,
+        strokeOpacity,
+        visible = true,
+        customMarker,
+        animatedMarker,
+    } = config;
 
     node.fill = fill;
     node.stroke = stroke;
     node.strokeWidth = strokeWidth ?? 1;
     node.fillOpacity = fillOpacity ?? 1;
     node.strokeOpacity = strokeOpacity ?? 1;
-    node.size = size ?? point.size;
 
-    node.translationX = point.x;
-    node.translationY = point.y;
+    if (!animatedMarker) {
+        node.size = size ?? point.size;
+        node.translationX = point.x;
+        node.translationY = point.y;
+    }
+
     node.visible = node.size > 0 && visible && !isNaN(point.x) && !isNaN(point.y);
 
     if (!customMarker || node.dirtyPath) {

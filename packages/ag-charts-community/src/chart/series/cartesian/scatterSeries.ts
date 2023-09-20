@@ -16,7 +16,6 @@ import { HdpiCanvas } from '../../../canvas/hdpiCanvas';
 import type { Marker } from '../../marker/marker';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_FUNCTION, OPT_STRING, OPT_NUMBER_ARRAY, COLOR_STRING_ARRAY, Validate } from '../../../util/validation';
-import { zipObject } from '../../../util/zip';
 import type {
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesTooltipRendererParams,
@@ -26,7 +25,6 @@ import type {
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
-import * as easing from '../../../motion/easing';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
@@ -143,7 +141,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             colorScale.update();
         }
 
-        this.animationState.transition('updateData');
+        this.animationTransitionClear();
     }
 
     getDomain(direction: ChartAxisDirection): any[] {
@@ -261,7 +259,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         }
 
         const data = enabled ? nodeData : [];
-        return markerSelection.update(data, undefined, (datum) => this.getDatumId(datum));
+        return markerSelection.update(data);
     }
 
     protected async updateMarkerNodes(opts: {
@@ -297,7 +295,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 strokeWidth: marker.strokeWidth ?? 1,
             });
 
-            const config = { ...styles, point: datum.point, visible, customMarker };
+            const config = { ...styles, point: datum.point, visible, customMarker, animatedMarker: true };
             updateMarker({ node, config });
         });
 
@@ -461,41 +459,42 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         return legendData;
     }
 
-    animateEmptyUpdateReady({ markerSelections, labelSelections }: ScatterAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
+    animateEmptyUpdateReady(animationData: ScatterAnimationData) {
+        const { markerSelections, labelSelections } = animationData;
+        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
 
-        markerSelections.forEach((markerSelection) => {
-            markerSelection.each((marker, datum) => {
-                const format = this.animateFormatter(marker, datum);
-                const to = format?.size ?? datum.point.size;
+        this.ctx.animationManager.animate(`${this.id}_empty-update-ready_markers`, {
+            from: 0,
+            to: 1,
+            duration,
+            onUpdate: (ratio) => {
+                markerSelections.forEach((markerSelection) => {
+                    markerSelection.each((marker, datum) => {
+                        const format = this.animateFormatter(marker, datum);
+                        const to = format?.size ?? datum.point.size;
 
-                marker.translationX = datum.point.x;
-                marker.translationY = datum.point.y;
+                        marker.translationX = datum.point.x;
+                        marker.translationY = datum.point.y;
 
-                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${marker.id}`, {
-                    from: 0,
-                    to,
-                    duration,
-                    onUpdate(size) {
-                        marker.size = size;
-                    },
+                        marker.size = ratio * to;
+                    });
                 });
-            });
+            },
         });
 
-        labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label) => {
-                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                    from: 0,
-                    to: 1,
-                    delay: duration,
-                    duration: labelDuration,
-                    onUpdate: (opacity) => {
+        this.ctx.animationManager.animate(`${this.id}_empty-update-ready_labels`, {
+            from: 0,
+            to: 1,
+            delay: duration,
+            duration: labelDuration,
+            onUpdate: (opacity) => {
+                labelSelections.forEach((labelSelection) => {
+                    labelSelection.each((label) => {
                         label.opacity = opacity;
-                    },
+                    });
                 });
-            });
+            },
         });
     }
 
@@ -506,6 +505,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
+    /*
+    // This animation can not be used until we can provide a guaranteed unique datum id.
     animateWaitingUpdateReady({ markerSelections, labelSelections }: ScatterAnimationData) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
@@ -529,60 +530,43 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                 const cleanup = index === markerSelection.nodes().length - 1;
 
                 const markerFormat = this.animateFormatter(marker, datum);
-                const size = markerFormat?.size ?? datum.point.size ?? 0;
+                const size = markerFormat?.size ?? datum.point.size ?? marker.size;
 
-                if (removedIds[datumId] || addedIds[datumId]) {
-                    let from = 0;
-                    let to = 0;
+                let props = [
+                    { from: marker.size, to: size },
+                    { from: marker.translationX, to: datum.point.x },
+                    { from: marker.translationY, to: datum.point.y },
+                ];
 
-                    if (removedIds[datumId]) {
-                        from = size;
-                    } else if (addedIds[datumId]) {
-                        to = size;
-                        marker.translationX = datum.point.x;
-                        marker.translationY = datum.point.y;
-                    }
-
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${marker.id}`, {
-                        from,
-                        to,
-                        duration,
-                        ease: easing.easeOut,
-                        onUpdate(size) {
-                            marker.size = size;
-                        },
-                        onStop: () => {
-                            if (cleanup) this.resetMarkers(markerSelection);
-                        },
-                        onComplete: () => {
-                            if (cleanup) this.resetMarkers(markerSelection);
-                        },
-                    });
-                } else {
-                    this.ctx.animationManager.animateMany(
-                        `${this.id}_waiting-update-ready_${marker.id}`,
-                        [
-                            { from: marker.size, to: size },
-                            { from: marker.translationX, to: datum.point.x },
-                            { from: marker.translationY, to: datum.point.y },
-                        ],
-                        {
-                            duration,
-                            ease: easing.easeOut,
-                            onUpdate([size, x, y]) {
-                                marker.size = size;
-                                marker.translationX = x;
-                                marker.translationY = y;
-                            },
-                            onStop: () => {
-                                if (cleanup) this.resetMarkers(markerSelection);
-                            },
-                            onComplete: () => {
-                                if (cleanup) this.resetMarkers(markerSelection);
-                            },
-                        }
-                    );
+                if (removedIds[datumId]) {
+                    props = [
+                        { from: marker.size, to: 0 },
+                        { from: marker.translationX, to: marker.translationX },
+                        { from: marker.translationY, to: marker.translationY },
+                    ];
+                } else if (addedIds[datumId]) {
+                    props = [
+                        { from: 0, to: size },
+                        { from: datum.point.x, to: datum.point.x },
+                        { from: datum.point.y, to: datum.point.y },
+                    ];
                 }
+
+                this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${marker.id}`, props, {
+                    duration,
+                    ease: easing.easeOut,
+                    onUpdate([size, x, y]) {
+                        marker.size = size;
+                        marker.translationX = x;
+                        marker.translationY = y;
+                    },
+                    onStop: () => {
+                        if (cleanup) this.resetMarkers(markerSelection);
+                    },
+                    onComplete: () => {
+                        if (cleanup) this.resetMarkers(markerSelection);
+                    },
+                });
             });
         });
 
@@ -613,13 +597,41 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             });
         });
     }
+    */
+
+    animateClearingUpdateEmpty(animationData: ScatterAnimationData) {
+        const { markerSelections } = animationData;
+
+        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
+        const clearDuration = 200;
+
+        this.ctx.animationManager.animate(`${this.id}_clearing-update-empty`, {
+            from: 1,
+            to: 0,
+            duration: clearDuration,
+            onUpdate(opacity) {
+                markerSelections.forEach((markerSelection) => {
+                    markerSelection.each((marker) => {
+                        marker.opacity = opacity;
+                    });
+                });
+            },
+            onComplete: () => {
+                markerSelections.forEach((markerSelection) => {
+                    this.resetMarkers(markerSelection);
+                });
+                this.animationState.transition('update', { ...animationData, duration: updateDuration });
+            },
+        });
+    }
 
     resetMarkers(markerSelection: Selection<Marker, ScatterNodeDatum>) {
         markerSelection.cleanup().each((marker, datum) => {
             const format = this.animateFormatter(marker, datum);
-            marker.size = format?.size ?? datum.point?.size ?? 0;
+            marker.size = format?.size ?? datum.point?.size ?? marker.size;
             marker.translationX = datum.point.x;
             marker.translationY = datum.point.y;
+            marker.opacity = 1;
         });
     }
 
@@ -636,7 +648,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         const fill = datum.fill ?? marker.fill;
         const stroke = marker.stroke;
         const strokeWidth = markerStrokeWidth ?? 1;
-        const size = datum.point?.size ?? 0;
+        const size = datum.point?.size ?? marker.size;
 
         let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
         if (formatter) {
@@ -657,7 +669,9 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
     }
 
     getDatumId(datum: ScatterNodeDatum) {
-        return createDatumId([`${datum.xValue}`, `${datum.yValue}`, datum.label.text]);
+        const keys = [`${datum.xValue}`, `${datum.yValue}`];
+        if (this.labelKey) keys.push(datum.label.text);
+        return createDatumId(keys);
     }
 
     protected isLabelEnabled() {

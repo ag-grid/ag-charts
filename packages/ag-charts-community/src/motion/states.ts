@@ -41,9 +41,10 @@ export class StateMachine<State extends string, Event extends string> {
             );
         }
 
-        destinationTransition.action?.(data);
-
+        // Change the state before calling the transition action to allow the action to trigger a subsequent transition
         this.state = destinationState;
+
+        destinationTransition.action?.(data);
 
         return this.state;
     }
