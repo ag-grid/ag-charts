@@ -52,7 +52,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.axisCtx = ctx.parent;
         this.crosshairGroup.visible = false;
-        this.label = new CrosshairLabel(document, ctx.scene.canvas.container ?? document.body);
+        this.label = new CrosshairLabel(ctx.document, ctx.scene.canvas.container ?? ctx.document.body);
 
         this.destroyFns.push(
             ctx.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),

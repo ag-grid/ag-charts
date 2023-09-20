@@ -4,6 +4,7 @@ export * from './util/padding';
 export * from './util/json';
 export * from './util/angle';
 export * from './util/zip';
+export * from './util/number';
 
 export { extent, normalisedExtent, normalisedExtentWithMetadata } from './util/array';
 export { toFixed, isEqual as isNumberEqual } from './util/number';

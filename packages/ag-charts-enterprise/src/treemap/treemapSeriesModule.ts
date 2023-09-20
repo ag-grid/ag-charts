@@ -1,17 +1,18 @@
-import type { SeriesModule } from '../../../util/coreModules';
-import { NORMAL } from '../../themes/constants';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_INVERTED_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_SHADOW_COLOUR,
-    DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 import { TreemapSeries } from './treemapSeries';
 
-export const TreemapSeriesModule: SeriesModule<'treemap'> = {
+const {
+    NORMAL,
+    DEFAULT_MUTED_LABEL_COLOUR,
+    EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_SHADOW_COLOUR,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+    DEFAULT_INVERTED_LABEL_COLOUR,
+} = _Theme;
+
+export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',

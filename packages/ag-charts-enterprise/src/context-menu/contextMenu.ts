@@ -66,13 +66,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         // HTML elements
         this.canvasElement = ctx.scene.canvas.element;
-        this.container = document.body;
+        this.container = ctx.document.body;
 
-        this.element = this.container.appendChild(document.createElement('div'));
+        this.element = this.container.appendChild(ctx.document.createElement('div'));
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.destroyFns.push(() => this.element.parentNode?.removeChild(this.element));
 
-        this.coverElement = this.container.appendChild(document.createElement('div'));
+        this.coverElement = this.container.appendChild(ctx.document.createElement('div'));
         this.coverElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__cover`);
 
         // TODO: hmmm...
@@ -116,12 +116,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         // Global shared state
-        if (ContextMenu.contextMenuDocuments.indexOf(document) < 0) {
-            const styleElement = document.createElement('style');
+        if (ContextMenu.contextMenuDocuments.indexOf(ctx.document) < 0) {
+            const styleElement = ctx.document.createElement('style');
             styleElement.innerHTML = defaultContextMenuCss;
             // Make sure the default context menu style goes before other styles so it can be overridden.
-            document.head.insertBefore(styleElement, document.head.querySelector('style'));
-            ContextMenu.contextMenuDocuments.push(document);
+            ctx.document.head.insertBefore(styleElement, ctx.document.head.querySelector('style'));
+            ContextMenu.contextMenuDocuments.push(ctx.document);
         }
 
         ContextMenu.registerDefaultAction({
@@ -225,7 +225,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     public renderMenu() {
-        const menuElement = document.createElement('div');
+        const menuElement = this.ctx.document.createElement('div');
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
 
         this.groups.default.forEach((i) => {
@@ -252,7 +252,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createDividerElement(): HTMLElement {
-        const el = document.createElement('div');
+        const el = this.ctx.document.createElement('div');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
         return el;
     }
@@ -265,7 +265,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createButtonElement(label: string, callback: (params: ContextMenuActionParams) => void): HTMLElement {
-        const el = document.createElement('button');
+        const el = this.ctx.document.createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.innerHTML = label;
         el.onclick = () => {
@@ -279,7 +279,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createDisabledElement(label: string): HTMLElement {
-        const el = document.createElement('button');
+        const el = this.ctx.document.createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.disabled = true;
         el.innerHTML = label;
