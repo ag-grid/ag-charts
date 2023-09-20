@@ -140,7 +140,15 @@ export function getTopLevelSelection({
     const [topLevelPathItem] = selection.path;
     const topLevelName = topLevelPathItem || (selection as JsObjectSelectionProperty).propName;
     const topLevelModel = model.properties[topLevelName];
-    if (!topLevelModel) {
+
+    if (selection.isRoot) {
+        return {
+            type: 'model',
+            path: selection.path,
+            model: selection.model,
+            isRoot: true,
+        };
+    } else if (!topLevelModel) {
         return;
     }
 
