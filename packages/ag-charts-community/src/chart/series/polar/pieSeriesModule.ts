@@ -56,7 +56,6 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: 1,
-        strokes: ['white'],
         lineDash: [0],
         lineDashOffset: 0,
         rotation: 0,
