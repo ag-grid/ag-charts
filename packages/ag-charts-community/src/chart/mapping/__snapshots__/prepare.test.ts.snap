@@ -7477,7 +7477,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       },
       "labels": {
         "large": {
-          "color": "rgb(70, 70, 70)",
+          "color": "white",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 18,
@@ -7486,7 +7486,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
           "wrapping": "on-space",
         },
         "medium": {
-          "color": "rgb(70, 70, 70)",
+          "color": "white",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 14,
@@ -7495,7 +7495,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
           "wrapping": "on-space",
         },
         "small": {
-          "color": "rgb(70, 70, 70)",
+          "color": "white",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 10,
@@ -7506,7 +7506,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
         "value": {
           "formatter": [Function],
           "style": {
-            "color": "rgb(70, 70, 70)",
+            "color": "white",
             "enabled": true,
             "fontFamily": "Verdana, sans-serif",
             "fontSize": 12,
@@ -7521,7 +7521,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       "showInLegend": false,
       "sizeKey": "valuation",
       "subtitle": {
-        "color": "rgb(140, 140, 140)",
+        "color": "white",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 9,
@@ -7539,7 +7539,7 @@ exports[`prepare #prepareOptions for MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE it shoul
       "tileStroke": "black",
       "tileStrokeWidth": 1,
       "title": {
-        "color": "rgb(70, 70, 70)",
+        "color": "white",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,

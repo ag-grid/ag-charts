@@ -1,4 +1,4 @@
-import type { SeriesModule } from '../../../util/module';
+import type { SeriesModule } from '../../../util/coreModules';
 import type { AgBarSeriesOptions } from '../../../options/agChartOptions';
 import { BarSeries } from './barSeries';
 import {

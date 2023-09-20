@@ -20,9 +20,10 @@ type Chart = {
     autoSize: boolean;
     width: number;
     height: number;
+    data: any[] | null;
     scene: _Scene.Scene;
     axes: { type: 'string' }[];
-    series: { type: 'string' }[];
+    series: { type: 'string'; data: any[] | null }[];
     waitForUpdate: (timeoutMs: number) => Promise<void>;
 };
 

@@ -1,5 +1,4 @@
-import { Logger } from '../util/logger';
-import { windowValue } from '../util/window';
+import { Debug } from '../util/debug';
 
 type StateDefinition<State extends string, Event extends string> = {
     [key in Event]?: {
@@ -9,16 +8,15 @@ type StateDefinition<State extends string, Event extends string> = {
 };
 
 export class StateMachine<State extends string, Event extends string> {
-    static DEBUG = () => [true, 'animation'].includes(windowValue('agChartsDebug') as string) ?? false;
-
-    private states: Record<State, StateDefinition<State, Event>>;
+    private readonly debug = Debug.create(true, 'animation');
+    private readonly states: Record<State, StateDefinition<State, Event>>;
     private state: State;
 
     constructor(initialState: State, states: Record<State, StateDefinition<State, Event>>) {
         this.state = initialState;
         this.states = states;
 
-        if (StateMachine.DEBUG()) Logger.debug(`%c${this.constructor.name} | init -> ${initialState}`, 'color: green');
+        this.debug(`%c${this.constructor.name} | init -> ${initialState}`, 'color: green');
     }
 
     transition(event: Event, data?: any) {
@@ -26,20 +24,13 @@ export class StateMachine<State extends string, Event extends string> {
         const destinationTransition = currentStateConfig?.[event];
 
         if (!destinationTransition) {
-            if (StateMachine.DEBUG()) {
-                Logger.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${this.state}`, 'color: grey');
-            }
+            this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${this.state}`, 'color: grey');
             return;
         }
 
         const destinationState = destinationTransition.target;
 
-        if (StateMachine.DEBUG()) {
-            Logger.debug(
-                `%c${this.constructor.name} | ${this.state} -> ${event} -> ${destinationState}`,
-                'color: green'
-            );
-        }
+        this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${destinationState}`, 'color: green');
 
         destinationTransition.action?.(data);
 

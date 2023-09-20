@@ -223,14 +223,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
     tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
 
-    set data(input: any[] | undefined) {
-        this._data = input;
-        this.processSeriesItemEnabled();
-    }
-    get data() {
-        return this._data;
-    }
-
     /**
      * The key of the numeric field to use to determine the angle (for example,
      * a pie sector angle).
@@ -1990,5 +1982,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
 
         return sectors;
+    }
+
+    protected onDataChange() {
+        this.processSeriesItemEnabled();
     }
 }

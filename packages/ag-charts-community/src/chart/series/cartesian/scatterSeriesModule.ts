@@ -1,4 +1,4 @@
-import type { SeriesModule } from '../../../util/module';
+import type { SeriesModule } from '../../../util/coreModules';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,

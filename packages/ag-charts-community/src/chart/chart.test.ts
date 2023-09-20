@@ -15,6 +15,7 @@ import type {
     AgPolarChartOptions,
     AgScatterSeriesOptions,
     AgTreemapSeriesOptions,
+    AgChartInstance,
 } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
@@ -50,11 +51,12 @@ describe('Chart', () => {
     const datasets = {
         economy: {
             data: [
-                { year: '2018', gdp: 12000 },
-                { year: '2019', gdp: 18000 },
-                { year: '2020', gdp: 20000 },
+                { year: '2018', gdp: 12000, gnp: 10000 },
+                { year: '2019', gdp: 18000, gnp: 16000 },
+                { year: '2020', gdp: 20000, gnp: 18000 },
             ],
             valueKey: 'gdp',
+            valueKey2: 'gnp',
             categoryKey: 'year',
         },
         food: {
@@ -97,34 +99,22 @@ describe('Chart', () => {
         }): Promise<Chart> => {
             const tooltip = params.hasTooltip
                 ? {
-                      renderer: (params) => {
+                      renderer(params: any) {
                           const values = testParams.getTooltipRenderedValues(params);
                           return format(...values);
                       },
                   }
-                : {
-                      enabled: false,
-                  };
+                : { enabled: false };
 
-            const listeners = params.onNodeClick
-                ? {
-                      nodeClick: params.onNodeClick,
-                  }
-                : undefined;
-
+            const listeners = params.onNodeClick ? { nodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
-
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
                 autoSize: false,
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            item: {
-                                fill: 'lime',
-                            },
-                        },
+                        highlightStyle: { item: { fill: 'lime' } },
                         listeners,
                         ...nodeClickRangeParams,
                         ...testParams.seriesOptions,
@@ -473,6 +463,87 @@ describe('Chart', () => {
                 },
                 getNodes: (chart) => Selection.selectByClass(chart.series[0].contentGroup, Sector),
             });
+        });
+    });
+
+    describe('Chart data inherited by Series', () => {
+        async function createChart(options: object) {
+            const chartOptions = prepareTestOptions(options);
+            const chartProxy = AgChart.create(chartOptions);
+            const chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+            return { chart, chartProxy, chartOptions };
+        }
+
+        async function updateChart(chartProxy: AgChartInstance, options: object) {
+            const chartOptions = prepareTestOptions(options);
+            AgChart.update(chartProxy, chartOptions);
+            const chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+        }
+
+        it('Chart data inherited only when Series data is not defined ', async () => {
+            const moreData = datasets.economy.data;
+            const lessData = datasets.economy.data.slice(0, 2);
+            const { chart, chartProxy } = await createChart({
+                data: moreData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                    },
+                    {
+                        type: 'bar',
+                        data: lessData,
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey2,
+                    },
+                ],
+            });
+            expect(chart.data).toEqual(moreData);
+            expect(chart.series[0].data).toEqual(moreData);
+            expect(chart.series[1].data).toEqual(lessData);
+
+            await updateChart(chartProxy, {
+                data: moreData,
+                series: [
+                    {
+                        type: 'bar',
+                        data: lessData,
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                    },
+                    {
+                        type: 'bar',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey2,
+                    },
+                ],
+            });
+
+            expect(chart.data).toEqual(moreData);
+            expect(chart.series[0].data).toEqual(lessData);
+            expect(chart.series[1].data).toEqual(moreData);
+
+            await updateChart(chartProxy, {
+                data: moreData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                    },
+                    {
+                        type: 'bar',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey2,
+                    },
+                ],
+            });
+
+            expect(chart.series[0].data).toEqual(chart.data);
+            expect(chart.series[1].data).toEqual(chart.data);
         });
     });
 });

@@ -1,6 +1,6 @@
 import { Rect } from '../../scene/shape/rect';
 import { Group } from '../../scene/group';
-import type { ModuleInstance } from '../../util/module';
+import type { ModuleInstance } from '../../util/baseModule';
 import { BaseModuleInstance } from '../../util/module';
 import type { ModuleContext } from '../../util/moduleContext';
 import { ProxyPropertyOnWrite } from '../../util/proxy';

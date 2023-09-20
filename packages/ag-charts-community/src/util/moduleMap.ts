@@ -1,14 +1,15 @@
-import type { BaseModule, ModuleInstance } from './module';
+import type { BaseModule, ModuleInstance } from './baseModule';
+import type { ModuleContext } from './moduleContext';
 
-interface Module<C, I extends ModuleInstance = ModuleInstance> extends BaseModule {
+interface Module<C extends ModuleContext, I extends ModuleInstance = ModuleInstance> extends BaseModule {
     instanceConstructor: new (ctx: C) => I;
 }
 
-export interface ModuleContextInitialiser<C> {
+export interface ModuleContextInitialiser<C extends ModuleContext> {
     createModuleContext: () => C;
 }
 
-export class ModuleMap<M extends Module<C, I>, C, I extends ModuleInstance = ModuleInstance> {
+export class ModuleMap<M extends Module<C, I>, C extends ModuleContext, I extends ModuleInstance = ModuleInstance> {
     private readonly modules: Record<string, { instance: I }> = {};
     private moduleContext?: C;
     private parent: ModuleContextInitialiser<C>;
