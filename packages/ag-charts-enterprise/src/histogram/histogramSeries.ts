@@ -1,17 +1,30 @@
-import type { Selection } from '../../../scene/selection';
-import { Rect } from '../../../scene/shape/rect';
-import type { Text } from '../../../scene/shape/text';
-import type { DropShadow } from '../../../scene/dropShadow';
-import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, Series, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
-import { Label } from '../../label';
-import { PointerEvents } from '../../../scene/node';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import ticks, { tickStep } from '../../../util/ticks';
-import { sanitizeHtml } from '../../../util/sanitize';
+import type { Selection } from 'ag-charts-community/src/scene/selection';
+import { Rect } from 'ag-charts-community/src/scene/shape/rect';
+import type { Text } from 'ag-charts-community/src/scene/shape/text';
+import type { DropShadow } from 'ag-charts-community/src/scene/dropShadow';
+import type { SeriesNodeDataContext } from 'ag-charts-community/src/chart/series/series';
+import {
+    SeriesTooltip,
+    Series,
+    SeriesNodePickMode,
+    valueProperty,
+    keyProperty,
+} from 'ag-charts-community/src/chart/series/series';
+import { Label } from 'ag-charts-community/src/chart/label';
+import { PointerEvents } from 'ag-charts-community/src/scene/node';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from 'ag-charts-community/src/chart/legendDatum';
+import type {
+    CartesianAnimationData,
+    CartesianSeriesNodeDatum,
+} from 'ag-charts-community/src/chart/series/cartesian/cartesianSeries';
+import {
+    CartesianSeries,
+    CartesianSeriesNodeClickEvent,
+    CartesianSeriesNodeDoubleClickEvent,
+} from 'ag-charts-community/src/chart/series/cartesian/cartesianSeries';
+import { ChartAxisDirection } from 'ag-charts-community/src/chart/chartAxisDirection';
+import ticks, { tickStep } from 'ag-charts-community/src/util/ticks';
+import { sanitizeHtml } from 'ag-charts-community/src/util/sanitize';
 import {
     BOOLEAN,
     NUMBER,
@@ -23,8 +36,8 @@ import {
     Validate,
     predicateWithMessage,
     OPT_STRING,
-} from '../../../util/validation';
-import { zipObject } from '../../../util/zip';
+} from 'ag-charts-community/src/util/validation';
+import { zipObject } from 'ag-charts-community/src/util/zip';
 import type {
     AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
@@ -32,14 +45,18 @@ import type {
     FontStyle,
     FontWeight,
     AgHistogramSeriesTooltipRendererParams,
-} from '../../../options/agChartOptions';
-import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
-import { fixNumericExtent } from '../../data/dataModel';
-import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
-import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
-import * as easing from '../../../motion/easing';
-import type { ModuleContext } from '../../../util/moduleContext';
-import type { DataController } from '../../data/dataController';
+} from 'ag-charts-community/src/options/agChartOptions';
+import type {
+    AggregatePropertyDefinition,
+    GroupByFn,
+    PropertyDefinition,
+} from 'ag-charts-community/src/chart/data/dataModel';
+import { fixNumericExtent } from 'ag-charts-community/src/chart/data/dataModel';
+import { area, groupAverage, groupCount, groupSum } from 'ag-charts-community/src/chart/data/aggregateFunctions';
+import { SORT_DOMAIN_GROUPS, createDatumId, diff } from 'ag-charts-community/src/chart/data/processors';
+import * as easing from 'ag-charts-community/src/motion/easing';
+import type { ModuleContext } from 'ag-charts-community/src/util/moduleContext';
+import type { DataController } from 'ag-charts-community/src/chart/data/dataController';
 
 const HISTOGRAM_AGGREGATIONS = ['count', 'sum', 'mean'];
 const HISTOGRAM_AGGREGATION = predicateWithMessage(
