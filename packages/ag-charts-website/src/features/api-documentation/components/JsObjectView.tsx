@@ -728,7 +728,13 @@ export function ObjectBreadcrumb({
             {breadcrumbs.length > 1 ? (
                 <div className={styles.jsonObject} role="presentation">
                     <div role="presentation">...</div>
-                    {<ObjectBreadcrumb breadcrumbs={breadcrumbs.slice(1)} bodyContent={bodyContent} />}
+                    {
+                        <ObjectBreadcrumb
+                            breadcrumbs={breadcrumbs.slice(1)}
+                            bodyContent={bodyContent}
+                            topBreakcrumbOnClick={topBreakcrumbOnClick}
+                        />
+                    }
                 </div>
             ) : (
                 bodyContent()
