@@ -39,8 +39,9 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
 import { ModuleMap, ModuleContextInitialiser } from '../../util/moduleMap';
-import type { SeriesOptionModule } from '../../util/module';
+import type { SeriesOptionModule } from '../../util/optionModules';
 import type { ChartSeries, SeriesNodeDatum } from '../chartSeries';
+import { SeriesNodePickMode } from '../chartSeries';
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;

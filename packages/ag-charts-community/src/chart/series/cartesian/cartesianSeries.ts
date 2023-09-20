@@ -18,12 +18,16 @@ import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isDiscrete } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { getMarker } from '../../marker/util';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Listeners } from '../../../util/listeners';
-import type { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
-import type { SeriesNodeDataContext } from '../series';
+import type { ChartSeries, SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
+import { Series, SeriesNodeBaseClickEvent, SeriesNodeDataContext, SeriesNodePickMatch } from '../series';
+import type { Marker } from '../../marker/marker';
+import { Layers } from '../../layers';
+import { SeriesMarker } from '../seriesMarker';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -73,7 +77,7 @@ export class CartesianSeriesNodeBaseClickEvent<Datum extends { datum: any }> ext
     readonly xKey: string;
     readonly yKey: string;
 
-    constructor(xKey: string, yKey: string, nativeEvent: MouseEvent, datum: Datum, series: Series<any>) {
+    constructor(xKey: string, yKey: string, nativeEvent: MouseEvent, datum: Datum, series: ChartSeries) {
         super(nativeEvent, datum, series);
         this.xKey = xKey;
         this.yKey = yKey;

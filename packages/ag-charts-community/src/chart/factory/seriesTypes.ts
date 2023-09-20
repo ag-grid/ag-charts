@@ -1,5 +1,3 @@
-import { PieSeries } from '../series/polar/pieSeries';
-import { TreemapSeries } from '../series/hierarchy/treemapSeries';
 import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/coreModules';

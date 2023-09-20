@@ -104,10 +104,10 @@ export interface ChartSeries {
     addChartEventListeners(): void;
     chart?: {
         mode: 'standalone' | 'integrated';
-        debug: boolean;
         placeLabels(): Map<ChartSeries, PlacedLabel[]>;
         getSeriesRect(): Readonly<BBox> | undefined;
     };
+    setChartData(input: unknown[]) : void;
     rootGroup: Group;
     contentGroup: Group;
     getGroupZIndexSubOrder(

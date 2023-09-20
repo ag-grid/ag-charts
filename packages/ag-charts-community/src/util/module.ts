@@ -2,13 +2,6 @@ import type { ModuleInstance } from './baseModule';
 import type { AxisModule, LegendModule, RootModule, SeriesModule } from './coreModules';
 import type { AxisOptionModule, SeriesOptionModule } from './optionModules';
 
-export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
-    type: 'series-option';
-
-    identifier: string;
-    instanceConstructor: new (ctx: SeriesContext) => M;
-}
-
 export type Module<M extends ModuleInstance = ModuleInstance> =
     | RootModule<M>
     | AxisModule

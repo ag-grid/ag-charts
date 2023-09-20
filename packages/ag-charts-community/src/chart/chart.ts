@@ -2,7 +2,8 @@ import { Scene } from '../scene/scene';
 import { Group } from '../scene/group';
 import { Text } from '../scene/shape/text';
 import { Debug } from '../util/debug';
-import type { ChartSeries, SeriesNodeDatum, SeriesNodePickMode } from './chartSeries';
+import type { ChartSeries, SeriesNodeDatum } from './chartSeries';
+import { SeriesNodePickMode } from './chartSeries';
 import { Padding } from '../util/padding';
 
 import { BBox } from '../scene/bbox';
