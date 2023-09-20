@@ -34,7 +34,8 @@ import { createDatumId, diff } from '../../data/processors';
 import type { ModuleContext } from '../../../util/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
-import { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
+import type { SeriesNodeDatum} from '../../chartSeries';
+import { SeriesNodePickMode } from '../../chartSeries';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
     readonly point: SeriesNodeDatum['point'] & {

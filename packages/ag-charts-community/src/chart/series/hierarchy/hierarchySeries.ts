@@ -1,8 +1,10 @@
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import type { ModuleContext } from '../../../util/moduleContext';
-import { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
+import type { SeriesNodeDatum} from '../../chartSeries';
+import { SeriesNodePickMode } from '../../chartSeries';
 import type { HierarchyChart } from '../../hierarchyChart';
-import { Series, SeriesNodeDataContext } from '../series';
+import type { SeriesNodeDataContext } from '../series';
+import { Series } from '../series';
 
 export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<SeriesNodeDataContext<S>> {
     chart?: HierarchyChart;

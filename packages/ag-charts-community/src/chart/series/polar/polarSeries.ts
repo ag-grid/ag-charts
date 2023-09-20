@@ -1,4 +1,5 @@
-import { Series, SeriesNodeDataContext } from '../series';
+import type { SeriesNodeDataContext } from '../series';
+import { Series } from '../series';
 import type { BBox } from '../../../scene/bbox';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { PointLabelDatum } from '../../../util/labelPlacement';

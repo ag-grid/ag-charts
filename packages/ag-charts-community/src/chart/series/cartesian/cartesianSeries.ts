@@ -24,7 +24,8 @@ import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from 
 import type { ModuleContext } from '../../../util/moduleContext';
 import { Listeners } from '../../../util/listeners';
 import type { ChartSeries, SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
-import { Series, SeriesNodeBaseClickEvent, SeriesNodeDataContext, SeriesNodePickMatch } from '../series';
+import type { SeriesNodeDataContext, SeriesNodePickMatch } from '../series';
+import { Series, SeriesNodeBaseClickEvent } from '../series';
 import type { Marker } from '../../marker/marker';
 import { Layers } from '../../layers';
 import { SeriesMarker } from '../seriesMarker';
