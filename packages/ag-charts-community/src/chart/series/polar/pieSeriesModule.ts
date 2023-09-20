@@ -1,4 +1,4 @@
-import type { SeriesModule } from '../../../util/module';
+import type { SeriesModule } from '../../../util/coreModules';
 import { BOLD } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
