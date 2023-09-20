@@ -8,6 +8,7 @@ export * from './util/optionModules';
 export * from './util/module';
 export * from './util/moduleContext';
 export * from './util/navigator-module';
+export * from './util/number';
 export * from './util/object';
 export * from './util/proxy';
 export * from './util/shapes';
