@@ -13,11 +13,10 @@ import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartT
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
 import {
-    BOLD,
-    BOTTOM,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
@@ -31,6 +30,7 @@ import {
     EXTENDS_SERIES_DEFAULTS,
     OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
+import { BOLD, BOTTOM } from './constants';
 
 const palette: AgChartThemePalette = {
     fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
@@ -433,6 +433,7 @@ export class ChartTheme {
         const properties = new Map();
         properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         properties.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
+        properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
         properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(219, 219, 219)');
         properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');

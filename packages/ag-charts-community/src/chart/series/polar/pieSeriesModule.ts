@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../util/module';
+import { BOLD } from '../../themes/constants';
 import {
-    BOLD,
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,

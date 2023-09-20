@@ -1,9 +1,8 @@
 import type { SeriesModule } from '../../../util/module';
+import { BOLD } from '../../themes/constants';
 import {
-    BOLD,
     DEFAULT_FONT_FAMILY,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
@@ -49,7 +48,7 @@ export const TreemapSeriesModule: SeriesModule<'treemap'> = {
         nodeGap: 0,
         title: {
             enabled: true,
-            color: DEFAULT_LABEL_COLOUR,
+            color: DEFAULT_INVERTED_LABEL_COLOUR,
             fontStyle: undefined,
             fontWeight: BOLD,
             fontSize: 12,
@@ -58,7 +57,7 @@ export const TreemapSeriesModule: SeriesModule<'treemap'> = {
         },
         subtitle: {
             enabled: true,
-            color: DEFAULT_MUTED_LABEL_COLOUR,
+            color: DEFAULT_INVERTED_LABEL_COLOUR,
             fontStyle: undefined,
             fontWeight: undefined,
             fontSize: 9,
@@ -72,7 +71,7 @@ export const TreemapSeriesModule: SeriesModule<'treemap'> = {
                 fontWeight: BOLD,
                 fontSize: 18,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
+                color: DEFAULT_INVERTED_LABEL_COLOUR,
                 wrapping: 'on-space',
             },
             medium: {
@@ -81,7 +80,7 @@ export const TreemapSeriesModule: SeriesModule<'treemap'> = {
                 fontWeight: BOLD,
                 fontSize: 14,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
+                color: DEFAULT_INVERTED_LABEL_COLOUR,
                 wrapping: 'on-space',
             },
             small: {
@@ -90,7 +89,7 @@ export const TreemapSeriesModule: SeriesModule<'treemap'> = {
                 fontWeight: BOLD,
                 fontSize: 10,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
+                color: DEFAULT_INVERTED_LABEL_COLOUR,
                 wrapping: 'on-space',
             },
             value: {
@@ -100,7 +99,7 @@ export const TreemapSeriesModule: SeriesModule<'treemap'> = {
                     fontWeight: undefined,
                     fontSize: 12,
                     fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
+                    color: DEFAULT_INVERTED_LABEL_COLOUR,
                 },
             },
         },
