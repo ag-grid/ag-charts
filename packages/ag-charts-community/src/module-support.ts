@@ -12,6 +12,7 @@ export * from './util/object';
 export * from './util/proxy';
 export * from './util/shapes';
 export * from './util/types';
+export * from './chart/mapping/defaults';
 export * from './chart/background/backgroundModule';
 export * from './chart/chartAxisDirection';
 export { assignJsonApplyConstructedArray } from './chart/chartOptions';
