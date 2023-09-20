@@ -18,6 +18,7 @@ import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
@@ -30,7 +31,7 @@ import {
     EXTENDS_SERIES_DEFAULTS,
     OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
-import { BOLD, BOTTOM } from './constants';
+import { NORMAL, BOTTOM } from './constants';
 
 const palette: AgChartThemePalette = {
     fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
@@ -70,7 +71,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Axis Title',
                 fontStyle: undefined,
-                fontWeight: BOLD,
+                fontWeight: NORMAL,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -92,13 +93,13 @@ export class ChartTheme {
             },
             tick: {
                 width: 1,
-                size: 6,
+                size: 0,
                 color: 'rgb(195, 195, 195)',
             },
             gridStyle: [
                 {
                     stroke: DEFAULT_AXIS_GRID_COLOUR,
-                    lineDash: [4, 2],
+                    lineDash: [],
                 },
             ],
             crossLines: {
@@ -172,8 +173,9 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
+                spacing: 20,
                 fontStyle: undefined,
-                fontWeight: BOLD,
+                fontWeight: NORMAL,
                 fontSize: 16,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -182,6 +184,7 @@ export class ChartTheme {
             subtitle: {
                 enabled: false,
                 text: 'Subtitle',
+                spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
@@ -192,12 +195,12 @@ export class ChartTheme {
             footnote: {
                 enabled: false,
                 text: 'Footnote',
+                spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
-                spacing: 30,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             legend: {
@@ -253,10 +256,16 @@ export class ChartTheme {
     private static readonly cartesianAxisDefault = {
         number: {
             ...ChartTheme.getAxisDefaults(),
+            line: {
+                width: 0,
+            },
         },
         log: {
             ...ChartTheme.getAxisDefaults(),
             base: 10,
+            line: {
+                width: 0,
+            },
         },
         category: {
             ...ChartTheme.getAxisDefaults(),
@@ -265,12 +274,18 @@ export class ChartTheme {
                 ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
             },
+            tick: {
+                width: 0,
+            },
         },
         groupedCategory: {
             ...ChartTheme.getAxisDefaults(),
         },
         time: {
             ...ChartTheme.getAxisDefaults(),
+            tick: {
+                width: 0,
+            },
         },
     };
 
@@ -435,7 +450,8 @@ export class ChartTheme {
         properties.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
         properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
-        properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(219, 219, 219)');
+        properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
+        properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
