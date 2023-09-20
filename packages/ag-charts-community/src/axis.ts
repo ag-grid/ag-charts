@@ -33,7 +33,8 @@ import {
 } from './chart/label';
 import { Logger } from './util/logger';
 import type { AxisLayout } from './chart/layout/layoutService';
-import type { AxisOptionModule, ModuleInstance } from './util/module';
+import type { ModuleInstance } from './util/baseModule';
+import type { AxisOptionModule } from './util/optionModules';
 import type { AxisContext, ModuleContext } from './util/moduleContext';
 import { AxisLabel } from './chart/axis/axisLabel';
 import { AxisLine } from './chart/axis/axisLine';

@@ -25,20 +25,16 @@ import {
     optionsType,
     type SeriesOptionsTypes,
 } from './mapping/types';
-import {
-    REGISTERED_MODULES,
-    type AxisOptionModule,
-    type LegendModule,
-    type Module,
-    type ModuleInstance,
-    type RootModule,
-} from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
 import { setupModules } from './factory/setupModules';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
+import { type Module, REGISTERED_MODULES } from '../util/module';
+import type { ModuleInstance } from '../util/baseModule';
+import type { LegendModule, RootModule } from '../util/coreModules';
+import type { AxisOptionModule, SeriesOptionModule } from '../util/optionModules';
 
 const debug = Debug.create(true, 'opts');
 
@@ -542,11 +538,22 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
     for (const seriesOptions of options ?? []) {
         const path = `series[${index++}]`;
         const seriesInstance = getSeries(seriesOptions.type ?? 'unknown', moduleContext);
+        applySeriesOptionModules(seriesInstance, seriesOptions);
         applySeriesValues(seriesInstance, seriesOptions, { path, index });
         series.push(seriesInstance);
     }
 
     return series;
+}
+
+function applySeriesOptionModules(series: Series, options: AgBaseSeriesOptions<any>) {
+    const seriesOptionModules = REGISTERED_MODULES.filter((m): m is SeriesOptionModule => m.type === 'series-option');
+
+    for (const mod of seriesOptionModules) {
+        if (mod.optionsKey in options) {
+            series.getModuleMap().addModule(mod);
+        }
+    }
 }
 
 function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {

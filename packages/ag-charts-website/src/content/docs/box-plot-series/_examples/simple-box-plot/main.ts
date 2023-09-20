@@ -4,16 +4,17 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'IBM HR Analytics',
+        text: 'HR Analytics',
     },
     subtitle: {
-        text: 'Employee Salaries Distribution by Role',
+        text: 'Salary Distribution by Role',
     },
     data: getData(),
     series: [
         {
             type: 'box-plot',
             xKey: 'role',
+            yName: 'Salary Range',
             minKey: 'min',
             q1Key: 'q1',
             medianKey: 'median',

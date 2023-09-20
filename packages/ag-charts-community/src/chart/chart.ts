@@ -40,7 +40,7 @@ import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
-import type { LegendModule, Module, ModuleInstance, RootModule } from '../util/module';
+import type { Module } from '../util/module';
 import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
 import { DataService } from './dataService';
 import { UpdateService } from './updateService';
@@ -56,6 +56,8 @@ import { SeriesStateManager } from './series/seriesStateManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { Legend } from './legend';
+import type { LegendModule, RootModule } from '../util/coreModules';
+import type { ModuleInstance } from '../util/baseModule';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 

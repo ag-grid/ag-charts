@@ -14,14 +14,13 @@ import { Text } from '../../../scene/shape/text';
 import { Debug } from '../../../util/debug';
 import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
+import {Listeners} from "../../../util/listeners";
 import type { ModuleContext } from '../../../util/moduleContext';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isDiscrete } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
-import type { ErrorBarConfig } from '../../errorBar';
-import { ErrorBars } from '../../errorBar';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
@@ -110,15 +109,18 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
     duration?: number;
 }
 
+type DataEventType = 'data-model';
+type DataEvent = {
+    dataModel: DataModel<any, any, any>;
+    processedData: ProcessedData<any>;
+};
+
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
     N extends Node = Group
 > extends Series<C> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
-
-    errorBar?: ErrorBarConfig = undefined;
-    errorBarUpdater: ErrorBars = new ErrorBars(this.contentGroup);
 
     private _contextNodeData: C[] = [];
     get contextNodeData(): C[] {
@@ -144,6 +146,7 @@ export abstract class CartesianSeries<
 
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
+    private dataModelListeners = new Listeners<DataEventType, (event: DataEvent) => void>();
 
     protected constructor({
         pathsPerSeries = 1,
@@ -237,6 +240,18 @@ export abstract class CartesianSeries<
         this.subGroups.splice(0, this.subGroups.length);
     }
 
+    public addListener(type: DataEventType, listener: (event: DataEvent) => void) {
+        return this.dataModelListeners.addListener(type, listener);
+    }
+
+    public removeListener(listenerSymbol: Symbol) {
+        this.dataModelListeners.removeListener(listenerSymbol);
+    }
+
+    protected fireDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
+        this.dataModelListeners.dispatch('data-model', { dataModel: dataModel, processedData: processedData });
+    }
+
     /**
      * Note: we are passing `isContinuousX` and `isContinuousY` into this method because it will
      *       typically be called inside a loop and this check only needs to happen once.
@@ -272,7 +287,6 @@ export abstract class CartesianSeries<
 
         await this.updateSelections(visible);
         await this.updateNodes(highlightItems, seriesHighlighted, visible);
-        this.errorBarUpdater.update();
 
         const animationData = this.getAnimationData(seriesRect);
         if (resize) {
@@ -294,16 +308,6 @@ export abstract class CartesianSeries<
             this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
 
             this._contextNodeData = await this.createNodeData();
-            if (this.processedData !== undefined && this.errorBar !== undefined) {
-                this.errorBarUpdater.createNodeData(
-                    this.processedData,
-                    this.dataModel?.resolveProcessedDataIndexById(this, `xValue`).index,
-                    this.dataModel?.resolveProcessedDataIndexById(this, `yValue`).index,
-                    this.axes[ChartAxisDirection.X]?.scale,
-                    this.axes[ChartAxisDirection.Y]?.scale,
-                    this.errorBar
-                );
-            }
             await this.updateSeriesGroups();
         }
 

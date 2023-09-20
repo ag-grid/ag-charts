@@ -14,7 +14,7 @@ To create a Radar Area Series, use the `radar-area` series type.
 
 ```js
 series: [
-    { type: 'radar-area', angleKey: 'department', radiusKey: 'employeeRetention', radiusName: `Employee Retention` },
+    { type: 'radar-area', angleKey: 'department', radiusKey: 'quality', radiusName: `Quality` },
     { type: 'radar-area', , angleKey: 'department', radiusKey: 'efficiency', radiusName: `Efficiency` },
 ],
 ```
@@ -22,8 +22,8 @@ series: [
 In this configuration:
 
 -   `angleKey` is set to 'department', which is the shared category for the Angle Axis.
--   `radiusKey` specifies the numerical datasets, 'employeeRetention' and 'efficiency', for the Radius Axis.
--   `radiusName` labels each series, such as "Employee Retention" and "Efficiency".
+-   `radiusKey` specifies the numerical datasets, 'quality' and 'efficiency', for the Radius Axis.
+-   `radiusName` labels each series, such as "Quality" and "Efficiency".
 
 ## Customisation
 
@@ -33,8 +33,8 @@ In this configuration:
 
 For Polar Axes, there are two shape options:
 
--   `polygon`: connected with straight lines (default).
--   `circle`: composed of concentric circles.
+-   `polygon`: Connected with straight lines (default).
+-   `circle`: Composed of concentric circles.
 
 To switch to the `circle` shape, use the following `axes` configuration:
 

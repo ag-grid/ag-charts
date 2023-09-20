@@ -11,8 +11,8 @@ const options: AgChartOptions = {
         {
             type: 'radar-line',
             angleKey: 'department',
-            radiusKey: 'employeeRetention',
-            radiusName: 'Employee Retention',
+            radiusKey: 'quality',
+            radiusName: 'Quality',
         },
         {
             type: 'radar-line',

@@ -13,17 +13,17 @@ To create a Radial Column Series, use the `radial-column` series type.
 
 ```js
 series: [
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'turbines', radiusName: 'Turbines' },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'compressors', radiusName: 'Compressors' },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'smoke_detectors', radiusName: 'Smoke Detectors' },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software' },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware' },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services' },
 ],
 ```
 
 In this configuration:
 
 -   `angleKey` is set to 'quarter', which is the shared category for the Angle Axis.
--   `radiusKey` specifies the numerical datasets, 'turbines', 'compressors' and 'smoke_detectors', for the Radius Axis.
--   `radiusName` labels each series, such as 'Turbines', 'Compressors' and 'Smoke Detectors'.
+-   `radiusKey` specifies the numerical datasets, 'software', 'hardware' and 'services', for the Radius Axis.
+-   `radiusName` labels each series, such as 'Software', 'Hardware' and 'Services'.
 
 ## Stacked Radial Column
 
@@ -36,9 +36,9 @@ To stack columns in a Radial Column Series, enable the `stacked` series property
 
 ```js
 series: [
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'turbines', stacked: true },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'compressors', stacked: true },
-    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'smoke_detectors', stacked: true },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', stacked: true },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', stacked: true },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', stacked: true },
 ],
 ```
 

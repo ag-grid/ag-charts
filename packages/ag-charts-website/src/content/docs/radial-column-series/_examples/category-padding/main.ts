@@ -5,28 +5,31 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `Revenue by product category`,
+        text: 'Revenue by Product Category',
+    },
+    subtitle: {
+        text: 'Millions USD',
     },
     series: [
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'turbines',
-            radiusName: 'Turbines',
+            radiusKey: 'software',
+            radiusName: 'Software',
             grouped: true,
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'compressors',
-            radiusName: 'Compressors',
+            radiusKey: 'hardware',
+            radiusName: 'Hardware',
             grouped: true,
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'smoke_detectors',
-            radiusName: 'Smoke Detectors',
+            radiusKey: 'services',
+            radiusName: 'Services',
             grouped: true,
         },
     ],
