@@ -5,6 +5,14 @@ import { Node } from './node';
 
 class TestNode extends Node {}
 
+const expectSelectionToMatchData = (selection: Selection, data: Array<any>) => {
+    expect(selection.nodes()).toHaveLength(data.length);
+    selection.each((node, datum, index) => {
+        expect(node).toBeInstanceOf(TestNode);
+        expect(datum).toEqual(data[index]);
+    });
+};
+
 describe('selection', () => {
     it('should create an empty selection', () => {
         const selection = new Selection(new TestNode(), TestNode);
@@ -17,11 +25,7 @@ describe('selection', () => {
             const data = ['a', 'b', 'c'];
             selection.update(data);
 
-            expect(selection.nodes()).toHaveLength(data.length);
-            selection.each((node, datum, index) => {
-                expect(node).toBeInstanceOf(TestNode);
-                expect(datum).toBe(data[index]);
-            });
+            expectSelectionToMatchData(selection, data);
         });
 
         describe('with automatic garbage collection', () => {
@@ -32,11 +36,7 @@ describe('selection', () => {
                 selection.update(data);
                 selection.update(changedData);
 
-                expect(selection.nodes()).toHaveLength(changedData.length);
-                selection.each((node, datum, index) => {
-                    expect(node).toBeInstanceOf(TestNode);
-                    expect(datum).toBe(changedData[index]);
-                });
+                expectSelectionToMatchData(selection, changedData);
             });
 
             it('should remove and add data', () => {
@@ -47,11 +47,7 @@ describe('selection', () => {
                 selection.update(changedData);
                 selection.update(data);
 
-                expect(selection.nodes()).toHaveLength(data.length);
-                selection.each((node, datum, index) => {
-                    expect(node).toBeInstanceOf(TestNode);
-                    expect(datum).toBe(data[index]);
-                });
+                expectSelectionToMatchData(selection, data);
             });
         });
 
@@ -68,11 +64,7 @@ describe('selection', () => {
                 selection.update(data);
                 selection.update(changedData);
 
-                expect(selection.nodes()).toHaveLength(expectedData.length);
-                selection.each((node, datum, index) => {
-                    expect(node).toBeInstanceOf(TestNode);
-                    expect(datum).toBe(expectedData[index]);
-                });
+                expectSelectionToMatchData(selection, expectedData);
             });
 
             it('when garbage collected it should remove data', () => {
@@ -83,11 +75,7 @@ describe('selection', () => {
                 selection.update(changedData);
                 selection.cleanup();
 
-                expect(selection.nodes()).toHaveLength(changedData.length);
-                selection.each((node, datum, index) => {
-                    expect(node).toBeInstanceOf(TestNode);
-                    expect(datum).toBe(changedData[index]);
-                });
+                expectSelectionToMatchData(selection, changedData);
             });
         });
     });
@@ -102,11 +90,7 @@ describe('selection', () => {
             ];
             selection.update(data, undefined, (datum) => datum.key);
 
-            expect(selection.nodes()).toHaveLength(data.length);
-            selection.each((node, datum, index) => {
-                expect(node).toBeInstanceOf(TestNode);
-                expect(datum.value).toBe(data[index].value);
-            });
+            expectSelectionToMatchData(selection, data);
         });
 
         it('should update datums by id rather than index and maintain order', () => {
@@ -131,11 +115,7 @@ describe('selection', () => {
                 { key: 'c', value: 2 },
             ];
 
-            expect(selection.nodes()).toHaveLength(expectedData.length);
-            selection.each((node, datum, index) => {
-                expect(node).toBeInstanceOf(TestNode);
-                expect(datum.value).toBe(expectedData[index].value);
-            });
+            expectSelectionToMatchData(selection, expectedData);
         });
 
         it('should not remove data', () => {
@@ -153,11 +133,7 @@ describe('selection', () => {
             ];
             selection.update(changedData, undefined, (datum) => datum.key);
 
-            expect(selection.nodes()).toHaveLength(data.length);
-            selection.each((node, datum, index) => {
-                expect(node).toBeInstanceOf(TestNode);
-                expect(datum.value).toBe(data[index].value);
-            });
+            expectSelectionToMatchData(selection, data);
         });
 
         it('when garbage collected it should remove data', () => {
@@ -177,11 +153,7 @@ describe('selection', () => {
 
             selection.cleanup();
 
-            expect(selection.nodes()).toHaveLength(changedData.length);
-            selection.each((node, datum, index) => {
-                expect(node).toBeInstanceOf(TestNode);
-                expect(datum.value).toBe(changedData[index].value);
-            });
+            expectSelectionToMatchData(selection, changedData);
         });
     });
 });
