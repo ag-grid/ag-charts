@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../util/coreModules';
-import { BOLD, NORMAL } from '../../themes/constants';
+import { NORMAL } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
@@ -42,7 +42,7 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         sectorLabel: {
             enabled: true,
             fontStyle: undefined,
-            fontWeight: BOLD,
+            fontWeight: NORMAL,
             fontSize: 12,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,

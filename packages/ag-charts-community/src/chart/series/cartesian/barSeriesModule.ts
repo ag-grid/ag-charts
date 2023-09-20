@@ -5,6 +5,7 @@ import { DEFAULT_FONT_FAMILY, DEFAULT_SHADOW_COLOUR, EXTENDS_SERIES_DEFAULTS } f
 import { NumberAxis } from '../../axis/numberAxis';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { singleSeriesPaletteFactory } from '../../mapping/defaults';
+import { NORMAL } from '../../themes/constants';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
@@ -38,7 +39,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
         label: {
             enabled: false,
             fontStyle: undefined,
-            fontWeight: 'bold',
+            fontWeight: NORMAL,
             fontSize: 12,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: 'white',
