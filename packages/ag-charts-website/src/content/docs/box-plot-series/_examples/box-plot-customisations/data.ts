@@ -17,14 +17,6 @@ export function getData() {
             max: 5974,
         },
         {
-            role: 'Laboratory Technician',
-            min: 1102,
-            q1: 2380,
-            median: 2926,
-            q3: 3907,
-            max: 6074,
-        },
-        {
             role: 'Manufacturing Director',
             min: 4011,
             q1: 5121,
@@ -33,28 +25,12 @@ export function getData() {
             max: 13973,
         },
         {
-            role: 'Healthcare Representative',
-            min: 4000,
-            q1: 5562,
-            median: 6812,
-            q3: 9824,
-            max: 13966,
-        },
-        {
             role: 'Manager',
             min: 12504,
             q1: 16437,
             median: 17465,
             q3: 19187,
             max: 19999,
-        },
-        {
-            role: 'Sales Representative',
-            min: 1359,
-            q1: 2269,
-            median: 2610,
-            q3: 2909,
-            max: 3540,
         },
         {
             role: 'Research Director',
