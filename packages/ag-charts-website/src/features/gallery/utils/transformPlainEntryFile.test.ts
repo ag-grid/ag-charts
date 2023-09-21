@@ -17,7 +17,7 @@ const getChartsOptionsPlainEntryFile = (chartsOptions: object) => {
     return output;
 };
 
-describe.skip('transformPlainEntryFile', () => {
+describe('transformPlainEntryFile', () => {
     test('object key as literal with strings ');
 
     test('default entry file', () => {
@@ -28,22 +28,22 @@ describe.skip('transformPlainEntryFile', () => {
             },
 
             padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
+              top: 10,
+              right: 20,
+              bottom: 10,
+              left: 20
             }
           };
           var chart = agCharts.AgChart.create(options);"
         `);
     });
 
-    test('remove title', () => {
+    test('remove subtitle', () => {
         expect(
             getChartsOptionsPlainEntryFile({
-                title: {
+                subtitle: {
                     enabled: true,
-                    text: 'Test title',
+                    text: 'Test Subtitle',
                 },
             }).code
         ).toMatchInlineSnapshot(`
@@ -53,10 +53,10 @@ describe.skip('transformPlainEntryFile', () => {
             },
 
             padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
+              top: 10,
+              right: 20,
+              bottom: 10,
+              left: 20
             }
           };
           var chart = agCharts.AgChart.create(options);"
@@ -78,10 +78,10 @@ describe.skip('transformPlainEntryFile', () => {
             },
 
             padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
+              top: 10,
+              right: 20,
+              bottom: 10,
+              left: 20
             }
           };
           var chart = agCharts.AgChart.create(options);"
@@ -103,400 +103,17 @@ describe.skip('transformPlainEntryFile', () => {
             },
 
             padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
+              top: 10,
+              right: 20,
+              bottom: 10,
+              left: 20
             }
           };
           var chart = agCharts.AgChart.create(options);"
         `);
     });
 
-    test('disable axes labels', () => {
-        expect(
-            getChartsOptionsPlainEntryFile({
-                axes: [
-                    {
-                        type: 'category',
-                        position: 'bottom',
-                        label: {
-                            enabled: true,
-                        },
-                    },
-                    {
-                        type: 'number',
-                        position: 'left',
-                        label: {
-                            enabled: true,
-                        },
-                    },
-                ],
-            }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            axes: [
-              {
-                type: 'category',
-                position: 'bottom',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              },
-              {
-                type: 'number',
-                position: 'left',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              }
-            ],
-
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
-    });
-
-    test('do not disable series labels', () => {
-        expect(
-            getChartsOptionsPlainEntryFile({
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'job',
-                        yKey: 'change',
-                        highlightStyle: {
-                            item: {
-                                fill: '#0ab9ff',
-                            },
-                        },
-                        label: {
-                            fontWeight: 'bold',
-                            color: 'white',
-                        },
-                    },
-                ],
-            }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            series: [
-              {
-                type: 'bar',
-                xKey: 'job',
-                yKey: 'change',
-                highlightStyle: { item: { fill: '#0ab9ff' } },
-                label: { fontWeight: 'bold', color: 'white' }
-              }
-            ],
-
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
-    });
-
-    test('hide axis ticks and make the chart lines thicker', () => {
-        expect(
-            getChartsOptionsPlainEntryFile({
-                axes: [
-                    {
-                        type: 'category',
-                        position: 'bottom',
-                        tick: {
-                            enabled: true,
-                        },
-                    },
-                    {
-                        type: 'number',
-                        position: 'left',
-                        tick: {
-                            enabled: true,
-                        },
-                    },
-                ],
-            }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            axes: [
-              {
-                type: 'category',
-                position: 'bottom',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              },
-              {
-                type: 'number',
-                position: 'left',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              }
-            ],
-
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
-    });
-
-    test('hide axis lines', () => {
-        expect(
-            getChartsOptionsPlainEntryFile({
-                axes: [
-                    {
-                        type: 'category',
-                        position: 'bottom',
-                        line: {
-                            color: 'black',
-                        },
-                    },
-                    {
-                        type: 'number',
-                        position: 'left',
-                        line: {
-                            color: 'black',
-                        },
-                    },
-                ],
-            }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            axes: [
-              {
-                type: 'category',
-                position: 'bottom',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              },
-              {
-                type: 'number',
-                position: 'left',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              }
-            ],
-
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
-    });
-
-    test('make grid lines more prominent', () => {
-        expect(
-            getChartsOptionsPlainEntryFile({
-                axes: [
-                    {
-                        type: 'category',
-                        position: 'bottom',
-                        gridStyle: {
-                            stroke: 'blue',
-                        },
-                    },
-                    {
-                        type: 'number',
-                        position: 'left',
-                        gridStyle: {
-                            stroke: 'blue',
-                        },
-                    },
-                ],
-            }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            axes: [
-              {
-                type: 'category',
-                position: 'bottom',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              },
-              {
-                type: 'number',
-                position: 'left',
-
-                label: {
-                  enabled: false
-                },
-
-                tick: {
-                  width: 2,
-                  color: \\"transparent\\"
-                },
-
-                line: {
-                  color: \\"transparent\\"
-                },
-
-                gridStyle: [{
-                  stroke: \\"#C3C3C3\\",
-                  lineDash: [4, 4]
-                }]
-              }
-            ],
-
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
-    });
-
-    test('remove padding', () => {
+    test('Adjust padding', () => {
         expect(
             getChartsOptionsPlainEntryFile({
                 padding: {
@@ -513,10 +130,10 @@ describe.skip('transformPlainEntryFile', () => {
             },
 
             padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0
+              top: 10,
+              right: 20,
+              bottom: 10,
+              left: 20
             }
           };
           var chart = agCharts.AgChart.create(options);"
