@@ -223,8 +223,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this._titleCaption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this._titleCaption.node);
 
-        const axisHoverHandle = moduleCtx.interactionManager.addListener('hover', (e) => this.checkAxisHover(e));
-        this.destroyFns.push(() => moduleCtx.interactionManager.removeListener(axisHoverHandle));
+        this.destroyFns.push(moduleCtx.interactionManager.addListener('hover', (e) => this.checkAxisHover(e)));
 
         this.animationManager = moduleCtx.animationManager;
         this.animationState = new AxisStateMachine('empty', {

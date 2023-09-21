@@ -110,12 +110,11 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
             axes[axisId] = axis.getZoom();
         }
 
-        const event: ZoomChangeEvent = {
+        this.listeners.dispatch('zoom-change', {
             type: 'zoom-change',
             ...(currentZoom ?? {}),
             axes,
-        };
-        this.listeners.dispatch('zoom-change', event);
+        });
     }
 }
 

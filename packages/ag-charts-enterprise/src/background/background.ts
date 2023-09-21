@@ -41,10 +41,10 @@ export class Background extends _ModuleSupport.BaseModuleInstance implements _Mo
         this.visible = true;
 
         ctx.scene.root?.appendChild(this.node);
-        this.destroyFns.push(() => ctx.scene.root?.removeChild(this.node));
-
-        const layoutHandle = ctx.layoutService.addListener('layout-complete', this.onLayoutComplete);
-        this.destroyFns.push(() => ctx.layoutService.removeListener(layoutHandle));
+        this.destroyFns.push(
+            () => ctx.scene.root?.removeChild(this.node),
+            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete)
+        );
     }
 
     private onLayoutComplete = (event: _ModuleSupport.LayoutCompleteEvent) => {

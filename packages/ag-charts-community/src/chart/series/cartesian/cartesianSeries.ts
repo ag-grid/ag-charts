@@ -244,10 +244,6 @@ export abstract class CartesianSeries<
         return this.dataModelListeners.addListener(type, listener);
     }
 
-    public removeListener(listenerSymbol: Symbol) {
-        this.dataModelListeners.removeListener(listenerSymbol);
-    }
-
     protected fireDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
         this.dataModelListeners.dispatch('data-model', { dataModel: dataModel, processedData: processedData });
     }

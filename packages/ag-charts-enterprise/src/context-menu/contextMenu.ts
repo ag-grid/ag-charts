@@ -59,10 +59,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.tooltipManager = ctx.tooltipManager;
         this.scene = ctx.scene;
 
-        const contextMenuHandle = ctx.interactionManager.addListener('contextmenu', (event) =>
-            this.onContextMenu(event)
-        );
-        this.destroyFns.push(() => ctx.interactionManager.removeListener(contextMenuHandle));
+        this.destroyFns.push(ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event)));
 
         // State
         this.groups = { default: [], node: [], extra: [] };

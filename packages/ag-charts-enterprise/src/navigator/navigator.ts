@@ -92,20 +92,18 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.rs.onRangeChange = () =>
             ctx.zoomManager.updateZoom('navigator', { x: { min: this.rs.min, max: this.rs.max } });
 
-        [
+        ctx.scene.root?.appendChild(this.rs);
+
+        this.destroyFns.push(
             ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event)),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event)),
             ctx.interactionManager.addListener('hover', (event) => this.onDrag(event)),
             ctx.interactionManager.addListener('drag-end', () => this.onDragStop()),
-        ].forEach((s) => this.destroyFns.push(() => ctx.interactionManager.removeListener(s)));
-        [
             ctx.layoutService.addListener('before-series', (event) => this.layout(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
-        ].forEach((s) => this.destroyFns.push(() => ctx.layoutService.removeListener(s)));
-
-        ctx.scene.root?.appendChild(this.rs);
-        this.destroyFns.push(() => ctx.scene.root?.removeChild(this.rs));
-        this.destroyFns.push(() => this.ctx.zoomManager.updateZoom('navigator'));
+            () => ctx.scene.root?.removeChild(this.rs),
+            () => this.ctx.zoomManager.updateZoom('navigator')
+        );
 
         this.updateGroupVisibility();
     }
