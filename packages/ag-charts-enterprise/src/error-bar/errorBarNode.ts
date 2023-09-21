@@ -2,10 +2,10 @@ import type { _Scale } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
 
 export type ErrorBarNodeProperties = {
-    visible: boolean;
+    visible?: boolean;
     stroke?: string;
-    strokeWidth: number;
-    strokeOpacity: number;
+    strokeWidth?: number;
+    strokeOpacity?: number;
 };
 
 export interface ErrorBarPoints {

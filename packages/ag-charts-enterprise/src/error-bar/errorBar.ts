@@ -4,7 +4,7 @@ import type { ErrorBarPoints, ErrorBarNodeProperties } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
-const { ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
+const { mergeDefaults, ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
 
 type CartesianSeries<
     C extends _ModuleSupport.SeriesNodeDataContext<any, any>,
@@ -135,24 +135,13 @@ export class ErrorBars
         this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
     }
 
-    private inheritProperties(
-        src: OptionalErrorBarNodeProperties,
-        parent: ErrorBarNodeProperties
-    ): ErrorBarNodeProperties {
-        return {
-            visible: src.visible ?? parent.visible,
-            stroke: src.stroke ?? parent.stroke,
-            strokeWidth: src.strokeWidth ?? parent.strokeWidth,
-            strokeOpacity: src.strokeOpacity ?? parent.strokeOpacity,
-        };
-    }
-
     private updateNode(node: ErrorBarNode, _datum: any, index: number) {
         const { nodeData } = this;
         const points = nodeData[index];
         if (points) {
-            const whiskerProps = this.inheritProperties(this, ERROR_BARS_THEME.errorBar);
-            const capProps = this.inheritProperties(this.cap, whiskerProps);
+            const defaults: ErrorBarNodeProperties = ERROR_BARS_THEME.errorBar;
+            const whiskerProps = mergeDefaults(this, defaults);
+            const capProps = mergeDefaults(this.cap, whiskerProps);
             node.update(points, whiskerProps, capProps);
         }
     }
