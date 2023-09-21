@@ -312,7 +312,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
     }
 
     getLabelData(): PointLabelDatum[] {
-        return this.contextNodeData?.reduce((r, n) => r.concat(n.labelData), [] as PointLabelDatum[]);
+        return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
     }
 
     protected markerFactory() {

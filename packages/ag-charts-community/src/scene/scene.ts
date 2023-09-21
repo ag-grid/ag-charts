@@ -519,7 +519,7 @@ export class Scene {
                 : {}),
             ...node.children
                 .map((c) => this.buildTree(c))
-                .reduce((result, childTree) => {
+                .reduce<Record<string, {}>>((result, childTree) => {
                     let { name: treeNodeName } = childTree;
                     const {
                         node: { visible, opacity, zIndex, zIndexSubOrder },
@@ -551,7 +551,7 @@ export class Scene {
                     }
                     result[selectedKey] = childTree;
                     return result;
-                }, {} as Record<string, {}>),
+                }, {}),
         };
     }
 
@@ -581,10 +581,10 @@ export class Scene {
                 ...childrenDirtyTree
                     .map((c) => c.dirtyTree)
                     .filter((t) => t.dirty !== undefined)
-                    .reduce((result, childTree) => {
+                    .reduce<Record<string, {}>>((result, childTree) => {
                         result[childTree.name ?? '<unknown>'] = childTree;
                         return result;
-                    }, {} as Record<string, {}>),
+                    }, {}),
             },
             paths,
         };

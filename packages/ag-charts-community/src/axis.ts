@@ -1301,7 +1301,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected getTitleFormatterParams() {
-        const boundSeries = this.boundSeries.reduce((acc, next) => {
+        const boundSeries = this.boundSeries.reduce<AgAxisCaptionFormatterParams['boundSeries']>((acc, next) => {
             const keys = next.getKeys(this.direction);
             const names = next.getNames(this.direction);
             for (let idx = 0; idx < keys.length; idx++) {
@@ -1311,7 +1311,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 });
             }
             return acc;
-        }, [] as AgAxisCaptionFormatterParams['boundSeries']);
+        }, []);
         return {
             direction: this.direction,
             boundSeries,

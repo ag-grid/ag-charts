@@ -260,7 +260,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLabelData(): _Util.PointLabelDatum[] {
-        return this.contextNodeData?.reduce((r, n) => r.concat(n.labelData), [] as _Util.PointLabelDatum[]);
+        return this.contextNodeData?.reduce<_Util.PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
     }
 
     protected nodeFactory() {

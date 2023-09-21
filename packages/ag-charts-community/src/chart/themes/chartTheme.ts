@@ -53,10 +53,9 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
         return { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] };
     },
 };
-const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce(
-    (r, { commonOptions }) => [...r, ...commonOptions],
-    [] as (keyof AgCommonThemeableChartOptions)[]
-);
+const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
+    (keyof AgCommonThemeableChartOptions)[]
+>((r, { commonOptions }) => [...r, ...commonOptions], []);
 
 export class ChartTheme {
     readonly palette: AgChartThemePalette;
