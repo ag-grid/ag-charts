@@ -1,48 +1,46 @@
 import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
-import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgChart } from '../../agChartV2';
-import type { Chart } from '../../chart';
-import * as examples from '../../test/examples';
-import type { TestCase } from '../../test/utils';
+
 import {
     waitForChartStability,
-    cartesianChartAssertions,
-    IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
     extractImageData,
-    prepareTestOptions,
+    IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
+    GALLERY_EXAMPLES,
+    hoverAction,
+    HISTOGRAM_SERIES_LABELS,
+    HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
+    cartesianChartAssertions,
+    TestCase,
     spyOnAnimationManager,
-} from '../../test/utils';
+} from 'ag-charts-community-test';
+import type { _ModuleSupport, AgChartOptions } from 'ag-charts-community';
+
+import { prepareEnterpriseTestOptions } from '../test/utils';
+import { AgEnterpriseCharts } from '../main';
 
 expect.extend({ toMatchImageSnapshot });
 
 const EXAMPLES: Record<string, TestCase> = {
-    SIMPLE_HISTOGRAM: {
-        options: examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
-    },
-    HISTOGRAM_WITH_SPECIFIED_BINS: {
-        options: examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
-    },
-    XY_HISTOGRAM_WITH_MEAN: {
-        options: examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: ['histogram', 'scatter'],
-        }),
-    },
+    SIMPLE_HISTOGRAM: GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
+    HISTOGRAM_WITH_SPECIFIED_BINS: GALLERY_EXAMPLES.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
+    XY_HISTOGRAM_WITH_MEAN: GALLERY_EXAMPLES.XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
 };
 
 describe('HistogramSeries', () => {
-    let chart: Chart;
+    let chart: any;
+
+    beforeEach(() => {
+        console.warn = jest.fn();
+    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
+        expect(console.warn).not.toBeCalled();
     });
 
     const ctx = setupMockCanvas();
@@ -55,35 +53,99 @@ describe('HistogramSeries', () => {
     };
 
     describe('#create', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
+                prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgEnterpriseCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
+                prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgEnterpriseCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
                     await example.extraScreenshotActions(chart);
                     await compare();
                 }
+            });
+        }
+    });
+
+    describe('series highlighting', () => {
+        it('should highlight scatter datum when overlapping histogram', async () => {
+            const options = {
+                ...HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
+                series: HISTOGRAM_SCATTER_COMBO_SERIES_LABELS.series?.map((s) => {
+                    if (s.type === 'scatter') {
+                        // Tweak marker size so it's large enough to trigger test failures if the
+                        // fake mouse hover doesn't work below.
+                        return { ...s, marker: { size: 20 } };
+                    }
+
+                    return s;
+                }),
+                container: document.body,
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgEnterpriseCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series.find((v: any) => v.type === 'scatter');
+            if (series == null) fail('No series found');
+
+            const nodeDataArray: _ModuleSupport.SeriesNodeDataContext<any, any>[] = series['contextNodeData'];
+            const context = nodeDataArray[0];
+            const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
+
+            const { x, y } = series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
+
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+    });
+
+    describe('Series Labels', () => {
+        const examples = {
+            HISTOGRAM_SERIES_LABELS: {
+                options: HISTOGRAM_SERIES_LABELS,
+                assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
+            },
+            HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: {
+                options: HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
+                assertions: cartesianChartAssertions({
+                    axisTypes: ['number', 'number', 'number'],
+                    seriesTypes: ['histogram', 'scatter'],
+                }),
+            },
+        };
+
+        for (const [exampleName, example] of Object.entries(examples)) {
+            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+                const options: AgChartOptions = { ...example.options };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgEnterpriseCharts.create(options);
+                await waitForChartStability(chart);
+                await example.assertions(chart);
+            });
+
+            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+                const options: AgChartOptions = { ...example.options };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgEnterpriseCharts.create(options);
+                await compare();
             });
         }
     });
@@ -97,10 +159,10 @@ describe('HistogramSeries', () => {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
                 spyOnAnimationManager(1200, ratio);
 
-                const options: AgChartOptions = { ...examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE };
-                prepareTestOptions(options);
+                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
+                prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgEnterpriseCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -116,13 +178,13 @@ describe('HistogramSeries', () => {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
                 spyOnAnimationManager(1200, 1);
 
-                const options: AgChartOptions = { ...examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE };
-                prepareTestOptions(options);
+                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
+                prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgEnterpriseCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgEnterpriseCharts.updateDelta(chart, {
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -146,13 +208,13 @@ describe('HistogramSeries', () => {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
                 spyOnAnimationManager(1200, 1);
 
-                const options: AgChartOptions = { ...examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE };
-                prepareTestOptions(options);
+                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
+                prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgEnterpriseCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgEnterpriseCharts.updateDelta(chart, {
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -161,7 +223,7 @@ describe('HistogramSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                AgChart.update(chart, options);
+                AgEnterpriseCharts.update(chart, options);
                 spyOnAnimationManager(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -179,13 +241,13 @@ describe('HistogramSeries', () => {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
                 spyOnAnimationManager(1200, 1);
 
-                const options: AgChartOptions = { ...examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE };
-                prepareTestOptions(options);
+                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
+                prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgEnterpriseCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgEnterpriseCharts.updateDelta(chart, {
                     data: [
                         ...options.data!.map((d: any, index: number) => ({
                             ...d,

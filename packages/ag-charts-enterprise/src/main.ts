@@ -59,4 +59,8 @@ export class AgEnterpriseCharts {
     public static update(chart: AgChartInstance, options: AgChartOptions) {
         return AgChart.update(chart, options as any);
     }
+
+    public static updateDelta(chart: AgChartInstance, deltaOptions: Parameters<(typeof AgChart)['updateDelta']>[1]) {
+        return AgChart.updateDelta(chart, deltaOptions);
+    }
 }
