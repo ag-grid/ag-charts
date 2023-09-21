@@ -19,7 +19,12 @@ const options: AgChartOptions = {
 
 var chart = AgChart.create(options)
 
-function applyTheme(theme: AgChartTheme) {
-  options.theme = theme
+function applyTheme(theme: string | AgChartTheme) {
+  options.theme = theme;
+  
   AgChart.update(chart, options)
 }
+
+document.getElementById('theme-select')?.addEventListener('input', (event) => {
+  applyTheme(event.target.value);
+})
