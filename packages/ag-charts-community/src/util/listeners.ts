@@ -45,7 +45,21 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
         }
     }
 
-    public getListenersByType(eventType: EventType): Listener<EventHandler>[] {
+    public wrapDispatch(
+        eventType: EventType,
+        wrapFn: (handler: EventHandler, ...params: Parameters<EventHandler>) => void,
+        ...params: Parameters<EventHandler>
+    ) {
+        for (const listener of this.getListenersByType(eventType)) {
+            try {
+                wrapFn(listener.handler, ...params);
+            } catch (e) {
+                Logger.errorOnce(e);
+            }
+        }
+    }
+
+    protected getListenersByType(eventType: EventType): Listener<EventHandler>[] {
         return this.registeredListeners.get(eventType) ?? [];
     }
 }
