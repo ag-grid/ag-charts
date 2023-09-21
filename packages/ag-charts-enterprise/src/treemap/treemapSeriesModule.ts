@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 import { TreemapSeries } from './treemapSeries';
 
 const {

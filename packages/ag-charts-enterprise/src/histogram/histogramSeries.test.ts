@@ -12,7 +12,7 @@ import {
     HISTOGRAM_SERIES_LABELS,
     HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
     cartesianChartAssertions,
-    TestCase,
+    type TestCase,
     spyOnAnimationManager,
 } from 'ag-charts-community-test';
 import type { _ModuleSupport, AgChartOptions } from 'ag-charts-community';

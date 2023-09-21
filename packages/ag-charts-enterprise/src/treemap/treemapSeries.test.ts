@@ -30,7 +30,7 @@ describe('HierarchyChart', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async (chart: any) => {
+    const compare = async () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
@@ -59,7 +59,7 @@ describe('HierarchyChart', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgEnterpriseCharts.create(options));
-            await compare(chart);
+            await compare();
         });
 
         const childAtDepth = [0, 0, 0, 0];
@@ -80,7 +80,7 @@ describe('HierarchyChart', () => {
 
             const highlightManager = (chart as any).highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
-            await compare(chart);
+            await compare();
         });
     });
 
@@ -103,13 +103,6 @@ describe('HierarchyChart', () => {
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const compare = async () => {
-                    await waitForChartStability(chart);
-
-                    const imageData = extractImageData(ctx);
-                    (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-                };
-
                 const options: AgChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
