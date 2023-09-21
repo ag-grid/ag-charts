@@ -152,8 +152,8 @@ export class ErrorBars
         const points = nodeData[index];
         if (points) {
             const whiskerProps = this.inheritProperties(this, ERROR_BARS_THEME.errorBar);
-            node.updateData(points, whiskerProps);
-            node.updatePath();
+            const capProps = this.inheritProperties(this.cap, whiskerProps);
+            node.update(points, whiskerProps, capProps);
         }
     }
 
