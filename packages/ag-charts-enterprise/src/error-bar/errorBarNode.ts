@@ -22,14 +22,10 @@ export class ErrorBarNode extends _Scene.Path {
 
     updateData(
         points: ErrorBarPoints,
-        capOpts: ErrorBarCapExclusiveOptions,
-        capTheme: ErrorBarNodeProperties,
         whiskerTheme: ErrorBarNodeProperties
+        capTheme?: ErrorBarNodeProperties,
+        capOpts?: ErrorBarCapExclusiveOptions,
     ) {
-        // Mute unused variables (cap not yet implemented)
-        capOpts as any;
-        capTheme as any;
-
         this.points = points;
         Object.assign(this, whiskerTheme);
     }

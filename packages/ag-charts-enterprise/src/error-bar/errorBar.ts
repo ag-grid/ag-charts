@@ -159,7 +159,7 @@ export class ErrorBars
         if (points) {
             const whiskerProps = inheritProperties(this, ERRORBAR_DEFAULTS);
             const capProps = inheritProperties(cap, whiskerProps);
-            node.updateData(points, cap, capProps, whiskerProps);
+            node.updateData(points, whiskerProps, capProps, cap);
             node.updatePath();
         }
     }
