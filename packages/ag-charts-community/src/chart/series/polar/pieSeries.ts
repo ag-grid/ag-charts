@@ -51,7 +51,7 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import { StateMachine } from '../../../motion/states';
 import * as easing from '../../../motion/easing';
 import { createDatumId, normalisePropertyTo } from '../../data/processors';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { Has } from '../../../util/types';
 import type { DataController } from '../../data/dataController';
 import type { DataModel } from '../../data/dataModel';

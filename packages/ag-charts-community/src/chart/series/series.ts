@@ -31,16 +31,16 @@ import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
-import type { ModuleContext, SeriesContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
 import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
-import type { ModuleContextInitialiser } from '../../util/moduleMap';
-import { ModuleMap } from '../../util/moduleMap';
-import type { SeriesOptionModule } from '../../util/optionModules';
+import type { ModuleContextInitialiser } from '../../module/moduleMap';
+import { ModuleMap } from '../../module/moduleMap';
+import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
+import type { SeriesOptionModule } from '../../module/optionModules';
 
 /**
  * Processed series datum used in node selections,

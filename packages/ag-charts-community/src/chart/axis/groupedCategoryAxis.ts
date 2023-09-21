@@ -11,7 +11,7 @@ import { extent } from '../../util/array';
 import type { Point } from '../../scene/point';
 import { BOOLEAN, OPT_COLOR_STRING, Validate } from '../../util/validation';
 import { calculateLabelRotation } from '../label';
-import type { ModuleContext } from '../../util/moduleContext';
+import type { ModuleContext } from '../../module/moduleContext';
 import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';

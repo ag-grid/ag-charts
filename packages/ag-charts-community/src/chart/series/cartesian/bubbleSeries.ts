@@ -30,7 +30,7 @@ import type {
     AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
 } from '../../../options/agChartOptions';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
 import { getMarkerConfig, updateMarker } from './markerUtil';
