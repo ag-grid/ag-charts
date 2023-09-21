@@ -233,7 +233,7 @@ export class ChartTheme {
             },
             legend: {
                 position: BOTTOM,
-                spacing: 20,
+                spacing: 30,
                 listeners: {},
                 item: {
                     paddingX: 16,
@@ -298,6 +298,8 @@ export class ChartTheme {
         category: {
             ...ChartTheme.getAxisDefaults(),
             groupPaddingInner: 0.1,
+            paddingInner: 0.2,
+            paddingOuter: 0.1,
             label: {
                 ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
