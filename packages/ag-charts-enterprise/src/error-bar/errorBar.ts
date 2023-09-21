@@ -1,15 +1,45 @@
 import type { _Scale } from 'ag-charts-community';
 import { _Scene, _Util, _ModuleSupport } from 'ag-charts-community';
-import { ErrorBarPoints, ErrorBarNode } from './errorBarNode';
+import type { ErrorBarPoints, ErrorBarNodeProperties } from './errorBarNode';
+import { ErrorBarNode } from './errorBarNode';
 
-const { ChartAxisDirection, Validate, OPT_STRING } = _ModuleSupport;
+const { ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
 
 type CartesianSeries<
     C extends _ModuleSupport.SeriesNodeDataContext<any, any>,
     N extends _Scene.Node
 > = _ModuleSupport.CartesianSeries<C, N>;
 
-export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+const ERRORBAR_DEFAULTS = {
+    visible: true,
+    stroke: 'black',
+    strokeWidth: 1,
+    strokeOpacity: 1,
+};
+
+type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
+
+class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
+    @Validate(BOOLEAN)
+    visible?: boolean = undefined;
+
+    @Validate(OPT_STRING)
+    stroke?: string = undefined;
+
+    @Validate(NUMBER(1))
+    strokeWidth?: number = undefined;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity?: number = undefined;
+
+    @Validate(NUMBER(0, 1))
+    lengthRatio: number = 1;
+}
+
+export class ErrorBars
+    extends _ModuleSupport.BaseModuleInstance
+    implements _ModuleSupport.ModuleInstance, OptionalErrorBarNodeProperties
+{
     @Validate(OPT_STRING)
     yLowerKey: string = '';
 
@@ -21,6 +51,20 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     @Validate(OPT_STRING)
     yUpperName?: string = undefined;
+
+    @Validate(BOOLEAN)
+    visible?: boolean = true;
+
+    @Validate(OPT_STRING)
+    stroke? = 'black';
+
+    @Validate(NUMBER(1))
+    strokeWidth?: number = 1;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity?: number = 1;
+
+    cap: ErrorBarCapConfig = new ErrorBarCapConfig();
 
     private readonly cartesianSeries: _ModuleSupport.CartesianSeries<any, any>;
     private readonly groupNode: _Scene.Group;
@@ -97,11 +141,29 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
     }
 
+    private inheritProperties(
+        src: OptionalErrorBarNodeProperties,
+        parent: ErrorBarNodeProperties
+    ): ErrorBarNodeProperties {
+        const fallback = (src: any, fallback: any) => {
+            return src !== undefined ? src : fallback;
+        };
+
+        return {
+            visible: fallback(src.visible, parent.visible),
+            stroke: fallback(src.stroke, parent.stroke),
+            strokeWidth: fallback(src.strokeWidth, parent.strokeWidth),
+            strokeOpacity: fallback(src.strokeOpacity, parent.strokeOpacity),
+        };
+    }
+
     private updateNode(node: ErrorBarNode, _datum: any, index: number) {
-        const { nodeData } = this;
+        const { cap, nodeData, inheritProperties } = this;
         const points = nodeData[index];
         if (points) {
-            node.points = points;
+            const whiskerProps = inheritProperties(this, ERRORBAR_DEFAULTS);
+            const capProps = inheritProperties(cap, whiskerProps);
+            node.updateData(points, cap, capProps, whiskerProps);
             node.updatePath();
         }
     }
