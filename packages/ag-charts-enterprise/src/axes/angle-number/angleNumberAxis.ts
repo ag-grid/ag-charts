@@ -1,14 +1,14 @@
 import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { AngleCrossLine } from './angleCrossLine';
+import { PolarLinearScale } from '../polarLinearScale';
 
 const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate, predicateWithMessage } =
     _ModuleSupport;
-const { BandScale } = _Scale;
 const { Path, Text } = _Scene;
 const { isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
-interface AngleCategoryAxisLabelDatum {
+interface AngleNumberAxisLabelDatum {
     text: string;
     x: number;
     y: number;
@@ -19,8 +19,8 @@ interface AngleCategoryAxisLabelDatum {
     box: _Scene.BBox | undefined;
 }
 
-interface AngleCategoryAxisTickDatum {
-    value: string;
+interface AngleNumberAxisTickDatum {
+    value: number;
     visible: boolean;
 }
 
@@ -52,9 +52,11 @@ class AngleCategoryAxisLabel extends _ModuleSupport.AxisLabel {
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
-export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale<any>> {
-    static className = 'AngleCategoryAxis';
-    static type = 'angle-category' as const;
+export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale> {
+    static className = 'AngleNumberAxis';
+    static type = 'angle-number' as const;
+
+    shape = 'circle' as const;
 
     @ProxyOnWrite('rotation')
     @Validate(NUMBER())
@@ -66,12 +68,12 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
     @Validate(NUMBER(0, 1))
     paddingInner: number = 0;
 
-    protected labelData: AngleCategoryAxisLabelDatum[] = [];
-    protected tickData: AngleCategoryAxisTickDatum[] = [];
+    protected labelData: AngleNumberAxisLabelDatum[] = [];
+    protected tickData: AngleNumberAxisTickDatum[] = [];
     protected radiusLine: _Scene.Path = this.axisGroup.appendChild(new Path());
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx, new BandScale());
+        super(moduleCtx, new PolarLinearScale());
         this.includeInvisibleDomains = true;
     }
 
@@ -115,29 +117,13 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
     }
 
     protected updateRadiusLine() {
-        const { scale, shape } = this;
         const node = this.radiusLine;
         const radius = this.gridLength;
 
         const { path } = node;
         path.clear({ trackChanges: true });
-        if (shape === 'circle') {
-            path.moveTo(radius, 0);
-            path.arc(0, 0, radius, 0, 2 * Math.PI);
-        } else if (shape === 'polygon') {
-            const angles = (scale.ticks?.() || []).map((value) => scale.convert(value));
-            if (angles.length > 2) {
-                angles.forEach((angle, i) => {
-                    const x = radius * Math.cos(angle);
-                    const y = radius * Math.sin(angle);
-                    if (i === 0) {
-                        path.moveTo(x, y);
-                    } else {
-                        path.lineTo(x, y);
-                    }
-                });
-            }
-        }
+        path.moveTo(radius, 0);
+        path.arc(0, 0, radius, 0, 2 * Math.PI);
         path.closePath();
 
         node.stroke = this.line.color;
@@ -261,7 +247,7 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
     protected createLabelNodeData(
         options: { hideWhenNecessary: boolean },
         seriesRect: _Scene.BBox
-    ): AngleCategoryAxisLabelDatum[] {
+    ): AngleNumberAxisLabelDatum[] {
         const { label, gridLength: radius, scale, tick } = this;
         if (!label.enabled) {
             return [];
@@ -274,7 +260,7 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
         const seriesLeft = seriesRect.x - this.translation.x;
         const seriesRight = seriesRect.x + seriesRect.width - this.translation.x;
 
-        const labelData: AngleCategoryAxisLabelDatum[] = ticks.map((value, index) => {
+        const labelData: AngleNumberAxisLabelDatum[] = ticks.map((value, index) => {
             const distance = radius + label.padding + tick.size;
             const angle = scale.convert(value);
             const cos = Math.cos(angle);
@@ -339,7 +325,7 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
         return labelData;
     }
 
-    private avoidLabelCollisions(labelData: AngleCategoryAxisLabelDatum[]) {
+    private avoidLabelCollisions(labelData: AngleNumberAxisLabelDatum[]) {
         let { minSpacing } = this.label;
         if (!Number.isFinite(minSpacing)) {
             minSpacing = 0;
@@ -349,7 +335,7 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
             return;
         }
 
-        const labelsCollide = (prev: AngleCategoryAxisLabelDatum, next: AngleCategoryAxisLabelDatum) => {
+        const labelsCollide = (prev: AngleNumberAxisLabelDatum, next: AngleNumberAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {
                 return false;
             }
@@ -358,7 +344,7 @@ export class AngleCategoryAxis extends _ModuleSupport.PolarAxis<_Scale.BandScale
             return prevBox.collidesBBox(nextBox);
         };
 
-        const visibleLabels = new Set<AngleCategoryAxisLabelDatum>(labelData.slice(0, 1));
+        const visibleLabels = new Set<AngleNumberAxisLabelDatum>(labelData.slice(0, 1));
         const maxStep = Math.floor(labelData.length / 2);
         for (let step = 1; step <= maxStep; step++) {
             const collisionDetected = loopSymmetrically(labelData, step, labelsCollide);

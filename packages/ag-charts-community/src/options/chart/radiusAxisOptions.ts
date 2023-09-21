@@ -1,4 +1,4 @@
-import type { AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
+import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
 import type { AgAxisCaptionOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
 import type { Ratio } from './types';
@@ -23,6 +23,32 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     crossLines?: AgRadiusCrossLineOptions[];
     /** The ratio of the inner radius of the axis. */
     innerRadiusRatio?: Ratio;
+}
+
+export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions {
+    type: 'radius-category';
+    /** The rotation angle of axis line and labels in degrees. */
+    positionAngle?: number;
+    /** Configuration for the axis ticks. */
+    tick?: AgAxisCategoryTickOptions;
+    /** Configuration for the title shown next to the axis. */
+    title?: AgAxisCaptionOptions;
+    /** Add cross lines or regions corresponding to data values. */
+    crossLines?: AgRadiusCrossLineOptions[];
+    /** The ratio of the inner radius of the axis. */
+    innerRadiusRatio?: Ratio;
+    /**
+     * This property is for grouped polar series plotted on a angle category axis.
+     * It is a proportion between 0 and 1 which determines the size of the gap between the items within a single group along the angle axis.
+     * Default: `0.2`
+     */
+    groupPaddingInner?: number;
+    /**
+     * This property is for grouped polar series plotted on a angle category axis.
+     * It is a proportion between 0 and 1 which determines the size of the gap between the groups of items along the angle axis.
+     * Default: `0.2`
+     */
+    paddingInner?: number;
 }
 
 export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}
