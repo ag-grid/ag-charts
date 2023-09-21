@@ -34,7 +34,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     // If garbage collection is set to false, you must call `selection.cleanup()` to remove deleted nodes
     private _garbage: (string | number)[] = [];
     private _garbageCollection: boolean = true;
-    private _garbageSimpleLength: number = 0;
+    private _garbageSimpleLength?: number;
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
         this._nodes.forEach((node, i) => iterate(node, node.datum, i));
@@ -53,6 +53,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
         const datumIds = new Map<string | number, number>();
 
+        this._garbageSimpleLength = undefined;
         if (getDatumId) {
             // Check if new datum and append node and save map of datum id to node index
             data.forEach((datum, index) => {
@@ -115,12 +116,11 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     }
 
     cleanup() {
-        if (this._garbageSimpleLength > 0) {
+        if (this._garbageSimpleLength != null) {
             // Destroy any nodes that are in excess of the new data
             this._nodes.splice(this._garbageSimpleLength).forEach((node) => {
                 this._parent.removeChild(node);
             });
-            this._garbageSimpleLength = 0;
             return this;
         }
 
