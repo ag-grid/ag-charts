@@ -145,15 +145,11 @@ export class ErrorBars
         src: OptionalErrorBarNodeProperties,
         parent: ErrorBarNodeProperties
     ): ErrorBarNodeProperties {
-        const fallback = (src: any, fallback: any) => {
-            return src !== undefined ? src : fallback;
-        };
-
         return {
-            visible: fallback(src.visible, parent.visible),
-            stroke: fallback(src.stroke, parent.stroke),
-            strokeWidth: fallback(src.strokeWidth, parent.strokeWidth),
-            strokeOpacity: fallback(src.strokeOpacity, parent.strokeOpacity),
+            visible: src.visible ?? parent.visible,
+            stroke: src.stroke ?? parent.stroke,
+            strokeWidth: src.strokeWidth ?? parent.strokeWidth,
+            strokeOpacity: src.strokeOpacity ?? parent.strokeOpacity,
         };
     }
 
