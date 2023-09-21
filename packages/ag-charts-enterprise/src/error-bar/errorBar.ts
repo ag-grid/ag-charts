@@ -2,6 +2,7 @@ import type { _Scale } from 'ag-charts-community';
 import { _Scene, _Util, _ModuleSupport } from 'ag-charts-community';
 import type { ErrorBarPoints, ErrorBarNodeProperties } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
+import { ERROR_BARS_THEME } from './errorBarTheme';
 
 const { ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
 
@@ -9,13 +10,6 @@ type CartesianSeries<
     C extends _ModuleSupport.SeriesNodeDataContext<any, any>,
     N extends _Scene.Node
 > = _ModuleSupport.CartesianSeries<C, N>;
-
-const ERRORBAR_DEFAULTS = {
-    visible: true,
-    stroke: 'black',
-    strokeWidth: 1,
-    strokeOpacity: 1,
-};
 
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
 
@@ -157,7 +151,7 @@ export class ErrorBars
         const { nodeData, inheritProperties } = this;
         const points = nodeData[index];
         if (points) {
-            const whiskerProps = inheritProperties(this, ERRORBAR_DEFAULTS);
+            const whiskerProps = inheritProperties(this, ERROR_BARS_THEME.errorBar);
             node.updateData(points, whiskerProps);
             node.updatePath();
         }

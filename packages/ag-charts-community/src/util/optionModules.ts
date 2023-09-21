@@ -16,4 +16,5 @@ export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> e
 
     identifier: string;
     instanceConstructor: new (ctx: SeriesContext) => M;
+    themeTemplate: {};
 }

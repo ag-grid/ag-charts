@@ -1,5 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { ErrorBars } from './errorBar';
+import { ERROR_BARS_THEME } from './errorBarTheme';
 
 export const ErrorBarsModule: _ModuleSupport.SeriesOptionModule = {
     type: 'series-option',
@@ -8,4 +9,5 @@ export const ErrorBarsModule: _ModuleSupport.SeriesOptionModule = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     instanceConstructor: ErrorBars,
+    themeTemplate: ERROR_BARS_THEME,
 };
