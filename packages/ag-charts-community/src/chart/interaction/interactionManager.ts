@@ -162,7 +162,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of types) {
-            this.listeners.wrapDispatch(
+            this.listeners.dispatchWrapHandlers(
                 type,
                 (handler, interactionEvent) => {
                     if (!interactionEvent.consumed) {

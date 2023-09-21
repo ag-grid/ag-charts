@@ -45,7 +45,7 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
         }
     }
 
-    public wrapDispatch(
+    public dispatchWrapHandlers(
         eventType: EventType,
         wrapFn: (handler: EventHandler, ...params: Parameters<EventHandler>) => void,
         ...params: Parameters<EventHandler>
