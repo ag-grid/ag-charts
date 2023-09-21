@@ -43,9 +43,15 @@ type ChartTypeConfig = {
     commonOptions: (keyof AgCommonThemeableChartOptions)[];
 };
 const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
-    cartesian: { seriesTypes: CHART_TYPES.cartesianTypes, commonOptions: ['zoom', 'navigator'] },
-    polar: { seriesTypes: CHART_TYPES.polarTypes, commonOptions: [] },
-    hierarchy: { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] },
+    get cartesian(): ChartTypeConfig {
+        return { seriesTypes: CHART_TYPES.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
+    },
+    get polar(): ChartTypeConfig {
+        return { seriesTypes: CHART_TYPES.polarTypes, commonOptions: [] };
+    },
+    get hierarchy(): ChartTypeConfig {
+        return { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] };
+    },
 };
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce(
     (r, { commonOptions }) => [...r, ...commonOptions],

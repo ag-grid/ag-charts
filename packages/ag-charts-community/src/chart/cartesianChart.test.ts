@@ -244,43 +244,6 @@ describe('CartesianChart', () => {
     seriesHighlightingTestCases('Stacked Area', examples.STACKED_AREA_GRAPH_EXAMPLE);
     seriesHighlightingTestCases('Area', examples.AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE);
 
-    describe('Histogram & Scatter Series Highlighting', () => {
-        it('should highlight scatter datum when overlapping histogram', async () => {
-            const options = {
-                ...examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
-                series: examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE.series?.map((s) => {
-                    if (s.type === 'scatter') {
-                        // Tweak marker size so it's large enough to trigger test failures if the
-                        // fake mouse hover doesn't work below.
-                        return { ...s, marker: { size: 20 } };
-                    }
-
-                    return s;
-                }),
-                container: document.body,
-            };
-
-            prepareTestOptions(options);
-
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
-            await waitForChartStability(chart);
-
-            const series = chart.series.find((v: any) => v.type === 'scatter');
-            if (series == null) fail('No series found');
-
-            const nodeDataArray: SeriesNodeDataContext<any, any>[] = series['contextNodeData'];
-            const context = nodeDataArray[0];
-            const item = context.nodeData.find((n) => n.datum['engine-size'] === 108 && n.datum['highway-mpg'] === 23);
-
-            const { x, y } = series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
-
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
-
-            await compare(chart);
-        });
-    });
-
     describe('Small chart width', () => {
         it.each([80, 160, 240, 320, 400])('should render chart correctly at width [%s]', async (width) => {
             const options: AgCartesianChartOptions = {

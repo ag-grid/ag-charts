@@ -20,6 +20,8 @@ import { RangeAreaModule } from './range-area/rangeAreaModule';
 import { LicenseManager } from './license/licenseManager';
 import { BoxPlotModule } from './box-plot/boxPlotModule';
 import { ErrorBarsModule } from './error-bar/errorBarModule';
+import { HistogramSeriesModule } from './histogram/histogramSeriesModule';
+import { TreemapSeriesModule } from './treemap/treemapSeriesModule';
 
 export { RadiusNumberAxisModule } from './polar-axes/radius-number/radiusNumberAxisModule';
 
@@ -34,24 +36,31 @@ _ModuleSupport.registerModule(CrosshairModule);
 _ModuleSupport.registerModule(ErrorBarsModule);
 _ModuleSupport.registerModule(GradientLegendModule);
 _ModuleSupport.registerModule(HeatmapModule);
+_ModuleSupport.registerModule(HistogramSeriesModule);
 _ModuleSupport.registerModule(NightingaleModule);
 _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
 _ModuleSupport.registerModule(RadialColumnModule);
 _ModuleSupport.registerModule(RadiusNumberAxisModule);
-_ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(RangeBarModule);
 _ModuleSupport.registerModule(RangeAreaModule);
+_ModuleSupport.registerModule(TreemapSeriesModule);
+_ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(ZoomModule);
 
 export class AgEnterpriseCharts {
     public static create(options: AgChartOptions): AgChartInstance {
-        new LicenseManager(options.container?.ownerDocument ?? document).validateLicense();
+        const doc = typeof document !== 'undefined' ? document : undefined;
+        new LicenseManager(options.container?.ownerDocument ?? doc).validateLicense();
 
         return AgChart.create(options as any);
     }
 
     public static update(chart: AgChartInstance, options: AgChartOptions) {
         return AgChart.update(chart, options as any);
+    }
+
+    public static updateDelta(chart: AgChartInstance, deltaOptions: Parameters<(typeof AgChart)['updateDelta']>[1]) {
+        return AgChart.updateDelta(chart, deltaOptions);
     }
 }

@@ -1,41 +1,36 @@
-import { Selection } from '../../../scene/selection';
-import { Label } from '../../label';
-import type { SeriesNodeDatum } from '../series';
-import { SeriesTooltip, HighlightStyle, SeriesNodeBaseClickEvent } from '../series';
-import { HierarchySeries } from './hierarchySeries';
-import { Group } from '../../../scene/group';
-import { Text } from '../../../scene/shape/text';
-import { Rect } from '../../../scene/shape/rect';
-import { DropShadow } from '../../../scene/dropShadow';
-import { ColorScale } from '../../../scale/colorScale';
-import type { ChartAxisDirection } from '../../chartAxisDirection';
-import type { ChartLegendDatum } from '../../legendDatum';
-import { toFixed, isEqual } from '../../../util/number';
-import { BBox } from '../../../scene/bbox';
-import { Color } from '../../../util/color';
 import {
+    type AgTooltipRendererResult,
+    type AgTreemapSeriesFormat,
+    type AgTreemapSeriesFormatterParams,
+    type AgTreemapSeriesLabelsOptions,
+    type AgTreemapSeriesTooltipRendererParams,
+    type TextWrap,
+    _ModuleSupport,
+    _Scene,
+    _Scale,
+    _Util,
+} from 'ag-charts-community';
+
+const {
+    Validate,
+    OPT_FUNCTION,
     BOOLEAN,
     NUMBER,
-    NUMBER_ARRAY,
-    OPT_BOOLEAN,
     OPT_COLOR_STRING,
-    OPT_FUNCTION,
     OPT_NUMBER,
     OPT_STRING,
-    STRING,
-    COLOR_STRING_ARRAY,
-    Validate,
+    SeriesTooltip,
+    SeriesNodeBaseClickEvent,
     TEXT_WRAP,
-} from '../../../util/validation';
-import type {
-    AgTreemapSeriesLabelsOptions,
-    AgTreemapSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    AgTreemapSeriesFormatterParams,
-    AgTreemapSeriesFormat,
-    TextWrap,
-} from '../../../options/agChartOptions';
-import { Logger } from '../../../util/logger';
+    HighlightStyle,
+    STRING,
+    NUMBER_ARRAY,
+    COLOR_STRING_ARRAY,
+    OPT_BOOLEAN,
+} = _ModuleSupport;
+const { Rect, Label, Group, DropShadow, BBox, Selection, Text } = _Scene;
+const { ColorScale } = _Scale;
+const { Color, Logger, toFixed, isEqual } = _Util;
 
 type TreeDatum = {
     [prop: string]: any;
@@ -44,7 +39,7 @@ type TreeDatum = {
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
-interface TreemapNodeDatum extends SeriesNodeDatum {
+interface TreemapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     datum: TreeDatum;
     value: number;
     depth: number;
@@ -117,7 +112,7 @@ enum TextNodeTag {
 
 const tempText = new Text();
 
-function getTextSize(text: string, style: Label): { width: number; height: number } {
+function getTextSize(text: string, style: _Scene.Label): { width: number; height: number } {
     const { fontStyle, fontWeight, fontSize, fontFamily } = style;
     tempText.fontStyle = fontStyle;
     tempText.fontWeight = fontWeight;
@@ -153,12 +148,18 @@ class TreemapHighlightStyle extends HighlightStyle {
     readonly text = new TreemapTextHighlightStyle();
 }
 
-export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
+export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDatum> {
     static className = 'TreemapSeries';
     static type = 'treemap' as const;
 
-    private groupSelection: Selection<Group, TreemapNodeDatum> = Selection.select(this.contentGroup, Group);
-    private highlightSelection: Selection<Group, TreemapNodeDatum> = Selection.select(this.highlightGroup, Group);
+    private groupSelection: _Scene.Selection<_Scene.Group, TreemapNodeDatum> = Selection.select(
+        this.contentGroup,
+        Group
+    );
+    private highlightSelection: _Scene.Selection<_Scene.Group, TreemapNodeDatum> = Selection.select(
+        this.highlightGroup,
+        Group
+    );
 
     private dataRoot?: TreemapNodeDatum;
 
@@ -266,7 +267,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
 
     readonly highlightStyle = new TreemapHighlightStyle();
 
-    private getNodePaddingTop(nodeDatum: TreemapNodeDatum, bbox: BBox) {
+    private getNodePaddingTop(nodeDatum: TreemapNodeDatum, bbox: _Scene.BBox) {
         const { title, subtitle, nodePadding } = this;
         const label = nodeDatum.label;
         if (nodeDatum.isLeaf || !label || nodeDatum.depth === 0) {
@@ -287,7 +288,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
         return textSize.height + nodePadding + (font.padding ?? 0);
     }
 
-    private getNodePadding(nodeDatum: TreemapNodeDatum, bbox: BBox) {
+    private getNodePadding(nodeDatum: TreemapNodeDatum, bbox: _Scene.BBox) {
         const { nodePadding } = this;
         const top = this.getNodePaddingTop(nodeDatum, bbox);
         return {
@@ -304,8 +305,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
      */
     private squarify(
         nodeDatum: TreemapNodeDatum,
-        bbox: BBox,
-        outputNodesBoxes: Map<TreemapNodeDatum, BBox> = new Map()
+        bbox: _Scene.BBox,
+        outputNodesBoxes: Map<TreemapNodeDatum, _Scene.BBox> = new Map()
     ): typeof outputNodesBoxes {
         if (bbox.width <= 0 || bbox.height <= 0) {
             return outputNodesBoxes;
@@ -399,9 +400,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
         return outputNodesBoxes;
     }
 
-    private applyGap(innerBox: BBox, childBox: BBox) {
+    private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox) {
         const gap = this.nodeGap / 2;
-        const getBounds = (box: BBox): Record<Side, number> => {
+        const getBounds = (box: _Scene.BBox): Record<Side, number> => {
             return {
                 left: box.x,
                 top: box.y,
@@ -516,7 +517,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
 
         this.traverseTree(dataRoot, (datum) => descendants.push(datum));
 
-        const updateGroup = (group: Group) => {
+        const updateGroup = (group: _Scene.Group) => {
             group.append([new Rect(), new Text({ tag: TextNodeTag.Name }), new Text({ tag: TextNodeTag.Value })]);
         };
 
@@ -594,7 +595,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
 
         this.updateNodeMidPoint(boxes);
 
-        const updateRectFn = (rect: Rect, datum: TreemapNodeDatum, isDatumHighlighted: boolean) => {
+        const updateRectFn = (rect: _Scene.Rect, datum: TreemapNodeDatum, isDatumHighlighted: boolean) => {
             const box = boxes.get(datum)!;
             if (!box) {
                 rect.visible = false;
@@ -647,7 +648,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
             }
         });
 
-        const updateLabelFn = (text: Text, datum: TreemapNodeDatum, highlighted: boolean, key: 'label' | 'value') => {
+        const updateLabelFn = (
+            text: _Scene.Text,
+            datum: TreemapNodeDatum,
+            highlighted: boolean,
+            key: 'label' | 'value'
+        ) => {
             const meta = labelMeta.get(datum);
             const label = meta?.[key];
             if (!label) {
@@ -669,9 +675,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
             text.visible = true;
         };
         this.groupSelection
-            .selectByTag<Text>(TextNodeTag.Name)
+            .selectByTag<_Scene.Text>(TextNodeTag.Name)
             .forEach((text) => updateLabelFn(text, text.datum, false, 'label'));
-        this.highlightSelection.selectByTag<Text>(TextNodeTag.Name).forEach((text) => {
+        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Name).forEach((text) => {
             const isDatumHighlighted = this.isDatumHighlighted(text.datum);
 
             text.visible = isDatumHighlighted || highlightedSubtree.has(text.datum);
@@ -681,9 +687,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
         });
 
         this.groupSelection
-            .selectByTag<Text>(TextNodeTag.Value)
+            .selectByTag<_Scene.Text>(TextNodeTag.Value)
             .forEach((text) => updateLabelFn(text, text.datum, false, 'value'));
-        this.highlightSelection.selectByTag<Text>(TextNodeTag.Value).forEach((text) => {
+        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Value).forEach((text) => {
             const isDatumHighlighted = this.isDatumHighlighted(text.datum);
 
             text.visible = isDatumHighlighted || highlightedSubtree.has(text.datum);
@@ -693,7 +699,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
         });
     }
 
-    private updateNodeMidPoint(boxes: Map<TreemapNodeDatum, BBox>) {
+    private updateNodeMidPoint(boxes: Map<TreemapNodeDatum, _Scene.BBox>) {
         boxes.forEach((box, treeNodeDatum) => {
             treeNodeDatum.nodeMidPoint = {
                 x: box.x + box.width / 2,
@@ -717,7 +723,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
         datum.children?.forEach((childDatum) => this.traverseTree(childDatum, iterator));
     }
 
-    buildLabelMeta(boxes: Map<TreemapNodeDatum, BBox>) {
+    buildLabelMeta(boxes: Map<TreemapNodeDatum, _Scene.BBox>) {
         const {
             labels,
             title,
@@ -730,7 +736,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
 
         type TextMeta = {
             text: string;
-            style: Label;
+            style: _Scene.Label;
             x: number;
             y: number;
             hAlign: CanvasTextAlign;
@@ -747,7 +753,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
 
             const availTextWidth = box.width - 2 * nodePadding;
             const availTextHeight = box.height - 2 * nodePadding;
-            const isBoxTooSmall = (labelStyle: Label) => {
+            const isBoxTooSmall = (labelStyle: _Scene.Label) => {
                 const minSizeRatio = 3;
                 return (
                     labelStyle.fontSize > box.width / minSizeRatio || labelStyle.fontSize > box.height / minSizeRatio
@@ -759,7 +765,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
             let valueText = '';
             const valueConfig = labels.value;
             const valueStyle = valueConfig.style;
-            const valueMargin = Math.ceil(valueStyle.fontSize * 2 * (Text.defaultLineHeightRatio - 1));
+            const valueMargin = Math.ceil(valueStyle.fontSize * 2 * (_Scene.Text.defaultLineHeightRatio - 1));
             if (datum.isLeaf) {
                 if (valueConfig.formatter) {
                     valueText = callbackCache.call(valueConfig.formatter, { datum: datum.datum }) ?? '';
@@ -772,7 +778,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
                 valueText = '';
             }
 
-            let labelStyle: Label;
+            let labelStyle: _Scene.Label;
             let wrappedText = '';
             if (datum.isLeaf) {
                 const pickStyle = () => {
@@ -869,7 +875,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
         return labelMeta;
     }
 
-    getDomain(_direction: ChartAxisDirection): any[] {
+    getDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [0, 1];
     }
 
@@ -946,7 +952,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(): _ModuleSupport.ChartLegendDatum[] {
         // Override point for subclasses.
         return [];
     }
