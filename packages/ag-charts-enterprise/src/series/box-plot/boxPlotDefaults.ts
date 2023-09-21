@@ -4,7 +4,7 @@ export const BOX_PLOT_SERIES_DEFAULTS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'category',
-            position: 'left',
+            position: 'bottom',
             groupPaddingInner: 0.2,
             crosshair: {
                 enabled: false,
@@ -13,7 +13,7 @@ export const BOX_PLOT_SERIES_DEFAULTS: AgCartesianChartOptions = {
         },
         {
             type: 'number',
-            position: 'bottom',
+            position: 'left',
             crosshair: {
                 snap: false,
             },

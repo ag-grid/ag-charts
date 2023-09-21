@@ -36,19 +36,19 @@ In this configuration:
 -   `q3Key` maps to the third quartile (Q3).
 -   `maxKey` maps to the maximum value.
 
-Note the default orientation of a Box Plot is horizontal.
+Note the default orientation of a Box Plot is vertical.
 
-## Vertical Box Plot
+## Horizontal Box Plot
 
-{% chartExampleRunner title="Vertical Box Plot" name="vertical-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Horizontal Box Plot" name="horizontal-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
 
-To show a Vertical Box Plot, set `direction: 'vertical'`.
+To show a Horizontal Box Plot, set `direction: 'horizontal'`.
 
 ```js
 series: [
     {
         type: 'box-plot',
-        direction: 'vertical',
+        direction: 'horizontal',
         xKey: 'department',
         ...
     },

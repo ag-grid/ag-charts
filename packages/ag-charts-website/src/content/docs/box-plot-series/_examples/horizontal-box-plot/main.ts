@@ -13,7 +13,7 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'box-plot',
-            direction: 'vertical',
+            direction: 'horizontal',
             xKey: 'department',
             yName: 'Salary Range',
             minKey: 'min',
