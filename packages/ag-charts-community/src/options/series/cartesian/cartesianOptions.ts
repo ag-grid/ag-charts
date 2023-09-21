@@ -3,17 +3,17 @@ import type {
     AgAxisCaptionOptions,
     AgBaseAxisOptions,
     AgBaseAxisLabelOptions,
-} from '../../options/axisOptions';
+} from '../../chart//axisOptions';
 import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
     AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
-} from '../../options/crossLineOptions';
-import type { PixelSize, Ratio } from '../../options/types';
-import type { AgCrosshairOptions } from '../../options/crosshairOptions';
+} from '../../chart//crossLineOptions';
+import type { PixelSize, Ratio } from '../../chart//types';
+import type { AgCrosshairOptions } from '../../chart//crosshairOptions';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
-import type { AgBaseThemeableChartOptions } from '../../options/chartOptions';
+import type { AgBaseThemeableChartOptions } from '../../chart//chartOptions';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions extends AgBaseAxisOptions<AgCartesianAxisLabelOptions> {

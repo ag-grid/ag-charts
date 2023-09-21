@@ -1,7 +1,7 @@
-import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
-import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgChartLabelOptions } from '../../options/labelOptions';
-import type { AgSeriesTooltip } from '../../options/tooltipOptions';
+import type { AgDropShadowOptions } from '../../chart//dropShadowOptions';
+import type { AgSeriesListeners } from '../../chart//eventOptions';
+import type { AgChartLabelOptions } from '../../chart//labelOptions';
+import type { AgSeriesTooltip } from '../../chart//tooltipOptions';
 import type {
     CssColor,
     FontFamily,
@@ -11,7 +11,7 @@ import type {
     Opacity,
     PixelSize,
     Ratio,
-} from '../../options/types';
+} from '../../chart//types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgPolarSeriesTooltipRendererParams } from './polarTooltipOptions';
 

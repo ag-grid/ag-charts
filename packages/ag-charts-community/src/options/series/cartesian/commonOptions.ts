@@ -1,4 +1,4 @@
-import type { CssColor, Opacity, PixelSize } from '../../options/types';
+import type { CssColor, Opacity, PixelSize } from '../../chart//types';
 
 export interface AxisOptions {
     /** The key to use to retrieve x-values (categories) from the data. */
