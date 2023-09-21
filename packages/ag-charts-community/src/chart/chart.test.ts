@@ -14,7 +14,6 @@ import type {
     AgPieSeriesOptions,
     AgPolarChartOptions,
     AgScatterSeriesOptions,
-    AgTreemapSeriesOptions,
     AgChartInstance,
 } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
@@ -335,41 +334,6 @@ describe('Chart', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.angleValue],
             getHighlightNode: (series) => {
                 // Returns a highlighted sector
-                const highlightedDatum = series.chart.highlightManager.getActiveHighlight();
-                return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum)
-                    .children[0];
-            },
-        });
-    });
-
-    describe(`Treemap Series Pointer Events`, () => {
-        testPointerEvents({
-            ...cartesianTestParams,
-            seriesOptions: <AgTreemapSeriesOptions>{
-                type: 'treemap',
-                labelKey: datasets.food.labelKey,
-                sizeKey: datasets.food.valueKey,
-                colorKey: undefined,
-                gradient: false,
-            },
-            chartOptions: {
-                data: datasets.food.data,
-            },
-            getNodeData: (series) => {
-                const nodes = series.contentGroup.children.map((group) => group.children[0]);
-                const maxDepth = Math.max(...nodes.map((n) => n.datum.depth));
-                return nodes.filter((node) => node.datum.depth === maxDepth);
-            },
-            getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],
-            getDatumValues: (item, series) => {
-                const { datum } = item.datum;
-                return [datum[series.labelKey], datum[series.sizeKey]];
-            },
-            getTooltipRenderedValues: (params) => {
-                const { datum } = params;
-                return [datum[params.labelKey], datum[params.sizeKey]];
-            },
-            getHighlightNode: (series) => {
                 const highlightedDatum = series.chart.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum)
                     .children[0];
