@@ -18,11 +18,11 @@ export function getData() {
         },
         {
             station: 'Tottenham \nHale',
-            early: 764,
-            morningPeak: 5158,
-            interPeak: 3511,
-            afternoonPeak: 2422,
-            evening: 1333,
+            early: 836,
+            morningPeak: 12740,
+            interPeak: 14964,
+            afternoonPeak: 12790,
+            evening: 8428,
         },        {
             station: 'Warren \nStreet',
             early: 108,
@@ -34,10 +34,10 @@ export function getData() {
         {
             station: 'Oxford \nCircus',
             early: 170,
-            morningPeak: 1896,
-            interPeak: 30616,
-            afternoonPeak: 36269,
-            evening: 32665,
+            morningPeak: 1796,
+            interPeak: 26616,
+            afternoonPeak: 32269,
+            evening: 30665,
         },
         {
             station: 'Green \nPark',
