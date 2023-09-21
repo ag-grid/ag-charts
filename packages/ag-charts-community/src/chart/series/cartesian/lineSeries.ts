@@ -155,7 +155,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         this.dataModel = dataModel;
         this.processedData = processedData;
 
-        if (processedData.reduced?.diff?.added && processedData.reduced?.diff?.removed) {
+        if (processedData.reduced?.diff?.added.length > 0 && processedData.reduced?.diff?.removed.length > 0) {
             this.animationTransitionClear();
         } else {
             this.animationState.transition('updateData');
@@ -609,7 +609,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     }
 
     animateWaitingUpdateReady(animationData: LineAnimationData) {
-        const { markerSelections, contextData, paths } = animationData;
+        const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { processedData, extendLine, findPointOnLine } = this;
         const diff = processedData?.reduced?.diff;
 
@@ -618,6 +618,14 @@ export class LineSeries extends CartesianSeries<LineContext> {
             return;
         }
 
+        // Treat undefined values as removed data points
+        processedData?.data.forEach((datum, index) => {
+            if (datum.values.includes(undefined)) {
+                diff.removed.push(createDatumId(datum.keys));
+                diff.removedIndices.push(index);
+            }
+        });
+
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
             const { path: linePath } = lineNode;
@@ -625,6 +633,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
             const markerNodes: { [keyof: string]: Marker } = {};
             markerSelections[contextDataIndex].each((marker, datum) => {
                 markerNodes[this.getDatumId(datum)] = marker;
+            });
+
+            labelSelections[contextDataIndex].each((label) => {
+                label.opacity = 0;
             });
 
             // Zip diff arrays into keyed objects for O(1) access
@@ -715,7 +727,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             const markerFormats: Record<string, AgCartesianSeriesMarkerFormat | undefined> = {};
 
             // Animate all nodes using a single animation to ensure the line is drawn correctly from node to node
-            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready`, {
+            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_${contextDataIndex}`, {
                 from: 0,
                 to: 1,
                 duration,
@@ -934,6 +946,18 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 },
                 onStop: () => {
                     this.resetMarkersAndPaths(animationData);
+                },
+            });
+
+            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_labels_${contextDataIndex}`, {
+                from: 0,
+                to: 1,
+                delay: duration,
+                duration: 200,
+                onUpdate: (opacity) => {
+                    labelSelections[contextDataIndex].each((label) => {
+                        label.opacity = opacity;
+                    });
                 },
             });
         });

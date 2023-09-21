@@ -312,8 +312,8 @@ export function spyOnAnimationManager(totalDuration: number, ratio: number) {
 
             const elapsed = ratio * totalDuration;
 
-            if (elapsed >= sumDuration + duration) {
-                sumDuration += duration;
+            if (elapsed >= sumDuration + duration + (delay ?? 0)) {
+                sumDuration += duration + (delay ?? 0);
                 onUpdate?.(to as number);
                 onComplete?.();
             } else if (ratio < delayRatio) {
