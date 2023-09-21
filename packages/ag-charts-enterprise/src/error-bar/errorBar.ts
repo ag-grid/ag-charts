@@ -1,40 +1,39 @@
 import type { _Scale } from 'ag-charts-community';
 import { _Scene, _Util, _ModuleSupport } from 'ag-charts-community';
+import type { ErrorBarPoints, ErrorBarNodeProperties } from './errorBarNode';
+import { ErrorBarNode } from './errorBarNode';
+import { ERROR_BARS_THEME } from './errorBarTheme';
 
-const { ChartAxisDirection, Validate, OPT_STRING } = _ModuleSupport;
+const { mergeDefaults, ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
 
 type CartesianSeries<
     C extends _ModuleSupport.SeriesNodeDataContext<any, any>,
     N extends _Scene.Node
 > = _ModuleSupport.CartesianSeries<C, N>;
 
-export interface ErrorBarPoints {
-    readonly yLowerPoint: _Scene.Point;
-    readonly yUpperPoint: _Scene.Point;
+type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
+
+class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
+    @Validate(BOOLEAN)
+    visible?: boolean = undefined;
+
+    @Validate(OPT_STRING)
+    stroke?: string = undefined;
+
+    @Validate(NUMBER(1))
+    strokeWidth?: number = undefined;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity?: number = undefined;
+
+    @Validate(NUMBER(0, 1))
+    lengthRatio: number = 1;
 }
 
-export class ErrorBarNode extends _Scene.Path {
-    public points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
-
-    updatePath() {
-        // TODO(olegat) implement, this is just placeholder draw code
-        const { path } = this;
-        this.fill = 'black';
-        this.stroke = 'black';
-        this.strokeWidth = 1;
-        this.fillOpacity = 1;
-        this.strokeOpacity = 1;
-
-        const { yLowerPoint, yUpperPoint } = this.points;
-
-        path.clear();
-        path.moveTo(yLowerPoint.x, yLowerPoint.y);
-        path.lineTo(yUpperPoint.x, yUpperPoint.y);
-        path.closePath();
-    }
-}
-
-export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class ErrorBars
+    extends _ModuleSupport.BaseModuleInstance
+    implements _ModuleSupport.ModuleInstance, OptionalErrorBarNodeProperties
+{
     @Validate(OPT_STRING)
     yLowerKey: string = '';
 
@@ -46,6 +45,20 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     @Validate(OPT_STRING)
     yUpperName?: string = undefined;
+
+    @Validate(BOOLEAN)
+    visible?: boolean = true;
+
+    @Validate(OPT_STRING)
+    stroke? = 'black';
+
+    @Validate(NUMBER(1))
+    strokeWidth?: number = 1;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity?: number = 1;
+
+    cap: ErrorBarCapConfig = new ErrorBarCapConfig();
 
     private readonly cartesianSeries: _ModuleSupport.CartesianSeries<any, any>;
     private readonly groupNode: _Scene.Group;
@@ -126,8 +139,10 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { nodeData } = this;
         const points = nodeData[index];
         if (points) {
-            node.points = points;
-            node.updatePath();
+            const defaults: ErrorBarNodeProperties = ERROR_BARS_THEME.errorBar;
+            const whiskerProps = mergeDefaults(this, defaults);
+            const capProps = mergeDefaults(this.cap, whiskerProps);
+            node.update(points, whiskerProps, capProps);
         }
     }
 
