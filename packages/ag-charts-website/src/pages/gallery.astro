@@ -81,7 +81,7 @@ const { series } = galleryData;
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            smoothScrollIntoView(anchor.getAttribute('href')!);
+            smoothScrollIntoView({ href: anchor.getAttribute('href')! });
         });
     });
 </script>
