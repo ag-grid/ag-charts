@@ -8,10 +8,6 @@ export type ErrorBarNodeProperties = {
     strokeOpacity: number;
 };
 
-interface ErrorBarCapExclusiveOptions {
-    lengthRatio: number;
-}
-
 export interface ErrorBarPoints {
     readonly yLowerPoint: _Scene.Point;
     readonly yUpperPoint: _Scene.Point;
@@ -20,12 +16,7 @@ export interface ErrorBarPoints {
 export class ErrorBarNode extends _Scene.Path {
     private points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
 
-    updateData(
-        points: ErrorBarPoints,
-        whiskerTheme: ErrorBarNodeProperties
-        capTheme?: ErrorBarNodeProperties,
-        capOpts?: ErrorBarCapExclusiveOptions,
-    ) {
+    updateData(points: ErrorBarPoints, whiskerTheme: ErrorBarNodeProperties) {
         this.points = points;
         Object.assign(this, whiskerTheme);
     }

@@ -154,12 +154,11 @@ export class ErrorBars
     }
 
     private updateNode(node: ErrorBarNode, _datum: any, index: number) {
-        const { cap, nodeData, inheritProperties } = this;
+        const { nodeData, inheritProperties } = this;
         const points = nodeData[index];
         if (points) {
             const whiskerProps = inheritProperties(this, ERRORBAR_DEFAULTS);
-            const capProps = inheritProperties(cap, whiskerProps);
-            node.updateData(points, whiskerProps, capProps, cap);
+            node.updateData(points, whiskerProps);
             node.updatePath();
         }
     }
