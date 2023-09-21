@@ -7,7 +7,7 @@ const { EXTENDS_SERIES_DEFAULTS, DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFA
 export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['cartesian'],
 
     identifier: 'histogram',

@@ -15,7 +15,7 @@ const {
 export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['hierarchy'],
 
     identifier: 'treemap',
