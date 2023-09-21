@@ -512,30 +512,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
             return;
         }
 
-        const descendants = [] as TreemapNodeDatum[];
-        const traverse = (datum: TreemapNodeDatum) => {
-            descendants.push(datum);
-            datum.children?.forEach(traverse);
-        };
-        traverse(dataRoot);
+        const descendants: TreemapNodeDatum[] = [];
 
-        const { groupSelection, highlightSelection } = this;
-        const update = (selection: typeof groupSelection) => {
-            return selection.update(descendants, (group) => {
-                const rect = new Rect();
+        this.traverseTree(dataRoot, (datum) => descendants.push(datum));
 
-                const nameLabel = new Text();
-                nameLabel.tag = TextNodeTag.Name;
-
-                const valueLabel = new Text();
-                valueLabel.tag = TextNodeTag.Value;
-
-                group.append([rect, nameLabel, valueLabel]);
-            });
+        const updateGroup = (group: Group) => {
+            group.append([new Rect(), new Text({ tag: TextNodeTag.Name }), new Text({ tag: TextNodeTag.Value })]);
         };
 
-        this.groupSelection = update(groupSelection);
-        this.highlightSelection = update(highlightSelection);
+        this.groupSelection.update(descendants, updateGroup);
+        this.highlightSelection.update(descendants, updateGroup);
     }
 
     private isDatumHighlighted(datum: TreemapNodeDatum) {
@@ -718,14 +704,17 @@ export class TreemapSeries extends HierarchySeries<TreemapNodeDatum> {
 
     private getHighlightedSubtree(dataRoot: TreemapNodeDatum): Set<TreemapNodeDatum> {
         const items = new Set<TreemapNodeDatum>();
-        const traverse = (datum: TreemapNodeDatum) => {
+        this.traverseTree(dataRoot, (datum) => {
             if (this.isDatumHighlighted(datum) || (datum.parent && items.has(datum.parent))) {
                 items.add(datum);
             }
-            datum.children?.forEach(traverse);
-        };
-        traverse(dataRoot);
+        });
         return items;
+    }
+
+    private traverseTree<D extends { children?: D[] }>(datum: D, iterator: (datum: D) => void) {
+        iterator(datum);
+        datum.children?.forEach((childDatum) => this.traverseTree(childDatum, iterator));
     }
 
     buildLabelMeta(boxes: Map<TreemapNodeDatum, BBox>) {
