@@ -4,10 +4,8 @@ import { BackgroundModule } from '../background/backgroundModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
 import { BubbleSeriesModule } from '../series/cartesian/bubbleSeriesModule';
-import { HistogramSeriesModule } from '../series/cartesian/histogramSeriesModule';
 import { LineSeriesModule } from '../series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
-import { TreemapSeriesModule } from '../series/hierarchy/treemapSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
 
 export function registerInbuiltModules() {
@@ -17,9 +15,7 @@ export function registerInbuiltModules() {
     registerModule(AreaSeriesModule);
     registerModule(BarSeriesModule);
     registerModule(BubbleSeriesModule);
-    registerModule(HistogramSeriesModule);
     registerModule(LineSeriesModule);
     registerModule(ScatterSeriesModule);
     registerModule(PieSeriesModule);
-    registerModule(TreemapSeriesModule);
 }

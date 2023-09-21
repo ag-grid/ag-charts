@@ -215,8 +215,9 @@ describe('CartesianChart', () => {
                 tcOptions.series?.reduce((r, s: any) => {
                     return r.concat(s.yKey ? [s.yKey] : s.yKeys);
                 }, []) ?? [];
-            it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
-                const options: AgChartOptions = { ...tcOptions };
+
+            const buildChart = async (chartOptions: AgChartOptions, yKey: string) => {
+                const options: AgChartOptions = { ...chartOptions };
                 prepareTestOptions(options);
 
                 chart = deproxy(AgChart.create(options)) as CartesianChart;
@@ -231,7 +232,28 @@ describe('CartesianChart', () => {
                 const nodeData = nodeDataArray.find((n) => n.itemId === yKey);
 
                 const highlightManager = (chart as any).highlightManager;
+
+                return { chart, nodeData, highlightManager };
+            };
+
+            it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
+                const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
                 highlightManager.updateHighlight(chart.id, nodeData?.nodeData[3]);
+                await compare(chart);
+            });
+
+            it('should correctly change highlighting state and reset', async () => {
+                const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, YKEYS[0]);
+
+                const nodesToTest = nodeData?.nodeData?.slice(2, 4) ?? [];
+                expect(nodesToTest).toHaveLength(2);
+
+                for (const nodeDataItem of nodesToTest) {
+                    highlightManager.updateHighlight(chart.id, nodeDataItem);
+                    await compare(chart);
+                }
+
+                highlightManager.updateHighlight(chart.id);
                 await compare(chart);
             });
         });
@@ -243,43 +265,6 @@ describe('CartesianChart', () => {
     seriesHighlightingTestCases('Stacked Bar', examples.STACKED_BAR_CHART_EXAMPLE);
     seriesHighlightingTestCases('Stacked Area', examples.STACKED_AREA_GRAPH_EXAMPLE);
     seriesHighlightingTestCases('Area', examples.AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE);
-
-    describe('Histogram & Scatter Series Highlighting', () => {
-        it('should highlight scatter datum when overlapping histogram', async () => {
-            const options = {
-                ...examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
-                series: examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE.series?.map((s) => {
-                    if (s.type === 'scatter') {
-                        // Tweak marker size so it's large enough to trigger test failures if the
-                        // fake mouse hover doesn't work below.
-                        return { ...s, marker: { size: 20 } };
-                    }
-
-                    return s;
-                }),
-                container: document.body,
-            };
-
-            prepareTestOptions(options);
-
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
-            await waitForChartStability(chart);
-
-            const series = chart.series.find((v: any) => v.type === 'scatter');
-            if (series == null) fail('No series found');
-
-            const nodeDataArray: SeriesNodeDataContext<any, any>[] = series['contextNodeData'];
-            const context = nodeDataArray[0];
-            const item = context.nodeData.find((n) => n.datum['engine-size'] === 108 && n.datum['highway-mpg'] === 23);
-
-            const { x, y } = series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
-
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
-
-            await compare(chart);
-        });
-    });
 
     describe('Small chart width', () => {
         it.each([80, 160, 240, 320, 400])('should render chart correctly at width [%s]', async (width) => {

@@ -1,26 +1,21 @@
-import type { SeriesModule } from '../../../util/coreModules';
-import { singleSeriesPaletteFactory } from '../../../util/theme';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_SHADOW_COLOUR,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
-import { HistogramSeries } from './histogramSeries';
-import { NumberAxis } from '../../axis/numberAxis';
+import { _Theme, type _ModuleSupport } from 'ag-charts-community';
 
-export const HistogramSeriesModule: SeriesModule<'histogram'> = {
+import { HistogramSeries } from './histogramSeries';
+
+const { EXTENDS_SERIES_DEFAULTS, DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } = _Theme;
+
+export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['cartesian'],
 
     identifier: 'histogram',
     instanceConstructor: HistogramSeries,
     seriesDefaults: {
         axes: [
-            { type: NumberAxis.type, position: 'bottom' },
-            { type: NumberAxis.type, position: 'left' },
+            { type: 'number', position: 'bottom' },
+            { type: 'number', position: 'left' },
         ],
     },
     themeTemplate: {
@@ -47,5 +42,11 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             blur: 5,
         },
     },
-    paletteFactory: singleSeriesPaletteFactory,
+    paletteFactory: ({ takeColors }) => {
+        const {
+            fills: [fill],
+            strokes: [stroke],
+        } = takeColors(1);
+        return { fill, stroke };
+    },
 };
