@@ -17,9 +17,9 @@ export class LicenseManager {
     private watermarkMessage: string | undefined = undefined;
 
     private md5: MD5;
-    private document: Document;
+    private document?: Document;
 
-    constructor(document: Document) {
+    constructor(document?: Document) {
         this.document = document;
 
         this.md5 = new MD5();
@@ -111,7 +111,9 @@ export class LicenseManager {
     }
 
     private getHostname(): string {
-        const win = this.document.defaultView || window;
+        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
+        if (!win) return 'localhost';
+
         const loc = win.location;
         const { hostname = '' } = loc;
 
@@ -119,7 +121,9 @@ export class LicenseManager {
     }
 
     private isForceWatermark(): boolean {
-        const win = this.document.defaultView || window;
+        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
+        if (!win) return false;
+
         const loc = win.location;
         const { pathname } = loc;
 

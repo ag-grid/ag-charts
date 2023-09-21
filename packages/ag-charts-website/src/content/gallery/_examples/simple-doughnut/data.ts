@@ -1,13 +1,13 @@
 // Source: https://www.gov.uk/government/statistical-data-sets/fire-statistics-data-tables
-export function getData(): any[] {
+export function getData() {
     return [
-        { type: 'House - single occupancy', count: 15349 },
-        { type: 'Bungalow - single occupancy', count: 1656 },
-        { type: 'Converted Flat/Maisonette - single occupancy', count: 2147 },
-        { type: 'Purpose Built Low Rise (1-3) Flats/Maisonettes', count: 4954 },
-        { type: 'Purpose Built Medium Rise (4-9) Flats', count: 1887 },
-        { type: 'Purpose Built High Rise (10+) Flats', count: 820 },
-        { type: 'Dwelling - multiple occupancy', count: 610 },
-        { type: 'Other dwelling', count: 2147 },
+        { type: 'House', count: 15349 },
+        { type: 'Bungalow', count: 1656 },
+        { type: 'Converted Maisonette', count: 2147 },
+        { type: 'Low Rise Flats', count: 4954 },
+        { type: 'Medium Rise Flats', count: 1887 },
+        { type: 'High Rise Flats', count: 820 },
+        { type: 'Dwelling', count: 610 },
+        { type: 'Other', count: 2147 },
     ];
 }

@@ -5,9 +5,9 @@ import { Validate, GREATER_THAN, AND, LESS_THAN, NUMBER_OR_NAN } from '../../uti
 import { Default } from '../../util/default';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { Logger } from '../../util/logger';
-import type { ModuleContext } from '../../module-support';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
+import type { ModuleContext } from '../../util/moduleContext';
 
 class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))

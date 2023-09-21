@@ -22,7 +22,7 @@ export const SideNavigation: FunctionComponent<Props> = ({ title, headings }) =>
                                 className={classnames(styles.topLink, 'nav-link')}
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    smoothScrollIntoView('#top');
+                                    smoothScrollIntoView({ href: '#top' });
                                 }}
                             >
                                 {title}
@@ -38,7 +38,7 @@ export const SideNavigation: FunctionComponent<Props> = ({ title, headings }) =>
                                         href={href}
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            smoothScrollIntoView(href);
+                                            smoothScrollIntoView({ href });
                                         }}
                                     >
                                         {addNonBreakingSpaceBetweenLastWords(heading.text)}

@@ -299,6 +299,23 @@ export interface JsObjectPropertiesViewConfig {
     expandAll?: boolean;
     lookupRoot?: string;
     hideMore?: boolean;
+    /**
+     * Properties where the children are hidden in the nav
+     */
+    hideChildrenInNavProperties?: string[];
+    /**
+     * Properties where the number of children shown on the details view is limited
+     *
+     * The property can also be a `.` separated path with wildcard `*` eg, `overrides.*`
+     */
+    limitChildrenProperties?: string[];
+
+    /**
+     * Properties to limit the top level parents
+     *
+     * The most specific parent is used
+     */
+    topLevelParentProperties?: string[];
 }
 
 export interface InterfaceDocumentationProps {

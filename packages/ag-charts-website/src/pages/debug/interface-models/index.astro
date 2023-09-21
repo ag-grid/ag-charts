@@ -1,0 +1,44 @@
+---
+import { getModelInterfaces, getModelInterfaceUrl } from '@utils/pages';
+import Layout from '@layouts/Layout.astro';
+
+const modelInterfaces = getModelInterfaces();
+---
+
+<Layout title={`Debug: Interface models`}>
+    <main class="page-margin container">
+        <h1>Interface models ({modelInterfaces.length})</h1>
+        <table>
+            <thead>
+                <th>Url</th>
+                <th><code>params.interfaceName</code></th>
+            </thead>
+            <tbody>
+                {
+                    modelInterfaces.map((modelInterface) => {
+                        const { interfaceName } = modelInterface.params;
+                        const url = getModelInterfaceUrl({ interfaceName });
+
+                        return (
+                            <tr>
+                                <td>
+                                    <a href={url}>{url}</a>
+                                </td>
+                                <td>{interfaceName}</td>
+                            </tr>
+                        );
+                    })
+                }
+            </tbody>
+        </table>
+    </main>
+</Layout>
+
+<style lang="scss">
+    @use '../../../design-system' as *;
+
+    .container {
+        margin-top: $size-6;
+        margin-bottom: calc($size-6 * 4);
+    }
+</style>

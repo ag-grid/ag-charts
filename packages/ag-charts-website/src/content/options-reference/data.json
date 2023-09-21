@@ -2,7 +2,7 @@
     "theme": {
         "more": {
             "name": "Themes Reference",
-            "url": "./api-themes"
+            "url": "./themes-api"
         }
     }
 }

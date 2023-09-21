@@ -13,7 +13,7 @@ import type {
 } from '../utils/model';
 import { Icon } from '@components/icon/Icon';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
-import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, UNION_DISCRIMINATOR_PROP } from '../constants';
+import { UNION_DISCRIMINATOR_PROP } from '../constants';
 import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 
 const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
@@ -260,7 +260,7 @@ function UnionNestedObject({
                     {isExpanded && <div className={styles.expanderBar}></div>}
                     <span className={classnames('token', 'punctuation')}>
                         {isExpanded && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
-                        {' { '}
+                        {'{ '}
                     </span>
                     {!isExpanded && (
                         <>
@@ -431,7 +431,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             console.warn(`AG Docs - unhandled sub-type: ${desc['type']}`);
     }
 
-    const shouldHideChildren = TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN.includes(propName);
+    const shouldHideChildren = config.hideChildrenInNavProperties?.includes(propName);
     const expandable = !shouldHideChildren && !!collapsePropertyRendering;
 
     let propertyValue;
@@ -728,7 +728,13 @@ export function ObjectBreadcrumb({
             {breadcrumbs.length > 1 ? (
                 <div className={styles.jsonObject} role="presentation">
                     <div role="presentation">...</div>
-                    {<ObjectBreadcrumb breadcrumbs={breadcrumbs.slice(1)} bodyContent={bodyContent} />}
+                    {
+                        <ObjectBreadcrumb
+                            breadcrumbs={breadcrumbs.slice(1)}
+                            bodyContent={bodyContent}
+                            topBreakcrumbOnClick={topBreakcrumbOnClick}
+                        />
+                    }
                 </div>
             ) : (
                 bodyContent()

@@ -17,8 +17,6 @@ const options: AgChartOptions = {
             xKey: 'job',
             yKey: 'change',
             label: {
-                fontWeight: 'bold',
-                color: 'white',
                 formatter: (params) => {
                     return (params.value > 0 ? '+' : '') + params.value;
                 },

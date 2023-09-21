@@ -32,9 +32,10 @@ export class StateMachine<State extends string, Event extends string> {
 
         this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${destinationState}`, 'color: green');
 
-        destinationTransition.action?.(data);
-
+        // Change the state before calling the transition action to allow the action to trigger a subsequent transition
         this.state = destinationState;
+
+        destinationTransition.action?.(data);
 
         return this.state;
     }

@@ -1,82 +1,40 @@
-import { _Scene, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { BBox } = _Scene;
-const { LINE_CAP, NUMBER, COLOR_STRING, Validate } = _ModuleSupport;
+const { ActionOnSet, clamp, NUMBER, Validate } = _ModuleSupport;
+
+function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown) {
+    if (newValue !== oldValue) {
+        this.dirtyPath = true;
+    }
+}
 
 export class RangeMask extends _Scene.Path {
     static className = 'RangeMask';
 
-    @Validate(COLOR_STRING)
-    protected _stroke = '#999999';
-
+    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
     @Validate(NUMBER(0))
-    protected _strokeWidth = 1;
+    x = 0;
 
-    @Validate(COLOR_STRING)
-    protected _fill = '#999999';
-
-    @Validate(NUMBER(0, 1))
-    protected _fillOpacity = 0.2;
-
-    @Validate(LINE_CAP)
-    protected _lineCap: _Scene.ShapeLineCap = 'square';
-
-    protected _x: number = 0;
-    set x(value: number) {
-        if (this._x !== value) {
-            this._x = value;
-            this.dirtyPath = true;
-        }
-    }
-    get x(): number {
-        return this._x;
-    }
-
-    protected _y: number = 0;
-    set y(value: number) {
-        if (this._y !== value) {
-            this._y = value;
-            this.dirtyPath = true;
-        }
-    }
-    get y(): number {
-        return this._y;
-    }
-
+    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
     @Validate(NUMBER(0))
-    protected _width: number = 200;
-    set width(value: number) {
-        if (this._width !== value) {
-            this._width = value;
-            this.dirtyPath = true;
-        }
-    }
-    get width(): number {
-        return this._width;
-    }
+    y = 0;
 
+    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
     @Validate(NUMBER(0))
-    protected _height: number = 30;
-    set height(value: number) {
-        if (this._height !== value) {
-            this._height = value;
-            this.dirtyPath = true;
-        }
-    }
-    get height(): number {
-        return this._height;
-    }
+    width = 200;
 
-    minRange = 0.05;
+    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
+    @Validate(NUMBER(0))
+    height = 30;
+
+    readonly minRange = 0.05;
 
     @Validate(NUMBER())
     protected _min: number = 0;
     set min(value: number) {
-        value = Math.min(Math.max(value, 0), this.max - this.minRange);
-        if (isNaN(value)) {
-            return;
-        }
-        if (this._min !== value) {
+        value = clamp(0, value, this.max - this.minRange);
+        if (this._min !== value && !isNaN(value)) {
             this._min = value;
             this.dirtyPath = true;
             this.onRangeChange?.();
@@ -89,11 +47,8 @@ export class RangeMask extends _Scene.Path {
     @Validate(NUMBER())
     protected _max: number = 1;
     set max(value: number) {
-        value = Math.max(Math.min(value, 1), this.min + this.minRange);
-        if (isNaN(value)) {
-            return;
-        }
-        if (this._max !== value) {
+        value = clamp(this.min + this.minRange, value, 1);
+        if (this._max !== value && !isNaN(value)) {
             this._max = value;
             this.dirtyPath = true;
             this.onRangeChange?.();

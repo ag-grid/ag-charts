@@ -27,7 +27,7 @@ export interface ModuleContext {
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
     dataService: DataService;
-    layoutService: Pick<LayoutService, 'addListener' | 'removeListener'>;
+    layoutService: Pick<LayoutService, 'addListener'>;
     updateService: UpdateService;
     callbackCache: CallbackCache;
     seriesStateManager: SeriesStateManager;

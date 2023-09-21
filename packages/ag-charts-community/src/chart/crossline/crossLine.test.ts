@@ -244,13 +244,6 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         options: examples.BAR_CROSSLINES,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 2) }),
     },
-    HISTOGRAM_CROSSLINES: {
-        options: examples.HISTOGRAM_CROSSLINES,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: ['histogram', 'scatter'],
-        }),
-    },
     ...NAVIGATOR_ZOOM_EXAMPLES,
 };
 

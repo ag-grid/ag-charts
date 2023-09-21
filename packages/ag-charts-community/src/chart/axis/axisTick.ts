@@ -45,7 +45,7 @@ export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> {
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make the ticks invisible.
      */
     @Validate(OPT_COLOR_STRING)
-    color?: string = 'rgba(195, 195, 195, 1)';
+    color?: string = undefined;
 
     @Validate(OPT_TICK_INTERVAL)
     interval?: TickInterval<S> = undefined;

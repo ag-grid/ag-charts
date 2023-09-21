@@ -1,5 +1,5 @@
 // https://gs.statcounter.com/browser-market-share/desktop/worldwide/#quarterly-202001-202001-bar
-export function getData2020(): any[] {
+export function getData2020() {
     return [
         { browser: 'Chrome', share: 0.6869, year: 2020 },
         { browser: 'Edge', share: 0.0463, year: 2020 },
@@ -10,7 +10,7 @@ export function getData2020(): any[] {
 }
 
 // https://gs.statcounter.com/browser-market-share/desktop/worldwide/#quarterly-202203-202203-bar
-export function getData2022(): any[] {
+export function getData2022() {
     return [
         { browser: 'Chrome', share: 0.6695, year: 2022 },
         { browser: 'Edge', share: 0.1086, year: 2022 },

@@ -302,18 +302,30 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 }
 
 export function spyOnAnimationManager(totalDuration: number, ratio: number) {
+    let sumDuration = 0;
+
     jest.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
 
-    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation((_id, { from, to, delay, onUpdate }) => {
-        const delayRatio = delay ? delay / totalDuration : 0;
-        if (ratio < delayRatio) {
-            onUpdate?.(from as number);
-        } else {
-            const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
-            onUpdate?.(((to as number) - (from as number)) * squashedRatio + (from as number));
+    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation(
+        (_id, { from, to, delay, duration, onUpdate, onComplete }) => {
+            const delayRatio = delay ? delay / totalDuration : 0;
+
+            const elapsed = ratio * totalDuration;
+
+            if (elapsed >= sumDuration + duration) {
+                sumDuration += duration;
+                onUpdate?.(to as number);
+                onComplete?.();
+            } else if (ratio < delayRatio) {
+                onUpdate?.(from as number);
+            } else {
+                const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
+                onUpdate?.(((to as number) - (from as number)) * squashedRatio + (from as number));
+            }
+
+            return Promise.resolve() as any;
         }
-        return Promise.resolve() as any;
-    });
+    );
 
     jest.spyOn(AnimationManager.prototype, 'animateMany').mockImplementation((_id, props, { onUpdate }) => {
         const ratioProps = props.map(({ from, to }) => ((to as number) - (from as number)) * ratio + (from as number));

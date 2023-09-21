@@ -91,6 +91,13 @@ export const urlWithBaseUrl = (url: string = '') => {
     return url.match(regex) ? url.replace(regex, substitution) : url;
 };
 
+export const getPathFromUrlPathname = (pathname: string) => {
+    const regex = new RegExp(`^${SITE_BASE_URL}(.*)`);
+    const substitution = '$1';
+
+    return pathname.replace(regex, substitution);
+};
+
 // TODO: Figure out published packages
 export const isUsingPublishedPackages = () => false;
 export const isPreProductionBuild = () => false;
@@ -207,3 +214,22 @@ export function getDevFiles(): DevFileRoute[] {
 
     return result;
 }
+
+export function getModelInterfaces() {
+    return [
+        {
+            params: {
+                interfaceName: 'AgCartesianChartOptions',
+            },
+        },
+        {
+            params: {
+                interfaceName: 'AgChartTheme',
+            },
+        },
+    ];
+}
+
+export const getModelInterfaceUrl = ({ interfaceName }: { interfaceName: string }) => {
+    return pathJoin(SITE_BASE_URL, 'debug', 'interface-models', `${interfaceName}.json`);
+};

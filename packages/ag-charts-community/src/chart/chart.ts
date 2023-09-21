@@ -953,19 +953,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected async performLayout() {
-        if (this.scene.root != null) {
+        if (this.scene.root) {
             this.scene.root.visible = true;
         }
 
-        const {
-            scene: { width, height },
-        } = this;
-
-        let shrinkRect = new BBox(0, 0, width, height);
-        ({ shrinkRect } = this.layoutService.dispatchPerformLayout('start-layout', { shrinkRect }));
-        ({ shrinkRect } = this.layoutService.dispatchPerformLayout('before-series', { shrinkRect }));
-
-        return shrinkRect;
+        const { width, height } = this.scene;
+        let ctx = { shrinkRect: new BBox(0, 0, width, height) };
+        ctx = this.layoutService.dispatchPerformLayout('start-layout', ctx);
+        ctx = this.layoutService.dispatchPerformLayout('before-series', ctx);
+        return ctx.shrinkRect;
     }
 
     private layoutComplete({ clipSeries, series: { paddedRect } }: LayoutCompleteEvent): void {

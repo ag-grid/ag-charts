@@ -1,31 +1,27 @@
 import { useCallback, useState } from 'react';
-import type { JsObjectSelection, JsObjectSelectionProperty, TopLevelHeaderData } from '../types';
+import type {
+    JsObjectPropertiesViewConfig,
+    JsObjectSelection,
+    JsObjectSelectionProperty,
+    TopLevelHeaderData,
+} from '../types';
 import type { JsonModel } from './model';
 import { getSelectionReferenceId } from './getObjectReferenceId';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { getTopLevelSelection, getTopSelection } from './modelPath';
-import { TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN, TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN } from '../constants';
 import { formatPropertyDocumentation, removeDefaultValue } from './documentationHelpers';
 import { getPropertyType } from './getPropertyType';
-
-function selectionHasChanged({
-    selection,
-    newSelection,
-}: {
-    selection: JsObjectSelection;
-    newSelection: JsObjectSelection;
-}): boolean {
-    return JSON.stringify(newSelection.path) !== JSON.stringify(selection.path);
-}
+import { getShouldLimitChildren } from './getShouldLimitChildren';
+import { selectionHasChanged } from './selectionHasChanged';
 
 function scrollToId(id?: string) {
     // Scroll to top to reset scroll position
-    smoothScrollIntoView('#top');
+    smoothScrollIntoView({ href: '#top', skipReplaceUrl: true });
 
     if (id) {
         // Wait for one render cycle before scrolling to position
         setTimeout(() => {
-            smoothScrollIntoView(`#${id}`);
+            smoothScrollIntoView({ href: `#${id}`, skipReplaceUrl: true });
         }, 0);
     }
 }
@@ -59,7 +55,7 @@ function getTopLevelHeader(selection: JsObjectSelection): TopLevelHeaderData | u
     }
 }
 
-export function useJsObjectSelection({ model }: { model: JsonModel }) {
+export function useJsObjectSelection({ model, config }: { model: JsonModel; config?: JsObjectPropertiesViewConfig }) {
     const rootSelection = getTopSelection({ model, hideChildren: true });
     const [topLevelSelection, setTopLevelSelection] = useState<JsObjectSelection>(rootSelection);
     const [selection, setSelection] = useState<JsObjectSelection>(rootSelection);
@@ -78,31 +74,35 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
 
                 const id = getSelectionReferenceId(newSelection);
                 scrollToId(id);
-            } else if (isTopLevelSelection) {
+            } else {
                 const { propName } = newSelection as JsObjectSelectionProperty;
-                const shouldHideChildren = TOP_LEVEL_OPTIONS_TO_HIDE_CHILDREN.includes(propName);
-                const shouldLimitChildren = TOP_LEVEL_OPTIONS_TO_LIMIT_CHILDREN.includes(propName);
+                const shouldLimitChildren = getShouldLimitChildren({
+                    config,
+                    path,
+                    pathItem: propName,
+                });
 
                 let shouldLimitChildrenDepth;
-                if (shouldHideChildren) {
-                    shouldLimitChildrenDepth = 0;
-                } else if (shouldLimitChildren) {
+                if (shouldLimitChildren) {
                     shouldLimitChildrenDepth = 1;
                 }
                 const onlyShowToDepth =
                     newSelection.onlyShowToDepth === undefined
                         ? shouldLimitChildrenDepth
                         : newSelection.onlyShowToDepth;
-                setTopLevelSelection({ ...newSelection, onlyShowToDepth });
-                setSelection(newSelection);
-                smoothScrollIntoView('#top');
-            } else {
+
                 try {
+                    const selectionChanged = selectionHasChanged({
+                        selection: topLevelSelection,
+                        newSelection,
+                        config,
+                    });
                     const [newTopLevelPathItem] = newSelection.path;
-                    if (selectionHasChanged({ selection: topLevelSelection, newSelection })) {
-                        const newTopLevelSelection = getTopLevelSelection({ selection: newSelection, model });
+
+                    if (selectionChanged) {
+                        const newTopLevelSelection = getTopLevelSelection({ selection: newSelection, model, config });
                         if (newTopLevelSelection) {
-                            setTopLevelSelection(newTopLevelSelection);
+                            setTopLevelSelection({ ...newTopLevelSelection, onlyShowToDepth });
                         } else {
                             // eslint-disable-next-line no-console
                             console.warn('No top level selection found:', {
@@ -111,7 +111,6 @@ export function useJsObjectSelection({ model }: { model: JsonModel }) {
                             });
                         }
                     }
-                    // NOTE: Don't change top level selection, as it hasn't changed
                     setSelection(newSelection);
 
                     const id = getSelectionReferenceId(newSelection);

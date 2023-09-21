@@ -4,7 +4,6 @@ import type { TestCase } from '../test/utils';
 import {
     cartesianChartAssertions,
     extractImageData,
-    hierarchyChartAssertions,
     IMAGE_SNAPSHOT_DEFAULTS,
     polarChartAssertions,
     prepareTestOptions,
@@ -75,10 +74,6 @@ const EXAMPLES: Record<string, TestCase> = {
         options: examples.LINE_SERIES_LABELS,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('line', 3) }),
     },
-    HISTOGRAM_SERIES_LABELS: {
-        options: examples.HISTOGRAM_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
-    },
     SCATTER_SERIES_LABELS: {
         options: examples.SCATTER_SERIES_LABELS,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
@@ -107,10 +102,6 @@ const EXAMPLES: Record<string, TestCase> = {
         options: examples.GROUPED_DOUGHNUT_SERIES_LABELS,
         assertions: polarChartAssertions({ seriesTypes: repeat('pie', 2) }),
     },
-    TREEMAP_SERIES_LABELS: {
-        options: examples.TREEMAP_SERIES_LABELS,
-        assertions: hierarchyChartAssertions({ seriesTypes: ['treemap'] }),
-    },
     LINE_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.LINE_COLUMN_COMBO_SERIES_LABELS,
         assertions: cartesianChartAssertions({
@@ -123,13 +114,6 @@ const EXAMPLES: Record<string, TestCase> = {
         assertions: cartesianChartAssertions({
             axisTypes: ['category', 'number', 'number'],
             seriesTypes: ['area', 'bar', 'bar'],
-        }),
-    },
-    HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: {
-        options: examples.HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number', 'number'],
-            seriesTypes: ['histogram', 'scatter'],
         }),
     },
 };

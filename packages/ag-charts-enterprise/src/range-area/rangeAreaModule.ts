@@ -1,9 +1,10 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
 import { RangeAreaSeries } from './rangeArea';
 import { RANGE_AREA_DEFAULTS } from './rangeAreaDefaults';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
+const { markerPaletteFactory } = _ModuleSupport;
 export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -15,14 +16,12 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     seriesDefaults: RANGE_AREA_DEFAULTS,
     themeTemplate: RANGE_AREA_SERIES_THEME,
 
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills: [fill],
-            strokes: [stroke],
-        } = takeColors(1);
+    paletteFactory: (params) => {
+        const { marker } = markerPaletteFactory(params);
         return {
-            fill,
-            stroke,
+            stroke: marker.stroke,
+            fill: marker.fill,
+            marker,
         };
     },
 };

@@ -52,6 +52,7 @@ export type InteractionEvent<T extends InteractionTypes> = {
     sourceEvent: Event;
     /** Consume the event, don't notify other listeners! */
     consume(): void;
+    consumed?: boolean;
 };
 
 interface Coords {
@@ -161,8 +162,15 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of types) {
-            const interactionEvent = this.buildEvent({ event, ...coords, type });
-            this.listeners.cancellableDispatch(type, () => interactionEvent.consumed, interactionEvent);
+            this.listeners.dispatchWrapHandlers(
+                type,
+                (handler, interactionEvent) => {
+                    if (!interactionEvent.consumed) {
+                        handler(interactionEvent);
+                    }
+                },
+                this.buildEvent({ type, event, ...coords })
+            );
         }
     }
 
@@ -305,7 +313,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-    }): InteractionEvent<(typeof opts)['type']> & { consumed: boolean } {
+    }): InteractionEvent<(typeof opts)['type']> {
         const { type, event, clientX, clientY } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 
@@ -328,7 +336,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY: pageY!,
             sourceEvent: event,
             consumed: false,
-            consume: () => (builtEvent.consumed = true),
+            consume() {
+                builtEvent.consumed = true;
+            },
         };
 
         return builtEvent;

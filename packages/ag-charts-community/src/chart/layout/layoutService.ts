@@ -1,20 +1,20 @@
 import type { BBox } from '../../scene/bbox';
-import { Listeners } from '../../util/listeners';
+import { type Listener, Listeners } from '../../util/listeners';
+import { Logger } from '../../util/logger';
 
-export type LayoutStage = 'start-layout' | 'before-series';
-
-export type AxisLabelLayout = {
-    fractionDigits: number;
-    padding: number;
-    format?: string;
-};
+type LayoutStage = 'start-layout' | 'before-series';
+type LayoutComplete = 'layout-complete';
 
 export interface AxisLayout {
     rect: BBox;
     gridPadding: number;
     seriesAreaPadding: number;
     tickSize: number;
-    label: AxisLabelLayout;
+    label: {
+        fractionDigits: number;
+        padding: number;
+        format?: string;
+    };
 }
 
 export interface LayoutCompleteEvent {
@@ -22,64 +22,52 @@ export interface LayoutCompleteEvent {
     chart: { width: number; height: number };
     series: { rect: BBox; paddedRect: BBox; visible: boolean };
     clipSeries: boolean;
-    axes?: (AxisLayout & {
-        id: string;
-    })[];
+    axes?: Array<AxisLayout & { id: string }>;
 }
 
 export interface LayoutContext {
     shrinkRect: BBox;
 }
 
-export interface LayoutResult {
-    shrinkRect: BBox;
-}
-
-type EventTypes = LayoutStage | 'layout-complete';
+type EventTypes = LayoutStage | LayoutComplete;
 type LayoutListener = (event: LayoutCompleteEvent) => void;
-type LayoutProcessor = (ctx: LayoutContext) => LayoutResult;
+type LayoutProcessor = (ctx: LayoutContext) => LayoutContext;
 
 type Handler<T extends EventTypes> = T extends LayoutStage ? LayoutProcessor : LayoutListener;
 
-const layoutComplete = 'layout-complete';
-function isLayoutStage(t: EventTypes): t is LayoutStage {
-    return t !== layoutComplete;
-}
+export class LayoutService extends Listeners<EventTypes, Handler<EventTypes>> {
+    private readonly layoutComplete = 'layout-complete';
 
-function isLayoutComplete(t: EventTypes): t is 'layout-complete' {
-    return t === layoutComplete;
-}
-
-export class LayoutService {
-    private readonly layoutProcessors = new Listeners<LayoutStage, LayoutProcessor>();
-    private readonly listeners = new Listeners<'layout-complete', LayoutListener>();
-
-    public addListener<T extends EventTypes>(type: T, cb: Handler<T>): Symbol {
-        if (isLayoutStage(type)) {
-            return this.layoutProcessors.addListener(type, cb as any);
-        } else if (isLayoutComplete(type)) {
-            return this.listeners.addListener(type, cb as any);
+    public addListener<T extends EventTypes>(eventType: T, handler: Handler<T>) {
+        if (this.isLayoutStage(eventType) || this.isLayoutComplete(eventType)) {
+            return super.addListener(eventType, handler);
         }
-
-        throw new Error('AG Charts - unsupported listener type: ' + type);
+        throw new Error(`AG Charts - unsupported listener type: ${eventType}`);
     }
 
-    public removeListener(listenerSymbol: Symbol) {
-        this.listeners.removeListener(listenerSymbol);
-        this.layoutProcessors.removeListener(listenerSymbol);
-    }
-
-    public dispatchPerformLayout(stage: LayoutStage, ctx: LayoutContext): LayoutResult {
-        const result = this.layoutProcessors.reduceDispatch(
-            stage,
-            ({ shrinkRect }, ctx) => [{ ...ctx, shrinkRect }],
-            ctx
-        );
-
-        return result ?? ctx;
+    public dispatchPerformLayout<T extends LayoutStage>(stage: T, ctx: LayoutContext) {
+        if (this.isLayoutStage(stage)) {
+            return this.getListenersByType(stage).reduce((result, listener) => {
+                try {
+                    return (listener as Listener<Handler<T>>).handler(result);
+                } catch (e) {
+                    Logger.errorOnce(e);
+                    return result;
+                }
+            }, ctx);
+        }
+        return ctx;
     }
 
     public dispatchLayoutComplete(event: LayoutCompleteEvent) {
-        this.listeners.dispatch(layoutComplete, event);
+        this.dispatch(this.layoutComplete, event);
+    }
+
+    protected isLayoutStage(eventType: EventTypes): eventType is LayoutStage {
+        return eventType !== this.layoutComplete;
+    }
+
+    protected isLayoutComplete(eventType: EventTypes): eventType is LayoutComplete {
+        return eventType === this.layoutComplete;
     }
 }

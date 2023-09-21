@@ -104,13 +104,5 @@ export default defineMarkdocConfig({
                 config: { type: String },
             },
         },
-        jsObjectPropertiesView: {
-            render: component('./src/features/api-documentation/components/JsObjectPropertiesView.astro'),
-            attributes: {
-                interfaceName: { type: String },
-                breadcrumbs: { type: String },
-                config: { type: String },
-            },
-        },
     },
 });

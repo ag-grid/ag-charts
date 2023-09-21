@@ -1,4 +1,4 @@
-import {AgChartOptions, AgChart} from 'ag-charts-community';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 import {getData} from './data';
 
 function formatSize(value: number) {
@@ -48,4 +48,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgChart.create(options);
+AgEnterpriseCharts.create(options);

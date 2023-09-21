@@ -73,18 +73,6 @@ const EXAMPLES: Record<string, TestCase> = {
     AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: {
         options: examples.AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
     },
-    MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE: {
-        options: examples.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE,
-    },
-    SIMPLE_HISTOGRAM_CHART_EXAMPLE: {
-        options: examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
-    },
-    HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: {
-        options: examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
-    },
-    XY_HISTOGRAM_WITH_MEAN_EXAMPLE: {
-        options: examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
-    },
     // START ADVANCED EXAMPLES =====================================================================
     ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS: {
         options: examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,

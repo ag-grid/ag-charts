@@ -1,0 +1,162 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { getPathFromUrlPathname, urlWithBaseUrl } from '@utils/pages';
+import { pathJoin } from '@utils/pathJoin';
+
+const { pathname } = Astro.url;
+const pagePath = pathJoin('/', getPathFromUrlPathname(pathname));
+
+const menuItems = [
+    {
+        name: 'Options API',
+        url: '/options',
+    },
+    {
+        name: 'Themes API',
+        url: '/themes-api',
+    },
+    {
+        name: 'API Explorer',
+        url: '/explorer',
+    },
+];
+
+const dummySeries = [
+    'All',
+    'Bar',
+    'Column',
+    'Line',
+    'Area',
+    'Scatter',
+    'Bubble',
+    'Pie',
+    'Donut',
+    'Combination',
+    'Histogram',
+    'Heatmap',
+    'Range',
+    'Box Plot',
+    'Error Bar',
+    'Waterfall',
+    'Radar',
+    'Nightingale',
+    'Radial Column',
+    'Radial Bar',
+    'Treemap',
+    'Sunburst',
+    'Icicle',
+    'Funnel',
+    'Pyramid',
+    'Bullet',
+];
+---
+
+<Layout>
+    <div class="topBar">
+        <div class="topBarInner page-margin">
+            <nav>
+                <ul class="list-style-none">
+                    {
+                        menuItems.map(({ name, url }) => {
+                            const active = pagePath === url;
+                            return (
+                                <li class={active ? 'active' : ''}>
+                                    <a href={urlWithBaseUrl(url)}>{name}</a>
+                                </li>
+                            );
+                        })
+                    }
+                </ul>
+            </nav>
+            <label>
+                <span class="text-secondary">Series:</span>
+
+                <select>
+                    {
+                        dummySeries.map((series) => {
+                            return <option>{series}</option>;
+                        })
+                    };
+                </select>
+            </label>
+        </div>
+    </div>
+    <div id="top" class="container">
+        <slot />
+    </div>
+</Layout>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    .container {
+        --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
+        --menu-width: 14rem;
+        --gallery-list-gap: #{$size-3};
+
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+
+    .topBar {
+        background-color: var(--toolbar-background);
+        border-bottom: 1px solid var(--border-color);
+
+        @media screen and (min-width: $breakpoint-docs-nav-medium) {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+    }
+
+    .topBarInner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: $size-1;
+        padding-bottom: $size-1;
+    }
+
+    nav ul {
+        display: flex;
+        gap: $size-4;
+    }
+
+    nav li {
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            left: 0;
+            bottom: -2px;
+            border-radius: 1px;
+            background-color: var(--link-color);
+            opacity: 0;
+            transform: scaleX(0);
+            transition: transform 0.33s ease-in-out, opacity 0.33s ease-in-out;
+        }
+
+        &:hover::before {
+            opacity: 0.4;
+            transform: scaleX(1);
+        }
+
+        &.active::before {
+            opacity: 1;
+            transform: scaleX(1);
+        }
+    }
+
+    nav a {
+        display: block;
+        font-weight: 500;
+
+        &:hover {
+            color: var(--link-color);
+        }
+    }
+</style>

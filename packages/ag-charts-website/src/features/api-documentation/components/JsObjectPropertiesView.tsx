@@ -27,10 +27,14 @@ function TopLevelHeader({
     if (!topLevelHeader) {
         return null;
     }
+
+    const pathSeparator = topLevelHeader.heading && topLevelHeader.path.length > 0 ? '.' : '';
+
     return (
         <header>
             <h1 className="font-size-gigantic">
                 <HeadingPath path={topLevelHeader.path} />
+                {pathSeparator}
                 {topLevelHeader.heading}
             </h1>
             <p>{topLevelHeader.descriptionWithoutDefault}</p>
@@ -53,7 +57,7 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
     framework,
 }) => {
     const model = buildModel(interfaceName, interfaceLookup, codeLookup);
-    const { topLevelSelection, topLevelHeader, handleSelection } = useJsObjectSelection({ model });
+    const { topLevelSelection, topLevelHeader, handleSelection } = useJsObjectSelection({ model, config });
 
     return (
         <div className={styles.container}>

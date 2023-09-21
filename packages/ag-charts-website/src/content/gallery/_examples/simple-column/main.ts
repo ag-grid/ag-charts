@@ -21,7 +21,6 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'visitors',
             label: {
-                color: '#eeeeee',
                 formatter: ({ value }) => formatNumber(value),
             },
             tooltip: {

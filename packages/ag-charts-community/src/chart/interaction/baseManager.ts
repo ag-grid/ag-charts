@@ -1,16 +1,13 @@
 import { Listeners } from '../../util/listeners';
 
-export abstract class BaseManager<EventTypes extends string = never, EventType extends { type: EventTypes } = never> {
-    protected readonly listeners = new Listeners<EventTypes, (event: EventType) => void>();
+export abstract class BaseManager<EventType extends string = never, Event extends { type: any } = never> {
+    protected readonly listeners = new Listeners<EventType, (event: Event) => void>();
 
-    public addListener<T extends EventTypes, E extends EventType & { type: T }>(
-        type: T,
-        cb: (event: E) => void
-    ): Symbol {
-        return this.listeners.addListener(type, cb as any);
+    public addListener<T extends EventType>(type: T, handler: (event: Event & { type: T }) => void) {
+        return this.listeners.addListener(type, handler);
     }
 
-    public removeListener(listenerSymbol: Symbol) {
+    public removeListener(listenerSymbol: symbol) {
         this.listeners.removeListener(listenerSymbol);
     }
 }

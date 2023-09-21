@@ -43,6 +43,8 @@ describe('Integrated Charts Examples', () => {
 
         let index = 0;
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
+            if (example.enterpriseCharts) continue;
+
             index++;
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {

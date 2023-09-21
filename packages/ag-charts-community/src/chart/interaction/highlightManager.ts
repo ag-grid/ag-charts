@@ -72,12 +72,11 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
 
         const changed = !isEqual(previousHighlight, this.activeHighlight);
         if (changed) {
-            const event: HighlightChangeEvent = {
+            this.listeners.dispatch('highlight-change', {
                 type: 'highlight-change',
                 previousHighlight,
                 currentHighlight: this.activeHighlight,
-            };
-            this.listeners.dispatch('highlight-change', event);
+            });
         }
     }
 }

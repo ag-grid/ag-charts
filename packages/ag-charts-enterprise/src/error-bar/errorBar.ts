@@ -70,8 +70,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
-        const listener = this.cartesianSeries.addListener('data-model', (event) => this.onDataProcessed(event));
-        this.destroyFns.push(() => this.cartesianSeries.removeListener(listener));
+        this.destroyFns.push(this.cartesianSeries.addListener('data-model', (event) => this.onDataProcessed(event)));
     }
 
     onDataProcessed(event: {
