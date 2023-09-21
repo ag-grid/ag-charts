@@ -49,6 +49,16 @@ describe('selection', () => {
 
                 expectSelectionToMatchData(selection, data);
             });
+
+            it('for zero datums it should remove data', () => {
+                const selection = new Selection(new TestNode(), TestNode);
+                const data = ['a', 'b', 'c'];
+                const changedData: string[] = [];
+                selection.update(data);
+                selection.update(changedData);
+
+                expectSelectionToMatchData(selection, changedData);
+            });
         });
 
         describe('with manual garbage collection', () => {
@@ -71,6 +81,17 @@ describe('selection', () => {
                 const selection = new Selection(new TestNode(), TestNode, false);
                 const data = ['a', 'b', 'c'];
                 const changedData = ['a', 'c'];
+                selection.update(data);
+                selection.update(changedData);
+                selection.cleanup();
+
+                expectSelectionToMatchData(selection, changedData);
+            });
+
+            it('when garbage collected and zero datums it should remove data', () => {
+                const selection = new Selection(new TestNode(), TestNode, false);
+                const data = ['a', 'b', 'c'];
+                const changedData: string[] = [];
                 selection.update(data);
                 selection.update(changedData);
                 selection.cleanup();
