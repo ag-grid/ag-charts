@@ -215,8 +215,9 @@ describe('CartesianChart', () => {
                 tcOptions.series?.reduce((r, s: any) => {
                     return r.concat(s.yKey ? [s.yKey] : s.yKeys);
                 }, []) ?? [];
-            it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
-                const options: AgChartOptions = { ...tcOptions };
+
+            const buildChart = async (chartOptions: AgChartOptions, yKey: string) => {
+                const options: AgChartOptions = { ...chartOptions };
                 prepareTestOptions(options);
 
                 chart = deproxy(AgChart.create(options)) as CartesianChart;
@@ -231,7 +232,28 @@ describe('CartesianChart', () => {
                 const nodeData = nodeDataArray.find((n) => n.itemId === yKey);
 
                 const highlightManager = (chart as any).highlightManager;
+
+                return { chart, nodeData, highlightManager };
+            };
+
+            it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
+                const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
                 highlightManager.updateHighlight(chart.id, nodeData?.nodeData[3]);
+                await compare(chart);
+            });
+
+            it('should correctly change highlighting state and reset', async () => {
+                const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, YKEYS[0]);
+
+                const nodesToTest = nodeData?.nodeData?.slice(2, 4) ?? [];
+                expect(nodesToTest).toHaveLength(2);
+
+                for (const nodeDataItem of nodesToTest) {
+                    highlightManager.updateHighlight(chart.id, nodeDataItem);
+                    await compare(chart);
+                }
+
+                highlightManager.updateHighlight(chart.id);
                 await compare(chart);
             });
         });
