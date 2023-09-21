@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../util/coreModules';
+import { singleSeriesPaletteFactory } from '../../../util/theme';
 import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
-import { singleSeriesPaletteFactory } from '../../mapping/defaults';
 import { HistogramSeries } from './histogramSeries';
 import { NumberAxis } from '../../axis/numberAxis';
 

@@ -1,4 +1,5 @@
 import type { SeriesModule } from '../../../util/coreModules';
+import { markerPaletteFactory } from '../../../util/theme';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
@@ -7,7 +8,7 @@ import {
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
-import { DEFAULT_CARTESIAN_CHART_OVERRIDES, markerPaletteFactory } from '../../mapping/defaults';
+import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
 
 export const AreaSeriesModule: SeriesModule<'area'> = {
     type: 'series',

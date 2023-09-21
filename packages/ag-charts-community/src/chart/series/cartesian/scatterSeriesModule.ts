@@ -1,11 +1,11 @@
 import type { SeriesModule } from '../../../util/coreModules';
+import { markerPaletteFactory } from '../../../util/theme';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { markerPaletteFactory } from '../../mapping/defaults';
 import { ScatterSeries } from './scatterSeries';
 import { NumberAxis } from '../../axis/numberAxis';
 

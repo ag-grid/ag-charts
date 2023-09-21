@@ -1,10 +1,10 @@
 import type { SeriesModule } from '../../../util/coreModules';
+import { singleSeriesPaletteFactory } from '../../../util/theme';
 import type { AgBarSeriesOptions } from '../../../options/agChartOptions';
 import { BarSeries } from './barSeries';
 import { DEFAULT_FONT_FAMILY, DEFAULT_SHADOW_COLOUR, EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
 import { NumberAxis } from '../../axis/numberAxis';
 import { CategoryAxis } from '../../axis/categoryAxis';
-import { singleSeriesPaletteFactory } from '../../mapping/defaults';
 import { NORMAL } from '../../themes/constants';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {

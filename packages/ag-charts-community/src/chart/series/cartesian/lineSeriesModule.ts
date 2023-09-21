@@ -1,11 +1,12 @@
 import type { SeriesModule } from '../../../util/coreModules';
+import { markerPaletteFactory } from '../../../util/theme';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { DEFAULT_CARTESIAN_CHART_OVERRIDES, markerPaletteFactory } from '../../mapping/defaults';
+import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
 import { LineSeries } from './lineSeries';
 
 export const LineSeriesModule: SeriesModule<'line'> = {
