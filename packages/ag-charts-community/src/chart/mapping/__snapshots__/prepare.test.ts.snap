@@ -1611,7 +1611,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
   },
   "series": [
     {
-      "fill": "#f3622d",
+      "fill": "#436ff4",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -1654,7 +1654,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#294ed1",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1667,7 +1667,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Large household appliances",
     },
     {
-      "fill": "#fba71b",
+      "fill": "#9a7bff",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -1710,7 +1710,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#b07513",
+      "stroke": "#7d5bdc",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1723,7 +1723,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Small household appliances",
     },
     {
-      "fill": "#57b757",
+      "fill": "#d165d2",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -1766,7 +1766,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#3d803d",
+      "stroke": "#b045b1",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1779,7 +1779,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "IT and telecomms equipment",
     },
     {
-      "fill": "#41a9c9",
+      "fill": "#f0598b",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -1822,7 +1822,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#2d768d",
+      "stroke": "#cc366e",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1835,7 +1835,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Consumer equipment",
     },
     {
-      "fill": "#4258c9",
+      "fill": "#f47348",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -1878,7 +1878,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#2e3e8d",
+      "stroke": "#d15326",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1891,7 +1891,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Electrical and electronic tools",
     },
     {
-      "fill": "#9a42c8",
+      "fill": "#f2a602",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -1934,7 +1934,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#6c2e8c",
+      "stroke": "#c67d00",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1947,7 +1947,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Display equipment",
     },
     {
-      "fill": "#c84164",
+      "fill": "#e9e201",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -1990,7 +1990,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8c2d46",
+      "stroke": "#ada400",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -2003,7 +2003,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Cooling appliances containing refrigerants",
     },
     {
-      "fill": "#888888",
+      "fill": "#21b448",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -2046,7 +2046,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#5f5f5f",
+      "stroke": "#009426",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -2302,13 +2302,13 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       },
       "marker": {
         "enabled": true,
-        "fill": "#f3622d",
+        "fill": "#436ff4",
         "fillOpacity": 0.7,
         "formatter": [Function],
         "maxSize": 100,
         "shape": "circle",
         "size": 5,
-        "stroke": "#aa4520",
+        "stroke": "#294ed1",
         "strokeOpacity": 0.7,
         "strokeWidth": 0,
       },
@@ -3519,7 +3519,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
   "series": [
     {
       "direction": "horizontal",
-      "fill": "#f3622d",
+      "fill": "#436ff4",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -3562,7 +3562,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#294ed1",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -4095,7 +4095,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "maxSize": 30,
         "shape": "circle",
         "size": 0,
-        "stroke": "#aa4520",
+        "stroke": "#294ed1",
         "strokeOpacity": 0.85,
         "strokeWidth": 1,
       },
@@ -4355,13 +4355,13 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "labelName": "City",
       "marker": {
         "enabled": true,
-        "fill": "#f3622d",
+        "fill": "#436ff4",
         "fillOpacity": 0.5,
         "formatter": undefined,
         "maxSize": 100,
         "shape": "circle",
         "size": 5,
-        "stroke": "#aa4520",
+        "stroke": "#294ed1",
         "strokeOpacity": 0.5,
         "strokeWidth": 1,
       },
@@ -5262,7 +5262,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
   },
   "series": [
     {
-      "fill": "#f3622d",
+      "fill": "#436ff4",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5302,7 +5302,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#294ed1",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5315,7 +5315,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "16-24",
     },
     {
-      "fill": "#fba71b",
+      "fill": "#9a7bff",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5355,7 +5355,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#b07513",
+      "stroke": "#7d5bdc",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5368,7 +5368,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "25-34",
     },
     {
-      "fill": "#57b757",
+      "fill": "#d165d2",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5408,7 +5408,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#3d803d",
+      "stroke": "#b045b1",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5421,7 +5421,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "35-44",
     },
     {
-      "fill": "#41a9c9",
+      "fill": "#f0598b",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5461,7 +5461,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#2d768d",
+      "stroke": "#cc366e",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5474,7 +5474,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "45-54",
     },
     {
-      "fill": "#4258c9",
+      "fill": "#f47348",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5514,7 +5514,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#2e3e8d",
+      "stroke": "#d15326",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5527,7 +5527,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "55-64",
     },
     {
-      "fill": "#9a42c8",
+      "fill": "#f2a602",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5567,7 +5567,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#6c2e8c",
+      "stroke": "#c67d00",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5580,7 +5580,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "65-74",
     },
     {
-      "fill": "#c84164",
+      "fill": "#e9e201",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5620,7 +5620,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8c2d46",
+      "stroke": "#ada400",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -6906,18 +6906,18 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
-        "fill": "#f3622d",
+        "fill": "#436ff4",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#aa4520",
+        "stroke": "#294ed1",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#294ed1",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7142,7 +7142,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
   },
   "series": [
     {
-      "fill": "#f3622d",
+      "fill": "#436ff4",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7165,12 +7165,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#f3622d",
+        "fill": "#436ff4",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#aa4520",
+        "stroke": "#294ed1",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7190,7 +7190,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#294ed1",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7205,7 +7205,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Coal",
     },
     {
-      "fill": "#fba71b",
+      "fill": "#9a7bff",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7228,12 +7228,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#fba71b",
+        "fill": "#9a7bff",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#b07513",
+        "stroke": "#7d5bdc",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7253,7 +7253,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#b07513",
+      "stroke": "#7d5bdc",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7268,7 +7268,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Petroleum",
     },
     {
-      "fill": "#57b757",
+      "fill": "#d165d2",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7291,12 +7291,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#57b757",
+        "fill": "#d165d2",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#3d803d",
+        "stroke": "#b045b1",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7316,7 +7316,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#3d803d",
+      "stroke": "#b045b1",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7331,7 +7331,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Natural gas",
     },
     {
-      "fill": "#41a9c9",
+      "fill": "#f0598b",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7354,12 +7354,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#41a9c9",
+        "fill": "#f0598b",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#2d768d",
+        "stroke": "#cc366e",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7379,7 +7379,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#2d768d",
+      "stroke": "#cc366e",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7394,7 +7394,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Bioenergy & waste",
     },
     {
-      "fill": "#4258c9",
+      "fill": "#f47348",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7417,12 +7417,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#4258c9",
+        "fill": "#f47348",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#2e3e8d",
+        "stroke": "#d15326",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7442,7 +7442,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#2e3e8d",
+      "stroke": "#d15326",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7457,7 +7457,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Nuclear",
     },
     {
-      "fill": "#9a42c8",
+      "fill": "#f2a602",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7480,12 +7480,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#9a42c8",
+        "fill": "#f2a602",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#6c2e8c",
+        "stroke": "#c67d00",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7505,7 +7505,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#6c2e8c",
+      "stroke": "#c67d00",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -7520,7 +7520,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Wind, solar & hydro",
     },
     {
-      "fill": "#c84164",
+      "fill": "#e9e201",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7543,12 +7543,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#c84164",
+        "fill": "#e9e201",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#8c2d46",
+        "stroke": "#ada400",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -7568,7 +7568,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8c2d46",
+      "stroke": "#ada400",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -8782,12 +8782,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#f3622d",
+        "fill": "#436ff4",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#aa4520",
+        "stroke": "#294ed1",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -8846,12 +8846,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#fba71b",
+        "fill": "#9a7bff",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#b07513",
+        "stroke": "#7d5bdc",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -8910,12 +8910,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#57b757",
+        "fill": "#d165d2",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#3d803d",
+        "stroke": "#b045b1",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -8974,12 +8974,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#41a9c9",
+        "fill": "#f0598b",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 6,
-        "stroke": "#2d768d",
+        "stroke": "#cc366e",
         "strokeOpacity": 1,
         "strokeWidth": 1,
       },
@@ -9273,7 +9273,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#294ed1",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -9401,14 +9401,16 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       "calloutLabelKey": "type",
       "calloutLine": {
         "colors": [
-          "#aa4520",
-          "#b07513",
-          "#3d803d",
-          "#2d768d",
-          "#2e3e8d",
-          "#6c2e8c",
-          "#8c2d46",
-          "#5f5f5f",
+          "#294ed1",
+          "#7d5bdc",
+          "#b045b1",
+          "#cc366e",
+          "#d15326",
+          "#c67d00",
+          "#ada400",
+          "#009426",
+          "#00957f",
+          "#008ec3",
         ],
         "length": 10,
         "strokeWidth": 2,
@@ -9490,14 +9492,16 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
-        "#aa4520",
-        "#b07513",
-        "#3d803d",
-        "#2d768d",
-        "#2e3e8d",
-        "#6c2e8c",
-        "#8c2d46",
-        "#5f5f5f",
+        "#294ed1",
+        "#7d5bdc",
+        "#b045b1",
+        "#cc366e",
+        "#d15326",
+        "#c67d00",
+        "#ada400",
+        "#009426",
+        "#00957f",
+        "#008ec3",
       ],
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -9955,14 +9959,16 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       "calloutLabelKey": "religion",
       "calloutLine": {
         "colors": [
-          "#aa4520",
-          "#b07513",
-          "#3d803d",
-          "#2d768d",
-          "#2e3e8d",
-          "#6c2e8c",
-          "#8c2d46",
-          "#5f5f5f",
+          "#294ed1",
+          "#7d5bdc",
+          "#b045b1",
+          "#cc366e",
+          "#d15326",
+          "#c67d00",
+          "#ada400",
+          "#009426",
+          "#00957f",
+          "#008ec3",
         ],
         "length": 10,
         "strokeWidth": 2,
@@ -10023,14 +10029,16 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
-        "#aa4520",
-        "#b07513",
-        "#3d803d",
-        "#2d768d",
-        "#2e3e8d",
-        "#6c2e8c",
-        "#8c2d46",
-        "#5f5f5f",
+        "#294ed1",
+        "#7d5bdc",
+        "#b045b1",
+        "#cc366e",
+        "#d15326",
+        "#c67d00",
+        "#ada400",
+        "#009426",
+        "#00957f",
+        "#008ec3",
       ],
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -10285,7 +10293,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "formatter": undefined,
         "shape": "circle",
         "size": 12,
-        "stroke": "#aa4520",
+        "stroke": "#294ed1",
         "strokeOpacity": 0,
         "strokeWidth": 1,
       },
@@ -11136,7 +11144,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
   "series": [
     {
       "direction": "horizontal",
-      "fill": "#f3622d",
+      "fill": "#436ff4",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11173,7 +11181,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#294ed1",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -11188,7 +11196,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     },
     {
       "direction": "horizontal",
-      "fill": "#fba71b",
+      "fill": "#9a7bff",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11225,7 +11233,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#b07513",
+      "stroke": "#7d5bdc",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -11240,7 +11248,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     },
     {
       "direction": "horizontal",
-      "fill": "#57b757",
+      "fill": "#d165d2",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11277,7 +11285,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#3d803d",
+      "stroke": "#b045b1",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -11292,7 +11300,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     },
     {
       "direction": "horizontal",
-      "fill": "#41a9c9",
+      "fill": "#f0598b",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11329,7 +11337,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#2d768d",
+      "stroke": "#cc366e",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
