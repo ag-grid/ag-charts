@@ -517,11 +517,11 @@ export class BoxPlotSeries extends CartesianSeries<
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyles {
         const {
             xKey = '',
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
+            minKey = '',
+            q1Key = '',
+            medianKey = '',
+            q3Key = '',
+            maxKey = '',
             formatter,
             id: seriesId,
             ctx: { callbackCache },

@@ -9,7 +9,7 @@ import type { PixelSize } from '../../options/types';
 
 export interface AgBubbleSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
     /** sizeKey as specified on series options. */
-    readonly sizeKey?: string;
+    readonly sizeKey: string;
     /** sizeName as specified on series options. */
     readonly sizeName?: string;
 

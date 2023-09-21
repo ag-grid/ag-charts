@@ -426,12 +426,12 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
     }
 
     getTooltipHtml(nodeDatum: BubbleNodeDatum): string {
-        const { xKey, yKey, axes } = this;
+        const { xKey, yKey, sizeKey, axes } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!xKey || !yKey || !xAxis || !yAxis) {
+        if (!xKey || !yKey || !xAxis || !yAxis || !sizeKey) {
             return '';
         }
 
@@ -440,7 +440,6 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
             tooltip,
             xName,
             yName,
-            sizeKey,
             sizeName,
             labelKey,
             labelName,
