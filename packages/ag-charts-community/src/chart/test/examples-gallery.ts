@@ -157,7 +157,7 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
 
 export const EXAMPLES = Object.entries(COMMUNITY_AND_ENTERPRISE_EXAMPLES)
     .filter(([, v]) => !v.enterprise)
-    .reduce((pv, [k, v]) => {
+    .reduce<typeof COMMUNITY_AND_ENTERPRISE_EXAMPLES>((pv, [k, v]) => {
         pv[k] = v;
         return pv;
-    }, {} as typeof COMMUNITY_AND_ENTERPRISE_EXAMPLES);
+    }, {});
