@@ -2,8 +2,30 @@ import { ChartTheme } from './chartTheme';
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 
 const palette: AgChartThemePalette = {
-    fills: ['#c16068', '#a2bf8a', '#ebcc87', '#80a0c3', '#b58dae', '#85c0d1'],
-    strokes: ['#874349', '#718661', '#a48f5f', '#5a7088', '#7f637a', '#5d8692'],
+    fills: [
+        '#75cbf4',
+        '#a1beff',
+        '#cbb0f6',
+        '#eaa6d6',
+        '#f9a4ab',
+        '#f4ac83',
+        '#f2e773',
+        '#bedb7b',
+        '#84d3a6',
+        '#65d4d2',
+    ],
+    strokes: [
+        '#54abd3',
+        '#839edd',
+        '#ab91d5',
+        '#c987b6',
+        '#d7858c',
+        '#d28d65',
+        '#c0b43c',
+        '#99b455',
+        '#64b387',
+        '#41b4b2',
+    ],
 };
 
 export class PastelLight extends ChartTheme {

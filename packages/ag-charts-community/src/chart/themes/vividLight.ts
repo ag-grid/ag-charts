@@ -2,8 +2,30 @@ import { ChartTheme } from './chartTheme';
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 
 const palette: AgChartThemePalette = {
-    fills: ['#5BC0EB', '#FDE74C', '#9BC53D', '#E55934', '#FA7921', '#fa3081'],
-    strokes: ['#4086a4', '#b1a235', '#6c8a2b', '#a03e24', '#af5517', '#af225a'],
+    fills: [
+        '#1fa9ff',
+        '#7a80ff',
+        '#c364f2',
+        '#ef4eab',
+        '#ff4d4d',
+        '#ef6b00',
+        '#e9b301',
+        '#5caf00',
+        '#00bd7f',
+        '#05d5f5',
+    ],
+    strokes: [
+        '#007dcf',
+        '#5f60dc',
+        '#a343d0',
+        '#cb278c',
+        '#da232e',
+        '#cc4a00',
+        '#bb8700',
+        '#3d8f00',
+        '#009d61',
+        '#00a9c8',
+    ],
 };
 
 export class VividLight extends ChartTheme {
