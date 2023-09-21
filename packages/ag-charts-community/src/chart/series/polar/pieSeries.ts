@@ -438,7 +438,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         if (legendItemKey) {
             extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
         }
-        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
+        if (
+            !this.ctx.animationManager.isSkipped() &&
+            this.processedData &&
+            (calloutLabelKey || sectorLabelKey || legendItemKey)
+        ) {
             extraProps.push(diff(this.processedData));
         }
 
