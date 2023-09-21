@@ -97,6 +97,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Axis Title',
+                spacing: 15,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 12,

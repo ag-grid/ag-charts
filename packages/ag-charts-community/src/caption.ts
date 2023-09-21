@@ -48,7 +48,7 @@ export class Caption {
     color: string | undefined;
 
     @Validate(OPT_NUMBER(0))
-    public spacing?: number = Caption.PADDING;
+    spacing?: number = Caption.PADDING;
 
     @Validate(OPT_NUMBER(0))
     lineHeight: number | undefined = undefined;
