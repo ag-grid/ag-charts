@@ -45,6 +45,24 @@
           }
         ]
       }
+    },
+    "format-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "nx format:check --all"
+          }
+        ]
+      }
+    },
+    "blt": {
+      "executor": "nx:noop",
+      "dependsOn": ["build", "lint", "format-check", "test"],
+      "configurations": {
+        "update": {},
+        "production": {}
+      }
     }
   },
   "implicitDependencies": [
