@@ -73,6 +73,11 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Error Bar",
+                        "path": "error-bars",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Zoom",
                         "path": "zoom",
                         "isEnterprise": true
@@ -159,12 +164,6 @@
                         "title": "Box Plot",
                         "icon": "chartsBoxPlot",
                         "path": "box-plot-series",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Error Bar",
-                        "icon": "chartsErrorBar",
-                        "path": "error-bars",
                         "isEnterprise": true
                     },
                     {
