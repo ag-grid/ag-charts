@@ -10,16 +10,9 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'The GDP of Baltic States',
-        fontSize: 18,
     },
     subtitle: {
         text: 'Population (Angle) & GDP per Capita (Radius)',
-    },
-    padding: {
-        top: 32,
-        right: 20,
-        bottom: 32,
-        left: 20,
     },
     series: [
         {
@@ -33,18 +26,10 @@ const options: AgChartOptions = {
                 minAngle: 0,
             },
             sectorLabel: {
-                color: 'white',
-                fontWeight: 'bold',
                 formatter: ({ datum }) => {
                     return usdShortFormatter.format(datum['population'] * datum['gdpPerCapita']);
                 },
             },
-            calloutLine: {
-                strokeWidth: 1,
-                colors: ['black'],
-            },
-            fills: ['#fb7451', '#f4b944', '#49afda'],
-            strokeWidth: 0,
             tooltip: {
                 renderer: ({ datum, color }) => {
                     return [
@@ -58,13 +43,6 @@ const options: AgChartOptions = {
                     ].join('\n');
                 },
             },
-            highlightStyle: {
-                item: {
-                    fillOpacity: 0,
-                    stroke: '#535455',
-                    strokeWidth: 1,
-                },
-            },
         },
     ],
     legend: {
@@ -72,4 +50,4 @@ const options: AgChartOptions = {
     },
 };
 
-const chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

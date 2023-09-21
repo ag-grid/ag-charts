@@ -1,11 +1,11 @@
 import type { SeriesModule } from '../../../util/coreModules';
+import { singleSeriesPaletteFactory } from '../../../util/theme';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { singleSeriesPaletteFactory } from '../../mapping/defaults';
 import { HistogramSeries } from './histogramSeries';
 import { NumberAxis } from '../../axis/numberAxis';
 
@@ -26,7 +26,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         strokeWidth: 1,
-        fillOpacity: 1,
+        fillOpacity: 0.8,
         strokeOpacity: 1,
         lineDash: [0],
         lineDashOffset: 0,
@@ -40,10 +40,10 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             formatter: undefined,
         },
         shadow: {
-            enabled: true,
+            enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 0,
-            yOffset: 0,
+            xOffset: 3,
+            yOffset: 3,
             blur: 5,
         },
     },

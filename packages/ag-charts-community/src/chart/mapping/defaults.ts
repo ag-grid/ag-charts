@@ -2,7 +2,6 @@ import type { AgCartesianChartOptions, AgChartOptions } from '../../options/agCh
 import { NumberAxis } from '../axis/numberAxis';
 import { CategoryAxis } from '../axis/categoryAxis';
 import { isAgCartesianChartOptions } from './types';
-import type { SeriesPaletteFactory } from '../../util/coreModules';
 
 export const DEFAULT_CARTESIAN_CHART_OVERRIDES: AgCartesianChartOptions = {
     axes: [
@@ -15,14 +14,6 @@ export const DEFAULT_CARTESIAN_CHART_OVERRIDES: AgCartesianChartOptions = {
             position: 'bottom',
         },
     ],
-};
-
-export const singleSeriesPaletteFactory: SeriesPaletteFactory = ({ takeColors }) => {
-    const {
-        fills: [fill],
-        strokes: [stroke],
-    } = takeColors(1);
-    return { fill, stroke };
 };
 
 export function swapAxes<T extends AgChartOptions>(opts: T): T {

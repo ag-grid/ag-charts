@@ -1,10 +1,11 @@
 import type { SeriesModule } from '../../../util/coreModules';
-import { BOLD } from '../../themes/constants';
+import { NORMAL } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
 } from '../../themes/symbols';
 import { PieSeries } from './pieSeries';
 
@@ -22,7 +23,7 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         title: {
             enabled: true,
             fontStyle: undefined,
-            fontWeight: BOLD,
+            fontWeight: NORMAL,
             fontSize: 14,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_LABEL_COLOUR,
@@ -41,10 +42,10 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         sectorLabel: {
             enabled: true,
             fontStyle: undefined,
-            fontWeight: undefined,
+            fontWeight: NORMAL,
             fontSize: 12,
             fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
+            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             positionOffset: 0,
             positionRatio: 0.5,
         },
@@ -76,5 +77,14 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
             margin: 2,
         },
     },
-    paletteFactory: ({ takeColors, colorsCount }) => takeColors(colorsCount),
+    paletteFactory: ({ takeColors, colorsCount }) => {
+        const { fills, strokes } = takeColors(colorsCount);
+        return {
+            fills,
+            strokes,
+            calloutLine: {
+                colors: strokes,
+            },
+        };
+    },
 };
