@@ -650,15 +650,8 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
             return;
         }
 
-        const totalDuration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
-
-        let sectionDuration = totalDuration;
-        if (diff.added.length > 0 && diff.removed.length > 0) {
-            sectionDuration = Math.floor(totalDuration / 3);
-        } else if (diff.added.length > 0 || diff.removed.length > 0) {
-            sectionDuration = Math.floor(totalDuration / 2);
-        }
 
         let startingY = 0;
         datumSelections.forEach((datumSelection) =>
@@ -671,15 +664,14 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
         const removedIds = zipObject(diff.removed, true);
 
         datumSelections.forEach((datumSelection) => {
-            datumSelection.each((rect, datum) => {
+            datumSelection.each((rect, datum, index) => {
                 let props = [
                     { from: rect.x, to: datum.x },
                     { from: rect.width, to: datum.width },
                     { from: rect.y, to: datum.y },
                     { from: rect.height, to: datum.height },
                 ];
-                let delay = diff.removed.length > 0 ? sectionDuration : 0;
-                let cleanup = false;
+                const cleanup = index === datumSelection.nodes().length - 1;
 
                 const datumId = getDatumId(datum);
                 const contextY = startingY;
@@ -692,7 +684,6 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                         { from: contextY, to: datum.y },
                         { from: contextHeight, to: datum.height },
                     ];
-                    delay += sectionDuration;
                 } else if (removedIds[datumId]) {
                     props = [
                         { from: rect.x, to: datum.x },
@@ -700,16 +691,11 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                         { from: datum.y, to: contextY },
                         { from: datum.height, to: contextHeight },
                     ];
-                    delay = 0;
-                    cleanup = true;
                 }
 
                 this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${rect.id}`, props, {
-                    disableInteractions: true,
-                    delay,
-                    duration: sectionDuration,
+                    duration,
                     ease: easing.easeOut,
-                    repeat: 0,
                     onUpdate([x, width, y, height]) {
                         rect.x = x;
                         rect.width = width;
@@ -730,7 +716,7 @@ export class HistogramSeries extends CartesianSeries<SeriesNodeDataContext<Histo
                 this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
                     from: 0,
                     to: 1,
-                    delay: totalDuration,
+                    delay: duration,
                     duration: labelDuration,
                     ease: easing.linear,
                     repeat: 0,

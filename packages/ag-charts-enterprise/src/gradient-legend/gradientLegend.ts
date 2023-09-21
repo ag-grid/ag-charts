@@ -208,11 +208,13 @@ export class GradientLegend {
         const orientation = this.getOrientation();
         if (orientation === 'vertical') {
             width = thickness + padding + textWidth;
-            height = gradientLength + textHeight;
+            const maxHeight = shrinkRect.height;
+            const preferredHeight = gradientLength + textHeight;
+            height = Math.min(maxHeight, preferredHeight);
             gradientBox.x = 0;
             gradientBox.y = textHeight / 2;
             gradientBox.width = thickness;
-            gradientBox.height = gradientLength;
+            gradientBox.height = height - textWidth;
         } else {
             const maxWidth = shrinkRect.width;
             const preferredWidth = gradientLength + textWidth;

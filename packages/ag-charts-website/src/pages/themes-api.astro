@@ -12,9 +12,7 @@ const optionsData = (await getEntry('options-reference', 'data')).data;
 
 const framework = Astro.params.framework as Framework;
 
-// TODO: Use `AgChartOptions`
-const interfaceName = 'AgCartesianChartOptions';
-const breadcrumbs = ['options'];
+const interfaceName = 'AgChartTheme';
 ---
 
 <JsObjectPropertiesViewLayout>
@@ -23,12 +21,12 @@ const breadcrumbs = ['options'];
         interfaceName={interfaceName}
         interfaceLookup={interfaceLookup}
         codeLookup={codeLookup}
-        breadcrumbs={breadcrumbs}
+        breadcrumbs={['options', 'theme']}
         framework={framework}
         optionsData={optionsData}
         config={{
-            hideChildrenInNavProperties: ['theme'],
-            limitChildrenProperties: ['theme', 'axes', 'axes.*', 'series', 'series.*'],
+            limitChildrenProperties: ['overrides', 'overrides.*', 'overrides.*.axes', 'overrides.*.series'],
+            topLevelParentProperties: ['overrides', 'overrides.*', 'overrides.*.axes', 'overrides.*.series'],
         }}
     />
 </JsObjectPropertiesViewLayout>
