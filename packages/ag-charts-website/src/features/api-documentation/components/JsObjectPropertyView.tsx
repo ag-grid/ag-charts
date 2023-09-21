@@ -19,7 +19,6 @@ import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { HeadingPath } from './HeadingPath';
 import { MetaList } from './MetaList';
-import type { boolean } from 'astro/zod';
 
 interface Props {
     selection: JsObjectSelection;
@@ -38,7 +37,7 @@ function NameHeading({ id, name, path }: { id: string; name?: string; path: stri
                 {pathSeparator}
                 {displayNameSplit && <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>}
             </span>
-            <LinkIcon href={`#${id}`} />
+            {/* Hide, until nav support is added <LinkIcon href={`#${id}`} /> */}
         </h6>
     );
 }
