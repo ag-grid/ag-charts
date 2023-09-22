@@ -3,10 +3,21 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { AngleCrossLine } from './angleCrossLine';
 import { PolarLinearScale } from '../polarLinearScale';
 
-const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate, predicateWithMessage } =
-    _ModuleSupport;
+const {
+    AND,
+    assignJsonApplyConstructedArray,
+    ChartAxisDirection,
+    Default,
+    GREATER_THAN,
+    LESS_THAN,
+    NUMBER,
+    NUMBER_OR_NAN,
+    predicateWithMessage,
+    ProxyOnWrite,
+    Validate,
+} = _ModuleSupport;
 const { Path, Text } = _Scene;
-const { isNumberEqual, toRadians, normalizeAngle360 } = _Util;
+const { isNumberEqual, toRadians, normalizeAngle360, normalisedExtentWithMetadata } = _Util;
 
 interface AngleNumberAxisLabelDatum {
     text: string;
@@ -62,6 +73,14 @@ export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale
     @Validate(NUMBER())
     startAngle: number = 0;
 
+    @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
+    @Default(NaN)
+    min: number = NaN;
+
+    @Validate(AND(NUMBER_OR_NAN(), GREATER_THAN('min')))
+    @Default(NaN)
+    max: number = NaN;
+
     protected labelData: AngleNumberAxisLabelDatum[] = [];
     protected tickData: AngleNumberAxisTickDatum[] = [];
     protected radiusLine: _Scene.Path = this.axisGroup.appendChild(new Path());
@@ -107,6 +126,13 @@ export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale
 
         crossLineGroup.translationX = translationX;
         crossLineGroup.translationY = translationY;
+    }
+
+    normaliseDataDomain(d: number[]) {
+        const { min, max } = this;
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+
+        return { domain: extent, clipped };
     }
 
     protected updateRadiusLine() {
