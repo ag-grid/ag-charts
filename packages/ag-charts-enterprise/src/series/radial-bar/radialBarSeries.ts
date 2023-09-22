@@ -574,14 +574,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(angleKey && radiusKey) || !(xAxis && yAxis && isNumber(radiusValue)) || !dataModel) {
+        if (!(angleKey && radiusKey) || !(xAxis && yAxis && isNumber(angleValue)) || !dataModel) {
             return '';
         }
 
         const angleString = xAxis.formatDatum(angleValue);
         const radiusString = yAxis.formatDatum(radiusValue);
-        const title = sanitizeHtml(radiusName);
-        const content = sanitizeHtml(`${angleString}: ${radiusString}`);
+        const title = sanitizeHtml(angleName);
+        const content = sanitizeHtml(`${radiusString}: ${angleString}`);
 
         const defaults: AgTooltipRendererResult = {
             title,
@@ -671,11 +671,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
-    }
-
-    protected isRadiusAxisCircle() {
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-        return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
     }
 
     protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
