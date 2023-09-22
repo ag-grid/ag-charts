@@ -6,7 +6,7 @@ import type {
     AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import { AngleNumberAxis } from '../../polar-axes/angle-number/angleNumberAxis';
+import { RadiusCategoryAxis } from '../../polar-axes/radius-category/radiusCategoryAxis';
 
 const {
     ChartAxisDirection,
@@ -293,16 +293,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const { label, id: seriesId } = this;
 
         let groupPaddingInner = 0;
-        let groupPaddingOuter = 0;
-        if (radiusAxis instanceof AngleNumberAxis) {
+        if (radiusAxis instanceof RadiusCategoryAxis) {
             groupPaddingInner = radiusAxis.groupPaddingInner;
-            groupPaddingOuter = radiusAxis.paddingInner;
         }
 
         const { groupScale } = this;
         const { index: groupIndex, visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
         groupScale.domain = Array.from({ length: visibleGroupCount }).map((_, i) => String(i));
-        groupScale.range = [0, radiusScale.bandwidth ?? 0];
+        groupScale.range = [0, Math.abs(radiusScale.bandwidth ?? 0)];
         groupScale.paddingInner = visibleGroupCount > 1 ? groupPaddingInner : 0;
 
         const barWidth = groupScale.bandwidth >= 1 ? groupScale.bandwidth : groupScale.rawBandwidth;
@@ -341,17 +339,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const angleStartDatum = values[angleStartIndex];
             const angleEndDatum = values[angleEndIndex];
 
-            // const groupAngle = angleScale.convert(angleDatum);
-            // const startAngle = normalizeAngle360(groupAngle + groupScale.convert(String(groupIndex)));
-            // const endAngle = normalizeAngle360(startAngle + groupScale.bandwidth);
             const startAngle = angleScale.convert(angleStartDatum);
             const endAngle = angleScale.convert(angleEndDatum);
             const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
 
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
-            // const barWidth = radiusScale.bandwidth ?? 1;
-            const outerRadius = dataRadius + groupScale.convert(String(groupIndex));
-            const innerRadius = outerRadius - barWidth;
+            const innerRadius = dataRadius + groupScale.convert(String(groupIndex));
+            const outerRadius = innerRadius + barWidth;
 
             const cos = Math.cos(midAngle);
             const sin = Math.sin(midAngle);

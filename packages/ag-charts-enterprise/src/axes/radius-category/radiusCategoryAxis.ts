@@ -13,6 +13,7 @@ const {
     NUMBER,
     NUMBER_OR_NAN,
     OPT_BOOLEAN,
+    ProxyPropertyOnWrite,
     Validate,
 } = _ModuleSupport;
 const { BandScale } = _Scale;
@@ -61,8 +62,13 @@ export class RadiusCategoryAxis extends _ModuleSupport.PolarAxis {
     @Validate(NUMBER(0, 1))
     groupPaddingInner: number = 0;
 
+    @ProxyPropertyOnWrite('scale', 'paddingInner')
     @Validate(NUMBER(0, 1))
     paddingInner: number = 0;
+
+    @ProxyPropertyOnWrite('scale', 'paddingOuter')
+    @Validate(NUMBER(0, 1))
+    paddingOuter: number = 0;
 
     protected readonly gridArcGroup = this.gridGroup.appendChild(
         new Group({
@@ -111,7 +117,8 @@ export class RadiusCategoryAxis extends _ModuleSupport.PolarAxis {
 
         const maxRadius = scale.range[0];
         const minRadius = maxRadius * this.innerRadiusRatio;
-        const getTickRadius = (tick: TickDatum) => maxRadius - tick.translationY + minRadius;
+        const getTickRadius = (tick: TickDatum) => maxRadius - tick.translationY + minRadius - tickRange / 2;
+        const tickRange = (maxRadius - minRadius) / scale.domain.length;
 
         const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
             const style = gridStyle[index % gridStyle.length];

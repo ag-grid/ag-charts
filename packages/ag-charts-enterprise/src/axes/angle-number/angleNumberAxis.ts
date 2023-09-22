@@ -62,12 +62,6 @@ export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale
     @Validate(NUMBER())
     startAngle: number = 0;
 
-    @Validate(NUMBER(0, 1))
-    groupPaddingInner: number = 0;
-
-    @Validate(NUMBER(0, 1))
-    paddingInner: number = 0;
-
     protected labelData: AngleNumberAxisLabelDatum[] = [];
     protected tickData: AngleNumberAxisTickDatum[] = [];
     protected radiusLine: _Scene.Path = this.axisGroup.appendChild(new Path());
