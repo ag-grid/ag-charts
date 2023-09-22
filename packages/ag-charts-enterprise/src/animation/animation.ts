@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const { BOOLEAN, NUMBER, ActionOnSet, Validate } = _ModuleSupport;
 
@@ -15,7 +15,8 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
     @ActionOnSet<Animation>({
         newValue(value: number | undefined) {
             if (!this.animationManager) return;
-            this.animationManager.defaultOptions.duration = value;
+            console.log('Change animationManager defaultOptions', { value });
+            // this.animationManager.defaultOptions.duration = value;
             this.animationManager.skip(value === 0);
         },
     })

@@ -303,11 +303,9 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 
 export function spyOnAnimationManager(totalDuration: number, ratio: number) {
     jest.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
-    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation(({ delay = 0, ...opts }) => {
-        const controller = new Animation({ ...opts, delay, duration: Math.max(0, totalDuration - (delay ?? 0)) });
-        const delayRatio = delay ? delay / totalDuration : 0;
-        const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
-        controller.update(totalDuration * squashedRatio);
+    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation((opts) => {
+        const controller = new Animation(opts);
+        controller.update(totalDuration * ratio);
         return Promise.resolve() as any;
     });
 }

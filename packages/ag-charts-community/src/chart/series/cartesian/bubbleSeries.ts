@@ -551,7 +551,8 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
         const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration();
         const labelDuration = 200;
 
-        this.ctx.animationManager.animate(`${this.id}_empty-update-ready_markers`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_markers`,
             from: 0,
             to: 1,
             duration,
@@ -570,7 +571,8 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
             },
         });
 
-        this.ctx.animationManager.animate(`${this.id}_empty-update-ready_labels`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
             from: 0,
             to: 1,
             delay: duration,
@@ -692,7 +694,8 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
         const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
         const clearDuration = 200;
 
-        this.ctx.animationManager.animate(`${this.id}_clearing-update-empty`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_clearing-update-empty`,
             from: 1,
             to: 0,
             duration: clearDuration,

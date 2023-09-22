@@ -741,8 +741,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                     from,
                     to,
                     ease: easing.easeOut,
-                    // throttleId: `${this.id}_rects`,
-                    // throttleGroup: rectThrottleGroup,
                     onUpdate(props) {
                         rect.setProperties(props);
                     },
@@ -762,8 +760,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 to: 1,
                 delay: duration,
                 duration: labelDuration,
-                // throttleId: `${this.id}_labels`,
-                // throttleGroup: labelThrottleGroup,
                 onUpdate(opacity) {
                     labelSelection.each((label) => {
                         label.opacity = opacity;

@@ -1,9 +1,6 @@
-import type { AnimationControls, AnimationOptions as BaseAnimationOptions, Driver } from '../../motion/animate';
-import { animate as baseAnimate } from '../../motion/animate';
 import { Debug } from '../../util/debug';
 import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
-import { Logger } from '../../util/logger';
 import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { onContentLoaded } from '../../util/document';
@@ -23,7 +20,7 @@ interface AnimationEvent {
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
     private readonly debug = Debug.create(true, 'animation');
-    private readonly controllers: Map<string, IAnimation> = new Map();
+    private readonly controllers: Map<string, IAnimation<any>> = new Map();
 
     private isPlaying = false;
     private requestId: number | null = null;
@@ -44,28 +41,21 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
      * Create an animation to tween a value between the `from` and `to` properties. If an animation already exists
      * with the same `id`, immediately stop it.
      */
-    public animate<T extends AnimationValue>({
-        disableInteractions = true,
-        ...opts
-    }: AnimationOptions<T> & { disableInteractions?: boolean }) {
-        if (this.skipAnimations) {
-            opts.onUpdate?.(opts.to, null);
-            opts.onComplete?.(null);
-            return null;
-        }
-
-        if (opts.id != null) {
-            this.controllers.get(opts.id)?.stop();
+    public animate<T extends AnimationValue>(opts: AnimationOptions<T> & { disableInteractions?: boolean }) {
+        if (opts.id != null && this.controllers.has(opts.id)) {
+            return this.controllers.get(opts.id)!.reset(opts);
         }
 
         const id = opts.id ?? Math.random().toString();
-        const controller = new Animation({
+
+        return new Animation({
             ...opts,
+            skip: this.skipAnimations,
             autoplay: this.isPlaying ? opts.autoplay : false,
             onPlay: (controller) => {
                 this.controllers.set(id, controller);
                 this.requestAnimation();
-                if (disableInteractions) {
+                if (opts.disableInteractions ?? true) {
                     this.interactionManager.pause(`animation_${id}`);
                 }
                 opts.onPlay?.(controller);
@@ -75,17 +65,12 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 if (this.controllers.size === 0) {
                     this.cancelAnimation();
                 }
-                if (disableInteractions) {
+                if (opts.disableInteractions ?? true) {
                     this.interactionManager.resume(`animation_${id}`);
                 }
                 opts.onStop?.(controller);
             },
         });
-
-        // Initialise the animation immediately without requesting a frame to prevent flashes
-        opts.onUpdate?.(opts.from, controller);
-
-        return controller;
     }
 
     public play() {
@@ -156,7 +141,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
             prevTime = time;
 
-            this.debugLog('AnimationManager - onAnimationFrame()', { controllersCount: this.controllers.size });
+            this.debug('AnimationManager - onAnimationFrame()', { controllersCount: this.controllers.size });
 
             for (const controller of this.controllers.values()) {
                 controller.update(deltaTime);
@@ -181,5 +166,4 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     public isSkipped() {
         return this.skipAnimations;
     }
-
 }

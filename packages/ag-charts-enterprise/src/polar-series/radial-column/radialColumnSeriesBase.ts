@@ -533,7 +533,7 @@ export abstract class RadialColumnSeriesBase<
         this.animateItemsShapes();
 
         this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labelsß`,
+            id: `${this.id}_empty-update-ready_labels`,
             from: 0,
             to: 1,
             delay: this.ctx.animationManager.defaultDuration(),

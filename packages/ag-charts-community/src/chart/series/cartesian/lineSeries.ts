@@ -953,7 +953,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 },
             });
 
-            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_labels_${contextDataIndex}`, {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_waiting-update-ready_labels_${contextDataIndex}`,
                 from: 0,
                 to: 1,
                 delay: duration,

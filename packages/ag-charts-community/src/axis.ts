@@ -947,8 +947,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 node.translationY = max;
             }
 
-            const visible = node.translationY >= min && node.translationY <= max;
-            node.visible = visible;
+            node.visible = node.translationY >= min && node.translationY <= max;
         };
 
         const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
@@ -1373,7 +1372,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
         const removedCount = Object.keys(diff.removed).length;
 
         if (removedCount === diff.tickCount) {
@@ -1381,25 +1379,22 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        const animationGroup = `${this.id}_${Math.random()}`;
-
-        tickLabelGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLabelGroupSelection, diff, node, datum, animationGroup);
-        });
-        gridLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(gridLineGroupSelection, diff, node, datum, animationGroup);
-        });
-        tickLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLineGroupSelection, diff, node, datum, animationGroup);
-        });
+        for (const selection of [
+            this.gridLineGroupSelection,
+            this.tickLineGroupSelection,
+            this.tickLabelGroupSelection,
+        ]) {
+            selection.each((node, datum) => {
+                this.animateSelectionNode(selection, diff, node, datum);
+            });
+        }
     }
 
     private animateSelectionNode(
         selection: Selection<Text | Line, any>,
         diff: AxisUpdateDiff,
         node: Text | Line,
-        datum: TickDatum,
-        _animationGroup: string
+        datum: TickDatum
     ) {
         let from = { translationY: node.translationY, opacity: 1 };
         const to = { translationY: Math.round(datum.translationY), opacity: 1 };
@@ -1417,13 +1412,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             to,
             ease: easing.easeOut,
             disableInteractions: false,
-            // throttleId: this.id,
-            // throttleGroup: animationGroup,
             onUpdate(props) {
                 node.setProperties(props);
             },
-            onComplete() {
-                selection.cleanup();
+            onStop() {
+                if (node.opacity === 0) {
+                    selection.cleanup();
+                }
             },
         });
     }

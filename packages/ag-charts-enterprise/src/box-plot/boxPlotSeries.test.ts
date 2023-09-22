@@ -67,7 +67,7 @@ describe('Chart', () => {
         });
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
+            it(`for BOX_PLOT_BAR_OPTIONS should animate at ${ratio * 100}%`, async () => {
                 spyOnAnimationManager(1200, ratio);
 
                 const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };

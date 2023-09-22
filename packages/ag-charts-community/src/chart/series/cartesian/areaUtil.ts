@@ -95,28 +95,24 @@ export function areaAnimateEmptyUpdateReady<
         const [fill, stroke] = paths[seriesIdx];
 
         const duration = ctx.animationManager.defaultDuration();
+        const animationOptions = { from: 0, to: seriesRect?.width ?? 0 };
         const markerDuration = 200;
-
-        const animationOptions = {
-            from: 0,
-            to: seriesRect?.width ?? 0,
-            duration,
-        };
 
         // Stroke
         {
             const { points } = strokeData;
 
-            stroke.tag = AreaSeriesTag.Stroke;
-            stroke.fill = undefined;
-            stroke.lineJoin = stroke.lineCap = 'round';
-            stroke.pointerEvents = PointerEvents.None;
-
-            stroke.stroke = seriesStroke;
-            stroke.strokeWidth = strokeWidth;
-            stroke.strokeOpacity = strokeOpacity;
-            stroke.lineDash = lineDash;
-            stroke.lineDashOffset = lineDashOffset;
+            stroke.setProperties({
+                tag: AreaSeriesTag.Stroke,
+                fill: undefined,
+                lineJoin: (stroke.lineCap = 'round'),
+                pointerEvents: PointerEvents.None,
+                stroke: seriesStroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            });
 
             ctx.animationManager.animate({
                 id: `${seriesId}_empty-update-ready_stroke_${seriesIdx}`,
@@ -164,18 +160,19 @@ export function areaAnimateEmptyUpdateReady<
             const points = allPoints.slice(0, allPoints.length / 2);
             const bottomPoints = allPoints.slice(allPoints.length / 2);
 
-            fill.tag = AreaSeriesTag.Fill;
-            fill.stroke = undefined;
-            fill.lineJoin = 'round';
-            fill.pointerEvents = PointerEvents.None;
-
-            fill.fill = seriesFill;
-            fill.fillOpacity = fillOpacity;
-            fill.strokeOpacity = strokeOpacity;
-            fill.strokeWidth = strokeWidth;
-            fill.lineDash = lineDash;
-            fill.lineDashOffset = lineDashOffset;
-            fill.fillShadow = shadow;
+            fill.setProperties({
+                tag: AreaSeriesTag.Fill,
+                stroke: undefined,
+                lineJoin: 'round',
+                pointerEvents: PointerEvents.None,
+                fill: seriesFill,
+                fillOpacity: fillOpacity,
+                strokeOpacity: strokeOpacity,
+                strokeWidth: strokeWidth,
+                lineDash: lineDash,
+                lineDashOffset: lineDashOffset,
+                fillShadow: shadow,
+            });
 
             ctx.animationManager.animate({
                 id: `${seriesId}_empty-update-ready_fill_${seriesIdx}`,
@@ -302,12 +299,7 @@ export function areaAnimateReadyUpdate<
         const [fill, stroke] = paths[seriesIdx];
 
         // Stroke
-        stroke.stroke = seriesStroke;
-        stroke.strokeWidth = strokeWidth;
-        stroke.strokeOpacity = strokeOpacity;
-        stroke.lineDash = lineDash;
-        stroke.lineDashOffset = lineDashOffset;
-
+        stroke.setProperties({ stroke: seriesStroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset });
         stroke.path.clear({ trackChanges: true });
 
         let moveTo = true;
@@ -325,13 +317,15 @@ export function areaAnimateReadyUpdate<
         stroke.checkPathDirty();
 
         // Fill
-        fill.fill = seriesFill;
-        fill.fillOpacity = fillOpacity;
-        fill.strokeOpacity = strokeOpacity;
-        fill.strokeWidth = strokeWidth;
-        fill.lineDash = lineDash;
-        fill.lineDashOffset = lineDashOffset;
-        fill.fillShadow = shadow;
+        fill.setProperties({
+            fill: seriesFill,
+            fillShadow: shadow,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+        });
 
         fill.path.clear({ trackChanges: true });
 

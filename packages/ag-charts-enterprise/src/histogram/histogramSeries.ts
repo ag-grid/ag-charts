@@ -682,7 +682,7 @@ export class HistogramSeries extends CartesianSeries<
                     to = { ...to, ...context };
                 }
 
-                this.ctx.animationManager.animateMany({
+                this.ctx.animationManager.animate({
                     id: `${this.id}_waiting-update-ready_${rect.id}`,
                     from,
                     to,

@@ -1796,8 +1796,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 to,
                 duration,
                 ease: easing.easeOut,
-                // throttleId: this.id,
-                // throttleGroup,
                 onUpdate(props) {
                     sector.setProperties(props);
                 },

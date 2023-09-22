@@ -820,8 +820,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
                     to,
                     duration: sectionDuration,
                     ease: Motion.easeOut,
-                    // throttleId: `${this.id}_rects`,
-                    // throttleGroup: rectThrottleGroup,
                     onUpdate(props) {
                         rect.setProperties(props);
                     },
@@ -841,13 +839,11 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
 
         labelSelections.forEach((labelSelection) => {
             this.ctx.animationManager.animate({
-                id: `${this.id}_waiting-update-ready_labels}`,
+                id: `${this.id}_waiting-update-ready_labels`,
                 from: 0,
                 to: 1,
                 delay: totalDuration,
                 duration: labelDuration,
-                // throttleId: `${this.id}_labels`,
-                // throttleGroup: labelThrottleGroup,
                 onUpdate: (opacity) => {
                     labelSelection.each((label) => {
                         label.opacity = opacity;

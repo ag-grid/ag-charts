@@ -607,7 +607,8 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
         const clearDuration = 200;
 
-        this.ctx.animationManager.animate(`${this.id}_clearing-update-empty`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_clearing-update-empty`,
             from: 1,
             to: 0,
             duration: clearDuration,

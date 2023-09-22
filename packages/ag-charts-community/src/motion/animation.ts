@@ -8,10 +8,11 @@ export enum RepeatType {
     Loop = 'loop',
     Reverse = 'reverse',
 }
-export interface AnimationOptions<T extends AnimationValue = AnimationValue> {
+export interface AnimationOptions<T extends AnimationValue> {
     from: T;
     to: T;
     id?: string;
+    skip?: boolean;
     autoplay?: boolean;
     /** Time in milliseconds to wait before starting the animation. */
     delay?: number;
@@ -21,24 +22,29 @@ export interface AnimationOptions<T extends AnimationValue = AnimationValue> {
     repeat?: number;
     repeatType?: RepeatType;
     /** Called once when the animation is successfully completed, after all repetitions if any. */
-    onComplete?: (self: IAnimation) => void;
-    onPlay?: (self: IAnimation) => void;
+    onComplete?: (self: IAnimation<T>) => void;
+    onPlay?: (self: IAnimation<T>) => void;
     /** Called once when then animation successfully completes or is prematurely stopped. */
-    onStop?: (self: IAnimation) => void;
-    onRepeat?: (self: IAnimation) => void;
+    onStop?: (self: IAnimation<T>) => void;
+    onRepeat?: (self: IAnimation<T>) => void;
     /** Called once per frame with the tweened value between the `from` and `to` properties. */
-    onUpdate?: (value: T, self: IAnimation | null) => void;
+    onUpdate?: (value: T, self: IAnimation<T>) => void;
 }
 
-export interface IAnimation {
+export type ResetAnimationOptions<T extends AnimationValue> = Pick<
+    AnimationOptions<T>,
+    'from' | 'to' | 'delay' | 'duration' | 'ease'
+>;
+
+export interface IAnimation<T extends AnimationValue> {
     readonly play: () => this;
     readonly pause: () => this;
     readonly stop: () => this;
-    readonly reset: () => this;
+    readonly reset: (opts: ResetAnimationOptions<T>) => this;
     readonly update: (time: number) => this;
 }
 
-export class Animation<T extends AnimationValue> implements IAnimation {
+export class Animation<T extends AnimationValue> implements IAnimation<T> {
     protected autoplay;
     protected delay;
     protected duration;
@@ -58,7 +64,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     private readonly onRepeat; // onIteration
     private readonly onUpdate;
 
-    private readonly interpolate: (delta: number) => T;
+    private interpolate: (delta: number) => T;
 
     constructor(opts: AnimationOptions<T>) {
         // animation configuration
@@ -79,8 +85,13 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         // animation interpolator based on `from` & `to` types
         this.interpolate = this.createInterpolator(opts.from, opts.to) as (delta: number) => T;
 
-        if (this.autoplay) {
+        if (opts.skip === true) {
+            this.onUpdate?.(opts.to, this);
+            this.onStop?.(this);
+            this.onComplete?.(this);
+        } else if (this.autoplay) {
             this.play();
+            this.onUpdate?.(opts.from, this); // Initialise the animation immediately without requesting a frame to prevent flashes
         }
     }
 
@@ -107,9 +118,23 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         return this;
     }
 
-    reset() {
+    reset(opts: ResetAnimationOptions<T>) {
+        if (typeof opts.delay === 'number') {
+            this.delay = opts.delay;
+        }
+        if (typeof opts.duration === 'number') {
+            this.duration = opts.duration;
+        }
+        if (typeof opts.ease === 'function') {
+            this.ease = opts.ease;
+        }
+
+        const deltaState = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
+        this.interpolate = this.createInterpolator(deltaState, opts.to) as (delta: number) => T;
+
         this.elapsed = 0;
         this.iteration = 0;
+
         return this;
     }
 
@@ -120,8 +145,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
             return this;
         }
 
-        const delta = this.ease(clamp(0, (this.elapsed - this.delay) / this.duration, 1));
-        const value = this.interpolate(this.isReverse ? 1 - delta : delta);
+        const value = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
 
         this.onUpdate?.(value, this);
 
@@ -140,6 +164,10 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         }
 
         return this;
+    }
+
+    protected get delta() {
+        return this.ease(clamp(0, (this.elapsed - this.delay) / this.duration, 1));
     }
 
     private createInterpolator(from: AnimationValue, to: AnimationValue) {
