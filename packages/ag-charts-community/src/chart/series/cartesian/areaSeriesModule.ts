@@ -8,7 +8,23 @@ import {
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
-import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
+import type { AgCartesianChartOptions } from '../../../options/agChartOptions';
+
+const AREA_SERIES_DEFAULTS: AgCartesianChartOptions = {
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+            groupPaddingInner: 0,
+            paddingOuter: 0,
+            paddingInner: 1,
+        },
+    ],
+};
 
 export const AreaSeriesModule: SeriesModule<'area'> = {
     type: 'series',
@@ -19,7 +35,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     instanceConstructor: AreaSeries,
     stackable: true,
-    seriesDefaults: DEFAULT_CARTESIAN_CHART_OVERRIDES,
+    seriesDefaults: AREA_SERIES_DEFAULTS,
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         nodeClickRange: 'nearest',
