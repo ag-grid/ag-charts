@@ -337,7 +337,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return [context];
     }
 
-    getLegendData(): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
         const {
             id,
             data,
@@ -352,7 +352,7 @@ export class BoxPlotSeries extends CartesianSeries<
             strokeOpacity,
         } = this;
 
-        if (!(showInLegend && data?.length && xKey)) {
+        if (!(showInLegend && data?.length && xKey && legendType === 'category')) {
             return [];
         }
 
@@ -546,12 +546,12 @@ export class BoxPlotSeries extends CartesianSeries<
 
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyles {
         const {
-            xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
+            xKey = '',
+            minKey = '',
+            q1Key = '',
+            medianKey = '',
+            q3Key = '',
+            maxKey = '',
             formatter,
             id: seriesId,
             ctx: { callbackCache },

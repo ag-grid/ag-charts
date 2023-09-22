@@ -3,141 +3,113 @@ title: 'Nightingale Series'
 enterprise: true
 ---
 
-Nightingale Series (also known as _Rose chart_, _Wind Rose_, _Polar area_, _Coxcomb chart_) represents a dataset in the form of a polar area diagram.
+A Nightingale Series, also called _Rose_ or _Wind_ Series, represents data as radial segments, with one segment per category
+value. It can simplify the comparison of datasets across multiple categories, providing a concise depiction of data trends.
 
 ## Simple Nightingale
 
-To create a basic Nightingale Series, use a data array where each item has one category value (for the angle axis) and one numeric value (for the radius axis).
+{% chartExampleRunner title="Simple Nightingale" name="simple-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
 
-A minimal Nightingale series configuration will look like:
-
-```js
-series: [
-    {
-        type: 'nightingale',
-        angleKey: 'product',
-        radiusKey: 'sales',
-    },
-],
-```
-
-{% chartExampleRunner title="Simple Nightingale Chart" name="simple-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
-
-## Stacked Nightingale
-
-When multiple Nightingale Series are provided, their sectors will be stacked for each category by default:
+To create a Nightingale Series, use the `nightingale` series type.
 
 ```js
 series: [
-    {
-        type: 'nightingale',
-        angleKey: 'product',
-        radiusKey: 'A sales',
-    },
-    {
-        type: 'nightingale',
-        angleKey: 'product',
-        radiusKey: 'B sales',
-    },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware' },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services' },
 ],
 ```
 
-{% chartExampleRunner title="Stacked Nightingale Chart" name="stack-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
+In this configuration:
+
+-   `angleKey` is set to 'quarter', which is the shared category for the Angle Axis.
+-   `radiusKey` specifies the numerical datasets, 'software', 'hardware', and 'services', for the Radius Axis.
+-   `radiusName` labels each series, such as 'Software', 'Hardware', and 'Services'.
 
 ## Grouped Nightingale
 
-In a grouped Nightingale series, sectors are placed next to each other. This behaviour is controlled by the `grouped: true` property. The following example illustrates a grouped Nightingale chart:
+Grouping sectors is used when you want to compare multiple data series side by side within the same category.
+
+{% chartExampleRunner title="Grouped Nightingale Chart" name="group-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
+
+To group sectors in a Nightingale Series, enable the `grouped` series property.
 
 ```js
 series: [
-    {
-        type: 'nightingale',
-        angleKey: 'product',
-        radiusKey: 'A sales',
-        grouped: true,
-    },
-    {
-        type: 'nightingale',
-        angleKey: 'product',
-        radiusKey: 'B sales',
-        grouped: true,
-    },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software', grouped: true },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware', grouped: true },
+    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services', grouped: true },
 ],
 ```
-
-{% chartExampleRunner title="Grouped Nightingale Chart" name="group-nightingale" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Customisation
 
 ### Inner Radius
 
-To create a hole in the middle, use the `innerRadiusRatio` option in the polar `radius` axis:
-
-```js
-axes: [
-    {
-        type: 'angle-category',
-    },
-    {
-        type: 'radius-number',
-        innerRadiusRatio: 0.2,
-    },
-],
-```
+The inner radius can be used to create a 'doughnut' effect which can help emphasise specific data points.
 
 {% chartExampleRunner title="Inner Radius" name="inner-radius" type="generated" options="{ \"enterprise\": true }" /%}
 
-### Category Padding
-
-It's possible to set a padding between elements in a polar chart's `angle` axis by using two options:
-
--   `paddingInner` controls the padding between column groups.
--   `groupPaddingInner` controls the padding between columns within a group.
+To create this 'doughnut' effect, use the `innerRadiusRatio` option on the Radius Number Axis.
 
 ```js
 axes: [
-    {
-        type: 'angle-category',
-        groupPaddingInner: 0.25,
-        paddingInner: 0.25,
-    },
-    {
-        type: 'radius-number',
-    },
+    { type: 'angle-category' },
+    { type: 'radius-number', innerRadiusRatio: 0.2 },
 ],
 ```
 
+Any value between `0` and `1` will set the inner radius as a proportion of the overall radius.
+
+### Category Padding
+
 {% chartExampleRunner title="Category Padding" name="category-padding" type="generated" options="{ \"enterprise\": true }" /%}
+
+The following options are used to control the padding between different elements on the Angle Axis:
+
+-   `paddingInner`: Gap between column groups, ranges from `0` (no gap) to `1` (maximum spacing).
+-   `groupPaddingInner`: Spacing within a group, ranges from `0` (columns touching) to `1` (widest gap).
+
+```js
+axes: [
+    { type: 'angle-category', groupPaddingInner: 0.25, paddingInner: 0.25 },
+    { type: 'radius-number' },
+],
+```
 
 ### Axis Label Orientation
 
-Use `label.orientation` property to change the orientation of polar axis labels by providing one of the options: `fixed`, `parallel` or `perpendicular`. The next example demonstrates how this property works:
+{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
+
+To change Angle Axis Label orientation, use the `label.orientation` property with these options:
+
+-   `fixed`: Labels have fixed orientation (default).
+-   `parallel`: Labels align parallel to the axis.
+-   `perpendicular`: Labels align perpendicular to the axis.
+
+The following configuration changes the orientation of the Axis Labels to `parallel` :
 
 ```js
 axes: [
     {
         type: 'angle-category',
         label: {
-            orientation: 'perpendicular',
+            orientation: 'parallel',
         },
     },
-    {
-        type: 'radius-number',
-    },
+    { type: 'radius-number' },
 ],
 ```
 
-{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
-
 ### Radius Axis Position
 
-`positionAngle` can change the position of Radius Axis line and `label.rotation` will change the rotation angle of axis labels:
+{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
+
+Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
 
 ```js
 axes: [
-    {
-        type: 'angle-category',
-    },
+    { type: 'angle-category' },
     {
         type: 'radius-number',
         positionAngle: 90,
@@ -147,8 +119,6 @@ axes: [
     },
 ],
 ```
-
-{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

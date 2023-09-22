@@ -1,6 +1,6 @@
 import type { Selection } from '../../../scene/selection';
 import type { DropShadow } from '../../../scene/dropShadow';
-import type { CategoryLegendDatum } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesTooltip, keyProperty, valueProperty, groupAccumulativeValueProperty } from '../series';
@@ -645,34 +645,32 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         });
     }
 
-    getLegendData(): CategoryLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const { data, id, xKey, yKey, yName, marker, fill, stroke, fillOpacity, strokeOpacity, visible } = this;
 
-        if (!data?.length || !xKey || !yKey) {
+        if (!data?.length || !xKey || !yKey || legendType !== 'category') {
             return [];
         }
 
-        // Area stacks should be listed in the legend in reverse order, for symmetry with the
-        // vertical stack display order.
-        return [
-            {
-                legendType: 'category',
-                id,
-                itemId: yKey,
-                seriesId: id,
-                enabled: visible,
-                label: {
-                    text: yName ?? yKey,
-                },
-                marker: {
-                    shape: marker.shape,
-                    fill: marker.fill ?? fill,
-                    stroke: marker.stroke ?? stroke,
-                    fillOpacity: marker.fillOpacity ?? fillOpacity,
-                    strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
-                },
+        const legendDatum: CategoryLegendDatum = {
+            legendType: 'category',
+            id,
+            itemId: yKey,
+            seriesId: id,
+            enabled: visible,
+            label: {
+                text: yName ?? yKey,
             },
-        ];
+            marker: {
+                shape: marker.shape,
+                fill: marker.fill ?? fill,
+                stroke: marker.stroke ?? stroke,
+                fillOpacity: marker.fillOpacity ?? fillOpacity,
+                strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
+            },
+        };
+
+        return [legendDatum];
     }
 
     animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths, seriesRect }: AreaAnimationData) {

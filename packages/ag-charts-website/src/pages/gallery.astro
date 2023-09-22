@@ -38,7 +38,7 @@ const { series } = galleryData;
             {
                 series.map((series: GalleryExampleChartType) => (
                     <div class="chart-type">
-                        <h2 id={series.name}>
+                        <h3 id={series.name}>
                             <span>{series.title} Charts</span>
 
                             {series.enterprise && (
@@ -51,12 +51,12 @@ const { series } = galleryData;
                                 class="font-size-small"
                                 href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}
                             >
-                                View {series.title.toLowerCase()} charts documentation
+                                View {series.title} Series Documentation
                                 <span class="arrow-icon">
                                     <Icon client:only name="arrowRight" />
                                 </span>
                             </a>
-                        </h2>
+                        </h3>
                         <div class="gallery-list">
                             {series.examples.map(({ title, name }: GalleryExample) => (
                                 <GalleryExampleLink
@@ -81,7 +81,7 @@ const { series } = galleryData;
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            smoothScrollIntoView(anchor.getAttribute('href')!);
+            smoothScrollIntoView({ href: anchor.getAttribute('href')! });
         });
     });
 </script>
@@ -96,13 +96,18 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
+        --horizontal-padding: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
         --menu-width: 14rem;
         --gallery-list-gap: #{$size-3};
 
         display: flex;
         flex-direction: row;
         position: relative;
+        background-color: var(--ghost-blue);
+
+        @media screen and (min-width: $breakpoint-gallery-large) {
+            --menu-width: 17rem;
+        }
     }
 
     .menu {
@@ -113,6 +118,8 @@ const { series } = galleryData;
         top: $site-header-height;
         padding-top: calc($size-7 + $size-2);
         padding-left: var(--horizontal-padding);
+        background-color: var(--white);
+        border-right: solid 1px var(--bright-blue-gray);
         overflow-y: scroll;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
@@ -125,6 +132,11 @@ const { series } = galleryData;
             border-bottom: 1px solid var(--border-color);
             overflow-x: scroll;
             z-index: 1;
+        }
+
+        @media screen and (min-width: $breakpoint-gallery-large) {
+            width: calc(var(--menu-width) + $size-6);
+            padding-left: $size-6;
         }
     }
 
@@ -153,14 +165,24 @@ const { series } = galleryData;
     }
 
     .menu a {
-        --text-color: var(--secondary-text-color);
+        --text-color: var(--secondary-text-color); // only applies to the icon?
         --icon-size: 1.75em;
 
         display: flex;
         align-items: center;
+        color: var(--secondary-text-color);
+
+        :global(.icon) {
+            opacity: 0.75;
+            transition: opacity $default-transition-timing, fill $default-transition-timing;
+        }
 
         &:hover {
             --text-color: var(--link-hover-color);
+
+            :global(.icon) {
+                opacity: 1;
+            }
         }
     }
 
@@ -170,7 +192,7 @@ const { series } = galleryData;
     }
 
     .menu .enterpriseIcon {
-        --icon-size: 18px;
+        --icon-size: 15px;
     }
 
     .menu-scroll-indicator {
@@ -197,11 +219,15 @@ const { series } = galleryData;
         padding: $site-header-height var(--horizontal-padding) 0;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: 0 var(--horizontal-padding) 0 $size-3;
+            padding: 0 var(--horizontal-padding) 0 $size-6;
+        }
+
+        @media screen and (min-width: $breakpoint-gallery-large) {
+            padding-left: max(calc(var(--horizontal-padding) - var(--menu-width) - #{$size-6}), $size-6);
         }
     }
 
-    .chart-type h2 {
+    .chart-type h3 {
         display: flex;
         flex-wrap: wrap;
         flex-direction: row;
@@ -216,7 +242,7 @@ const { series } = galleryData;
         }
     }
 
-    .chart-type:first-child h2 {
+    .chart-type:first-child h3 {
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding-top: $size-4;
         }
@@ -229,10 +255,11 @@ const { series } = galleryData;
         margin-right: $size-half;
     }
 
-    .chart-type h2 a {
+    .chart-type h3 a {
         position: relative;
         width: 100%;
         font-weight: var(--font-weight-normal);
+        margin-bottom: $size-1;
 
         &:hover .arrow-icon {
             --text-color: var(--link-hover-color);
@@ -279,8 +306,12 @@ const { series } = galleryData;
             --columns: 3;
         }
 
-        @media screen and (min-width: 1320px) {
+        @media screen and (min-width: 1800px) {
             --columns: 4;
+        }
+
+        @media screen and (min-width: 2500px) {
+            --columns: 5;
         }
     }
 </style>

@@ -1,5 +1,5 @@
 import { Group } from '../../scene/group';
-import type { ChartLegendDatum } from '../legendDatum';
+import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
@@ -31,13 +31,16 @@ import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
-import type { ModuleContext } from '../../util/moduleContext';
+import type { ModuleContext, SeriesContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
 import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
+import type { ModuleContextInitialiser } from '../../util/moduleMap';
+import { ModuleMap } from '../../util/moduleMap';
+import type { SeriesOptionModule } from '../../util/optionModules';
 
 /**
  * Processed series datum used in node selections,
@@ -319,7 +322,12 @@ export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
 const NO_HIGHLIGHT = 'no-highlight';
 const OTHER_HIGHLIGHTED = 'other-highlighted';
 
-export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext> extends Observable {
+export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext>;
+
+export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext>
+    extends Observable
+    implements ModuleContextInitialiser<SeriesContext>
+{
     protected static readonly highlightedZIndex = 1000000000000;
 
     @Validate(STRING)
@@ -350,7 +358,6 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     // Package-level visibility, not meant to be set by the user.
     chart?: {
         mode: 'standalone' | 'integrated';
-        debug: boolean;
         placeLabels(): Map<Series<any>, PlacedLabel[]>;
         getSeriesRect(): Readonly<BBox> | undefined;
     };
@@ -370,12 +377,26 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     abstract tooltip: SeriesTooltip<any>;
 
     protected _data?: any[] = undefined;
+    protected _chartData?: any[] = undefined;
+
     set data(input: any[] | undefined) {
         this._data = input;
+        this.onDataChange();
+    }
+
+    get data() {
+        return this._data ?? this._chartData;
+    }
+
+    protected onDataChange() {
         this.nodeDataRefresh = true;
     }
-    get data() {
-        return this._data;
+
+    setChartData(input: unknown[]) {
+        this._chartData = input;
+        if (this.data === input) {
+            this.onDataChange();
+        }
     }
 
     hasData() {
@@ -746,7 +767,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return new SeriesNodeDoubleClickEvent(event, datum, this);
     }
 
-    abstract getLegendData(): ChartLegendDatum[];
+    abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum[];
 
     protected toggleSeriesItem(_itemId: any, enabled: boolean): void {
         this.visible = enabled;
@@ -776,5 +797,15 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
 
         return [min, max];
+    }
+
+    private readonly moduleMap: SeriesModuleMap = new ModuleMap<SeriesOptionModule, SeriesContext>(this);
+
+    getModuleMap(): SeriesModuleMap {
+        return this.moduleMap;
+    }
+
+    createModuleContext(): SeriesContext {
+        return { ...this.ctx, series: this };
     }
 }

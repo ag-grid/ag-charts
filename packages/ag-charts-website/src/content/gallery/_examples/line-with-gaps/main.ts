@@ -4,65 +4,8 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: [
-                '#0b1791',
-                '#be2a2c',
-                '#f6d24a',
-                '#ce1126',
-                '#002d62',
-                '#1b4e9e',
-                '#f6d24a',
-                '#0073cf',
-                '#e88532',
-                '#000000',
-                '#006847',
-                '#c22b38',
-                '#042279',
-                '#4997d0',
-                '#2868c1',
-                '#459945',
-            ],
-            strokes: [
-                '#0b1791',
-                '#f6d24a',
-                '#f6d24a',
-                '#ce1126',
-                '#ce1126',
-                '#fade4b',
-                '#be2a2c',
-                '#0073cf',
-                '#469c65',
-                '#fed100',
-                '#ce1126',
-                '#1e5190',
-                '#bf2b30',
-                '#4997d0',
-                '#2868c1',
-                '#459945',
-            ],
-        },
-        overrides: {
-            cartesian: {
-                series: {
-                    line: {
-                        highlightStyle: {
-                            series: {
-                                dimOpacity: 0.2,
-                                strokeWidth: 4,
-                            },
-                        },
-                        marker: { enabled: true },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: 'Imported Banana Prices',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Environment, Food and Rural Affairs',
@@ -217,12 +160,6 @@ const options: AgChartOptions = {
             max: 1,
         },
     ],
-    legend: {
-        item: {
-            paddingY: 15,
-        },
-        spacing: 30,
-    },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

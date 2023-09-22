@@ -1,5 +1,5 @@
 // Source: https://www.gov.uk/government/statistical-data-sets/oil-and-petroleum-products-weekly-statistics
-export function getData(): any[] {
+export function getData() {
     return [
         { date: new Date(2019, 0, 7), petrol: 120.27, diesel: 130.33 },
         { date: new Date(2019, 0, 14), petrol: 119.53, diesel: 129.47 },

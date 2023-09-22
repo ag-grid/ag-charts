@@ -4,7 +4,7 @@ import { NIGHTINGALE_DEFAULTS } from './nightingaleDefaults';
 import { NightingaleSeries } from './nightingaleSeries';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
-export const NightingaleModule: _ModuleSupport.SeriesModule = {
+export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

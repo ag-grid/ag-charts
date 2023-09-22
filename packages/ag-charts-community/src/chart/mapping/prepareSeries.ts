@@ -1,3 +1,4 @@
+import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import type {
     AgCartesianSeriesOptions,
@@ -7,7 +8,6 @@ import type {
 } from '../../options/agChartOptions';
 import type { SeriesGrouping } from '../series/seriesStateManager';
 import { isStackableSeries, isGroupableSeries, isSeriesStackedByDefault } from '../factory/seriesTypes';
-import { windowValue } from '../../util/window';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
 
@@ -75,8 +75,6 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
     return result;
 }
 
-const DEBUG = () => [true, 'opts'].includes(windowValue('agChartsDebug') as any);
-
 /**
  * Transforms provided series options array into an array containing series options which are compatible with standalone charts series options.
  */
@@ -85,7 +83,7 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
     const preprocessed = seriesOptions.map((series: SeriesOptions & { stacked?: boolean; grouped?: boolean }) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
-        const sType = series.type ?? '';
+        const sType = series.type ?? 'line';
         const groupable = isGroupableSeries(sType);
         const stackable = isStackableSeries(sType);
         const stackedByDefault = isSeriesStackedByDefault(sType);
@@ -166,12 +164,10 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
         return group.opts;
     };
 
-    if (DEBUG()) {
-        Logger.debug('processSeriesOptions() - series grouping: ', grouped);
-    }
+    Debug.create(true, 'opts')('processSeriesOptions() - series grouping: ', grouped);
 
     for (const group of grouped) {
-        const seriesType = String(group.opts[0].type);
+        const seriesType = group.opts[0].type ?? 'line';
         if (isGroupableSeries(seriesType) || isStackableSeries(seriesType)) {
             result.push(...addSeriesGroupingMeta(group));
         } else {

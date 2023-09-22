@@ -6,7 +6,7 @@ import { extent } from '../../../util/array';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
 import type { Text } from '../../../scene/shape/text';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -133,7 +133,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datums and
         // automatically garbage collect the marker selection.
-        if (this.ctx.animationManager.skipAnimations) {
+        if (this.ctx.animationManager.isSkipped()) {
             this.markerSelectionGarbageCollection = true;
         } else {
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
@@ -144,7 +144,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
-        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
             props.push(diff(this.processedData));
         }
 
@@ -155,7 +155,11 @@ export class LineSeries extends CartesianSeries<LineContext> {
         this.dataModel = dataModel;
         this.processedData = processedData;
 
-        this.checkAnimationUpdateDataTransition();
+        if (processedData.reduced?.diff?.added.length > 0 && processedData.reduced?.diff?.removed.length > 0) {
+            this.animationTransitionClear();
+        } else {
+            this.animationState.transition('updateData');
+        }
     }
 
     getDomain(direction: ChartAxisDirection): any[] {
@@ -267,6 +271,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             }
         }
         nodeData.length = actualLength;
+        this.fireDataProcessed(dataModel, processedData);
 
         return [{ itemId: yKey, nodeData, labelData: nodeData }];
     }
@@ -453,10 +458,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const { id, data, xKey, yKey, yName, visible, title, marker, stroke, strokeOpacity } = this;
 
-        if (!(data?.length && xKey && yKey)) {
+        if (!(data?.length && xKey && yKey && legendType === 'category')) {
             return [];
         }
 
@@ -607,7 +612,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     }
 
     animateWaitingUpdateReady(animationData: LineAnimationData) {
-        const { markerSelections, contextData, paths } = animationData;
+        const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { processedData, extendLine, findPointOnLine } = this;
         const diff = processedData?.reduced?.diff;
 
@@ -616,6 +621,14 @@ export class LineSeries extends CartesianSeries<LineContext> {
             return;
         }
 
+        // Treat undefined values as removed data points
+        processedData?.data.forEach((datum, index) => {
+            if (datum.values.includes(undefined)) {
+                diff.removed.push(createDatumId(datum.keys));
+                diff.removedIndices.push(index);
+            }
+        });
+
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
             const { path: linePath } = lineNode;
@@ -623,6 +636,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
             const markerNodes: { [keyof: string]: Marker } = {};
             markerSelections[contextDataIndex].each((marker, datum) => {
                 markerNodes[this.getDatumId(datum)] = marker;
+            });
+
+            labelSelections[contextDataIndex].each((label) => {
+                label.opacity = 0;
             });
 
             // Zip diff arrays into keyed objects for O(1) access
@@ -714,7 +731,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
             // Animate all nodes using a single animation to ensure the line is drawn correctly from node to node
             this.ctx.animationManager.animate({
-                id: `${this.id}_waiting-update-ready`,
+                id: `${this.id}_waiting-update-ready_${contextDataIndex}`,
                 from: 0,
                 to: 1,
                 duration,
@@ -935,6 +952,18 @@ export class LineSeries extends CartesianSeries<LineContext> {
                     this.resetMarkersAndPaths(animationData);
                 },
             });
+
+            this.ctx.animationManager.animate<number>(`${this.id}_waiting-update-ready_labels_${contextDataIndex}`, {
+                from: 0,
+                to: 1,
+                delay: duration,
+                duration: 200,
+                onUpdate: (opacity) => {
+                    labelSelections[contextDataIndex].each((label) => {
+                        label.opacity = opacity;
+                    });
+                },
+            });
         });
     }
 
@@ -1064,7 +1093,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     }
 
     private getDatumId(datum: LineNodeDatum) {
-        if (this.ctx.animationManager.skipAnimations) return '';
+        if (this.ctx.animationManager.isSkipped()) return '';
         return createDatumId([`${datum.xValue}`]);
     }
 

@@ -95,7 +95,7 @@ export interface AgRangeAreaSeriesOptions<DatumType = any>
     extends AgRangeAreaSeriesThemeableOptions<DatumType>,
         AgBaseSeriesOptions<DatumType> {
     /** Configuration for the RangeArea series. */
-    type?: 'range-area';
+    type: 'range-area';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-low-values from the data. */
@@ -110,8 +110,6 @@ export interface AgRangeAreaSeriesOptions<DatumType = any>
     yHighName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
-    title?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
 }

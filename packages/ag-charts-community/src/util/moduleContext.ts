@@ -27,7 +27,7 @@ export interface ModuleContext {
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
     dataService: DataService;
-    layoutService: Pick<LayoutService, 'addListener' | 'removeListener'>;
+    layoutService: Pick<LayoutService, 'addListener'>;
     updateService: UpdateService;
     callbackCache: CallbackCache;
     seriesStateManager: SeriesStateManager;
@@ -48,4 +48,8 @@ export interface AxisContext {
     scaleBandwidth: () => number;
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
+}
+
+export interface SeriesContext extends ModuleContext {
+    series: { type: string };
 }

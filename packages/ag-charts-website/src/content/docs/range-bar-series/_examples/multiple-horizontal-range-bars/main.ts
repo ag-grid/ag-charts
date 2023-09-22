@@ -43,7 +43,7 @@ const options: AgChartOptions = {
             stroke: '#205C37',
         },
         {
-            type: 'scatter',
+            type: 'bubble',
             yKey: 'smartphone',
             xKey: 'profitMargin',
             xName: 'Profil Margin',

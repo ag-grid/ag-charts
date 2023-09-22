@@ -10,8 +10,6 @@ const options: AgChartOptions = {
     data,
     title: {
         text: 'Dwelling Fires (UK)',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Home Office',
@@ -20,16 +18,12 @@ const options: AgChartOptions = {
         {
             type: 'pie',
             calloutLabelKey: 'type',
-            fillOpacity: 0.9,
-            strokeWidth: 0,
             angleKey: 'count',
             sectorLabelKey: 'count',
             calloutLabel: {
                 enabled: false,
             },
             sectorLabel: {
-                color: 'white',
-                fontWeight: 'bold',
                 formatter: ({ datum, sectorLabelKey }) => {
                     const value = datum[sectorLabelKey!];
                     return numFormatter.format(value);
@@ -38,7 +32,6 @@ const options: AgChartOptions = {
             title: {
                 text: 'Annual Count',
             },
-            fills: ['#fb7451', '#f4b944', '#57cc8b', '#49afda', '#3988dc', '#72508c', '#b499b5', '#b7b5ba'],
             innerRadiusRatio: 0.5,
             innerLabels: [
                 {
@@ -51,13 +44,6 @@ const options: AgChartOptions = {
                     fontSize: 16,
                 },
             ],
-            highlightStyle: {
-                item: {
-                    fillOpacity: 0,
-                    stroke: '#535455',
-                    strokeWidth: 1,
-                },
-            },
             tooltip: {
                 renderer: ({ datum, calloutLabelKey, title, sectorLabelKey }) => {
                     return {
@@ -70,4 +56,4 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

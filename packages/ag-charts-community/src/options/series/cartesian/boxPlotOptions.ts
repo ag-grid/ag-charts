@@ -12,11 +12,11 @@ import type { CssColor, Ratio } from '../../options/types';
 
 interface BoxPlotUniqueOptions {
     // required
-    minKey?: string;
-    q1Key?: string;
-    medianKey?: string;
-    q3Key?: string;
-    maxKey?: string;
+    minKey: string;
+    q1Key: string;
+    medianKey: string;
+    q3Key: string;
+    maxKey: string;
     // optional
     minName?: string;
     q1Name?: string;

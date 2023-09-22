@@ -2,9 +2,9 @@ import type { CssColor, Opacity, PixelSize } from '../../options/types';
 
 export interface AxisOptions {
     /** The key to use to retrieve x-values (categories) from the data. */
-    xKey?: string;
+    xKey: string;
     /** The key to use to retrieve y-values from the data. */
-    yKey?: string;
+    yKey: string;
     /** Human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** Human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */

@@ -1,5 +1,5 @@
 // Source: https://www.gov.uk/government/statistical-data-sets/museums-and-galleries-monthly-visits
-export function getData(): any[] {
+export function getData() {
     return [
         {
             date: new Date(Date.UTC(2019, 0, 1)),

@@ -1,9 +1,10 @@
-import type { _ModuleSupport, AgBoxPlotSeriesOptions } from 'ag-charts-community';
+import { _ModuleSupport, type AgBoxPlotSeriesOptions } from 'ag-charts-community';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 import { BOX_PLOT_SERIES_DEFAULTS } from './boxPlotDefaults';
 import { BoxPlotSeries } from './boxPlotSeries';
 
-export const BoxPlotModule: _ModuleSupport.SeriesModule = {
+const { singleSeriesPaletteFactory } = _ModuleSupport;
+export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
@@ -15,12 +16,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule = {
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 
-    paletteFactory: ({ takeColors }) => {
-        const {
-            fills: [fill],
-        } = takeColors(1);
-        return { fill };
-    },
+    paletteFactory: singleSeriesPaletteFactory,
 
     swapDefaultAxesCondition({ series }) {
         const [{ direction }] = series as [AgBoxPlotSeriesOptions];

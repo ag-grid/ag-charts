@@ -910,7 +910,7 @@ const BUBBLE_BASIC: AgCartesianChartOptions = {
     ...COMMON,
     series: [
         {
-            type: 'scatter',
+            type: 'bubble',
             xKey: 'gold',
             xName: 'Gold',
             yKey: 'silver',
@@ -1699,6 +1699,7 @@ const CROSSFILTER_COLUMN_FILTERED: AgCartesianChartOptions = {
 
 type TestCase = {
     options: AgChartOptions;
+    enterpriseCharts?: boolean;
 };
 export const EXAMPLES: Record<string, TestCase> = {
     COLUMN_BASIC: { options: COLUMN_BASIC },
@@ -1715,7 +1716,7 @@ export const EXAMPLES: Record<string, TestCase> = {
     AREA_BASIC: { options: AREA_BASIC },
     AREA_STACKED: { options: AREA_STACKED },
     AREA_STACKED_NORMALISED: { options: AREA_STACKED_NORMALISED },
-    HISTOGRAM: { options: HISTOGRAM },
+    HISTOGRAM: { options: HISTOGRAM, enterpriseCharts: true },
     COMBO_LINE: { options: COMBO_LINE },
     COMBO_AREA: { options: COMBO_AREA },
     CROSSFILTER_BAR: { options: CROSSFILTER_BAR },

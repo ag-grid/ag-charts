@@ -1,12 +1,12 @@
 import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
 import { getData } from './data';
 
-var minSize = 5;
-var maxSize = 100;
+const minSize = 5;
+const maxSize = 100;
 
 function find(arr: any[], predicate: any) {
-    for (var i = 0, ln = arr.length; i < ln; i++) {
-        var value = arr[i];
+    for (let i = 0, ln = arr.length; i < ln; i++) {
+        const value = arr[i];
         if (predicate(value, i, arr)) {
             return value;
         }
@@ -14,7 +14,7 @@ function find(arr: any[], predicate: any) {
 }
 
 function calculateColour(size: number) {
-    var colours: Record<number, string> = {
+    const colours: Record<number, string> = {
         0.1: '#33CC00',
         0.2: '#5CC200',
         0.3: '#85B800',
@@ -27,14 +27,14 @@ function calculateColour(size: number) {
         1: '#FF0000',
     };
 
-    var position = (size - minSize) / (maxSize - minSize);
+    const position = (size - minSize) / (maxSize - minSize);
 
-    var keys = Object.keys(colours)
+    const keys = Object.keys(colours)
         .map(function (key) {
             return parseFloat(key);
         })
         .sort();
-    var matchingKey = find(keys, function (key: number) {
+    const matchingKey = find(keys, function (key: number) {
         return key > position;
     });
 
@@ -56,7 +56,7 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'scatter',
+            type: 'bubble',
             xKey: 'depth',
             xName: 'Depth',
             yKey: 'minDistance',
@@ -71,9 +71,6 @@ const options: AgChartOptions = {
                         fill: params.highlighted ? params.fill : calculateColour(params.size),
                     };
                 },
-                strokeWidth: 0,
-                fillOpacity: 0.7,
-                strokeOpacity: 0.7,
             },
         },
     ],
@@ -93,12 +90,6 @@ const options: AgChartOptions = {
             },
         },
     ],
-    seriesArea: {
-        padding: {
-            left: 20,
-            bottom: 15,
-        }
-    }
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

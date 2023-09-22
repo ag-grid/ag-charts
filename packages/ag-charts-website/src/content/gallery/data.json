@@ -8,61 +8,33 @@
             "examples": [
                 {
                     "title": "Simple Bar",
-                    "description": "Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "simple-bar"
-                },
-                {
-                    "title": "Grouped Bar",
-                    "description": "Grouped bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-bar"
-                },
-                {
-                    "title": "Stacked Bar",
-                    "description": "Stacked bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
-                    "name": "stacked-bar"
-                },
-                {
-                    "title": "100% Stacked Bar",
-                    "description": "100% stacked bar charts show the relative percentage of multiple series in <a href='./stacked-bar/'>stacked bars</a>, where each stacked bar always totals to 100%.",
-                    "name": "100--stacked-bar"
-                },
-                {
-                    "title": "Bar With Labels",
-                    "description": "Using labels in a <a href='./simple-bar/'>bar chart</a> can be useful to highlight the values of each bar.",
-                    "name": "bar-with-labels"
-                }
-            ]
-        },
-        {
-            "title": "Column",
-            "name": "column",
-            "icon": "chartsColumn",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Column",
-                    "description": "Column charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical columns, with the height of each column proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
+                    "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
                     "name": "simple-column"
                 },
                 {
-                    "title": "Grouped Column",
-                    "description": "Grouped column charts (also known as clustered column charts) present multiple series with the <a href='./simple-column/'>columns</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-column"
+                    "title": "Grouped Bar",
+                    "description": "Grouped Bar charts (also known as clustered bar charts) present multiple series with the <a href='./simple-column/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                    "name": "column-with-negative-values"
                 },
                 {
-                    "title": "Stacked Column",
-                    "description": "Stacked column charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-column/'>columns</a>.",
+                    "title": "Stacked Bar",
+                    "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-column/'>bars</a>.",
                     "name": "stacked-column"
                 },
                 {
-                    "title": "100% Stacked Column",
-                    "description": "100% stacked column charts show the relative percentage of multiple series in <a href='./stacked-column/'>stacked columns</a>, where each stacked column always totals to 100%.",
-                    "name": "100--stacked-column"
+                    "title": "Simple Horizontal Bar",
+                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
+                    "name": "simple-bar"
                 },
                 {
-                    "title": "Column With Negative Values",
-                    "description": "Column and bar charts can also be used to represent negative values alongside positive ones.",
-                    "name": "column-with-negative-values"
+                    "title": "Grouped Horizontal Bar",
+                    "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                    "name": "grouped-bar"
+                },
+                {
+                    "title": "Stacked Horizontal Bar",
+                    "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
+                    "name": "stacked-bar"
                 }
             ]
         },
@@ -81,6 +53,11 @@
                     "title": "Line With Gaps",
                     "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
                     "name": "line-with-gaps"
+                },
+                {
+                    "title": "Multiple Line Series",
+                    "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
+                    "name": "line-legend-pagination"
                 }
             ]
         },
@@ -172,8 +149,21 @@
             ]
         },
         {
-            "title": "Donut",
-            "name": "donut",
+            "title": "Scatter",
+            "name": "scatter",
+            "icon": "chartsScatter",
+            "enterprise": false,
+            "examples": [
+                {
+                    "title": "Simple Scatter",
+                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                    "name": "simple-scatter"
+                }
+            ]
+        },
+        {
+            "title": "Doughnut",
+            "name": "doughnut",
             "icon": "chartsDonut",
             "enterprise": false,
             "examples": [

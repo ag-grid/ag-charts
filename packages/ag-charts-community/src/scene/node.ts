@@ -2,7 +2,6 @@ import { Matrix } from './matrix';
 import type { BBox } from './bbox';
 import { createId } from '../util/id';
 import { ChangeDetectable, SceneChangeDetection, RedrawType } from './changeDetectable';
-import type { SceneDebugOptions } from './sceneDebugOptions';
 import type { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import type { LiteralOrFn } from '../util/compare';
@@ -47,7 +46,7 @@ type Layer = HdpiCanvas | HdpiOffscreenCanvas;
 export type ZIndexSubOrder = [LiteralOrFn<string | number>, LiteralOrFn<number>];
 
 export interface LayerManager {
-    debug: SceneDebugOptions;
+    debug: (...args: any[]) => void;
     canvas: Layer;
     markDirty(): void;
     addLayer(opts: {
@@ -114,7 +113,7 @@ export abstract class Node extends ChangeDetectable {
     // Note: _setScene and _setParent methods are not meant for end users,
     // but they are not quite private either, rather, they have package level visibility.
 
-    protected _debug?: SceneDebugOptions;
+    protected _debug?: (...args: any[]) => void;
     protected _layerManager?: LayerManager;
     _setLayerManager(value?: LayerManager) {
         this._layerManager = value;

@@ -13,7 +13,7 @@ import {
 } from '../series';
 import { Label } from '../../label';
 import { PointerEvents } from '../../../scene/node';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
+import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import type { ChartAxis } from '../../chartAxis';
@@ -196,7 +196,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
         }
 
-        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
 
@@ -597,7 +597,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
         const {
             id,
             data,
@@ -613,7 +613,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             showInLegend,
         } = this;
 
-        if (!showInLegend || !data?.length || !xKey || !yKey) {
+        if (!showInLegend || !data?.length || !xKey || !yKey || legendType !== 'category') {
             return [];
         }
 

@@ -1,4 +1,4 @@
-export function windowValue(name: string): undefined | unknown {
+export function windowValue(name: string): undefined | any {
     /**
      * Redeclaration of window that is safe for use with Gatsby server-side (webpack) compilation.
      */

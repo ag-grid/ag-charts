@@ -8,16 +8,13 @@ export interface ChartLegend {
     attachLegend(node: Node | null): void;
     destroy(): void;
     data: any;
-    item: {
-        label: {
-            formatter?: (params: any) => string;
-        };
-    };
     listeners: AgChartLegendListeners;
 }
 
+export type ChartLegendType = 'category' | 'gradient';
+
 export interface ChartLegendDatum {
-    legendType: string;
+    legendType: ChartLegendType;
     seriesId: string;
     enabled: boolean;
 }

@@ -4,6 +4,7 @@ import type {
     AgBaseAxisOptions,
     AgBaseSeriesOptions,
 } from '../options/agChartOptions';
+import { Debug } from '../util/debug';
 import { CartesianChart } from './cartesianChart';
 import { PolarChart } from './polarChart';
 import { HierarchyChart } from './hierarchyChart';
@@ -24,14 +25,18 @@ import {
     optionsType,
     type SeriesOptionsTypes,
 } from './mapping/types';
-import { windowValue } from '../util/window';
-import type { AxisOptionModule, Module, RootModule } from '../util/module';
 import { Logger } from '../util/logger';
 import { getJsonApplyOptions } from './chartOptions';
 
-// Deliberately imported via `module-support` so that internal module registration happens.
-import { REGISTERED_MODULES } from '../module-support';
 import { setupModules } from './factory/setupModules';
+import { getLegendKeys } from './factory/legendTypes';
+import { registerInbuiltModules } from './factory/registerInbuiltModules';
+import { type Module, REGISTERED_MODULES } from '../util/module';
+import type { ModuleInstance } from '../util/baseModule';
+import type { LegendModule, RootModule } from '../util/coreModules';
+import type { AxisOptionModule, SeriesOptionModule } from '../util/optionModules';
+
+const debug = Debug.create(true, 'opts');
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
 
@@ -175,12 +180,11 @@ class AgChartInstanceProxy implements AgChartInstance {
 }
 
 abstract class AgChartInternal {
-    static DEBUG = () => (windowValue('agChartsDebug') as string | boolean) ?? false;
-
     static initialised = false;
     static initialiseModules() {
         if (AgChartInternal.initialised) return;
 
+        registerInbuiltModules();
         setupModules();
 
         AgChartInternal.initialised = true;
@@ -190,10 +194,6 @@ abstract class AgChartInternal {
         AgChartInternal.initialiseModules();
 
         debug('>>> AgChartV2.createOrUpdate() user options', userOptions);
-        const mixinOpts: any = {};
-        if (AgChartInternal.DEBUG() === true) {
-            mixinOpts['debug'] = true;
-        }
 
         const { overrideDevicePixelRatio, document, window: userWindow } = userOptions;
         delete userOptions['overrideDevicePixelRatio'];
@@ -201,7 +201,7 @@ abstract class AgChartInternal {
         delete (userOptions as any)['window'];
         const specialOverrides = { overrideDevicePixelRatio, document, window: userWindow };
 
-        const processedOptions = prepareOptions(userOptions, mixinOpts);
+        const processedOptions = prepareOptions(userOptions);
         let chart = proxy?.chart;
         if (chart == null || chartType(userOptions as any) !== chartType(chart.processedOptions as any)) {
             chart = AgChartInternal.createChartInstance(processedOptions, specialOverrides, chart);
@@ -213,7 +213,7 @@ abstract class AgChartInternal {
             proxy.chart = chart;
         }
 
-        if (AgChartInternal.DEBUG() === true && typeof window !== 'undefined') {
+        if (Debug.check() && typeof window !== 'undefined') {
             (window as any).agChartInstances ??= {};
             (window as any).agChartInstances[chart.id] = chart;
         }
@@ -362,17 +362,11 @@ abstract class AgChartInternal {
     }
 }
 
-function debug(message?: any, ...optionalParams: any[]): void {
-    if ([true, 'opts'].includes(AgChartInternal.DEBUG())) {
-        Logger.debug(message, ...optionalParams);
-    }
-}
-
 function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions): void {
     const completeOptions = jsonMerge([chart.processedOptions ?? {}, processedOptions], noDataCloneMergeOptions);
     const modulesChanged = applyModules(chart, completeOptions);
 
-    const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend'];
+    const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners'];
     if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
         // Append axes to defaults.
         skip.push('axes');
@@ -402,16 +396,21 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
             forceNodeDataRefresh = true;
         }
     }
-    applyLegend(chart, processedOptions);
 
     const seriesOpts = processedOptions.series as any[];
     const seriesDataUpdate = !!processedOptions.data || seriesOpts?.some((s) => s.data != null);
-    const otherRefreshUpdate = processedOptions.legend ?? processedOptions.title ?? processedOptions.subtitle;
-    forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || !!otherRefreshUpdate;
+    const legendKeys = getLegendKeys();
+    const optionsHaveLegend = Object.values(legendKeys).some(
+        (legendKey) => (processedOptions as any)[legendKey] != null
+    );
+    const otherRefreshUpdate = processedOptions.title != null && processedOptions.subtitle != null;
+    forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     if (processedOptions.data) {
         chart.data = processedOptions.data;
     }
-
+    if (processedOptions.legend?.listeners) {
+        Object.assign(chart.legend!.listeners, processedOptions.legend.listeners ?? {});
+    }
     if (processedOptions.listeners) {
         chart.updateAllSeriesListeners();
     }
@@ -435,20 +434,36 @@ function applyModules(chart: Chart, options: AgChartOptions) {
     };
 
     let modulesChanged = false;
-    const rootModules = REGISTERED_MODULES.filter((m): m is RootModule => m.type === 'root');
-    for (const next of rootModules) {
-        const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
-        const isEnabled = chart.isModuleEnabled(next);
+    const processModules = <T extends Module<ModuleInstance>>(
+        moduleType: Module['type'],
+        add: (module: T) => void,
+        remove: (module: T) => void
+    ) => {
+        const modules = REGISTERED_MODULES.filter((m): m is T => m.type === moduleType);
+        for (const next of modules) {
+            const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
+            const isEnabled = chart.isModuleEnabled(next);
 
-        if (shouldBeEnabled === isEnabled) continue;
-        modulesChanged = true;
+            if (shouldBeEnabled === isEnabled) continue;
+            modulesChanged = true;
 
-        if (shouldBeEnabled) {
-            chart.addModule(next);
-        } else {
-            chart.removeModule(next);
+            if (shouldBeEnabled) {
+                add(next);
+            } else {
+                remove(next);
+            }
         }
-    }
+    };
+    processModules<RootModule>(
+        'root',
+        (next) => chart.addModule(next),
+        (next) => chart.removeModule(next)
+    );
+    processModules<LegendModule>(
+        'legend',
+        (next) => chart.addLegendModule(next),
+        (next) => chart.removeLegendModule(next)
+    );
 
     return modulesChanged;
 }
@@ -515,16 +530,6 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
     return true;
 }
 
-function applyLegend(chart: Chart, options: AgChartOptions) {
-    const skip = ['listeners'];
-    chart.setLegendInit((legend) => {
-        applyOptionValues(legend, options.legend ?? {}, { skip });
-        if (options.legend?.listeners) {
-            Object.assign(chart.legend?.listeners!, options.legend.listeners ?? {});
-        }
-    });
-}
-
 function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
     const series: Series<any>[] = [];
     const moduleContext = chart.getModuleContext();
@@ -533,11 +538,22 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
     for (const seriesOptions of options ?? []) {
         const path = `series[${index++}]`;
         const seriesInstance = getSeries(seriesOptions.type ?? 'unknown', moduleContext);
+        applySeriesOptionModules(seriesInstance, seriesOptions);
         applySeriesValues(seriesInstance, seriesOptions, { path, index });
         series.push(seriesInstance);
     }
 
     return series;
+}
+
+function applySeriesOptionModules(series: Series, options: AgBaseSeriesOptions<any>) {
+    const seriesOptionModules = REGISTERED_MODULES.filter((m): m is SeriesOptionModule => m.type === 'series-option');
+
+    for (const mod of seriesOptionModules) {
+        if (mod.optionsKey in options) {
+            series.getModuleMap().addModule(mod);
+        }
+    }
 }
 
 function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {

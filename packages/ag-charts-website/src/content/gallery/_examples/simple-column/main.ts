@@ -11,8 +11,6 @@ const options: AgChartOptions = {
     data: getData(),
     title: {
         text: 'Total Visitors to Museums and Galleries',
-        fontSize: 18,
-        spacing: 25,
     },
     footnote: {
         text: 'Source: Department for Digital, Culture, Media & Sport',
@@ -22,14 +20,7 @@ const options: AgChartOptions = {
             type: 'bar',
             xKey: 'year',
             yKey: 'visitors',
-            fill: '#0084e7',
-            strokeWidth: 0,
-            shadow: {
-                xOffset: 3,
-            },
             label: {
-                enabled: true,
-                color: '#eeeeee',
                 formatter: ({ value }) => formatNumber(value),
             },
             tooltip: {
@@ -51,7 +42,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             title: {
-                text: 'Total visitors',
+                text: 'Total Visitors',
             },
             label: {
                 formatter: ({ value }) => formatNumber(value),
@@ -60,4 +51,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+AgEnterpriseCharts.create(options);

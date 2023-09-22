@@ -1,22 +1,32 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { BOOLEAN, ActionOnSet, Validate } = _ModuleSupport;
+const { BOOLEAN, NUMBER, ActionOnSet, Validate } = _ModuleSupport;
 
 export class Animation extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Animation>({
         newValue(value: boolean) {
             if (!this.animationManager) return;
-            this.animationManager.skipAnimations = !value;
+            this.animationManager.skip(!value);
         },
     })
     @Validate(BOOLEAN)
     public enabled = true;
+
+    @ActionOnSet<Animation>({
+        newValue(value: number | undefined) {
+            if (!this.animationManager) return;
+            this.animationManager.defaultOptions.duration = value;
+            this.animationManager.skip(value === 0);
+        },
+    })
+    @Validate(NUMBER(0))
+    public duration?: number;
 
     animationManager: _ModuleSupport.AnimationManager;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.animationManager = ctx.animationManager;
-        this.animationManager.skipAnimations = false;
+        this.animationManager.skip(false);
     }
 }

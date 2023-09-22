@@ -1,6 +1,5 @@
+import { Debug } from '../../util/debug';
 import { jsonDiff } from '../../util/json';
-import { Logger } from '../../util/logger';
-import { windowValue } from '../../util/window';
 import type { DataModelOptions, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from './dataModel';
 import { DataModel } from './dataModel';
 
@@ -36,7 +35,7 @@ type Result<
 
 /** Implements cross-series data model coordination. */
 export class DataController {
-    static DEBUG = () => [true, 'data-model'].includes(windowValue('agChartsDebug') as string) ?? false;
+    private readonly debug = Debug.create(true, 'data-model');
 
     private requested: RequestedProcessing<any, any, any>[] = [];
     private status: 'setup' | 'executed' = 'setup';
@@ -66,9 +65,9 @@ export class DataController {
 
         this.status = 'executed';
 
-        if (DataController.DEBUG()) Logger.debug('DataController.execute() - requested', this.requested);
+        this.debug('DataController.execute() - requested', this.requested);
         const merged = this.mergeRequested();
-        if (DataController.DEBUG()) Logger.debug('DataController.execute() - merged', merged);
+        this.debug('DataController.execute() - merged', merged);
 
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
             try {
@@ -122,7 +121,7 @@ export class DataController {
         const mergeOpts = (opts: DataModelOptions<any, any>[]): DataModelOptions<any, any> => {
             return {
                 ...opts[0],
-                props: opts.reduce((result, next) => {
+                props: opts.reduce<PropertyDefinition<any>[]>((result, next) => {
                     for (const prop of next.props) {
                         if (prop.id != null) {
                             prop.ids ??= [];
@@ -142,7 +141,7 @@ export class DataController {
                     }
 
                     return result;
-                }, [] as PropertyDefinition<any>[]),
+                }, []),
             };
         };
 

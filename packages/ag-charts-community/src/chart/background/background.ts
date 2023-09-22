@@ -1,6 +1,6 @@
 import { Rect } from '../../scene/shape/rect';
 import { Group } from '../../scene/group';
-import type { ModuleInstance } from '../../util/module';
+import type { ModuleInstance } from '../../util/baseModule';
 import { BaseModuleInstance } from '../../util/module';
 import type { ModuleContext } from '../../util/moduleContext';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
@@ -23,10 +23,10 @@ export class Background extends BaseModuleInstance implements ModuleInstance {
         this.visible = true;
 
         ctx.scene.root?.appendChild(this.node);
-        this.destroyFns.push(() => ctx.scene.root?.removeChild(this.node));
-
-        const layoutHandle = ctx.layoutService.addListener('layout-complete', this.onLayoutComplete);
-        this.destroyFns.push(() => ctx.layoutService.removeListener(layoutHandle));
+        this.destroyFns.push(
+            () => ctx.scene.root?.removeChild(this.node),
+            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete)
+        );
     }
 
     @Validate(BOOLEAN)

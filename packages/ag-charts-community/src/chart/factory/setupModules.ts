@@ -54,7 +54,7 @@ export function setupModules() {
         }
 
         if (m.type === 'legend') {
-            registerLegend(m.identifier, m.instanceConstructor);
+            registerLegend(m.identifier, m.optionsKey, m.instanceConstructor, m.themeTemplate);
         }
     }
 }

@@ -1,57 +1,83 @@
 import { jsonMerge, jsonWalk } from '../../util/json';
 import { deepMerge } from '../../util/object';
 import type {
-    FontWeight,
     AgChartThemePalette,
     AgChartThemeOptions,
     AgChartThemeOverrides,
-    AgBarSeriesLabelOptions,
-    AgChartLegendPosition,
     InteractionRange,
-    AgTooltipPositionType,
     AgChartTheme,
     AgCommonThemeableChartOptions,
 } from '../../options/agChartOptions';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
+import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
+import {
+    DEFAULT_AXIS_GRID_COLOUR,
+    DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_INVERTED_LABEL_COLOUR,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+    DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_SHADOW_COLOUR,
+    DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+    EXTENDS_AXES_DEFAULTS,
+    EXTENDS_AXES_LABEL_DEFAULTS,
+    EXTENDS_AXES_LINE_DEFAULTS,
+    EXTENDS_AXES_TICK_DEFAULTS,
+    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+    EXTENDS_CHART_DEFAULTS,
+    EXTENDS_SERIES_DEFAULTS,
+    OVERRIDE_SERIES_LABEL_DEFAULTS,
+} from './symbols';
+import { NORMAL, BOTTOM } from './constants';
 
 const palette: AgChartThemePalette = {
-    fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
-    strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
+    fills: [
+        '#436ff4',
+        '#9a7bff',
+        '#d165d2',
+        '#f0598b',
+        '#f47348',
+        '#f2a602',
+        '#e9e201',
+        '#21b448',
+        '#00b9a2',
+        '#00aee4',
+    ],
+    strokes: [
+        '#294ed1',
+        '#7d5bdc',
+        '#b045b1',
+        '#cc366e',
+        '#d15326',
+        '#c67d00',
+        '#ada400',
+        '#009426',
+        '#00957f',
+        '#008ec3',
+    ],
 };
-
-export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults');
-export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults');
-export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults');
-export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults');
-export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults');
-export const OVERRIDE_SERIES_LABEL_DEFAULTS = Symbol('override-series-label-defaults');
-export const DEFAULT_FONT_FAMILY = Symbol('default-font');
-export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour');
-export const DEFAULT_MUTED_LABEL_COLOUR = Symbol('default-muted-label-colour');
-export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour');
-export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour');
-export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour');
-export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour');
-
-const BOLD: FontWeight = 'bold';
-const INSIDE: AgBarSeriesLabelOptions['placement'] = 'inside';
-const BOTTOM: AgChartLegendPosition = 'bottom';
 
 type ChartTypeConfig = {
     seriesTypes: string[];
     commonOptions: (keyof AgCommonThemeableChartOptions)[];
 };
 const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
-    cartesian: { seriesTypes: CHART_TYPES.cartesianTypes, commonOptions: ['zoom', 'navigator'] },
-    polar: { seriesTypes: CHART_TYPES.polarTypes, commonOptions: [] },
-    hierarchy: { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] },
+    get cartesian(): ChartTypeConfig {
+        return { seriesTypes: CHART_TYPES.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
+    },
+    get polar(): ChartTypeConfig {
+        return { seriesTypes: CHART_TYPES.polarTypes, commonOptions: [] };
+    },
+    get hierarchy(): ChartTypeConfig {
+        return { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] };
+    },
 };
-const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce(
-    (r, { commonOptions }) => [...r, ...commonOptions],
-    [] as (keyof AgCommonThemeableChartOptions)[]
-);
+const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
+    (keyof AgCommonThemeableChartOptions)[]
+>((r, { commonOptions }) => [...r, ...commonOptions], []);
 
 export class ChartTheme {
     readonly palette: AgChartThemePalette;
@@ -72,19 +98,19 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Axis Title',
                 fontStyle: undefined,
-                fontWeight: BOLD,
+                fontWeight: NORMAL,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
             },
             label: {
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
                 padding: 5,
                 rotation: undefined,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
+                color: DEFAULT_LABEL_COLOUR,
                 formatter: undefined,
                 avoidCollisions: true,
             },
@@ -94,13 +120,13 @@ export class ChartTheme {
             },
             tick: {
                 width: 1,
-                size: 6,
+                size: 0,
                 color: 'rgb(195, 195, 195)',
             },
             gridStyle: [
                 {
-                    stroke: DEFAULT_AXIS_GRID_COLOUR as unknown as string,
-                    lineDash: [4, 2],
+                    stroke: DEFAULT_AXIS_GRID_COLOUR,
+                    lineDash: [],
                 },
             ],
             crossLines: {
@@ -113,9 +139,9 @@ export class ChartTheme {
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                    fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 5,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
+                    color: DEFAULT_LABEL_COLOUR,
                 },
             },
         };
@@ -145,82 +171,11 @@ export class ChartTheme {
         };
     }
 
-    private static getBarSeriesDefaults() {
-        return {
-            ...this.getSeriesDefaults(),
-            fillOpacity: 1,
-            strokeOpacity: 1,
-            normalizedTo: undefined,
-            strokeWidth: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
-            label: {
-                enabled: false,
-                fontStyle: undefined,
-                fontWeight: undefined,
-                fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
-                formatter: undefined,
-                placement: INSIDE,
-            },
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR as unknown as string,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
-        };
-    }
-
-    private static getLineSeriesDefaults() {
-        const seriesDefaults = this.getSeriesDefaults();
-        return {
-            ...seriesDefaults,
-            tooltip: {
-                ...seriesDefaults.tooltip,
-                format: undefined,
-                position: {
-                    type: 'node' as AgTooltipPositionType,
-                },
-            },
-        };
-    }
-
-    private static getAreaSeriesDefaults() {
-        const seriesDefaults = this.getSeriesDefaults();
-        return {
-            ...seriesDefaults,
-            nodeClickRange: 'nearest' as InteractionRange,
-            tooltip: {
-                ...seriesDefaults.tooltip,
-                position: {
-                    type: 'node' as AgTooltipPositionType,
-                },
-            },
-        };
-    }
-
-    private static getScatterSeriesDefaults() {
-        const seriesDefaults = this.getSeriesDefaults();
-        return {
-            ...seriesDefaults,
-            tooltip: {
-                ...seriesDefaults.tooltip,
-                position: {
-                    type: 'node' as AgTooltipPositionType,
-                },
-            },
-        };
-    }
-
     private static getCartesianSeriesMarkerDefaults() {
         return {
             enabled: true,
             shape: 'circle',
             size: 6,
-            maxSize: 30,
             strokeWidth: 1,
             formatter: undefined,
         };
@@ -234,7 +189,7 @@ export class ChartTheme {
         return {
             background: {
                 visible: true,
-                fill: DEFAULT_BACKGROUND_COLOUR as unknown as string,
+                fill: DEFAULT_BACKGROUND_COLOUR,
             },
             padding: {
                 top: 20,
@@ -245,32 +200,34 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
+                spacing: 20,
                 fontStyle: undefined,
-                fontWeight: BOLD,
+                fontWeight: NORMAL,
                 fontSize: 16,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_LABEL_COLOUR as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             subtitle: {
                 enabled: false,
                 text: 'Subtitle',
+                spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                color: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             footnote: {
                 enabled: false,
                 text: 'Footnote',
+                spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
-                spacing: 30,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             legend: {
@@ -287,11 +244,11 @@ export class ChartTheme {
                         padding: 8,
                     },
                     label: {
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
+                        color: DEFAULT_LABEL_COLOUR,
                         fontStyle: undefined,
                         fontWeight: undefined,
                         fontSize: 12,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
+                        fontFamily: DEFAULT_FONT_FAMILY,
                         formatter: undefined,
                     },
                 },
@@ -301,16 +258,16 @@ export class ChartTheme {
                         size: 12,
                     },
                     activeStyle: {
-                        fill: DEFAULT_LABEL_COLOUR as unknown as string,
+                        fill: DEFAULT_LABEL_COLOUR,
                     },
                     inactiveStyle: {
-                        fill: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
+                        fill: DEFAULT_MUTED_LABEL_COLOUR,
                     },
                     highlightStyle: {
-                        fill: DEFAULT_LABEL_COLOUR as unknown as string,
+                        fill: DEFAULT_LABEL_COLOUR,
                     },
                     label: {
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
+                        color: DEFAULT_LABEL_COLOUR,
                     },
                 },
             },
@@ -326,10 +283,16 @@ export class ChartTheme {
     private static readonly cartesianAxisDefault = {
         number: {
             ...ChartTheme.getAxisDefaults(),
+            line: {
+                width: 0,
+            },
         },
         log: {
             ...ChartTheme.getAxisDefaults(),
             base: 10,
+            line: {
+                width: 0,
+            },
         },
         category: {
             ...ChartTheme.getAxisDefaults(),
@@ -338,291 +301,19 @@ export class ChartTheme {
                 ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
             },
+            tick: {
+                width: 0,
+            },
         },
         groupedCategory: {
             ...ChartTheme.getAxisDefaults(),
         },
         time: {
             ...ChartTheme.getAxisDefaults(),
-        },
-    };
-
-    private static readonly cartesianDefaults: Partial<AgChartThemeOverrides> = {
-        bar: {
-            ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getBarSeriesDefaults(),
+            tick: {
+                width: 0,
             },
         },
-        line: {
-            ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getLineSeriesDefaults(),
-                strokeWidth: 2,
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-                marker: {
-                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
-                    fillOpacity: 1,
-                    strokeOpacity: 1,
-                },
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    formatter: undefined,
-                },
-            },
-        },
-        scatter: {
-            ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getScatterSeriesDefaults(),
-                marker: {
-                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
-                },
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                },
-            },
-        },
-        area: {
-            ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getAreaSeriesDefaults(),
-                fillOpacity: 0.8,
-                strokeOpacity: 1,
-                strokeWidth: 2,
-                lineDash: [0],
-                lineDashOffset: 0,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
-                marker: {
-                    ...ChartTheme.getCartesianSeriesMarkerDefaults(),
-                    fillOpacity: 1,
-                    strokeOpacity: 1,
-                    enabled: false,
-                },
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    formatter: undefined,
-                },
-            },
-        },
-        histogram: {
-            ...ChartTheme.getChartDefaults(),
-            axes: this.cartesianAxisDefault,
-            series: {
-                ...ChartTheme.getSeriesDefaults(),
-                strokeWidth: 1,
-                fillOpacity: 1,
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-                label: {
-                    enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    formatter: undefined,
-                },
-                shadow: {
-                    enabled: true,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
-                    xOffset: 0,
-                    yOffset: 0,
-                    blur: 5,
-                },
-            },
-        },
-    };
-
-    private static readonly polarDefaults: Partial<AgChartThemeOverrides> = {
-        pie: {
-            ...ChartTheme.getChartDefaults(),
-            series: {
-                ...ChartTheme.getSeriesDefaults(),
-                title: {
-                    enabled: true,
-                    fontStyle: undefined,
-                    fontWeight: BOLD,
-                    fontSize: 14,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    spacing: 0,
-                },
-                calloutLabel: {
-                    enabled: true,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    offset: 3,
-                    minAngle: 0,
-                },
-                sectorLabel: {
-                    enabled: true,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    positionOffset: 0,
-                    positionRatio: 0.5,
-                },
-                calloutLine: {
-                    length: 10,
-                    strokeWidth: 2,
-                },
-                fillOpacity: 1,
-                strokeOpacity: 1,
-                strokeWidth: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-                rotation: 0,
-                outerRadiusOffset: 0,
-                innerRadiusOffset: 0,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
-                innerLabels: {
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    margin: 2,
-                },
-            },
-        },
-    };
-
-    private static readonly hierarchyDefaults: Partial<AgChartThemeOverrides> = {
-        treemap: {
-            ...ChartTheme.getChartDefaults(),
-            series: {
-                ...ChartTheme.getSeriesDefaults(),
-                showInLegend: false,
-                colorDomain: [-5, 5],
-                colorRange: ['#cb4b3f', '#6acb64'],
-                groupFill: '#272931',
-                groupStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR as unknown as string,
-                groupStrokeWidth: 1,
-                tileStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR as unknown as string,
-                tileStrokeWidth: 1,
-                gradient: true,
-                tileShadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR as unknown as string,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
-                labelShadow: {
-                    enabled: true,
-                    color: 'rgba(0, 0, 0, 0.4)',
-                    xOffset: 1.5,
-                    yOffset: 1.5,
-                    blur: 5,
-                },
-                highlightGroups: true,
-                nodePadding: 2,
-                nodeGap: 0,
-                title: {
-                    enabled: true,
-                    color: DEFAULT_LABEL_COLOUR as unknown as string,
-                    fontStyle: undefined,
-                    fontWeight: BOLD,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    padding: 2,
-                },
-                subtitle: {
-                    enabled: true,
-                    color: DEFAULT_MUTED_LABEL_COLOUR as unknown as string,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: 9,
-                    fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                    padding: 2,
-                },
-                labels: {
-                    large: {
-                        enabled: true,
-                        fontStyle: undefined,
-                        fontWeight: BOLD,
-                        fontSize: 18,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
-                        wrapping: 'on-space',
-                    },
-                    medium: {
-                        enabled: true,
-                        fontStyle: undefined,
-                        fontWeight: BOLD,
-                        fontSize: 14,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
-                        wrapping: 'on-space',
-                    },
-                    small: {
-                        enabled: true,
-                        fontStyle: undefined,
-                        fontWeight: BOLD,
-                        fontSize: 10,
-                        fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                        color: DEFAULT_LABEL_COLOUR as unknown as string,
-                        wrapping: 'on-space',
-                    },
-                    value: {
-                        style: {
-                            enabled: true,
-                            fontStyle: undefined,
-                            fontWeight: undefined,
-                            fontSize: 12,
-                            fontFamily: DEFAULT_FONT_FAMILY as unknown as string,
-                            color: DEFAULT_LABEL_COLOUR as unknown as string,
-                        },
-                    },
-                },
-            },
-        },
-    };
-
-    private static readonly defaults: AgChartThemeOverrides = {
-        ...ChartTheme.cartesianDefaults,
-        ...ChartTheme.polarDefaults,
-        ...ChartTheme.hierarchyDefaults,
     };
 
     constructor(options?: AgChartTheme) {
@@ -683,10 +374,11 @@ export class ChartTheme {
     }
 
     private getDefaults(): AgChartThemeOverrides {
-        let defaults = deepMerge({}, ChartTheme.defaults);
+        let defaults = {};
 
         const getChartTypeDefaults = (chartType: ChartType) => {
             return {
+                ...getLegendThemeTemplates(),
                 ...ChartTheme.getChartDefaults(),
                 ...getChartDefaults(chartType),
             };
@@ -771,18 +463,22 @@ export class ChartTheme {
 
     protected getTemplateParameters() {
         const extensions = new Map();
+        extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
         extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
         extensions.set(EXTENDS_AXES_LABEL_DEFAULTS, ChartTheme.getAxisDefaults().label);
         extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);
         extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
+        extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
 
         const properties = new Map();
-        properties.set(DEFAULT_FONT_FAMILY as unknown as string, 'Verdana, sans-serif');
+        properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         properties.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
+        properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
-        properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(219, 219, 219)');
+        properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
+        properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');

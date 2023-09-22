@@ -5,13 +5,20 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'School Grades',
+        text: 'KPIs by Department',
     },
     series: [
         {
             type: 'radar-line',
-            angleKey: 'subject',
-            radiusKey: 'grade',
+            angleKey: 'department',
+            radiusKey: 'quality',
+            radiusName: 'Quality',
+        },
+        {
+            type: 'radar-line',
+            angleKey: 'department',
+            radiusKey: 'efficiency',
+            radiusName: 'Efficiency',
         },
     ],
     axes: [
@@ -20,9 +27,9 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            positionAngle: 360 / 5,
+            positionAngle: 72,
             label: {
-                rotation: -360 / 5,
+                rotation: -72,
             },
         },
     ],

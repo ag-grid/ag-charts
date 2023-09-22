@@ -1,6 +1,6 @@
+import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import { isNumber } from '../../util/value';
-import { windowValue } from '../../util/window';
 import { DataDomain } from './dataDomain';
 import type { ContinuousDomain } from './utilFunctions';
 import { extendDomain } from './utilFunctions';
@@ -224,8 +224,6 @@ export class DataModel<
     K extends keyof D & string = keyof D & string,
     Grouped extends boolean | undefined = undefined
 > {
-    static DEBUG = () => [true, 'data-model'].includes(windowValue('agChartsDebug') as string) ?? false;
-
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
     private readonly values: InternalDatumPropertyDefinition<K>[];
@@ -476,7 +474,7 @@ export class DataModel<
         const end = performance.now();
         processedData.time = end - start;
 
-        if (DataModel.DEBUG()) {
+        if (Debug.check(true, 'data-model')) {
             logProcessedData(processedData);
         }
 
@@ -941,24 +939,21 @@ export class DataModel<
 }
 
 function logProcessedData(processedData: ProcessedData<any>) {
-    const log = (name: string, data: any[]) => {
+    const logValues = (name: string, data: any[]) => {
         if (data.length > 0) {
-            // eslint-disable-next-line no-console
-            console.log(`DataModel.processData() - ${name}`);
-            // eslint-disable-next-line no-console
-            console.table(data);
+            Logger.log(`DataModel.processData() - ${name}`);
+            Logger.table(data);
         }
     };
 
-    // eslint-disable-next-line no-console
-    console.log('DataModel.processData() - processedData', processedData);
-    log('Key Domains', processedData.domain.keys);
-    log('Group Domains', processedData.domain.groups ?? []);
-    log('Value Domains', processedData.domain.values);
-    log('Aggregate Domains', processedData.domain.aggValues ?? []);
+    Logger.log('DataModel.processData() - processedData', processedData);
+    logValues('Key Domains', processedData.domain.keys);
+    logValues('Group Domains', processedData.domain.groups ?? []);
+    logValues('Value Domains', processedData.domain.values);
+    logValues('Aggregate Domains', processedData.domain.aggValues ?? []);
 
     if (processedData.type === 'grouped') {
-        const flattenedValues = processedData.data.reduce((acc, next) => {
+        const flattenedValues = processedData.data.reduce<any[]>((acc, next) => {
             const keys = next.keys ?? [];
             const aggValues = next.aggValues ?? [];
             const skipKeys = next.keys.map(() => undefined);
@@ -971,14 +966,14 @@ function logProcessedData(processedData: ProcessedData<any>) {
                 ])
             );
             return acc;
-        }, [] as any[]);
-        log('Values', flattenedValues);
+        }, []);
+        logValues('Values', flattenedValues);
     } else {
-        const flattenedValues = processedData.data.reduce((acc, next) => {
+        const flattenedValues = processedData.data.reduce<any[]>((acc, next) => {
             const aggValues = next.aggValues ?? [];
             acc.push([...next.keys, ...next.values, ...aggValues]);
             return acc;
-        }, [] as any[]);
-        log('Values', flattenedValues);
+        }, []);
+        logValues('Values', flattenedValues);
     }
 }

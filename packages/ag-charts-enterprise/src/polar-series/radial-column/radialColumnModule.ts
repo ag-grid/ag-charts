@@ -3,7 +3,7 @@ import { RadialColumnSeries } from './radialColumnSeries';
 import { RADIAL_COLUMN_DEFAULTS } from './radialColumnDefaults';
 import { RADIAL_COLUMN_SERIES_THEME } from './radialColumnThemes';
 
-export const RadialColumnModule: _ModuleSupport.SeriesModule = {
+export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

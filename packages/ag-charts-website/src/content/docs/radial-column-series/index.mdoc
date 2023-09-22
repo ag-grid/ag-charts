@@ -3,124 +3,113 @@ title: 'Radial Column Series'
 enterprise: true
 ---
 
-The **Radial Column** series, also known as the _Circular Column chart_, displays data using rectangular columns that
-are positioned along a polar axis. This chart type is similar to the [Nightingale Chart](../nightingale-series/).
+A Radial Column Series, also called _Circular Column_, visualises data through rectangular columns arranged along a polar axis.
 
 ## Simple Radial Column
 
-To create a basic Radial Column chart, use a data array where each item has one category value (for the angle axis) and one numeric value (for the radius axis).
+{% chartExampleRunner title="Simple Radial Column" name="simple-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
 
-A minimal Radial Column series configuration will look like:
+To create a Radial Column Series, use the `radial-column` series type.
 
 ```js
 series: [
-    {
-        type: 'radial-column',
-        angleKey: 'product',
-        radiusKey: 'sales',
-    },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', radiusName: 'Software' },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', radiusName: 'Hardware' },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', radiusName: 'Services' },
 ],
 ```
 
-{% chartExampleRunner title="Simple Radial Column" name="simple-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
+In this configuration:
+
+-   `angleKey` is set to 'quarter', which is the shared category for the Angle Axis.
+-   `radiusKey` specifies the numerical datasets, 'software', 'hardware' and 'services', for the Radius Axis.
+-   `radiusName` labels each series, such as 'Software', 'Hardware' and 'Services'.
 
 ## Stacked Radial Column
 
-In a stacked Radial Column chart, columns are placed on top of each other to create a total for each category. The following example illustrates a stacked Radial Column chart:
+In a Stacked Radial Column chart, columns are vertically stacked within each category to represent a cumulative total,
+allowing analysis of both single data points and overall category totals.
+
+{% chartExampleRunner title="Stacked Radial Column" name="stacked-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
+
+To stack columns in a Radial Column Series, enable the `stacked` series property.
 
 ```js
 series: [
-    {
-        type: 'radial-column',
-        angleKey: 'product',
-        radiusKey: 'A sales',
-        stacked: true,
-    },
-    {
-        type: 'radial-column',
-        angleKey: 'product',
-        radiusKey: 'B sales',
-        stacked: true,
-    },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'software', stacked: true },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'hardware', stacked: true },
+    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'services', stacked: true },
 ],
 ```
-
-{% chartExampleRunner title="Stacked Radial Column" name="stacked-radial-column" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Customisation
 
 ### Inner Radius
 
-To create a hole in the middle, use the `innerRadiusRatio` option in the polar `radius` axis:
-
-```js
-axes: [
-    {
-        type: 'angle-category',
-    },
-    {
-        type: 'radius-number',
-        innerRadiusRatio: 0.25,
-    },
-],
-```
+The inner radius can be used to create a 'doughnut' effect which can help emphasise specific data points.
 
 {% chartExampleRunner title="Inner Radius" name="inner-radius" type="generated" options="{ \"enterprise\": true }" /%}
 
-### Category Padding
-
-It's possible to set a padding between elements in a polar chart's `angle` axis by using two options:
-
--   `paddingInner` controls the padding between column groups.
--   `groupPaddingInner` controls the padding between columns within a group.
+This is changed via the `innerRadiusRatio` option on the Radius Number Axis.
 
 ```js
 axes: [
-        {
-            type: 'angle-category',
-            groupPaddingInner: 0.5,
-            paddingInner: 0.4,
-        },
-        {
-            type: 'radius-number',
-            innerRadiusRatio: 0.25,
-        },
+    { type: 'angle-category' },
+    { type: 'radius-number' innerRadiusRatio: 0.2 },
 ],
 ```
 
-Note that the [Inner Radius](#inner-radius) has also been changed via `innerRadiusRatio`.
+Any value between `0` and `1` will set the inner radius as a proportion of the overall radius.
+
+### Category Padding
 
 {% chartExampleRunner title="Category Padding" name="category-padding" type="generated" options="{ \"enterprise\": true }" /%}
 
+The following options are used to control the padding between different elements on the Angle Axis:
+
+-   `paddingInner`: Gap between column groups, ranges from `0` (no gap) to `1` (maximum spacing).
+-   `groupPaddingInner`: Spacing within a group, ranges from `0` (columns touching) to `1` (widest gap).
+
+```js
+axes: [
+    { type: 'angle-category', groupPaddingInner: 0.5, paddingInner: 0.5 },
+    { type: 'radius-number', innerRadiusRatio: 0.2 },
+],
+```
+
 ### Axis Label Orientation
 
-Use `label.orientation` property to change the orientation of polar axis labels by providing one of the options: `fixed`, `parallel` or `perpendicular`. The next example demonstrates how this property works:
+{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
+
+To change Angle Axis Label orientation, use the `label.orientation` property with these options:
+
+-   `fixed`: Labels have fixed orientation (default).
+-   `parallel`: Labels align parallel to the axis.
+-   `perpendicular`: Labels align perpendicular to the axis.
+
+The following configuration changes the orientation of the Axis Labels to `parallel` :
 
 ```js
 axes: [
     {
         type: 'angle-category',
         label: {
-            orientation: 'perpendicular',
+            orientation: 'parallel',
         },
     },
-    {
-        type: 'radius-number',
-    },
+    { type: 'radius-number' },
 ],
 ```
 
-{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
-
 ### Radius Axis Position
 
-`positionAngle` can change the position of Radius Axis line and `label.rotation` will change the rotation angle of axis labels:
+{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
+
+Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
 
 ```js
 axes: [
-    {
-        type: 'angle-category',
-    },
+    { type: 'angle-category' },
     {
         type: 'radius-number',
         positionAngle: 90,
@@ -130,8 +119,6 @@ axes: [
     },
 ],
 ```
-
-{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

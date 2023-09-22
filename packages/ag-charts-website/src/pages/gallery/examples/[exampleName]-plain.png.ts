@@ -1,10 +1,12 @@
+export const prerender = true;
+
 import { getEntry } from 'astro:content';
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
 import { JSDOM } from 'jsdom';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import * as mockCanvas from '../../../../../ag-charts-community/src/chart/test/mock-canvas';
-import { AgChart } from 'ag-charts-community';
+import { AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getGeneratedGalleryContents } from '../../../features/gallery/utils/examplesGenerator';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../../../features/gallery/constants';
@@ -42,13 +44,14 @@ export async function get({ params }: { params: Params }) {
         let { options } = transformPlainEntryFile(entryFile, files['data.js']);
         options = {
             ...options,
+            animation: { enabled: false },
             document: jsdom.window.document,
             window: jsdom.window,
             width: DEFAULT_THUMBNAIL_WIDTH,
             height: DEFAULT_THUMBNAIL_HEIGHT,
         };
 
-        const chartProxy = AgChart.create(options);
+        const chartProxy = AgEnterpriseCharts.create(options);
         const chart = (chartProxy as any).chart;
         await chart.waitForUpdate(5_000);
 

@@ -1,5 +1,5 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-community';
-import { _Scene, _Util, _ModuleSupport } from 'ag-charts-community';
+import { _Scene, _ModuleSupport } from 'ag-charts-community';
 import type { LabelMeta } from './crosshairLabel';
 import { CrosshairLabel } from './crosshairLabel';
 
@@ -48,27 +48,20 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
         super();
 
-        const mouseMove = ctx.interactionManager.addListener('hover', (event) => this.onMouseMove(event));
-        const mouseOut = ctx.interactionManager.addListener('leave', () => this.onMouseOut());
-        const highlight = ctx.highlightManager.addListener('highlight-change', (event) =>
-            this.onHighlightChange(event)
-        );
-        const layout = ctx.layoutService.addListener('layout-complete', (event) => this.layout(event));
-
-        this.destroyFns.push(() => ctx.interactionManager.removeListener(mouseMove));
-        this.destroyFns.push(() => ctx.interactionManager.removeListener(mouseOut));
-        this.destroyFns.push(() => ctx.highlightManager.removeListener(highlight));
-        this.destroyFns.push(() => ctx.layoutService.removeListener(layout));
+        ctx.scene.root?.appendChild(this.crosshairGroup);
 
         this.axisCtx = ctx.parent;
-
-        ctx.scene.root?.appendChild(this.crosshairGroup);
-        this.destroyFns.push(() => ctx.scene.root?.removeChild(this.crosshairGroup));
-
         this.crosshairGroup.visible = false;
+        this.label = new CrosshairLabel(ctx.document, ctx.scene.canvas.container ?? ctx.document.body);
 
-        this.label = new CrosshairLabel(document, ctx.scene.canvas.container ?? document.body);
-        this.destroyFns.push(() => this.label.destroy());
+        this.destroyFns.push(
+            ctx.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
+            ctx.interactionManager.addListener('leave', () => this.onMouseOut()),
+            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
+            ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
+            () => ctx.scene.root?.removeChild(this.crosshairGroup),
+            () => this.label.destroy()
+        );
     }
 
     private layout({ series: { rect, paddedRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {

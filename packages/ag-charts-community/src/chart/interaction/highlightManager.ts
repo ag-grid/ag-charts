@@ -11,6 +11,7 @@ interface HighlightNodeDatum {
     readonly datum: any;
     readonly xKey?: string;
     readonly yKey?: string;
+    readonly colorValue?: number;
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;
     readonly domain?: [number, number];
@@ -71,12 +72,11 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
 
         const changed = !isEqual(previousHighlight, this.activeHighlight);
         if (changed) {
-            const event: HighlightChangeEvent = {
+            this.listeners.dispatch('highlight-change', {
                 type: 'highlight-change',
                 previousHighlight,
                 currentHighlight: this.activeHighlight,
-            };
-            this.listeners.dispatch('highlight-change', event);
+            });
         }
     }
 }

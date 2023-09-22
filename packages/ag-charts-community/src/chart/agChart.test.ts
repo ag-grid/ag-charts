@@ -428,8 +428,8 @@ describe('update', () => {
 
         expect(leftAxis?.gridStyle).toEqual([
             {
-                stroke: 'rgb(219, 219, 219)',
-                lineDash: [4, 2],
+                stroke: 'rgb(224,234,241)',
+                lineDash: [],
             },
         ]);
         AgChart.update(chartProxy, {

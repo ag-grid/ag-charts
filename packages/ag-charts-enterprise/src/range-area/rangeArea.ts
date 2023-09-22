@@ -145,13 +145,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
     @Validate(NUMBER(0))
     strokeWidth: number = 1;
 
-    set data(input: any[] | undefined) {
-        this._data = input;
-    }
-    get data() {
-        return this._data;
-    }
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -655,8 +648,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         });
     }
 
-    getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, visible } = this;
+
+        if (legendType !== 'category') {
+            return [];
+        }
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
@@ -777,4 +774,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
     protected isLabelEnabled() {
         return this.label.enabled;
     }
+
+    protected onDataChange() {}
 }

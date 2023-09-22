@@ -104,13 +104,13 @@ export class CartesianChart extends Chart {
             );
         };
         const ceilValues = <T extends Record<string, number | undefined>>(records: T) => {
-            return Object.entries(records).reduce((out, [key, value]) => {
+            return Object.entries(records).reduce<Record<string, number | undefined>>((out, [key, value]) => {
                 if (value && Math.abs(value) === Infinity) {
                     value = 0;
                 }
                 out[key] = value != null ? Math.ceil(value) : value;
                 return out;
-            }, {} as any);
+            }, {});
         };
 
         // Iteratively try to resolve axis widths - since X axis width affects Y axis range,

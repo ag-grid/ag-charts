@@ -219,18 +219,11 @@ export class Legend {
 
         this.item.marker.parent = this;
 
-        const interactionListeners = [
+        this.destroyFns.push(
             ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e)),
             ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e)),
             ctx.interactionManager.addListener('hover', (e) => this.handleLegendMouseMove(e)),
-        ];
-        const layoutListeners = [
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
-        ];
-
-        this.destroyFns.push(
-            ...interactionListeners.map((s) => () => ctx.interactionManager.removeListener(s)),
-            ...layoutListeners.map((s) => () => ctx.layoutService.removeListener(s)),
             () => this.detachLegend()
         );
     }
@@ -793,13 +786,10 @@ export class Legend {
         event.consume();
 
         if (toggleSeriesVisible) {
-            const legendData = chartSeries.reduce(
-                (ls, s) => [
-                    ...ls,
-                    ...s.getLegendData().filter((d): d is CategoryLegendDatum => d.legendType === 'category'),
-                ],
-                [] as CategoryLegendDatum[]
-            );
+            const legendData: CategoryLegendDatum[] = [];
+            chartSeries.forEach((series) => {
+                legendData.push(...(series.getLegendData('category') as CategoryLegendDatum[]));
+            });
 
             const numVisibleItems: any = {};
             legendData.forEach((d) => {

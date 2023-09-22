@@ -20,9 +20,10 @@ type Chart = {
     autoSize: boolean;
     width: number;
     height: number;
+    data: any[] | null;
     scene: _Scene.Scene;
     axes: { type: 'string' }[];
-    series: { type: 'string' }[];
+    series: { type: 'string'; data: any[] | null }[];
     waitForUpdate: (timeoutMs: number) => Promise<void>;
 };
 
@@ -301,16 +302,12 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 }
 
 export function spyOnAnimationManager(totalDuration: number, ratio: number) {
+    jest.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
     jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation(({ delay = 0, ...opts }) => {
         const controller = new Animation({ ...opts, delay, duration: Math.max(0, totalDuration - (delay ?? 0)) });
-        // console.log(opts, { ratio });
-        if (totalDuration * ratio < delay) {
-            opts.onUpdate?.(opts.from, controller);
-        } else {
-            const delayRatio = delay ? delay / totalDuration : 0;
-            const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
-            controller.update(totalDuration * squashedRatio);
-        }
+        const delayRatio = delay ? delay / totalDuration : 0;
+        const squashedRatio = Math.max(0, Math.min(1, (ratio - delayRatio) / (1 - delayRatio)));
+        controller.update(totalDuration * squashedRatio);
         return Promise.resolve() as any;
     });
 }

@@ -132,7 +132,7 @@ export interface AgTreemapSeriesThemeableOptions<DatumType = any> extends AgBase
 export interface AgTreemapSeriesOptions<DatumType = any>
     extends AgTreemapSeriesThemeableOptions<DatumType>,
         Omit<AgBaseSeriesOptions<DatumType>, 'highlightStyle'> {
-    type?: 'treemap';
+    type: 'treemap';
     /** The name of the node key containing the label. */
     labelKey?: string;
     /** The name of the node key containing the size value. */

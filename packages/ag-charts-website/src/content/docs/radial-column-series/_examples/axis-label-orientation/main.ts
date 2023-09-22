@@ -5,36 +5,36 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `Night & Gale Inc revenue`,
+        text: 'Revenue by Product Category',
     },
     subtitle: {
-        text: 'in million U.S. dollars',
+        text: 'Millions USD',
     },
     series: [
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'air',
-            radiusName: 'Mountain air',
+            radiusKey: 'software',
+            radiusName: 'Software',
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'winds',
-            radiusName: 'Polar winds',
+            radiusKey: 'hardware',
+            radiusName: 'Hardware',
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'holes',
-            radiusName: 'Donut holes',
+            radiusKey: 'services',
+            radiusName: 'Services',
         },
     ],
     axes: [
         {
             type: 'angle-category',
             label: {
-                orientation: 'perpendicular',
+                orientation: 'parallel',
             },
         },
         {

@@ -158,13 +158,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     @Validate(NUMBER(0))
     strokeWidth: number = 1;
 
-    set data(input: any[] | undefined) {
-        this._data = input;
-    }
-    get data() {
-        return this._data;
-    }
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -224,7 +217,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         const isContinuousY = this.getValueAxis()?.scale instanceof ContinuousScale;
 
         const animationProp = [];
-        if (!this.ctx.animationManager.skipAnimations && this.processedData) {
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
             animationProp.push(diff(this.processedData));
         }
 
@@ -714,8 +707,12 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         });
     }
 
-    getLegendData(): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, visible } = this;
+
+        if (legendType !== 'category') {
+            return [];
+        }
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
@@ -928,4 +925,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     getBandScalePadding() {
         return { inner: 0.2, outer: 0.3 };
     }
+
+    protected onDataChange() {}
 }

@@ -1,34 +1,33 @@
-import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMode, SeriesNodePickMatch } from '../series';
-import { Series, SeriesNodeBaseClickEvent } from '../series';
-import { SeriesMarker } from '../seriesMarker';
-import { isContinuous, isDiscrete } from '../../../util/value';
-import { Path } from '../../../scene/shape/path';
-import { Selection } from '../../../scene/selection';
-import type { Marker } from '../../marker/marker';
-import { Group } from '../../../scene/group';
-import { Text } from '../../../scene/shape/text';
-import type { Node, ZIndexSubOrder } from '../../../scene/node';
-import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
-import { CategoryAxis } from '../../axis/categoryAxis';
-import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { Layers } from '../../layers';
-import type { Point } from '../../../scene/point';
-import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
-import { jsonDiff } from '../../../util/json';
-import type { BBox } from '../../../scene/bbox';
+import { StateMachine } from '../../../motion/states';
 import type {
-    AgCartesianSeriesMarkerFormatterParams,
     AgCartesianSeriesMarkerFormat,
+    AgCartesianSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
+import type { BBox } from '../../../scene/bbox';
+import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import { Group } from '../../../scene/group';
+import type { Node, ZIndexSubOrder } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
+import { Selection } from '../../../scene/selection';
+import { Path } from '../../../scene/shape/path';
+import { Text } from '../../../scene/shape/text';
+import { Debug } from '../../../util/debug';
+import { jsonDiff } from '../../../util/json';
+import type { PointLabelDatum } from '../../../util/labelPlacement';
+import { Listeners } from '../../../util/listeners';
+import type { ModuleContext } from '../../../util/moduleContext';
+import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
+import { isContinuous, isDiscrete } from '../../../util/value';
+import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
-import { StateMachine } from '../../../motion/states';
-import type { ModuleContext } from '../../../util/moduleContext';
-import { Logger } from '../../../util/logger';
-import { ErrorBars } from '../../errorBar';
-import type { ErrorBarConfig } from '../../errorBar';
+import { Layers } from '../../layers';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
+import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { Series, SeriesNodeBaseClickEvent } from '../series';
+import { SeriesMarker } from '../seriesMarker';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -110,15 +109,18 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
     duration?: number;
 }
 
+type DataEventType = 'data-model';
+type DataEvent = {
+    dataModel: DataModel<any, any, any>;
+    processedData: ProcessedData<any>;
+};
+
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
     N extends Node = Group
 > extends Series<C> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
-
-    errorBar?: ErrorBarConfig = undefined;
-    errorBarUpdater: ErrorBars = new ErrorBars(this.contentGroup);
 
     private _contextNodeData: C[] = [];
     get contextNodeData(): C[] {
@@ -136,6 +138,7 @@ export abstract class CartesianSeries<
     private subGroupId: number = 0;
 
     private readonly opts: SeriesOpts;
+    private readonly debug = Debug.create();
 
     protected animationState: CartesianStateMachine;
     protected datumSelectionGarbageCollection = true;
@@ -143,6 +146,7 @@ export abstract class CartesianSeries<
 
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
+    private dataModelListeners = new Listeners<DataEventType, (event: DataEvent) => void>();
 
     protected constructor({
         pathsPerSeries = 1,
@@ -236,6 +240,14 @@ export abstract class CartesianSeries<
         this.subGroups.splice(0, this.subGroups.length);
     }
 
+    public addListener(type: DataEventType, listener: (event: DataEvent) => void) {
+        return this.dataModelListeners.addListener(type, listener);
+    }
+
+    protected fireDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
+        this.dataModelListeners.dispatch('data-model', { dataModel: dataModel, processedData: processedData });
+    }
+
     /**
      * Note: we are passing `isContinuousX` and `isContinuousY` into this method because it will
      *       typically be called inside a loop and this check only needs to happen once.
@@ -271,7 +283,6 @@ export abstract class CartesianSeries<
 
         await this.updateSelections(visible);
         await this.updateNodes(highlightItems, seriesHighlighted, visible);
-        this.errorBarUpdater.update();
 
         const animationData = this.getAnimationData(seriesRect);
         if (resize) {
@@ -290,20 +301,9 @@ export abstract class CartesianSeries<
         if (this.nodeDataRefresh) {
             this.nodeDataRefresh = false;
 
-            if (this.chart?.debug) {
-                Logger.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
-            }
+            this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
+
             this._contextNodeData = await this.createNodeData();
-            if (this.processedData !== undefined && this.errorBar !== undefined) {
-                this.errorBarUpdater.createNodeData(
-                    this.processedData,
-                    this.dataModel?.resolveProcessedDataIndexById(this, `xValue`).index,
-                    this.dataModel?.resolveProcessedDataIndexById(this, `yValue`).index,
-                    this.axes[ChartAxisDirection.X]?.scale,
-                    this.axes[ChartAxisDirection.Y]?.scale,
-                    this.errorBar
-                );
-            }
             await this.updateSeriesGroups();
         }
 
@@ -829,14 +829,8 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
-    protected checkAnimationUpdateDataTransition() {
-        const diff = this.processedData?.reduced?.diff;
-
-        if (diff?.added.length > 0 && diff?.removed.length > 0) {
-            this.animationState.transition('clear', this.getAnimationData());
-        } else {
-            this.animationState.transition('updateData');
-        }
+    protected animationTransitionClear() {
+        this.animationState.transition('clear', this.getAnimationData());
     }
 
     private getAnimationData(seriesRect?: BBox) {

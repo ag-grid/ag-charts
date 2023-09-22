@@ -22,8 +22,7 @@ export class TooltipManager {
     public constructor(tooltip: Tooltip, interactionManager: InteractionManager) {
         this.tooltip = tooltip;
 
-        const hoverRef = interactionManager.addListener('hover', (e) => this.checkExclusiveRects(e));
-        this.destroyFns.push(() => interactionManager.removeListener(hoverRef));
+        this.destroyFns.push(interactionManager.addListener('hover', (e) => this.checkExclusiveRects(e)));
     }
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: string) {

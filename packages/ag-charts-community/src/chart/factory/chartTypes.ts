@@ -2,15 +2,7 @@ import { jsonMerge } from '../../util/json';
 
 export type ChartType = 'cartesian' | 'polar' | 'hierarchy';
 
-const TYPES: Record<string, ChartType> = {
-    area: 'cartesian',
-    bar: 'cartesian',
-    histogram: 'cartesian',
-    line: 'cartesian',
-    scatter: 'cartesian',
-    treemap: 'hierarchy',
-    pie: 'polar',
-};
+const TYPES: Record<string, ChartType> = {};
 
 const DEFAULTS: Record<string, {}> = {};
 

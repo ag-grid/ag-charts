@@ -1,6 +1,5 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { RadarSeries } from '../radar/radarSeries';
-import type { RadarLinePoint } from '../radar/radarSeries';
 
 const { NUMBER, OPT_COLOR_STRING, Validate } = _ModuleSupport;
 
@@ -17,10 +16,6 @@ export class RadarAreaSeries extends RadarSeries {
 
     @Validate(NUMBER(0, 1))
     fillOpacity = 1;
-
-    protected get breakMissingPoints() {
-        return false;
-    }
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx);
@@ -54,9 +49,10 @@ export class RadarAreaSeries extends RadarSeries {
         areaNode.stroke = undefined;
     }
 
-    protected animatePaths(points: RadarLinePoint[], totalDuration: number, timePassed: number) {
-        super.animatePaths(points, totalDuration, timePassed);
-        this.animateSinglePath(this.getAreaNode(), points, totalDuration, timePassed);
+    protected animatePaths(totalDuration: number, timePassed: number) {
+        super.animatePaths(totalDuration, timePassed);
+        const areaPoints = this.getLinePoints({ breakMissingPoints: false });
+        this.animateSinglePath(this.getAreaNode(), areaPoints, totalDuration, timePassed);
     }
 
     protected resetMarkersAndPaths() {
@@ -65,13 +61,11 @@ export class RadarAreaSeries extends RadarSeries {
 
         if (areaNode) {
             const { path: areaPath } = areaNode;
-            const areaPoints = this.getLinePoints();
+            const areaPoints = this.getLinePoints({ breakMissingPoints: false });
 
             areaNode.fill = this.fill;
             areaNode.fillOpacity = this.fillOpacity;
-            areaNode.stroke = this.stroke;
-            areaNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
-            areaNode.strokeOpacity = this.strokeOpacity;
+            areaNode.stroke = undefined;
 
             areaNode.lineDash = this.lineDash;
             areaNode.lineDashOffset = this.lineDashOffset;

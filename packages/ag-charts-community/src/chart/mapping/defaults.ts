@@ -16,32 +16,6 @@ export const DEFAULT_CARTESIAN_CHART_OVERRIDES: AgCartesianChartOptions = {
     ],
 };
 
-export const DEFAULT_BAR_CHART_OVERRIDES: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'category',
-            position: 'left',
-        },
-    ],
-};
-
-export const DEFAULT_SCATTER_HISTOGRAM_CHART_OVERRIDES: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
-};
-
 export function swapAxes<T extends AgChartOptions>(opts: T): T {
     if (!isAgCartesianChartOptions(opts)) {
         return opts;

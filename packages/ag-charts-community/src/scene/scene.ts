@@ -1,15 +1,22 @@
 import type { Size } from '../canvas/hdpiCanvas';
 import { HdpiCanvas } from '../canvas/hdpiCanvas';
+import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
+import { toArray } from '../util/array';
+import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
+import { Debug } from '../util/debug';
+import { createId } from '../util/id';
+import { Logger } from '../util/logger';
+import { windowValue } from '../util/window';
+import { Group } from './group';
 import type { Node, RenderContext, ZIndexSubOrder } from './node';
 import { RedrawType } from './node';
-import { createId } from '../util/id';
-import { Group } from './group';
-import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
-import { windowValue } from '../util/window';
-import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
-import type { SceneDebugOptions } from './sceneDebugOptions';
-import { SceneDebugLevel } from './sceneDebugOptions';
-import { Logger } from '../util/logger';
+
+enum DebugSelectors {
+    SCENE = 'scene',
+    SCENE_STATS = 'scene:stats',
+    SCENE_STATS_VERBOSE = 'scene:stats:verbose',
+    SCENE_DIRTY_TREE = 'scene:dirtyTree',
+}
 
 interface SceneOptions {
     document: Document;
@@ -25,25 +32,6 @@ interface SceneLayer {
     canvas: HdpiOffscreenCanvas | HdpiCanvas;
     getComputedOpacity: () => number;
     getVisibility: () => boolean;
-}
-
-function buildSceneNodeHighlight() {
-    let config = (windowValue('agChartsSceneDebug') as string | string[]) ?? [];
-
-    if (typeof config === 'string') {
-        config = [config];
-    }
-
-    const result: (string | RegExp)[] = [];
-    config.forEach((name: string) => {
-        if (name === 'layout') {
-            result.push('seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/);
-        } else {
-            result.push(name);
-        }
-    });
-
-    return result;
 }
 
 const advancedCompositeIdentifier = 'adv-composite';
@@ -78,13 +66,6 @@ export class Scene {
         this.overrideDevicePixelRatio = overrideDevicePixelRatio;
 
         this.opts = { document, window, mode };
-        this.debug.consoleLog = [true, 'scene'].includes(windowValue('agChartsDebug') as any);
-        this.debug.level = ['scene'].includes(windowValue('agChartsDebug') as any)
-            ? SceneDebugLevel.DETAILED
-            : SceneDebugLevel.SUMMARY;
-        this.debug.stats = (windowValue('agChartsSceneStats') as any) ?? false;
-        this.debug.dirtyTree = (windowValue('agChartsSceneDirtyTree') as boolean) ?? false;
-        this.debug.sceneNodeHighlight = buildSceneNodeHighlight();
         this.canvas = new HdpiCanvas({ document, window, width, height, overrideDevicePixelRatio });
     }
 
@@ -194,9 +175,7 @@ export class Scene {
             lastLayer.element.insertAdjacentElement('afterend', (canvas as HdpiCanvas).element);
         }
 
-        if (this.debug.consoleLog) {
-            Logger.debug('Scene.addLayer() - layers', this.layers);
-        }
+        this.debug('Scene.addLayer() - layers', this.layers);
 
         return newLayer.canvas;
     }
@@ -209,9 +188,7 @@ export class Scene {
             canvas.destroy();
             this.markDirty();
 
-            if (this.debug.consoleLog) {
-                Logger.debug('Scene.removeLayer() -  layers', this.layers);
-            }
+            this.debug('Scene.removeLayer() -  layers', this.layers);
         }
     }
 
@@ -224,9 +201,7 @@ export class Scene {
             this.sortLayers();
             this.markDirty();
 
-            if (this.debug.consoleLog) {
-                Logger.debug('Scene.moveLayer() -  layers', this.layers);
-            }
+            this.debug('Scene.moveLayer() -  layers', this.layers);
         }
     }
 
@@ -254,27 +229,17 @@ export class Scene {
             return;
         }
 
-        if (this._root) {
-            this._root._setLayerManager();
-        }
-
+        this._root?._setLayerManager();
         this._root = node;
 
         if (node) {
-            // If `node` is the root node of another scene ...
-            if (node.parent === null && node.layerManager && node.layerManager !== this) {
-                (node.layerManager as Scene).root = null;
-            }
             node._setLayerManager({
                 addLayer: (opts) => this.addLayer(opts),
                 moveLayer: (...opts) => this.moveLayer(...opts),
                 removeLayer: (...opts) => this.removeLayer(...opts),
                 markDirty: () => this.markDirty(),
                 canvas: this.canvas,
-                debug: {
-                    ...this.debug,
-                    consoleLog: this.debug.level >= SceneDebugLevel.DETAILED,
-                },
+                debug: Debug.create(DebugSelectors.SCENE),
             });
         }
 
@@ -284,14 +249,7 @@ export class Scene {
         return this._root;
     }
 
-    readonly debug: SceneDebugOptions = {
-        dirtyTree: false,
-        stats: false,
-        renderBoundingBoxes: false,
-        consoleLog: false,
-        level: SceneDebugLevel.SUMMARY,
-        sceneNodeHighlight: [],
-    };
+    private readonly debug = Debug.create(true, DebugSelectors.SCENE);
 
     /** Alternative to destroy() that preserves re-usable resources. */
     strip() {
@@ -330,7 +288,6 @@ export class Scene {
         if (pendingSize) {
             this.canvas.resize(...pendingSize);
             this.layers.forEach((layer) => layer.canvas.resize(...pendingSize));
-
             this.pendingSize = undefined;
         }
 
@@ -340,12 +297,10 @@ export class Scene {
         }
 
         if (root && !this.dirty) {
-            if (this.debug.consoleLog) {
-                Logger.debug('Scene.render() - no-op', {
-                    redrawType: RedrawType[root.dirty],
-                    tree: this.buildTree(root),
-                });
-            }
+            this.debug('Scene.render() - no-op', {
+                redrawType: RedrawType[root.dirty],
+                tree: this.buildTree(root),
+            });
 
             this.debugStats(debugSplitTimes, ctx, undefined, extraDebugStats);
             return;
@@ -357,7 +312,8 @@ export class Scene {
             resized: !!pendingSize,
             debugNodes: {},
         };
-        if (this.debug.stats === 'detailed') {
+
+        if (Debug.check(DebugSelectors.SCENE_STATS_VERBOSE)) {
             renderCtx.stats = { layersRendered: 0, layersSkipped: 0, nodesRendered: 0, nodesSkipped: 0 };
         }
 
@@ -368,19 +324,17 @@ export class Scene {
             canvas.clear();
         }
 
-        if (root && this.debug.dirtyTree) {
+        if (root) {
             const { dirtyTree, paths } = this.buildDirtyTree(root);
-            Logger.debug('Scene.render() - dirtyTree', { dirtyTree, paths });
+            Debug.create(DebugSelectors.SCENE_DIRTY_TREE)('Scene.render() - dirtyTree', { dirtyTree, paths });
         }
 
         if (root && canvasCleared) {
-            if (this.debug.consoleLog) {
-                Logger.debug('Scene.render() - before', {
-                    redrawType: RedrawType[root.dirty],
-                    canvasCleared,
-                    tree: this.buildTree(root),
-                });
-            }
+            this.debug('Scene.render() - before', {
+                redrawType: RedrawType[root.dirty],
+                canvasCleared,
+                tree: this.buildTree(root),
+            });
 
             if (root.visible) {
                 ctx.save();
@@ -414,10 +368,10 @@ export class Scene {
         this._dirty = false;
 
         this.debugStats(debugSplitTimes, ctx, renderCtx.stats, extraDebugStats);
-        this.debugSceneNodeHighlight(ctx, this.debug.sceneNodeHighlight, renderCtx.debugNodes);
+        this.debugSceneNodeHighlight(ctx, renderCtx.debugNodes);
 
-        if (root && this.debug.consoleLog) {
-            Logger.debug('Scene.render() - after', {
+        if (root) {
+            this.debug('Scene.render() - after', {
                 redrawType: RedrawType[root.dirty],
                 canvasCleared,
                 tree: this.buildTree(root),
@@ -431,9 +385,8 @@ export class Scene {
         renderCtxStats: RenderContext['stats'],
         extraDebugStats = {}
     ) {
-        const end = performance.now();
-
-        if (this.debug.stats) {
+        if (Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)) {
+            const end = performance.now();
             const start = debugSplitTimes['start'];
             debugSplitTimes['end'] = performance.now();
 
@@ -460,12 +413,12 @@ export class Scene {
                 .map(([k, v]) => `${k}: ${v}`)
                 .join(' ; ');
 
+            const detailedStats = Debug.check(DebugSelectors.SCENE_STATS_VERBOSE);
             const stats = [
                 `${time('⏱️', start, end)} (${splits})`,
                 `${extras}`,
-                this.debug.stats !== 'detailed' ? `Layers: ${this.layers.length}` : null,
-                this.debug.stats === 'detailed' ? `Layers: ${pct(layersRendered, layersSkipped)}` : null,
-                this.debug.stats === 'detailed' ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
+                `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : this.layers.length}`,
+                detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
             ].filter((v): v is string => v != null);
             const statsSize: [string, Size][] = stats.map((t) => [t, HdpiCanvas.getTextSize(t, ctx.font)]);
             const width = Math.max(...statsSize.map(([, { width }]) => width));
@@ -485,11 +438,7 @@ export class Scene {
         }
     }
 
-    debugSceneNodeHighlight(
-        ctx: CanvasRenderingContext2D,
-        sceneNodeHighlight: (string | RegExp)[],
-        debugNodes: Record<string, Node>
-    ) {
+    debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
         const regexpPredicate = (matcher: RegExp) => (n: Node) => {
             if (matcher.test(n.id)) {
                 return true;
@@ -505,13 +454,16 @@ export class Scene {
             return n instanceof Group && n.name != null && match === n.name;
         };
 
+        const sceneNodeHighlight = toArray(windowValue('agChartsSceneDebug')).flatMap((name) =>
+            name === 'layout' ? ['seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/] : name
+        );
         for (const next of sceneNodeHighlight) {
             if (typeof next === 'string' && debugNodes[next] != null) continue;
 
             const predicate = typeof next === 'string' ? stringPredicate(next) : regexpPredicate(next);
             const nodes = this.root?.findNodes(predicate);
             if (!nodes || nodes.length === 0) {
-                Logger.debug(`Scene.render() - no debugging node with id [${next}] in scene graph.`);
+                Logger.log(`Scene.render() - no debugging node with id [${next}] in scene graph.`);
                 continue;
             }
 
@@ -530,7 +482,7 @@ export class Scene {
             const bbox = node.computeTransformedBBox();
 
             if (!bbox) {
-                Logger.debug(`Scene.render() - no bbox for debugged node [${name}].`);
+                Logger.log(`Scene.render() - no bbox for debugged node [${name}].`);
                 continue;
             }
 
@@ -567,7 +519,7 @@ export class Scene {
                 : {}),
             ...node.children
                 .map((c) => this.buildTree(c))
-                .reduce((result, childTree) => {
+                .reduce<Record<string, {}>>((result, childTree) => {
                     let { name: treeNodeName } = childTree;
                     const {
                         node: { visible, opacity, zIndex, zIndexSubOrder },
@@ -599,7 +551,7 @@ export class Scene {
                     }
                     result[selectedKey] = childTree;
                     return result;
-                }, {} as Record<string, {}>),
+                }, {}),
         };
     }
 
@@ -629,10 +581,10 @@ export class Scene {
                 ...childrenDirtyTree
                     .map((c) => c.dirtyTree)
                     .filter((t) => t.dirty !== undefined)
-                    .reduce((result, childTree) => {
+                    .reduce<Record<string, {}>>((result, childTree) => {
                         result[childTree.name ?? '<unknown>'] = childTree;
                         return result;
-                    }, {} as Record<string, {}>),
+                    }, {}),
             },
             paths,
         };

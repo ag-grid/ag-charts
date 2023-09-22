@@ -1,3 +1,6 @@
+import type { AnimationControls, AnimationOptions as BaseAnimationOptions, Driver } from '../../motion/animate';
+import { animate as baseAnimate } from '../../motion/animate';
+import { Debug } from '../../util/debug';
 import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
 import { Logger } from '../../util/logger';
@@ -19,16 +22,15 @@ interface AnimationEvent {
  * preventing duplicate animations and handling their lifecycle.
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
+    private readonly debug = Debug.create(true, 'animation');
     private readonly controllers: Map<string, IAnimation> = new Map();
 
     private isPlaying = false;
     private requestId: number | null = null;
     private readyToPlay = false;
+    private skipAnimations = false;
 
     private interactionManager: InteractionManager;
-
-    public skipAnimations = false;
-    public debug = false;
 
     constructor(interactionManager: InteractionManager) {
         super();
@@ -48,6 +50,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     }: AnimationOptions<T> & { disableInteractions?: boolean }) {
         if (this.skipAnimations) {
             opts.onUpdate?.(opts.to, null);
+            opts.onComplete?.(null);
             return null;
         }
 
@@ -91,7 +94,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
 
         this.isPlaying = true;
-        this.debugLog('AnimationManager.play()');
+
+        this.debug('AnimationManager.play()');
 
         for (const controller of this.controllers.values()) {
             controller.play();
@@ -107,7 +111,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         this.isPlaying = false;
         this.cancelAnimation();
-        this.debugLog('AnimationManager.pause()');
+        this.debug('AnimationManager.pause()');
 
         for (const controller of this.controllers.values()) {
             controller.pause();
@@ -117,7 +121,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     public stop() {
         this.isPlaying = false;
         this.cancelAnimation();
-        this.debugLog('AnimationManager.stop()');
+        this.debug('AnimationManager.stop()');
 
         for (const controller of this.controllers.values()) {
             controller.stop();
@@ -170,9 +174,12 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.requestId = null;
     }
 
-    private debugLog(...logContent: any[]) {
-        if (this.debug) {
-            Logger.debug(...logContent);
-        }
+    public skip(skip = true) {
+        this.skipAnimations = skip;
     }
+
+    public isSkipped() {
+        return this.skipAnimations;
+    }
+
 }
