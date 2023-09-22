@@ -309,14 +309,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const axisOuterRadius = this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const getLabelNodeDatum = (radiusDatum: number, x: number, y: number): RadialBarLabelNodeDatum | undefined => {
+        const getLabelNodeDatum = (angleDatum: number, x: number, y: number): RadialBarLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ value: radiusDatum, seriesId });
-            } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
-                labelText = radiusDatum.toFixed(2);
-            } else if (radiusDatum) {
-                labelText = String(radiusDatum);
+                labelText = label.formatter({ value: angleDatum, seriesId });
+            } else if (typeof angleDatum === 'number' && isFinite(angleDatum)) {
+                labelText = angleDatum.toFixed(2);
+            } else if (angleDatum) {
+                labelText = String(angleDatum);
             }
             if (labelText) {
                 const labelX = x;
@@ -346,14 +346,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
             const innerRadius = dataRadius + groupScale.convert(String(groupIndex));
             const outerRadius = innerRadius + barWidth;
+            const midRadius = (innerRadius + outerRadius) / 2;
 
             const cos = Math.cos(midAngle);
             const sin = Math.sin(midAngle);
 
-            const x = cos * dataRadius;
-            const y = sin * dataRadius;
+            const x = cos * midRadius;
+            const y = sin * midRadius;
 
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(radiusDatum, x, y) : undefined;
+            const labelNodeDatum = label.enabled ? getLabelNodeDatum(angleDatum, x, y) : undefined;
 
             return {
                 series: this,
