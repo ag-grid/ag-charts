@@ -91,14 +91,13 @@ export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale
 
     update() {
         this.updateScale();
-        const ticks = this.scale.domain;
         this.updatePosition();
         this.updateGridLines();
         this.updateTickLines();
         this.updateLabels();
         this.updateRadiusLine();
         this.updateCrossLines();
-        return ticks.length;
+        return this.scale.ticks().length;
     }
 
     updatePosition() {
@@ -269,6 +268,9 @@ export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale
             const y = distance * sin;
             const { textAlign, textBaseline } = this.getLabelAlign(angle);
 
+            // Hide the last tick when it appears over the first
+            const isLastTickOverFirst = index === ticks.length - 1 && value !== ticks[0] && isNumberEqual(normalizeAngle360(angle), normalizeAngle360(scale.convert(ticks[0])));
+
             const rotation = this.getLabelRotation(angle);
 
             let text = String(value);
@@ -312,7 +314,7 @@ export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale
                 y,
                 textAlign,
                 textBaseline,
-                hidden: text === '',
+                hidden: text === '' || isLastTickOverFirst,
                 rotation,
                 box,
             };
