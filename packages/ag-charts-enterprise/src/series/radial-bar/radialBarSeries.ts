@@ -685,16 +685,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected animateItemsShapes() {
         const { itemSelection } = this;
         const duration = this.ctx.animationManager.defaultDuration();
+        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
 
         itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${node.id}`, {
-                from: datum.startAngle,
-                to: datum.endAngle,
-                duration,
-                onUpdate: (endAngle) => {
-                    node.endAngle = endAngle;
-                },
-            });
+            this.ctx.animationManager.animateMany<number>(
+                `${this.id}_empty-update-ready_${node.id}`,
+                [
+                    { from: axisStartAngle, to: datum.startAngle },
+                    { from: axisStartAngle, to: datum.endAngle },
+                ],
+                {
+                    duration,
+                    onUpdate: ([startAngle, endAngle]) => {
+                        node.startAngle = startAngle;
+                        node.endAngle = endAngle;
+                    },
+                }
+            );
         });
     }
 }
