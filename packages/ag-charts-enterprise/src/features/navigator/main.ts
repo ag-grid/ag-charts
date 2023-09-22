@@ -1,1 +1,1 @@
-export * from './chartNavigatorModule';
+export * from './navigatorModule';

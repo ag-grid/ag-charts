@@ -18,7 +18,7 @@ import type {
 } from '../options/agChartOptions';
 import { getMarker } from './marker/util';
 import { createId } from '../util/id';
-import { HdpiCanvas } from '../canvas/hdpiCanvas';
+import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import {
     BOOLEAN,
     NUMBER,

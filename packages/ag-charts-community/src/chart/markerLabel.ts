@@ -2,7 +2,7 @@ import { Group } from '../scene/group';
 import { Text } from '../scene/shape/text';
 import { Square } from './marker/square';
 import type { Marker } from './marker/marker';
-import { HdpiCanvas } from '../canvas/hdpiCanvas';
+import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import type { RenderContext } from '../scene/node';
 import type { FontStyle, FontWeight } from '../options/agChartOptions';
 import { ProxyPropertyOnWrite } from '../util/proxy';

@@ -1,4 +1,4 @@
-import { isDesktop } from '../util/userAgent';
+import { isDesktop } from '../../util/userAgent';
 
 export type Size = { width: number; height: number };
 

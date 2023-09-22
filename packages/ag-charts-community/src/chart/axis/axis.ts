@@ -1,52 +1,46 @@
-import { Caption } from './caption';
-import { AxisLabel } from './chart/axis/axisLabel';
-import { AxisLine } from './chart/axis/axisLine';
-import type { TickCount, TickInterval } from './chart/axis/axisTick';
-import { AxisTick } from './chart/axis/axisTick';
-import type { AxisTitle } from './chart/axis/axisTitle';
-import type { BoundSeries, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from './chart/chartAxis';
-import { ChartAxisDirection } from './chart/chartAxisDirection';
-import { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
-import type { CrossLine } from './chart/crossline/crossLine';
-import type { AnimationManager } from './chart/interaction/animationManager';
-import type { InteractionEvent } from './chart/interaction/interactionManager';
-import {
-    calculateLabelBBox,
-    calculateLabelRotation,
-    getLabelSpacing,
-    getTextAlign,
-    getTextBaseline,
-} from './chart/label';
-import { Layers } from './chart/layers';
-import type { AxisLayout } from './chart/layout/layoutService';
-import * as easing from './motion/easing';
-import { StateMachine } from './motion/states';
-import type { AgAxisCaptionFormatterParams, AgAxisGridStyle } from './options/agChartOptions';
-import { ContinuousScale } from './scale/continuousScale';
-import { LogScale } from './scale/logScale';
-import type { Scale } from './scale/scale';
-import { TimeScale } from './scale/timeScale';
-import { BBox } from './scene/bbox';
-import { Group } from './scene/group';
-import { Matrix } from './scene/matrix';
-import type { Node } from './scene/node';
-import { Selection } from './scene/selection';
-import type { Arc } from './scene/shape/arc';
-import { Line } from './scene/shape/line';
-import type { TextSizeProperties } from './scene/shape/text';
-import { measureText, splitText, Text } from './scene/shape/text';
-import { normalizeAngle360, toRadians } from './util/angle';
-import { extent } from './util/array';
-import type { ModuleInstance } from './util/baseModule';
-import { areArrayNumbersEqual } from './util/equal';
-import { createId } from './util/id';
-import type { PointLabelDatum } from './util/labelPlacement';
-import { axisLabelsOverlap } from './util/labelPlacement';
-import { Logger } from './util/logger';
-import type { AxisContext, ModuleContext } from './util/moduleContext';
-import { clamp } from './util/number';
-import type { AxisOptionModule } from './util/optionModules';
-import { ARRAY, BOOLEAN, predicateWithMessage, STRING_ARRAY, Validate } from './util/validation';
+import { Caption } from '../caption';
+import { AxisLabel } from './axisLabel';
+import { AxisLine } from './axisLine';
+import type { TickCount, TickInterval } from './axisTick';
+import { AxisTick } from './axisTick';
+import type { AxisTitle } from './axisTitle';
+import type { BoundSeries, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import { ChartAxisDirection } from '../chartAxisDirection';
+import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
+import type { CrossLine } from '../crossline/crossLine';
+import type { AnimationManager } from '../interaction/animationManager';
+import type { InteractionEvent } from '../interaction/interactionManager';
+import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
+import { Layers } from '../layers';
+import type { AxisLayout } from '../layout/layoutService';
+import * as easing from '../../motion/easing';
+import { StateMachine } from '../../motion/states';
+import type { AgAxisCaptionFormatterParams, AgAxisGridStyle } from '../../options/agChartOptions';
+import { ContinuousScale } from '../../scale/continuousScale';
+import { LogScale } from '../../scale/logScale';
+import type { Scale } from '../../scale/scale';
+import { TimeScale } from '../../scale/timeScale';
+import { BBox } from '../../scene/bbox';
+import { Group } from '../../scene/group';
+import { Matrix } from '../../scene/matrix';
+import type { Node } from '../../scene/node';
+import { Selection } from '../../scene/selection';
+import type { Arc } from '../../scene/shape/arc';
+import { Line } from '../../scene/shape/line';
+import type { TextSizeProperties } from '../../scene/shape/text';
+import { measureText, splitText, Text } from '../../scene/shape/text';
+import { normalizeAngle360, toRadians } from '../../util/angle';
+import { extent } from '../../util/array';
+import type { ModuleInstance } from '../../util/baseModule';
+import { areArrayNumbersEqual } from '../../util/equal';
+import { createId } from '../../util/id';
+import type { PointLabelDatum } from '../../util/labelPlacement';
+import { axisLabelsOverlap } from '../../util/labelPlacement';
+import { Logger } from '../../util/logger';
+import type { AxisContext, ModuleContext } from '../../util/moduleContext';
+import { clamp } from '../../util/number';
+import type { AxisOptionModule } from '../../util/optionModules';
+import { ARRAY, BOOLEAN, predicateWithMessage, STRING_ARRAY, Validate } from '../../util/validation';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
 const GRID_STYLE = predicateWithMessage(

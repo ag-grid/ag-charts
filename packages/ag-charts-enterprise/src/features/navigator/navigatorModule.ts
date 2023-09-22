@@ -1,10 +1,10 @@
-import { Navigator } from '../chart/navigator/navigator';
-import type { Module } from './module';
+import type { _ModuleSupport } from 'ag-charts-community';
+import { Navigator } from './navigator';
 
-export const NavigatorModule: Module = {
+export const NavigatorModule: _ModuleSupport.Module = {
     type: 'root',
     optionsKey: 'navigator',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['cartesian'],
     instanceConstructor: Navigator,
     themeTemplate: {

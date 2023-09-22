@@ -8,7 +8,7 @@ import { Padding } from '../util/padding';
 
 import { BBox } from '../scene/bbox';
 import { SizeMonitor } from '../util/sizeMonitor';
-import type { Caption } from '../caption';
+import type { Caption } from './caption';
 import type { TypedEvent } from '../util/observable';
 import { Observable } from '../util/observable';
 import type { ChartAxis } from './chartAxis';
