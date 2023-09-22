@@ -7,8 +7,8 @@ import type {
     LineDashOptions,
     StrokeOptions,
 } from './commonOptions';
-import type { AgSeriesTooltip } from '../../options/tooltipOptions';
-import type { CssColor, Ratio } from '../../options/types';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { CssColor, Ratio } from '../../chart/types';
 
 interface BoxPlotUniqueOptions {
     // required
