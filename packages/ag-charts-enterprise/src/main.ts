@@ -22,6 +22,7 @@ import { BoxPlotModule } from './series/box-plot/boxPlotModule';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { HistogramSeriesModule } from './series/histogram/histogramSeriesModule';
 import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
+import { NavigatorModule } from './features/navigator/navigatorModule';
 
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 
@@ -38,6 +39,7 @@ _ModuleSupport.registerModule(GradientLegendModule);
 _ModuleSupport.registerModule(HeatmapModule);
 _ModuleSupport.registerModule(HistogramSeriesModule);
 _ModuleSupport.registerModule(NightingaleModule);
+_ModuleSupport.registerModule(NavigatorModule);
 _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
 _ModuleSupport.registerModule(RadialColumnModule);

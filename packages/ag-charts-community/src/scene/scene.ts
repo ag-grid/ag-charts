@@ -1,6 +1,6 @@
-import type { Size } from '../canvas/hdpiCanvas';
-import { HdpiCanvas } from '../canvas/hdpiCanvas';
-import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
+import type { Size } from './canvas/hdpiCanvas';
+import { HdpiCanvas } from './canvas/hdpiCanvas';
+import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { toArray } from '../util/array';
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
