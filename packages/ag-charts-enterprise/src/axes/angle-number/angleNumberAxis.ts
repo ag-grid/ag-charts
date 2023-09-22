@@ -1,5 +1,5 @@
-import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import type { AgAngleAxisLabelOrientation, _Scale } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { AngleCrossLine } from './angleCrossLine';
 import { PolarLinearScale } from '../polarLinearScale';
 
@@ -269,7 +269,10 @@ export class AngleNumberAxis extends _ModuleSupport.PolarAxis<_Scale.LinearScale
             const { textAlign, textBaseline } = this.getLabelAlign(angle);
 
             // Hide the last tick when it appears over the first
-            const isLastTickOverFirst = index === ticks.length - 1 && value !== ticks[0] && isNumberEqual(normalizeAngle360(angle), normalizeAngle360(scale.convert(ticks[0])));
+            const isLastTickOverFirst =
+                index === ticks.length - 1 &&
+                value !== ticks[0] &&
+                isNumberEqual(normalizeAngle360(angle), normalizeAngle360(scale.convert(ticks[0])));
 
             const rotation = this.getLabelRotation(angle);
 

@@ -399,7 +399,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         this.animationState.transition('update');
     }
 
-    protected updateSectorSelection(selection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>, highlight: boolean) {
+    protected updateSectorSelection(
+        selection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>,
+        highlight: boolean
+    ) {
         let selectionData: RadialBarNodeDatum[] = [];
         if (highlight) {
             const highlighted = this.ctx.highlightManager?.getActiveHighlight();
@@ -695,17 +698,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const duration = this.ctx.animationManager.defaultDuration();
 
         itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animate<number>(
-                `${this.id}_empty-update-ready_${node.id}`,
-                { 
-                    from: datum.startAngle,
-                    to: datum.endAngle,
-                    duration,
-                    onUpdate: (endAngle) => {
-                        node.endAngle = endAngle;
-                    },
-                }
-            );
+            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${node.id}`, {
+                from: datum.startAngle,
+                to: datum.endAngle,
+                duration,
+                onUpdate: (endAngle) => {
+                    node.endAngle = endAngle;
+                },
+            });
         });
     }
 }
