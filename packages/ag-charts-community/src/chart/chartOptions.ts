@@ -1,5 +1,5 @@
 import { AxisTitle } from './axis/axisTitle';
-import { Caption } from '../caption';
+import { Caption } from './caption';
 import { DropShadow } from '../scene/dropShadow';
 import type { JsonApplyParams } from '../util/json';
 import { DoughnutInnerLabel, DoughnutInnerCircle } from './series/polar/pieSeries';

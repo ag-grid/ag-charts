@@ -9,6 +9,7 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    AgChartTheme,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
 import { _ModuleSupport, type _Scene } from '../../main';
@@ -53,6 +54,31 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
     options.container = container;
+
+    let baseTestTheme: AgChartTheme = {
+        baseTheme: 'ag-default',
+        palette: {
+            fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
+            strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
+        },
+    };
+
+    if (typeof options?.theme === 'object' && options?.theme?.palette != null) {
+        // Keep existing theme.
+        baseTestTheme = options.theme;
+    } else if (typeof options?.theme === 'object') {
+        // Keep theme supplied, just override palette colours.
+        baseTestTheme = {
+            ...options.theme,
+            palette: baseTestTheme.palette,
+        };
+    } else if (typeof options?.theme === 'string') {
+        // Override colours.
+        baseTestTheme.baseTheme = options.theme;
+    }
+
+    options.theme = baseTestTheme;
+
     return options;
 }
 

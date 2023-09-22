@@ -13,7 +13,7 @@ import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { Label } from '../../label';
 import type { Text } from '../../../scene/shape/text';
-import { HdpiCanvas } from '../../../canvas/hdpiCanvas';
+import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import type { Marker } from '../../marker/marker';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import {

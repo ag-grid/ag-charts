@@ -1,11 +1,11 @@
-import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgChartLabelOptions } from '../../options/labelOptions';
-import type { AgSeriesTooltip } from '../../options/tooltipOptions';
+import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
-import type { PixelSize } from '../../options/types';
+import type { PixelSize } from '../../chart/types';
 
 export interface AgBubbleSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
     /** sizeKey as specified on series options. */

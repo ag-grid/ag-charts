@@ -1,4 +1,4 @@
-import { Axis } from '../../axis';
+import { Axis } from './axis';
 import type { BBox } from '../../scene/bbox';
 import type { Scale } from '../../scale/scale';
 import { Validate, NUMBER } from '../../util/validation';

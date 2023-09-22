@@ -2,8 +2,8 @@ import { Matrix } from './matrix';
 import type { BBox } from './bbox';
 import { createId } from '../util/id';
 import { ChangeDetectable, SceneChangeDetection, RedrawType } from './changeDetectable';
-import type { HdpiCanvas } from '../canvas/hdpiCanvas';
-import type { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
+import type { HdpiCanvas } from './canvas/hdpiCanvas';
+import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LiteralOrFn } from '../util/compare';
 
 export { SceneChangeDetection, RedrawType };
