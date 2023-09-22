@@ -1,6 +1,6 @@
 import type { AgPolarChartOptions } from 'ag-charts-community';
-import { AngleNumberAxis } from '../../polar-axes/angle-number/angleNumberAxis';
-import { RadiusCategoryAxis } from '../../polar-axes/radius-category/radiusCategoryAxis';
+import { AngleNumberAxis } from '../../axes/angle-number/angleNumberAxis';
+import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 
 export const RADIAL_BAR_DEFAULTS: AgPolarChartOptions = {
     axes: [
