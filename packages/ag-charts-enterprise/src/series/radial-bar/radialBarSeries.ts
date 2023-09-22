@@ -618,7 +618,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
-        const { id, data, angleKey, radiusKey, radiusName, visible } = this;
+        const { id, data, angleKey, angleName, radiusKey, visible } = this;
 
         if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {
             return [];
@@ -628,11 +628,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             {
                 legendType: 'category',
                 id,
-                itemId: radiusKey,
+                itemId: angleKey,
                 seriesId: id,
                 enabled: visible,
                 label: {
-                    text: radiusName ?? radiusKey,
+                    text: angleName ?? angleKey,
                 },
                 marker: {
                     fill: this.fill ?? 'rgba(0, 0, 0, 0)',
