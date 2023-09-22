@@ -12,7 +12,7 @@ export const RADIAL_BAR_DEFAULTS: AgPolarChartOptions = {
             innerRadiusRatio: 0.2,
             groupPaddingInner: 0.2,
             paddingInner: 0.2,
-            paddingOuter: 0.2,
+            paddingOuter: 0.1,
         },
     ],
 };
