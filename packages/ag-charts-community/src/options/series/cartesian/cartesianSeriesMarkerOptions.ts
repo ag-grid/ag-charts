@@ -1,4 +1,4 @@
-import type { CssColor, PixelSize } from '../../chart//types';
+import type { CssColor, PixelSize } from '../../chart/types';
 import type { AgSeriesMarker, AgSeriesMarkerFormatterParams } from '../seriesOptions';
 
 export interface AgCartesianSeriesMarkerFormatterParams<DatumType> extends AgSeriesMarkerFormatterParams<DatumType> {

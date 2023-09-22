@@ -1,11 +1,11 @@
 import type { AgPieSeriesOptions } from './pieOptions';
-import type { AgAngleCategoryAxisOptions } from '../../chart//polarAxisOptions';
-import type { AgRadiusNumberAxisOptions } from '../../chart//radiusAxisOptions';
+import type { AgAngleCategoryAxisOptions } from '../../chart/polarAxisOptions';
+import type { AgRadiusNumberAxisOptions } from '../../chart/radiusAxisOptions';
 import type { AgRadarLineSeriesOptions } from './radarLineOptions';
 import type { AgRadarAreaSeriesOptions } from './radarAreaOptions';
 import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
-import type { AgBaseThemeableChartOptions } from '../../chart//chartOptions';
+import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 
 export type AgPolarSeriesOptions =
     | AgPieSeriesOptions

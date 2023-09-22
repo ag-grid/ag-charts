@@ -1,8 +1,8 @@
-import type { AgDropShadowOptions } from '../../chart//dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart//labelOptions';
-import type { AgSeriesListeners } from '../../chart//eventOptions';
-import type { AgSeriesTooltip } from '../../chart//tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../chart//types';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';

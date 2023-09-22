@@ -1,4 +1,4 @@
-import type { Opacity, PixelSize } from '../chart//types';
+import type { Opacity, PixelSize } from '../chart/types';
 
 export interface AgChartBackgroundImage {
     /** URL of the image */

@@ -1,8 +1,8 @@
-import type { AgDropShadowOptions } from '../../chart//dropShadowOptions';
-import type { AgSeriesListeners } from '../../chart//eventOptions';
-import type { AgChartLabelOptions } from '../../chart//labelOptions';
-import type { AgSeriesTooltip } from '../../chart//tooltipOptions';
-import type { CssColor, DataValue, Opacity, PixelSize, TextWrap } from '../../chart//types';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { CssColor, DataValue, Opacity, PixelSize, TextWrap } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 export interface AgTreemapSeriesLabelOptions extends AgChartLabelOptions {

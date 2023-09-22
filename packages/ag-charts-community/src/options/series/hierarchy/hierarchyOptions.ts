@@ -1,4 +1,4 @@
-import type { AgBaseThemeableChartOptions } from '../../chart//chartOptions';
+import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { AgTreemapSeriesOptions } from './treemapOptions';
 
 export type AgHierarchySeriesOptions = AgTreemapSeriesOptions;

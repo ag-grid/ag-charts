@@ -1,7 +1,7 @@
-import type { AgChartLabelOptions } from '../../chart//labelOptions';
-import type { AgSeriesListeners } from '../../chart//eventOptions';
-import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart//tooltipOptions';
-import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart//types';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 
