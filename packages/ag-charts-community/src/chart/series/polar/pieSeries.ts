@@ -1642,7 +1642,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     }
 
     animateEmptyUpdateReady(data?: { duration: number }) {
-        const duration = data?.duration ?? this.ctx.animationManager.defaultDuration();
+        const duration = data?.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         const rotation = Math.PI / -2 + toRadians(this.rotation);
@@ -1708,7 +1708,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             return;
         }
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
         const rotation = Math.PI / -2 + toRadians(this.rotation);
         const sectors = groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
@@ -1843,7 +1843,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     }
 
     animateClearingUpdateEmpty() {
-        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
+        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
         const clearDuration = 200;
 
         const sectors = this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector);

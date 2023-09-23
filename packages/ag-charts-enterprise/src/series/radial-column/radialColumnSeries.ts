@@ -196,7 +196,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
 
     protected animateItemsShapes() {
         const { itemSelection } = this;
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
 
         const axisInnerRadius = this.getAxisInnerRadius();
         const isAxisCircle = this.isRadiusAxisCircle();

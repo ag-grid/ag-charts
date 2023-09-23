@@ -548,7 +548,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
 
     animateEmptyUpdateReady(animationData: BubbleAnimationData) {
         const { markerSelections, labelSelections } = animationData;
-        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration();
+        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         this.ctx.animationManager.animate({
@@ -610,7 +610,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
         const addedIds = zipObject(diff.added, true);
         const removedIds = zipObject(diff.removed, true);
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         markerSelections.forEach((markerSelection) => {
@@ -691,14 +691,13 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
     animateClearingUpdateEmpty(animationData: BubbleAnimationData) {
         const { markerSelections } = animationData;
 
-        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
-        const clearDuration = 200;
+        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
 
         this.ctx.animationManager.animate({
             id: `${this.id}_clearing-update-empty`,
             from: 1,
             to: 0,
-            duration: clearDuration,
+            duration: 200,
             onUpdate(opacity) {
                 markerSelections.forEach((markerSelection) => {
                     markerSelection.each((marker) => {

@@ -703,7 +703,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const { markerSelection, labelSelection } = this;
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const markerDuration = 200;
         const markerDelay = duration;
 

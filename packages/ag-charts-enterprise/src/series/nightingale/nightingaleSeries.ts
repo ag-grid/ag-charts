@@ -27,7 +27,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
 
     protected animateItemsShapes() {
         const { itemSelection } = this;
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
 
         const axisInnerRadius = this.getAxisInnerRadius();
 

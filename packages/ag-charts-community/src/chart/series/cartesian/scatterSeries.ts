@@ -461,7 +461,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
     animateEmptyUpdateReady(animationData: ScatterAnimationData) {
         const { markerSelections, labelSelections } = animationData;
-        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration();
+        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         this.ctx.animationManager.animate({
@@ -523,7 +523,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         const addedIds = zipObject(diff.added, true);
         const removedIds = zipObject(diff.removed, true);
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         markerSelections.forEach((markerSelection) => {
@@ -604,7 +604,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
     animateClearingUpdateEmpty(animationData: ScatterAnimationData) {
         const { markerSelections } = animationData;
 
-        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
+        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
         const clearDuration = 200;
 
         this.ctx.animationManager.animate({

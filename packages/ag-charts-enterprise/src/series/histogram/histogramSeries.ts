@@ -585,7 +585,7 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         let startingY = 0;
@@ -653,7 +653,7 @@ export class HistogramSeries extends CartesianSeries<
             return;
         }
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         let startingY = 0;

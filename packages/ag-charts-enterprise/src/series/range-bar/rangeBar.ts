@@ -739,22 +739,19 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
-
         contextData.forEach((_, contextDataIndex) => {
-            this.animateRects(datumSelections[contextDataIndex], duration);
-            this.animateLabels(labelSelections[contextDataIndex], duration);
+            this.animateRects(datumSelections[contextDataIndex]);
+            this.animateLabels(labelSelections[contextDataIndex]);
         });
     }
 
-    protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number], duration: number) {
+    protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number]) {
         const horizontal = this.getBarDirection() === ChartAxisDirection.X;
         datumSelection.each((rect, datum) => {
             this.ctx.animationManager.animate({
                 id: `${this.id}_empty-update-ready_${rect.id}`,
                 from: { cord: (horizontal ? datum.nodeMidPoint?.x : datum.nodeMidPoint?.y) ?? 0, dimension: 0 },
                 to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
-                duration,
                 ease: _ModuleSupport.Motion.easeOut,
                 onUpdate({ cord, dimension }) {
                     rect.setProperties(
@@ -778,7 +775,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             return;
         }
 
-        const totalDuration = this.ctx.animationManager.defaultDuration();
+        const totalDuration = this.ctx.animationManager.defaultDuration;
         const labelDuration = totalDuration / 5;
 
         let sectionDuration = totalDuration;
@@ -837,23 +834,24 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             });
         });
 
-        labelSelections.forEach((labelSelection) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_waiting-update-ready_labels`,
-                from: 0,
-                to: 1,
-                delay: totalDuration,
-                duration: labelDuration,
-                onUpdate: (opacity) => {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_waiting-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: totalDuration,
+            duration: labelDuration,
+            onUpdate: (opacity) => {
+                labelSelections.forEach((labelSelection) => {
                     labelSelection.each((label) => {
                         label.opacity = opacity;
                     });
-                },
-            });
+                });
+            },
         });
     }
 
-    protected animateLabels(labelSelection: RangeBarAnimationData['labelSelections'][number], duration: number) {
+    protected animateLabels(labelSelection: RangeBarAnimationData['labelSelections'][number]) {
+        const duration = this.ctx.animationManager.defaultDuration;
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready_labels`,
             from: 0,

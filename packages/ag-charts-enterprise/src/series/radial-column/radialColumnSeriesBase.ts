@@ -536,7 +536,7 @@ export abstract class RadialColumnSeriesBase<
             id: `${this.id}_empty-update-ready_labels`,
             from: 0,
             to: 1,
-            delay: this.ctx.animationManager.defaultDuration(),
+            delay: this.ctx.animationManager.defaultDuration,
             duration: 200,
             onUpdate: (opacity) => {
                 this.labelSelection.each((label) => {

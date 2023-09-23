@@ -94,7 +94,7 @@ export function areaAnimateEmptyUpdateReady<
     contextData.forEach(({ fillData, strokeData }, seriesIdx) => {
         const [fill, stroke] = paths[seriesIdx];
 
-        const duration = ctx.animationManager.defaultDuration();
+        const duration = ctx.animationManager.defaultDuration;
         const animationOptions = { from: 0, to: seriesRect?.width ?? 0 };
         const markerDuration = 200;
 

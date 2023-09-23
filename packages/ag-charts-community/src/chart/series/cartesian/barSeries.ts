@@ -641,7 +641,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
@@ -702,7 +702,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return;
         }
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);

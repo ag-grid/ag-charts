@@ -5,8 +5,6 @@ import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/
 import { Animation } from '../../motion/animation';
 import { onContentLoaded } from '../../util/document';
 
-const DEFAULT_DURATION = 1000;
-
 type AnimationEventType = 'animation-frame';
 
 interface AnimationEvent {
@@ -21,6 +19,8 @@ interface AnimationEvent {
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
     private readonly debug = Debug.create(true, 'animation');
     private readonly controllers: Map<string, IAnimation<any>> = new Map();
+
+    defaultDuration = 1000;
 
     private isPlaying = false;
     private requestId: number | null = null;
@@ -52,6 +52,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             ...opts,
             skip: this.skipAnimations,
             autoplay: this.isPlaying ? opts.autoplay : false,
+            duration: opts.duration ?? this.defaultDuration,
             onPlay: (controller) => {
                 this.controllers.set(id, controller);
                 this.requestAnimation();
@@ -122,8 +123,12 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
     }
 
-    public defaultDuration() {
-        return DEFAULT_DURATION;
+    public skip(skip = true) {
+        this.skipAnimations = skip;
+    }
+
+    public isSkipped() {
+        return this.skipAnimations;
     }
 
     private requestAnimation() {
@@ -157,13 +162,5 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.requestId === null) return;
         cancelAnimationFrame(this.requestId);
         this.requestId = null;
-    }
-
-    public skip(skip = true) {
-        this.skipAnimations = skip;
-    }
-
-    public isSkipped() {
-        return this.skipAnimations;
     }
 }

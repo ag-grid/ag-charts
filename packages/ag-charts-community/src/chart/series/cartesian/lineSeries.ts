@@ -522,7 +522,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             lineNode.lineDash = this.lineDash;
             lineNode.lineDashOffset = this.lineDashOffset;
 
-            const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration();
+            const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
             const markerDuration = 200;
 
             const animationOptions = {
@@ -726,7 +726,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 }
             }
 
-            const duration = this.ctx.animationManager.defaultDuration();
+            const duration = this.ctx.animationManager.defaultDuration;
             const markerFormats: Record<string, AgCartesianSeriesMarkerFormat | undefined> = {};
 
             // Animate all nodes using a single animation to ensure the line is drawn correctly from node to node
@@ -971,7 +971,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
     protected animateClearingUpdateEmpty(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
 
-        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
+        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
         const clearDuration = 200;
 
         contextData.forEach((_, contextDataIndex) => {

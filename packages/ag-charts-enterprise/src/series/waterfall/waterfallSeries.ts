@@ -863,7 +863,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     }
 
     protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>) {
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready_labels`,
             from: 0,
