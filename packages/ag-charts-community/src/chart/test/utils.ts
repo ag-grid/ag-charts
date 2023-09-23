@@ -331,7 +331,6 @@ export function spyOnAnimationManager(totalDuration: number, ratio: number) {
     jest.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
     jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation((opts) => {
         const controller = new Animation(opts);
-        controller.update(totalDuration * ratio);
-        return Promise.resolve() as any;
+        return controller.update(totalDuration * ratio);
     });
 }
