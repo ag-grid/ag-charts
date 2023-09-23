@@ -1362,13 +1362,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     animateReadyUpdate(diff: AxisUpdateDiff) {
         if (!diff.changed) {
-            this.resetSelectionNodes();
             return;
         }
 
-        const removedCount = Object.keys(diff.removed).length;
-
-        if (removedCount === diff.tickCount) {
+        if (Object.keys(diff.removed).length === diff.tickCount) {
             this.resetSelectionNodes();
             return;
         }
@@ -1410,19 +1407,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 node.setProperties(props);
             },
             onStop() {
-                if (node.opacity === 0) {
-                    selection.cleanup();
-                }
+                selection.cleanup();
             },
         });
     }
 
     private resetSelectionNodes() {
-        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
-
-        gridLineGroupSelection.cleanup();
-        tickLineGroupSelection.cleanup();
-        tickLabelGroupSelection.cleanup();
+        this.gridLineGroupSelection.cleanup();
+        this.tickLineGroupSelection.cleanup();
+        this.tickLabelGroupSelection.cleanup();
 
         // We need raw `translationY` values on `datum` for accurate label collision detection in axes.update()
         // But node `translationY` values must be rounded to get pixel grid alignment
@@ -1430,9 +1423,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             node.translationY = Math.round(node.datum.translationY);
             node.opacity = 1;
         };
-        gridLineGroupSelection.each(resetFn);
-        tickLineGroupSelection.each(resetFn);
-        tickLabelGroupSelection.each(resetFn);
+
+        this.gridLineGroupSelection.each(resetFn);
+        this.tickLineGroupSelection.each(resetFn);
+        this.tickLabelGroupSelection.each(resetFn);
     }
 
     private calculateUpdateDiff(previous: string[], tickData: TickData): AxisUpdateDiff {
