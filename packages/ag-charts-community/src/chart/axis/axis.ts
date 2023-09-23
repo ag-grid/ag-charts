@@ -1361,72 +1361,51 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     animateReadyUpdate(diff: AxisUpdateDiff) {
-        if (!diff.changed) {
-            return;
-        }
-
-        if (Object.keys(diff.removed).length === diff.tickCount) {
-            this.resetSelectionNodes();
-            return;
-        }
-
         for (const selection of [
             this.gridLineGroupSelection,
             this.tickLineGroupSelection,
             this.tickLabelGroupSelection,
         ]) {
             selection.each((node, datum) => {
-                this.animateSelectionNode(selection, diff, node, datum);
+                let from = { translationY: node.translationY, opacity: 1 };
+                const to = { translationY: Math.round(datum.translationY), opacity: 1 };
+
+                if (diff.added[datum.tickLabel]) {
+                    from = { translationY: to.translationY, opacity: 0 };
+                } else if (diff.removed[datum.tickLabel]) {
+                    to.opacity = 0;
+                }
+
+                this.animationManager.animate({
+                    id: `${this.id}_ready-update_${node.id}`,
+                    from,
+                    to,
+                    ease: easing.easeOut,
+                    disableInteractions: false,
+                    onUpdate(props) {
+                        node.setProperties(props);
+                    },
+                    onStop() {
+                        selection.cleanup();
+                    },
+                });
             });
         }
     }
 
-    private animateSelectionNode(
-        selection: Selection<Text | Line, any>,
-        diff: AxisUpdateDiff,
-        node: Text | Line,
-        datum: TickDatum
-    ) {
-        let from = { translationY: node.translationY, opacity: 1 };
-        const to = { translationY: Math.round(datum.translationY), opacity: 1 };
-
-        const datumId = datum.tickLabel;
-        if (diff.added[datumId]) {
-            from = { translationY: to.translationY, opacity: 0 };
-        } else if (diff.removed[datumId]) {
-            to.opacity = 0;
-        }
-
-        this.animationManager.animate({
-            id: `${this.id}_ready-update_${node.id}`,
-            from,
-            to,
-            ease: easing.easeOut,
-            disableInteractions: false,
-            onUpdate(props) {
-                node.setProperties(props);
-            },
-            onStop() {
-                selection.cleanup();
-            },
-        });
-    }
-
     private resetSelectionNodes() {
-        this.gridLineGroupSelection.cleanup();
-        this.tickLineGroupSelection.cleanup();
-        this.tickLabelGroupSelection.cleanup();
-
-        // We need raw `translationY` values on `datum` for accurate label collision detection in axes.update()
-        // But node `translationY` values must be rounded to get pixel grid alignment
-        const resetFn = (node: Line | Text) => {
-            node.translationY = Math.round(node.datum.translationY);
-            node.opacity = 1;
-        };
-
-        this.gridLineGroupSelection.each(resetFn);
-        this.tickLineGroupSelection.each(resetFn);
-        this.tickLabelGroupSelection.each(resetFn);
+        for (const selection of [
+            this.gridLineGroupSelection,
+            this.tickLineGroupSelection,
+            this.tickLabelGroupSelection,
+        ]) {
+            selection.cleanup().each((node: Line | Text) => {
+                // We need raw `translationY` values on `datum` for accurate label collision detection in axes.update()
+                // But node `translationY` values must be rounded to get pixel grid alignment
+                node.translationY = Math.round(node.datum.translationY);
+                node.opacity = 1;
+            });
+        }
     }
 
     private calculateUpdateDiff(previous: string[], tickData: TickData): AxisUpdateDiff {
