@@ -1,8 +1,4 @@
-// import type { ChartAxis } from "./chartAxis";
-// import type { ChartAxisDirection } from "./chartAxisDirection";
-
-//import type { BBox } from '../scene/bbox';
-import type { InteractionRange } from '../options/options/types';
+import type { InteractionRange } from '../options/chart/types';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { ZIndexSubOrder } from '../scene/node';
