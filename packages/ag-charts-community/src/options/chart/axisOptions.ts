@@ -31,6 +31,8 @@ export interface AgAxisCaptionOptions {
     fontFamily?: FontFamily;
     /** The colour to use for the title. */
     color?: CssColor;
+    /** Spacing between the axis labels and the axis title. */
+    spacing?: number;
     /** Formatter to allow dynamic axis title calculation. */
     formatter?: (params: AgAxisCaptionFormatterParams) => string;
 }

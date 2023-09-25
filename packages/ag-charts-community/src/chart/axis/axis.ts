@@ -1200,7 +1200,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             titleVisible = true;
 
             const parallelFlipRotation = normalizeAngle360(rotation);
-            const padding = Caption.PADDING;
+            const padding = title.spacing ?? 0;
             const titleRotationFlag =
                 sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
 
