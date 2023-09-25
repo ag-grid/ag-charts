@@ -5,159 +5,12 @@ type NodeFactory<TNode extends Node, TDatum> = (datum: TDatum) => TNode;
 type NodeConstructorOrFactory<TNode extends Node, TDatum> = NodeConstructor<TNode> | NodeFactory<TNode, TDatum>;
 
 export class Selection<TChild extends Node = Node, TDatum = any> {
-    constructor(
-        parent: Node,
-        classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
-        garbageCollection: boolean = true
-    ) {
-        this._parent = parent;
-        this._factory = Object.prototype.isPrototypeOf.call(Node, classOrFactory)
-            ? () => new (classOrFactory as NodeConstructor<TChild>)()
-            : (classOrFactory as NodeFactory<TChild, TDatum>);
-        this._garbageCollection = garbageCollection;
-    }
-
     static select<TChild extends Node = Node, TDatum = any>(
         parent: Node,
         classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
         garbageCollection: boolean = true
     ) {
         return new Selection(parent, classOrFactory, garbageCollection);
-    }
-
-    private _parent: Node;
-    private _nodes: TChild[] = [];
-    private _data: TDatum[] = [];
-    private _datumNodeIndices = new Map<string | number, number>();
-    private _factory: NodeFactory<TChild, TDatum>;
-
-    // If garbage collection is set to false, you must call `selection.cleanup()` to remove deleted nodes
-    private _garbage: (string | number)[] = [];
-    private _garbageCollection: boolean = true;
-    private _garbageSimpleLength?: number;
-
-    each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
-        this._nodes.forEach((node, i) => iterate(node, node.datum, i));
-        return this;
-    }
-
-    /**
-     * Update the data in a selection. If an `getDatumId()` function is provided, maintain a list of ids related to
-     * the nodes. Otherwise, take the more efficient route of simply creating and destroying nodes at the end
-     * of the array.
-     */
-    update(data: TDatum[], init?: (node: TChild) => void, getDatumId?: (datum: TDatum) => string | number) {
-        const old = this._data;
-        const parent = this._parent;
-        const factory = this._factory;
-
-        const datumIds = new Map<string | number, number>();
-
-        this._garbageSimpleLength = undefined;
-        if (getDatumId) {
-            // Check if new datum and append node and save map of datum id to node index
-            data.forEach((datum, index) => {
-                const datumId = getDatumId(datum);
-                datumIds.set(datumId, index);
-                if (!this._datumNodeIndices.has(datumId)) {
-                    const node = factory(datum);
-                    node.datum = datum;
-                    init?.(node);
-                    parent.appendChild(node);
-                    this._nodes.push(node);
-                    this._datumNodeIndices.set(datumId, this._nodes.length - 1);
-                }
-            });
-        } else if (data.length > old.length) {
-            // Create and append nodes for new data
-            data.slice(old.length).forEach((datum) => {
-                const node = factory(datum);
-                node.datum = datum;
-                init?.(node);
-                parent.appendChild(node);
-                this._nodes.push(node);
-            });
-        } else if (data.length < old.length) {
-            this._garbageSimpleLength = data.length;
-        }
-
-        // Copy the data into a new array to prevent mutation and duplicates
-        this._data = data.slice(0);
-
-        if (getDatumId) {
-            // Find and update the datum for each node or throw into garbage if datum no longer exists
-            for (const [datumId, nodeIndex] of this._datumNodeIndices) {
-                const datumIndex = datumIds.get(datumId);
-                if (datumIndex !== undefined && datumIndex < this._nodes.length) {
-                    this._nodes[nodeIndex].datum = data[datumIndex];
-                } else {
-                    this._garbage.push(datumId);
-                }
-            }
-        }
-
-        if (!getDatumId) {
-            // Reset the node data by index
-            for (let i = 0; i < this._data.length; i++) {
-                this._nodes[i].datum = this._data[i];
-            }
-        }
-
-        if (this._garbageCollection) {
-            this.cleanup();
-        }
-
-        return this;
-    }
-
-    clear() {
-        this.update([]);
-        return this;
-    }
-
-    cleanup() {
-        if (this._garbageSimpleLength != null) {
-            // Destroy any nodes that are in excess of the new data
-            this._nodes.splice(this._garbageSimpleLength).forEach((node) => {
-                this._parent.removeChild(node);
-            });
-            return this;
-        }
-
-        if (this._garbage.length === 0) return this;
-
-        this._garbage.forEach((datumId) => {
-            const nodeIndex = this._datumNodeIndices.get(datumId);
-
-            if (nodeIndex === undefined) return;
-
-            const node = this._nodes[nodeIndex];
-            delete this._nodes[nodeIndex];
-            this._datumNodeIndices.delete(datumId);
-            if (node) {
-                this._parent.removeChild(node);
-            }
-        });
-
-        // Reset map of datum ids to node indices while filtering out any removed, undefined, nodes
-        const datumNodeIndices = this._datumNodeIndices.entries();
-        const nodeIndexDatums = new Map();
-        for (const [datumId, nodeIndex] of datumNodeIndices) {
-            nodeIndexDatums.set(nodeIndex, datumId);
-        }
-
-        let newIndex = 0;
-        this._nodes = this._nodes.filter((node, index) => {
-            if (node === undefined) return false;
-            const datumId = nodeIndexDatums.get(index);
-            this._datumNodeIndices.set(datumId, newIndex);
-            newIndex++;
-            return true;
-        });
-
-        this._garbage = [];
-
-        return this;
     }
 
     static selectAll<T extends Node = Node>(parent: Node, predicate: (node: Node) => boolean): T[] {
@@ -180,16 +33,113 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         return Selection.selectAll(node, (node) => node.tag === tag);
     }
 
+    private readonly nodeFactory: NodeFactory<TChild, TDatum>;
+    private readonly garbageBin = new Set<TChild>();
+
+    protected _nodesMap = new Map<TChild, string | number>();
+    protected _nodes: TChild[] = [];
+    protected data: TDatum[] = [];
+
+    constructor(
+        private readonly parentNode: Node,
+        classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
+        private readonly autoCleanup: boolean = true
+    ) {
+        this.nodeFactory = Object.prototype.isPrototypeOf.call(Node, classOrFactory)
+            ? () => new (classOrFactory as NodeConstructor<TChild>)()
+            : (classOrFactory as NodeFactory<TChild, TDatum>);
+    }
+
+    private createNode(datum: TDatum, initializer?: (node: TChild) => void) {
+        const node = this.nodeFactory(datum);
+        node.datum = datum;
+        initializer?.(node);
+        this._nodes.push(node);
+        this.parentNode.appendChild(node);
+        return node;
+    }
+
+    /**
+     * Update the data in a selection. If an `getDatumId()` function is provided, maintain a list of ids related to
+     * the nodes. Otherwise, take the more efficient route of simply creating and destroying nodes at the end
+     * of the array.
+     */
+    update(data: TDatum[], initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => string | number) {
+        if (getDatumId) {
+            const dataMap = new Map<string | number, TDatum>(data.map((datum) => [getDatumId(datum), datum]));
+            for (const [node, datumId] of this._nodesMap.entries()) {
+                if (dataMap.has(datumId)) {
+                    node.datum = dataMap.get(datumId);
+                    this.garbageBin.delete(node);
+                    dataMap.delete(datumId);
+                } else {
+                    this.garbageBin.add(node);
+                }
+            }
+            for (const [datumId, datum] of dataMap.entries()) {
+                this._nodesMap.set(this.createNode(datum, initializer), datumId);
+            }
+        } else {
+            const maxLength = Math.max(data.length, this.data.length);
+            for (let i = 0; i < maxLength; i++) {
+                if (i >= data.length) {
+                    this.garbageBin.add(this._nodes[i]);
+                } else if (i >= this._nodes.length) {
+                    this.createNode(data[i], initializer);
+                } else {
+                    this._nodes[i].datum = data[i];
+                    this.garbageBin.delete(this._nodes[i]);
+                }
+            }
+        }
+
+        this.data = data.slice();
+
+        if (this.autoCleanup) {
+            this.cleanup();
+        }
+
+        return this;
+    }
+
+    cleanup() {
+        if (this.garbageBin.size === 0) {
+            return this;
+        }
+
+        this._nodes = this._nodes.filter((node) => {
+            if (this.garbageBin.has(node)) {
+                this._nodesMap.delete(node);
+                this.garbageBin.delete(node);
+                this.parentNode.removeChild(node);
+                return false;
+            }
+            return true;
+        });
+
+        return this;
+    }
+
+    clear() {
+        this.update([]);
+        return this;
+    }
+
+    each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
+        this._nodes.forEach((node, i) => iterate(node, node.datum, i));
+        return this;
+    }
+
     select<T extends Node = Node>(predicate: (node: Node) => boolean): T[] {
-        return Selection.selectAll(this._parent, predicate);
+        return Selection.selectAll(this.parentNode, predicate);
     }
 
     selectByClass<T extends Node = Node>(Class: new () => T): T[] {
-        return this.select((node) => node instanceof Class);
+        return Selection.selectByClass(this.parentNode, Class);
     }
 
     selectByTag<T extends Node = Node>(tag: number): T[] {
-        return this.select((node) => node.tag === tag);
+        return Selection.selectByTag(this.parentNode, tag);
     }
 
     nodes() {

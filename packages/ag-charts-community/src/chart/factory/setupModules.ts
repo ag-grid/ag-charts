@@ -1,4 +1,4 @@
-import { REGISTERED_MODULES } from '../../util/module';
+import { REGISTERED_MODULES } from '../../module/module';
 import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
 import { JSON_APPLY_PLUGINS } from '../chartOptions';
 import { registerChartDefaults } from './chartTypes';

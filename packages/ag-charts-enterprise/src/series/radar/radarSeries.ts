@@ -703,7 +703,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const { markerSelection, labelSelection } = this;
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const markerDuration = 200;
         const markerDelay = duration;
 
@@ -714,7 +714,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         this.beforePathAnimation();
 
-        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready`,
             ...animationOptions,
             duration,
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
@@ -724,7 +725,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const format = this.animateFormatter(datum);
             const size = datum.point?.size ?? 0;
 
-            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${marker.id}`, {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${marker.id}`,
                 ...animationOptions,
                 to: format?.size ?? size,
                 delay: markerDelay,
@@ -735,16 +737,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             });
         });
 
-        labelSelection.each((label) => {
-            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                from: 0,
-                to: 1,
-                delay: markerDelay,
-                duration: markerDuration,
-                onUpdate: (opacity) => {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: markerDelay,
+            duration: markerDuration,
+            onUpdate: (opacity) => {
+                labelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
+                });
+            },
         });
     }
 

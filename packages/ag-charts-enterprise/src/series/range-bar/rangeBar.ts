@@ -739,46 +739,28 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
-
         contextData.forEach((_, contextDataIndex) => {
-            this.animateRects(datumSelections[contextDataIndex], duration);
-            this.animateLabels(labelSelections[contextDataIndex], duration);
+            this.animateRects(datumSelections[contextDataIndex]);
+            this.animateLabels(labelSelections[contextDataIndex]);
         });
     }
 
-    protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number], duration: number) {
+    protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number]) {
         const horizontal = this.getBarDirection() === ChartAxisDirection.X;
         datumSelection.each((rect, datum) => {
-            this.ctx.animationManager.animateMany(
-                `${this.id}_empty-update-ready_${rect.id}`,
-                [
-                    {
-                        from: (horizontal ? datum.nodeMidPoint?.x : datum.nodeMidPoint?.y) ?? 0,
-                        to: horizontal ? datum.x : datum.y,
-                    },
-                    { from: 0, to: horizontal ? datum.width : datum.height },
-                ],
-                {
-                    duration,
-                    ease: _ModuleSupport.Motion.easeOut,
-                    onUpdate([val, widthOrHeight]) {
-                        if (horizontal) {
-                            rect.x = val;
-                            rect.width = widthOrHeight;
-
-                            rect.y = datum.y;
-                            rect.height = datum.height;
-                        } else {
-                            rect.y = val;
-                            rect.height = widthOrHeight;
-
-                            rect.x = datum.x;
-                            rect.width = datum.width;
-                        }
-                    },
-                }
-            );
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${rect.id}`,
+                from: { cord: (horizontal ? datum.nodeMidPoint?.x : datum.nodeMidPoint?.y) ?? 0, dimension: 0 },
+                to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
+                ease: _ModuleSupport.Motion.easeOut,
+                onUpdate({ cord, dimension }) {
+                    rect.setProperties(
+                        horizontal
+                            ? { x: cord, y: datum.y, width: dimension, height: datum.height }
+                            : { x: datum.x, y: cord, width: datum.width, height: dimension }
+                    );
+                },
+            });
         });
     }
 
@@ -793,7 +775,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             return;
         }
 
-        const totalDuration = this.ctx.animationManager.defaultDuration();
+        const totalDuration = this.ctx.animationManager.defaultDuration;
         const labelDuration = totalDuration / 5;
 
         let sectionDuration = totalDuration;
@@ -804,110 +786,83 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         const addedIds = zipObject(diff.added, true);
         const removedIds = zipObject(diff.removed, true);
 
-        const rectThrottleGroup = `${this.id}_${Math.random()}`;
-        const labelThrottleGroup = `${this.id}_${Math.random()}`;
-
         const horizontal = this.getBarDirection() === ChartAxisDirection.X;
 
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum, index) => {
-                let props = [
-                    { from: rect.x, to: datum.x },
-                    { from: rect.width, to: datum.width },
-                    { from: rect.y, to: datum.y },
-                    { from: rect.height, to: datum.height },
-                ];
-                const duration = sectionDuration;
-                const cleanup = index === datumSelection.nodes().length - 1;
+                let from = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+                let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
 
-                let startX = datum.x;
-                let endX = datum.x;
-                let startWidth = datum.width;
-                let endWidth = datum.width;
-                let startY = datum.nodeMidPoint?.y ?? 0;
-                let endY = datum.y;
-                let startHeight = 0;
-                let endHeight = datum.height;
-
-                if (horizontal) {
-                    startX = datum.nodeMidPoint?.x ?? 0;
-                    endX = datum.x;
-                    startWidth = 0;
-                    endWidth = datum.width;
-                    startY = datum.y;
-                    endY = datum.y;
-                    startHeight = datum.height;
-                    endHeight = datum.height;
-                }
+                const start = {
+                    x: horizontal ? datum.nodeMidPoint?.x ?? 0 : datum.x,
+                    y: horizontal ? datum.y : datum.nodeMidPoint?.y ?? 0,
+                    width: horizontal ? 0 : datum.width,
+                    height: horizontal ? datum.height : 0,
+                };
 
                 const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
                 const isRemoved = datum.xValue !== undefined && removedIds[datum.xValue] !== undefined;
+                const cleanup = index === datumSelection.nodes().length - 1;
 
                 if (isAdded) {
-                    props = [
-                        { from: startX, to: endX },
-                        { from: startWidth, to: endWidth },
-                        { from: startY, to: endY },
-                        { from: startHeight, to: endHeight },
-                    ];
+                    from = start;
                 } else if (isRemoved) {
-                    props = [
-                        { from: endX, to: startX },
-                        { from: endWidth, to: startWidth },
-                        { from: endY, to: startY },
-                        { from: endHeight, to: startHeight },
-                    ];
+                    from = to;
+                    to = start;
                 }
 
-                this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${rect.id}`, props, {
-                    duration,
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_waiting-update-ready_${rect.id}`,
+                    from,
+                    to,
+                    duration: sectionDuration,
                     ease: Motion.easeOut,
-                    throttleId: `${this.id}_rects`,
-                    throttleGroup: rectThrottleGroup,
-                    onUpdate([x, width, y, height]) {
-                        rect.x = x;
-                        rect.width = width;
-                        rect.y = y;
-                        rect.height = height;
+                    onUpdate(props) {
+                        rect.setProperties(props);
                     },
                     onComplete() {
-                        if (cleanup) datumSelection.cleanup();
+                        if (cleanup) {
+                            datumSelection.cleanup();
+                        }
                     },
                     onStop() {
-                        if (cleanup) datumSelection.cleanup();
+                        if (cleanup) {
+                            datumSelection.cleanup();
+                        }
                     },
                 });
             });
         });
 
-        labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label) => {
-                this.ctx.animationManager.animateWithThrottle(`${this.id}_waiting-update-ready_${label.id}`, {
-                    from: 0,
-                    to: 1,
-                    delay: totalDuration,
-                    duration: labelDuration,
-                    throttleId: `${this.id}_labels`,
-                    throttleGroup: labelThrottleGroup,
-                    onUpdate: (opacity) => {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_waiting-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: totalDuration,
+            duration: labelDuration,
+            onUpdate: (opacity) => {
+                labelSelections.forEach((labelSelection) => {
+                    labelSelection.each((label) => {
                         label.opacity = opacity;
-                    },
+                    });
                 });
-            });
+            },
         });
     }
 
-    protected animateLabels(labelSelection: RangeBarAnimationData['labelSelections'][number], duration: number) {
-        labelSelection.each((label) => {
-            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                from: 0,
-                to: 1,
-                delay: duration,
-                duration: duration / 5,
-                onUpdate: (opacity) => {
+    protected animateLabels(labelSelection: RangeBarAnimationData['labelSelections'][number]) {
+        const duration = this.ctx.animationManager.defaultDuration;
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: duration,
+            duration: duration / 5,
+            onUpdate: (opacity) => {
+                labelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
+                });
+            },
         });
     }
 

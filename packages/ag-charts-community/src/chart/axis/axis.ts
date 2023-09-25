@@ -31,15 +31,15 @@ import type { TextSizeProperties } from '../../scene/shape/text';
 import { measureText, splitText, Text } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/array';
-import type { ModuleInstance } from '../../util/baseModule';
+import type { ModuleInstance } from '../../module/baseModule';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
-import type { AxisContext, ModuleContext } from '../../util/moduleContext';
+import type { AxisContext, ModuleContext } from '../../module/moduleContext';
 import { clamp } from '../../util/number';
-import type { AxisOptionModule } from '../../util/optionModules';
+import type { AxisOptionModule } from '../../module/optionModules';
 import { ARRAY, BOOLEAN, predicateWithMessage, STRING_ARRAY, Validate } from '../../util/validation';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
@@ -455,7 +455,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         this.updateScale();
         this.updatePosition({ rotation, sideFlag });
-        this.updateLine();
+
+        this.lineNode.setProperties({
+            x: 0,
+            y1: this.range[0],
+            y2: this.range[1],
+            stroke: this.line.color,
+            strokeWidth: this.line.width,
+            visible: this.line.enabled,
+        });
 
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.generateTicks({
             primaryTickCount,
@@ -933,8 +941,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 node.translationY = max;
             }
 
-            const visible = node.translationY >= min && node.translationY <= max;
-            node.visible = visible;
+            node.visible = node.translationY >= min && node.translationY <= max;
         };
 
         const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
@@ -1070,19 +1077,17 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (gridLength === 0 || gridStyle.length === 0) {
             return;
         }
-        const styleCount = gridStyle.length;
         this.gridLineGroupSelection.each((line, _, index) => {
-            const style = gridStyle[index % styleCount];
-
-            line.x1 = gridPadding;
-            line.x2 = -sideFlag * gridLength + gridPadding;
-            line.y1 = 0;
-            line.y2 = 0;
-
-            line.stroke = style.stroke;
-            line.strokeWidth = tick.width;
-            line.lineDash = style.lineDash;
-            line.fill = undefined;
+            const style = gridStyle[index % gridStyle.length];
+            line.setProperties({
+                x1: gridPadding,
+                x2: -sideFlag * gridLength + gridPadding,
+                y: 0,
+                fill: undefined,
+                stroke: style.stroke,
+                strokeWidth: tick.width,
+                lineDash: style.lineDash,
+            });
         });
     }
 
@@ -1107,27 +1112,29 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         // Apply label option values
         tickLabelGroupSelection.each((node, datum) => {
-            const { tickLabel } = datum;
-            node.fontStyle = label.fontStyle;
-            node.fontWeight = label.fontWeight;
-            node.fontSize = label.fontSize;
-            node.fontFamily = label.fontFamily;
-            node.fill = label.color;
-            node.text = tickLabel;
-            const userHidden = node.text === '' || node.text == undefined;
+            node.setProperties({
+                fill: label.color,
+                text: datum.tickLabel,
+                fontFamily: label.fontFamily,
+                fontSize: label.fontSize,
+                fontStyle: label.fontStyle,
+                fontWeight: label.fontWeight,
+            });
 
-            if (userHidden) {
+            if (node.text === '' || node.text == undefined) {
                 node.visible = false; // hide empty labels
                 return;
             }
 
             // Position labels
-            node.textBaseline = textBaseline;
-            node.textAlign = textAlign;
-            node.x = labelX;
-            node.rotationCenterX = labelX;
-            node.rotation = combinedRotation;
-            node.visible = true;
+            node.setProperties({
+                visible: true,
+                x: labelX,
+                rotationCenterX: labelX,
+                rotation: combinedRotation,
+                textAlign,
+                textBaseline,
+            });
         });
     }
 
@@ -1152,19 +1159,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
 
         return { tickData, index, autoRotation: 0, terminate: true };
-    }
-
-    private updateLine() {
-        // Render axis line.
-        const { lineNode, range: requestedRange } = this;
-
-        lineNode.x1 = 0;
-        lineNode.x2 = 0;
-        lineNode.y1 = requestedRange[0];
-        lineNode.y2 = requestedRange[1];
-        lineNode.strokeWidth = this.line.width;
-        lineNode.stroke = this.line.color;
-        lineNode.visible = this.line.enabled;
     }
 
     protected updateTitle({
@@ -1223,14 +1217,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 }
             }
 
-            if (sideFlag === -1) {
-                titleNode.y = Math.floor(titleRotationFlag * (-padding - bboxYDimension));
-            } else {
-                titleNode.y = Math.floor(-padding - bboxYDimension);
-            }
-            titleNode.textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
-
-            titleNode.text = callbackCache.call(formatter, this.getTitleFormatterParams());
+            titleNode.setProperties({
+                y:
+                    sideFlag === -1
+                        ? Math.floor(titleRotationFlag * (-padding - bboxYDimension))
+                        : Math.floor(-padding - bboxYDimension),
+                textBaseline: titleRotationFlag === 1 ? 'bottom' : 'top',
+                text: callbackCache.call(formatter, this.getTitleFormatterParams()),
+            });
         }
 
         titleNode.visible = titleVisible;
@@ -1367,86 +1361,51 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     animateReadyUpdate(diff: AxisUpdateDiff) {
-        if (!diff.changed) {
-            this.resetSelectionNodes();
-            return;
+        for (const selection of [
+            this.gridLineGroupSelection,
+            this.tickLineGroupSelection,
+            this.tickLabelGroupSelection,
+        ]) {
+            selection.each((node, datum) => {
+                let from = { translationY: node.translationY, opacity: 1 };
+                const to = { translationY: Math.round(datum.translationY), opacity: 1 };
+
+                if (diff.added[datum.tickLabel]) {
+                    from = { translationY: to.translationY, opacity: 0 };
+                } else if (diff.removed[datum.tickLabel]) {
+                    to.opacity = 0;
+                }
+
+                this.animationManager.animate({
+                    id: `${this.id}_ready-update_${node.id}`,
+                    from,
+                    to,
+                    ease: easing.easeOut,
+                    disableInteractions: false,
+                    onUpdate(props) {
+                        node.setProperties(props);
+                    },
+                    onStop() {
+                        selection.cleanup();
+                    },
+                });
+            });
         }
-
-        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
-        const removedCount = Object.keys(diff.removed).length;
-
-        if (removedCount === diff.tickCount) {
-            this.resetSelectionNodes();
-            return;
-        }
-
-        const animationGroup = `${this.id}_${Math.random()}`;
-
-        tickLabelGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLabelGroupSelection, diff, node, datum, animationGroup);
-        });
-        gridLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(gridLineGroupSelection, diff, node, datum, animationGroup);
-        });
-        tickLineGroupSelection.each((node, datum) => {
-            this.animateSelectionNode(tickLineGroupSelection, diff, node, datum, animationGroup);
-        });
-    }
-
-    private animateSelectionNode(
-        selection: Selection<Text | Line, any>,
-        diff: AxisUpdateDiff,
-        node: Text | Line,
-        datum: TickDatum,
-        animationGroup: string
-    ) {
-        const roundedTranslationY = Math.round(datum.translationY);
-        let translate = { from: node.translationY, to: roundedTranslationY };
-        let opacity = { from: 1, to: 1 };
-
-        const datumId = datum.tickLabel;
-        if (diff.added[datumId]) {
-            translate = { from: roundedTranslationY, to: roundedTranslationY };
-            opacity = { from: 0, to: 1 };
-        } else if (diff.removed[datumId]) {
-            opacity = { from: 1, to: 0 };
-        }
-
-        const duration = this.animationManager.defaultDuration();
-        const props = [translate, opacity];
-
-        this.animationManager.animateManyWithThrottle(`${this.id}_ready-update_${node.id}`, props, {
-            disableInteractions: false,
-            duration,
-            ease: easing.easeOut,
-            throttleId: this.id,
-            throttleGroup: animationGroup,
-            onUpdate([translationY, opacity]) {
-                node.translationY = translationY;
-                node.opacity = opacity;
-            },
-            onComplete() {
-                selection.cleanup();
-            },
-        });
     }
 
     private resetSelectionNodes() {
-        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
-
-        gridLineGroupSelection.cleanup();
-        tickLineGroupSelection.cleanup();
-        tickLabelGroupSelection.cleanup();
-
-        // We need raw `translationY` values on `datum` for accurate label collision detection in axes.update()
-        // But node `translationY` values must be rounded to get pixel grid alignment
-        const resetFn = (node: Line | Text) => {
-            node.translationY = Math.round(node.datum.translationY);
-            node.opacity = 1;
-        };
-        gridLineGroupSelection.each(resetFn);
-        tickLineGroupSelection.each(resetFn);
-        tickLabelGroupSelection.each(resetFn);
+        for (const selection of [
+            this.gridLineGroupSelection,
+            this.tickLineGroupSelection,
+            this.tickLabelGroupSelection,
+        ]) {
+            selection.cleanup().each((node: Line | Text) => {
+                // We need raw `translationY` values on `datum` for accurate label collision detection in axes.update()
+                // But node `translationY` values must be rounded to get pixel grid alignment
+                node.translationY = Math.round(node.datum.translationY);
+                node.opacity = 1;
+            });
+        }
     }
 
     private calculateUpdateDiff(previous: string[], tickData: TickData): AxisUpdateDiff {

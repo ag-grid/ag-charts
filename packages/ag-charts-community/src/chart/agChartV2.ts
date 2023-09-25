@@ -31,10 +31,10 @@ import { getJsonApplyOptions } from './chartOptions';
 import { setupModules } from './factory/setupModules';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
-import { type Module, REGISTERED_MODULES } from '../util/module';
-import type { ModuleInstance } from '../util/baseModule';
-import type { LegendModule, RootModule } from '../util/coreModules';
-import type { AxisOptionModule, SeriesOptionModule } from '../util/optionModules';
+import { type Module, REGISTERED_MODULES } from '../module/module';
+import type { ModuleInstance } from '../module/baseModule';
+import type { LegendModule, RootModule } from '../module/coreModules';
+import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 
 const debug = Debug.create(true, 'opts');
 

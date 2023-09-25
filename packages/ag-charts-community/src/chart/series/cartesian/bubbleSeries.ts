@@ -30,7 +30,7 @@ import type {
     AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
 } from '../../../options/agChartOptions';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
 import { getMarkerConfig, updateMarker } from './markerUtil';
@@ -548,10 +548,11 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
 
     animateEmptyUpdateReady(animationData: BubbleAnimationData) {
         const { markerSelections, labelSelections } = animationData;
-        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration();
+        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
-        this.ctx.animationManager.animate(`${this.id}_empty-update-ready_markers`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_markers`,
             from: 0,
             to: 1,
             duration,
@@ -570,7 +571,8 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
             },
         });
 
-        this.ctx.animationManager.animate(`${this.id}_empty-update-ready_labels`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
             from: 0,
             to: 1,
             delay: duration,
@@ -608,7 +610,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
         const addedIds = zipObject(diff.added, true);
         const removedIds = zipObject(diff.removed, true);
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         markerSelections.forEach((markerSelection) => {
@@ -689,13 +691,13 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
     animateClearingUpdateEmpty(animationData: BubbleAnimationData) {
         const { markerSelections } = animationData;
 
-        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
-        const clearDuration = 200;
+        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
 
-        this.ctx.animationManager.animate(`${this.id}_clearing-update-empty`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_clearing-update-empty`,
             from: 1,
             to: 0,
-            duration: clearDuration,
+            duration: 200,
             onUpdate(opacity) {
                 markerSelections.forEach((markerSelection) => {
                     markerSelection.each((marker) => {

@@ -585,7 +585,7 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         let startingY = 0;
@@ -597,39 +597,32 @@ export class HistogramSeries extends CartesianSeries<
 
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum) => {
-                this.ctx.animationManager.animateMany(
-                    `${this.id}_empty-update-ready_${rect.id}`,
-                    [
-                        { from: startingY, to: datum.y },
-                        { from: 0, to: datum.height },
-                    ],
-                    {
-                        duration,
-                        ease: easing.easeOut,
-                        onUpdate([y, height]) {
-                            rect.y = y;
-                            rect.height = height;
-
-                            rect.x = datum.x;
-                            rect.width = datum.width;
-                        },
-                    }
-                );
-            });
-        });
-
-        labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label) => {
-                this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                    from: 0,
-                    to: 1,
-                    delay: duration,
-                    duration: labelDuration,
-                    onUpdate: (opacity) => {
-                        label.opacity = opacity;
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_empty-update-ready_${rect.id}`,
+                    from: { y: startingY, height: 0 },
+                    to: { y: datum.y, height: datum.height },
+                    duration,
+                    ease: easing.easeOut,
+                    onUpdate(props) {
+                        rect.setProperties({ ...props, x: datum.x, width: datum.width });
                     },
                 });
             });
+        });
+
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: duration,
+            duration: labelDuration,
+            onUpdate: (opacity) => {
+                labelSelections.forEach((labelSelection) => {
+                    labelSelection.each((label) => {
+                        label.opacity = opacity;
+                    });
+                });
+            },
         });
     }
 
@@ -660,7 +653,7 @@ export class HistogramSeries extends CartesianSeries<
             return;
         }
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         let startingY = 0;
@@ -675,45 +668,33 @@ export class HistogramSeries extends CartesianSeries<
 
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((rect, datum, index) => {
-                let props = [
-                    { from: rect.x, to: datum.x },
-                    { from: rect.width, to: datum.width },
-                    { from: rect.y, to: datum.y },
-                    { from: rect.height, to: datum.height },
-                ];
+                let from = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+                let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
                 const cleanup = index === datumSelection.nodes().length - 1;
 
                 const datumId = getDatumId(datum);
-                const contextY = startingY;
-                const contextHeight = 0;
+                const context = { y: startingY, height: 0 };
 
                 if (addedIds[datumId]) {
-                    props = [
-                        { from: datum.x, to: datum.x },
-                        { from: datum.width, to: datum.width },
-                        { from: contextY, to: datum.y },
-                        { from: contextHeight, to: datum.height },
-                    ];
+                    from = { ...to, ...context };
                 } else if (removedIds[datumId]) {
-                    props = [
-                        { from: rect.x, to: datum.x },
-                        { from: rect.width, to: datum.width },
-                        { from: datum.y, to: contextY },
-                        { from: datum.height, to: contextHeight },
-                    ];
+                    from = { ...from, y: datum.y, height: datum.height };
+                    to = { ...to, ...context };
                 }
 
-                this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${rect.id}`, props, {
+                this.ctx.animationManager.animate({
+                    id: `${this.id}_waiting-update-ready_${rect.id}`,
+                    from,
+                    to,
                     duration,
                     ease: easing.easeOut,
-                    onUpdate([x, width, y, height]) {
-                        rect.x = x;
-                        rect.width = width;
-                        rect.y = y;
-                        rect.height = height;
+                    onUpdate(props) {
+                        rect.setProperties(props);
                     },
                     onComplete() {
-                        if (cleanup) datumSelection.cleanup();
+                        if (cleanup) {
+                            datumSelection.cleanup();
+                        }
                     },
                 });
             });
@@ -722,19 +703,23 @@ export class HistogramSeries extends CartesianSeries<
         labelSelections.forEach((labelSelection) => {
             labelSelection.each((label) => {
                 label.opacity = 0;
-
-                this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
-                    from: 0,
-                    to: 1,
-                    delay: duration,
-                    duration: labelDuration,
-                    ease: easing.linear,
-                    repeat: 0,
-                    onUpdate: (opacity) => {
-                        label.opacity = opacity;
-                    },
-                });
             });
+        });
+
+        this.ctx.animationManager.animate({
+            id: `${this.id}_waiting-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: duration,
+            duration: labelDuration,
+            repeat: 0,
+            onUpdate: (opacity) => {
+                labelSelections.forEach((labelSelection) => {
+                    labelSelection.each((label) => {
+                        label.opacity = opacity;
+                    });
+                });
+            },
         });
     }
 

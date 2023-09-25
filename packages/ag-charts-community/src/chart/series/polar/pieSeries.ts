@@ -51,7 +51,7 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import { StateMachine } from '../../../motion/states';
 import * as easing from '../../../motion/easing';
 import { createDatumId, normalisePropertyTo } from '../../data/processors';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { Has } from '../../../util/types';
 import type { DataController } from '../../data/dataController';
 import type { DataModel } from '../../data/dataModel';
@@ -1642,7 +1642,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     }
 
     animateEmptyUpdateReady(data?: { duration: number }) {
-        const duration = data?.duration ?? this.ctx.animationManager.defaultDuration();
+        const duration = data?.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
         const rotation = Math.PI / -2 + toRadians(this.rotation);
@@ -1658,58 +1658,40 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             sector.strokeWidth = format.strokeWidth!;
             sector.fillOpacity = format.fillOpacity!;
 
-            this.ctx.animationManager.animateMany<number>(
-                `${this.id}_empty-update-ready_${sector.id}`,
-                [
-                    { from: rotation, to: datum.startAngle },
-                    { from: rotation, to: datum.endAngle },
-                ],
-                {
-                    duration,
-                    ease: easing.easeOut,
-                    onUpdate([startAngle, endAngle]) {
-                        sector.startAngle = startAngle;
-                        sector.endAngle = endAngle;
-                    },
-                    onComplete: () => {
-                        if (cleanup) this.resetSectors();
-                    },
-                }
-            );
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${sector.id}`,
+                from: { startAngle: rotation, endAngle: rotation },
+                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
+                duration,
+                ease: easing.easeOut,
+                onUpdate(props) {
+                    sector.setProperties(props);
+                },
+                onComplete: () => {
+                    if (cleanup) {
+                        this.resetSectors();
+                    }
+                },
+            });
         });
 
-        const labelAnimationOptions = {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
             from: 0,
             to: 1,
             delay: duration,
             duration: labelDuration,
-        };
-
-        this.calloutLabelSelection.each((label) => {
-            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
-                ...labelAnimationOptions,
-                onUpdate(opacity) {
+            onUpdate: (opacity) => {
+                this.calloutLabelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
-        });
-
-        this.sectorLabelSelection.each((label) => {
-            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
-                ...labelAnimationOptions,
-                onUpdate(opacity) {
+                });
+                this.sectorLabelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
-        });
-
-        this.innerLabelsSelection.each((label) => {
-            this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready_${label.id}`, {
-                ...labelAnimationOptions,
-                onUpdate(opacity) {
+                });
+                this.innerLabelsSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
+                });
+            },
         });
     }
 
@@ -1726,11 +1708,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             return;
         }
 
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
         const rotation = Math.PI / -2 + toRadians(this.rotation);
         const sectors = groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
-        const throttleGroup = `${this.id}_${Math.random()}`;
 
         const datumIndices: { [key: string]: number } = {};
         processedData?.data.forEach((d, index) => {
@@ -1777,49 +1758,46 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             const format = this.getSectorFormat(datum.datum, datum.itemId, index, false);
             const replacement = shiftedSectors[index];
 
-            let startAngleFrom = sector.startAngle;
-            let startAngleTo = diff.removed.length > 0 ? replacement.datum.startAngle : datum.startAngle;
-            let endAngleFrom = sector.endAngle;
-            let endAngleTo = diff.removed.length > 0 ? replacement.datum.endAngle : datum.endAngle;
-            let fillFrom = sector.fill ?? format.fill;
-            let fillTo = format.fill;
+            const from = {
+                startAngle: sector.startAngle,
+                endAngle: sector.endAngle,
+                fill: sector.fill ?? format.fill,
+                stroke: sector.stroke ?? format.stroke,
+                strokeWidth: sector.strokeWidth,
+                fillOpacity: sector.fillOpacity,
+            };
+
+            const to = {
+                startAngle: diff.removed.length > 0 ? replacement.datum.startAngle : datum.startAngle,
+                endAngle: diff.removed.length > 0 ? replacement.datum.endAngle : datum.endAngle,
+                fill: format.fill,
+                stroke: format.stroke,
+                strokeWidth: format.strokeWidth,
+                fillOpacity: format.fillOpacity,
+            };
 
             if (index >= sectors.length - diff.removed.length) {
-                startAngleTo = Math.PI * 1.5;
-                endAngleTo = startAngleTo;
+                to.startAngle = Math.PI * 1.5;
+                to.endAngle = to.startAngle;
             } else if (addedIds[datumId]) {
                 const previousSector = sectorsByDatum[sortedDatumIds[index - 1]];
                 const nextSector = sectorsByDatum[sortedDatumIds[index + 1]];
 
-                startAngleFrom = previousSector?.endAngle ?? rotation;
-                startAngleTo = datum.startAngle;
-                endAngleFrom = nextSector?.startAngle ?? previousSector?.endAngle ?? rotation;
-                endAngleTo = datum.endAngle;
-                fillFrom = format.fill;
-                fillTo = format.fill;
+                from.startAngle = previousSector?.endAngle ?? rotation;
+                from.endAngle = nextSector?.startAngle ?? previousSector?.endAngle ?? rotation;
+                from.fill = format.fill;
+                to.startAngle = datum.startAngle;
+                to.endAngle = datum.endAngle;
             }
 
-            const props = [
-                { from: startAngleFrom, to: startAngleTo },
-                { from: endAngleFrom, to: endAngleTo },
-                { from: fillFrom, to: fillTo },
-                { from: sector.stroke ?? format.stroke, to: format.stroke },
-                { from: sector.strokeWidth, to: format.strokeWidth },
-                { from: sector.fillOpacity, to: format.fillOpacity },
-            ];
-
-            this.ctx.animationManager.animateManyWithThrottle(`${this.id}_waiting-update-ready_${sector.id}`, props, {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_waiting-update-ready_${sector.id}`,
+                from,
+                to,
                 duration,
                 ease: easing.easeOut,
-                throttleId: this.id,
-                throttleGroup,
-                onUpdate([startAngle, endAngle, fill, stroke, strokeWidth, fillOpacity]) {
-                    sector.startAngle = startAngle;
-                    sector.endAngle = endAngle;
-                    sector.fill = fill;
-                    sector.stroke = stroke;
-                    sector.strokeWidth = strokeWidth;
-                    sector.fillOpacity = fillOpacity;
+                onUpdate(props) {
+                    sector.setProperties(props);
                 },
                 onComplete: () => {
                     if (cleanup) this.resetSectors();
@@ -1834,54 +1812,45 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             sector.visible = false;
         });
 
-        const labelAnimationOptions = {
+        this.calloutLabelSelection.each((label) => {
+            label.opacity = 0;
+        });
+        this.sectorLabelSelection.each((label) => {
+            label.opacity = 0;
+        });
+        this.innerLabelsSelection.each((label) => {
+            label.opacity = 0;
+        });
+
+        this.ctx.animationManager.animate({
+            id: `${this.id}_waiting-update-ready_labels`,
             from: 0,
             to: 1,
             delay: duration,
             duration: labelDuration,
-            throttleId: this.id,
-            throttleGroup,
-        };
-
-        this.calloutLabelSelection.each((label) => {
-            label.opacity = 0;
-            this.ctx.animationManager.animateWithThrottle<number>(`${this.id}_waiting-update-ready_${label.id}`, {
-                ...labelAnimationOptions,
-                onUpdate(opacity) {
+            onUpdate: (opacity) => {
+                this.calloutLabelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
-        });
-
-        this.sectorLabelSelection.each((label) => {
-            label.opacity = 0;
-            this.ctx.animationManager.animateWithThrottle<number>(`${this.id}_waiting-update-ready_${label.id}`, {
-                ...labelAnimationOptions,
-                onUpdate(opacity) {
+                });
+                this.sectorLabelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
-        });
-
-        this.innerLabelsSelection.each((label) => {
-            label.opacity = 0;
-            this.ctx.animationManager.animateWithThrottle<number>(`${this.id}_waiting-update-ready_${label.id}`, {
-                ...labelAnimationOptions,
-                onUpdate(opacity) {
+                });
+                this.innerLabelsSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
+                });
+            },
         });
     }
 
     animateClearingUpdateEmpty() {
-        const updateDuration = this.ctx.animationManager.defaultDuration() / 2;
+        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
         const clearDuration = 200;
 
         const sectors = this.groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
         sectors.forEach((sector, index) => {
             const cleanup = index === sectors.length - 1;
-            this.ctx.animationManager.animate(`${this.id}_animate-ready-clear_${sector.id}`, {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_animate-ready-clear_${sector.id}`,
                 duration: clearDuration,
                 from: 1,
                 to: 0,
@@ -1912,7 +1881,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    async resetSectors() {
+    resetSectors() {
         const sectors = this.sortSectorsByData(this.groupSelection.cleanup().selectByTag<Sector>(PieNodeTag.Sector));
 
         sectors.forEach((sector, index) => {

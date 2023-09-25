@@ -11,7 +11,7 @@ import type {
     AgCartesianSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
 import type { SeriesNodeDataContext } from '../series';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 export enum AreaSeriesTag {
@@ -94,31 +94,28 @@ export function areaAnimateEmptyUpdateReady<
     contextData.forEach(({ fillData, strokeData }, seriesIdx) => {
         const [fill, stroke] = paths[seriesIdx];
 
-        const duration = ctx.animationManager.defaultDuration();
+        const duration = ctx.animationManager.defaultDuration;
+        const animationOptions = { from: 0, to: seriesRect?.width ?? 0 };
         const markerDuration = 200;
-
-        const animationOptions = {
-            from: 0,
-            to: seriesRect?.width ?? 0,
-            duration,
-        };
 
         // Stroke
         {
             const { points } = strokeData;
 
-            stroke.tag = AreaSeriesTag.Stroke;
-            stroke.fill = undefined;
-            stroke.lineJoin = stroke.lineCap = 'round';
-            stroke.pointerEvents = PointerEvents.None;
+            stroke.setProperties({
+                tag: AreaSeriesTag.Stroke,
+                fill: undefined,
+                lineJoin: (stroke.lineCap = 'round'),
+                pointerEvents: PointerEvents.None,
+                stroke: seriesStroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            });
 
-            stroke.stroke = seriesStroke;
-            stroke.strokeWidth = strokeWidth;
-            stroke.strokeOpacity = strokeOpacity;
-            stroke.lineDash = lineDash;
-            stroke.lineDashOffset = lineDashOffset;
-
-            ctx.animationManager.animate<number>(`${seriesId}_empty-update-ready_stroke_${seriesIdx}`, {
+            ctx.animationManager.animate({
+                id: `${seriesId}_empty-update-ready_stroke_${seriesIdx}`,
                 ...animationOptions,
                 onUpdate(xValue) {
                     stroke.path.clear({ trackChanges: true });
@@ -163,20 +160,22 @@ export function areaAnimateEmptyUpdateReady<
             const points = allPoints.slice(0, allPoints.length / 2);
             const bottomPoints = allPoints.slice(allPoints.length / 2);
 
-            fill.tag = AreaSeriesTag.Fill;
-            fill.stroke = undefined;
-            fill.lineJoin = 'round';
-            fill.pointerEvents = PointerEvents.None;
+            fill.setProperties({
+                tag: AreaSeriesTag.Fill,
+                stroke: undefined,
+                lineJoin: 'round',
+                pointerEvents: PointerEvents.None,
+                fill: seriesFill,
+                fillOpacity: fillOpacity,
+                strokeOpacity: strokeOpacity,
+                strokeWidth: strokeWidth,
+                lineDash: lineDash,
+                lineDashOffset: lineDashOffset,
+                fillShadow: shadow,
+            });
 
-            fill.fill = seriesFill;
-            fill.fillOpacity = fillOpacity;
-            fill.strokeOpacity = strokeOpacity;
-            fill.strokeWidth = strokeWidth;
-            fill.lineDash = lineDash;
-            fill.lineDashOffset = lineDashOffset;
-            fill.fillShadow = shadow;
-
-            ctx.animationManager.animate<number>(`${seriesId}_empty-update-ready_fill_${seriesIdx}`, {
+            ctx.animationManager.animate({
+                id: `${seriesId}_empty-update-ready_fill_${seriesIdx}`,
                 ...animationOptions,
                 onUpdate(xValue) {
                     fill.path.clear({ trackChanges: true });
@@ -240,7 +239,8 @@ export function areaAnimateEmptyUpdateReady<
                 getFormatterParams,
             });
 
-            ctx.animationManager.animate<number>(`${seriesId}_empty-update-ready_${marker.id}`, {
+            ctx.animationManager.animate({
+                id: `${seriesId}_empty-update-ready_${marker.id}`,
                 ...animationOptions,
                 to: format?.size ?? datum.point?.size ?? 0,
                 delay,
@@ -252,13 +252,13 @@ export function areaAnimateEmptyUpdateReady<
         });
 
         labelSelections[seriesIdx].each((label, datum) => {
-            const delay = seriesRect?.width ? (datum.x / seriesRect.width) * duration : 0;
-            ctx.animationManager.animate(`${seriesId}_empty-update-ready_${label.id}`, {
+            ctx.animationManager.animate({
+                id: `${seriesId}_empty-update-ready_${label.id}`,
                 from: 0,
                 to: 1,
-                delay,
+                delay: seriesRect?.width ? (datum.x / seriesRect.width) * duration : 0,
                 duration: markerDuration,
-                onUpdate: (opacity) => {
+                onUpdate(opacity) {
                     label.opacity = opacity;
                 },
             });
@@ -299,12 +299,7 @@ export function areaAnimateReadyUpdate<
         const [fill, stroke] = paths[seriesIdx];
 
         // Stroke
-        stroke.stroke = seriesStroke;
-        stroke.strokeWidth = strokeWidth;
-        stroke.strokeOpacity = strokeOpacity;
-        stroke.lineDash = lineDash;
-        stroke.lineDashOffset = lineDashOffset;
-
+        stroke.setProperties({ stroke: seriesStroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset });
         stroke.path.clear({ trackChanges: true });
 
         let moveTo = true;
@@ -322,13 +317,15 @@ export function areaAnimateReadyUpdate<
         stroke.checkPathDirty();
 
         // Fill
-        fill.fill = seriesFill;
-        fill.fillOpacity = fillOpacity;
-        fill.strokeOpacity = strokeOpacity;
-        fill.strokeWidth = strokeWidth;
-        fill.lineDash = lineDash;
-        fill.lineDashOffset = lineDashOffset;
-        fill.fillShadow = shadow;
+        fill.setProperties({
+            fill: seriesFill,
+            fillShadow: shadow,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+        });
 
         fill.path.clear({ trackChanges: true });
 
