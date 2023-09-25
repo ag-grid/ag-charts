@@ -13,8 +13,8 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'box-plot',
+            yName: 'Employee Salaries',
             xKey: 'department',
-            yName: 'Salary Range',
             minKey: 'min',
             q1Key: 'q1',
             medianKey: 'median',
