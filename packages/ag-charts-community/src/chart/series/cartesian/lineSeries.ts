@@ -1,7 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgCartesianSeriesMarkerFormat,
-    AgCartesianSeriesTooltipRendererParams,
+    AgLineSeriesTooltipRendererParams,
     AgTooltipRendererResult,
     FontStyle,
     FontWeight,
@@ -75,7 +75,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     @Validate(NUMBER(0, 1))
     strokeOpacity: number = 1;
 
-    tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
+    tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: ModuleContext) {
         super({

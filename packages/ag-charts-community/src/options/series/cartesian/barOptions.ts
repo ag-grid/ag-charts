@@ -4,6 +4,7 @@ import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgBarSeriesLabelPlacement = 'inside' | 'outside';
@@ -28,6 +29,7 @@ export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
 export interface AgBarSeriesTooltipRendererParams<TDatum = any>
     extends AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
+        AgErrorBoundSeriesTooltipRendererParams,
         AgSeriesTooltipRendererParams<TDatum> {
     readonly stackGroup?: string;
 }

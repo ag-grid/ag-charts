@@ -3,9 +3,14 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type {
+    AgCartesianSeriesTooltipRendererParams,
+    AgErrorBoundSeriesTooltipRendererParams,
+} from './cartesianSeriesTooltipOptions';
 
-export interface AgScatterSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
+export interface AgScatterSeriesTooltipRendererParams
+    extends AgCartesianSeriesTooltipRendererParams,
+        AgErrorBoundSeriesTooltipRendererParams {
     /** labelKey as specified on series options. */
     readonly labelKey?: string;
     /** labelName as specified on series options. */
