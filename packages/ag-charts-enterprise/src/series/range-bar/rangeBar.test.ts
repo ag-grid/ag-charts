@@ -1,19 +1,15 @@
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AgCartesianSeriesLabelFormatterParams } from 'ag-charts-community';
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-import type { AgChartOptions } from '../../main';
-import { AgEnterpriseCharts, _ModuleSupport } from '../../main';
-
 import {
-    waitForChartStability,
-    setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    setupMockCanvas,
     spyOnAnimationManager,
+    waitForChartStability,
 } from 'ag-charts-community-test';
+import type { AgChartOptions } from '../../main';
+import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Chart', () => {
     let chart: any;
@@ -171,7 +167,7 @@ describe('Chart', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {

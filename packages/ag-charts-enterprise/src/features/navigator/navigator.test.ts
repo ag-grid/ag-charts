@@ -1,21 +1,17 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-import type { AgCartesianChartOptions, _ModuleSupport } from 'ag-charts-community';
-
-import { AgEnterpriseCharts } from '../../main';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import type { AgCartesianChartOptions } from 'ag-charts-community';
 import {
-    waitForChartStability,
-    setupMockCanvas,
+    cartesianChartAssertions,
+    type CartesianTestCase,
+    CROSSLINE_EXAMPLES,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
-    type CartesianTestCase,
-    cartesianChartAssertions,
-    CROSSLINE_EXAMPLES,
     repeat,
+    setupMockCanvas,
+    waitForChartStability,
 } from 'ag-charts-community-test';
+import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 const { VALID_RANGE_CROSSLINES } = CROSSLINE_EXAMPLES;
 
@@ -139,7 +135,7 @@ describe('navigator', () => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
                 const options: AgCartesianChartOptions = { ...example.options };

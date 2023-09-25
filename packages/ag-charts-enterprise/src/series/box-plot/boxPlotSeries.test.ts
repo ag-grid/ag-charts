@@ -1,17 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-import type { AgChartOptions } from '../../main';
-import { AgEnterpriseCharts } from '../../main';
 import {
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
-    waitForChartStability,
     spyOnAnimationManager,
+    waitForChartStability,
 } from 'ag-charts-community-test';
+import type { AgChartOptions } from '../../main';
+import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 const BOX_PLOT_BAR_OPTIONS: AgChartOptions = {
     data: [
@@ -50,7 +47,7 @@ describe('Chart', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
         chart.destroy();
     };

@@ -3,7 +3,6 @@
  */
 
 import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
@@ -13,13 +12,10 @@ import {
     waitForChartStability,
     IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
-    toMatchImage,
     extractImageData,
     prepareTestOptions,
 } from './test/utils';
 import { EXAMPLES } from './test/examples-gallery';
-
-expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
     .filter(([, { options }]) => {
@@ -68,7 +64,7 @@ describe('Gallery Examples (US TZ)', () => {
                 await waitForChartStability(chart);
 
                 const imageData = extractImageData(ctx);
-                (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             };
 
             const options: AgChartOptions = { ...example.options };

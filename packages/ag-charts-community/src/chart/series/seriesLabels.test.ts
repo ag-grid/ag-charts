@@ -154,7 +154,7 @@ describe('series labels', () => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
                 const options: AgChartOptions = { ...example.options };
