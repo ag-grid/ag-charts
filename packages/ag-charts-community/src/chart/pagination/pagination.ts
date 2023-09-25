@@ -3,7 +3,7 @@ import type { Node } from '../../scene/node';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
 import { Text } from '../../scene/shape/text';
-import { HdpiCanvas } from '../../canvas/hdpiCanvas';
+import { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
 import { getMarker } from '../marker/util';
 import { createId } from '../../util/id';
 import type { InteractionEvent, InteractionManager } from '../interaction/interactionManager';

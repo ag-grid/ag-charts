@@ -7,16 +7,16 @@ import type {
     LineDashOptions,
     StrokeOptions,
 } from './commonOptions';
-import type { AgSeriesTooltip } from '../../options/tooltipOptions';
-import type { CssColor, Ratio } from '../../options/types';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { CssColor, Ratio } from '../../chart/types';
 
 interface BoxPlotUniqueOptions {
     // required
-    minKey?: string;
-    q1Key?: string;
-    medianKey?: string;
-    q3Key?: string;
-    maxKey?: string;
+    minKey: string;
+    q1Key: string;
+    medianKey: string;
+    q3Key: string;
+    maxKey: string;
     // optional
     minName?: string;
     q1Name?: string;

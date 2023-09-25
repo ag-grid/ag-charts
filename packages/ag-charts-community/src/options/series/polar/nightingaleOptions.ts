@@ -1,5 +1,5 @@
-import type { AgChartLabelOptions } from '../../options/labelOptions';
-import type { AgSeriesTooltip } from '../../options/tooltipOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type {
     AgBaseRadialColumnSeriesOptions,
     AgBaseRadialColumnSeriesThemeableOptions,

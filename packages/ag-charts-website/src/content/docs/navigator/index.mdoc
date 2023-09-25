@@ -1,5 +1,6 @@
 ---
 title: 'Navigator'
+enterprise: true
 ---
 
 The navigator allows to zoom in on a portion of chart's data and then pan around the chart. This is useful in charts with lots of data and real-time charts where one wants to show a slice of time, for example sensor data for the last 20 minutes.
@@ -16,7 +17,7 @@ navigator: {
 
 ### Example: Enabling the Navigator
 
-{% chartExampleRunner title="Enabling the Navigator" name="navigator" type="generated" /%}
+{% chartExampleRunner title="Enabling the Navigator" name="navigator" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Setting the Visible Range
 
@@ -62,7 +63,7 @@ The example below uses various navigator configs (in a deliberately exaggerated 
 -   width, height and stroke width of the left handle
 -   the length of the left handle's grip lines and the distance between them
 
-{% chartExampleRunner title="Navigator Styling" name="navigator-styling" type="generated" /%}
+{% chartExampleRunner title="Navigator Styling" name="navigator-styling" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
 

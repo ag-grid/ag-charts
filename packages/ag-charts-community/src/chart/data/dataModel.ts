@@ -953,7 +953,7 @@ function logProcessedData(processedData: ProcessedData<any>) {
     logValues('Aggregate Domains', processedData.domain.aggValues ?? []);
 
     if (processedData.type === 'grouped') {
-        const flattenedValues = processedData.data.reduce((acc, next) => {
+        const flattenedValues = processedData.data.reduce<any[]>((acc, next) => {
             const keys = next.keys ?? [];
             const aggValues = next.aggValues ?? [];
             const skipKeys = next.keys.map(() => undefined);
@@ -966,14 +966,14 @@ function logProcessedData(processedData: ProcessedData<any>) {
                 ])
             );
             return acc;
-        }, [] as any[]);
+        }, []);
         logValues('Values', flattenedValues);
     } else {
-        const flattenedValues = processedData.data.reduce((acc, next) => {
+        const flattenedValues = processedData.data.reduce<any[]>((acc, next) => {
             const aggValues = next.aggValues ?? [];
             acc.push([...next.keys, ...next.values, ...aggValues]);
             return acc;
-        }, [] as any[]);
+        }, []);
         logValues('Values', flattenedValues);
     }
 }

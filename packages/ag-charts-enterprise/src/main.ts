@@ -1,29 +1,30 @@
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import { _ModuleSupport, AgChart } from 'ag-charts-community';
 
-import { AnimationModule } from './animation/main';
-import { BackgroundModule } from './background/main';
-import { ContextMenuModule } from './context-menu/main';
-import { CrosshairModule } from './crosshair/main';
+import { AnimationModule } from './features/animation/main';
+import { BackgroundModule } from './features/background/main';
+import { ContextMenuModule } from './features/context-menu/main';
+import { CrosshairModule } from './features/crosshair/main';
 import { GradientLegendModule } from './gradient-legend/main';
-import { HeatmapModule } from './heatmap/main';
-import { AngleCategoryAxisModule } from './polar-axes/angle-category/main';
-import { RadiusNumberAxisModule } from './polar-axes/radius-number/main';
-import { NightingaleModule } from './polar-series/nightingale/main';
-import { RadialColumnModule } from './polar-series/radial-column/main';
-import { RadarLineModule } from './polar-series/radar-line/main';
-import { RadarAreaModule } from './polar-series/radar-area/main';
-import { ZoomModule } from './zoom/main';
-import { WaterfallModule } from './waterfall/main';
-import { RangeBarModule } from './range-bar/main';
-import { RangeAreaModule } from './range-area/rangeAreaModule';
+import { HeatmapModule } from './series/heatmap/main';
+import { AngleCategoryAxisModule } from './axes/angle-category/main';
+import { RadiusNumberAxisModule } from './axes/radius-number/main';
+import { NightingaleModule } from './series/nightingale/main';
+import { RadialColumnModule } from './series/radial-column/main';
+import { RadarLineModule } from './series/radar-line/main';
+import { RadarAreaModule } from './series/radar-area/main';
+import { ZoomModule } from './features/zoom/main';
+import { WaterfallModule } from './series/waterfall/main';
+import { RangeBarModule } from './series/range-bar/main';
+import { RangeAreaModule } from './series/range-area/rangeAreaModule';
 import { LicenseManager } from './license/licenseManager';
-import { BoxPlotModule } from './box-plot/boxPlotModule';
-import { ErrorBarsModule } from './error-bar/errorBarModule';
-import { HistogramSeriesModule } from './histogram/histogramSeriesModule';
-import { TreemapSeriesModule } from './treemap/treemapSeriesModule';
+import { BoxPlotModule } from './series/box-plot/boxPlotModule';
+import { ErrorBarsModule } from './features/error-bar/errorBarModule';
+import { HistogramSeriesModule } from './series/histogram/histogramSeriesModule';
+import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
+import { NavigatorModule } from './features/navigator/navigatorModule';
 
-export { RadiusNumberAxisModule } from './polar-axes/radius-number/radiusNumberAxisModule';
+export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 
 export * from 'ag-charts-community';
 
@@ -38,6 +39,7 @@ _ModuleSupport.registerModule(GradientLegendModule);
 _ModuleSupport.registerModule(HeatmapModule);
 _ModuleSupport.registerModule(HistogramSeriesModule);
 _ModuleSupport.registerModule(NightingaleModule);
+_ModuleSupport.registerModule(NavigatorModule);
 _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
 _ModuleSupport.registerModule(RadialColumnModule);

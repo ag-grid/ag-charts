@@ -34,8 +34,30 @@ import {
 import { NORMAL, BOTTOM } from './constants';
 
 const palette: AgChartThemePalette = {
-    fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
-    strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
+    fills: [
+        '#436ff4',
+        '#9a7bff',
+        '#d165d2',
+        '#f0598b',
+        '#f47348',
+        '#f2a602',
+        '#e9e201',
+        '#21b448',
+        '#00b9a2',
+        '#00aee4',
+    ],
+    strokes: [
+        '#294ed1',
+        '#7d5bdc',
+        '#b045b1',
+        '#cc366e',
+        '#d15326',
+        '#c67d00',
+        '#ada400',
+        '#009426',
+        '#00957f',
+        '#008ec3',
+    ],
 };
 
 type ChartTypeConfig = {
@@ -53,10 +75,9 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
         return { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] };
     },
 };
-const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce(
-    (r, { commonOptions }) => [...r, ...commonOptions],
-    [] as (keyof AgCommonThemeableChartOptions)[]
-);
+const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
+    (keyof AgCommonThemeableChartOptions)[]
+>((r, { commonOptions }) => [...r, ...commonOptions], []);
 
 export class ChartTheme {
     readonly palette: AgChartThemePalette;

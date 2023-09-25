@@ -158,6 +158,106 @@ describe('LineSeries', () => {
         }
     });
 
+    describe('animation', () => {
+        const data = [
+            { quarter: 'week 3', iphone: 60 },
+            { quarter: 'week 4', iphone: 185 },
+            { quarter: 'week 5', iphone: 148 },
+            { quarter: 'week 6', iphone: 130 },
+            { quarter: 'week 9', iphone: 62 },
+            { quarter: 'week 10', iphone: 137 },
+            { quarter: 'week 11', iphone: 121 },
+        ];
+
+        const options: AgChartOptions = {
+            data,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'quarter',
+                    yKey: 'iphone',
+                    label: {
+                        formatter: ({ value }) => `${value}`,
+                    },
+                },
+            ],
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                    keys: ['iphone'],
+                },
+                {
+                    position: 'bottom',
+                    type: 'category',
+                },
+            ],
+        };
+
+        const animationTestCases = [
+            ['removing points', [...data.slice(0, 2), ...data.slice(4)]],
+            ['removing the first point', [...data.slice(1)]],
+            ['removing the last point', [...data.slice(0, -1)]],
+            [
+                'adding points',
+                [
+                    ...data.slice(0, 4),
+                    { quarter: 'week 7', iphone: 142 },
+                    { quarter: 'week 8', iphone: 87 },
+                    ...data.slice(4),
+                ],
+            ],
+            ['adding points before', [{ quarter: 'week 1', iphone: 89 }, { quarter: 'week 2', iphone: 110 }, ...data]],
+            ['adding points after', [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }]],
+            [
+                'updating points',
+                [
+                    ...data.slice(0, 2),
+                    { quarter: 'week 5', iphone: 190 },
+                    { quarter: 'week 6', iphone: 38 },
+                    ...data.slice(4),
+                ],
+            ],
+            [
+                'updating points to undefined',
+                [...data.slice(0, 2), { quarter: 'week 5', iphone: undefined }, ...data.slice(3)],
+            ],
+            [
+                'adding, removing and updating simultaneously by reloading',
+                [
+                    { quarter: 'week 1', iphone: 89, mac: 40 },
+                    { quarter: 'week 2', iphone: 110, mac: 40 },
+                    { quarter: 'week 3', iphone: 82, mac: 40 },
+                    { quarter: 'week 6', iphone: 130 },
+                    { quarter: 'week 7', iphone: 142 },
+                    { quarter: 'week 8', iphone: 87 },
+                    { quarter: 'week 9', iphone: 62, mac: 42 },
+                    { quarter: 'week 10', iphone: 137 },
+                    { quarter: 'week 11', iphone: 121 },
+                ],
+            ],
+        ];
+
+        for (const [testCase, changedData] of animationTestCases) {
+            for (const ratio of [0, 0.5, 1]) {
+                it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
+                    spyOnAnimationManager(1000, 1);
+
+                    prepareTestOptions(options);
+
+                    chart = AgChart.create(options) as Chart;
+                    await waitForChartStability(chart);
+
+                    AgChart.updateDelta(chart, { data: changedData });
+                    spyOnAnimationManager(1200, ratio);
+
+                    await waitForChartStability(chart);
+                    await compare();
+                });
+            }
+        }
+    });
+
     describe('invalid data domain', () => {
         beforeEach(() => {
             console.warn = jest.fn();

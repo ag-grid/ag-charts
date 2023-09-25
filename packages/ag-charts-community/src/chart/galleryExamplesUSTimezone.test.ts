@@ -29,10 +29,10 @@ const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
 
         return false;
     })
-    .reduce((out, [name, testCase]) => {
+    .reduce<typeof EXAMPLES>((out, [name, testCase]) => {
         out[name] = testCase;
         return out;
-    }, {} as typeof EXAMPLES);
+    }, {});
 
 describe('Gallery Examples (US TZ)', () => {
     let chart: Chart;

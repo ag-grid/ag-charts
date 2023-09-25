@@ -1,4 +1,4 @@
-import type { AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
+import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 
 export interface AgCartesianSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
     /** xKey as specified on series options. */

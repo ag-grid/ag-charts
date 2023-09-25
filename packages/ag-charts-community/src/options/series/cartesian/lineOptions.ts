@@ -1,6 +1,6 @@
-import type { AgErrorBarOptions } from '../../options/errorBarOptions';
-import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip } from '../../options/tooltipOptions';
+import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
+import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';

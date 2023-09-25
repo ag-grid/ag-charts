@@ -96,7 +96,7 @@ describe('should create ticks', () => {
         },
     ];
 
-    const TEST_CASES_MAP = CASES.reduce((map, obj) => {
+    const TEST_CASES_MAP = CASES.reduce<Record<string, (typeof CASES)[number]>>((map, obj) => {
         map[`interval: ${obj.interval} domain: [${obj.domain[0]}, ${obj.domain[1]}]`] = obj;
         return map;
     }, {});

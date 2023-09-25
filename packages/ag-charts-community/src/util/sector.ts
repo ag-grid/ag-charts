@@ -17,7 +17,12 @@ interface LineCoordinates {
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {
     const radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     const { innerRadius, outerRadius } = sector;
-    if (radius < Math.min(innerRadius, outerRadius) || radius > Math.max(innerRadius, outerRadius)) {
+
+    if (
+        sector.startAngle === sector.endAngle ||
+        radius < Math.min(innerRadius, outerRadius) ||
+        radius > Math.max(innerRadius, outerRadius)
+    ) {
         return false;
     }
 

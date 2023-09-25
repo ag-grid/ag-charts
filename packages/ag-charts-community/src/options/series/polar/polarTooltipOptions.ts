@@ -1,4 +1,4 @@
-import type { AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
+import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 
 export interface AgPolarSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
     /** angleKey as specified on series options. */

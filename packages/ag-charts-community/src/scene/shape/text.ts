@@ -1,6 +1,6 @@
 import { Shape } from './shape';
 import { BBox } from '../bbox';
-import { HdpiCanvas } from '../../canvas/hdpiCanvas';
+import { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import type { FontStyle, FontWeight, TextWrap } from '../../options/agChartOptions';

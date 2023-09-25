@@ -1,4 +1,4 @@
-import { Axis } from '../../axis';
+import { Axis } from './axis';
 import type { Scale } from '../../scale/scale';
 import type { AxisContext } from '../../util/moduleContext';
 import { Validate, NUMBER, POSITION } from '../../util/validation';

@@ -391,11 +391,6 @@ describe('prepare', () => {
                 theme.config.line.legend.pagination.marker.shape
             );
             expect(preparedOptions.legend?.item!.label!.maxLength).toBe(theme.config.line.legend.item.label.maxLength);
-
-            expect(preparedOptions.navigator?.enabled).toBe(false);
-            expect(preparedOptions.navigator?.height).toBe(theme.config.line.navigator.height);
-            expect(preparedOptions.navigator?.min).toBe(theme.config.line.navigator.min);
-            expect(preparedOptions.navigator?.max).toBe(theme.config.line.navigator.max);
         });
     });
 });

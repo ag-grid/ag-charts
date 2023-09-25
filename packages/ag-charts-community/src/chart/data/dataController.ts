@@ -121,7 +121,7 @@ export class DataController {
         const mergeOpts = (opts: DataModelOptions<any, any>[]): DataModelOptions<any, any> => {
             return {
                 ...opts[0],
-                props: opts.reduce((result, next) => {
+                props: opts.reduce<PropertyDefinition<any>[]>((result, next) => {
                     for (const prop of next.props) {
                         if (prop.id != null) {
                             prop.ids ??= [];
@@ -141,7 +141,7 @@ export class DataController {
                     }
 
                     return result;
-                }, [] as PropertyDefinition<any>[]),
+                }, []),
             };
         };
 

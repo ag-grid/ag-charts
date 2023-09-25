@@ -61,7 +61,7 @@
                     { "title": "Tooltips", "path": "tooltips" },
                     { "title": "Formatters", "path": "formatters" },
                     { "title": "Cross lines", "path": "axes-cross-lines" },
-                    { "title": "Navigator", "path": "navigator" },
+                    { "title": "Navigator", "path": "navigator", "isEnterprise": true },
                     {
                         "title": "Crosshairs",
                         "path": "axes-crosshairs",

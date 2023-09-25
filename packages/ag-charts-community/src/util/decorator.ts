@@ -102,8 +102,8 @@ export function listDecoratedProperties(target: any) {
 }
 
 export function extractDecoratedProperties(target: any) {
-    return listDecoratedProperties(target).reduce((result, key) => {
+    return listDecoratedProperties(target).reduce<Record<string, any>>((result, key) => {
         result[key] = target[key] ?? null;
         return result;
-    }, {} as Record<string, any>);
+    }, {});
 }

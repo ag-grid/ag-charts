@@ -1,4 +1,4 @@
-export { Caption } from './caption';
+export { Caption } from './chart/caption';
 export { DropShadow } from './scene/dropShadow';
 export { Group } from './scene/group';
 export { Scene } from './scene/scene';
@@ -28,8 +28,8 @@ export { Square } from './chart/marker/square';
 export { Triangle } from './chart/marker/triangle';
 export { Tooltip, toTooltipHtml } from './chart/tooltip/tooltip';
 export type { TooltipMeta } from './chart/tooltip/tooltip';
-export { HdpiCanvas } from './canvas/hdpiCanvas';
 export { BBox } from './scene/bbox';
+export { HdpiCanvas } from './scene/canvas/hdpiCanvas';
 export { Image } from './scene/image';
 export { Path2D } from './scene/path2D';
 export * as easing from './motion/easing';

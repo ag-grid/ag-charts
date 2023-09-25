@@ -1,5 +1,5 @@
-import type { AgSeriesListeners } from '../options/eventOptions';
-import type { CssColor, InteractionRange, MarkerShape, Opacity, PixelSize } from '../options/types';
+import type { AgSeriesListeners } from '../chart/eventOptions';
+import type { CssColor, InteractionRange, MarkerShape, Opacity, PixelSize } from '../chart/types';
 
 export interface AgSeriesHighlightMarkerStyle {
     /** The fill colour of a marker when tapped or hovered over. Use `undefined` for no highlight. */

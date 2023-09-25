@@ -13,7 +13,7 @@ import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { Label } from '../../label';
 import type { Text } from '../../../scene/shape/text';
-import { HdpiCanvas } from '../../../canvas/hdpiCanvas';
+import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import type { Marker } from '../../marker/marker';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import {
@@ -313,7 +313,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
     }
 
     getLabelData(): PointLabelDatum[] {
-        return this.contextNodeData?.reduce((r, n) => r.concat(n.labelData), [] as PointLabelDatum[]);
+        return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
     }
 
     protected markerFactory() {
@@ -427,12 +427,12 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
     }
 
     getTooltipHtml(nodeDatum: BubbleNodeDatum): string {
-        const { xKey, yKey, axes } = this;
+        const { xKey, yKey, sizeKey, axes } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!xKey || !yKey || !xAxis || !yAxis) {
+        if (!xKey || !yKey || !xAxis || !yAxis || !sizeKey) {
             return '';
         }
 
@@ -441,7 +441,6 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
             tooltip,
             xName,
             yName,
-            sizeKey,
             sizeName,
             labelKey,
             labelName,
