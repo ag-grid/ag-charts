@@ -509,24 +509,20 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
         const { labelSelection } = this;
 
-        const duration = this.ctx.animationManager.defaultDuration();
-        const labelDuration = 200;
-        const labelDelay = duration;
-
         this.beforeSectorAnimation();
-
         this.animateItemsShapes();
 
-        labelSelection.each((label) => {
-            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                from: 0,
-                to: 1,
-                delay: labelDelay,
-                duration: labelDuration,
-                onUpdate: (opacity) => {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: this.ctx.animationManager.defaultDuration,
+            duration: 200,
+            onUpdate: (opacity) => {
+                labelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
+                });
+            },
         });
     }
 
@@ -684,25 +680,16 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     }
 
     protected animateItemsShapes() {
-        const { itemSelection } = this;
-        const duration = this.ctx.animationManager.defaultDuration();
         const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
-
-        itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animateMany<number>(
-                `${this.id}_empty-update-ready_${node.id}`,
-                [
-                    { from: axisStartAngle, to: datum.startAngle },
-                    { from: axisStartAngle, to: datum.endAngle },
-                ],
-                {
-                    duration,
-                    onUpdate: ([startAngle, endAngle]) => {
-                        node.startAngle = startAngle;
-                        node.endAngle = endAngle;
-                    },
-                }
-            );
+        this.itemSelection.each((node, datum) => {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${node.id}`,
+                from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
+                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
+                onUpdate(props) {
+                    node.setProperties(props);
+                },
+            });
         });
     }
 }
