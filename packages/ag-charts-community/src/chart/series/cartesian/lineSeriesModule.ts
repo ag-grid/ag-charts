@@ -19,7 +19,7 @@ const LINE_SERIES_DEFAULTS: AgCartesianChartOptions = {
             type: 'category',
             position: 'bottom',
             groupPaddingInner: 0,
-            paddingInner: 1,
+            paddingInner: 0.9,
             paddingOuter: 0.1,
         },
     ],
