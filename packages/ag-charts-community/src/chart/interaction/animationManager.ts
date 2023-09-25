@@ -3,7 +3,6 @@ import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
 import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
-import { onContentLoaded } from '../../util/document';
 
 type AnimationEventType = 'animation-frame';
 
@@ -15,7 +14,7 @@ interface AnimationEvent {
 interface AdditionalAnimationOptions {
     id?: string;
     disableInteractions?: boolean;
-    mutable?: boolean;
+    immutable?: boolean;
 }
 
 /**
@@ -23,24 +22,17 @@ interface AdditionalAnimationOptions {
  * preventing duplicate animations and handling their lifecycle.
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
-    private readonly debug = Debug.create(true, 'animation');
     private readonly controllers: Map<string, IAnimation<any>> = new Map();
-
-    defaultDuration = 1000;
+    private readonly debug = Debug.create(true, 'animation');
 
     private isPlaying = false;
     private requestId: number | null = null;
-    private readyToPlay = false;
     private skipAnimations = false;
 
-    private interactionManager: InteractionManager;
+    defaultDuration = 1000;
 
-    constructor(interactionManager: InteractionManager) {
+    constructor(private interactionManager: InteractionManager) {
         super();
-        this.interactionManager = interactionManager;
-        onContentLoaded(() => {
-            this.readyToPlay = true;
-        });
     }
 
     /**
@@ -49,11 +41,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
      */
     public animate<T extends AnimationValue>({
         disableInteractions = true,
-        mutable = true,
+        immutable = true,
         ...opts
     }: AnimationOptions<T> & AdditionalAnimationOptions) {
         if (opts.id != null && this.controllers.has(opts.id)) {
-            if (mutable) {
+            if (!immutable) {
                 return this.controllers.get(opts.id)!.reset(opts);
             }
             this.controllers.get(opts.id)!.stop();
@@ -150,10 +142,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         let prevTime: number;
         const onAnimationFrame = (time: number) => {
             this.requestId = requestAnimationFrame(onAnimationFrame);
-
-            if (!this.readyToPlay) {
-                return;
-            }
 
             const deltaTime = time - (prevTime ?? time);
 

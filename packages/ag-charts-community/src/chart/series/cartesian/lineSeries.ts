@@ -531,7 +531,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 from: 0,
                 to: lineLength,
                 duration,
-                mutable: false,
                 onUpdate(length) {
                     linePath.clear({ trackChanges: true });
 
@@ -733,7 +732,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 from: 0,
                 to: 1,
                 duration,
-                mutable: false,
                 onUpdate: (ratio) => {
                     linePath.clear({ trackChanges: true });
 
