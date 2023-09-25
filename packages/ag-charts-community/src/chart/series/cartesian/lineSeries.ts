@@ -418,7 +418,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         const title = sanitizeHtml(this.title ?? yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
+        const { formatter: markerFormatter, fill: markerFill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
 
         let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
@@ -427,7 +427,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 datum,
                 xKey,
                 yKey,
-                fill,
+                fill: markerFill,
                 stroke,
                 strokeWidth,
                 size,
@@ -436,7 +436,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             });
         }
 
-        const color = format?.fill ?? fill;
+        const color = format?.fill ?? stroke ?? markerFill;
 
         const defaults: AgTooltipRendererResult = {
             title,
