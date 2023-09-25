@@ -560,7 +560,7 @@ export class BoxPlotSeries extends CartesianSeries<
     }
 
     getBandScalePadding() {
-        return { inner: 0.2, outer: 0.3 };
+        return { inner: 0.2, outer: 0.1 };
     }
 
     protected getBarDirection() {
