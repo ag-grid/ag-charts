@@ -15,7 +15,7 @@ import { Debug } from '../../../util/debug';
 import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { Listeners } from '../../../util/listeners';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isDiscrete } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';

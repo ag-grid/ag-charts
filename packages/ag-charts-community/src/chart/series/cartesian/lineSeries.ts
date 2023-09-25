@@ -31,7 +31,7 @@ import type {
 } from '../../../options/agChartOptions';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 

@@ -1,4 +1,4 @@
-import { registerModule } from '../../util/module';
+import { registerModule } from '../../module/module';
 import { BackgroundModule } from '../background/backgroundModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
