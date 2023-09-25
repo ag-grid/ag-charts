@@ -1,16 +1,16 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
-import { AngleCategoryAxis } from './angleCategoryAxis';
+import { AngleNumberAxis } from './angleNumberAxis';
 import { ANGLE_AXIS_THEME } from '../angle/angleAxisThemes';
 
-export const AngleCategoryAxisModule: _ModuleSupport.AxisModule = {
+export const AngleNumberAxisModule: _ModuleSupport.AxisModule = {
     type: 'axis',
     optionsKey: 'axes[]',
 
     packageType: 'enterprise',
     chartTypes: ['polar'],
 
-    identifier: 'angle-category',
-    instanceConstructor: AngleCategoryAxis,
+    identifier: 'angle-number',
+    instanceConstructor: AngleNumberAxis,
     themeTemplate: ANGLE_AXIS_THEME,
 };

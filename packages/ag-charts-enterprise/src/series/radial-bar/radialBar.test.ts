@@ -14,7 +14,7 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
-describe('Radial Column Chart', () => {
+describe('Radial Bar Chart', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
@@ -51,19 +51,19 @@ describe('Radial Column Chart', () => {
         ],
         series: [
             {
-                type: 'radial-column',
-                angleKey: 'quarter',
-                radiusKey: 'Mountain air',
+                type: 'radial-bar',
+                angleKey: 'Mountain air',
+                radiusKey: 'quarter',
             },
             {
-                type: 'radial-column',
-                angleKey: 'quarter',
-                radiusKey: 'Polar winds',
+                type: 'radial-bar',
+                angleKey: 'Polar winds',
+                radiusKey: 'quarter',
             },
             {
-                type: 'radial-column',
-                angleKey: 'quarter',
-                radiusKey: 'Donut holes',
+                type: 'radial-bar',
+                angleKey: 'Donut holes',
+                radiusKey: 'quarter',
             },
         ],
     };
@@ -75,14 +75,14 @@ describe('Radial Column Chart', () => {
         (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    it(`should render radial column chart as expected`, async () => {
+    it(`should render radial bar chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options as any);
         chart = AgEnterpriseCharts.create(options);
         await compare();
     });
 
-    it(`should render stacked radial column as expected`, async () => {
+    it(`should render stacked radial bar as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: EXAMPLE_OPTIONS.series?.map((series) => {
@@ -98,7 +98,7 @@ describe('Radial Column Chart', () => {
         await compare();
     });
 
-    it(`should render normalized radial column as expected`, async () => {
+    it(`should render normalized radial bar as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: EXAMPLE_OPTIONS.series?.map((series) => {
