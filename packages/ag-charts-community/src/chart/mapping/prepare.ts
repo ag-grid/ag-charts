@@ -82,7 +82,10 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
 
     removeDisabledOptions<T>(options);
 
-    const { context, mergedOptions, axesThemes, seriesThemes } = prepareMainOptions<T>(defaultOverrides as T, options);
+    const { context, mergedOptions, axesThemes, seriesThemes, theme } = prepareMainOptions<T>(
+        defaultOverrides as T,
+        options
+    );
 
     // Special cases where we have arrays of elements which need their own defaults.
 
@@ -103,7 +106,9 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
             }
             return mergedSeries;
         })
-    ).map((s) => prepareSeries(context, s)) as any[];
+    )
+        .map((s) => prepareSeries(context, s))
+        .map((s) => theme.templateTheme(s)) as any[];
 
     const checkAxisType = (type?: string) => {
         const isAxisType = isAxisOptionType(type);
@@ -179,15 +184,14 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
     );
 }
 
-function prepareMainOptions<T extends AgChartOptions>(
-    defaultOverrides: T,
-    options: T
-): { context: PreparationContext; mergedOptions: T; axesThemes: any; seriesThemes: any } {
+function prepareMainOptions<T extends AgChartOptions>(defaultOverrides: T, options: T) {
     const { theme, cleanedTheme, axesThemes, seriesThemes } = prepareTheme(options);
     const context: PreparationContext = { colourIndex: 0, palette: theme.palette };
-    const mergedOptions = jsonMerge([defaultOverrides, cleanedTheme, options], noDataCloneMergeOptions);
 
-    return { context, mergedOptions, axesThemes, seriesThemes };
+    defaultOverrides = theme.templateTheme(defaultOverrides);
+    const mergedOptions: T = jsonMerge([defaultOverrides, cleanedTheme, options], noDataCloneMergeOptions);
+
+    return { context, mergedOptions, axesThemes, seriesThemes, theme };
 }
 
 function prepareTheme<T extends AgChartOptions>(options: T) {

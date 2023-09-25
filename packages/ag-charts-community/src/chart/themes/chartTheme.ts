@@ -30,6 +30,9 @@ import {
     EXTENDS_CHART_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
     OVERRIDE_SERIES_LABEL_DEFAULTS,
+    EXTENDS_LEGEND_DEFAULTS,
+    EXTENDS_LEGEND_ITEM_DEFAULTS,
+    EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS,
 } from './symbols';
 import { NORMAL, BOTTOM } from './constants';
 
@@ -182,6 +185,14 @@ export class ChartTheme {
         };
     }
 
+    private static getLegendItemMarkerDefaults() {
+        return {
+            shape: undefined,
+            size: 15,
+            padding: 8,
+        };
+    }
+
     private static getCaptionWrappingDefaults() {
         return 'hyphenate' as const;
     }
@@ -238,12 +249,7 @@ export class ChartTheme {
                 item: {
                     paddingX: 16,
                     paddingY: 8,
-                    marker: {
-                        shape: undefined,
-                        size: 15,
-                        strokeWidth: 1,
-                        padding: 8,
-                    },
+                    marker: ChartTheme.getLegendItemMarkerDefaults(),
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
                         fontStyle: undefined,
@@ -421,7 +427,7 @@ export class ChartTheme {
         return defaults;
     }
 
-    private templateTheme(themeTemplate: {}): {} {
+    templateTheme<T>(themeTemplate: T): T {
         const themeInstance = jsonMerge([themeTemplate]);
         const { extensions, properties } = this.getTemplateParameters();
 
@@ -466,6 +472,9 @@ export class ChartTheme {
         const extensions = new Map();
         extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
         extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
+        extensions.set(EXTENDS_LEGEND_DEFAULTS, ChartTheme.getChartDefaults().legend);
+        extensions.set(EXTENDS_LEGEND_ITEM_DEFAULTS, ChartTheme.getChartDefaults().legend.item);
+        extensions.set(EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS, ChartTheme.getLegendItemMarkerDefaults());
         extensions.set(EXTENDS_AXES_LABEL_DEFAULTS, ChartTheme.getAxisDefaults().label);
         extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);
         extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);

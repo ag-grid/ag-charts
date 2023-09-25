@@ -63,6 +63,7 @@ type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Exten
 };
 type SeriesTheme<SeriesType extends RequiredSeriesType> = NonNullable<AgBaseChartThemeOverrides[SeriesType]>['series'];
 type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<SeriesTheme<SeriesType>>;
+type ExtensibleDefaults = Extensible<AgChartOptions>;
 
 export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType> extends BaseModule {
     type: 'series';
@@ -70,7 +71,7 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     identifier: SeriesType;
     instanceConstructor: SeriesConstructor;
 
-    seriesDefaults: AgChartOptions;
+    seriesDefaults: ExtensibleDefaults;
     themeTemplate: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
     stackable?: boolean;
