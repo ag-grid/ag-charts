@@ -6,8 +6,24 @@ import {
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
 import { LineSeries } from './lineSeries';
+import type { AgCartesianChartOptions } from '../../../options/agChartOptions';
+
+const LINE_SERIES_DEFAULTS: AgCartesianChartOptions = {
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+            groupPaddingInner: 0,
+            paddingInner: 1,
+            paddingOuter: 0.1,
+        },
+    ],
+};
 
 export const LineSeriesModule: SeriesModule<'line'> = {
     type: 'series',
@@ -17,7 +33,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
 
     identifier: 'line',
     instanceConstructor: LineSeries,
-    seriesDefaults: DEFAULT_CARTESIAN_CHART_OVERRIDES,
+    seriesDefaults: LINE_SERIES_DEFAULTS,
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         tooltip: {
