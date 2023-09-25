@@ -119,6 +119,12 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
     }
 
     reset(opts: ResetAnimationOptions<T>) {
+        const deltaState = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
+        this.interpolate = this.createInterpolator(deltaState, opts.to) as (delta: number) => T;
+
+        this.elapsed = 0;
+        this.iteration = 0;
+
         if (typeof opts.delay === 'number') {
             this.delay = opts.delay;
         }
@@ -128,12 +134,6 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
         if (typeof opts.ease === 'function') {
             this.ease = opts.ease;
         }
-
-        const deltaState = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
-        this.interpolate = this.createInterpolator(deltaState, opts.to) as (delta: number) => T;
-
-        this.elapsed = 0;
-        this.iteration = 0;
 
         return this;
     }

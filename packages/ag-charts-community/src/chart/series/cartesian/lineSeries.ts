@@ -1,4 +1,5 @@
 import { ContinuousScale } from '../../../scale/continuousScale';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { SeriesNodeDatum, SeriesNodeDataContext } from '../series';
 import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
@@ -525,15 +526,12 @@ export class LineSeries extends CartesianSeries<LineContext> {
             const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
             const markerDuration = 200;
 
-            const animationOptions = {
-                from: 0,
-                to: lineLength,
-            };
-
             this.ctx.animationManager.animate({
                 id: `${this.id}_empty-update-ready`,
-                ...animationOptions,
+                from: 0,
+                to: lineLength,
                 duration,
+                mutable: false,
                 onUpdate(length) {
                     linePath.clear({ trackChanges: true });
 
@@ -577,7 +575,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
                 this.ctx.animationManager.animate({
                     id: `${this.id}_empty-update-ready_${marker.id}`,
-                    ...animationOptions,
+                    from: 0,
                     to: format?.size ?? size,
                     delay,
                     duration: markerDuration,
@@ -700,10 +698,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
             });
 
             // Bucket the removed nodes into before and after existing nodes
-            const removedBefore: Array<{ x: number; y: number }> = [];
-            const removedAfter: Array<{ x: number; y: number }> = [];
-            const removedBeforeMarkers: Array<Marker> = [];
-            const removedAfterMarkers: Array<Marker> = [];
+            const removedBefore: Point[] = [];
+            const removedAfter: Point[] = [];
+            const removedBeforeMarkers: Marker[] = [];
+            const removedAfterMarkers: Marker[] = [];
 
             const firstPathPointIndex = existingPointsPathMap.get(0);
             const firstPathPoint = firstPathPointIndex != null ? pathPoints[firstPathPointIndex] : undefined;
@@ -735,6 +733,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 from: 0,
                 to: 1,
                 duration,
+                mutable: false,
                 onUpdate: (ratio) => {
                     linePath.clear({ trackChanges: true });
 
@@ -750,15 +749,12 @@ export class LineSeries extends CartesianSeries<LineContext> {
                     markerFormats[firstDatumId] ??= this.animateMarkerFormatter(markerNodes[firstDatumId].datum);
                     const firstMarkerSize = markerFormats[firstDatumId]?.size ?? first.point.size ?? 0;
 
-                    for (let i = 0; i < removedBeforeMarkers.length; i++) {
-                        const removed = removedBeforeMarkers[i];
-
-                        const x = ratio * (first.point.x - removed.translationX);
-                        const y = ratio * (first.point.y - removed.translationY);
-
-                        removed.size = (1 - ratio) * firstMarkerSize;
-                        removed.x = x;
-                        removed.y = y;
+                    for (const removed of removedBeforeMarkers) {
+                        removed.setProperties({
+                            x: ratio * (first.point.x - removed.translationX),
+                            y: ratio * (first.point.y - removed.translationY),
+                            size: (1 - ratio) * firstMarkerSize,
+                        });
                     }
 
                     for (let index = 0; index < nodeData.length; index++) {
@@ -986,7 +982,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             });
 
             this.ctx.animationManager.animate({
-                id: `${this.id}_animate-clearing-update-empty`,
+                id: `${this.id}_animate-clearing-update-empty_${contextDataIndex}`,
                 from: 1,
                 to: 0,
                 duration: clearDuration,

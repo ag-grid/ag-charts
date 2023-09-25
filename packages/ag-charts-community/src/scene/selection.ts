@@ -88,6 +88,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
                     this.createNode(data[i], initializer);
                 } else {
                     this._nodes[i].datum = data[i];
+                    this.garbageBin.delete(this._nodes[i]);
                 }
             }
         }

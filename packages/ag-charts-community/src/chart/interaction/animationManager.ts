@@ -41,9 +41,14 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
      * Create an animation to tween a value between the `from` and `to` properties. If an animation already exists
      * with the same `id`, immediately stop it.
      */
-    public animate<T extends AnimationValue>(opts: AnimationOptions<T> & { disableInteractions?: boolean }) {
+    public animate<T extends AnimationValue>(
+        opts: AnimationOptions<T> & { disableInteractions?: boolean; mutable?: boolean }
+    ) {
         if (opts.id != null && this.controllers.has(opts.id)) {
-            return this.controllers.get(opts.id)!.reset(opts);
+            if (opts.mutable ?? true) {
+                return this.controllers.get(opts.id)!.reset(opts);
+            }
+            this.controllers.get(opts.id)!.stop();
         }
 
         const id = opts.id ?? Math.random().toString();
