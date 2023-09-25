@@ -18,7 +18,7 @@ import type {
     FontWeight,
     TextWrap,
 } from '../../options/agChartOptions';
-import { Caption } from '../../caption';
+import { Caption } from '../caption';
 
 export class AxisTitle implements AgAxisCaptionOptions {
     @Validate(BOOLEAN)
