@@ -7,7 +7,7 @@ import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { Logger } from '../../util/logger';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-import type { ModuleContext } from '../../util/moduleContext';
+import type { ModuleContext } from '../../module/moduleContext';
 
 class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))

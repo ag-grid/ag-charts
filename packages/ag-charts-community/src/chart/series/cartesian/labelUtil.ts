@@ -2,7 +2,7 @@ import type { Text } from '../../../scene/shape/text';
 import type { Point } from '../../../scene/point';
 import { isNumber } from '../../../util/value';
 import type { FontFamily, FontWeight, FontStyle } from '../../../options/agChartOptions';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 
 type Bounds = {
     x: number;

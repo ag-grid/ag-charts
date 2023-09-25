@@ -31,15 +31,15 @@ import type { TextSizeProperties } from '../../scene/shape/text';
 import { measureText, splitText, Text } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/array';
-import type { ModuleInstance } from '../../util/baseModule';
+import type { ModuleInstance } from '../../module/baseModule';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
-import type { AxisContext, ModuleContext } from '../../util/moduleContext';
+import type { AxisContext, ModuleContext } from '../../module/moduleContext';
 import { clamp } from '../../util/number';
-import type { AxisOptionModule } from '../../util/optionModules';
+import type { AxisOptionModule } from '../../module/optionModules';
 import { ARRAY, BOOLEAN, predicateWithMessage, STRING_ARRAY, Validate } from '../../util/validation';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];

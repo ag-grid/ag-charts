@@ -1,8 +1,8 @@
 import type { Series } from '../series/series';
 import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
-import type { SeriesConstructor, SeriesPaletteFactory } from '../../util/coreModules';
-import type { ModuleContext } from '../../util/moduleContext';
+import type { SeriesConstructor, SeriesPaletteFactory } from '../../module/coreModules';
+import type { ModuleContext } from '../../module/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import type { SeriesOptionsTypes } from '../mapping/types';
 

@@ -11,7 +11,7 @@ import type {
     AgCartesianSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
 import type { SeriesNodeDataContext } from '../series';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 export enum AreaSeriesTag {

@@ -53,7 +53,7 @@ import * as easing from '../../../motion/easing';
 import type { RectConfig } from './barUtil';
 import { getRectConfig, updateRect, checkCrisp } from './barUtil';
 import { updateLabel, createLabelData } from './labelUtil';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { DataController } from '../../data/dataController';
 
 const BAR_LABEL_PLACEMENTS: AgBarSeriesLabelPlacement[] = ['inside', 'outside'];

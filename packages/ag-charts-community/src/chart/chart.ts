@@ -40,7 +40,6 @@ import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
-import type { Module } from '../util/module';
 import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
 import { DataService } from './dataService';
 import { UpdateService } from './updateService';
@@ -50,14 +49,15 @@ import { Logger } from '../util/logger';
 import { ActionOnSet } from '../util/proxy';
 import { ChartHighlight } from './chartHighlight';
 import { CallbackCache } from '../util/callbackCache';
-import type { ModuleContext } from '../util/moduleContext';
 import { DataController } from './data/dataController';
 import { SeriesStateManager } from './series/seriesStateManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { Legend } from './legend';
-import type { LegendModule, RootModule } from '../util/coreModules';
-import type { ModuleInstance } from '../util/baseModule';
+import type { Module } from '../module/module';
+import type { ModuleContext } from '../module/moduleContext';
+import type { LegendModule, RootModule } from '../module/coreModules';
+import type { ModuleInstance } from '../module/baseModule';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 

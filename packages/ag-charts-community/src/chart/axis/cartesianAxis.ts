@@ -1,6 +1,6 @@
 import { Axis } from './axis';
 import type { Scale } from '../../scale/scale';
-import type { AxisContext } from '../../util/moduleContext';
+import type { AxisContext } from '../../module/moduleContext';
 import { Validate, NUMBER, POSITION } from '../../util/validation';
 import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
 import { ChartAxisDirection } from '../chartAxisDirection';

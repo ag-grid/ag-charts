@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
 import { RadiusNumberAxis } from './radiusNumberAxis';
-import { RADIUS_NUMBER_AXIS_THEME } from './radiusNumberAxisThemes';
+import { RADIUS_AXIS_THEME } from '../radius/radiusAxisThemes';
 
 export const RadiusNumberAxisModule: _ModuleSupport.AxisModule = {
     type: 'axis',
@@ -12,5 +12,5 @@ export const RadiusNumberAxisModule: _ModuleSupport.AxisModule = {
 
     identifier: 'radius-number',
     instanceConstructor: RadiusNumberAxis,
-    themeTemplate: RADIUS_NUMBER_AXIS_THEME,
+    themeTemplate: RADIUS_AXIS_THEME,
 };
