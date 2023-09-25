@@ -5,11 +5,7 @@ import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
 const { mergeDefaults, ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
-
-type CartesianSeries<
-    C extends _ModuleSupport.SeriesNodeDataContext<any, any>,
-    N extends _Scene.Node
-> = _ModuleSupport.CartesianSeries<C, N>;
+type AnyScale = _Scale.Scale<any, any, any>;
 
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
 
@@ -46,6 +42,18 @@ export class ErrorBars
     @Validate(OPT_STRING)
     yUpperName?: string = undefined;
 
+    @Validate(OPT_STRING)
+    xLowerKey?: string = undefined;
+
+    @Validate(OPT_STRING)
+    xLowerName?: string = undefined;
+
+    @Validate(OPT_STRING)
+    xUpperKey?: string = undefined;
+
+    @Validate(OPT_STRING)
+    xUpperName?: string = undefined;
+
     @Validate(BOOLEAN)
     visible?: boolean = true;
 
@@ -68,7 +76,7 @@ export class ErrorBars
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
-        const supportedSeriesTypes = ['line'];
+        const supportedSeriesTypes = ['line', 'scatter'];
         if (!supportedSeriesTypes.includes(ctx.series.type)) {
             throw new Error(
                 `AG Charts - unsupported series type '${
@@ -76,7 +84,7 @@ export class ErrorBars
                 }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
             );
         }
-        this.cartesianSeries = ctx.series as CartesianSeries<any, any>;
+        this.cartesianSeries = ctx.series as _ModuleSupport.CartesianSeries<any, any>;
         const { contentGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({ name: `${contentGroup.id}-series-errorBars` });
@@ -100,34 +108,61 @@ export class ErrorBars
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        const { yLowerKey, yUpperKey, nodeData } = this;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, nodeData } = this;
         const xIndex = dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `xValue`).index;
+        const yIndex = dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `yValue`).index;
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
         if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined) {
             return;
         }
 
-        const convert = (scale: _Scale.Scale<any, any, any>, value: any) => {
-            const offset = (scale.bandwidth ?? 0) / 2;
-            return scale.convert(value) + offset;
-        };
-
         nodeData.length = processedData.data.length;
 
         for (let i = 0; i < processedData.data.length; i++) {
             const { datum, values } = processedData.data[i];
             const xDatum = values[xIndex];
+            const yDatum = values[yIndex];
 
             if (yLowerKey in datum && yUpperKey in datum) {
+                let xPoints = undefined;
+                if (this.cartesianSeries.type == 'scatter') {
+                    if (xLowerKey !== undefined && xLowerKey in datum && xUpperKey != undefined && xUpperKey in datum) {
+                        xPoints = this.calculatePoints(
+                            xScale,
+                            datum[xLowerKey],
+                            datum[xUpperKey],
+                            yScale,
+                            yDatum,
+                            yDatum
+                        );
+                    } else {
+                        throw new Error(
+                            `AG Charts - series type 'scatter' requires xLowerKey (= ${xLowerKey}) and xUpperKey (= ${xUpperKey}) to exist in all data points`
+                        );
+                    }
+                }
                 nodeData[i] = {
-                    yLowerPoint: { x: convert(xScale, xDatum), y: convert(yScale, datum[yLowerKey]) },
-                    yUpperPoint: { x: convert(xScale, xDatum), y: convert(yScale, datum[yUpperKey]) },
+                    xBar: xPoints,
+                    yBar: this.calculatePoints(xScale, xDatum, xDatum, yScale, datum[yLowerKey], datum[yUpperKey]),
                 };
             } else {
                 nodeData[i] = undefined;
             }
         }
+    }
+
+    private calculatePoints(xScale: AnyScale, xLower: any, xUpper: any, yScale: AnyScale, yLower: any, yUpper: any) {
+        return {
+            lowerPoint: this.calculatePoint(xScale, xLower, yScale, yLower),
+            upperPoint: this.calculatePoint(xScale, xUpper, yScale, yUpper),
+        };
+    }
+
+    private calculatePoint(xScale: AnyScale, x: any, yScale: AnyScale, y: any) {
+        const xOffset = (xScale.bandwidth ?? 0) / 2;
+        const yOffset = (yScale.bandwidth ?? 0) / 2;
+        return { x: xScale.convert(x) + xOffset, y: yScale.convert(y) + yOffset };
     }
 
     update() {

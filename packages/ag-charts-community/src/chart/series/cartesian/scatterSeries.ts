@@ -225,6 +225,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         }
 
         nodeData.length = actualLength;
+        this.fireDataProcessed(dataModel, processedData);
 
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
