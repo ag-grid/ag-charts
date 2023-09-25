@@ -1,7 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 import glob from 'glob';
 import { TYPESCRIPT_INTERNAL_FRAMEWORKS, SITE_BASE_URL, DEV_FILE_BASE_PATH } from '../constants';
-import type { InternalFramework, Library } from '@ag-grid-types';
+import type { Framework, InternalFramework, Library } from '@ag-grid-types';
 import { getIsDev } from './env';
 import { pathJoin } from './pathJoin';
 
