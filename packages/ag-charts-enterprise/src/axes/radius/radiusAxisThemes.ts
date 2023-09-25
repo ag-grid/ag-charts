@@ -1,6 +1,6 @@
 import { _Theme } from 'ag-charts-community';
 
-export const RADIUS_CATEGORY_AXIS_THEME = {
+export const RADIUS_AXIS_THEME = {
     __extends__: _Theme.EXTENDS_AXES_DEFAULTS,
     line: {
         enabled: false,

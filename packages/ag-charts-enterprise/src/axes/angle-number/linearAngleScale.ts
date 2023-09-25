@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 const { LinearScale } = _Scale;
 const { range } = _Util;
 
-export class PolarLinearScale extends LinearScale {
+export class LinearAngleScale extends LinearScale {
     ticks() {
         const count = 8;
         if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d))) {

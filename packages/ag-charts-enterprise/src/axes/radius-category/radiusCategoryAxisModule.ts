@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
 import { RadiusCategoryAxis } from './radiusCategoryAxis';
-import { RADIUS_CATEGORY_AXIS_THEME } from './radiusCategoryAxisThemes';
+import { RADIUS_AXIS_THEME } from '../radius/radiusAxisThemes';
 
 export const RadiusCategoryAxisModule: _ModuleSupport.AxisModule = {
     type: 'axis',
@@ -12,5 +12,5 @@ export const RadiusCategoryAxisModule: _ModuleSupport.AxisModule = {
 
     identifier: 'radius-category',
     instanceConstructor: RadiusCategoryAxis,
-    themeTemplate: RADIUS_CATEGORY_AXIS_THEME,
+    themeTemplate: RADIUS_AXIS_THEME,
 };
