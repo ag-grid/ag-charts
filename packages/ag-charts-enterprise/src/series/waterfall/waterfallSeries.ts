@@ -825,11 +825,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     protected toggleSeriesItem(): void {}
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration();
-
         contextData.forEach(({ pointData }, contextDataIndex) => {
-            this.animateRects(datumSelections[contextDataIndex], duration);
-            this.animateLabels(labelSelections[contextDataIndex], duration);
+            this.animateRects(datumSelections[contextDataIndex]);
+            this.animateLabels(labelSelections[contextDataIndex]);
 
             if (contextDataIndex !== 0 || !pointData) {
                 return;
@@ -837,65 +835,50 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
 
             const [lineNode] = paths[contextDataIndex];
             if (this.direction === 'vertical') {
-                this.animateConnectorLinesVertical(lineNode, pointData, duration);
+                this.animateConnectorLinesVertical(lineNode, pointData);
             } else {
-                this.animateConnectorLinesHorizontal(lineNode, pointData, duration);
+                this.animateConnectorLinesHorizontal(lineNode, pointData);
             }
         });
     }
 
-    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>, duration: number) {
+    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
         const horizontal = this.direction === 'horizontal';
         const yAxis = this.getValueAxis();
         datumSelection.each((rect, datum) => {
-            this.ctx.animationManager.animateMany(
-                `${this.id}_empty-update-ready_${rect.id}`,
-                [
-                    { from: yAxis?.scale.convert(0) ?? 0, to: horizontal ? datum.x : datum.y },
-                    { from: 0, to: horizontal ? datum.width : datum.height },
-                ],
-                {
-                    duration,
-                    ease: _ModuleSupport.Motion.easeOut,
-                    onUpdate([val, widthOrHeight]) {
-                        if (horizontal) {
-                            rect.x = val;
-                            rect.width = widthOrHeight;
-
-                            rect.y = datum.y;
-                            rect.height = datum.height;
-                        } else {
-                            rect.y = val;
-                            rect.height = widthOrHeight;
-
-                            rect.x = datum.x;
-                            rect.width = datum.width;
-                        }
-                    },
-                }
-            );
-        });
-    }
-
-    protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>, duration: number) {
-        labelSelection.each((label) => {
-            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                from: 0,
-                to: 1,
-                delay: duration,
-                duration: duration / 5,
-                onUpdate: (opacity) => {
-                    label.opacity = opacity;
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${rect.id}`,
+                from: { cord: yAxis?.scale.convert(0) ?? 0, dimension: 0 },
+                to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
+                ease: _ModuleSupport.Motion.easeOut,
+                onUpdate({ cord, dimension }) {
+                    rect.setProperties(
+                        horizontal
+                            ? { x: cord, y: datum.y, width: dimension, height: datum.height }
+                            : { x: datum.x, y: cord, width: datum.width, height: dimension }
+                    );
                 },
             });
         });
     }
 
-    protected animateConnectorLinesHorizontal(
-        lineNode: _Scene.Path,
-        pointData: WaterfallNodePointDatum[],
-        duration: number
-    ) {
+    protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>) {
+        const duration = this.ctx.animationManager.defaultDuration;
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: duration,
+            duration: duration / 5,
+            onUpdate: (opacity) => {
+                labelSelection.each((label) => {
+                    label.opacity = opacity;
+                });
+            },
+        });
+    }
+
+    protected animateConnectorLinesHorizontal(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[]) {
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -913,10 +896,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
         };
 
-        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready`,
             from: startX,
             to: endX,
-            duration,
             ease: _ModuleSupport.Motion.easeOut,
             onUpdate(pointX) {
                 linePath.clear({ trackChanges: true });
@@ -935,11 +918,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         });
     }
 
-    protected animateConnectorLinesVertical(
-        lineNode: _Scene.Path,
-        pointData: WaterfallNodePointDatum[],
-        duration: number
-    ) {
+    protected animateConnectorLinesVertical(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[]) {
         const { path: linePath } = lineNode;
 
         this.updateLineNode(lineNode);
@@ -957,10 +936,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
             return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
         };
 
-        this.ctx.animationManager.animate<number>(`${this.id}_empty-update-ready`, {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready`,
             from: startY,
             to: endY,
-            duration,
             ease: _ModuleSupport.Motion.easeOut,
             onUpdate(pointY) {
                 linePath.clear({ trackChanges: true });

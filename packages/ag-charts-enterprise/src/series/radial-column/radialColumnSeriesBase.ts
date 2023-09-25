@@ -529,26 +529,20 @@ export abstract class RadialColumnSeriesBase<
             return;
         }
 
-        const { labelSelection } = this;
-
-        const duration = this.ctx.animationManager.defaultDuration();
-        const labelDuration = 200;
-        const labelDelay = duration;
-
         this.beforeSectorAnimation();
-
         this.animateItemsShapes();
 
-        labelSelection.each((label) => {
-            this.ctx.animationManager.animate(`${this.id}_empty-update-ready_${label.id}`, {
-                from: 0,
-                to: 1,
-                delay: labelDelay,
-                duration: labelDuration,
-                onUpdate: (opacity) => {
+        this.ctx.animationManager.animate({
+            id: `${this.id}_empty-update-ready_labels`,
+            from: 0,
+            to: 1,
+            delay: this.ctx.animationManager.defaultDuration,
+            duration: 200,
+            onUpdate: (opacity) => {
+                this.labelSelection.each((label) => {
                     label.opacity = opacity;
-                },
-            });
+                });
+            },
         });
     }
 

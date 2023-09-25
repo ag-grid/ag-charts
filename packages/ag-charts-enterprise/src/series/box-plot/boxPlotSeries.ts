@@ -444,6 +444,36 @@ export class BoxPlotSeries extends CartesianSeries<
         );
     }
 
+    protected animateEmptyUpdateReady({
+        datumSelections,
+    }: _ModuleSupport.CartesianAnimationData<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>, BoxPlotGroup>) {
+        const invertAxes = this.direction === 'vertical';
+        datumSelections.forEach((datumSelection) => {
+            datumSelection.each((boxPlotGroup, datum) => {
+                if (invertAxes) {
+                    boxPlotGroup.scalingCenterY = datum.scaledValues.medianValue;
+                } else {
+                    boxPlotGroup.scalingCenterX = datum.scaledValues.medianValue;
+                }
+            });
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready`,
+                from: 0,
+                to: 1,
+                ease: _ModuleSupport.Motion.easeOut,
+                onUpdate(value) {
+                    datumSelection.each((boxPlotGroup) => {
+                        if (invertAxes) {
+                            boxPlotGroup.scalingY = value;
+                        } else {
+                            boxPlotGroup.scalingX = value;
+                        }
+                    });
+                },
+            });
+        });
+    }
+
     protected isLabelEnabled(): boolean {
         return false;
     }

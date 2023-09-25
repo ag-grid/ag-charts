@@ -37,11 +37,12 @@ export abstract class Shape extends Node {
         }
     );
 
-    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }) {
-        const keys = Object.keys(styles) as (keyof T)[];
+    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
+        const keys = pickKeys ?? (Object.keys(styles) as (keyof T)[]);
         for (const key of keys) {
             (this as any)[key] = styles[key];
         }
+        return this;
     }
 
     /**

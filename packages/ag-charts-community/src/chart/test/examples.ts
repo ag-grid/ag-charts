@@ -1,4 +1,4 @@
-import type { AgCartesianChartOptions, AgChartOptions } from '../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } from '../../options/agChartOptions';
 import {
     DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
     DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
@@ -55,27 +55,29 @@ export const DOCS_EXAMPLES = {
     'xy-histogram-with-mean-aggregation': loadExampleOptions('xy-histogram-with-mean-aggregation'),
 };
 
-export const BAR_CHART_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-bar'];
-
+export const BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-bar'];
 export const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['grouped-bar'];
 export const STACKED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['stacked-bar'];
-export const ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['100--stacked-bar'];
-export const BAR_CHART_WITH_LABELS_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['bar-with-labels'];
-export const SIMPLE_COLUMN_CHART_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-column'];
+export const ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['100--stacked-bar'];
+export const BAR_CHART_WITH_LABELS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['bar-with-labels'];
+export const SIMPLE_COLUMN_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-column'];
 export const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['grouped-column'];
-export const STACKED_COLUMN_GRAPH_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['stacked-column'];
-export const ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['100--stacked-column'];
-export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['column-with-negative-values'];
-export const SIMPLE_PIE_CHART_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-pie'];
-export const SIMPLE_DOUGHNUT_CHART_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-doughnut'];
-export const PIE_IN_A_DOUGHNUT: AgChartOptions = DOCS_EXAMPLES['pie-in-a-doughnut'];
-export const PIE_WITH_VARIABLE_RADIUS: AgChartOptions = DOCS_EXAMPLES['pie-with-variable-radius'];
+export const STACKED_COLUMN_GRAPH_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['stacked-column'];
+export const ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: AgCartesianChartOptions =
+    DOCS_EXAMPLES['100--stacked-column'];
+export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+    DOCS_EXAMPLES['column-with-negative-values'];
+export const SIMPLE_PIE_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-pie'];
+export const SIMPLE_DOUGHNUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-doughnut'];
+export const PIE_IN_A_DOUGHNUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-doughnut'];
+export const PIE_WITH_VARIABLE_RADIUS: AgPolarChartOptions = DOCS_EXAMPLES['pie-with-variable-radius'];
 export const SIMPLE_LINE_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-line'];
 export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['line-with-gaps'];
 export const SIMPLE_SCATTER_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-scatter'];
-export const BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['bubble-with-negative-values'];
-export const BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['bubble-with-categories'];
-export const SIMPLE_AREA_GRAPH_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-area'];
+export const BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+    DOCS_EXAMPLES['bubble-with-negative-values'];
+export const BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['bubble-with-categories'];
+export const SIMPLE_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-area'];
 export const STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['stacked-area'];
 export const ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['100--stacked-area'];
