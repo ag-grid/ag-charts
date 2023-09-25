@@ -12,6 +12,12 @@ interface AnimationEvent {
     deltaMs: number;
 }
 
+interface AdditionalAnimationOptions {
+    id?: string;
+    disableInteractions?: boolean;
+    mutable?: boolean;
+}
+
 /**
  * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
  * preventing duplicate animations and handling their lifecycle.
@@ -41,11 +47,13 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
      * Create an animation to tween a value between the `from` and `to` properties. If an animation already exists
      * with the same `id`, immediately stop it.
      */
-    public animate<T extends AnimationValue>(
-        opts: AnimationOptions<T> & { disableInteractions?: boolean; mutable?: boolean }
-    ) {
+    public animate<T extends AnimationValue>({
+        disableInteractions = true,
+        mutable = true,
+        ...opts
+    }: AnimationOptions<T> & AdditionalAnimationOptions) {
         if (opts.id != null && this.controllers.has(opts.id)) {
-            if (opts.mutable ?? true) {
+            if (mutable) {
                 return this.controllers.get(opts.id)!.reset(opts);
             }
             this.controllers.get(opts.id)!.stop();
@@ -61,7 +69,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             onPlay: (controller) => {
                 this.controllers.set(id, controller);
                 this.requestAnimation();
-                if (opts.disableInteractions ?? true) {
+                if (disableInteractions) {
                     this.interactionManager.pause(`animation_${id}`);
                 }
                 opts.onPlay?.(controller);
@@ -71,7 +79,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 if (this.controllers.size === 0) {
                     this.cancelAnimation();
                 }
-                if (opts.disableInteractions ?? true) {
+                if (disableInteractions) {
                     this.interactionManager.resume(`animation_${id}`);
                 }
                 opts.onStop?.(controller);

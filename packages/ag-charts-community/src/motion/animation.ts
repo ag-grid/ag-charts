@@ -11,7 +11,6 @@ export enum RepeatType {
 export interface AnimationOptions<T extends AnimationValue> {
     from: T;
     to: T;
-    id?: string;
     skip?: boolean;
     autoplay?: boolean;
     /** Time in milliseconds to wait before starting the animation. */
