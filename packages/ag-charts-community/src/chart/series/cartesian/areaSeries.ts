@@ -667,6 +667,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
                 stroke: marker.stroke ?? stroke,
                 fillOpacity: marker.fillOpacity ?? fillOpacity,
                 strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: marker.strokeWidth ?? 0,
             },
         };
 

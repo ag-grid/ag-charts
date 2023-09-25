@@ -649,7 +649,7 @@ export class Legend {
             const marker = datum.marker;
             markerLabel.markerFill = marker.fill;
             markerLabel.markerStroke = marker.stroke;
-            markerLabel.markerStrokeWidth = strokeWidth;
+            markerLabel.markerStrokeWidth = marker.strokeWidth ?? strokeWidth;
             markerLabel.markerFillOpacity = marker.fillOpacity;
             markerLabel.markerStrokeOpacity = marker.strokeOpacity;
             markerLabel.opacity = datum.enabled ? 1 : 0.5;

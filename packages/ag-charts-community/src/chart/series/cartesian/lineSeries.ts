@@ -481,6 +481,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                     stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
+                    strokeWidth: marker.strokeWidth ?? 0,
                 },
             },
         ];

@@ -1597,6 +1597,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                     stroke: sectorFormat.stroke,
                     fillOpacity: this.fillOpacity,
                     strokeOpacity: this.strokeOpacity,
+                    strokeWidth: this.strokeWidth,
                 },
             });
         }

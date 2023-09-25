@@ -607,6 +607,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             legendItemName,
             fill,
             stroke,
+            strokeWidth,
             fillOpacity,
             strokeOpacity,
             visible,
@@ -634,6 +635,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 stroke,
                 fillOpacity: fillOpacity,
                 strokeOpacity: strokeOpacity,
+                strokeWidth: strokeWidth,
             },
         });
 

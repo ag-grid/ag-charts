@@ -632,6 +632,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
                     stroke: this.stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: this.fillOpacity ?? 1,
                     strokeOpacity: this.strokeOpacity ?? 1,
+                    strokeWidth: this.strokeWidth,
                 },
             },
         ];

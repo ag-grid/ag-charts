@@ -518,7 +518,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
 
     getLegendData(): ChartLegendDatum[] {
         const { id, data, xKey, yKey, yName, title, visible, marker } = this;
-        const { fill, stroke, fillOpacity, strokeOpacity } = marker;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
         if (!(data?.length && xKey && yKey)) {
             return [];
@@ -540,6 +540,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
                     stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: fillOpacity ?? 1,
                     strokeOpacity: strokeOpacity ?? 1,
+                    strokeWidth: strokeWidth ?? 0,
                 },
             },
         ];
