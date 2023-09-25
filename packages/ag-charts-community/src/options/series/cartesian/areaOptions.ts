@@ -1,5 +1,5 @@
-import type { AgDropShadowOptions } from '../../options/dropShadowOptions';
-import type { AgSeriesTooltip } from '../../options/tooltipOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';

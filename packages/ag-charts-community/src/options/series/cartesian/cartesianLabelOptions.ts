@@ -1,4 +1,4 @@
-import type { AgChartLabelOptions } from '../../options/labelOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 
 export interface AgCartesianSeriesLabelFormatterParams {
     /** The ID of the series. */

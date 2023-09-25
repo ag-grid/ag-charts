@@ -1,0 +1,37 @@
+---
+title: 'Error Bars'
+enterprise: true
+---
+
+Error Bars show the uncertainty of continuous data values. They can be enabled
+on Line, Bar and Scatter Series.
+
+## Line Series Error Bars
+
+{% chartExampleRunner title="Line Series Error Bars" name="line-series-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
+
+Error Bars can be enabled on Line Series using the `errorBars` key.
+
+The `yLowerKey` and `yUpperKey` defines the keys used to retrieve the error
+values from the data.
+
+```js
+data: [
+    {
+        month: 'Jan',
+        temperature: 35,
+        temperatureLower: 32,
+        temperatureUpper: 37,
+    },
+  ],
+  series: [
+    {
+      xKey: 'month',
+      yKey: 'temperature' ,
+      errorBar: {
+        yLowerKey: 'temperatureLower',
+        yUpperKey: 'temperatureUpper',
+      },
+    },
+  ],
+```

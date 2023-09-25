@@ -1,7 +1,7 @@
-import type { AgChartLabelOptions } from '../../options/labelOptions';
-import type { AgSeriesListeners } from '../../options/eventOptions';
-import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../options/tooltipOptions';
-import type { CssColor, PixelSize } from '../../options/types';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { CssColor, PixelSize } from '../../chart/types';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,

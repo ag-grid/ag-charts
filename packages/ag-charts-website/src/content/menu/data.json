@@ -61,7 +61,7 @@
                     { "title": "Tooltips", "path": "tooltips" },
                     { "title": "Formatters", "path": "formatters" },
                     { "title": "Cross lines", "path": "axes-cross-lines" },
-                    { "title": "Navigator", "path": "navigator" },
+                    { "title": "Navigator", "path": "navigator", "isEnterprise": true },
                     {
                         "title": "Crosshairs",
                         "path": "axes-crosshairs",
@@ -70,6 +70,11 @@
                     {
                         "title": "Context Menu",
                         "path": "context-menu",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Error Bar",
+                        "path": "error-bars",
                         "isEnterprise": true
                     },
                     {
@@ -159,12 +164,6 @@
                         "title": "Box Plot",
                         "icon": "chartsBoxPlot",
                         "path": "box-plot-series",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Error Bar",
-                        "icon": "chartsErrorBar",
-                        "path": "error-series",
                         "isEnterprise": true
                     },
                     {
