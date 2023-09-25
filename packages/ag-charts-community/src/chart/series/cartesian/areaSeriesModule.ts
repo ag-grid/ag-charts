@@ -42,9 +42,10 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
         },
         marker: {
             __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+            enabled: false,
             fillOpacity: 1,
             strokeOpacity: 1,
-            enabled: false,
+            strokeWidth: 2,
         },
         label: {
             enabled: false,
