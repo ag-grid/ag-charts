@@ -824,7 +824,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     getBandScalePadding() {
-        return { inner: 0.2, outer: 0.3 };
+        return { inner: 0.2, outer: 0.1 };
     }
 
     protected getBarDirection() {

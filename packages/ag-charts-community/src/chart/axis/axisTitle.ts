@@ -9,6 +9,7 @@ import {
     OPT_STRING,
     TEXT_WRAP,
     OPT_FUNCTION,
+    OPT_NUMBER,
 } from '../../util/validation';
 import type {
     AgAxisCaptionFormatterParams,
@@ -17,6 +18,7 @@ import type {
     FontWeight,
     TextWrap,
 } from '../../options/agChartOptions';
+import { Caption } from '../caption';
 
 export class AxisTitle implements AgAxisCaptionOptions {
     @Validate(BOOLEAN)
@@ -24,6 +26,9 @@ export class AxisTitle implements AgAxisCaptionOptions {
 
     @Validate(OPT_STRING)
     text?: string = undefined;
+
+    @Validate(OPT_NUMBER(0))
+    spacing?: number = Caption.PADDING;
 
     @Validate(OPT_FONT_STYLE)
     fontStyle: FontStyle | undefined = undefined;

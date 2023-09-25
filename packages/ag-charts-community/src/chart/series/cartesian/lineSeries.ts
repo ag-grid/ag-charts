@@ -1095,4 +1095,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
     protected isLabelEnabled() {
         return this.label.enabled;
     }
+
+    getBandScalePadding() {
+        return { inner: 1, outer: 0.1 };
+    }
 }
