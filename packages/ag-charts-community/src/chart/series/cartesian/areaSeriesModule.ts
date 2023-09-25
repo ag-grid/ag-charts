@@ -1,5 +1,6 @@
 import type { SeriesModule } from '../../../util/coreModules';
 import { markerPaletteFactory } from '../../../util/theme';
+import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
@@ -8,23 +9,6 @@ import {
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
-import type { AgCartesianChartOptions } from '../../../options/agChartOptions';
-
-const AREA_SERIES_DEFAULTS: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'category',
-            position: 'bottom',
-            groupPaddingInner: 0,
-            paddingInner: 0.9,
-            paddingOuter: 0.1,
-        },
-    ],
-};
 
 export const AreaSeriesModule: SeriesModule<'area'> = {
     type: 'series',
@@ -35,7 +19,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     instanceConstructor: AreaSeries,
     stackable: true,
-    seriesDefaults: AREA_SERIES_DEFAULTS,
+    seriesDefaults: DEFAULT_CARTESIAN_CHART_OVERRIDES,
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         nodeClickRange: 'nearest',

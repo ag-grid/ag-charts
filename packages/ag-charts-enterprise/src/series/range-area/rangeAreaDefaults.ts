@@ -13,9 +13,6 @@ export const RANGE_AREA_DEFAULTS: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            groupPaddingInner: 0,
-            paddingInner: 0.9,
-            paddingOuter: 0.1,
         },
     ],
 };

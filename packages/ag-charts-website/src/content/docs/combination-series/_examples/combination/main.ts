@@ -61,9 +61,9 @@ const COLUMN_AND_LINE: AgCartesianSeriesOptions[] = [
 ]
 
 const AREA_AND_COLUMN: AgCartesianSeriesOptions[] = [
+  { ...PORTIONS, type: "area" },
   { ...WOMEN, type: "bar" },
   { ...MEN, type: "bar" },
-  { ...PORTIONS, type: "area" },
 ]
 
 const options: AgCartesianChartOptions = {
