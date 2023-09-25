@@ -1,9 +1,11 @@
-import { expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { PngConfig } from 'canvas';
 import { Canvas, createCanvas } from 'canvas';
+import * as fs from 'fs';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import * as pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import * as fs from 'fs';
+import { _ModuleSupport, AgChart } from '../../main';
 
 import type {
     AgCartesianChartOptions,
@@ -12,21 +14,10 @@ import type {
     AgChartTheme,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
-import { _ModuleSupport, type _Scene } from '../../main';
+import type { Chart } from '../chart';
 import * as mockCanvas from './mock-canvas';
 
 const { Animation, AnimationManager, resetIds } = _ModuleSupport;
-
-type Chart = {
-    autoSize: boolean;
-    width: number;
-    height: number;
-    data: any[] | null;
-    scene: _Scene.Scene;
-    axes: { type: 'string' }[];
-    series: { type: 'string'; data: any[] | null }[];
-    waitForUpdate: (timeoutMs: number) => Promise<void>;
-};
 
 export interface TestCase {
     options: AgChartOptions;
@@ -43,7 +34,10 @@ export interface PolarTestCase extends TestCase {
 }
 
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0.001);
-export const IMAGE_SNAPSHOT_DEFAULTS = { failureThreshold: FAILURE_THRESHOLD, failureThresholdType: 'percent' };
+export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
+    failureThreshold: FAILURE_THRESHOLD,
+    failureThresholdType: 'percent',
+};
 export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: (Canvas as any).PNG_NO_FILTERS };
 
 const CANVAS_WIDTH = 800;
@@ -63,7 +57,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
         },
     };
 
-    if (typeof options?.theme === 'object' && options?.theme?.palette != null) {
+    if (typeof options?.theme === 'object' && options?.theme.palette != null) {
         // Keep existing theme.
         baseTestTheme = options.theme;
     } else if (typeof options?.theme === 'object') {
@@ -89,11 +83,7 @@ export function deproxy(chartOrProxy: Chart | AgChartInstance): Chart {
 }
 
 export function repeat<T>(value: T, count: number): T[] {
-    const result = new Array(count);
-    for (let idx = 0; idx < count; idx++) {
-        result[idx] = value;
-    }
-    return result;
+    return new Array(count).fill(value);
 }
 
 export function range(start: number, end: number, step = 1): number[] {
@@ -325,6 +315,13 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
     }
 
     return { message: () => `Images were ${result} (${diffPercentage.toFixed(2)}%) pixels different`, pass };
+}
+
+export async function createChart(options: AgChartOptions) {
+    options = prepareTestOptions({ ...options });
+    const chart = deproxy(AgChart.create(options));
+    await waitForChartStability(chart);
+    return chart;
 }
 
 export function spyOnAnimationManager(totalDuration: number, ratio: number) {
