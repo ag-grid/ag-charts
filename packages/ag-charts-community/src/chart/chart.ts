@@ -2,6 +2,7 @@ import { Scene } from '../scene/scene';
 import { Group } from '../scene/group';
 import { Text } from '../scene/shape/text';
 import { Debug } from '../util/debug';
+import type { PickRequired } from '../util/types';
 import type { Series, SeriesNodeDatum } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { Padding } from '../util/padding';
@@ -64,8 +65,8 @@ type OptionalHTMLElement = HTMLElement | undefined | null;
 export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
 export type SpecialOverrides = {
     overrideDevicePixelRatio?: number;
-    document: Document;
-    window: Window & typeof globalThis;
+    document?: Document;
+    window?: Window & typeof globalThis;
 };
 
 type PickedNode = {
@@ -74,7 +75,7 @@ type PickedNode = {
     distance: number;
 };
 
-function initialiseSpecialOverrides(opts: Partial<SpecialOverrides>): SpecialOverrides {
+function initialiseSpecialOverrides(opts: SpecialOverrides): PickRequired<SpecialOverrides, 'document' | 'window'> {
     let globalWindow;
     if (opts.window != null) {
         globalWindow = opts.window;
@@ -259,9 +260,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
-    private readonly specialOverrides: SpecialOverrides;
+    private readonly specialOverrides: PickRequired<SpecialOverrides, 'document' | 'window'>;
 
-    protected constructor(specialOverrides: Partial<SpecialOverrides>, resources?: TransferableResources) {
+    protected constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
         super();
 
         this.specialOverrides = initialiseSpecialOverrides(specialOverrides);

@@ -5,6 +5,12 @@ import { isDesktop } from '../../util/userAgent';
 type OffscreenCanvasRenderingContext2D = any;
 type OffscreenCanvas = any;
 
+interface OffscreenCanvasOptions {
+    width: number;
+    height: number;
+    overrideDevicePixelRatio?: number;
+}
+
 /**
  * Wraps a native OffscreenCanvas and overrides its OffscreenCanvasRenderingContext2D to
  * provide resolution independent rendering based on `window.devicePixelRatio`.
@@ -22,7 +28,7 @@ export class HdpiOffscreenCanvas {
 
     // The width/height attributes of the Canvas element default to
     // 300/150 according to w3.org.
-    constructor({ width = 600, height = 300, overrideDevicePixelRatio = undefined as undefined | number }) {
+    constructor({ width = 600, height = 300, overrideDevicePixelRatio }: OffscreenCanvasOptions) {
         this.canvas = new OffscreenCanvas(width, height);
         this.context = this.canvas.getContext('2d')!;
         this.imageSource = this.canvas.transferToImageBitmap();
