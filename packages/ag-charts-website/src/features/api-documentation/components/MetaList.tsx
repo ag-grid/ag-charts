@@ -1,4 +1,4 @@
-import { getFormattedDefaultValue } from '../utils/documentationHelpers';
+import { getFormattedDefaultValue, splitName } from '../utils/documentationHelpers';
 import type { JsonModelProperty } from '../utils/model';
 import styles from './ApiDocumentation.module.scss';
 
@@ -19,7 +19,7 @@ export function MetaList({
         <div className={styles.metaList}>
             <div title={propertyType} className={styles.metaItem}>
                 <span className={styles.metaLabel}>Type</span>
-                <span className={styles.metaValue}>{propertyType}</span>
+                <span className={styles.metaValue}>{splitName(propertyType)}</span>
             </div>
             {formattedDefaultValue != null && (
                 <div className={styles.metaItem}>

@@ -8,6 +8,7 @@ import {
     getTypeUrl,
     inferType,
     removeDefaultValue,
+    splitName,
 } from '../utils/documentationHelpers';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
 import { getPropertyType } from '../utils/getPropertyType';
@@ -134,13 +135,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         );
     }
 
-    // Split display name on capital letter, add <wbr> to improve text splitting across lines
-    const displayNameSplit = displayName
-        .split(/(?=[A-Z])/)
-        .reverse()
-        .reduce((acc, cv) => {
-            return `${cv}<wbr />` + acc;
-        });
+    const displayNameSplit = splitName(displayName);
 
     const { more } = definition;
 
@@ -151,6 +146,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
           }) +
           ']'
         : defaultValue;
+    const formattedPropertyType = splitName(propertyType);
 
     return (
         <tr ref={propertyRef}>
@@ -176,11 +172,15 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                                 href={typeUrl}
                                 target={typeUrl.startsWith('http') ? '_blank' : '_self'}
                                 rel="noreferrer"
-                            >
-                                {isObject ? getInterfaceName(name) : propertyType}
-                            </a>
+                                dangerouslySetInnerHTML={{
+                                    __html: isObject ? getInterfaceName(name) : formattedPropertyType,
+                                }}
+                            ></a>
                         ) : (
-                            <span className={styles.metaValue}>{propertyType}</span>
+                            <span
+                                className={styles.metaValue}
+                                dangerouslySetInnerHTML={{ __html: formattedPropertyType }}
+                            ></span>
                         )}
                     </div>
                     {formattedDefaultValue != null && (
