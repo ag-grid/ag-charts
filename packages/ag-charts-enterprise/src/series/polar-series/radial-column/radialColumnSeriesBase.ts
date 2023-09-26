@@ -633,7 +633,19 @@ export abstract class RadialColumnSeriesBase<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
-        const { id, data, angleKey, radiusKey, radiusName, visible } = this;
+        const {
+            id,
+            data,
+            angleKey,
+            radiusKey,
+            radiusName,
+            visible,
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+        } = this;
 
         if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {
             return [];
@@ -650,10 +662,11 @@ export abstract class RadialColumnSeriesBase<
                     text: radiusName ?? radiusKey,
                 },
                 marker: {
-                    fill: this.fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: this.stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: this.fillOpacity ?? 1,
-                    strokeOpacity: this.strokeOpacity ?? 1,
+                    fill: fill ?? 'rgba(0, 0, 0, 0)',
+                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                    fillOpacity: fillOpacity ?? 1,
+                    strokeOpacity: strokeOpacity ?? 1,
+                    strokeWidth: strokeWidth ?? 1,
                 },
             },
         ];

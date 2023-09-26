@@ -1,12 +1,11 @@
-import type { AgPolarChartOptions } from 'ag-charts-community';
-import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
-import { RadiusNumberAxis } from '../../axes/radius-number/radiusNumberAxis';
+import { _Theme } from 'ag-charts-community';
+const { POLAR_AXIS_TYPES, CIRCLE } = _Theme;
 
-export const NIGHTINGALE_DEFAULTS: AgPolarChartOptions = {
+export const NIGHTINGALE_DEFAULTS = {
     axes: [
         {
-            type: AngleCategoryAxis.type,
-            shape: 'circle',
+            type: POLAR_AXIS_TYPES.ANGLE_CATEGORY,
+            shape: CIRCLE,
             groupPaddingInner: 0,
             paddingInner: 0,
             label: {
@@ -14,8 +13,8 @@ export const NIGHTINGALE_DEFAULTS: AgPolarChartOptions = {
             },
         },
         {
-            type: RadiusNumberAxis.type,
-            shape: 'circle',
+            type: POLAR_AXIS_TYPES.RADIUS_NUMBER,
+            shape: CIRCLE,
         },
     ],
 };

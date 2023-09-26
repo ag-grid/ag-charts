@@ -1,8 +1,14 @@
 import { _Theme, type _ModuleSupport } from 'ag-charts-community';
-
 import { HistogramSeries } from './histogramSeries';
 
-const { EXTENDS_SERIES_DEFAULTS, DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } = _Theme;
+const {
+    EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_SHADOW_COLOUR,
+    CARTESIAN_AXIS_TYPES,
+    CARTESIAN_AXIS_POSITIONS,
+} = _Theme;
 
 export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
     type: 'series',
@@ -14,8 +20,8 @@ export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
     instanceConstructor: HistogramSeries,
     seriesDefaults: {
         axes: [
-            { type: 'number', position: 'bottom' },
-            { type: 'number', position: 'left' },
+            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.BOTTOM },
+            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.LEFT },
         ],
     },
     themeTemplate: {

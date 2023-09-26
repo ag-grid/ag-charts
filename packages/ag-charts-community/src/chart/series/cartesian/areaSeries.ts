@@ -604,7 +604,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         const content = sanitizeHtml(xString + ': ' + yString);
 
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
-        const fill = markerFill ?? seriesFill;
+        const fill = seriesFill ?? markerFill;
         const stroke = markerStroke ?? seriesStroke;
 
         let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
@@ -667,6 +667,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
                 stroke: marker.stroke ?? stroke,
                 fillOpacity: marker.fillOpacity ?? fillOpacity,
                 strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: marker.strokeWidth ?? 0,
             },
         };
 

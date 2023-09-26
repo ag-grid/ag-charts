@@ -15,4 +15,23 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     seriesDefaults: WATERFALL_DEFAULTS,
     themeTemplate: WATERFALL_SERIES_THEME,
     swapDefaultAxesCondition: (opts) => (opts.series?.[0] as AgWaterfallSeriesOptions)?.direction !== 'horizontal',
+    paletteFactory: ({ takeColors, colorsCount }) => {
+        const { fills, strokes } = takeColors(colorsCount);
+        return {
+            item: {
+                positive: {
+                    fill: fills[0],
+                    stroke: strokes[0],
+                },
+                negative: {
+                    fill: fills[1],
+                    stroke: strokes[1],
+                },
+                total: {
+                    fill: fills[2],
+                    stroke: strokes[2],
+                },
+            },
+        };
+    },
 };

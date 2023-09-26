@@ -799,7 +799,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         }
 
         seriesItemTypes.forEach((item) => {
-            const { fill, stroke, fillOpacity, strokeOpacity, name } = this.getItemConfig(item);
+            const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
             const legendItemText = getLegendItemText(item, name);
             legendData.push({
                 legendType: 'category',
@@ -815,6 +815,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
                     stroke,
                     fillOpacity,
                     strokeOpacity,
+                    strokeWidth,
                 },
             });
         });

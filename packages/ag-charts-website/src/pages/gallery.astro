@@ -96,7 +96,7 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
+        --horizontal-padding: #{$size-6};
         --menu-width: 14rem;
         --gallery-list-gap: #{$size-3};
 
@@ -219,7 +219,7 @@ const { series } = galleryData;
         padding: $site-header-height var(--horizontal-padding) 0;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: 0 var(--horizontal-padding) 0 $size-6;
+            padding: 0 var(--horizontal-padding);
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
@@ -306,7 +306,7 @@ const { series } = galleryData;
             --columns: 3;
         }
 
-        @media screen and (min-width: 1800px) {
+        @media screen and (min-width: 2000px) {
             --columns: 4;
         }
 

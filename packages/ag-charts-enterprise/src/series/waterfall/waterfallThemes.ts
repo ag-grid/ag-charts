@@ -4,25 +4,22 @@ export const WATERFALL_SERIES_THEME = {
     __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
     item: {
         positive: {
+            strokeWidth: 0,
             label: {
                 enabled: false,
             },
-            fill: '#233e6f',
-            stroke: '#233e6f',
         },
         negative: {
+            strokeWidth: 0,
             label: {
                 enabled: false,
             },
-            fill: '#9FB7E1',
-            stroke: '#9FB7E1',
         },
         total: {
+            strokeWidth: 0,
             label: {
                 enabled: false,
             },
-            fill: '#79706E',
-            stroke: '#79706E',
         },
     },
     line: {

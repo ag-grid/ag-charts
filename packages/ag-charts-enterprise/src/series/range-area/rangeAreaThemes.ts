@@ -10,6 +10,7 @@ export const RANGE_AREA_SERIES_THEME = {
     marker: {
         enabled: false,
         fillOpacity: 1,
+        strokeWidth: 2,
     },
     label: {
         enabled: false,

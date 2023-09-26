@@ -134,7 +134,7 @@ export class BoxPlotSeries extends CartesianSeries<
     stroke: string = '#333';
 
     @Validate(NUMBER(0))
-    strokeWidth: number = 3;
+    strokeWidth: number = 1;
 
     @Validate(NUMBER(0, 1))
     strokeOpacity = 1;
@@ -350,6 +350,7 @@ export class BoxPlotSeries extends CartesianSeries<
             stroke,
             fillOpacity,
             strokeOpacity,
+            strokeWidth,
         } = this;
 
         if (!(showInLegend && data?.length && xKey && legendType === 'category')) {
@@ -366,7 +367,7 @@ export class BoxPlotSeries extends CartesianSeries<
                 text: legendItemName ?? yName ?? id,
             },
             legendItemName,
-            marker: { fill, fillOpacity, stroke, strokeOpacity },
+            marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth },
         };
 
         return [categoryLegend];

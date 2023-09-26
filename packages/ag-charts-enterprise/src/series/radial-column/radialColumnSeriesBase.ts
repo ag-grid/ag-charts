@@ -652,6 +652,7 @@ export abstract class RadialColumnSeriesBase<
                     stroke: this.stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: this.fillOpacity ?? 1,
                     strokeOpacity: this.strokeOpacity ?? 1,
+                    strokeWidth: this.strokeWidth,
                 },
             },
         ];

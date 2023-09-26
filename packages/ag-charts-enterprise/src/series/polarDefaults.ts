@@ -1,14 +1,13 @@
-import type { AgPolarChartOptions } from 'ag-charts-community';
-import { AngleCategoryAxis } from '../axes/angle-category/angleCategoryAxis';
-import { RadiusNumberAxis } from '../axes/radius-number/radiusNumberAxis';
+import { _Theme } from 'ag-charts-community';
+const { POLAR_AXIS_TYPES } = _Theme;
 
-export const POLAR_DEFAULTS: AgPolarChartOptions = {
+export const POLAR_DEFAULTS = {
     axes: [
         {
-            type: AngleCategoryAxis.type,
+            type: POLAR_AXIS_TYPES.ANGLE_CATEGORY,
         },
         {
-            type: RadiusNumberAxis.type,
+            type: POLAR_AXIS_TYPES.RADIUS_NUMBER,
         },
     ],
 };

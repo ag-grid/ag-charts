@@ -1,12 +1,10 @@
-import type { AgPolarChartOptions } from 'ag-charts-community';
-import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
-import { RadiusNumberAxis } from '../../axes/radius-number/radiusNumberAxis';
-
-export const RADIAL_COLUMN_DEFAULTS: AgPolarChartOptions = {
+import { _Theme } from 'ag-charts-community';
+const { POLAR_AXIS_TYPES, CIRCLE } = _Theme;
+export const RADIAL_COLUMN_DEFAULTS = {
     axes: [
         {
-            type: AngleCategoryAxis.type,
-            shape: 'circle',
+            type: POLAR_AXIS_TYPES.ANGLE_CATEGORY,
+            shape: CIRCLE,
             groupPaddingInner: 0,
             paddingInner: 0,
             label: {
@@ -14,8 +12,8 @@ export const RADIAL_COLUMN_DEFAULTS: AgPolarChartOptions = {
             },
         },
         {
-            type: RadiusNumberAxis.type,
-            shape: 'circle',
+            type: POLAR_AXIS_TYPES.RADIUS_NUMBER,
+            shape: CIRCLE,
             innerRadiusRatio: 0.5,
         },
     ],

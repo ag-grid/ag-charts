@@ -29,6 +29,7 @@ export interface CategoryLegendDatum extends ChartLegendDatum {
         stroke: string;
         fillOpacity: number;
         strokeOpacity: number;
+        strokeWidth: number;
     };
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;

@@ -557,7 +557,7 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
-        const { id, data, xKey, yName, visible, fill, stroke, fillOpacity, strokeOpacity } = this;
+        const { id, data, xKey, yName, visible, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this;
 
         if (!data || data.length === 0 || legendType !== 'category') {
             return [];
@@ -578,6 +578,7 @@ export class HistogramSeries extends CartesianSeries<
                     stroke: stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: fillOpacity,
                     strokeOpacity: strokeOpacity,
+                    strokeWidth,
                 },
             },
         ];

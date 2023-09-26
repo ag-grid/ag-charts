@@ -657,7 +657,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
 
-        const { fill, stroke, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } = this;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } =
+            this;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         legendData.push({
             legendType: 'category',
@@ -673,6 +674,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
                 stroke,
                 fillOpacity,
                 strokeOpacity,
+                strokeWidth,
             },
         });
 
