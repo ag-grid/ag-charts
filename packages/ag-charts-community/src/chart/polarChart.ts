@@ -26,7 +26,7 @@ export class PolarChart extends Chart {
 
         const fullSeriesRect = shrinkRect.clone();
         this.computeSeriesRect(shrinkRect);
-        this.computeCircle(shrinkRect);
+        await this.computeCircle(shrinkRect);
         this.axes.forEach((axis) => axis.update());
 
         this.hoverRect = shrinkRect;
@@ -81,7 +81,7 @@ export class PolarChart extends Chart {
         this.seriesRect = shrinkRect;
     }
 
-    private computeCircle(seriesBox: BBox) {
+    private async computeCircle(seriesBox: BBox) {
         const polarSeries = this.series.filter((series): series is PolarSeries<SeriesNodeDatum> => {
             return series instanceof PolarSeries;
         });
@@ -118,10 +118,10 @@ export class PolarChart extends Chart {
         let radius = initialRadius;
         setSeriesCircle(centerX, centerY, radius);
 
-        const shake = ({ hideWhenNecessary = false } = {}) => {
+        const shake = async ({ hideWhenNecessary = false } = {}) => {
             const labelBoxes = [];
             for (const series of [...polarAxes, ...polarSeries]) {
-                const box = series.computeLabelsBBox({ hideWhenNecessary }, seriesBox);
+                const box = await series.computeLabelsBBox({ hideWhenNecessary }, seriesBox);
                 if (box) {
                     labelBoxes.push(box);
                 }
@@ -143,11 +143,11 @@ export class PolarChart extends Chart {
             radius = refined.radius;
         };
 
-        shake(); // Initial attempt
-        shake(); // Precise attempt
-        shake(); // Just in case
-        shake({ hideWhenNecessary: true }); // Hide unnecessary labels
-        shake({ hideWhenNecessary: true }); // Final result
+        await shake(); // Initial attempt
+        await shake(); // Precise attempt
+        await shake(); // Just in case
+        await shake({ hideWhenNecessary: true }); // Hide unnecessary labels
+        await shake({ hideWhenNecessary: true }); // Final result
 
         return { radius, centerX, centerY };
     }
