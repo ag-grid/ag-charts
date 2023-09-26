@@ -252,19 +252,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
-    maybeRefreshNodeData() {
+    async maybeRefreshNodeData() {
         const didCircleChange = this.didCircleChange();
         if (!didCircleChange && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = this._createNodeData();
+        const [{ nodeData = [] } = {}] = await this.createNodeData();
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
 
     async createNodeData() {
-        return this._createNodeData();
-    }
-
-    protected _createNodeData() {
         const { processedData, dataModel, angleKey, radiusKey } = this;
 
         if (!processedData || !dataModel || !angleKey || !radiusKey) {
@@ -338,7 +334,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     async update() {
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
@@ -580,10 +576,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
     }
 
-    computeLabelsBBox() {
+    async computeLabelsBBox() {
         const { label } = this;
 
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
 
         const textBoxes: _Scene.BBox[] = [];
         const tempText = new Text();

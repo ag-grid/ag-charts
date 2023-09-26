@@ -253,16 +253,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         return false;
     }
 
-    maybeRefreshNodeData() {
+    protected async maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = this.createNodeDataSync();
+        const [{ nodeData = [] } = {}] = await this.createNodeData();
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
-    }
-
-    async createNodeData() {
-        return this.createNodeDataSync();
     }
 
     protected getAxisInnerRadius() {
@@ -270,7 +266,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
-    protected createNodeDataSync() {
+    async createNodeData() {
         const { processedData, dataModel, angleKey, radiusKey } = this;
 
         if (!processedData || !dataModel || !angleKey || !radiusKey) {
@@ -376,7 +372,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     }
 
     async update() {
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
