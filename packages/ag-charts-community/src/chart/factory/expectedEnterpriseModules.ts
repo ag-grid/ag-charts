@@ -1,6 +1,8 @@
 import type { Module } from '../../module-support';
 
-type EnterpriseModuleStub = Pick<Module<any>, 'type' | 'identifier' | 'optionsKey' | 'chartTypes'>;
+type EnterpriseModuleStub = Pick<Module<any>, 'type' | 'identifier' | 'optionsKey' | 'chartTypes'> & {
+    useCount?: number;
+};
 
 const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-category' },
@@ -48,5 +50,14 @@ export function verifyIfModuleExpected(module: Module<any>) {
         );
     });
 
+    if (stub) {
+        stub.useCount ??= 0;
+        stub.useCount++;
+    }
+
     return stub != null;
+}
+
+export function getUnusedExpectedModules() {
+    return EXPECTED_ENTERPRISE_MODULES.filter(({ useCount }) => useCount == null || useCount === 0);
 }
