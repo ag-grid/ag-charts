@@ -17,11 +17,15 @@ export const CARTESIAN_AXIS_POSITIONS = {
     LEFT,
 };
 
-const NUMBER: AgCartesianAxisType = 'number';
 const CATEGORY: AgCartesianAxisType = 'category';
+const NUMBER: AgCartesianAxisType = 'number';
+const TIME: AgCartesianAxisType = 'time';
+const LOG: AgCartesianAxisType = 'log';
 export const CARTESIAN_AXIS_TYPES = {
-    NUMBER,
     CATEGORY,
+    NUMBER,
+    TIME,
+    LOG,
 };
 
 const ANGLE_CATEGORY: AgPolarAxisType = 'angle-category';
