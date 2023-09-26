@@ -8,13 +8,27 @@ export type ErrorBarNodeProperties = {
     strokeOpacity?: number;
 };
 
+interface ErrorBarPoint {
+    readonly lowerPoint: _Scene.Point;
+    readonly upperPoint: _Scene.Point;
+}
+
 export interface ErrorBarPoints {
-    readonly yLowerPoint: _Scene.Point;
-    readonly yUpperPoint: _Scene.Point;
+    readonly xBar?: ErrorBarPoint;
+    readonly yBar: ErrorBarPoint;
 }
 
 export class ErrorBarNode extends _Scene.Group {
-    private points: ErrorBarPoints = { yLowerPoint: { x: 0, y: 0 }, yUpperPoint: { x: 0, y: 0 } };
+    private points: ErrorBarPoints = {
+        xBar: {
+            lowerPoint: { x: 0, y: 0 },
+            upperPoint: { x: 0, y: 0 },
+        },
+        yBar: {
+            lowerPoint: { x: 0, y: 0 },
+            upperPoint: { x: 0, y: 0 },
+        },
+    };
     private whiskerPath: _Scene.Path;
     private capsPath: _Scene.Path;
 
@@ -30,22 +44,32 @@ export class ErrorBarNode extends _Scene.Group {
         Object.assign(this.whiskerPath, whiskerTheme);
         Object.assign(this.capsPath, capsTheme);
 
-        const { yLowerPoint, yUpperPoint } = this.points;
+        const { xBar, yBar } = this.points;
 
         const whisker = this.whiskerPath;
         whisker.path.clear();
-        whisker.path.moveTo(yLowerPoint.x, yLowerPoint.y);
-        whisker.path.lineTo(yUpperPoint.x, yUpperPoint.y);
+        whisker.path.moveTo(yBar.lowerPoint.x, yBar.lowerPoint.y);
+        whisker.path.lineTo(yBar.upperPoint.x, yBar.upperPoint.y);
+        if (xBar !== undefined) {
+            whisker.path.moveTo(xBar.lowerPoint.x, xBar.lowerPoint.y);
+            whisker.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y);
+        }
         whisker.path.closePath();
         whisker.updatePath();
 
         const capLength = 5;
         const caps = this.capsPath;
         caps.path.clear();
-        caps.path.moveTo(yLowerPoint.x - capLength, yLowerPoint.y);
-        caps.path.lineTo(yLowerPoint.x + capLength, yLowerPoint.y);
-        caps.path.moveTo(yUpperPoint.x - capLength, yUpperPoint.y);
-        caps.path.lineTo(yUpperPoint.x + capLength, yUpperPoint.y);
+        caps.path.moveTo(yBar.lowerPoint.x - capLength, yBar.lowerPoint.y);
+        caps.path.lineTo(yBar.lowerPoint.x + capLength, yBar.lowerPoint.y);
+        caps.path.moveTo(yBar.upperPoint.x - capLength, yBar.upperPoint.y);
+        caps.path.lineTo(yBar.upperPoint.x + capLength, yBar.upperPoint.y);
+        if (xBar !== undefined) {
+            caps.path.moveTo(xBar.lowerPoint.x, xBar.lowerPoint.y - capLength);
+            caps.path.lineTo(xBar.lowerPoint.x, xBar.lowerPoint.y + capLength);
+            caps.path.moveTo(xBar.upperPoint.x, xBar.upperPoint.y - capLength);
+            caps.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y + capLength);
+        }
         caps.path.closePath();
         caps.updatePath();
     }

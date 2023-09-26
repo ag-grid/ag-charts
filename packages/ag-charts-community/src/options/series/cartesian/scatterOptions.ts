@@ -5,6 +5,7 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
+import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 
 export interface AgScatterSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
     /** labelKey as specified on series options. */
@@ -54,4 +55,6 @@ export interface AgScatterSeriesOptions<DatumType = any>
     labelName?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
+    /** Configuration for the series error bars. */
+    errorBar?: AgErrorBarOptions;
 }

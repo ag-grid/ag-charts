@@ -23,15 +23,50 @@ data: [
         temperatureLower: 32,
         temperatureUpper: 37,
     },
-  ],
-  series: [
+],
+series: [
     {
-      xKey: 'month',
-      yKey: 'temperature' ,
-      errorBar: {
-        yLowerKey: 'temperatureLower',
-        yUpperKey: 'temperatureUpper',
-      },
+        xKey: 'month',
+        yKey: 'temperature' ,
+        errorBar: {
+            yLowerKey: 'temperatureLower',
+            yUpperKey: 'temperatureUpper',
+        },
     },
-  ],
+],
+```
+
+## Scatter Series Error Bars
+
+{% chartExampleRunner title="Scatter Series Error Bars" name="scatter-series-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
+
+Error Bars can be enabled on Scatter Series using the `errorBars` key.
+
+The required properties `xLowerKey`, `xUpperKey`, `yLowerKey` and `yUpperKey`
+define the keys used to retrieve the X and Y error values from the data.
+
+```js
+data: [
+    {
+        volume: 0.5,
+        volumeLower: 0.45,
+        volumeUpper: 0.55,
+        pressure: 1.2,
+        pressureLower: 1.1,
+        pressureUpper: 1.4
+    },
+],
+series: [
+    {
+        type: 'scatter',
+        xKey: 'volume',
+        yKey: 'pressure',
+        errorBar:  {
+            xLowerKey: 'volumeLower',
+            xUpperKey: 'volumeUpper',
+            yLowerKey: 'pressureLower',
+            yUpperKey: 'pressureUpper',
+        },
+    },
+],
 ```
