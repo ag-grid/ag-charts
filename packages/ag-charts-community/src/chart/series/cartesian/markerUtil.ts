@@ -5,7 +5,7 @@ import type {
     AgSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
 import type { Marker } from '../../marker/marker';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {

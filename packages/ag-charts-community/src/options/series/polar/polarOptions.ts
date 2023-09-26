@@ -1,8 +1,9 @@
 import type { AgPieSeriesOptions } from './pieOptions';
-import type { AgAngleCategoryAxisOptions } from '../../chart/polarAxisOptions';
-import type { AgRadiusNumberAxisOptions } from '../../chart/radiusAxisOptions';
+import type { AgAngleCategoryAxisOptions, AgAngleNumberAxisOptions } from '../../chart/polarAxisOptions';
+import type { AgRadiusCategoryAxisOptions, AgRadiusNumberAxisOptions } from '../../chart/radiusAxisOptions';
 import type { AgRadarLineSeriesOptions } from './radarLineOptions';
 import type { AgRadarAreaSeriesOptions } from './radarAreaOptions';
+import type { AgRadialBarSeriesOptions } from './radialBarOptions';
 import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
@@ -11,9 +12,14 @@ export type AgPolarSeriesOptions =
     | AgPieSeriesOptions
     | AgRadarLineSeriesOptions
     | AgRadarAreaSeriesOptions
+    | AgRadialBarSeriesOptions
     | AgRadialColumnSeriesOptions
     | AgNightingaleSeriesOptions;
-export type AgPolarAxisOptions = AgAngleCategoryAxisOptions | AgRadiusNumberAxisOptions;
+export type AgPolarAxisOptions =
+    | AgAngleCategoryAxisOptions
+    | AgAngleNumberAxisOptions
+    | AgRadiusCategoryAxisOptions
+    | AgRadiusNumberAxisOptions;
 
 export interface AgBasePolarChartOptions {
     /** Series configurations. */
@@ -25,6 +31,8 @@ export interface AgBasePolarChartOptions {
 
 export interface AgPolarAxesTheme {
     'angle-category'?: AgAngleCategoryAxisOptions;
+    'angle-number'?: AgAngleCategoryAxisOptions;
+    'radius-category'?: AgRadiusCategoryAxisOptions;
     'radius-number'?: AgRadiusNumberAxisOptions;
 }
 

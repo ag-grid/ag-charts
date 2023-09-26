@@ -1,4 +1,4 @@
-import type { SeriesModule } from '../../../util/coreModules';
+import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../util/theme';
 import {
     DEFAULT_FONT_FAMILY,

@@ -31,18 +31,46 @@ import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { fixNumericExtent } from '../data/dataModel';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
-import type { ModuleContext, SeriesContext } from '../../util/moduleContext';
 import type { DataController } from '../data/dataController';
 import { accumulateGroup } from '../data/processors';
 import { ActionOnSet } from '../../util/proxy';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ZIndexSubOrder } from '../../scene/node';
 import { interpolate } from '../../util/string';
-import type { ModuleContextInitialiser } from '../../util/moduleMap';
-import { ModuleMap } from '../../util/moduleMap';
-import type { SeriesOptionModule } from '../../util/optionModules';
+import type { ModuleContextInitialiser } from '../../module/moduleMap';
+import { ModuleMap } from '../../module/moduleMap';
+import type { SeriesOptionModule } from '../../module/optionModules';
 import type { ChartSeries, SeriesNodeDatum } from '../chartSeries';
 import { SeriesNodePickMode } from '../chartSeries';
+
+/**
+ * Processed series datum used in node selections,
+ * contains information used to render pie sectors, bars, markers, etc.
+ */
+export interface SeriesNodeDatum {
+    // For example, in `sectorNode.datum.seriesDatum`:
+    // `sectorNode` - represents a pie sector
+    // `datum` - contains metadata derived from the immutable series datum and used
+    //           to set the properties of the node, such as start/end angles
+    // `datum` - raw series datum, an element from the `series.data` array
+    readonly series: Series<any>;
+    readonly itemId?: any;
+    readonly datum: any;
+    readonly point?: Readonly<SizedPoint>;
+    nodeMidPoint?: Readonly<Point>;
+}
+
+/** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
+export enum SeriesNodePickMode {
+    /** Pick matches based upon pick coordinates being inside a matching shape/marker. */
+    EXACT_SHAPE_MATCH,
+    /** Pick matches by nearest category/X-axis value, then distance within that category/X-value. */
+    NEAREST_BY_MAIN_AXIS_FIRST,
+    /** Pick matches by nearest category value, then distance within that category. */
+    NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
+    /** Pick matches based upon distance to ideal position */
+    NEAREST_NODE,
+}
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;

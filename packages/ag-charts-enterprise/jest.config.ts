@@ -34,7 +34,8 @@ const commonConfig = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
     // extensionsToTreatAsEsm: ['.ts'],
     testEnvironment: '../ag-charts-community/jest.jsdom-with-timezone.cjs',
-    setupFiles: ['jest-canvas-mock', './jest.setup.cjs'],
+    setupFiles: ['jest-canvas-mock'],
+    setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     preset: '../../jest.preset.js',
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],

@@ -41,7 +41,7 @@ import type {
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { normaliseGroupTo } from '../../data/processors';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type { DataController } from '../../data/dataController';
 import {
     type AreaPathPoint,

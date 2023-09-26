@@ -1,22 +1,15 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-
-import { GALLERY_EXAMPLES } from 'ag-charts-community-test';
-import type { AgChartOptions, _ModuleSupport } from 'ag-charts-community';
-
-import { AgEnterpriseCharts } from './main';
-
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import type { AgChartOptions } from 'ag-charts-community';
 import {
-    waitForChartStability,
-    setupMockCanvas,
     extractImageData,
+    GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     prepareTestOptions,
-    toMatchImage,
+    setupMockCanvas,
+    waitForChartStability,
 } from 'ag-charts-community-test';
+import { AgEnterpriseCharts } from './main';
 import { prepareEnterpriseTestOptions } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 const ENTERPRISE_GALLERY_EXAMPLES = Object.entries(GALLERY_EXAMPLES)
     .filter(([, v]) => v.enterprise)
@@ -62,7 +55,7 @@ describe('Gallery Examples', () => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
                 const options: AgChartOptions = { ...example.options };
@@ -129,7 +122,7 @@ describe('Gallery Examples', () => {
                     AgEnterpriseCharts.update(chart, options);
                     const after = await snapshot();
 
-                    (expect(after) as any).toMatchImage(before);
+                    expect(after).toMatchImage(before);
                 });
             });
         }

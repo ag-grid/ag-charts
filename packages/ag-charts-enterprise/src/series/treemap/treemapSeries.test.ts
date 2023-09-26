@@ -1,28 +1,26 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import type {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgPolarChartOptions,
+    AgTreemapSeriesOptions,
+    InteractionRange,
+} from 'ag-charts-community';
 import {
-    waitForChartStability,
-    IMAGE_SNAPSHOT_DEFAULTS,
-    setupMockCanvas,
-    extractImageData,
+    clickAction,
     deproxy,
+    extractImageData,
     GALLERY_EXAMPLES,
-    TREEMAP_SERIES_LABELS,
     hierarchyChartAssertions,
     hoverAction,
-    clickAction,
+    IMAGE_SNAPSHOT_DEFAULTS,
+    setupMockCanvas,
+    TREEMAP_SERIES_LABELS,
+    waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgChartOptions } from 'ag-charts-community';
-
-import type { TreemapSeries } from './treemapSeries';
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-import type { InteractionRange } from 'ag-charts-community';
-import type { AgCartesianChartOptions } from 'ag-charts-community';
-import type { AgPolarChartOptions } from 'ag-charts-community';
-import type { AgTreemapSeriesOptions } from 'ag-charts-community';
-
-expect.extend({ toMatchImageSnapshot });
+import type { TreemapSeries } from './treemapSeries';
 
 describe('HierarchyChart', () => {
     let chart: any;
@@ -40,7 +38,7 @@ describe('HierarchyChart', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     describe('Series Highlighting', () => {

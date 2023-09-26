@@ -9,8 +9,8 @@ the relationships between data points on the graph. This section discusses the d
 
 A category axis is used to display distinct categories or groups of data in a chart.
 
-The category axis shows discrete categories or groups of data, unlike the [Number](/charts-axes-types/#number) or
-[Time](/charts-axes-types/#time) axes which use a continuous scale. For instance, in a bar chart of sales per product, the
+The category axis shows discrete categories or groups of data, unlike the [Number](./axes-types/#number) or
+[Time](./axes-types/#time) axes which use a continuous scale. For instance, in a bar chart of sales per product, the
 category axis shows the products as different groups, and the number axis displays the corresponding sale value for each group.
 
 If no `axes` are supplied, a category axis will be used as the x-axis by default. However, it can also
@@ -25,8 +25,8 @@ axes: [
 ];
 ```
 
-The category axis will attempt to render an [Axis Tick](/charts-axes-ticks/), [Axis Label](/charts-axis-labels/) and
-[Grid Line](/charts-axis-grid-lines/) for each category with even spacing.
+The category axis will attempt to render an [Axis Tick](./axes-ticks/), [Axis Label](./axis-labels/) and
+[Grid Line](./axis-grid-lines/) for each category with even spacing.
 
 For a full list of configuration options see [Category Axis Options](#category-axis-options).
 
@@ -34,11 +34,11 @@ For a full list of configuration options see [Category Axis Options](#category-a
 
 A number axis is used to display continuous numerical values in a chart.
 
-The number axis displays continuous numerical values, unlike the [Category](/charts-axes-types/#category) axis which displays
+The number axis displays continuous numerical values, unlike the [Category](./axes-types/#category) axis which displays
 discrete categories or groups of data. This means that while categories are spaced out evenly, the distance between values
 in a number axis will depend on their magnitude.
 
-Instead of using one [Axis Tick](/charts-axes-ticks/) per value, the number axis will determine the range of all values,
+Instead of using one [Axis Tick](./axes-ticks/) per value, the number axis will determine the range of all values,
 round it up and try to segment the rounded range with evenly spaced ticks.
 
 If no `axes` are supplied, a number axis will be used as the y-axis by default. However, it can also be explicitly
@@ -148,4 +148,4 @@ The domain of a log axis should be strictly positive or strictly negative (becau
 
 ## Next Up
 
-Continue to the next section to learn about the [Axis Ticks](/charts-axes-ticks/).
+Continue to the next section to learn about the [Axis Ticks](./axes-ticks/).

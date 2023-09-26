@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
@@ -10,14 +9,11 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
     extractImageData,
-    hoverAction,
     deproxy,
     prepareTestOptions,
 } from './test/utils';
 import * as examples from './test/examples';
 import { fail } from 'assert';
-
-expect.extend({ toMatchImageSnapshot });
 
 export function getData(): any[] {
     return [
@@ -206,7 +202,7 @@ describe('CartesianChart', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     const seriesHighlightingTestCases = (name: string, tcOptions: AgCartesianChartOptions) => {

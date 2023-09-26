@@ -1,12 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-
+import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
 import type { TextWrap } from '../../options/agChartOptions';
-import { setupMockCanvas, extractImageData } from '../../chart/test/utils';
 import type { LayerManager } from '../node';
 import { Text } from './text';
-
-expect.extend({ toMatchImageSnapshot });
 
 function setUpMockLayerManager(canvasCtx): LayerManager {
     return {
@@ -245,7 +241,7 @@ describe('Text', () => {
             }
 
             const imageData = extractImageData(canvasCtx);
-            (expect(imageData) as any).toMatchImageSnapshot();
+            expect(imageData).toMatchImageSnapshot();
         });
 
         it('should wrap and render as expected', () => {
@@ -293,7 +289,7 @@ describe('Text', () => {
             }
 
             const imageData = extractImageData(canvasCtx);
-            (expect(imageData) as any).toMatchImageSnapshot();
+            expect(imageData).toMatchImageSnapshot();
         });
     });
 });

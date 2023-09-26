@@ -97,6 +97,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Axis Title',
+                spacing: 15,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 12,
@@ -175,7 +176,7 @@ export class ChartTheme {
         return {
             enabled: true,
             shape: 'circle',
-            size: 6,
+            size: 4,
             strokeWidth: 1,
             formatter: undefined,
         };
@@ -232,7 +233,7 @@ export class ChartTheme {
             },
             legend: {
                 position: BOTTOM,
-                spacing: 20,
+                spacing: 30,
                 listeners: {},
                 item: {
                     paddingX: 16,

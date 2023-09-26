@@ -4,7 +4,7 @@ import { LogScale } from '../../scale/logScale';
 import { NumberAxis } from './numberAxis';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Logger } from '../../util/logger';
-import type { ModuleContext } from '../../util/moduleContext';
+import type { ModuleContext } from '../../module/moduleContext';
 
 function NON_ZERO_NUMBER() {
     // Cannot be 0

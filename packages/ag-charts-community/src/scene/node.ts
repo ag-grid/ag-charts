@@ -81,10 +81,7 @@ export abstract class Node extends ChangeDetectable {
      * Some arbitrary data bound to the node.
      */
     get datum() {
-        if (this._datum !== undefined) {
-            return this._datum;
-        }
-        return this._parent?.datum;
+        return this._datum ?? this._parent?.datum;
     }
     set datum(datum: any) {
         this._datum = datum;

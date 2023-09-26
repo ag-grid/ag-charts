@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import { PolarCrossLine } from '../polarCrossLine';
+import { PolarCrossLine } from './polarCrossLine';
 
 const { ChartAxisDirection } = _ModuleSupport;
 const { Path, Sector, Text } = _Scene;

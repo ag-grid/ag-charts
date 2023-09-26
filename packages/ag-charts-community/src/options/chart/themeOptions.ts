@@ -10,6 +10,7 @@ import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/wate
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from '../series/polar/polarOptions';
 import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAreaOptions';
+import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
@@ -100,6 +101,9 @@ export interface AgRadarLineSeriesThemeOverrides extends AgBasePolarThemeOptions
 export interface AgRadarAreaSeriesThemeOverrides extends AgBasePolarThemeOptions {
     series?: AgRadarAreaSeriesThemeableOptions;
 }
+export interface AgRadialBarSeriesThemeOverrides extends AgBasePolarThemeOptions {
+    series?: AgRadialBarSeriesThemeableOptions;
+}
 export interface AgRadialColumnSeriesThemeOverrides extends AgBasePolarThemeOptions {
     series?: AgRadialColumnSeriesThemeableOptions;
 }
@@ -134,6 +138,7 @@ export interface AgBaseChartThemeOverrides {
     pie?: AgPieSeriesThemeOverrides;
     'radar-line'?: AgRadarLineSeriesThemeOverrides;
     'radar-area'?: AgRadarAreaSeriesThemeOverrides;
+    'radial-bar'?: AgRadialBarSeriesThemeOverrides;
     'radial-column'?: AgRadialColumnSeriesThemeOverrides;
     nightingale?: AgNightingaleSeriesThemeOverrides;
 

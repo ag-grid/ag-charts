@@ -88,7 +88,7 @@ describe('LineSeries', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     let chart: Chart;

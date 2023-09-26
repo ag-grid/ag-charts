@@ -1,10 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-
 import { setupMockCanvas, extractImageData } from '../../chart/test/utils';
 import { Range } from './range';
 
-expect.extend({ toMatchImageSnapshot });
 const CANVAS_WIDTH = 1150;
 
 describe('Range', () => {
@@ -100,7 +97,7 @@ describe('Range', () => {
 
             // Check rendering.
             const imageData = extractImageData(canvasCtx);
-            (expect(imageData) as any).toMatchImageSnapshot();
+            expect(imageData).toMatchImageSnapshot();
         });
     });
 });

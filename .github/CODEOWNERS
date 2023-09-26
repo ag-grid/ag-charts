@@ -1,5 +1,17 @@
+# NOTE: Order of entries matters - later entries have higher precedence.
+
 # Attribute code-owners so default reviewers are assigned to PRs.
 * @ag-grid/ag-charts-team
+
+# Astro + website changes to be reviewed by website team.
+/packages/ag-charts-website/ @taktran @markdurrant
+
+# Docs updates to be reviewed by Eng VP.
+*.mdoc @rmc-software
+
+# Charts library code to be reviewed by Chart TL.
+/packages/ag-charts-community/ @alantreadway
+/packages/ag-charts-enterprise/ @alantreadway
 
 # Sensitive build/repo files to be reviewed by Chart TL.
 **/package.json @alantreadway
@@ -7,13 +19,3 @@ nx.json @alantreadway
 **/project.json @alantreadway
 **/tsconfig.json @alantreadway
 **/tsconfig.*.json @alantreadway
-
-# Charts library code to be reviewed by Chart TL.
-/packages/ag-charts-community/ @alantreadway
-/packages/ag-charts-enterprise/ @alantreadway
-
-# Docs updates to be reviewed by Eng VP.
-*.mdoc @rmc-software
-
-# Astro + website changes to be reviewed by website team.
-/packages/ag-charts-website/ @taktran @markdurrant

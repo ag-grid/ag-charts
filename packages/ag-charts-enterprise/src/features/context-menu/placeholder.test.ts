@@ -1,16 +1,13 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AgChartOptions } from 'ag-charts-community';
 import {
-    waitForChartStability,
-    setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    setupMockCanvas,
+    waitForChartStability,
 } from 'ag-charts-community-test';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { AgEnterpriseCharts } from '../../main';
-
-expect.extend({ toMatchImageSnapshot });
+import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Chart', () => {
     let chart: any;
@@ -44,7 +41,7 @@ describe('Chart', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     it(`should render placeholder chart as expected`, async () => {

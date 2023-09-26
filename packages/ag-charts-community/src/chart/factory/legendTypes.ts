@@ -1,5 +1,5 @@
-import type { LegendConstructor } from '../../util/coreModules';
-import type { ModuleContext } from '../../util/moduleContext';
+import type { LegendConstructor } from '../../module/coreModules';
+import type { ModuleContext } from '../../module/moduleContext';
 import { Legend } from '../legend';
 import type { ChartLegend, ChartLegendType } from '../legendDatum';
 

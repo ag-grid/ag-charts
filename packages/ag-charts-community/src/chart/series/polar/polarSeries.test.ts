@@ -96,7 +96,7 @@ describe('PolarSeries', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     describe('#create', () => {
@@ -186,7 +186,7 @@ describe('PolarSeries', () => {
             chart.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();
-            (expect(afterFinalUpdate) as any).toMatchImage(reference);
+            expect(afterFinalUpdate).toMatchImage(reference);
         });
     });
 });

@@ -8,5 +8,12 @@
       "ag-charts-community": ["../../dist/packages/ag-charts-community/main.cjs"]
     }
   },
-  "include": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/test/**", "src/**/*.d.ts"]
+  "include": [
+    "jest.config.ts",
+    "jest.setup.ts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/test/**",
+    "src/**/*.d.ts"
+  ]
 }

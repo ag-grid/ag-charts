@@ -3,7 +3,7 @@ import type { Rect } from '../../../scene/shape/rect';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 import type { SeriesItemHighlightStyle } from '../series';
-import type { ModuleContext } from '../../../util/moduleContext';
+import type { ModuleContext } from '../../../module/moduleContext';
 
 export type RectConfig = {
     fill: string;

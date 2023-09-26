@@ -12,7 +12,7 @@ import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
 import type { Scene } from '../scene/scene';
-import type { CallbackCache } from './callbackCache';
+import type { CallbackCache } from '../util/callbackCache';
 
 export interface ModuleContext {
     document: Document;

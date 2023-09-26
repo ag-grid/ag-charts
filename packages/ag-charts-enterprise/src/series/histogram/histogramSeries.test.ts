@@ -1,26 +1,21 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-
-import {
-    waitForChartStability,
-    setupMockCanvas,
-    extractImageData,
-    IMAGE_SNAPSHOT_DEFAULTS,
-    deproxy,
-    GALLERY_EXAMPLES,
-    hoverAction,
-    HISTOGRAM_SERIES_LABELS,
-    HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
-    cartesianChartAssertions,
-    type TestCase,
-    spyOnAnimationManager,
-} from 'ag-charts-community-test';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { _ModuleSupport, AgChartOptions } from 'ag-charts-community';
-
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    cartesianChartAssertions,
+    deproxy,
+    extractImageData,
+    GALLERY_EXAMPLES,
+    HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
+    HISTOGRAM_SERIES_LABELS,
+    hoverAction,
+    IMAGE_SNAPSHOT_DEFAULTS,
+    setupMockCanvas,
+    spyOnAnimationManager,
+    type TestCase,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { AgEnterpriseCharts } from '../../main';
-
-expect.extend({ toMatchImageSnapshot });
+import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const EXAMPLES: Record<string, TestCase> = {
     SIMPLE_HISTOGRAM: GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
@@ -49,7 +44,7 @@ describe('HistogramSeries', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     describe('#create', () => {

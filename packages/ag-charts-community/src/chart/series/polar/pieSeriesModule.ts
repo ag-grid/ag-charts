@@ -1,4 +1,4 @@
-import type { SeriesModule } from '../../../util/coreModules';
+import type { SeriesModule } from '../../../module/coreModules';
 import { NORMAL } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,

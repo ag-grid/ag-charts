@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { AgChart } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
@@ -16,8 +15,6 @@ import {
 import * as examples from './test/examples';
 import type { AgCartesianChartOptions } from '../options/agChartOptions';
 import { seedRandom } from './test/random';
-
-expect.extend({ toMatchImageSnapshot });
 
 function buildSeries(data: { x: number; y: number }) {
     return {
@@ -67,7 +64,7 @@ describe('Legend', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     describe('Large series count chart', () => {

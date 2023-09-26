@@ -1,4 +1,4 @@
-import type { JsonApplyParams } from './json';
+import type { JsonApplyParams } from '../util/json';
 
 export interface ModuleInstance {
     destroy(): void;

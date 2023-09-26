@@ -1,8 +1,8 @@
-import type { AgAxisCategoryTickOptions } from '../series/cartesian/cartesianOptions';
+import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseAxisLabelOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineOptions } from './crossLineOptions';
 
-export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleCategoryAxisLabelOptions> {
+export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
     type: 'angle-category';
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
@@ -26,9 +26,19 @@ export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleCat
     paddingInner?: number;
 }
 
-export type AgAngleCategoryAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
+export interface AgAngleNumberAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
+    type: 'angle-number';
+    /** Configuration for the axis ticks. */
+    tick?: AgAxisNumberTickOptions;
+    /** Angle in degrees to start ticks positioning from. */
+    startAngle?: number;
+    /** Add cross lines or regions corresponding to data values. */
+    crossLines?: AgAngleCrossLineOptions[];
+}
 
-export interface AgAngleCategoryAxisLabelOptions extends AgBaseAxisLabelOptions {
+export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
+
+export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions {
     /**
      * Labels orientation on the angle category axis.
      * `fixed` - all labels remain in a fixed orientation of horizontal text.
@@ -36,7 +46,7 @@ export interface AgAngleCategoryAxisLabelOptions extends AgBaseAxisLabelOptions 
      * `perpendicular` - labels are in the radial direction perpendicular to the axis.
      * Default: `fixed`
      */
-    orientation: AgAngleCategoryAxisLabelOrientation;
+    orientation: AgAngleAxisLabelOrientation;
 }
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}

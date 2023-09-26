@@ -196,34 +196,30 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
 
     protected animateItemsShapes() {
         const { itemSelection } = this;
-        const duration = this.ctx.animationManager.defaultDuration();
+        const duration = this.ctx.animationManager.defaultDuration;
 
         const axisInnerRadius = this.getAxisInnerRadius();
         const isAxisCircle = this.isRadiusAxisCircle();
 
         itemSelection.each((node, datum) => {
             const columnWidth = this.getColumnWidth(datum);
-            this.ctx.animationManager.animateMany<number>(
-                `${this.id}_empty-update-ready_${node.id}`,
-                [
-                    { from: axisInnerRadius, to: datum.innerRadius },
-                    { from: axisInnerRadius, to: datum.outerRadius },
-                ],
-                {
-                    duration,
-                    onUpdate: ([innerRadius, outerRadius]) => {
-                        this.drawColumnShape(
-                            node,
-                            columnWidth,
-                            axisInnerRadius,
-                            this.radius,
-                            innerRadius,
-                            outerRadius,
-                            isAxisCircle
-                        );
-                    },
-                }
-            );
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${node.id}`,
+                from: { innerRadius: axisInnerRadius, outerRadius: axisInnerRadius },
+                to: { innerRadius: datum.innerRadius, outerRadius: datum.outerRadius },
+                duration,
+                onUpdate: ({ innerRadius, outerRadius }) => {
+                    this.drawColumnShape(
+                        node,
+                        columnWidth,
+                        axisInnerRadius,
+                        this.radius,
+                        innerRadius,
+                        outerRadius,
+                        isAxisCircle
+                    );
+                },
+            });
         });
     }
 }

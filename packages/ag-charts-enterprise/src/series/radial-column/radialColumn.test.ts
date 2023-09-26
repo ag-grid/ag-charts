@@ -1,18 +1,14 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-import type { AgChartOptions } from '../../main';
-import { AgEnterpriseCharts } from '../../main';
-
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
-    waitForChartStability,
-    setupMockCanvas,
     extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    setupMockCanvas,
     spyOnAnimationManager,
+    waitForChartStability,
 } from 'ag-charts-community-test';
+import type { AgChartOptions } from '../../main';
+import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Radial Column Chart', () => {
     let chart: any;
@@ -72,17 +68,17 @@ describe('Radial Column Chart', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    it(`should render nightingale chart as expected`, async () => {
+    it(`should render radial column chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options as any);
         chart = AgEnterpriseCharts.create(options);
         await compare();
     });
 
-    it(`should render stacked nightingale as expected`, async () => {
+    it(`should render stacked radial column as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: EXAMPLE_OPTIONS.series?.map((series) => {
@@ -98,7 +94,7 @@ describe('Radial Column Chart', () => {
         await compare();
     });
 
-    it(`should render normalized nightingale as expected`, async () => {
+    it(`should render normalized radial column as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: EXAMPLE_OPTIONS.series?.map((series) => {

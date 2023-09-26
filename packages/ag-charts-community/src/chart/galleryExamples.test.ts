@@ -1,20 +1,15 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
 import { EXAMPLES } from './test/examples-gallery';
 import {
-    waitForChartStability,
-    IMAGE_SNAPSHOT_DEFAULTS,
-    setupMockCanvas,
-    toMatchImage,
     extractImageData,
+    IMAGE_SNAPSHOT_DEFAULTS,
     prepareTestOptions,
+    setupMockCanvas,
+    waitForChartStability,
 } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 describe('Gallery Examples', () => {
     let chart: Chart;
@@ -54,7 +49,7 @@ describe('Gallery Examples', () => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
                 const options: AgChartOptions = { ...example.options };
@@ -121,7 +116,7 @@ describe('Gallery Examples', () => {
                     AgChart.update(chart, options);
                     const after = await snapshot();
 
-                    (expect(after) as any).toMatchImage(before);
+                    expect(after).toMatchImage(before);
                 });
             });
         }

@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { CartesianTestCase } from '../test/utils';
 import {
     cartesianChartAssertions,
@@ -18,8 +17,6 @@ import type {
 import { AgChart } from '../agChartV2';
 import * as examples from './test/examples';
 import type { Chart } from '../chart';
-
-expect.extend({ toMatchImageSnapshot });
 
 const labelPositions: AgCrossLineLabelPosition[] = [
     'top',
@@ -202,7 +199,7 @@ describe('crossLines', () => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
                 const options: AgCartesianChartOptions = { ...example.options };

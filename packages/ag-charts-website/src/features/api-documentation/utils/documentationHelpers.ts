@@ -60,8 +60,9 @@ export function getTypeUrl(type: string | PropertyType, framework: Framework): s
         // This method can be called with a type object
         return getTypeUrl(type.returnType, framework);
     }
+    const link = getTypeLink(type);
 
-    return getExamplePageUrl({ path: getTypeLink(type), framework });
+    return link ? getExamplePageUrl({ path: getTypeLink(type), framework }) : link;
 }
 
 export function getLinkedType(type: string | PropertyType, framework: Framework) {
