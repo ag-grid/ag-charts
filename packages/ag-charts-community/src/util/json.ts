@@ -375,15 +375,14 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
  *
  * @param json to traverse
  * @param visit callback for each non-primitive and non-array object found
+ * @param opts
  * @param opts.skip property names to skip when walking
  * @param jsons to traverse in parallel
  */
 export function jsonWalk(
     json: any,
     visit: (classification: Classification, node: any, ...otherNodes: any[]) => void,
-    opts: {
-        skip?: string[];
-    },
+    opts: { skip?: string[] },
     ...jsons: any[]
 ) {
     const jsonType = classify(json);
@@ -418,7 +417,7 @@ const isBrowser = typeof window !== 'undefined';
 
 type Classification = 'array' | 'object' | 'primitive';
 /**
- * Classify the type of a value to assist with handling for merge purposes.
+ * Classify the type of value to assist with handling for merge purposes.
  */
 function classify(value: any): 'array' | 'object' | 'function' | 'primitive' | 'class-instance' | null {
     if (value == null) {
