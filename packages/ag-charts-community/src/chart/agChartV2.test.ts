@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
@@ -11,12 +10,9 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
     extractImageData,
-    toMatchImage,
     prepareTestOptions,
     repeat,
 } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 const EXAMPLES: Record<string, TestCase> = {
     TRUNCATED_LEGEND_ITEMS: {
@@ -52,7 +48,7 @@ describe('AgChartV2', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     const snapshot = async () => {
@@ -113,7 +109,7 @@ describe('AgChartV2', () => {
 
                     const exampleSnapshot = await snapshot();
                     if (snapshots[index] != null) {
-                        (expect(exampleSnapshot) as any).toMatchImage(snapshots[index], { writeDiff: false });
+                        expect(exampleSnapshot).toMatchImage(snapshots[index], { writeDiff: false });
                     }
 
                     if (previousSnapshot != null) {

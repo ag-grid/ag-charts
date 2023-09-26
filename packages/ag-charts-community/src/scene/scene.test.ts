@@ -1,11 +1,8 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-import { AgChart } from './../chart/agChartV2';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as examples from '../chart/test/examples';
-import { extractImageData, waitForChartStability, setupMockCanvas, IMAGE_SNAPSHOT_DEFAULTS } from '../chart/test/utils';
-import type { AgCartesianChartOptions, AgChartLegendOptions, AgChartInstance } from '../options/agChartOptions';
-
-expect.extend({ toMatchImageSnapshot });
+import { extractImageData, IMAGE_SNAPSHOT_DEFAULTS, setupMockCanvas, waitForChartStability } from '../chart/test/utils';
+import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from '../options/agChartOptions';
+import { AgChart } from './../chart/agChartV2';
 
 describe('Scene', () => {
     let chart: AgChartInstance;
@@ -28,7 +25,7 @@ describe('Scene', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     describe('on translation only change', () => {
