@@ -4,9 +4,18 @@ import { JSON_APPLY_PLUGINS } from '../chartOptions';
 import { registerChartDefaults } from './chartTypes';
 import { registerLegend } from './legendTypes';
 import { registerSeries } from './seriesTypes';
+import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
+import { Logger } from '../../util/logger';
 
 export function setupModules() {
+    let enterpriseModulesFound = false;
+
     for (const m of REGISTERED_MODULES) {
+        enterpriseModulesFound ||= m.packageType === 'enterprise';
+        if (m.packageType === 'enterprise' && !verifyIfModuleExpected(m)) {
+            Logger.errorOnce('Unexpected enterprise module registered: ' + m.identifier);
+        }
+
         if (JSON_APPLY_PLUGINS.constructors != null && m.optionConstructors != null) {
             Object.assign(JSON_APPLY_PLUGINS.constructors, m.optionConstructors);
         }
@@ -55,6 +64,14 @@ export function setupModules() {
 
         if (m.type === 'legend') {
             registerLegend(m.identifier, m.optionsKey, m.instanceConstructor, m.themeTemplate);
+        }
+    }
+
+    if (enterpriseModulesFound) {
+        const expectedButUnused = getUnusedExpectedModules();
+
+        if (expectedButUnused.length > 0) {
+            Logger.errorOnce('Enterprise modules expected but not registered: ', expectedButUnused);
         }
     }
 }
