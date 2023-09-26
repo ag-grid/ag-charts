@@ -9,6 +9,9 @@ export const NIGHTINGALE_DEFAULTS: AgPolarChartOptions = {
             shape: 'circle',
             groupPaddingInner: 0,
             paddingInner: 0,
+            label: {
+                padding: 10,
+            },
         },
         {
             type: RadiusNumberAxis.type,
