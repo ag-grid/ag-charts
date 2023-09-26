@@ -226,7 +226,7 @@
             "examples": []
         },
         {
-            "title": "Error Bar",
+            "title": "Error Bars",
             "name": "error-bar",
             "icon": "chartsErrorBar",
             "enterprise": true,
