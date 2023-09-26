@@ -46,7 +46,7 @@ export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions {
      * `perpendicular` - labels are in the radial direction perpendicular to the axis.
      * Default: `fixed`
      */
-    orientation: AgAngleAxisLabelOrientation;
+    orientation?: AgAngleAxisLabelOrientation;
 }
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}
