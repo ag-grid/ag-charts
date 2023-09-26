@@ -7,14 +7,14 @@ const options: AgChartOptions = {
         text: 'HR Analytics',
     },
     subtitle: {
-        text: 'Salary Distribution by Role',
+        text: 'Salary Distribution by Department',
     },
     data: getData(),
     series: [
         {
             type: 'box-plot',
-            xKey: 'role',
-            yName: 'Salary Range',
+            yName: 'Employee Salaries',
+            xKey: 'department',
             minKey: 'min',
             q1Key: 'q1',
             medianKey: 'median',
