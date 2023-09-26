@@ -5,6 +5,7 @@ import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
 const { mergeDefaults, ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
+const { Logger } = _Util;
 type AnyScale = _Scale.Scale<any, any, any>;
 
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
@@ -137,7 +138,7 @@ export class ErrorBars
                             yDatum
                         );
                     } else {
-                        throw new Error(
+                        Logger.warnOnce(
                             `AG Charts - series type 'scatter' requires xLowerKey (= ${xLowerKey}) and xUpperKey (= ${xUpperKey}) to exist in all data points`
                         );
                     }
