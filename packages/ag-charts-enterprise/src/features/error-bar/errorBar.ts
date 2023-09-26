@@ -77,7 +77,7 @@ export class ErrorBars
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
-        const supportedSeriesTypes = ['line', 'scatter'];
+        const supportedSeriesTypes = ['bar', 'line', 'scatter'];
         if (!supportedSeriesTypes.includes(ctx.series.type)) {
             throw new Error(
                 `AG Charts - unsupported series type '${
@@ -109,51 +109,93 @@ export class ErrorBars
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, nodeData } = this;
-        const xIndex = dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `xValue`).index;
-        const yIndex = dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `yValue`).index;
+        const { nodeData } = this;
+        const { xIndex, yIndex } = this.getDatumIndices(dataModel);
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
-        if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined) {
+        // xIndex is required because all series must have a y-axis error bar.
+        // yIndex is optional because only the scatter series has a x-axis error bar.
+        if (!xScale || !yScale || xIndex === undefined) {
             return;
         }
 
         nodeData.length = processedData.data.length;
 
         for (let i = 0; i < processedData.data.length; i++) {
-            const { datum, values } = processedData.data[i];
-            const xDatum = values[xIndex];
-            const yDatum = values[yIndex];
-
-            if (yLowerKey in datum && yUpperKey in datum) {
-                let xPoints = undefined;
-                if (this.cartesianSeries.type == 'scatter') {
-                    if (xLowerKey !== undefined && xLowerKey in datum && xUpperKey != undefined && xUpperKey in datum) {
-                        xPoints = this.calculatePoints(
-                            xScale,
-                            datum[xLowerKey],
-                            datum[xUpperKey],
-                            yScale,
-                            yDatum,
-                            yDatum
-                        );
-                    } else {
-                        Logger.warnOnce(
-                            `AG Charts - series type 'scatter' requires xLowerKey (= ${xLowerKey}) and xUpperKey (= ${xUpperKey}) to exist in all data points`
-                        );
-                    }
-                }
-                nodeData[i] = {
-                    xBar: xPoints,
-                    yBar: this.calculatePoints(xScale, xDatum, xDatum, yScale, datum[yLowerKey], datum[yUpperKey]),
-                };
+            const { xDatum, xLower, xUpper, yDatum, yLower, yUpper } = this.getDatum(processedData, i, xIndex, yIndex);
+            const xBar = this.calculatePoints(xScale, xLower, xUpper, yScale, yDatum, yDatum);
+            const yBar = this.calculatePoints(xScale, xDatum, xDatum, yScale, yLower, yUpper);
+            if (yBar !== undefined) {
+                nodeData[i] = { xBar, yBar };
             } else {
                 nodeData[i] = undefined;
             }
         }
     }
 
+    private getDatumIndices(dataModel: _ModuleSupport.DataModel<any, any, any>) {
+        const xIndex = 'xValue';
+        const yIndex = this.cartesianSeries.type == 'bar' ? 'yValue-end' : 'yValue';
+        return {
+            xIndex: dataModel.resolveProcessedDataIndexById(this.cartesianSeries, xIndex).index,
+            yIndex: dataModel.resolveProcessedDataIndexById(this.cartesianSeries, yIndex).index,
+        };
+    }
+
+    private getDatum(
+        processedData: _ModuleSupport.ProcessedData<any>,
+        datumIndex: number,
+        xIndex: number,
+        yIndex: number
+    ) {
+        const { type } = this.cartesianSeries;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        const { datum, keys, values } = processedData.data[datumIndex];
+
+        if (type === 'bar') {
+            return {
+                xDatum: keys[xIndex],
+                xLower: undefined,
+                xUpper: undefined,
+                yDatum: values[0][yIndex],
+                yLower: datum[0][yLowerKey] ?? undefined,
+                yUpper: datum[0][yUpperKey] ?? undefined,
+            };
+        } else if (type === 'line') {
+            return {
+                xDatum: values[xIndex],
+                xLower: undefined,
+                xUpper: undefined,
+                yDatum: values[yIndex],
+                yLower: datum[yLowerKey] ?? undefined,
+                yUpper: datum[yUpperKey] ?? undefined,
+            };
+        } else if (type === 'scatter') {
+            const xLower = xLowerKey === undefined ? undefined : datum[xLowerKey] ?? undefined;
+            const xUpper = xUpperKey === undefined ? undefined : datum[xUpperKey] ?? undefined;
+            if (xLower === undefined || xUpper == undefined) {
+                Logger.warnOnce(
+                    `AG Charts - series type 'scatter' requires xLowerKey (= ${xLowerKey}) and xUpperKey (= ${xUpperKey}) to exist in all data points`
+                );
+            }
+
+            return {
+                xDatum: values[xIndex],
+                xLower: xLower,
+                xUpper: xUpper,
+                yDatum: values[yIndex],
+                yLower: datum[yLowerKey] ?? undefined,
+                yUpper: datum[yUpperKey] ?? undefined,
+            };
+        } else {
+            throw new Error(`Expected series type '${type}`);
+        }
+    }
+
     private calculatePoints(xScale: AnyScale, xLower: any, xUpper: any, yScale: AnyScale, yLower: any, yUpper: any) {
+        if ([xLower, xUpper, yLower, yUpper].includes(undefined)) {
+            return undefined;
+        }
         return {
             lowerPoint: this.calculatePoint(xScale, xLower, yScale, yLower),
             upperPoint: this.calculatePoint(xScale, xUpper, yScale, yUpper),
