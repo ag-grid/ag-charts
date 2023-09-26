@@ -6,7 +6,7 @@ import {
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { BOTTOM, LEFT, NUMBER } from '../../themes/constants';
+import { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } from '../../themes/constants';
 import { BubbleSeries } from './bubbleSeries';
 
 export const BubbleSeriesModule: SeriesModule<'bubble'> = {
@@ -19,8 +19,8 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     instanceConstructor: BubbleSeries,
     seriesDefaults: {
         axes: [
-            { type: NUMBER, position: BOTTOM },
-            { type: NUMBER, position: LEFT },
+            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.BOTTOM },
+            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.LEFT },
         ],
     },
     themeTemplate: {

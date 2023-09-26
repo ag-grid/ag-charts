@@ -2,7 +2,7 @@ import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../seri
 import type { AgBaseAxisLabelOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineOptions } from './crossLineOptions';
 
-export type AgPolarAxisType = 'angle-category' | 'angle-number' | 'radius-category ' | 'radius-number';
+export type AgPolarAxisType = 'angle-category' | 'angle-number' | 'radius-category' | 'radius-number';
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
 export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {

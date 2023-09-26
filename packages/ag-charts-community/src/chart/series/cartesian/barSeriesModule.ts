@@ -8,7 +8,7 @@ import {
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { BOTTOM, CATEGORY, LEFT, NORMAL, NUMBER } from '../../themes/constants';
+import { NORMAL, CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } from '../../themes/constants';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
@@ -23,12 +23,12 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     seriesDefaults: {
         axes: [
             {
-                type: NUMBER,
-                position: BOTTOM,
+                type: CARTESIAN_AXIS_TYPES.NUMBER,
+                position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
             },
             {
-                type: CATEGORY,
-                position: LEFT,
+                type: CARTESIAN_AXIS_TYPES.CATEGORY,
+                position: CARTESIAN_AXIS_POSITIONS.LEFT,
             },
         ],
     },

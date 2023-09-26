@@ -6,9 +6,8 @@ const {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
-    NUMBER,
-    LEFT,
-    BOTTOM,
+    CARTESIAN_AXIS_TYPES,
+    CARTESIAN_AXIS_POSITIONS,
 } = _Theme;
 
 export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
@@ -21,8 +20,8 @@ export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
     instanceConstructor: HistogramSeries,
     seriesDefaults: {
         axes: [
-            { type: NUMBER, position: BOTTOM },
-            { type: NUMBER, position: LEFT },
+            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.BOTTOM },
+            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.LEFT },
         ],
     },
     themeTemplate: {

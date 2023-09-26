@@ -1,11 +1,11 @@
 import { _Theme } from 'ag-charts-community';
-const { CATEGORY, NUMBER, LEFT, BOTTOM } = _Theme;
+const { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } = _Theme;
 
 export const BOX_PLOT_SERIES_DEFAULTS = {
     axes: [
         {
-            type: CATEGORY,
-            position: LEFT,
+            type: CARTESIAN_AXIS_TYPES.CATEGORY,
+            position: CARTESIAN_AXIS_POSITIONS.LEFT,
             groupPaddingInner: 0.2,
             crosshair: {
                 enabled: false,
@@ -13,8 +13,8 @@ export const BOX_PLOT_SERIES_DEFAULTS = {
             },
         },
         {
-            type: NUMBER,
-            position: BOTTOM,
+            type: CARTESIAN_AXIS_TYPES.NUMBER,
+            position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
             crosshair: {
                 snap: false,
             },

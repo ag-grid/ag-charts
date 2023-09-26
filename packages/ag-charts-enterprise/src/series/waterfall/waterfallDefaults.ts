@@ -1,15 +1,15 @@
 import { _Theme } from 'ag-charts-community';
-const { CATEGORY, NUMBER, LEFT, BOTTOM } = _Theme;
+const { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } = _Theme;
 
 export const WATERFALL_DEFAULTS = {
     axes: [
         {
-            type: CATEGORY,
-            position: LEFT,
+            type: CARTESIAN_AXIS_TYPES.CATEGORY,
+            position: CARTESIAN_AXIS_POSITIONS.LEFT,
         },
         {
-            type: NUMBER,
-            position: BOTTOM,
+            type: CARTESIAN_AXIS_TYPES.NUMBER,
+            position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
         },
     ],
     legend: {

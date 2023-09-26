@@ -9,12 +9,30 @@ import type {
 
 export const BOLD: FontWeight = 'bold';
 export const NORMAL: FontWeight = 'normal';
+
 export const BOTTOM: AgChartLegendPosition = 'bottom';
-export const LEFT: AgCartesianAxisPosition = 'left';
-export const NUMBER: AgCartesianAxisType = 'number';
-export const CATEGORY: AgCartesianAxisType = 'category';
+const LEFT: AgCartesianAxisPosition = 'left';
+export const CARTESIAN_AXIS_POSITIONS = {
+    BOTTOM,
+    LEFT,
+};
+
+const NUMBER: AgCartesianAxisType = 'number';
+const CATEGORY: AgCartesianAxisType = 'category';
+export const CARTESIAN_AXIS_TYPES = {
+    NUMBER,
+    CATEGORY,
+};
+
+const ANGLE_CATEGORY: AgPolarAxisType = 'angle-category';
+const ANGLE_NUMBER: AgPolarAxisType = 'angle-number';
+const RADIUS_CATEGORY: AgPolarAxisType = 'radius-category';
+const RADIUS_NUMBER: AgPolarAxisType = 'radius-number';
+export const POLAR_AXIS_TYPES = {
+    ANGLE_CATEGORY,
+    ANGLE_NUMBER,
+    RADIUS_CATEGORY,
+    RADIUS_NUMBER,
+};
+
 export const CIRCLE: AgPolarAxisShape = 'circle';
-export const ANGLE_CATEGORY: AgPolarAxisType = 'angle-category';
-export const ANGLE_NUMBER: AgPolarAxisType = 'angle-number';
-export const RADIUS_CATEGORY: AgPolarAxisType = 'radius-category ';
-export const RADIUS_NUMBER: AgPolarAxisType = 'radius-number';
