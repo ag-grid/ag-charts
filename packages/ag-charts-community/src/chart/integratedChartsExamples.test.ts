@@ -1,6 +1,4 @@
 import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-
 import type { AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
@@ -9,12 +7,9 @@ import {
     waitForChartStability,
     IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
-    toMatchImage,
     extractImageData,
     prepareTestOptions,
 } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 describe('Integrated Charts Examples', () => {
     let chart: Chart;
@@ -52,7 +47,7 @@ describe('Integrated Charts Examples', () => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    (expect(imageData) as any).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
                 const startingOptions: AgChartOptions = EXAMPLES[index - 1]?.options ?? {};

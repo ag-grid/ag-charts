@@ -1,11 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
-
 import { setupMockCanvas, extractImageData } from '../../chart/test/utils';
 import { Rect } from './rect';
 import { DropShadow } from '../dropShadow';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Rect', () => {
     describe('rendering', () => {
@@ -148,7 +144,7 @@ describe('Rect', () => {
 
             // Check rendering.
             const imageData = extractImageData(canvasCtx);
-            (expect(imageData) as any).toMatchImageSnapshot();
+            expect(imageData).toMatchImageSnapshot();
         });
     });
 });
