@@ -80,7 +80,13 @@
         "update": {
           "updateSnapshot": true
         }
-      }
+      },
+      "dependsOn": [
+        {
+          "projects": ["ag-charts-community-examples"],
+          "target": "build"
+        }
+      ]
     },
     "pack": {
       "executor": "nx:run-commands",
