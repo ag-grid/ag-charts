@@ -264,16 +264,12 @@ export abstract class RadialColumnSeriesBase<
         return false;
     }
 
-    maybeRefreshNodeData() {
+    async maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = this.createNodeDataSync();
+        const [{ nodeData = [] } = {}] = await this.createNodeData();
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
-    }
-
-    async createNodeData() {
-        return this.createNodeDataSync();
     }
 
     protected getAxisInnerRadius() {
@@ -281,7 +277,7 @@ export abstract class RadialColumnSeriesBase<
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
-    protected createNodeDataSync() {
+    async createNodeData() {
         const { processedData, dataModel, angleKey, radiusKey } = this;
 
         if (!processedData || !dataModel || !angleKey || !radiusKey) {
@@ -394,7 +390,7 @@ export abstract class RadialColumnSeriesBase<
     }
 
     async update() {
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
