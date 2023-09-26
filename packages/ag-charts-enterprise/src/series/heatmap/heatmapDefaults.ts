@@ -1,14 +1,15 @@
-import type { AgCartesianChartOptions } from 'ag-charts-community';
+import { _Theme } from 'ag-charts-community';
+const { CATEGORY, LEFT, BOTTOM } = _Theme;
 
-export const HEATMAP_DEFAULTS: AgCartesianChartOptions = {
+export const HEATMAP_DEFAULTS = {
     axes: [
         {
-            type: 'category',
-            position: 'left',
+            type: CATEGORY,
+            position: LEFT,
         },
         {
-            type: 'category',
-            position: 'bottom',
+            type: CATEGORY,
+            position: BOTTOM,
         },
     ],
     gradientLegend: {

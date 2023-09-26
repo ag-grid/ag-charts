@@ -6,8 +6,8 @@ import {
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
+import { BOTTOM, LEFT, NUMBER } from '../../themes/constants';
 import { ScatterSeries } from './scatterSeries';
-import { NumberAxis } from '../../axis/numberAxis';
 
 export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     type: 'series',
@@ -19,8 +19,8 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     instanceConstructor: ScatterSeries,
     seriesDefaults: {
         axes: [
-            { type: NumberAxis.type, position: 'bottom' },
-            { type: NumberAxis.type, position: 'left' },
+            { type: NUMBER, position: BOTTOM },
+            { type: NUMBER, position: LEFT },
         ],
     },
     themeTemplate: {

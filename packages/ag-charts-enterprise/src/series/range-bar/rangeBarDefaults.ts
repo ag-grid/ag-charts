@@ -1,14 +1,15 @@
-import type { AgCartesianChartOptions } from 'ag-charts-community';
+import { _Theme } from 'ag-charts-community';
+const { CATEGORY, NUMBER, LEFT, BOTTOM } = _Theme;
 
-export const RANGE_BAR_DEFAULTS: AgCartesianChartOptions = {
+export const RANGE_BAR_DEFAULTS = {
     axes: [
         {
-            type: 'category',
-            position: 'left',
+            type: CATEGORY,
+            position: LEFT,
         },
         {
-            type: 'number',
-            position: 'bottom',
+            type: NUMBER,
+            position: BOTTOM,
             crosshair: {
                 enabled: true,
                 snap: false,

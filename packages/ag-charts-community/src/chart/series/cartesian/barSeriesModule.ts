@@ -8,9 +8,7 @@ import {
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { NumberAxis } from '../../axis/numberAxis';
-import { CategoryAxis } from '../../axis/categoryAxis';
-import { NORMAL } from '../../themes/constants';
+import { BOTTOM, CATEGORY, LEFT, NORMAL, NUMBER } from '../../themes/constants';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
@@ -25,12 +23,12 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     seriesDefaults: {
         axes: [
             {
-                type: NumberAxis.type,
-                position: 'bottom',
+                type: NUMBER,
+                position: BOTTOM,
             },
             {
-                type: CategoryAxis.type,
-                position: 'left',
+                type: CATEGORY,
+                position: LEFT,
             },
         ],
     },

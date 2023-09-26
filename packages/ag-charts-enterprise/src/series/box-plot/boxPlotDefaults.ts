@@ -1,10 +1,11 @@
-import type { AgCartesianChartOptions } from 'ag-charts-community';
+import { _Theme } from 'ag-charts-community';
+const { CATEGORY, NUMBER, LEFT, BOTTOM } = _Theme;
 
-export const BOX_PLOT_SERIES_DEFAULTS: AgCartesianChartOptions = {
+export const BOX_PLOT_SERIES_DEFAULTS = {
     axes: [
         {
-            type: 'category',
-            position: 'bottom',
+            type: CATEGORY,
+            position: LEFT,
             groupPaddingInner: 0.2,
             crosshair: {
                 enabled: false,
@@ -12,8 +13,8 @@ export const BOX_PLOT_SERIES_DEFAULTS: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'number',
-            position: 'left',
+            type: NUMBER,
+            position: BOTTOM,
             crosshair: {
                 snap: false,
             },

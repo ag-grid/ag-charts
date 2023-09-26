@@ -2,12 +2,15 @@ import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../seri
 import type { AgBaseAxisLabelOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineOptions } from './crossLineOptions';
 
+export type AgPolarAxisType = 'angle-category' | 'angle-number' | 'radius-category ' | 'radius-number';
+export type AgPolarAxisShape = 'polygon' | 'circle';
+
 export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
-    type: 'angle-category';
+    type: AgPolarAxisType;
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
     /** Shape of axis. Default: `polygon` */
-    shape?: 'polygon' | 'circle';
+    shape?: AgPolarAxisShape;
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: number;
     /** Add cross lines or regions corresponding to data values. */
