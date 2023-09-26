@@ -272,7 +272,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
             }
         }
         nodeData.length = actualLength;
-        this.fireDataProcessed(dataModel, processedData);
 
         return [{ itemId: yKey, nodeData, labelData: nodeData }];
     }

@@ -305,6 +305,11 @@ export abstract class CartesianSeries<
 
             this._contextNodeData = await this.createNodeData();
             await this.updateSeriesGroups();
+
+            const { dataModel, processedData } = this;
+            if (dataModel !== undefined && processedData !== undefined) {
+                this.fireDataProcessed(dataModel, processedData);
+            }
         }
 
         await Promise.all(this.subGroups.map((g, i) => this.updateSeriesGroupSelections(g, i)));
