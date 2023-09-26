@@ -1,25 +1,31 @@
 ---
-import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
+import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
+import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
+import { Icon, IconName } from '@components/icon/Icon';
 
 const frameworksData = [
     {
         name: 'javascript',
-        url: '/javascript-data-grid/',
+        url: '/javascript/overview',
     },
     {
         name: 'react',
-        url: '/react-data-grid/',
+        url: '/react/overview',
     },
     {
         name: 'angular',
-        url: '/angular-data-grid/',
+        url: '/angular/overview',
     },
     {
         name: 'vue',
-        url: '/vue-data-grid/',
+        url: '/vue/overview',
     },
 ];
+
+const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryData: GalleryData = galleryDataEntry?.data;
+const { series } = galleryData;
 ---
 
 <Layout>
@@ -39,6 +45,66 @@ const frameworksData = [
         <div class="frameworksInner page-margin">
             <span class="frameworksLabel text-secondary">Get&nbsp;started</span>
             <FrameworkSelector data={frameworksData} isFullWidth />
+        </div>
+    </div>
+
+    <div class="homepageSeries">
+        <div class="seriesInner page-margin">
+            <h2 class="text-secondary">More series than you can shake a stick at...</h2>
+
+            <div class="seriesChart">
+                <div class="dummy"></div>
+            </div>
+
+            <div class="seriesList">
+                <ul class="list-style-none">
+                    {
+                        series.map((series: GalleryExampleChartType) => (
+                            <li>
+                                <button class="button-secondary">
+                                    <Icon client:only name={series.icon as IconName} />
+                                    <span>{series.title}</span>
+                                </button>
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="homepageBenefits">
+        <div class="benefitsInner page-margin">
+            <!-- ChatGPT content to be replaced -->
+            <ul class="list-style-none">
+                <li>
+                    <Icon name="docs-rendering" />
+                    <h3>Versatile and Customizable</h3>
+                    <p>
+                        AG-Charts offers a wide range of chart types and extensive customization options, allowing
+                        developers to create visually appealing and tailored data visualizations that seamlessly match
+                        their application's design and needs.
+                    </p>
+                </li>
+                <li>
+                    <Icon name="docs-sparklines" />
+                    <h3>High Performance</h3>
+                    <p>
+                        AG-Charts is optimized for efficiency, ensuring smooth rendering and interaction with large
+                        datasets, making it suitable for real-time updates and handling big data without sacrificing
+                        performance.
+                    </p>
+                </li>
+                <li>
+                    <Icon name="docs-api" />
+                    <h3>Easy Integration</h3>
+                    <p>
+                        Compatible with popular web development frameworks and various data formats, AG-Charts
+                        seamlessly integrates into existing applications, offering flexibility in data sources and
+                        simplifying chart implementation.
+                    </p>
+                </li>
+            </ul>
         </div>
     </div>
 </Layout>
@@ -169,6 +235,72 @@ const frameworksData = [
         @media screen and (min-width: 1020px) {
             --font-size: var(--font-size-extra-large);
             --font-weight: var(--font-weight-thin);
+        }
+    }
+
+    .homepageSeries {
+        padding-top: $size-7;
+        padding-bottom: $size-9;
+    }
+
+    .seriesInner {
+        display: flex;
+        flex-wrap: wrap;
+
+        h2 {
+            width: 100%;
+            margin-bottom: $size-6 !important;
+            text-align: center;
+        }
+    }
+
+    .seriesChart {
+        width: 50%;
+        padding-right: $size-7;
+    }
+
+    .dummy {
+        aspect-ratio: 4 / 3;
+        border-radius: var(--border-radius);
+        background-color: var(--border-color);
+    }
+
+    .seriesList {
+        width: 50%;
+
+        ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: $size-2;
+        }
+    }
+
+    .homepageBenefits {
+        background-color: var(--bright-blue-gray);
+        padding-top: $size-7;
+        padding-bottom: $size-8;
+    }
+
+    .benefitsInner {
+        ul {
+            display: flex;
+            gap: $size-2;
+        }
+
+        li {
+            width: 33.33%;
+            text-align: center;
+        }
+
+        :global(.icon) {
+            --icon-size: #{$size-7};
+            --text-color: var(--auro-metal);
+
+            margin-bottom: $size-3;
+        }
+
+        p {
+            text-align: left;
         }
     }
 </style>
