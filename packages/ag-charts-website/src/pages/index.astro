@@ -1,11 +1,174 @@
 ---
-import ComingSoon from '@components/ComingSoon.astro';
+import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
 import Layout from '@layouts/Layout.astro';
+
+const frameworksData = [
+    {
+        name: 'javascript',
+        url: '/javascript-data-grid/',
+    },
+    {
+        name: 'react',
+        url: '/react-data-grid/',
+    },
+    {
+        name: 'angular',
+        url: '/angular-data-grid/',
+    },
+    {
+        name: 'vue',
+        url: '/vue-data-grid/',
+    },
+];
 ---
 
 <Layout>
-    <ComingSoon name="Homepage">
-        <h2>A taster...</h2>
-        <div id="myChart" style="width: 400px; height: 400px"></div>
-    </ComingSoon>
+    <div class="homepageHero">
+        <div class="heroInner page-margin">
+            <div class="heroHeadings">
+                <h1 class="font-size-extra-large">The Best JavaScript Charts in the World</h1>
+                <h2 class="font-size-medium normal-weight-text">
+                    The profesional choice for developers building enterprise applications
+                </h2>
+            </div>
+            <div class="heroChart"></div>
+        </div>
+    </div>
+
+    <div class="homepageFrameworks">
+        <div class="frameworksInner page-margin">
+            <span class="frameworksLabel text-secondary">Get&nbsp;started</span>
+            <FrameworkSelector data={frameworksData} isFullWidth />
+        </div>
+    </div>
 </Layout>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    .homepageHero {
+        --text-color: var(--white);
+
+        padding-top: $size-5;
+        background-color: var(--dark-cerulean-blue);
+
+        @media screen and (min-width: $breakpoint-hero-small) {
+            padding-top: $size-7;
+        }
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            padding-top: $size-8;
+        }
+    }
+
+    .heroInner {
+        display: flex;
+        flex-direction: column;
+        gap: 0 $size-4;
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            flex-direction: row;
+        }
+    }
+
+    .heroHeadings {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            text-align: unset;
+        }
+
+        h1,
+        h2 {
+            --line-height: var(--line-height-tight);
+
+            color: var(--text-color);
+        }
+
+        h1 {
+            --font-size: 28px;
+
+            @media screen and (min-width: $breakpoint-hero-small) {
+                --font-size: var(--font-size-massive);
+            }
+
+            @media screen and (min-width: $breakpoint-hero-large) {
+                --font-size: min(3.4vw, 54px);
+
+                margin-top: -0.225em;
+                margin-bottom: 0.5em;
+            }
+        }
+
+        h2 {
+            max-width: 18em;
+            margin-right: auto;
+            margin-left: auto;
+            margin-bottom: 1.4em;
+
+            @media screen and (min-width: $breakpoint-hero-small) {
+                --font-size: 22px;
+            }
+
+            @media screen and (min-width: $breakpoint-hero-large) {
+                --font-size: min(1.9vw, 30px);
+                --font-weight: var(--font-weight-thin);
+
+                max-width: unset;
+            }
+        }
+    }
+
+    .heroChart {
+        display: flex;
+        flex-direction: row-reverse;
+        height: 320px;
+        background-color: var(--ag-grid-dark-blue);
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            width: 860px;
+            height: 416px;
+        }
+    }
+
+    .homepageFrameworks {
+        background-color: var(--bright-blue-gray);
+        padding-top: $size-2;
+        padding-bottom: $size-6;
+
+        @media screen and (min-width: 640px) {
+            padding-top: $size-6;
+        }
+    }
+
+    .frameworksInner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: $size-1;
+
+        @media screen and (min-width: 640px) {
+            flex-direction: row;
+        }
+
+        @media screen and (min-width: 1020px) {
+            gap: $size-2;
+        }
+    }
+
+    .frameworksLabel {
+        font-size: var(--font-size);
+        font-weight: var(--font-weight);
+
+        @media screen and (min-width: 1020px) {
+            --font-size: var(--font-size-extra-large);
+            --font-weight: var(--font-weight-thin);
+        }
+    }
+</style>
