@@ -8,6 +8,10 @@ export default defineMarkdocConfig({
             ...nodes.heading, // Preserve default anchor link generation
             render: component('./src/components/Heading.astro'),
         },
+        link: {
+            ...nodes.link,
+            render: component('./src/components/Link.astro'),
+        },
     },
     functions: {
         isFramework: {
