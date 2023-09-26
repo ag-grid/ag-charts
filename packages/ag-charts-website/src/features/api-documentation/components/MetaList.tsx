@@ -19,7 +19,10 @@ export function MetaList({
         <div className={styles.metaList}>
             <div title={propertyType} className={styles.metaItem}>
                 <span className={styles.metaLabel}>Type</span>
-                <span className={styles.metaValue}>{splitName(propertyType)}</span>
+                <span
+                    className={styles.metaValue}
+                    dangerouslySetInnerHTML={{ __html: splitName(propertyType)! }}
+                ></span>
             </div>
             {formattedDefaultValue != null && (
                 <div className={styles.metaItem}>
