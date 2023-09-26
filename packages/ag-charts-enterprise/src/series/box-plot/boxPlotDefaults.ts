@@ -5,7 +5,7 @@ export const BOX_PLOT_SERIES_DEFAULTS = {
     axes: [
         {
             type: CARTESIAN_AXIS_TYPES.CATEGORY,
-            position: CARTESIAN_AXIS_POSITIONS.LEFT,
+            position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
             groupPaddingInner: 0.2,
             crosshair: {
                 enabled: false,
@@ -14,7 +14,7 @@ export const BOX_PLOT_SERIES_DEFAULTS = {
         },
         {
             type: CARTESIAN_AXIS_TYPES.NUMBER,
-            position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
+            position: CARTESIAN_AXIS_POSITIONS.LEFT,
             crosshair: {
                 snap: false,
             },

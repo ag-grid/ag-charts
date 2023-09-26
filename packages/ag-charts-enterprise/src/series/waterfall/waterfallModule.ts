@@ -18,8 +18,6 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     paletteFactory: ({ takeColors, colorsCount }) => {
         const { fills, strokes } = takeColors(colorsCount);
         return {
-            fills,
-            strokes,
             item: {
                 positive: {
                     fill: fills[0],
