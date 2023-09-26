@@ -37,7 +37,9 @@ const { series } = galleryData;
                     The profesional choice for developers building enterprise applications
                 </h2>
             </div>
-            <div class="heroChart"></div>
+            <div class="heroChart">
+                <span>Hero chart</span>
+            </div>
         </div>
     </div>
 
@@ -50,10 +52,12 @@ const { series } = galleryData;
 
     <div class="homepageSeries">
         <div class="seriesInner page-margin">
-            <h2 class="text-secondary">More series than you can shake a stick at...</h2>
+            <h2 class="font-size-gargantuan text-secondary">More series than you can shake a stick at...</h2>
 
             <div class="seriesChart">
-                <div class="dummy"></div>
+                <div class="dummy">
+                    <span>Series example chart</span>
+                </div>
             </div>
 
             <div class="seriesList">
@@ -105,6 +109,29 @@ const { series } = galleryData;
                     </p>
                 </li>
             </ul>
+        </div>
+    </div>
+
+    <div class="homepageGrid">
+        <div class="gridInner page-margin">
+            <div class="gridCopy">
+                <img class="agGridLogo" src="images/AG-Grid-Logo.svg" alt="AG Grid Logo" />
+                <!-- Dummy copy, to be reviewed -->
+                <p class="font-size-large">
+                    <b>AG Charts</b> was created by the amazing team behind <a href="ag-grid.com"><b>AG Grid</b></a>,
+                    the best javascript grid in the world.
+                </p>
+                <p class="font-size-large">
+                    Designed to work seamlessly with <b>AG Grid</b>, <b>AG Charts</b> can make your data heavy applications
+                    even more beautiful and insightful. Use <b>AG Grid</b> & <b>AG Charts</b> enterprise together to get
+                    access to best
+                    <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">intergrated charting</a> available
+                    bar none.
+                </p>
+            </div>
+            <div class="gridExample">
+                <video src="videos/integrated-charts.mp4" muted autoplay loop></video>
+            </div>
         </div>
     </div>
 </Layout>
@@ -190,11 +217,13 @@ const { series } = galleryData;
 
     .heroChart {
         display: flex;
-        flex-direction: row-reverse;
+        justify-content: center;
+        align-items: center;
         height: 320px;
         background-color: var(--ag-grid-dark-blue);
-        border-top-left-radius: 4px;
-        border-top-right-radius: 4px;
+        border-radius: var(--border-radius);
+        margin-bottom: $size-6;
+        color: white;
 
         @media screen and (min-width: $breakpoint-hero-large) {
             width: 860px;
@@ -251,6 +280,7 @@ const { series } = galleryData;
             width: 100%;
             margin-bottom: $size-6 !important;
             text-align: center;
+            opacity: 0.6;
         }
     }
 
@@ -260,6 +290,9 @@ const { series } = galleryData;
     }
 
     .dummy {
+        display: flex;
+        justify-content: center;
+        align-items: center;
         aspect-ratio: 4 / 3;
         border-radius: var(--border-radius);
         background-color: var(--border-color);
@@ -301,6 +334,36 @@ const { series } = galleryData;
 
         p {
             text-align: left;
+        }
+    }
+
+    .homepageGrid {
+        padding-top: $size-7;
+        padding-bottom: $size-8;
+    }
+
+    .gridInner {
+        display: flex;
+    }
+
+    .gridCopy {
+        width: 40%;
+        padding-right: $size-4;
+    }
+
+    .agGridLogo {
+        max-width: 320px;
+        margin-left: -22px;
+    }
+
+    .gridExample {
+        width: 60%;
+
+        video {
+            margin-top: $size-8;
+            width: 100%;
+            border-radius: 4px;
+            box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.15);
         }
     }
 </style>
