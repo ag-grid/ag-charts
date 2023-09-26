@@ -1,4 +1,4 @@
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { toMatchImage } from 'ag-charts-community-test';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
 
@@ -10,3 +10,5 @@ declare module 'expect' {
 }
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
+
+jest.mock('./src/license/licenseManager');
