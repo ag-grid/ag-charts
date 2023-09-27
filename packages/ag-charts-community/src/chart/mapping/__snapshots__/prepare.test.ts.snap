@@ -8940,13 +8940,13 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "#008ec3",
       ],
       "title": {
-        "color": "rgb(70, 70, 70)",
+        "color": "rgb(140, 140, 140)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 14,
         "fontStyle": undefined,
         "fontWeight": "normal",
-        "spacing": 0,
+        "spacing": 5,
         "text": "Annual Count",
       },
       "tooltip": {
@@ -9449,13 +9449,13 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "#008ec3",
       ],
       "title": {
-        "color": "rgb(70, 70, 70)",
+        "color": "rgb(140, 140, 140)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 14,
         "fontStyle": undefined,
         "fontWeight": "normal",
-        "spacing": 0,
+        "spacing": 5,
       },
       "tooltip": {
         "enabled": true,
