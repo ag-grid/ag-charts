@@ -1,0 +1,56 @@
+---
+import { InternalFramework } from '@ag-grid-types';
+import { getExampleUrl } from '@features/docs/utils/urlPaths';
+import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
+import type { ExampleType } from '@features/examples-generator/types';
+import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
+
+interface Props {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}
+
+const { internalFramework, pageName, exampleName } = Astro.props;
+
+const id = `example-${exampleName}`;
+const exampleUrl = getExampleUrl({
+    internalFramework,
+    pageName,
+    exampleName,
+});
+const exampleType: ExampleType = 'generated';
+const generatedContents = await getGeneratedDocsContents({
+    internalFramework,
+    pageName,
+    exampleName,
+});
+const exampleFiles = generatedContents?.files;
+const initialSelectedFile = exampleFiles?.entryFileName;
+---
+
+<div class="container">
+    <ExampleRunner
+        client:load
+        id={id}
+        exampleUrl={exampleUrl}
+        exampleType={exampleType}
+        exampleFiles={exampleFiles}
+        initialSelectedFile={initialSelectedFile}
+        internalFramework={internalFramework}
+    />
+</div>
+
+<style lang="scss">
+    .container {
+        width: 100%;
+        position: relative;
+
+        :global(.logomark) {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(2);
+        }
+    }
+</style>

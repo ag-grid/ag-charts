@@ -5,6 +5,7 @@ import { FrameworkSelector } from '../components/framework-selector/FrameworkSel
 import { Icon, IconName } from '@components/icon/Icon';
 import Code from '@components/Code';
 import type { GalleryData, GalleryExampleChartType } from '@ag-grid-types';
+import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
 
 const frameworksData = [
     {
@@ -49,6 +50,10 @@ agCharts.AgChart.create(options);`;
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
+
+const heroInternalFramework = 'vanilla';
+const heroDocsPageName = 'bar-series';
+const heroDocsExampleName = 'simple-bar';
 ---
 
 <Layout>
@@ -61,7 +66,11 @@ const { series } = galleryData;
                 </h2>
             </div>
             <div class="heroChart">
-                <span>Hero chart</span>
+                <HomepageExampleRunner
+                    internalFramework={heroInternalFramework}
+                    pageName={heroDocsPageName}
+                    exampleName={heroDocsExampleName}
+                />
             </div>
         </div>
     </div>
