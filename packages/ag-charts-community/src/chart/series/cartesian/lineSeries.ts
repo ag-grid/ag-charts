@@ -733,7 +733,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 from: 0,
                 to: 1,
                 duration,
-                throttleId: this.id,
+                shortCircuitId: this.id,
                 onUpdate: (ratio) => {
                     linePath.clear({ trackChanges: true });
 

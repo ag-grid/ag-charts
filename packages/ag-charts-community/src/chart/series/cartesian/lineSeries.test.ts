@@ -256,7 +256,9 @@ describe('LineSeries', () => {
         }
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`should animate with throttling when run again before it finishes at ${ratio * 100}%`, async () => {
+            it(`should animate with short-circuiting when run again before it finishes at ${
+                ratio * 100
+            }%`, async () => {
                 spyOnAnimationManager(1000, 1);
                 prepareTestOptions(options);
                 chart = AgChart.create(options) as Chart;
