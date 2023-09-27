@@ -6,6 +6,7 @@ import { ERROR_BARS_THEME } from './errorBarTheme';
 
 const {
     mergeDefaults,
+    valueProperty,
     ChartAxisDirection,
     Validate,
     NUMBER,
@@ -107,6 +108,12 @@ export class ErrorBars
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
         this.destroyFns.push(
+            this.cartesianSeries.addListener(
+                'processData-prerequest',
+                (event: _ModuleSupport.SeriesPrerequestDataEvent) => this.onPrerequestData(event)
+            )
+        );
+        this.destroyFns.push(
             this.cartesianSeries.addListener('data-model', (event: _ModuleSupport.SeriesDataEvent) =>
                 this.onDataProcessed(event)
             )
@@ -116,6 +123,25 @@ export class ErrorBars
                 this.onToggleSeriesItem(event)
             )
         );
+    }
+
+    onPrerequestData(event: {
+        props: _ModuleSupport.PropertyDefinition<string>[];
+        isContinuousX: boolean;
+        isContinuousY: boolean;
+    }) {
+        const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        const { isContinuousX, isContinuousY } = event;
+        event.props.push(
+            valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: 'yValue' }),
+            valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: 'yValue' })
+        );
+        if (xLowerKey !== undefined && xUpperKey !== undefined) {
+            event.props.push(
+                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: 'xValue' }),
+                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: 'xValue' })
+            );
+        }
     }
 
     onDataProcessed(event: {

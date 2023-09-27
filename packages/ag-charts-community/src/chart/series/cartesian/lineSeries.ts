@@ -150,6 +150,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             props.push(diff(this.processedData));
         }
 
+        this.dispatch('processData-prerequest', { props, isContinuousX, isContinuousY });
         const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
             props,
             dataVisible: this.visible,
