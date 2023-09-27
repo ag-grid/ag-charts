@@ -16,6 +16,7 @@ Prerequisites:
 | `nx run lint -c fix`       | Fix all auto-fixable ESLint errors                                       |
 | `nx test`                  | Run all tests                                                            |
 | `nx format --all`          | Reformat all packages with prettier                                      |
+| `nx blt`                   | Run all `build`, `lint`, `format` and `test` targets                     |
 | `nx reset`                 | Clear the NX cache                                                       |
 | `nx run-many -t build-tsc` | Run alternative `tsc` compile (provides more complete compile reporting) |
 
