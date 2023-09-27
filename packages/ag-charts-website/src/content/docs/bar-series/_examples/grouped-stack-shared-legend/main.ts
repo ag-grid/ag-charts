@@ -2,18 +2,12 @@ import { AgChart, AgChartOptions } from "ag-charts-community"
 import { getData } from "./data"
 
 const options: AgChartOptions = {
-  theme: {
-    palette: {
-      fills: ["#f3622d", "#fba71b", "#57b757", "#41a9c9"],
-      strokes: ["#aa4520", "#b07513", "#3d803d", "#2d768d"],
-    },
-  },
   container: document.getElementById("myChart"),
   title: {
     text: "Apple's Revenue by Product Category",
   },
   subtitle: {
-    text: "in billion U.S. dollars",
+    text: "In Billion U.S. Dollars",
   },
   data: getData(),
   series: [
@@ -24,7 +18,6 @@ const options: AgChartOptions = {
       yName: "Q1 - North America",
       legendItemName: "Q1",
       stackGroup: "na",
-      fill: "#f3622d",
     },
     {
       type: "bar",
@@ -33,7 +26,6 @@ const options: AgChartOptions = {
       yName: "Q2 - North America",
       legendItemName: "Q2",
       stackGroup: "na",
-      fill: "#fba71b",
     },
     {
       type: "bar",
@@ -42,7 +34,6 @@ const options: AgChartOptions = {
       yName: "Q3 - North America",
       legendItemName: "Q3",
       stackGroup: "na",
-      fill: "#57b757",
     },
     {
       type: "bar",
@@ -51,7 +42,6 @@ const options: AgChartOptions = {
       yName: "Q4 - North America",
       legendItemName: "Q4",
       stackGroup: "na",
-      fill: "#41a9c9",
     },
     {
       type: "bar",
