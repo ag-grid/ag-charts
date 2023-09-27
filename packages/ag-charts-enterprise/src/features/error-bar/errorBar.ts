@@ -114,8 +114,8 @@ export class ErrorBars
             )
         );
         this.destroyFns.push(
-            this.cartesianSeries.addListener('data-model', (event: _ModuleSupport.SeriesDataEvent) =>
-                this.onDataProcessed(event)
+            this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>
+                this.onDataUpdate(event)
             )
         );
         this.destroyFns.push(
@@ -144,7 +144,7 @@ export class ErrorBars
         }
     }
 
-    onDataProcessed(event: {
+    onDataUpdate(event: {
         dataModel: _ModuleSupport.DataModel<any, any, any>;
         processedData: _ModuleSupport.ProcessedData<any>;
     }) {

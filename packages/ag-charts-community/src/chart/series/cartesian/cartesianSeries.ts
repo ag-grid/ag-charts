@@ -281,7 +281,7 @@ export abstract class CartesianSeries<
 
             const { dataModel, processedData } = this;
             if (dataModel !== undefined && processedData !== undefined) {
-                this.dispatch('data-model', { dataModel, processedData });
+                this.dispatch('data-update', { dataModel, processedData });
             }
         }
 
