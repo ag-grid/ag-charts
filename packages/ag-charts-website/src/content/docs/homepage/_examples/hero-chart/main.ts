@@ -4,7 +4,7 @@ import { getData } from "./data";
 const options: AgChartOptions = {
   container: document.getElementById('myChart'),
   title: {
-    text: "Apple's Revenue by Product Category",
+    text: "TODO: Find better hero chart",
   },
   subtitle: {
     text: 'in billion U.S. dollars',
