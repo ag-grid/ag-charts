@@ -15,6 +15,7 @@ interface AdditionalAnimationOptions {
     id?: string;
     disableInteractions?: boolean;
     immutable?: boolean;
+    shortCircuitId?: string;
 }
 
 /**
@@ -23,6 +24,7 @@ interface AdditionalAnimationOptions {
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
     private readonly controllers: Map<string, IAnimation<any>> = new Map();
+    private readonly shortCircuits: Map<string, number> = new Map();
     private readonly debug = Debug.create(true, 'animation');
 
     private isPlaying = false;
@@ -52,6 +54,18 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
 
         const id = opts.id ?? Math.random().toString();
+
+        if (opts.shortCircuitId) {
+            const shortCircuitTime = this.shortCircuits.get(opts.shortCircuitId);
+            const isShortCircuited = shortCircuitTime && opts.duration && Date.now() - shortCircuitTime < opts.duration;
+
+            if (isShortCircuited) {
+                opts.delay = 0;
+                opts.duration = 1;
+            }
+
+            this.shortCircuits.set(opts.shortCircuitId, Date.now());
+        }
 
         return new Animation({
             ...opts,
