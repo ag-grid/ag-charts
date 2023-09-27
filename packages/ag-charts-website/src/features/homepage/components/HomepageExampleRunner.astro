@@ -1,8 +1,7 @@
 ---
 import { InternalFramework } from '@ag-grid-types';
 import { getExampleUrl } from '@features/docs/utils/urlPaths';
-import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
-import type { ExampleType } from '@features/examples-generator/types';
+import FrameworkTemplate from '@features/example-runner/components/FrameworkTemplate.astro';
 import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
 
 interface Props {
@@ -19,31 +18,27 @@ const exampleUrl = getExampleUrl({
     pageName,
     exampleName,
 });
-const exampleType: ExampleType = 'generated';
 const generatedContents = await getGeneratedDocsContents({
     internalFramework,
     pageName,
     exampleName,
 });
-const exampleFiles = generatedContents?.files;
-const initialSelectedFile = exampleFiles?.entryFileName;
 ---
 
 <div class="container">
-    <ExampleRunner
-        client:load
-        id={id}
-        exampleUrl={exampleUrl}
-        exampleType={exampleType}
-        exampleFiles={exampleFiles}
-        initialSelectedFile={initialSelectedFile}
+    <FrameworkTemplate
         internalFramework={internalFramework}
+        pageName={pageName}
+        exampleName={exampleName}
+        exampleUrl={exampleUrl}
+        generatedContents={generatedContents!}
     />
 </div>
 
 <style lang="scss">
     .container {
         width: 100%;
+        height: 100%;
         position: relative;
 
         :global(.logomark) {
