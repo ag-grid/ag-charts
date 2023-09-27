@@ -17,25 +17,8 @@ const options: AgChartOptions = {
   data: getData().sort(function (a: any, b: any) {
     return getTotal(b) - getTotal(a)
   }),
-  theme: {
-    overrides: {
-      bar: {
-        series: {
-          strokeWidth: 0,
-          highlightStyle: {
-            series: {
-              strokeWidth: 1,
-              dimOpacity: 0.3,
-            },
-          },
-        },
-      },
-    },
-  },
   title: {
     text: "UK Housing Stock",
-    fontSize: 18,
-    spacing: 25,
   },
   footnote: {
     text: "Source: Ministry of Housing, Communities & Local Government",
@@ -87,4 +70,4 @@ const options: AgChartOptions = {
   ],
 }
 
-const chart = AgChart.create(options)
+AgChart.create(options)

@@ -7,7 +7,7 @@ const options: AgChartOptions = {
     text: "Apple's revenue by product category",
   },
   subtitle: {
-    text: 'in billion U.S. dollars',
+    text: 'In Billion U.S. Dollars',
   },
   data: getData(),
   series: [
