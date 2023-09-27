@@ -3,6 +3,7 @@ import { NORMAL } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
+    DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -26,8 +27,8 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
             fontWeight: NORMAL,
             fontSize: 14,
             fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
-            spacing: 0,
+            color: DEFAULT_MUTED_LABEL_COLOUR,
+            spacing: 5,
         },
         calloutLabel: {
             enabled: true,
