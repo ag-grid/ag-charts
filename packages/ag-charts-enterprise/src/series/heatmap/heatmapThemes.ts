@@ -9,7 +9,6 @@ export const HEATMAP_SERIES_THEME = {
     xName: '',
     yName: '',
     labelName: 'Label',
-    colorRange: ['red', 'blue'],
     label: {
         enabled: false,
         fontStyle: undefined,

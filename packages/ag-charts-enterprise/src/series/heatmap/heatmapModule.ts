@@ -14,4 +14,14 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     instanceConstructor: HeatmapSeries,
     seriesDefaults: HEATMAP_DEFAULTS,
     themeTemplate: HEATMAP_SERIES_THEME,
+    paletteFactory: ({ takeColors, colorsCount }) => {
+        const { fills, strokes } = takeColors(colorsCount);
+        return {
+            stroke: strokes[0],
+            fill: fills[0],
+            strokes,
+            fills,
+            colorRange: [fills[0], fills[Math.round(colorsCount / 2)]],
+        };
+    },
 };
