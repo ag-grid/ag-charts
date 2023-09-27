@@ -227,7 +227,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const text = labelKey ? String(values[labelDataIdx]) : '';
+            const text = labelKey ? String(values[labelDataIdx]) : colorKey ? String(values[colorDataIdx]) : '';
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
@@ -349,8 +349,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         labelSelection: _Scene.Selection<_Scene.Text, HeatmapNodeDatum>;
     }) {
         const { labelData, labelSelection } = opts;
+        const { labelKey } = this;
         const { enabled } = this.label;
-        const data = enabled ? labelData : [];
+        const data = enabled || labelKey ? labelData : [];
 
         return labelSelection.update(data);
     }
