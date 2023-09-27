@@ -15,6 +15,7 @@ interface AdditionalAnimationOptions {
     id?: string;
     disableInteractions?: boolean;
     immutable?: boolean;
+    throttleId?: string;
 }
 
 /**
@@ -23,6 +24,7 @@ interface AdditionalAnimationOptions {
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
     private readonly controllers: Map<string, IAnimation<any>> = new Map();
+    private readonly throttles: Map<string, number> = new Map();
     private readonly debug = Debug.create(true, 'animation');
 
     private isPlaying = false;
@@ -52,6 +54,18 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
 
         const id = opts.id ?? Math.random().toString();
+
+        if (opts.throttleId) {
+            const throttleTime = this.throttles.get(opts.throttleId);
+            const isThrottled = throttleTime && opts.duration && Date.now() - throttleTime < opts.duration;
+
+            if (isThrottled) {
+                opts.delay = 0;
+                opts.duration = 1;
+            }
+
+            this.throttles.set(opts.throttleId, Date.now());
+        }
 
         return new Animation({
             ...opts,
