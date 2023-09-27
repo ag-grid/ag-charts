@@ -166,6 +166,9 @@ export class PolarChart extends Chart {
         let padRight = Math.max(0, labelsBox.x + labelsBox.width - circleRight);
         let padBottom = Math.max(0, labelsBox.y + labelsBox.height - circleBottom);
 
+        padLeft = padRight = Math.max(padLeft, padRight);
+        padTop = padBottom = Math.max(padTop, padBottom);
+
         // Available area for the circle (after the padding will be applied)
         const availCircleWidth = seriesBox.width - padLeft - padRight;
         const availCircleHeight = seriesBox.height - padTop - padBottom;
