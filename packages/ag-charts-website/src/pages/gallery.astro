@@ -40,17 +40,14 @@ const { series } = galleryData;
                     <div class="chart-type">
                         <h3 id={series.name}>
                             <span>{series.title} Charts</span>
-
                             {series.enterprise && (
                                 <span class="enterpriseIcon">
                                     <Icon client:only name="enterprise" />
                                 </span>
                             )}
 
-                            <a
-                                class="font-size-small"
-                                href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}
-                            >
+                            {/* [[TODO]] make series type docs links respect selected framework */}
+                            <a class="font-size-small" href={`./javascript/${series.name}-series/`}>
                                 View {series.title} Series Documentation
                                 <span class="arrow-icon">
                                     <Icon client:only name="arrowRight" />
