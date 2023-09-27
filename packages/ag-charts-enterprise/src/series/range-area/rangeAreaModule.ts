@@ -16,16 +16,11 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     themeTemplate: RANGE_AREA_SERIES_THEME,
 
     paletteFactory: (params) => {
-        const {
-            marker: { fill, stroke },
-        } = markerPaletteFactory(params);
+        const { marker } = markerPaletteFactory(params);
         return {
-            fill,
-            stroke,
-            marker: {
-                fill: _Theme.DEFAULT_BACKGROUND_COLOUR,
-                stroke,
-            },
+            fill: marker.fill,
+            stroke: marker.stroke,
+            marker,
         };
     },
 };

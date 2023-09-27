@@ -113,9 +113,68 @@ describe('transformPlainEntryFile', () => {
         `);
     });
 
+    test('Remove axes titles', () => {
+        expect(
+            getChartsOptionsPlainEntryFile({
+                axes: [
+                    {
+                        type: 'category',
+                        position: 'bottom',
+                        title: {
+                            text: 'CATEGORY AXIS TITLE',
+                        },
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        title: {
+                            text: 'NUMBER AXIS TITLE',
+                        },
+                    },
+                ],
+            }).code
+        ).toMatchInlineSnapshot(`
+        "const options = {
+          axes: [
+            {
+              type: 'category',
+              position: 'bottom',
+              title: {
+                enabled: false
+              }
+            },
+            {
+              type: 'number',
+              position: 'left',
+              title: {
+                enabled: false
+              }
+            }
+          ],
+
+          legend: {
+            enabled: false
+          },
+
+          padding: {
+            top: 10,
+            right: 20,
+            bottom: 10,
+            left: 20
+          }
+        };
+        var chart = agCharts.AgChart.create(options);"
+      `);
+    });
+
     test('Adjust padding', () => {
         expect(
             getChartsOptionsPlainEntryFile({
+                seriesArea: {
+                    padding: {
+                        left: 40,
+                    },
+                },
                 padding: {
                     top: 10,
                     right: 20,
@@ -125,6 +184,8 @@ describe('transformPlainEntryFile', () => {
             }).code
         ).toMatchInlineSnapshot(`
           "const options = {
+            seriesArea: { padding: { left: 40 } },
+
             legend: {
               enabled: false
             },

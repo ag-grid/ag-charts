@@ -20,7 +20,7 @@ function transformer(sourceFile: string, dataFile?: string) {
         .find(j.ObjectExpression);
 
     // Find and remove properties in the 'options' object
-    const propertiesToRemove = ['subtitle', 'footnote', 'legend', 'padding'];
+    const propertiesToRemove = ['subtitle', 'footnote', 'legend'];
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
             removePropertyKeys: propertiesToRemove,
@@ -35,8 +35,38 @@ function transformer(sourceFile: string, dataFile?: string) {
         j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
     );
 
-    const optionsExpressionProperties = optionsExpression.get(0).node.properties;
+    const optionsNode = optionsExpression.get(0).node;
+    optionsNode.properties = optionsNode.properties.filter((property: any) => property.key?.name !== 'padding');
+    const optionsExpressionProperties = optionsNode.properties;
     optionsExpressionProperties.push(legendPropertyNode);
+
+    // Axes
+    optionsExpression
+        .find(j.Property, {
+            key: {
+                name: 'axes',
+            },
+        })
+        .find(j.ObjectExpression)
+        .forEach((path) => {
+            const propertiesNode = path.node;
+
+            // Remove axis title
+            const title = propertiesNode.properties.find((prop) => prop.key.name === 'title');
+            if (title) {
+                propertiesNode.properties = filterPropertyKeys({
+                    removePropertyKeys: ['title'],
+                    properties: propertiesNode.properties,
+                });
+            }
+            propertiesNode.properties.push(
+                j.property(
+                    'init',
+                    j.identifier('title'),
+                    j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
+                )
+            );
+        });
 
     // Padding
     const paddingPropertyNode = j.property(

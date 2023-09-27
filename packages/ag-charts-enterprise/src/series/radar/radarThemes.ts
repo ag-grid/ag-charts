@@ -16,6 +16,6 @@ export const RADAR_SERIES_THEME = {
         shape: 'circle',
         size: 6,
         strokeOpacity: 1,
-        strokeWidth: 1,
+        strokeWidth: 0,
     },
 };

@@ -2,7 +2,6 @@ import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../util/theme';
 import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
 import {
-    DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
@@ -34,7 +33,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
             fillOpacity: 1,
             strokeOpacity: 1,
-            strokeWidth: 2,
+            strokeWidth: 0,
         },
         label: {
             enabled: false,
@@ -47,15 +46,10 @@ export const LineSeriesModule: SeriesModule<'line'> = {
         },
     },
     paletteFactory: (params) => {
-        const {
-            marker: { stroke },
-        } = markerPaletteFactory(params);
+        const { marker } = markerPaletteFactory(params);
         return {
-            stroke,
-            marker: {
-                fill: DEFAULT_BACKGROUND_COLOUR,
-                stroke,
-            },
+            stroke: marker.stroke,
+            marker,
         };
     },
 };
