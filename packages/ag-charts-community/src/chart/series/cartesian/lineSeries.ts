@@ -156,7 +156,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
         this.dataModel = dataModel;
         this.processedData = processedData;
 
-        if (processedData.reduced?.diff?.added.length > 0 && processedData.reduced?.diff?.removed.length > 0) {
+        // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
+        if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {
             this.animationTransitionClear();
         } else {
             this.animationState.transition('updateData');
@@ -732,6 +733,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 from: 0,
                 to: 1,
                 duration,
+                throttleId: this.id,
                 onUpdate: (ratio) => {
                     linePath.clear({ trackChanges: true });
 
