@@ -17,6 +17,20 @@ const options: AgChartOptions = {
   data: getData().sort(function (a: any, b: any) {
     return getTotal(b) - getTotal(a)
   }),
+  theme: {
+    overrides: {
+      bar: {
+        series: {
+          highlightStyle: {
+            series: {
+              strokeWidth: 1,
+              dimOpacity: 0.3,
+            },
+          },
+        },
+      },
+    },
+  },
   title: {
     text: "UK Housing Stock",
   },
