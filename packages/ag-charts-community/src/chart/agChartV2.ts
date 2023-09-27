@@ -346,8 +346,6 @@ abstract class AgChartInternal {
             };
         }
 
-        await chart.awaitUpdateCompletion();
-
         if (chart.destroyed) return;
 
         debug('AgChartV2.updateDelta() - applying delta', processedOptions);
