@@ -1,0 +1,61 @@
+---
+import { getEntry } from 'astro:content';
+import { Icon, IconName } from '@components/icon/Icon';
+import type { GalleryExampleChartType, GalleryData } from '@ag-grid-types';
+import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
+
+const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryData: GalleryData = galleryDataEntry?.data;
+const { series } = galleryData;
+
+const internalFramework = 'vanilla';
+---
+
+<div class="seriesChart">
+    <div class="dummy">
+        <HomepageExampleRunner internalFramework={internalFramework} pageName={'homepage'} exampleName={'simple-bar'} />
+    </div>
+</div>
+
+<div class="seriesList">
+    <ul class="list-style-none">
+        {
+            series.map((series: GalleryExampleChartType) => (
+                <li>
+                    <button class="button-secondary">
+                        <Icon name={series.icon as IconName} />
+                        <span>{series.title}</span>
+                    </button>
+                </li>
+            ))
+        }
+    </ul>
+</div>
+
+<style lang="scss">
+    @use '../../../design-system' as *;
+
+    .seriesChart {
+        width: 50%;
+        padding-right: $size-7;
+    }
+
+    .dummy {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        aspect-ratio: 4 / 3;
+        border-radius: var(--border-radius);
+        background-color: var(--border-color);
+    }
+
+    .seriesList {
+        width: 50%;
+
+        ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: $size-2;
+        }
+    }
+</style>
