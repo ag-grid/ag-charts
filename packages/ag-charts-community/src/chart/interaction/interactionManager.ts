@@ -29,7 +29,7 @@ type SUPPORTED_EVENTS =
     | 'touchcancel'
     | 'pagehide'
     | 'wheel';
-const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup', 'wheel'];
+const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'click',
     'dblclick',
@@ -41,6 +41,7 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'touchmove',
     'touchend',
     'touchcancel',
+    'wheel',
 ];
 
 export type InteractionEvent<T extends InteractionTypes> = {
@@ -102,17 +103,15 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch')) {
                 element.addEventListener(type, this.eventHandler, { passive: true });
+            } else if (type === 'wheel') {
+                element.addEventListener(type, this.eventHandler, { passive: false });
             } else {
                 element.addEventListener(type, this.eventHandler);
             }
         }
 
         for (const type of WINDOW_EVENT_HANDLERS) {
-            if (type === 'wheel') {
-                this.window.addEventListener(type, this.eventHandler, { passive: false });
-            } else {
-                this.window.addEventListener(type, this.eventHandler);
-            }
+            this.window.addEventListener(type, this.eventHandler);
         }
 
         if (InteractionManager.interactionDocuments.indexOf(document) < 0) {
