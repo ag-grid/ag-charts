@@ -1,7 +1,7 @@
 ---
 import { InternalFramework } from '@ag-grid-types';
 import { getExampleUrl } from '@features/docs/utils/urlPaths';
-import FrameworkTemplate from '@features/example-runner/components/FrameworkTemplate.astro';
+import HomepageChart from './HomepageChart.astro';
 import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
 
 interface Props {
@@ -18,20 +18,23 @@ const exampleUrl = getExampleUrl({
     pageName,
     exampleName,
 });
-const generatedContents = await getGeneratedDocsContents({
-    internalFramework,
-    pageName,
-    exampleName,
-});
+const generatedContents =
+    (await getGeneratedDocsContents({
+        internalFramework,
+        pageName,
+        exampleName,
+    })) || {};
+const { scriptFiles, styleFiles, files } = generatedContents;
+const indexFragment = files && files['index.html'];
+const appLocation = exampleUrl;
 ---
 
 <div class="container">
-    <FrameworkTemplate
-        internalFramework={internalFramework}
-        pageName={pageName}
-        exampleName={exampleName}
-        exampleUrl={exampleUrl}
-        generatedContents={generatedContents!}
+    <HomepageChart
+        scriptFiles={scriptFiles}
+        styleFiles={styleFiles}
+        indexFragment={indexFragment!}
+        appLocation={appLocation}
     />
 </div>
 

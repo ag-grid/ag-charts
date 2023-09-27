@@ -1,0 +1,25 @@
+---
+import { Styles } from '@features/example-runner/framework-templates/lib/Styles';
+import { Scripts } from '@features/example-runner/framework-templates/lib/Scripts';
+
+interface Props {
+    /**
+     * All script file names
+     */
+    scriptFiles?: string[];
+    styleFiles?: string[];
+    indexFragment: string;
+    appLocation: string;
+}
+
+const { styleFiles, scriptFiles, indexFragment, appLocation } = Astro.props as Props;
+---
+
+<Fragment set:html={indexFragment} />
+<Scripts baseUrl={appLocation} files={scriptFiles} />
+<Styles
+    baseUrl={appLocation}
+    files={styleFiles
+        ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
+        : []}
+/>

@@ -6,6 +6,9 @@ import { Icon, IconName } from '@components/icon/Icon';
 import Code from '@components/Code';
 import type { GalleryData, GalleryExampleChartType } from '@ag-grid-types';
 import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
+import { pathJoin } from '@utils/pathJoin';
+import { SITE_BASE_URL } from '@constants';
+import { getCacheBustingUrl, getChartScriptPath, getChartEnterpriseScriptPath } from '@utils/pages';
 
 const frameworksData = [
     {
@@ -54,9 +57,19 @@ const { series } = galleryData;
 const heroInternalFramework = 'vanilla';
 const heroDocsPageName = 'homepage';
 const heroDocsExampleName = 'hero-chart';
+
+const modifiedTimeMs = Date.now();
+const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
+const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
+const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
+
+const isEnterprise = true;
 ---
 
 <Layout>
+    <script src={chartScriptPath}></script>
+    {isEnterprise && <script src={chartScriptEnterprisePath} />}
+
     <div class="homepageHero">
         <div class="heroInner page-margin">
             <div class="heroHeadings">
