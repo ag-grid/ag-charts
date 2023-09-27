@@ -212,7 +212,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
-                spacing: 20,
+                spacing: 15,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 16,
@@ -223,7 +223,7 @@ export class ChartTheme {
             subtitle: {
                 enabled: false,
                 text: 'Subtitle',
-                spacing: 20,
+                spacing: 15,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
