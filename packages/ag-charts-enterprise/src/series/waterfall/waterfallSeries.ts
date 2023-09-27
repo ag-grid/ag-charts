@@ -783,24 +783,17 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, seriesItemTypes } = this;
-
         if (legendType !== 'category') {
             return [];
         }
 
+        const { id, seriesItemTypes } = this;
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
-
-        function getLegendItemText(item: SeriesItemType, name?: string): string | undefined {
-            if (name !== undefined) {
-                return name;
-            }
-            return `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
-        }
+        const getLegendItemText = (item: SeriesItemType, name?: string) =>
+            name !== undefined ? name : `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
 
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
-            const legendItemText = getLegendItemText(item, name);
             legendData.push({
                 legendType: 'category',
                 id,
@@ -808,7 +801,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
                 seriesId: id,
                 enabled: true,
                 label: {
-                    text: `${legendItemText}`,
+                    text: getLegendItemText(item, name),
                 },
                 marker: {
                     fill,

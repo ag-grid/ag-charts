@@ -98,7 +98,7 @@ export class CartesianSeriesNodeDoubleClickEvent<
 
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type CartesianAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize' | 'clear';
-class CartesianStateMachine extends StateMachine<CartesianAnimationState, CartesianAnimationEvent> {}
+
 export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any>, N extends Node = Group> {
     datumSelections: Array<NodeDataSelection<N, C>>;
     markerSelections: Array<NodeDataSelection<Marker, C>>;
@@ -140,7 +140,7 @@ export abstract class CartesianSeries<
     private readonly opts: SeriesOpts;
     private readonly debug = Debug.create();
 
-    protected animationState: CartesianStateMachine;
+    protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
     protected datumSelectionGarbageCollection = true;
     protected markerSelectionGarbageCollection = true;
 
@@ -180,7 +180,7 @@ export abstract class CartesianSeries<
 
         this.opts = opts;
 
-        this.animationState = new CartesianStateMachine('empty', {
+        this.animationState = new StateMachine('empty', {
             empty: {
                 update: {
                     target: 'ready',

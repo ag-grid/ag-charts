@@ -208,6 +208,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
     direction: 'vertical' | 'horizontal' = 'vertical';
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
+
     async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
@@ -714,30 +715,29 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
             return [];
         }
 
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
-
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } =
             this;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
-        legendData.push({
-            legendType: 'category',
-            id,
-            itemId: `${yLowKey}-${yHighKey}`,
-            seriesId: id,
-            enabled: visible,
-            label: {
-                text: `${legendItemText}`,
-            },
-            marker: {
-                fill,
-                stroke,
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-            },
-        });
 
-        return legendData;
+        return [
+            {
+                legendType: 'category',
+                id,
+                itemId: `${yLowKey}-${yHighKey}`,
+                seriesId: id,
+                enabled: visible,
+                label: {
+                    text: `${legendItemText}`,
+                },
+                marker: {
+                    fill,
+                    stroke,
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                },
+            },
+        ];
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {

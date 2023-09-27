@@ -786,16 +786,16 @@ export class Legend {
         event.consume();
 
         if (toggleSeriesVisible) {
-            const legendData: CategoryLegendDatum[] = [];
-            chartSeries.forEach((series) => {
-                legendData.push(...(series.getLegendData('category') as CategoryLegendDatum[]));
-            });
+            const numVisibleItems: Record<string, number> = {};
+            const legendData = chartSeries.flatMap((series) => series.getLegendData('category'));
 
-            const numVisibleItems: any = {};
             legendData.forEach((d) => {
                 numVisibleItems[d.seriesId] ??= 0;
-                if (d.enabled) numVisibleItems[d.seriesId]++;
+                if (d.enabled) {
+                    numVisibleItems[d.seriesId]++;
+                }
             });
+
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
             this.ctx.chartEventManager.legendItemDoubleClick(

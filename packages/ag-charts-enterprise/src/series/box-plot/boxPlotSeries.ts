@@ -337,7 +337,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return [context];
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const {
             id,
             data,
@@ -357,20 +357,20 @@ export class BoxPlotSeries extends CartesianSeries<
             return [];
         }
 
-        const categoryLegend: _ModuleSupport.CategoryLegendDatum = {
-            legendType: 'category',
-            id,
-            itemId: id,
-            seriesId: id,
-            enabled: visible,
-            label: {
-                text: legendItemName ?? yName ?? id,
+        return [
+            {
+                legendType: 'category',
+                id,
+                itemId: id,
+                seriesId: id,
+                enabled: visible,
+                label: {
+                    text: legendItemName ?? yName ?? id,
+                },
+                legendItemName,
+                marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth },
             },
-            legendItemName,
-            marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth },
-        };
-
-        return [categoryLegend];
+        ];
     }
 
     protected getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<any> {

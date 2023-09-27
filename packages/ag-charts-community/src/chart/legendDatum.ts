@@ -12,14 +12,19 @@ export interface ChartLegend {
 }
 
 export type ChartLegendType = 'category' | 'gradient';
+export type ChartLegendDatum<T extends ChartLegendType> = T extends 'category'
+    ? CategoryLegendDatum
+    : T extends 'gradient'
+    ? GradientLegendDatum
+    : never;
 
-export interface ChartLegendDatum {
+export interface BaseChartLegendDatum {
     legendType: ChartLegendType;
     seriesId: string;
     enabled: boolean;
 }
 
-export interface CategoryLegendDatum extends ChartLegendDatum {
+export interface CategoryLegendDatum extends BaseChartLegendDatum {
     legendType: 'category';
     id: string; // component ID
     itemId: any; // sub-component ID
@@ -36,6 +41,15 @@ export interface CategoryLegendDatum extends ChartLegendDatum {
     label: {
         text: string; // display name for the sub-component
     };
+}
+
+export interface GradientLegendDatum extends BaseChartLegendDatum {
+    legendType: 'gradient';
+    enabled: boolean;
+    seriesId: string;
+    colorName?: string;
+    colorDomain: number[];
+    colorRange: string[];
 }
 
 /**

@@ -1,64 +1,64 @@
-import { Scene } from '../scene/scene';
-import { Group } from '../scene/group';
-import { Text } from '../scene/shape/text';
-import { Debug } from '../util/debug';
-import type { PickRequired } from '../util/types';
-import type { Series, SeriesNodeDatum } from './series/series';
-import { SeriesNodePickMode } from './series/series';
-import { Padding } from '../util/padding';
-
-import { BBox } from '../scene/bbox';
-import { SizeMonitor } from '../util/sizeMonitor';
-import type { Caption } from './caption';
-import type { TypedEvent } from '../util/observable';
-import { Observable } from '../util/observable';
-import type { ChartAxis } from './chartAxis';
-import type { ChartAxisDirection } from './chartAxisDirection';
-import { createId } from '../util/id';
-import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
-import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
+import type { ModuleInstance } from '../module/baseModule';
+import type { LegendModule, RootModule } from '../module/coreModules';
+import type { Module } from '../module/module';
+import type { ModuleContext } from '../module/moduleContext';
 import type {
-    AgChartOptions,
     AgChartClickEvent,
     AgChartDoubleClickEvent,
     AgChartInstance,
+    AgChartOptions,
 } from '../options/agChartOptions';
-import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
+
+import { BBox } from '../scene/bbox';
+import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
-import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
+import { Scene } from '../scene/scene';
+import { Text } from '../scene/shape/text';
 import { sleep } from '../util/async';
-import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
-import { Tooltip } from './tooltip/tooltip';
-import { ChartOverlays } from './overlay/chartOverlays';
+import { CallbackCache } from '../util/callbackCache';
+import { Debug } from '../util/debug';
+import { createId } from '../util/id';
 import { jsonMerge } from '../util/json';
-import { Layers } from './layers';
+import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
+import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
+import { Logger } from '../util/logger';
+import type { TypedEvent } from '../util/observable';
+import { Observable } from '../util/observable';
+import { Padding } from '../util/padding';
+import { ActionOnSet } from '../util/proxy';
+import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
+import { SizeMonitor } from '../util/sizeMonitor';
+import type { PickRequired } from '../util/types';
+import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
+import type { Caption } from './caption';
+import type { ChartAxis } from './chartAxis';
+import type { ChartAxisDirection } from './chartAxisDirection';
+import { ChartHighlight } from './chartHighlight';
+import { ChartUpdateType } from './chartUpdateType';
+import { DataController } from './data/dataController';
+import { DataService } from './dataService';
 import { AnimationManager } from './interaction/animationManager';
-import { CursorManager } from './interaction/cursorManager';
 import { ChartEventManager } from './interaction/chartEventManager';
+import { CursorManager } from './interaction/cursorManager';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
+import { Layers } from './layers';
 import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
-import { DataService } from './dataService';
-import { UpdateService } from './updateService';
-import { ChartUpdateType } from './chartUpdateType';
-import type { CategoryLegendDatum, ChartLegendDatum, ChartLegend, ChartLegendType } from './legendDatum';
-import { Logger } from '../util/logger';
-import { ActionOnSet } from '../util/proxy';
-import { ChartHighlight } from './chartHighlight';
-import { CallbackCache } from '../util/callbackCache';
-import { DataController } from './data/dataController';
-import { SeriesStateManager } from './series/seriesStateManager';
-import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesOptionsTypes } from './mapping/types';
 import { Legend } from './legend';
-import type { Module } from '../module/module';
-import type { ModuleContext } from '../module/moduleContext';
-import type { LegendModule, RootModule } from '../module/coreModules';
-import type { ModuleInstance } from '../module/baseModule';
+import type { CategoryLegendDatum, ChartLegend, ChartLegendType } from './legendDatum';
+import type { SeriesOptionsTypes } from './mapping/types';
+import { ChartOverlays } from './overlay/chartOverlays';
+import type { Series, SeriesNodeDatum } from './series/series';
+import { SeriesNodePickMode } from './series/series';
+import { SeriesLayerManager } from './series/seriesLayerManager';
+import { SeriesStateManager } from './series/seriesStateManager';
+import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
+import { Tooltip } from './tooltip/tooltip';
+import { UpdateService } from './updateService';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
@@ -369,7 +369,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const moduleInstance = new module.instanceConstructor(this.getModuleContext());
         this.modules[module.optionsKey] = { instance: moduleInstance };
-
         (this as any)[module.optionsKey] = moduleInstance;
     }
 
@@ -909,23 +908,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private async updateLegend() {
         this.legends.forEach((legend, legendType) => {
-            const legendData: ChartLegendDatum[] = [];
-            this.series
-                .filter((s) => s.showInLegend)
-                .forEach((series) => {
-                    const data = series.getLegendData(legendType);
-                    legendData.push(...data);
-                });
+            const isCategory = (_data: unknown): _data is CategoryLegendDatum[] => legendType === 'category';
+            const legendData = this.series.filter((s) => s.showInLegend).flatMap((s) => s.getLegendData(legendType));
 
-            if (legendType === 'category') {
-                this.validateLegendData(legendData);
+            if (isCategory(legendData)) {
+                this.validateCategoryLegendData(legendData);
             }
 
             legend.data = legendData;
         });
     }
 
-    protected validateLegendData(legendData: ChartLegendDatum[]) {
+    protected validateCategoryLegendData(legendData: CategoryLegendDatum[]) {
         // Validate each series that shares a legend item label uses the same fill colour
         const labelMarkerFills: { [key: string]: { [key: string]: Set<string> } } = {};
 
@@ -933,24 +927,22 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const seriesType = this.series.find((s) => s.id === d.seriesId)?.type;
             if (!seriesType) return;
 
-            const dc = d as CategoryLegendDatum;
-            labelMarkerFills[seriesType] ??= { [dc.label.text]: new Set() };
-            labelMarkerFills[seriesType][dc.label.text] ??= new Set();
-            if (dc.marker.fill != null) {
-                labelMarkerFills[seriesType][dc.label.text].add(dc.marker.fill);
+            labelMarkerFills[seriesType] ??= {};
+            labelMarkerFills[seriesType][d.label.text] ??= new Set();
+            if (d.marker.fill != null) {
+                labelMarkerFills[seriesType][d.label.text].add(d.marker.fill);
             }
         });
 
-        Object.keys(labelMarkerFills).forEach((seriesType) => {
-            Object.keys(labelMarkerFills[seriesType]).forEach((name) => {
-                const fills = labelMarkerFills[seriesType][name];
+        for (const seriesMarkers of Object.values(labelMarkerFills)) {
+            for (const [name, fills] of Object.entries(seriesMarkers)) {
                 if (fills.size > 1) {
                     Logger.warnOnce(
                         `legend item '${name}' has multiple fill colors, this may cause unexpected behaviour.`
                     );
                 }
-            });
-        });
+            }
+        }
     }
 
     protected async performLayout() {

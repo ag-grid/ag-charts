@@ -655,30 +655,29 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
             return [];
         }
 
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
-
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } =
             this;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
-        legendData.push({
-            legendType: 'category',
-            id,
-            itemId: `${yLowKey}-${yHighKey}`,
-            seriesId: id,
-            enabled: visible,
-            label: {
-                text: `${legendItemText}`,
-            },
-            marker: {
-                fill,
-                stroke,
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-            },
-        });
 
-        return legendData;
+        return [
+            {
+                legendType: 'category',
+                id,
+                itemId: `${yLowKey}-${yHighKey}`,
+                seriesId: id,
+                enabled: visible,
+                label: {
+                    text: `${legendItemText}`,
+                },
+                marker: {
+                    fill,
+                    stroke,
+                    fillOpacity,
+                    strokeOpacity,
+                    strokeWidth,
+                },
+            },
+        ];
     }
 
     animateEmptyUpdateReady({
@@ -777,5 +776,5 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         return this.label.enabled;
     }
 
-    protected onDataChange() {}
+    onDataChange() {}
 }

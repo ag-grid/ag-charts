@@ -18,6 +18,7 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     PolarAxis,
+    StateMachine,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
@@ -81,10 +82,6 @@ class RadialColumnSeriesLabel extends _Scene.Label {
 
 type RadialColumnAnimationState = 'empty' | 'ready';
 type RadialColumnAnimationEvent = 'update' | 'resize';
-class RadialColumnStateMachine extends _ModuleSupport.StateMachine<
-    RadialColumnAnimationState,
-    RadialColumnAnimationEvent
-> {}
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Path
@@ -95,7 +92,7 @@ export abstract class RadialColumnSeriesBase<
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialColumnNodeDatum>;
     protected highlightSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
-    protected animationState: RadialColumnStateMachine;
+    protected animationState: _ModuleSupport.StateMachine<RadialColumnAnimationState, RadialColumnAnimationEvent>;
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 
@@ -166,7 +163,7 @@ export abstract class RadialColumnSeriesBase<
 
         this.highlightSelection = this.createPathSelection(this.highlightGroup);
 
-        this.animationState = new RadialColumnStateMachine('empty', {
+        this.animationState = new StateMachine('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -630,14 +627,14 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, data, angleKey, radiusKey, radiusName, visible } = this;
 
         if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {
             return [];
         }
 
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [
+        return [
             {
                 legendType: 'category',
                 id,
@@ -656,7 +653,6 @@ export abstract class RadialColumnSeriesBase<
                 },
             },
         ];
-        return legendData;
     }
 
     onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
