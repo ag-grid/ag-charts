@@ -27,6 +27,7 @@ import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
+import type { DataModelOptions } from '../../data/dataModel';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly label: MeasuredLabel;
@@ -119,17 +120,20 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
+        const props: DataModelOptions<any, false>['props'] = [
+            keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
+            keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
+            ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
+            valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
+            valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
+            ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
+            ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
+            ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
+        ];
+
+        this.dispatch('processData-prerequest', { props, isContinuousX, isContinuousY });
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
-            props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
-                keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
-                valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
-            ],
+            props,
             dataVisible: this.visible,
         });
         this.dataModel = dataModel;
