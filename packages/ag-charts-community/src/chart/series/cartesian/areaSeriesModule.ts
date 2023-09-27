@@ -2,7 +2,6 @@ import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../util/theme';
 import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
 import {
-    DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
@@ -46,7 +45,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             enabled: false,
             fillOpacity: 1,
             strokeOpacity: 1,
-            strokeWidth: 2,
+            strokeWidth: 0,
         },
         label: {
             enabled: false,
@@ -59,16 +58,11 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
         },
     },
     paletteFactory: (params) => {
-        const {
-            marker: { fill, stroke },
-        } = markerPaletteFactory(params);
+        const { marker } = markerPaletteFactory(params);
         return {
-            fill,
-            stroke,
-            marker: {
-                fill: DEFAULT_BACKGROUND_COLOUR,
-                stroke,
-            },
+            fill: marker.fill,
+            stroke: marker.stroke,
+            marker,
         };
     },
 };
