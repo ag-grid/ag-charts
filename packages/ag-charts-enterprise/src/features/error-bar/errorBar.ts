@@ -88,7 +88,11 @@ export class ErrorBars
         this.cartesianSeries = ctx.series as _ModuleSupport.CartesianSeries<any, any>;
         const { contentGroup } = this.cartesianSeries;
 
-        this.groupNode = new _Scene.Group({ name: `${contentGroup.id}-series-errorBars` });
+        this.groupNode = new _Scene.Group({
+            name: `${contentGroup.id}-series-errorBars`,
+            zIndex: _ModuleSupport.Layers.SERIES_ERRORBAR_ZINDEX,
+            zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('error-bars'),
+        });
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 

@@ -69,6 +69,15 @@ export type SeriesNodePickMatch = {
     distance: number;
 };
 
+export type SeriesGroupZIndexSubOrderType =
+    | 'data'
+    | 'labels'
+    | 'highlight'
+    | 'path'
+    | 'marker'
+    | 'paths'
+    | 'error-bars';
+
 function basicContinuousCheckDatumValidation(v: any) {
     return checkDatum(v, true) != null;
 }
@@ -477,10 +486,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
     }
 
-    getGroupZIndexSubOrder(
-        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
-        subIndex = 0
-    ): ZIndexSubOrder {
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         let mainAdjust = 0;
         switch (type) {
             case 'data':
@@ -488,6 +494,9 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
                 break;
             case 'labels':
                 mainAdjust += 20000;
+                break;
+            case 'error-bars':
+                mainAdjust += 15000;
                 break;
             case 'marker':
                 mainAdjust += 10000;
