@@ -4,23 +4,33 @@ import type { ErrorBarPoints, ErrorBarNodeProperties } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
-const { mergeDefaults, ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
+const {
+    mergeDefaults,
+    ChartAxisDirection,
+    Validate,
+    NUMBER,
+    STRING,
+    OPT_BOOLEAN,
+    OPT_COLOR_STRING,
+    OPT_NUMBER,
+    OPT_STRING,
+} = _ModuleSupport;
 const { Logger } = _Util;
-type AnyScale = _Scale.Scale<any, any, any>;
 
+type AnyScale = _Scale.Scale<any, any, any>;
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
 
 class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
-    @Validate(BOOLEAN)
+    @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(OPT_COLOR_STRING)
     stroke?: string = undefined;
 
-    @Validate(NUMBER(1))
+    @Validate(OPT_NUMBER(1))
     strokeWidth?: number = undefined;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = undefined;
 
     @Validate(NUMBER(0, 1))
@@ -31,13 +41,13 @@ export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, OptionalErrorBarNodeProperties
 {
-    @Validate(OPT_STRING)
+    @Validate(STRING)
     yLowerKey: string = '';
 
     @Validate(OPT_STRING)
     yLowerName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING)
     yUpperKey: string = '';
 
     @Validate(OPT_STRING)
@@ -55,16 +65,16 @@ export class ErrorBars
     @Validate(OPT_STRING)
     xUpperName?: string = undefined;
 
-    @Validate(BOOLEAN)
+    @Validate(OPT_BOOLEAN)
     visible?: boolean = true;
 
-    @Validate(OPT_STRING)
+    @Validate(OPT_COLOR_STRING)
     stroke? = 'black';
 
-    @Validate(NUMBER(1))
+    @Validate(OPT_NUMBER(1))
     strokeWidth?: number = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = 1;
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
