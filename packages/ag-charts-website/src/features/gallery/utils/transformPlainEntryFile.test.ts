@@ -170,6 +170,11 @@ describe('transformPlainEntryFile', () => {
     test('Adjust padding', () => {
         expect(
             getChartsOptionsPlainEntryFile({
+                seriesArea: {
+                    padding: {
+                        left: 40,
+                    },
+                },
                 padding: {
                     top: 10,
                     right: 20,
@@ -179,6 +184,8 @@ describe('transformPlainEntryFile', () => {
             }).code
         ).toMatchInlineSnapshot(`
           "const options = {
+            seriesArea: { padding: { left: 40 } },
+
             legend: {
               enabled: false
             },

@@ -20,7 +20,7 @@ function transformer(sourceFile: string, dataFile?: string) {
         .find(j.ObjectExpression);
 
     // Find and remove properties in the 'options' object
-    const propertiesToRemove = ['subtitle', 'footnote', 'legend', 'padding'];
+    const propertiesToRemove = ['subtitle', 'footnote', 'legend'];
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
             removePropertyKeys: propertiesToRemove,
@@ -35,7 +35,9 @@ function transformer(sourceFile: string, dataFile?: string) {
         j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
     );
 
-    const optionsExpressionProperties = optionsExpression.get(0).node.properties;
+    const optionsNode = optionsExpression.get(0).node;
+    optionsNode.properties = optionsNode.properties.filter((property: any) => property.key?.name !== 'padding');
+    const optionsExpressionProperties = optionsNode.properties;
     optionsExpressionProperties.push(legendPropertyNode);
 
     // Axes
