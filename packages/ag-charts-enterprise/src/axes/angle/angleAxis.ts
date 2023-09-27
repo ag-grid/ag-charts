@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate, predicateWithMessage } =
+const { AND, assignJsonApplyConstructedArray, ChartAxisDirection, GREATER_THAN, NUMBER, OPT_NUMBER, predicateWithMessage, ProxyOnWrite, Validate } =
     _ModuleSupport;
 const { Path, Text } = _Scene;
 const { isNumberEqual, toRadians, normalizeAngle360 } = _Util;
@@ -54,8 +54,11 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
 
 export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<any, any>> {
     @ProxyOnWrite('rotation')
-    @Validate(NUMBER())
+    @Validate(NUMBER(0, 360))
     startAngle: number = 0;
+
+    @Validate(AND(OPT_NUMBER(0, 720), GREATER_THAN('startAngle')))
+    endAngle: number | undefined = undefined;
 
     protected labelData: AngleAxisLabelDatum[] = [];
     protected tickData: AngleAxisTickDatum[] = [];
@@ -88,6 +91,12 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         this.updateCrossLines();
         return this.scale.ticks?.().length ?? 0;
     }
+
+    override computeRange = () => {
+        const startAngle = -Math.PI / 2 + toRadians(this.startAngle);
+        const endAngle = this.endAngle == undefined ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
+        this.range = [startAngle, endAngle];
+    };
 
     override updatePosition() {
         const { translation, axisGroup, gridGroup, crossLineGroup } = this;

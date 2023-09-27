@@ -16,4 +16,6 @@ export abstract class PolarAxis<S extends Scale<any, any, any> = Scale<any, any,
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null {
         return null;
     }
+
+    computeRange?: () => void;
 }
