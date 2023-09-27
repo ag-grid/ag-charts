@@ -6,6 +6,7 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 
 export type AgBarSeriesLabelPlacement = 'inside' | 'outside';
 
@@ -78,4 +79,6 @@ export interface AgBarSeriesOptions<DatumType = any>
     legendItemName?: string;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<DatumType>;
+    /** Configuration for the series error bars. */
+    errorBar?: AgErrorBarOptions;
 }
