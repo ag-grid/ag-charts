@@ -2,7 +2,7 @@
 import { getEntry } from 'astro:content';
 import { Icon, IconName } from '@components/icon/Icon';
 import type { GalleryExampleChartType, GalleryData } from '@ag-grid-types';
-import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
+import HomepageGalleryExampleRunner from '@features/homepage/components/HomepageGalleryExampleRunner.astro';
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
@@ -13,7 +13,7 @@ const internalFramework = 'vanilla';
 
 <div class="seriesChart">
     <div class="dummy">
-        <HomepageExampleRunner internalFramework={internalFramework} pageName={'homepage'} exampleName={'simple-bar'} />
+        <HomepageGalleryExampleRunner exampleName="line-with-gaps" />
     </div>
 </div>
 

@@ -1,0 +1,45 @@
+---
+import { getGeneratedGalleryContents } from '@features/gallery/utils/examplesGenerator';
+import HomepageChart from './HomepageChart.astro';
+import { getExampleUrl } from '@features/gallery/utils/urlPaths';
+
+interface Props {
+    exampleName: string;
+}
+
+const { exampleName } = Astro.props as Props;
+
+const generatedContents = await getGeneratedGalleryContents({
+    exampleName,
+});
+const { scriptFiles, styleFiles, files } = generatedContents;
+const exampleUrl = getExampleUrl({
+    exampleName,
+});
+const indexFragment = files && files['index.html'];
+const appLocation = exampleUrl;
+---
+
+<div class="container">
+    <HomepageChart
+        scriptFiles={scriptFiles}
+        styleFiles={styleFiles}
+        indexFragment={indexFragment!}
+        appLocation={appLocation}
+    />
+</div>
+
+<style lang="scss">
+    .container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+
+        :global(.logomark) {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(2);
+        }
+    }
+</style>
