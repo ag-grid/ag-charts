@@ -14,7 +14,6 @@ import { Text } from '../../../scene/shape/text';
 import { Debug } from '../../../util/debug';
 import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { Listeners } from '../../../util/listeners';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isDiscrete } from '../../../util/value';
@@ -115,12 +114,6 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
     duration?: number;
 }
 
-type DataEventType = 'data-model';
-type DataEvent = {
-    dataModel: DataModel<any, any, any>;
-    processedData: ProcessedData<any>;
-};
-
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
     N extends Node = Group
@@ -152,7 +145,6 @@ export abstract class CartesianSeries<
 
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
-    private dataModelListeners = new Listeners<DataEventType, (event: DataEvent) => void>();
 
     protected constructor({
         pathsPerSeries = 1,
@@ -246,14 +238,6 @@ export abstract class CartesianSeries<
         this.subGroups.splice(0, this.subGroups.length);
     }
 
-    public addListener(type: DataEventType, listener: (event: DataEvent) => void) {
-        return this.dataModelListeners.addListener(type, listener);
-    }
-
-    protected fireDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
-        this.dataModelListeners.dispatch('data-model', { dataModel: dataModel, processedData: processedData });
-    }
-
     /**
      * Note: we are passing `isContinuousX` and `isContinuousY` into this method because it will
      *       typically be called inside a loop and this check only needs to happen once.
@@ -314,7 +298,7 @@ export abstract class CartesianSeries<
 
             const { dataModel, processedData } = this;
             if (dataModel !== undefined && processedData !== undefined) {
-                this.fireDataProcessed(dataModel, processedData);
+                this.dispatch('data-model', { dataModel, processedData });
             }
         }
 

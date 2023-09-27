@@ -106,7 +106,16 @@ export class ErrorBars
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
-        this.destroyFns.push(this.cartesianSeries.addListener('data-model', (event) => this.onDataProcessed(event)));
+        this.destroyFns.push(
+            this.cartesianSeries.addListener('data-model', (event: _ModuleSupport.SeriesDataEvent) =>
+                this.onDataProcessed(event)
+            )
+        );
+        this.destroyFns.push(
+            this.cartesianSeries.addListener('visibility-changed', (event: _ModuleSupport.SeriesVisibilityEvent) =>
+                this.onToggleSeriesItem(event)
+            )
+        );
     }
 
     onDataProcessed(event: {
@@ -236,6 +245,10 @@ export class ErrorBars
             const capProps = mergeDefaults(this.cap, whiskerProps);
             node.update(points, whiskerProps, capProps);
         }
+    }
+
+    private onToggleSeriesItem(event: { enabled: boolean }): void {
+        this.groupNode.visible = event.enabled;
     }
 
     private errorBarFactory(): ErrorBarNode {

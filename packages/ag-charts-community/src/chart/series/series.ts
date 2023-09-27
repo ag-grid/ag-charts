@@ -34,6 +34,8 @@ import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
+import { Listeners } from '../../util/listeners';
+import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 
 /**
  * Processed series datum used in node selections,
@@ -510,6 +512,16 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return [main, subIndex];
     }
 
+    private seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
+
+    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, listener: (event: E) => void) {
+        return this.seriesListeners.addListener(type, listener);
+    }
+
+    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, event: E) {
+        this.seriesListeners.dispatch(type, event);
+    }
+
     addChartEventListeners(): void {
         return;
     }
@@ -727,9 +739,10 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
 
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
-    protected toggleSeriesItem(_itemId: any, enabled: boolean): void {
+    protected toggleSeriesItem(itemId: any, enabled: boolean): void {
         this.visible = enabled;
         this.nodeDataRefresh = true;
+        this.dispatch('visibility-changed', { itemId, enabled });
     }
 
     isEnabled() {
