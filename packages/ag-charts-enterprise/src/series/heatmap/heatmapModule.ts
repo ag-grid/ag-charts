@@ -18,9 +18,6 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
         const { fills, strokes } = takeColors(colorsCount);
         return {
             stroke: strokes[0],
-            fill: fills[0],
-            strokes,
-            fills,
             colorRange: [fills[0], fills[Math.round(colorsCount / 2)]],
         };
     },
