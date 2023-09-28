@@ -18,18 +18,8 @@ const options: AgChartOptions = {
             yKey: 'amount',
             yName: 'Amount',
             item: {
-                positive: {
-                    fill: '#4A90E2',
-                    stroke: '#4A90E2',
-                },
-                negative: {
-                    fill: '#FF6B6B',
-                    stroke: '#FF6B6B',
-                },
                 total: {
                     name: 'Total / Subtotal',
-                    fill: '#404066',
-                    stroke: '#404066',
                 },
             },
             totals: [
