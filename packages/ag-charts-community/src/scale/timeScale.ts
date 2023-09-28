@@ -1,25 +1,25 @@
-import { ContinuousScale } from './continuousScale';
-import timeMillisecond from '../util/time/millisecond';
-import timeSecond from '../util/time/second';
-import timeMinute from '../util/time/minute';
-import timeHour from '../util/time/hour';
+import { tickStep } from '../util/ticks';
 import timeDay from '../util/time/day';
-import timeWeek from '../util/time/week';
-import timeMonth from '../util/time/month';
-import timeYear from '../util/time/year';
 import {
-    durationSecond,
-    durationMinute,
-    durationHour,
     durationDay,
-    durationWeek,
+    durationHour,
+    durationMinute,
     durationMonth,
+    durationSecond,
+    durationWeek,
     durationYear,
 } from '../util/time/duration';
+import timeHour from '../util/time/hour';
 import type { CountableTimeInterval } from '../util/time/interval';
 import { TimeInterval } from '../util/time/interval';
-import { tickStep } from '../util/ticks';
+import timeMillisecond from '../util/time/millisecond';
+import timeMinute from '../util/time/minute';
+import timeMonth from '../util/time/month';
+import timeSecond from '../util/time/second';
+import timeWeek from '../util/time/week';
+import timeYear from '../util/time/year';
 import { buildFormatter } from '../util/timeFormat';
+import { ContinuousScale } from './continuousScale';
 
 enum DefaultTimeFormats {
     MILLISECOND,

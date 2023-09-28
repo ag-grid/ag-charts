@@ -1,18 +1,6 @@
-import { Caption } from '../caption';
-import { AxisLabel } from './axisLabel';
-import { AxisLine } from './axisLine';
-import type { TickCount, TickInterval } from './axisTick';
-import { AxisTick } from './axisTick';
-import type { AxisTitle } from './axisTitle';
-import type { BoundSeries, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
-import type { CrossLine } from '../crossline/crossLine';
-import type { AnimationManager } from '../interaction/animationManager';
-import type { InteractionEvent } from '../interaction/interactionManager';
-import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
-import { Layers } from '../layers';
-import type { AxisLayout } from '../layout/layoutService';
+import type { ModuleInstance } from '../../module/baseModule';
+import type { AxisContext, ModuleContext } from '../../module/moduleContext';
+import type { AxisOptionModule } from '../../module/optionModules';
 import * as easing from '../../motion/easing';
 import { StateMachine } from '../../motion/states';
 import type { AgAxisCaptionFormatterParams, AgAxisGridStyle } from '../../options/agChartOptions';
@@ -28,19 +16,31 @@ import { Selection } from '../../scene/selection';
 import type { Arc } from '../../scene/shape/arc';
 import { Line } from '../../scene/shape/line';
 import type { TextSizeProperties } from '../../scene/shape/text';
-import { measureText, splitText, Text } from '../../scene/shape/text';
+import { Text, measureText, splitText } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/array';
-import type { ModuleInstance } from '../../module/baseModule';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
-import type { AxisContext, ModuleContext } from '../../module/moduleContext';
 import { clamp } from '../../util/number';
-import type { AxisOptionModule } from '../../module/optionModules';
-import { ARRAY, BOOLEAN, predicateWithMessage, STRING_ARRAY, Validate } from '../../util/validation';
+import { ARRAY, BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
+import { Caption } from '../caption';
+import type { BoundSeries, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import { ChartAxisDirection } from '../chartAxisDirection';
+import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
+import type { CrossLine } from '../crossline/crossLine';
+import type { AnimationManager } from '../interaction/animationManager';
+import type { InteractionEvent } from '../interaction/interactionManager';
+import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
+import { Layers } from '../layers';
+import type { AxisLayout } from '../layout/layoutService';
+import { AxisLabel } from './axisLabel';
+import { AxisLine } from './axisLine';
+import type { TickCount, TickInterval } from './axisTick';
+import { AxisTick } from './axisTick';
+import type { AxisTitle } from './axisTitle';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
 const GRID_STYLE = predicateWithMessage(
@@ -211,7 +211,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private destroyFns: Function[] = [];
 
-    constructor(protected readonly moduleCtx: ModuleContext, readonly scale: S) {
+    constructor(
+        protected readonly moduleCtx: ModuleContext,
+        readonly scale: S
+    ) {
         this.refreshScale();
 
         this._titleCaption.node.rotation = -Math.PI / 2;

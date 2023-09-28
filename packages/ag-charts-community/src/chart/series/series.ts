@@ -1,10 +1,22 @@
+import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
+import type { ModuleContextInitialiser } from '../../module/moduleMap';
+import { ModuleMap } from '../../module/moduleMap';
+import type { SeriesOptionModule } from '../../module/optionModules';
+import type {
+    AgSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+    InteractionRange,
+} from '../../options/agChartOptions';
+import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
-import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import type { ZIndexSubOrder } from '../../scene/node';
+import type { Point, SizedPoint } from '../../scene/point';
+import { createId } from '../../util/id';
+import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import type { ChartAxis } from '../chartAxis';
-import { createId } from '../../util/id';
-import { checkDatum } from '../../util/value';
+import { ActionOnSet } from '../../util/proxy';
+import { interpolate } from '../../util/string';
 import {
     BOOLEAN,
     INTERACTION_RANGE,
@@ -17,30 +29,18 @@ import {
     STRING,
     Validate,
 } from '../../util/validation';
-import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
-import { Layers } from '../layers';
-import type { Point, SizedPoint } from '../../scene/point';
-import type { BBox } from '../../scene/bbox';
+import { checkDatum } from '../../util/value';
+import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import type {
-    AgSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    InteractionRange,
-} from '../../options/agChartOptions';
-import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
-import { fixNumericExtent } from '../data/dataModel';
-import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
+import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
+import { fixNumericExtent } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
-import { ActionOnSet } from '../../util/proxy';
+import { Layers } from '../layers';
+import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import type { SeriesGrouping } from './seriesStateManager';
-import type { ZIndexSubOrder } from '../../scene/node';
-import { interpolate } from '../../util/string';
-import type { ModuleContextInitialiser } from '../../module/moduleMap';
-import { ModuleMap } from '../../module/moduleMap';
-import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
-import type { SeriesOptionModule } from '../../module/optionModules';
 
 /**
  * Processed series datum used in node selections,

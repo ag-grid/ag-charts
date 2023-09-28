@@ -1,5 +1,5 @@
-import { standardiseWhitespace } from './test-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
+import { standardiseWhitespace } from './test-utils';
 
 describe('wrapOptionsUpdateCode', () => {
     it('adds default options update code', () => {

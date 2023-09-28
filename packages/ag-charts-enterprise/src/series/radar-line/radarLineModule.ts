@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
-import { RadarLineSeries } from './radarLineSeries';
 import { POLAR_DEFAULTS } from '../polarDefaults';
+import { RadarLineSeries } from './radarLineSeries';
 import { RADAR_LINE_SERIES_THEME } from './radarLineThemes';
 
 export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {

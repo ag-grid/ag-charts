@@ -1,6 +1,6 @@
+import designSystemColors from '@design-system/color.module.scss';
 import classnames from 'classnames';
 import React from 'react';
-import designSystemColors from '@design-system/color.module.scss';
 import styles from './color.module.scss';
 import { formatName, hexToHSL, isLight } from './utils';
 

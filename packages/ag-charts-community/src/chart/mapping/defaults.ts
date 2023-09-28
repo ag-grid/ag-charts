@@ -1,5 +1,5 @@
 import type { AgChartOptions } from '../../options/agChartOptions';
-import { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } from '../themes/constants';
+import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES } from '../themes/constants';
 import { isAgCartesianChartOptions } from './types';
 
 export const DEFAULT_CARTESIAN_CHART_OVERRIDES = {

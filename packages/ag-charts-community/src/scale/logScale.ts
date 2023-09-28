@@ -1,7 +1,7 @@
-import { ContinuousScale } from './continuousScale';
-import generateTicks, { range } from '../util/ticks';
 import { format } from '../util/numberFormat';
+import generateTicks, { range } from '../util/ticks';
 import { NUMBER, Validate } from '../util/validation';
+import { ContinuousScale } from './continuousScale';
 
 const identity = (x: any) => x;
 

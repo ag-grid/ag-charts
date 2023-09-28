@@ -1,11 +1,11 @@
-import type { SizedPoint } from '../../../scene/point';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgSeriesHighlightMarkerStyle,
     AgCartesianSeriesMarkerFormat,
+    AgSeriesHighlightMarkerStyle,
     AgSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
+import type { SizedPoint } from '../../../scene/point';
 import type { Marker } from '../../marker/marker';
-import type { ModuleContext } from '../../../module/moduleContext';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {

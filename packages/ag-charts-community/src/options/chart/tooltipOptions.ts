@@ -1,4 +1,4 @@
-import type { InteractionRange, CssColor, PixelSize } from './types';
+import type { CssColor, InteractionRange, PixelSize } from './types';
 
 export interface AgChartTooltipOptions {
     /** Set to false to disable tooltips for all series in the chart. */

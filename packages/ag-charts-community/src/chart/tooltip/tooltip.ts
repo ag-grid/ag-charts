@@ -1,14 +1,14 @@
+import type { AgTooltipRendererResult, InteractionRange } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import {
-    Validate,
     BOOLEAN,
-    NUMBER,
-    OPT_STRING,
     INTERACTION_RANGE,
-    predicateWithMessage,
+    NUMBER,
     OPT_BOOLEAN,
+    OPT_STRING,
+    Validate,
+    predicateWithMessage,
 } from '../../util/validation';
-import type { InteractionRange, AgTooltipRendererResult } from '../../options/agChartOptions';
 import type { InteractionEvent } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';

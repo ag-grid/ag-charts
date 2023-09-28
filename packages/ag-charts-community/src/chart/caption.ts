@@ -1,5 +1,7 @@
-import { Text } from '../scene/shape/text';
+import type { FontStyle, FontWeight, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
+import { Text } from '../scene/shape/text';
+import { ProxyPropertyOnWrite } from '../util/proxy';
 import {
     BOOLEAN,
     NUMBER,
@@ -12,8 +14,6 @@ import {
     TEXT_WRAP,
     Validate,
 } from '../util/validation';
-import type { FontStyle, FontWeight, TextWrap } from '../options/agChartOptions';
-import { ProxyPropertyOnWrite } from '../util/proxy';
 
 export class Caption {
     static readonly PADDING = 10;

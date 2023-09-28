@@ -1,5 +1,5 @@
-import { HdpiCanvas } from './hdpiCanvas';
 import { isDesktop } from '../../util/userAgent';
+import { HdpiCanvas } from './hdpiCanvas';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
 type OffscreenCanvasRenderingContext2D = any;

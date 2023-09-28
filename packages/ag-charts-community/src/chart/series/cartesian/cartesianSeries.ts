@@ -1,3 +1,4 @@
+import type { ModuleContext } from '../../../module/moduleContext';
 import { StateMachine } from '../../../motion/states';
 import type {
     AgCartesianSeriesMarkerFormat,
@@ -15,7 +16,6 @@ import { Debug } from '../../../util/debug';
 import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { Listeners } from '../../../util/listeners';
-import type { ModuleContext } from '../../../module/moduleContext';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isDiscrete } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -85,13 +85,13 @@ export class CartesianSeriesNodeBaseClickEvent<Datum extends { datum: any }> ext
 }
 
 export class CartesianSeriesNodeClickEvent<
-    Datum extends { datum: any }
+    Datum extends { datum: any },
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeClick';
 }
 
 export class CartesianSeriesNodeDoubleClickEvent<
-    Datum extends { datum: any }
+    Datum extends { datum: any },
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeDoubleClick';
 }
@@ -117,7 +117,7 @@ type DataEvent = {
 
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
-    N extends Node = Group
+    N extends Node = Group,
 > extends Series<C> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;

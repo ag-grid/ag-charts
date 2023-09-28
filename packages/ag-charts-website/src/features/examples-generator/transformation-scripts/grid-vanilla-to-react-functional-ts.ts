@@ -1,3 +1,4 @@
+import path from 'path';
 import { templatePlaceholder } from './grid-vanilla-src-parser';
 import type { ImportType } from './parser-utils';
 import {
@@ -10,8 +11,7 @@ import {
     handleRowGenericInterface,
     isInstanceMethod,
 } from './parser-utils';
-import { convertFunctionalTemplate, convertFunctionToConstCallbackTs, getImport, getValueType } from './react-utils';
-const path = require('path');
+import { convertFunctionToConstCallbackTs, convertFunctionalTemplate, getImport, getValueType } from './react-utils';
 
 function getModuleImports(
     bindings: any,
@@ -126,9 +126,7 @@ function getImports(
 function getTemplate(bindings: any, componentAttributes: string[], rowDataGeneric: string): string {
     const { gridSettings } = bindings;
     const agGridTag = `
-        <div ${gridSettings.myGridReference ? 'id="myGrid"' : ''} style={gridStyle} className="${
-        gridSettings.theme
-    }">             
+        <div ${gridSettings.myGridReference ? 'id="myGrid"' : ''} style={gridStyle} className="${gridSettings.theme}">
             <AgGridReact${rowDataGeneric}
                 ref={gridRef}
                 ${componentAttributes.join('\n')}
@@ -242,7 +240,7 @@ export function vanillaToReactFunctionalTs(
             additionalInReady.push('gridRef.current!.api.sizeColumnsToFit();');
         }
 
-        let extraCoreTypes = [];
+        let extraCoreTypes: string[] = [];
         if (additionalInReady.length > 0) {
             extraCoreTypes = ['GridReadyEvent'];
         }

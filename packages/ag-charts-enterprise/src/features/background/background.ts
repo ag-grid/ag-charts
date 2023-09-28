@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { BackgroundImage } from './backgroundImage';
 
 const { ActionOnSet, Validate, ProxyPropertyOnWrite, BOOLEAN, OPT_COLOR_STRING, Layers } = _ModuleSupport;

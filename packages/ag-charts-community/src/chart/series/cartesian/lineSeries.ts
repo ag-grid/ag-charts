@@ -1,13 +1,32 @@
+import type { ModuleContext } from '../../../module/moduleContext';
+import type {
+    AgCartesianSeriesLabelFormatterParams,
+    AgCartesianSeriesMarkerFormat,
+    AgCartesianSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Point } from '../../../scene/point';
-import type { Selection } from '../../../scene/selection';
-import type { SeriesNodeDatum, SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
-import { extent } from '../../../util/array';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
+import type { Point } from '../../../scene/point';
+import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import { extent } from '../../../util/array';
+import { sanitizeHtml } from '../../../util/sanitize';
+import { NUMBER, OPT_COLOR_STRING, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
+import { zipObject } from '../../../util/zip';
+import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { DataController } from '../../data/dataController';
+import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
+import { createDatumId, diff } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum, ChartLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
+import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
+import { SeriesNodePickMode, SeriesTooltip, keyProperty, valueProperty } from '../series';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -15,25 +34,6 @@ import {
     CartesianSeriesNodeClickEvent,
     CartesianSeriesNodeDoubleClickEvent,
 } from './cartesianSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
-import { Label } from '../../label';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { zipObject } from '../../../util/zip';
-import type { Marker } from '../../marker/marker';
-import { NUMBER, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, OPT_COLOR_STRING, Validate } from '../../../util/validation';
-import type {
-    AgCartesianSeriesLabelFormatterParams,
-    AgCartesianSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    FontStyle,
-    FontWeight,
-    AgCartesianSeriesMarkerFormat,
-} from '../../../options/agChartOptions';
-import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
-import { createDatumId, diff } from '../../data/processors';
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {

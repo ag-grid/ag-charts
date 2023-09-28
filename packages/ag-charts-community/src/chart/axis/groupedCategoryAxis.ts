@@ -1,21 +1,21 @@
-import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
-import { normalizeAngle360, toRadians } from '../../util/angle';
-import { Text } from '../../scene/shape/text';
-import type { BBox } from '../../scene/bbox';
-import { BandScale } from '../../scale/bandScale';
-import type { TreeLayout } from './tree';
-import { ticksToTree, treeLayout } from './tree';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import { extent } from '../../util/array';
-import type { Point } from '../../scene/point';
-import { BOOLEAN, OPT_COLOR_STRING, Validate } from '../../util/validation';
-import { calculateLabelRotation } from '../label';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
+import { BandScale } from '../../scale/bandScale';
+import type { BBox } from '../../scene/bbox';
+import type { Point } from '../../scene/point';
+import { Selection } from '../../scene/selection';
+import { Line } from '../../scene/shape/line';
+import { Text } from '../../scene/shape/text';
+import { normalizeAngle360, toRadians } from '../../util/angle';
+import { extent } from '../../util/array';
+import { BOOLEAN, OPT_COLOR_STRING, Validate } from '../../util/validation';
+import { ChartAxisDirection } from '../chartAxisDirection';
+import { calculateLabelRotation } from '../label';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { CartesianAxis } from './cartesianAxis';
+import type { TreeLayout } from './tree';
+import { ticksToTree, treeLayout } from './tree';
 
 class GroupedCategoryAxisLabel extends AxisLabel {
     @Validate(BOOLEAN)

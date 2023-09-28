@@ -1,7 +1,7 @@
+import { toRaw } from '@vue/reactivity';
 import { h } from 'vue';
 import { Options, Vue } from 'vue-class-component';
-import { AgChart, AgChartOptions, AgChartInstance } from 'ag-charts-community';
-import { toRaw } from '@vue/reactivity';
+import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 
 @Options({
     props: {

@@ -1,8 +1,8 @@
-import { AxisTitle } from './axis/axisTitle';
-import { Caption } from './caption';
 import { DropShadow } from '../scene/dropShadow';
 import type { JsonApplyParams } from '../util/json';
-import { DoughnutInnerLabel, DoughnutInnerCircle } from './series/polar/pieSeries';
+import { AxisTitle } from './axis/axisTitle';
+import { Caption } from './caption';
+import { DoughnutInnerCircle, DoughnutInnerLabel } from './series/polar/pieSeries';
 
 export const JSON_APPLY_PLUGINS: JsonApplyParams = {
     constructors: {},

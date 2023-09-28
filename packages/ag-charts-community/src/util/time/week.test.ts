@@ -1,10 +1,9 @@
 /**
  * @timezone UTC
  */
-
 import { expect, test } from '@jest/globals';
-import { sunday } from './week';
 import { durationMinute } from './duration';
+import { sunday } from './week';
 
 test('sunday.get/floor', () => {
     const date = new Date(Date.UTC(2019, 7, 23, 15, 10, 5, 100)); // 7 == August

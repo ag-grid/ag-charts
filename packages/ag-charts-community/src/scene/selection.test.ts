@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-
-import { Selection } from './selection';
 import { Node } from './node';
+import { Selection } from './selection';
 
 class TestNode extends Node {}
 

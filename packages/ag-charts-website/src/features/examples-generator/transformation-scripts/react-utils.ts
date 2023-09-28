@@ -1,5 +1,5 @@
-import { getFunctionName, recognizedDomEvents } from './parser-utils';
 import * as JSON5 from 'json5';
+import { getFunctionName, recognizedDomEvents } from './parser-utils';
 
 const toTitleCase = (value: string) => value[0].toUpperCase() + value.slice(1);
 const toCamelCase = (value: string) => value.replace(/(?:-)(\w)/g, (_, c: string) => (c ? c.toUpperCase() : ''));

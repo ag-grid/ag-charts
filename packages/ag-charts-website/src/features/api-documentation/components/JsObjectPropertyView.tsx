@@ -1,22 +1,22 @@
+import { LinkIcon } from '@components/link-icon/LinkIcon';
+import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
-import styles from './ApiDocumentation.module.scss';
+import { useContext } from 'react';
+import type { JsObjectSelection, JsObjectSelectionProperty, JsObjectSelectionUnionNestedObject } from '../types';
 import {
     convertMarkdown,
     formatPropertyDocumentation,
     removeDefaultValue,
     splitName,
 } from '../utils/documentationHelpers';
-import type { JsObjectSelection, JsObjectSelectionProperty, JsObjectSelectionUnionNestedObject } from '../types';
-import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonUnionType } from '../utils/model';
-import { getPropertyType } from '../utils/getPropertyType';
-import { getUnionPathInfo } from '../utils/modelPath';
-import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
-import { useContext } from 'react';
-import { OptionsDataContext } from '../utils/optionsDataContext';
-import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 import { FrameworkContext } from '../utils/frameworkContext';
-import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
-import { LinkIcon } from '@components/link-icon/LinkIcon';
+import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
+import { getPropertyType } from '../utils/getPropertyType';
+import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
+import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonUnionType } from '../utils/model';
+import { getUnionPathInfo } from '../utils/modelPath';
+import { OptionsDataContext } from '../utils/optionsDataContext';
+import styles from './ApiDocumentation.module.scss';
 import { HeadingPath } from './HeadingPath';
 import { MetaList } from './MetaList';
 

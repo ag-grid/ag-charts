@@ -1,8 +1,8 @@
+import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
+import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
-import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
-import { Animation } from '../../motion/animation';
 
 type AnimationEventType = 'animation-frame';
 

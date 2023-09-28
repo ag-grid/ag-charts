@@ -1,8 +1,7 @@
 // @ts-expect-error Cannot find module 'astro/runtime/server/index.js' or its corresponding type declarations.
-import { unescapeHTML } from 'astro/runtime/server/index.js';
-
+import { type AstroMarkdocConfig, Markdoc } from '@astrojs/markdoc/config';
 import { runHighlighterWithAstro } from '@astrojs/prism/dist/highlighter';
-import { Markdoc, type AstroMarkdocConfig } from '@astrojs/markdoc/config';
+import { unescapeHTML } from 'astro/runtime/server/index.js';
 
 /**
  * Extend default markdoc prism highlighter to include AG Charts `code` styles

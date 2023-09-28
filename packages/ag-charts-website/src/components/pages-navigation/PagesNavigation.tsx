@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import classnames from 'classnames';
-import styles from './PagesNavigation.module.scss';
-import { Icon } from '@components/icon/Icon';
 import type { Framework, MenuData } from '@ag-grid-types';
-import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
-import { Collapsible } from '@components/Collapsible';
 import type { MenuItem } from '@ag-grid-types';
+import { Collapsible } from '@components/Collapsible';
+import { Icon } from '@components/icon/Icon';
+import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import classnames from 'classnames';
+import { useEffect, useState } from 'react';
+import styles from './PagesNavigation.module.scss';
 
 const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
 

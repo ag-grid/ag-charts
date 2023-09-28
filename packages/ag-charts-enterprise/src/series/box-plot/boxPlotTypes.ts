@@ -1,4 +1,4 @@
-import type { _ModuleSupport, FillOptions, LineDashOptions, Ratio, StrokeOptions } from 'ag-charts-community';
+import type { FillOptions, LineDashOptions, Ratio, StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 
 export interface BoxPlotNodeDatum
     extends Readonly<Required<FillOptions & StrokeOptions & LineDashOptions>>,

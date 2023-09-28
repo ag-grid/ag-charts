@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-
 import {
-    extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    extractImageData,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';

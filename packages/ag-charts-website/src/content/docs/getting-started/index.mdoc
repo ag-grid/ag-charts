@@ -463,10 +463,10 @@ npm install # in certain circumstances npm will perform an "auto prune". This st
 After a few seconds of waiting, you should be good to go. Let's get to the actual coding! As a first step, let's add the AG Charts Angular module to our app module (`src/app/app.module.ts`):
 
 ```ts
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { AgChartsAngularModule } from 'ag-charts-angular';
 import { AppComponent } from './app.component';
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { AgChartsAngularModule } from 'ag-charts-angular';
 
 @NgModule({
     imports: [BrowserModule, AgChartsAngularModule],
@@ -562,8 +562,8 @@ npm install --save ag-charts-community ag-charts-react
 After a few seconds of waiting, you should be good to go. Let's get to the actual coding! Open `src/App.js` in your favourite text editor and change its contents to the following:
 
 ```jsx
-import React, { Component } from 'react';
 import { AgChartsReact } from 'ag-charts-react';
+import React, { Component } from 'react';
 
 export default class ChartExample extends Component {
     data = [

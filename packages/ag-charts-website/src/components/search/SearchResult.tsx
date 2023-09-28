@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import { connectStateResults, Highlight, Index, InfiniteHits, Snippet } from 'react-instantsearch-dom';
+import { Highlight, Index, InfiniteHits, Snippet, connectStateResults } from 'react-instantsearch-dom';
 import styles from './SearchResult.module.scss';
 
 const HitCount = connectStateResults(({ searchResults, hasResults }) => {

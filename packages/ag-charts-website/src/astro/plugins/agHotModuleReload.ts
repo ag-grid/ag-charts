@@ -1,8 +1,8 @@
 import chokidar from 'chokidar';
 import type { Plugin, ViteDevServer } from 'vite';
-import { getDevFileList } from '../../utils/pages';
 import { getAllExamplesFileList } from '../../features/docs/utils/filesData';
 import { getIsDev } from '../../utils/env';
+import { getDevFileList } from '../../utils/pages';
 
 export default function createAgHotModuleReload(): Plugin {
     return {

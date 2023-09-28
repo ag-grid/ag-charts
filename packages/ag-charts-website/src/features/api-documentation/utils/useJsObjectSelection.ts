@@ -1,3 +1,4 @@
+import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { useCallback, useState } from 'react';
 import type {
     JsObjectPropertiesViewConfig,
@@ -5,13 +6,12 @@ import type {
     JsObjectSelectionProperty,
     TopLevelHeaderData,
 } from '../types';
-import type { JsonModel } from './model';
-import { getSelectionReferenceId } from './getObjectReferenceId';
-import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
-import { getTopLevelSelection, getTopSelection } from './modelPath';
 import { formatPropertyDocumentation, removeDefaultValue } from './documentationHelpers';
+import { getSelectionReferenceId } from './getObjectReferenceId';
 import { getPropertyType } from './getPropertyType';
 import { getShouldLimitChildren } from './getShouldLimitChildren';
+import type { JsonModel } from './model';
+import { getTopLevelSelection, getTopSelection } from './modelPath';
 import { selectionHasChanged } from './selectionHasChanged';
 
 function scrollToId(id?: string) {

@@ -1,4 +1,5 @@
-import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
+import { fail } from 'assert';
 import type {
     AgCartesianChartOptions,
     AgCartesianSeriesMarkerFormatter,
@@ -6,16 +7,15 @@ import type {
     AgChartTheme,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
-import type { AreaSeries } from '../series/cartesian/areaSeries';
-import type { BarSeries } from '../series/cartesian/barSeries';
-import type { PieSeries } from '../series/polar/pieSeries';
-import { ChartTheme } from './chartTheme';
 import { AgChart } from '../agChartV2';
 import { CartesianChart } from '../cartesianChart';
 import { PolarChart } from '../polarChart';
+import type { AreaSeries } from '../series/cartesian/areaSeries';
+import type { BarSeries } from '../series/cartesian/barSeries';
 import type { LineSeries } from '../series/cartesian/lineSeries';
+import type { PieSeries } from '../series/polar/pieSeries';
 import { deproxy, waitForChartStability } from '../test/utils';
-import { fail } from 'assert';
+import { ChartTheme } from './chartTheme';
 
 const data = [
     { label: 'Android', v1: 5.67, v2: 8.63, v3: 8.14, v4: 6.45, v5: 1.37 },

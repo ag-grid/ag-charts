@@ -1,7 +1,7 @@
+import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
-import { isInstanceMethod, convertFunctionToProperty } from './parser-utils';
+import { convertFunctionToProperty, isInstanceMethod } from './parser-utils';
 import { convertTemplate, getImport } from './react-utils';
-import { wrapOptionsUpdateCode, getChartImports } from './chart-utils';
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(

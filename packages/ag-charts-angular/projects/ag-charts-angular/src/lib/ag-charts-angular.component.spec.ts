@@ -1,8 +1,7 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { AgChartsAngular } from './ag-charts-angular.component';
-import { AgChartOptions } from 'ag-charts-community';
 import { Component } from '@angular/core';
+import { ComponentFixture, TestBed, async } from '@angular/core/testing';
+import { AgChartOptions } from 'ag-charts-community';
+import { AgChartsAngular } from './ag-charts-angular.component';
 
 const DATA_UK_LABOUR_MARKET_FEB_2020 = [
     { type: 'Managers, directors &\nsenior officials', earnings: 954 },

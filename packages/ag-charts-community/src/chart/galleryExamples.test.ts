@@ -4,8 +4,8 @@ import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
 import { EXAMPLES } from './test/examples-gallery';
 import {
-    extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     waitForChartStability,

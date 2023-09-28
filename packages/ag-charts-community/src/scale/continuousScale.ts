@@ -15,7 +15,10 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
     smallestBandwidthInterval?: number;
 
-    protected constructor(public domain: D[], public range: number[]) {}
+    protected constructor(
+        public domain: D[],
+        public range: number[]
+    ) {}
 
     protected transform(x: D) {
         return x;

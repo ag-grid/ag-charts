@@ -1,17 +1,17 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
 import type { TestCase } from './test/utils';
 import {
-    waitForChartStability,
-    cartesianChartAssertions,
     IMAGE_SNAPSHOT_DEFAULTS,
-    setupMockCanvas,
+    cartesianChartAssertions,
     extractImageData,
     prepareTestOptions,
     repeat,
+    setupMockCanvas,
+    waitForChartStability,
 } from './test/utils';
 
 const EXAMPLES: Record<string, TestCase> = {

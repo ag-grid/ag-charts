@@ -1,13 +1,13 @@
-import { describe, expect, test, jest, beforeEach, afterEach } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import 'jest-canvas-mock';
+import type { AgChartInstance } from '../options/agChartOptions';
+import { AgChart } from './agChartV2';
+import { NumberAxis } from './axis/numberAxis';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
-import { NumberAxis } from './axis/numberAxis';
-import { ChartTheme } from './themes/chartTheme';
-import { AgChart } from './agChartV2';
 import { deproxy, waitForChartStability } from './test/utils';
-import type { AgChartInstance } from '../options/agChartOptions';
+import { ChartTheme } from './themes/chartTheme';
 
 const revenueProfitData = [
     {

@@ -1,7 +1,7 @@
-import { Axis } from './axis';
-import type { BBox } from '../../scene/bbox';
 import type { Scale } from '../../scale/scale';
-import { Validate, NUMBER } from '../../util/validation';
+import type { BBox } from '../../scene/bbox';
+import { NUMBER, Validate } from '../../util/validation';
+import { Axis } from './axis';
 
 export abstract class PolarAxis<S extends Scale<any, any, any> = Scale<any, any, any>> extends Axis<S> {
     gridAngles: number[] | undefined;

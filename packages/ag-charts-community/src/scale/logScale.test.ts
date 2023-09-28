@@ -1,4 +1,4 @@
-import { expect, test, describe, it } from '@jest/globals';
+import { describe, expect, it, test } from '@jest/globals';
 import { NumericTicks } from '../util/ticks';
 import { LogScale } from './logScale';
 

@@ -1,4 +1,5 @@
 import { _Theme } from 'ag-charts-community';
+
 const { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } = _Theme;
 
 export const HEATMAP_DEFAULTS = {

@@ -1,6 +1,6 @@
-import { linear } from './easing';
-import { clamp } from '../util/number';
 import { interpolateColor, interpolateNumber } from '../interpolate';
+import { clamp } from '../util/number';
+import { linear } from './easing';
 
 export type AnimationValue = number | string | Record<string, number | string>;
 

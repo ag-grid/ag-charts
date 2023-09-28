@@ -1,21 +1,19 @@
 /**
  * @timezone US/Pacific
  */
-
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
 import { isAgCartesianChartOptions } from './mapping/types';
+import { EXAMPLES } from './test/examples-gallery';
 import {
-    waitForChartStability,
     IMAGE_SNAPSHOT_DEFAULTS,
-    setupMockCanvas,
     extractImageData,
     prepareTestOptions,
+    setupMockCanvas,
+    waitForChartStability,
 } from './test/utils';
-import { EXAMPLES } from './test/examples-gallery';
 
 const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
     .filter(([, { options }]) => {

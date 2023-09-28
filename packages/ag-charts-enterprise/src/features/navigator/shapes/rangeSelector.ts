@@ -1,9 +1,8 @@
 import { _Scene } from 'ag-charts-community';
-
-const { RedrawType } = _Scene;
-
 import { RangeHandle } from './rangeHandle';
 import { RangeMask } from './rangeMask';
+
+const { RedrawType } = _Scene;
 
 export class RangeSelector extends _Scene.Group {
     static className = 'Range';

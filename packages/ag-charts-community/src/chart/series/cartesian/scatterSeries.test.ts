@@ -1,17 +1,17 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { AgChart } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import * as examples from '../../test/examples';
 import {
-    repeat,
-    waitForChartStability,
     IMAGE_SNAPSHOT_DEFAULTS,
-    setupMockCanvas,
     extractImageData,
     prepareTestOptions,
+    repeat,
+    setupMockCanvas,
     spyOnAnimationManager,
+    waitForChartStability,
 } from '../../test/utils';
 
 expect.extend({ toMatchImageSnapshot });

@@ -68,7 +68,9 @@
     padding: 0;
     color: var(--secondary-text-color);
     opacity: 0.75;
-    transition: opacity $default-transition-timing, color $default-transition-timing;
+    transition:
+        opacity $default-transition-timing,
+        color $default-transition-timing;
 
     &:global(.active) {
         color: var(--text-color);
@@ -90,7 +92,9 @@
         left: 0;
         background-color: var(--secondary-text-color);
         opacity: 0;
-        transition: background-color 0.33s ease-in-out, opacity 0.33s ease-in-out;
+        transition:
+            background-color 0.33s ease-in-out,
+            opacity 0.33s ease-in-out;
     }
 
     &:not(:global(.active)):hover::before {

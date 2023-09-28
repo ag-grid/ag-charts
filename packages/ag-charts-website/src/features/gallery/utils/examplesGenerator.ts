@@ -1,7 +1,7 @@
-import type { GeneratedContents } from '@features/examples-generator/types';
 import { getGeneratedContents, getGeneratedContentsFileList } from '@features/examples-generator/examplesGenerator';
-import { getFolderUrl } from './filesData';
+import type { GeneratedContents } from '@features/examples-generator/types';
 import { GALLERY_INTERNAL_FRAMEWORK, PLAIN_ENTRY_FILE_NAME } from '../constants';
+import { getFolderUrl } from './filesData';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 export const getGeneratedGalleryContentsFileList = async ({

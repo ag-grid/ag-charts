@@ -1,8 +1,8 @@
 import type {
-    _Scene,
     AgBoxPlotSeriesFormatterParams,
     AgBoxPlotSeriesStyles,
     AgBoxPlotSeriesTooltipRendererParams,
+    _Scene,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 import { BoxPlotGroup } from './boxPlotGroup';
@@ -29,7 +29,7 @@ const {
 } = _ModuleSupport;
 
 export class BoxPlotSeriesNodeBaseClickEvent<
-    Datum extends { datum: any }
+    Datum extends { datum: any },
 > extends _ModuleSupport.SeriesNodeBaseClickEvent<Datum> {
     readonly xKey?: string;
     readonly minKey?: string;
@@ -54,7 +54,7 @@ export class BoxPlotSeriesNodeClickEvent<Datum extends { datum: any }> extends B
 }
 
 export class BoxPlotSeriesNodeDoubleClickEvent<
-    Datum extends { datum: any }
+    Datum extends { datum: any },
 > extends BoxPlotSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeDoubleClick';
 }

@@ -1,22 +1,22 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
-import type { CartesianTestCase } from '../test/utils';
-import {
-    cartesianChartAssertions,
-    extractImageData,
-    IMAGE_SNAPSHOT_DEFAULTS,
-    prepareTestOptions,
-    repeat,
-    setupMockCanvas,
-    waitForChartStability,
-} from '../test/utils';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineLabelPosition,
 } from '../../options/agChartOptions';
 import { AgChart } from '../agChartV2';
-import * as examples from './test/examples';
 import type { Chart } from '../chart';
+import type { CartesianTestCase } from '../test/utils';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    cartesianChartAssertions,
+    extractImageData,
+    prepareTestOptions,
+    repeat,
+    setupMockCanvas,
+    waitForChartStability,
+} from '../test/utils';
+import * as examples from './test/examples';
 
 const labelPositions: AgCrossLineLabelPosition[] = [
     'top',

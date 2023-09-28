@@ -1,15 +1,15 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
-    Validate,
-    OPT_NUMBER,
-    OPT_STRING,
-    OPT_DATE,
-    OPT_NUMBER_ARRAY,
-    COLOR_STRING,
-    LESS_THAN,
     AND,
-    NUMBER,
+    COLOR_STRING,
     GREATER_THAN,
+    LESS_THAN,
+    NUMBER,
+    OPT_DATE,
+    OPT_NUMBER,
+    OPT_NUMBER_ARRAY,
+    OPT_STRING,
+    Validate,
 } from './validation';
 
 class TestValidate {

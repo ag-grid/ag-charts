@@ -1,8 +1,8 @@
 import classnames from 'classnames';
 import { useState } from 'react';
 import { Chart } from './Chart';
-import styles from './ChartsApiExplorer.module.scss';
 import { ChartTypeSelector } from './ChartTypeSelector';
+import styles from './ChartsApiExplorer.module.scss';
 import { CodeView } from './CodeView';
 import { Launcher } from './Launcher';
 import { Options } from './Options';

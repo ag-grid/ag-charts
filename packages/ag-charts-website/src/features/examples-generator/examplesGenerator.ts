@@ -1,12 +1,12 @@
-import { getEntryFileName, getIsEnterprise, getTransformTsFileExt, getFileContents } from './utils/fileUtils';
-import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
+import type { InternalFramework } from '@ag-grid-types';
 import fs from 'node:fs/promises';
+import { SOURCE_ENTRY_FILE_NAME } from './constants';
+import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
+import type { GeneratedContents } from './types.d';
+import { getEntryFileName, getFileContents, getIsEnterprise, getTransformTsFileExt } from './utils/fileUtils';
+import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getStyleFiles } from './utils/getStyleFiles';
-import type { InternalFramework } from '@ag-grid-types';
-import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
-import type { GeneratedContents } from './types.d';
-import { SOURCE_ENTRY_FILE_NAME } from './constants';
 
 /**
  * Get the file list of the generated contents

@@ -1,4 +1,4 @@
-import { cubicSegmentIntersections, segmentIntersection, arcIntersections } from './intersection';
+import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 
 enum Command {
     Move,

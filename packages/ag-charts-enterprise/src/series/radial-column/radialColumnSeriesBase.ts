@@ -87,7 +87,7 @@ class RadialColumnStateMachine extends _ModuleSupport.StateMachine<
 > {}
 
 export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _Scene.Path
+    ItemPathType extends _Scene.Path,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
     readonly label = new RadialColumnSeriesLabel();
 

@@ -1,3 +1,4 @@
+import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import type {
     GroupValueProcessorDefinition,
@@ -8,7 +9,6 @@ import type {
     ReducerOutputPropertyDefinition,
     ScopeProvider,
 } from './dataModel';
-import { arraysEqual } from '../../util/array';
 
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<number> = {
     type: 'reducer',

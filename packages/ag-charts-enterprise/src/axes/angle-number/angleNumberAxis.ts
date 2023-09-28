@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
-import { LinearAngleScale } from './linearAngleScale';
 import { AngleAxis } from '../angle/angleAxis';
+import { LinearAngleScale } from './linearAngleScale';
 
 const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } = _ModuleSupport;
 const { normalisedExtentWithMetadata } = _Util;

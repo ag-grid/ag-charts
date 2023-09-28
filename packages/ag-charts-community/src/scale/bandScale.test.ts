@@ -1,4 +1,4 @@
-import { expect, test, describe, it } from '@jest/globals';
+import { describe, expect, it, test } from '@jest/globals';
 import { BandScale } from './bandScale';
 
 test('initial state', () => {

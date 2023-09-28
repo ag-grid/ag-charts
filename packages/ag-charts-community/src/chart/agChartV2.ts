@@ -22,17 +22,16 @@ import { getAxis } from './factory/axisTypes';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { getSeries } from './factory/seriesTypes';
-
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
 import { noDataCloneMergeOptions, prepareOptions } from './mapping/prepare';
 import type { SeriesOptions } from './mapping/prepareSeries';
 import {
+    type SeriesOptionsTypes,
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     optionsType,
-    type SeriesOptionsTypes,
 } from './mapping/types';
 import { PolarChart } from './polarChart';
 import { PieTitle } from './series/polar/pieSeries';

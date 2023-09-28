@@ -1,7 +1,7 @@
-import { toTitleCase, getImport } from './angular-utils';
+import { getImport, toTitleCase } from './angular-utils';
 
 export function appModuleAngular(componentFileNames: string[]) {
-    const components = [];
+    const components: string[] = [];
     const imports = [
         "import { BrowserModule } from '@angular/platform-browser';",
         "import { NgModule } from '@angular/core';",

@@ -1,9 +1,49 @@
-import type { Selection } from '../../../scene/selection';
+import type { ModuleContext } from '../../../module/moduleContext';
+import type {
+    AgCartesianSeriesLabelFormatterParams,
+    AgCartesianSeriesMarkerFormat,
+    AgCartesianSeriesMarkerFormatterParams,
+    AgCartesianSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
+import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
+import type { Point, SizedPoint } from '../../../scene/point';
+import type { Selection } from '../../../scene/selection';
+import type { Text } from '../../../scene/shape/text';
+import { extent } from '../../../util/array';
+import { sanitizeHtml } from '../../../util/sanitize';
+import {
+    COLOR_STRING,
+    NUMBER,
+    OPT_FUNCTION,
+    OPT_LINE_DASH,
+    OPT_NUMBER,
+    OPT_STRING,
+    Validate,
+} from '../../../util/validation';
+import { isContinuous, isNumber } from '../../../util/value';
+import { LogAxis } from '../../axis/logAxis';
+import { TimeAxis } from '../../axis/timeAxis';
+import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { DataController } from '../../data/dataController';
+import { normaliseGroupTo } from '../../data/processors';
+import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
 import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, keyProperty, valueProperty, groupAccumulativeValueProperty } from '../series';
+import { SeriesTooltip, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import {
+    type AreaPathDatum,
+    type AreaPathPoint,
+    AreaSeriesTag,
+    areaAnimateEmptyUpdateReady,
+    areaAnimateReadyUpdate,
+    areaResetMarkersAndPaths,
+} from './areaUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -11,46 +51,6 @@ import {
     CartesianSeriesNodeClickEvent,
     CartesianSeriesNodeDoubleClickEvent,
 } from './cartesianSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
-import { extent } from '../../../util/array';
-import type { Text } from '../../../scene/shape/text';
-import { Label } from '../../label';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { isContinuous, isNumber } from '../../../util/value';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Point, SizedPoint } from '../../../scene/point';
-import {
-    NUMBER,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_STRING,
-    Validate,
-    OPT_NUMBER,
-    COLOR_STRING,
-} from '../../../util/validation';
-import type {
-    AgCartesianSeriesTooltipRendererParams,
-    AgCartesianSeriesLabelFormatterParams,
-    FontStyle,
-    FontWeight,
-    AgTooltipRendererResult,
-    AgCartesianSeriesMarkerFormat,
-    AgCartesianSeriesMarkerFormatterParams,
-} from '../../../options/agChartOptions';
-import { LogAxis } from '../../axis/logAxis';
-import { TimeAxis } from '../../axis/timeAxis';
-import { normaliseGroupTo } from '../../data/processors';
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { DataController } from '../../data/dataController';
-import {
-    type AreaPathPoint,
-    type AreaPathDatum,
-    AreaSeriesTag,
-    areaAnimateEmptyUpdateReady,
-    areaAnimateReadyUpdate,
-    areaResetMarkersAndPaths,
-} from './areaUtil';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {

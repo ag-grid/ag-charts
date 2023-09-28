@@ -6,7 +6,7 @@ import { DataModel } from './dataModel';
 interface RequestedProcessing<
     D extends object,
     K extends keyof D & string = keyof D & string,
-    G extends boolean | undefined = undefined
+    G extends boolean | undefined = undefined,
 > {
     id: string;
     opts: DataModelOptions<K, any>;
@@ -18,7 +18,7 @@ interface RequestedProcessing<
 interface MergedRequests<
     D extends object,
     K extends keyof D & string = keyof D & string,
-    G extends boolean | undefined = undefined
+    G extends boolean | undefined = undefined,
 > {
     ids: string[];
     opts: DataModelOptions<K, any>;
@@ -30,7 +30,7 @@ interface MergedRequests<
 type Result<
     D extends object,
     K extends keyof D & string = keyof D & string,
-    G extends boolean | undefined = undefined
+    G extends boolean | undefined = undefined,
 > = { processedData: ProcessedData<D>; dataModel: DataModel<D, K, G> };
 
 /** Implements cross-series data model coordination. */
@@ -45,7 +45,7 @@ export class DataController {
     public async request<
         D extends object,
         K extends keyof D & string = keyof D & string,
-        G extends boolean | undefined = undefined
+        G extends boolean | undefined = undefined,
     >(id: string, data: D[], opts: DataModelOptions<K, any>) {
         if (this.status !== 'setup') throw new Error(`AG Charts - data request after data setup phase.`);
 

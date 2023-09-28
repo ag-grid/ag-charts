@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AgCartesianSeriesLabelFormatterParams } from 'ag-charts-community';
 import {
-    extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    extractImageData,
     setupMockCanvas,
     spyOnAnimationManager,
     waitForChartStability,

@@ -1,4 +1,4 @@
-import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 import prism from './src/astro/plugins/prism';
 
 export default defineMarkdocConfig({

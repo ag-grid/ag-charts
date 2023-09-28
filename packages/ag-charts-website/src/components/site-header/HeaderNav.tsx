@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import classnames from 'classnames';
 import { FRAMEWORKS, SITE_BASE_URL } from '@constants';
 import breakpoints from '@design-system/breakpoint.module.scss';
 import { ReactComponent as MenuIcon } from '@images/inline-svgs/menu-icon.svg';
 import { useWindowSize } from '@utils/hooks/useWindowSize';
+import { pathJoin } from '@utils/pathJoin';
+import classnames from 'classnames';
+import { useState } from 'react';
 import { Collapsible } from '../Collapsible';
 import { Icon } from '../icon/Icon';
 import styles from './SiteHeader.module.scss';
-import { pathJoin } from '@utils/pathJoin';
 
 const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 

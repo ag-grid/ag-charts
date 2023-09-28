@@ -1,4 +1,6 @@
 import Code from '@components/Code';
+import type { FunctionComponent } from 'react';
+import { types } from 'sass';
 import type { ChildDocEntry, DocEntryMap, InterfaceDocumentationProps } from '../types';
 import {
     escapeGenericCode,
@@ -9,8 +11,7 @@ import {
 } from '../utils/documentationHelpers';
 import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
 import { Section } from './Section';
-import type { FunctionComponent } from 'react';
-import { types } from 'sass';
+
 import Error = types.Error;
 
 /**

@@ -1,6 +1,5 @@
-import type { CollectionEntry } from 'astro:content';
 import type { IconName } from '@components/icon/Icon';
-
+import type { CollectionEntry } from 'astro:content';
 import type Gallery from '../content/gallery/data.json';
 
 export type Framework = 'javascript' | 'react' | 'angular' | 'vue';

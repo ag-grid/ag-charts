@@ -1,5 +1,5 @@
-import { AgChartsVue } from './AgChartsVue';
 import { Vue } from 'vue-property-decorator';
+import { AgChartsVue } from './AgChartsVue';
 
 Vue.config.productionTip = false;
 

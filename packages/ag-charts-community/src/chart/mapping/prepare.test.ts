@@ -1,10 +1,10 @@
-import { describe, expect, it, beforeAll, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AgCartesianChartOptions, AgChartOptions, AgLineSeriesOptions } from '../../options/agChartOptions';
+import { registerInbuiltModules } from '../factory/registerInbuiltModules';
 import { setupModules } from '../factory/setupModules';
 import * as examples from '../test/examples';
 import { ChartTheme } from '../themes/chartTheme';
 import { prepareOptions } from './prepare';
-import { registerInbuiltModules } from '../factory/registerInbuiltModules';
 
 type TestCase = {
     options: AgChartOptions;

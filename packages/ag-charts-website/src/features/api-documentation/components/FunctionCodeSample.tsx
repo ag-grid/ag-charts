@@ -1,11 +1,11 @@
 import Code from '@components/Code';
-import type { FunctionCode, ICallSignature } from '../types';
-import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
-import { escapeGenericCode, extractInterfaces, getLinkedType, writeAllInterfaces } from '../utils/documentationHelpers';
-import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
-import { isGridOptionEvent } from '../utils/isGridOptionEvent';
-import { getInterfaceName } from '../utils/getInterfaceName';
 import type { FunctionComponent } from 'react';
+import type { FunctionCode, ICallSignature } from '../types';
+import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
+import { escapeGenericCode, extractInterfaces, getLinkedType, writeAllInterfaces } from '../utils/documentationHelpers';
+import { getInterfaceName } from '../utils/getInterfaceName';
+import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
+import { isGridOptionEvent } from '../utils/isGridOptionEvent';
 
 export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework, name, type, config }) => {
     if (typeof type == 'string') {

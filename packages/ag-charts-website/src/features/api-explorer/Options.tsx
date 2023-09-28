@@ -1,19 +1,19 @@
-import classnames from 'classnames';
-import { type ReactNode, useState } from 'react';
 import Code from '@components/Code';
+import { Icon } from '@components/icon/Icon';
 import { convertMarkdown, formatJsDocString, inferType } from '@features/api-documentation/utils/documentationHelpers';
 import {
-    buildModel,
     type JsonFunction,
     type JsonModel,
     type JsonModelProperty,
     type JsonObjectProperty,
     type JsonProperty,
     type JsonUnionType,
+    buildModel,
 } from '@features/api-documentation/utils/model';
-import { Icon } from '@components/icon/Icon';
 import { doOnEnter } from '@utils/doOnEnter';
-import { getPrimitiveEditor, getPrimitivePropertyEditor, PresetEditor } from './Editors';
+import classnames from 'classnames';
+import { type ReactNode, useState } from 'react';
+import { PresetEditor, getPrimitiveEditor, getPrimitivePropertyEditor } from './Editors';
 import styles from './Options.module.scss';
 import { deepClone, formatJson, isXAxisNumeric } from './utils';
 

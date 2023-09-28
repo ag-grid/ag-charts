@@ -1,11 +1,11 @@
-import { Group } from '../scene/group';
-import { Text } from '../scene/shape/text';
-import { Square } from './marker/square';
-import type { Marker } from './marker/marker';
-import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
-import type { RenderContext } from '../scene/node';
 import type { FontStyle, FontWeight } from '../options/agChartOptions';
+import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
+import { Group } from '../scene/group';
+import type { RenderContext } from '../scene/node';
+import { Text } from '../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../util/proxy';
+import type { Marker } from './marker/marker';
+import { Square } from './marker/square';
 
 export class MarkerLabel extends Group {
     static className = 'MarkerLabel';

@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
-import { gridLayout } from './gridLayout';
 import { BBox } from '../scene/bbox';
+import { gridLayout } from './gridLayout';
 
 describe('horizontal layout', () => {
     test('one row, multiple columns, one page', () => {

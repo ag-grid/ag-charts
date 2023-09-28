@@ -1,4 +1,4 @@
-import { Icon, type IconName, ICON_MAP } from '../icon/Icon';
+import { ICON_MAP, Icon, type IconName } from '../icon/Icon';
 
 export const Icons = () => {
     return (

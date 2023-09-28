@@ -6,8 +6,8 @@ import {
     type AgTreemapSeriesTooltipRendererParams,
     type TextWrap,
     _ModuleSupport,
-    _Scene,
     _Scale,
+    _Scene,
     _Util,
 } from 'ag-charts-community';
 

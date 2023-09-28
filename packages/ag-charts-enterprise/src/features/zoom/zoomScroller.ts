@@ -1,6 +1,5 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
-
-import { definedZoomState, pointToRatio, translateZoom, constrainZoom } from './zoomTransformers';
+import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
 
 export class ZoomScroller {

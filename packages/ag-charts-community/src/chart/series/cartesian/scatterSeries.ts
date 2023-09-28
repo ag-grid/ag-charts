@@ -1,30 +1,30 @@
-import type { Selection } from '../../../scene/selection';
-import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { ColorScale } from '../../../scale/colorScale';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { extent } from '../../../util/array';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { Label } from '../../label';
-import type { Text } from '../../../scene/shape/text';
-import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
-import type { Marker } from '../../marker/marker';
-import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
-import { OPT_FUNCTION, OPT_STRING, OPT_NUMBER_ARRAY, COLOR_STRING_ARRAY, Validate } from '../../../util/validation';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type {
+    AgCartesianSeriesMarkerFormat,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesTooltipRendererParams,
     AgTooltipRendererResult,
-    AgCartesianSeriesMarkerFormat,
 } from '../../../options/agChartOptions';
-import type { ModuleContext } from '../../../module/moduleContext';
+import { ColorScale } from '../../../scale/colorScale';
+import { ContinuousScale } from '../../../scale/continuousScale';
+import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
+import type { Selection } from '../../../scene/selection';
+import type { Text } from '../../../scene/shape/text';
+import { extent } from '../../../util/array';
+import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
+import { sanitizeHtml } from '../../../util/sanitize';
+import { COLOR_STRING_ARRAY, OPT_FUNCTION, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum, ChartLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
+import type { SeriesNodeDataContext } from '../series';
+import { SeriesNodePickMode, SeriesTooltip, keyProperty, valueProperty } from '../series';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {

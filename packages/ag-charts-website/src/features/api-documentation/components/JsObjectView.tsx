@@ -1,7 +1,9 @@
-import { Fragment, useState, type FunctionComponent, createContext, useContext } from 'react';
-import type { Config, JsObjectPropertiesViewConfig, JsObjectViewProps } from '../types';
+import { Icon } from '@components/icon/Icon';
 import classnames from 'classnames';
-import styles from './JsObjectView.module.scss';
+import { Fragment, type FunctionComponent, createContext, useContext, useState } from 'react';
+import { UNION_DISCRIMINATOR_PROP } from '../constants';
+import type { Config, JsObjectPropertiesViewConfig, JsObjectViewProps } from '../types';
+import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 import type {
     JsonArray,
     JsonFunction,
@@ -11,10 +13,8 @@ import type {
     JsonProperty,
     JsonUnionType,
 } from '../utils/model';
-import { Icon } from '@components/icon/Icon';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
-import { UNION_DISCRIMINATOR_PROP } from '../constants';
-import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
+import styles from './JsObjectView.module.scss';
 
 const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
 

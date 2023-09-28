@@ -1,5 +1,5 @@
 import { expect, test } from '@jest/globals';
-import { isNumber, isContinuous, isDiscrete } from './value';
+import { isContinuous, isDiscrete, isNumber } from './value';
 
 test('isNumber', () => {
     expect(isNumber(1)).toBe(true);

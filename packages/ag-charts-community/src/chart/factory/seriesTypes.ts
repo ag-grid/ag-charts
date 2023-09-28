@@ -1,10 +1,10 @@
-import type { Series } from '../series/series';
-import type { ChartType } from './chartTypes';
-import { registerChartSeriesType } from './chartTypes';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import type { SeriesOptionsTypes } from '../mapping/types';
+import type { Series } from '../series/series';
+import type { ChartType } from './chartTypes';
+import { registerChartSeriesType } from './chartTypes';
 
 const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};

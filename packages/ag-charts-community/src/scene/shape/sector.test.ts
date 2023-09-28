@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { setupMockCanvas, extractImageData } from '../../chart/test/utils';
-import { Sector } from './sector';
+import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
 import { DropShadow } from '../dropShadow';
+import { Sector } from './sector';
 
 describe('Sector', () => {
     describe('rendering', () => {

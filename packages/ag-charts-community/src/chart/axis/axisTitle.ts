@@ -1,16 +1,3 @@
-import {
-    Validate,
-    BOOLEAN,
-    NUMBER,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    STRING,
-    OPT_COLOR_STRING,
-    OPT_STRING,
-    TEXT_WRAP,
-    OPT_FUNCTION,
-    OPT_NUMBER,
-} from '../../util/validation';
 import type {
     AgAxisCaptionFormatterParams,
     AgAxisCaptionOptions,
@@ -18,6 +5,19 @@ import type {
     FontWeight,
     TextWrap,
 } from '../../options/agChartOptions';
+import {
+    BOOLEAN,
+    NUMBER,
+    OPT_COLOR_STRING,
+    OPT_FONT_STYLE,
+    OPT_FONT_WEIGHT,
+    OPT_FUNCTION,
+    OPT_NUMBER,
+    OPT_STRING,
+    STRING,
+    TEXT_WRAP,
+    Validate,
+} from '../../util/validation';
 import { Caption } from '../caption';
 
 export class AxisTitle implements AgAxisCaptionOptions {

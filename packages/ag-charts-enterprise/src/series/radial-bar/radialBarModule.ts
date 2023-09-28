@@ -1,6 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { RadialBarSeries } from './radialBarSeries';
 import { RADIAL_BAR_DEFAULTS } from './radialBarDefaults';
+import { RadialBarSeries } from './radialBarSeries';
 import { RADIAL_BAR_SERIES_THEME } from './radialBarThemes';
 
 export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {

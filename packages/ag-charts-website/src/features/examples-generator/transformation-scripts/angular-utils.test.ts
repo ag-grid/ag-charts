@@ -1,12 +1,12 @@
 import {
-    toInput,
-    toConst,
-    toOutput,
-    toMember,
-    toAssignment,
     convertTemplate,
-    toTitleCase,
     getImport,
+    toAssignment,
+    toConst,
+    toInput,
+    toMember,
+    toOutput,
+    toTitleCase,
 } from './angular-utils';
 
 describe('toInput', () => {

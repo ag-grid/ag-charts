@@ -1,6 +1,10 @@
-import { Fragment, type FunctionComponent, useEffect, useRef, useState } from 'react';
+import { Icon } from '@components/icon/Icon';
+import { LinkIcon } from '@components/link-icon/LinkIcon';
+import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
+import { Fragment, type FunctionComponent, useEffect, useRef, useState } from 'react';
 import type { ICallSignature, InterfaceEntry, PropertyCall } from '../types';
+import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
 import {
     convertMarkdown,
     extractInterfaces,
@@ -10,15 +14,11 @@ import {
     removeDefaultValue,
     splitName,
 } from '../utils/documentationHelpers';
-import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
-import { getPropertyType } from '../utils/getPropertyType';
-import { FunctionCodeSample } from './FunctionCodeSample';
-import styles from './ApiDocumentation.module.scss';
 import { formatJson } from '../utils/formatJson';
-import { Icon } from '@components/icon/Icon';
-import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { getInterfaceName } from '../utils/getInterfaceName';
-import { LinkIcon } from '@components/link-icon/LinkIcon';
+import { getPropertyType } from '../utils/getPropertyType';
+import styles from './ApiDocumentation.module.scss';
+import { FunctionCodeSample } from './FunctionCodeSample';
 
 function isCallSig(gridProp: InterfaceEntry): gridProp is ICallSignature {
     return gridProp && gridProp.meta && gridProp.meta.isCallSignature;

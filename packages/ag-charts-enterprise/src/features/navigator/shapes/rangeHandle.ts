@@ -1,4 +1,4 @@
-import { _Scene, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { BBox } = _Scene;
 const { LINE_CAP, NUMBER, COLOR_STRING, Validate } = _ModuleSupport;

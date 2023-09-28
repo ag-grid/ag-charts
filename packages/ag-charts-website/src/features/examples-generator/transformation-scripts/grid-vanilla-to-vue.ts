@@ -1,6 +1,3 @@
-import type { ImportType } from './parser-utils';
-import { getModuleRegistration } from './parser-utils';
-import { getImport, toOutput } from './vue-utils';
 import {
     convertDefaultColDef,
     getAllMethods,
@@ -9,6 +6,10 @@ import {
     getPropertyBindings,
     getTemplate,
 } from './grid-vanilla-to-vue-common';
+import type { ImportType } from './parser-utils';
+import { getModuleRegistration } from './parser-utils';
+import { getImport, toOutput } from './vue-utils';
+
 const path = require('path');
 
 function getModuleImports(bindings: any, componentFileNames: string[], allStylesheets: string[]): string[] {

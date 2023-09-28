@@ -1,13 +1,13 @@
 import type { InternalFramework } from '@ag-grid-types';
-import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import { vanillaToReact } from '../transformation-scripts/chart-vanilla-to-react';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
 import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
 import { vanillaToVue } from '../transformation-scripts/chart-vanilla-to-vue';
 import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
-import { getBoilerPlateFiles, getEntryFileName } from './fileUtils';
-import { deepCloneObject } from './deepCloneObject';
+import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import type { FileContents } from '../types';
+import { deepCloneObject } from './deepCloneObject';
+import { getBoilerPlateFiles, getEntryFileName } from './fileUtils';
 
 interface FrameworkFiles {
     files: FileContents;

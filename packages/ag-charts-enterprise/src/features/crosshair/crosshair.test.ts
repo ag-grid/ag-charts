@@ -8,9 +8,9 @@ import type {
     AgChartOptions,
 } from 'ag-charts-community';
 import {
+    IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     hoverAction,
-    IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';

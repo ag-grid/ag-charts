@@ -1,4 +1,4 @@
-import { toTitleCase, getImport } from './angular-utils';
+import { getImport, toTitleCase } from './angular-utils';
 
 export function appModuleAngular(componentFileNames: string[], { gridSettings }) {
     const { includeNgFormsModule } = gridSettings;

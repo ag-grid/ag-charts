@@ -1,12 +1,12 @@
-import { useState, type FunctionComponent, type ReactElement } from 'react';
-import classnames from 'classnames';
-import { ExampleIFrame } from './ExampleIFrame';
-import styles from './ExampleRunner.module.scss';
+import type { InternalFramework } from '@ag-grid-types';
 import { Icon } from '@components/icon/Icon';
 import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
-import { CodeViewer } from './CodeViewer';
 import type { ExampleType, FileContents } from '@features/examples-generator/types';
-import type { InternalFramework } from '@ag-grid-types';
+import classnames from 'classnames';
+import { type FunctionComponent, type ReactElement, useState } from 'react';
+import { CodeViewer } from './CodeViewer';
+import { ExampleIFrame } from './ExampleIFrame';
+import styles from './ExampleRunner.module.scss';
 
 interface Props {
     id: string;

@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
-import { RadarAreaSeries } from './radarAreaSeries';
 import { POLAR_DEFAULTS } from '../polarDefaults';
+import { RadarAreaSeries } from './radarAreaSeries';
 import { RADAR_AREA_SERIES_THEME } from './radarAreaThemes';
 
 const { markerPaletteFactory } = _ModuleSupport;

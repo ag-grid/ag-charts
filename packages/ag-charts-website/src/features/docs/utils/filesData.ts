@@ -1,11 +1,10 @@
-import fs from 'fs/promises';
-
 // NOTE: These imports can't be aliases because it is used by `astro.config.mjs`
 // and ts alias paths don't work there
+import fs from 'fs/promises';
 import { INTERNAL_FRAMEWORKS } from '../../../constants';
+import { getFolders } from '../../../utils/fs';
 import { type DocsPage, type InternalFrameworkExample, getContentRootFileUrl } from '../../../utils/pages';
 import { pathJoin } from '../../../utils/pathJoin';
-import { getFolders } from '../../../utils/fs';
 
 function ignoreUnderscoreFiles(page: DocsPage) {
     const pageFolders = page.slug.split('/');

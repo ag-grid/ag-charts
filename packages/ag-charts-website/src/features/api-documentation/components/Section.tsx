@@ -1,14 +1,14 @@
-import classnames from 'classnames';
+import { Icon } from '@components/icon/Icon';
+import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import classnames from 'classnames';
+import type { FunctionComponent } from 'react';
 import type { Config, DocEntryMap, SectionProps } from '../types';
 import { convertMarkdown, getLongestNameLength } from '../utils/documentationHelpers';
-import { Breadcrumbs } from './Breadcrumbs';
-import { Property } from './Property';
 import styles from './ApiDocumentation.module.scss';
-import { Icon } from '@components/icon/Icon';
+import { Breadcrumbs } from './Breadcrumbs';
 import { ObjectCodeSample } from './ObjectCodeSample';
-import type { FunctionComponent } from 'react';
-import { LinkIcon } from '@components/link-icon/LinkIcon';
+import { Property } from './Property';
 
 export const Section: FunctionComponent<SectionProps> = ({
     framework,

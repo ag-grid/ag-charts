@@ -1,60 +1,60 @@
+import type { ModuleContext } from '../../../module/moduleContext';
+import * as easing from '../../../motion/easing';
+import type {
+    AgBarSeriesFormat,
+    AgBarSeriesFormatterParams,
+    AgBarSeriesLabelPlacement,
+    AgBarSeriesTooltipRendererParams,
+    AgCartesianSeriesLabelFormatterParams,
+    AgTooltipRendererResult,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
+import { BandScale } from '../../../scale/bandScale';
+import { ContinuousScale } from '../../../scale/continuousScale';
+import type { DropShadow } from '../../../scene/dropShadow';
+import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { BandScale } from '../../../scale/bandScale';
-import type { DropShadow } from '../../../scene/dropShadow';
-import type { SeriesNodeDataContext } from '../series';
-import {
-    SeriesTooltip,
-    SeriesNodePickMode,
-    keyProperty,
-    valueProperty,
-    groupAccumulativeValueProperty,
-} from '../series';
-import { Label } from '../../label';
-import { PointerEvents } from '../../../scene/node';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
-import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Point } from '../../../scene/point';
 import type { ValidatePredicate } from '../../../util/validation';
 import {
     NUMBER,
+    OPTIONAL,
+    OPT_COLOR_STRING,
     OPT_FUNCTION,
     OPT_LINE_DASH,
     OPT_NUMBER,
-    Validate,
-    OPTIONAL,
     OPT_STRING,
-    OPT_COLOR_STRING,
     STRING_UNION,
+    Validate,
 } from '../../../util/validation';
 import { zipObject } from '../../../util/zip';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
-import type {
-    AgCartesianSeriesLabelFormatterParams,
-    AgTooltipRendererResult,
-    AgBarSeriesFormatterParams,
-    AgBarSeriesTooltipRendererParams,
-    AgBarSeriesFormat,
-    AgBarSeriesLabelPlacement,
-    FontStyle,
-    FontWeight,
-} from '../../../options/agChartOptions';
 import { LogAxis } from '../../axis/logAxis';
-import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
-import * as easing from '../../../motion/easing';
-import type { RectConfig } from './barUtil';
-import { getRectConfig, updateRect, checkCrisp } from './barUtil';
-import { updateLabel, createLabelData } from './labelUtil';
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartAxis } from '../../chartAxis';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import { SMALLEST_KEY_INTERVAL, diff, normaliseGroupTo } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum, ChartLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { SeriesNodeDataContext } from '../series';
+import {
+    SeriesNodePickMode,
+    SeriesTooltip,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    valueProperty,
+} from '../series';
+import type { RectConfig } from './barUtil';
+import { checkCrisp, getRectConfig, updateRect } from './barUtil';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
+import { createLabelData, updateLabel } from './labelUtil';
 
 const BAR_LABEL_PLACEMENTS: AgBarSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_BAR_LABEL_PLACEMENT: ValidatePredicate = (v: any, ctx) =>

@@ -1,27 +1,25 @@
-import { expect, it, describe } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { isNumber } from '../../util/value';
+import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
-
 import * as examples from '../test/examples';
-
-import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
-import { DataModel } from './dataModel';
 import {
+    accumulatedValue,
     area as actualArea,
     groupAverage as actualGroupAverage,
     groupCount as actualGroupCount,
     range as actualRange,
     sum as actualSum,
-    accumulatedValue,
 } from './aggregateFunctions';
+import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
+import { DataModel } from './dataModel';
 import {
     AGG_VALUES_EXTENT,
-    normaliseGroupTo as actualNormaliseGroupTo,
-    normalisePropertyTo as actualNormalisePropertyTo,
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
+    normaliseGroupTo as actualNormaliseGroupTo,
+    normalisePropertyTo as actualNormalisePropertyTo,
 } from './processors';
-import { rangedValueProperty } from '../series/series';
 
 const rangeKey = (property: string) => ({ scope: 'test', property, type: 'key' as const, valueType: 'range' as const });
 const categoryKey = (property: string) => ({

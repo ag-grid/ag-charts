@@ -26,7 +26,9 @@ input[type='submit'],
     outline: none;
     border: 2px solid transparent;
     box-shadow: 0 0 0 4px transparent;
-    transition: background-color $default-transition-timing, border $default-transition-timing,
+    transition:
+        background-color $default-transition-timing,
+        border $default-transition-timing,
         box-shadow $default-transition-timing;
 
     &:hover,
@@ -84,7 +86,9 @@ input[type='submit'],
     --button-focus-box-shadow-color: var(--light-water-blue);
 
     border: 2px solid var(--border-color);
-    transition: border-color $default-transition-timing, box-shadow $default-transition-timing;
+    transition:
+        border-color $default-transition-timing,
+        box-shadow $default-transition-timing;
 
     &:hover:not(:disabled):not([readonly]),
     &:focus-visible:not(:disabled):not([readonly]) {
