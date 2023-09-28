@@ -1,63 +1,65 @@
-import type { ModuleInstance } from '../module/baseModule';
-import type { LegendModule, RootModule } from '../module/coreModules';
-import type { Module } from '../module/module';
-import type { ModuleContext } from '../module/moduleContext';
+import { Scene } from '../scene/scene';
+import { Group } from '../scene/group';
+import { Text } from '../scene/shape/text';
+import { Debug } from '../util/debug';
+import type { PickRequired } from '../util/types';
+import type { Series, SeriesNodeDatum } from './series/series';
+import { SeriesNodePickMode } from './series/series';
+import { Padding } from '../util/padding';
+
+import { BBox } from '../scene/bbox';
+import { SizeMonitor } from '../util/sizeMonitor';
+import type { Caption } from './caption';
+import type { TypedEvent } from '../util/observable';
+import { Observable } from '../util/observable';
+import type { ChartAxis } from './chartAxis';
+import type { ChartAxisDirection } from './chartAxisDirection';
+import { createId } from '../util/id';
+import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
+import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import type {
+    AgChartOptions,
     AgChartClickEvent,
     AgChartDoubleClickEvent,
     AgChartInstance,
-    AgChartOptions,
 } from '../options/agChartOptions';
-import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
-import type { Point } from '../scene/point';
-import { Scene } from '../scene/scene';
-import { Text } from '../scene/shape/text';
-import { sleep } from '../util/async';
-import { CallbackCache } from '../util/callbackCache';
-import { Debug } from '../util/debug';
-import { createId } from '../util/id';
-import { jsonMerge } from '../util/json';
-import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
-import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
-import { Logger } from '../util/logger';
-import type { TypedEvent } from '../util/observable';
-import { Observable } from '../util/observable';
-import { Padding } from '../util/padding';
-import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
-import { SizeMonitor } from '../util/sizeMonitor';
-import type { PickRequired } from '../util/types';
+import type { Point } from '../scene/point';
 import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
-import type { Caption } from './caption';
-import type { ChartAxis } from './chartAxis';
-import type { ChartAxisDirection } from './chartAxisDirection';
-import { ChartHighlight } from './chartHighlight';
-import { ChartUpdateType } from './chartUpdateType';
-import { DataController } from './data/dataController';
-import { DataService } from './dataService';
+import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
+import { Tooltip } from './tooltip/tooltip';
+import { ChartOverlays } from './overlay/chartOverlays';
+import { jsonMerge } from '../util/json';
+import { Layers } from './layers';
 import { AnimationManager } from './interaction/animationManager';
-import { ChartEventManager } from './interaction/chartEventManager';
 import { CursorManager } from './interaction/cursorManager';
+import { ChartEventManager } from './interaction/chartEventManager';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
-import { Layers } from './layers';
 import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
-import { Legend } from './legend';
-import type { CategoryLegendDatum, ChartLegend, ChartLegendDatum, ChartLegendType } from './legendDatum';
-import type { SeriesOptionsTypes } from './mapping/types';
-import { ChartOverlays } from './overlay/chartOverlays';
-import type { Series, SeriesNodeDatum } from './series/series';
-import { SeriesNodePickMode } from './series/series';
-import { SeriesLayerManager } from './series/seriesLayerManager';
-import { SeriesStateManager } from './series/seriesStateManager';
-import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
-import { Tooltip } from './tooltip/tooltip';
+import { DataService } from './dataService';
 import { UpdateService } from './updateService';
+import { ChartUpdateType } from './chartUpdateType';
+import type { CategoryLegendDatum, ChartLegendDatum, ChartLegend, ChartLegendType } from './legendDatum';
+import { Logger } from '../util/logger';
+import { ActionOnSet } from '../util/proxy';
+import { ChartHighlight } from './chartHighlight';
+import { CallbackCache } from '../util/callbackCache';
+import { DataController } from './data/dataController';
+import { SeriesStateManager } from './series/seriesStateManager';
+import { SeriesLayerManager } from './series/seriesLayerManager';
+import type { SeriesOptionsTypes } from './mapping/types';
+import { Legend } from './legend';
+import type { Module } from '../module/module';
+import type { ModuleContext } from '../module/moduleContext';
+import type { LegendModule, RootModule } from '../module/coreModules';
+import type { ModuleInstance } from '../module/baseModule';
+import { Mutex } from '../util/mutex';
+import { sleep } from '../util/async';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
@@ -306,7 +308,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
 
-        this.animationManager = new AnimationManager(this.interactionManager);
+        this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
         this.animationManager.skip();
         this.animationManager.play();
 
@@ -461,7 +463,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         let result: TransferableResources | undefined = undefined;
 
         this._performUpdateType = ChartUpdateType.NONE;
-        this._pendingFactoryUpdates.splice(0);
 
         this.tooltipManager.destroy();
         this.tooltip.destroy();
@@ -510,46 +511,19 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private _pendingFactoryUpdates: (() => Promise<void>)[] = [];
-
     requestFactoryUpdate(cb: () => Promise<void>) {
-        const callbacks = this._pendingFactoryUpdates;
-        const count = callbacks.length;
-        if (count === 0) {
-            callbacks.push(cb);
-            this._processCallbacks().catch((e) => Logger.errorOnce(e));
-        } else {
-            // Factory callback process already running, the callback will be invoked asynchronously.
-            // Clear the queue after the first callback to prevent unnecessary re-renderings.
-            callbacks.splice(1, count - 1, cb);
-        }
+        this._pendingFactoryUpdatesCount++;
+        this.updateMutex.acquire(async () => {
+            await cb();
+            this._pendingFactoryUpdatesCount--;
+        });
     }
 
-    private async _processCallbacks() {
-        const callbacks = this._pendingFactoryUpdates;
-        while (callbacks.length > 0) {
-            if (this.updatePending) {
-                await sleep(1);
-                continue; // Make sure to check queue has an item before continuing.
-            }
-            try {
-                await callbacks[0]();
-                this.callbackCache.invalidateCache();
-            } catch (e) {
-                Logger.error('update error', e);
-            }
-
-            callbacks.shift();
-        }
-    }
-
+    private _pendingFactoryUpdatesCount = 0;
     private _performUpdateNoRenderCount = 0;
     private _performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
     get performUpdateType() {
         return this._performUpdateType;
-    }
-    get updatePending(): boolean {
-        return this._performUpdateType !== ChartUpdateType.NONE || this.lastInteractionEvent != null;
     }
     private _lastPerformUpdateError?: Error;
     get lastPerformUpdateError() {
@@ -558,19 +532,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private updateShortcutCount = 0;
     private seriesToUpdate: Set<Series> = new Set();
+    private updateMutex = new Mutex();
+    private updateRequestors: Record<string, ChartUpdateType> = {};
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this._destroyed) return;
 
-        try {
-            await this.performUpdate(count);
-        } catch (error) {
-            this._lastPerformUpdateError = error as Error;
-            Logger.error('update error', error);
-        }
+        this.updateMutex.acquire(async () => {
+            try {
+                await this.performUpdate(count);
+            } catch (error) {
+                this._lastPerformUpdateError = error as Error;
+                Logger.error('update error', error);
+            }
+        });
     });
-    public async awaitUpdateCompletion() {
-        await this.performUpdateTrigger.await();
-    }
     public update(
         type = ChartUpdateType.FULL,
         opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<Series>; backOffMs?: number }
@@ -583,6 +558,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         for (const series of seriesToUpdate) {
             this.seriesToUpdate.add(series);
+        }
+
+        if (Debug.check(true)) {
+            let stack = new Error().stack ?? '<unknown>';
+            stack = stack.replace(/\([^)]*/g, '');
+            this.updateRequestors[stack] = type;
         }
 
         if (type < this._performUpdateType) {
@@ -640,12 +621,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
             case ChartUpdateType.SCENE_RENDER:
                 if (this.checkUpdateShortcut(ChartUpdateType.SCENE_RENDER)) break;
 
+                extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.NONE:
                 // Do nothing.
                 this.updateShortcutCount = 0;
+                this.updateRequestors = {};
         }
 
         const end = performance.now();
@@ -664,7 +647,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             Logger.warn(
                 `exceeded the maximum number of simultaneous updates (${
                     maxShortcuts + 1
-                }), discarding changes and rendering`
+                }), discarding changes and rendering`,
+                this.updateRequestors
             );
             return false;
         }
@@ -1368,13 +1352,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
     async waitForUpdate(timeoutMs = 5000): Promise<void> {
         const start = performance.now();
 
-        while (this._pendingFactoryUpdates.length > 0 || this.updatePending) {
+        if (this._pendingFactoryUpdatesCount > 0) {
+            // Await until any pending updates are flushed through.
+            await this.updateMutex.waitForClearAcquireQueue();
+        }
+
+        while (this._performUpdateType !== ChartUpdateType.NONE) {
             if (performance.now() - start > timeoutMs) {
                 throw new Error('waitForUpdate() timeout reached.');
             }
             await sleep(5);
         }
-        await this.awaitUpdateCompletion();
+
+        // Await until any remaining updates are flushed through.
+        await this.updateMutex.waitForClearAcquireQueue();
     }
 
     protected handleOverlays() {
