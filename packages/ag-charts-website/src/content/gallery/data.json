@@ -149,19 +149,6 @@
             ]
         },
         {
-            "title": "Scatter",
-            "name": "scatter",
-            "icon": "chartsScatter",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Scatter",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "simple-scatter"
-                }
-            ]
-        },
-        {
             "title": "Doughnut",
             "name": "doughnut",
             "icon": "chartsDonut",
@@ -224,32 +211,124 @@
             ]
         },
         {
-            "title": "Range",
+            "title": "Range Bar",
             "name": "range",
             "icon": "chartsRange",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Range Bar",
+                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "simple-range-bar"
+                },
+                {
+                    "title": "Multiple Range Bars",
+                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "multiple-range-bars"
+                },
+                {
+                    "title": "Horizontal Range Bar",
+                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "horizontal-range-bar"
+                },
+                {
+                    "title": "Multiple Horizontal Range Bar",
+                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "multiple-horizontal-range-bars"
+                }
+            ]
+        },
+        {
+            "title": "Range Area",
+            "name": "range",
+            "icon": "chartsRange",
+            "enterprise": true,
+            "examples": [
+                {
+                    "title": "Simple Range Area",
+                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                    "name": "simple-range-area"
+                },
+                {
+                    "title": "Range Area Missing Data",
+                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                    "name": "range-area-missing-data"
+                },
+                {
+                    "title": "Multiple Range Areas",
+                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                    "name": "multiple-range-areas"
+                }
+            ]
         },
         {
             "title": "Box Plot",
             "name": "box-plot",
             "icon": "chartsBoxPlot",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Box Plot",
+                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                    "name": "simple-box-plot"
+                },
+                {
+                    "title": "Horizontal Box Plot",
+                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                    "name": "horizontal-box-plot"
+                },
+                {
+                    "title": "Box Plot Outliers",
+                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                    "name": "box-plot-outliers"
+                }
+            ]
         },
         {
             "title": "Error Bars",
             "name": "error-bar",
             "icon": "chartsErrorBar",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Line Series Error Bars",
+                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
+                    "name": "line-series-error-bars"
+                },
+                {
+                    "title": "Bar Series Error Bars",
+                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
+                    "name": "bar-series-error-bars"
+                },
+                {
+                    "title": "Scatter Series Error Bars",
+                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
+                    "name": "scatter-series-error-bars"
+                }
+            ]
         },
         {
             "title": "Waterfall",
             "name": "waterfall",
             "icon": "chartsWaterfall",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Waterfall",
+                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                    "name": "simple-waterfall"
+                },
+                {
+                    "title": "Horizontal Waterfall",
+                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                    "name": "horizontal-waterfall"
+                },
+                {
+                    "title": "Customised Waterfall",
+                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                    "name": "customised-waterfall"
+                }
+            ]
         },
         {
             "title": "Radar",
