@@ -1,7 +1,7 @@
 import type {
-    AgChartLegendPosition,
     AgChartLegendLabelFormatterParams,
     AgChartLegendOrientation,
+    AgChartLegendPosition,
     FontStyle,
     FontWeight,
 } from 'ag-charts-community';

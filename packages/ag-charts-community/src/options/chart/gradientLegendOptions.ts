@@ -1,5 +1,5 @@
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 import type { AgChartLegendPosition } from './legendOptions';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgGradientLegendLabelFormatterParams {
     value: string;

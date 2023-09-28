@@ -1,8 +1,8 @@
-import type { Text } from '../../../scene/shape/text';
-import type { Point } from '../../../scene/point';
-import { isNumber } from '../../../util/value';
-import type { FontFamily, FontWeight, FontStyle } from '../../../options/agChartOptions';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { FontFamily, FontStyle, FontWeight } from '../../../options/agChartOptions';
+import type { Point } from '../../../scene/point';
+import type { Text } from '../../../scene/shape/text';
+import { isNumber } from '../../../util/value';
 
 type Bounds = {
     x: number;

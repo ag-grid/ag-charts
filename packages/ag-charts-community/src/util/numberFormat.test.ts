@@ -1,6 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
-import { format } from './numberFormat';
+
 import { LinearScale } from '../scale/linearScale';
+import { format } from './numberFormat';
 
 describe('format', () => {
     test('fixed point', () => {

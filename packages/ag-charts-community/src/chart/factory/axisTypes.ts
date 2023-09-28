@@ -1,9 +1,9 @@
-import type { ModuleContext } from '../../module/moduleContext';
 import type { AxisConstructor } from '../../module/coreModules';
-import { LogAxis } from '../axis/logAxis';
-import { NumberAxis } from '../axis/numberAxis';
+import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryAxis } from '../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
+import { LogAxis } from '../axis/logAxis';
+import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 
 const AXIS_CONSTRUCTORS: Record<string, AxisConstructor> = {

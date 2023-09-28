@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
-    extractImageData,
     IMAGE_SNAPSHOT_DEFAULTS,
+    extractImageData,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { BackgroundImage } from './backgroundImage';

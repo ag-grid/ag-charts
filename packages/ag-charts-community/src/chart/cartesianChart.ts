@@ -1,13 +1,13 @@
-import type { SpecialOverrides, TransferableResources } from './chart';
-import { Chart } from './chart';
+import type { AgCartesianAxisPosition } from '../options/agChartOptions';
+import type { BBox } from '../scene/bbox';
+import { toRadians } from '../util/angle';
+import { Logger } from '../util/logger';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
+import type { SpecialOverrides, TransferableResources } from './chart';
+import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
-import type { BBox } from '../scene/bbox';
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
-import { Logger } from '../util/logger';
-import { toRadians } from '../util/angle';
 
 type VisibilityMap = { crossLines: boolean; series: boolean };
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];

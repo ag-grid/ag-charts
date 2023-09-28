@@ -1,13 +1,13 @@
 import {
-    _ModuleSupport,
-    _Scene,
-    _Util,
     type AgCartesianSeriesLabelFormatterParams,
     type AgHistogramSeriesOptions,
     type AgHistogramSeriesTooltipRendererParams,
     type AgTooltipRendererResult,
     type FontStyle,
     type FontWeight,
+    _ModuleSupport,
+    _Scene,
+    _Util,
 } from 'ag-charts-community';
 
 const {

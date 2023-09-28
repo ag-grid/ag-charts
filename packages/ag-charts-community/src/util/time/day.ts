@@ -1,5 +1,5 @@
-import { CountableTimeInterval } from './interval';
 import { durationDay } from './duration';
+import { CountableTimeInterval } from './interval';
 
 function encode(date: Date) {
     const tzOffsetMs = date.getTimezoneOffset() * 60_000;

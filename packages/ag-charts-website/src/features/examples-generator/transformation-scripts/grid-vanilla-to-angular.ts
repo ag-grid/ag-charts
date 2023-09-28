@@ -1,4 +1,4 @@
-import { convertTemplate, getImport, toMemberWithValue, toConst, toInput, toOutput } from './angular-utils';
+import { convertTemplate, getImport, toConst, toInput, toMemberWithValue, toOutput } from './angular-utils';
 import { templatePlaceholder } from './grid-vanilla-src-parser';
 import type { ImportType } from './parser-utils';
 import {
@@ -9,6 +9,7 @@ import {
     isInstanceMethod,
     removeFunctionKeyword,
 } from './parser-utils';
+
 const path = require('path');
 
 function getOnGridReadyCode(
@@ -44,8 +45,8 @@ function getOnGridReadyCode(
         return `
         onGridReady(params: GridReadyEvent${gridReadyEventParam}) {
             ${hasApi ? 'this.gridApi = params.api;' : ''}${hasColApi ? 'this.gridColumnApi = params.columnApi;' : ''}${
-            additionalLines.length > 0 ? `\n\n        ${additionalLines.join('\n        ')}` : ''
-        }
+                additionalLines.length > 0 ? `\n\n        ${additionalLines.join('\n        ')}` : ''
+            }
         }`;
     } else {
         return '';

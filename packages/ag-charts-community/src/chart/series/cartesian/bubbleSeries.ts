@@ -31,7 +31,7 @@ import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import type { SeriesNodeDataContext } from '../series';
-import { keyProperty, SeriesNodePickMode, valueProperty } from '../series';
+import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeBaseClickEvent } from './cartesianSeries';

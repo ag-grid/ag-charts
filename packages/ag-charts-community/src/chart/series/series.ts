@@ -9,6 +9,7 @@ import type { ZIndexSubOrder } from '../../scene/node';
 import type { Point, SizedPoint } from '../../scene/point';
 import { createId } from '../../util/id';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
+import { Listeners } from '../../util/listeners';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
@@ -32,11 +33,10 @@ import { fixNumericExtent } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
-import type { SeriesGrouping } from './seriesStateManager';
-import type { SeriesTooltip } from './seriesTooltip';
-import { Listeners } from '../../util/listeners';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
+import type { SeriesGrouping } from './seriesStateManager';
+import type { SeriesTooltip } from './seriesTooltip';
 
 /**
  * Processed series datum used in node selections,

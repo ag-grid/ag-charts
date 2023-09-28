@@ -1,10 +1,10 @@
-import { getCollection } from 'astro:content';
-import { getContentRootFileUrl } from '@utils/pages';
-import { getIsDev } from '@utils/env';
-import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
 import type { InternalFramework } from '@ag-grid-types';
+import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
 import { getDocExampleFiles } from '@features/docs/utils/pageData';
+import { getIsDev } from '@utils/env';
 import { fileNameToMimeType } from '@utils/fileNameToMimeType';
+import { getContentRootFileUrl } from '@utils/pages';
+import { getCollection } from 'astro:content';
 
 interface Params {
     internalFramework: InternalFramework;

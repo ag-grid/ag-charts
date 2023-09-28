@@ -1,10 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
 import 'jest-canvas-mock';
-import { groupSeriesByType, processSeriesOptions } from './prepareSeries';
-import { addGroupableSeriesType, addStackableSeriesType, addStackedByDefaultSeriesType } from '../factory/seriesTypes';
-import { clearDoOnceFlags } from '../../util/function';
 
-import type { AgBarSeriesOptions, AgLineSeriesOptions, AgAreaSeriesOptions } from '../../options/agChartOptions';
+import type { AgAreaSeriesOptions, AgBarSeriesOptions, AgLineSeriesOptions } from '../../options/agChartOptions';
+import { clearDoOnceFlags } from '../../util/function';
+import { addGroupableSeriesType, addStackableSeriesType, addStackedByDefaultSeriesType } from '../factory/seriesTypes';
+import { groupSeriesByType, processSeriesOptions } from './prepareSeries';
 
 function switchSeriesType(
     type: 'bar' | 'line' | 'area',

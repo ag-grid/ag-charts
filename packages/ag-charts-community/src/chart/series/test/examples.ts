@@ -8,14 +8,14 @@ import type {
     AgScatterSeriesOptions,
 } from '../../../options/agChartOptions';
 import { DATA_APPLE_REVENUE_BY_PRODUCT, DATA_BROWSER_MARKET_SHARE } from '../../test/data';
+import { loadExampleOptions } from '../../test/load-example';
 import {
-    DATA_MALE_HEIGHT_WEIGHT,
     DATA_FEMALE_HEIGHT_WEIGHT,
+    DATA_FRUIT_VEG_CONSUMPTION,
+    DATA_MALE_HEIGHT_WEIGHT,
     DATA_MARKET_SHARE,
     DATA_TREEMAP,
-    DATA_FRUIT_VEG_CONSUMPTION,
 } from './data';
-import { loadExampleOptions } from '../../test/load-example';
 
 const GROUPED_AREA_EXAMPLE: AgCartesianChartOptions & { series: AgAreaSeriesOptions[] } =
     loadExampleOptions('area-with-negative-values');

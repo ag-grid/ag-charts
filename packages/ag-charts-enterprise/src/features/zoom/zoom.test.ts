@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import {
+    IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     extractImageData,
-    IMAGE_SNAPSHOT_DEFAULTS,
     scrollAction,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+
 import type { AgChartOptions } from '../../../main';
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';

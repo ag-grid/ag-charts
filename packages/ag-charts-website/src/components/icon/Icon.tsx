@@ -1,5 +1,4 @@
 import * as CarbonIcon from '@carbon/icons-react';
-import classNames from 'classnames';
 import { ReactComponent as ApiIcon } from '@images/inline-svgs/api.svg';
 import { ReactComponent as BoldChevronDown } from '@images/inline-svgs/bold-chevron-down.svg';
 import { ReactComponent as BoldChevronLeft } from '@images/inline-svgs/bold-chevron-left.svg';
@@ -18,6 +17,8 @@ import { ReactComponent as RowsIcon } from '@images/inline-svgs/rows.svg';
 import { ReactComponent as StackBlitzIcon } from '@images/inline-svgs/stack-blitz.svg';
 import { ReactComponent as TakeControlIcon } from '@images/inline-svgs/take-control-icon.svg';
 import { ReactComponent as TickIcon } from '@images/inline-svgs/tick.svg';
+import classNames from 'classnames';
+
 import styles from './Icon.module.scss';
 
 // Uses IBM Carbon Design System icons as a base

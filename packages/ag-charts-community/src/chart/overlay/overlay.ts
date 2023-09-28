@@ -1,5 +1,5 @@
-import { OPT_FUNCTION, OPT_STRING, Validate } from '../../util/validation';
 import type { BBox } from '../../scene/bbox';
+import { OPT_FUNCTION, OPT_STRING, Validate } from '../../util/validation';
 
 export class Overlay {
     constructor(className: string, parent: HTMLElement, document: Document) {

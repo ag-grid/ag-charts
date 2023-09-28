@@ -1,9 +1,9 @@
-import type { BaseModule, ModuleInstance } from './baseModule';
 import type { ChartAxis } from '../chart/chartAxis';
-import type { Series } from '../chart/series/series';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
-import type { ModuleContext } from './moduleContext';
+import type { Series } from '../chart/series/series';
 import type { AgBaseChartThemeOverrides, AgChartOptions } from '../options/agChartOptions';
+import type { BaseModule, ModuleInstance } from './baseModule';
+import type { ModuleContext } from './moduleContext';
 
 export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
 export type SeriesConstructor = new (moduleContext: ModuleContext) => Series<any>;
@@ -13,7 +13,7 @@ export type SeriesPaletteOptions<
     SeriesType extends RequiredSeriesType,
     SeriesOpts = NonNullable<AgChartOptions['series']>[number] & { type: SeriesType },
     ColourKeys = 'stroke' | 'fill' | 'fills' | 'strokes' | 'colors',
-    NestedKeys = 'marker' | 'calloutLine'
+    NestedKeys = 'marker' | 'calloutLine',
 > = {
     [K in keyof SeriesOpts & ColourKeys]: NonNullable<SeriesOpts[K]>;
 } & {
@@ -66,7 +66,7 @@ export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<
 
 export type ExtensibleDefaults<
     SeriesType extends RequiredSeriesType,
-    ChartOptions = AgChartOptions & { series?: { type: SeriesType } }
+    ChartOptions = AgChartOptions & { series?: { type: SeriesType } },
 > = Extensible<ChartOptions>;
 
 export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType> extends BaseModule {

@@ -1,4 +1,6 @@
+import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../options/agChartOptions';
 import { getFont } from '../../scene/shape/text';
+import { Default } from '../../util/default';
 import {
     BOOLEAN,
     NUMBER,
@@ -12,8 +14,6 @@ import {
     STRING,
     Validate,
 } from '../../util/validation';
-import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../options/agChartOptions';
-import { Default } from '../../util/default';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 
 export class AxisLabel implements ChartAxisLabel {

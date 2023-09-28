@@ -1,16 +1,16 @@
 import {
     AfterViewInit,
     Component,
-    EventEmitter,
     ElementRef,
+    EventEmitter,
     Input,
-    Output,
     OnChanges,
     OnDestroy,
+    Output,
     ViewEncapsulation,
 } from '@angular/core';
 
-import { AgChartInstance, AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 
 // noinspection AngularIncorrectTemplateDefinition
 @Component({

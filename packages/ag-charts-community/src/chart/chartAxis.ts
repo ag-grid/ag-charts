@@ -1,14 +1,14 @@
-import type { Node } from '../scene/node';
-import type { BBox } from '../scene/bbox';
 import type {
-    AgCartesianAxisPosition,
     AgAxisLabelFormatterParams,
+    AgCartesianAxisPosition,
     FontStyle,
     FontWeight,
 } from '../options/agChartOptions';
-import type { AxisLayout } from './layout/layoutService';
-import type { ChartAxisDirection } from './chartAxisDirection';
 import type { Scale } from '../scale/scale';
+import type { BBox } from '../scene/bbox';
+import type { Node } from '../scene/node';
+import type { ChartAxisDirection } from './chartAxisDirection';
+import type { AxisLayout } from './layout/layoutService';
 
 export interface BoundSeries {
     getBandScalePadding?(): { inner: number; outer: number };

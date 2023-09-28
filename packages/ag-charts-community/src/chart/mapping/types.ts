@@ -1,10 +1,10 @@
-import { Logger } from '../../util/logger';
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
+import { Logger } from '../../util/logger';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 

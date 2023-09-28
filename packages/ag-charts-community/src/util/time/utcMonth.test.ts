@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+
 import { utcMonth } from './utcMonth';
 
 test('UTC month', () => {

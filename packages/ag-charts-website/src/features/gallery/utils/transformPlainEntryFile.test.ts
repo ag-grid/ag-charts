@@ -1,5 +1,6 @@
-import { transformPlainEntryFile } from './transformPlainEntryFile';
 import util from 'node:util';
+
+import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 const getEntryFile = (chartOptions: object) => {
     // NOTE: Use `util.inspect` instead of `JSON.stringify` so that there aren't quotes around

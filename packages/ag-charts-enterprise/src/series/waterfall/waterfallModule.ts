@@ -1,7 +1,8 @@
 import type { AgWaterfallSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
-import { WaterfallSeries } from './waterfallSeries';
+
 import { WATERFALL_DEFAULTS } from './waterfallDefaults';
+import { WaterfallSeries } from './waterfallSeries';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
 export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {

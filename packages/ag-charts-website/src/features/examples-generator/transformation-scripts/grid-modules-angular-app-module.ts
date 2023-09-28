@@ -1,4 +1,4 @@
-import { toTitleCase, getImport } from './angular-utils';
+import { getImport, toTitleCase } from './angular-utils';
 import { getModuleRegistration } from './parser-utils';
 
 export function appModuleAngular(componentFileNames: string[], bindings) {

@@ -1,15 +1,15 @@
-import { ChartTheme } from '../themes/chartTheme';
-import { DarkTheme } from '../themes/darkTheme';
-import { MaterialLight } from '../themes/materialLight';
-import { MaterialDark } from '../themes/materialDark';
-import { PastelLight } from '../themes/pastelLight';
-import { PastelDark } from '../themes/pastelDark';
-import { SolarLight } from '../themes/solarLight';
-import { SolarDark } from '../themes/solarDark';
-import { VividLight } from '../themes/vividLight';
-import { VividDark } from '../themes/vividDark';
 import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../../options/agChartOptions';
 import { jsonMerge } from '../../util/json';
+import { ChartTheme } from '../themes/chartTheme';
+import { DarkTheme } from '../themes/darkTheme';
+import { MaterialDark } from '../themes/materialDark';
+import { MaterialLight } from '../themes/materialLight';
+import { PastelDark } from '../themes/pastelDark';
+import { PastelLight } from '../themes/pastelLight';
+import { SolarDark } from '../themes/solarDark';
+import { SolarLight } from '../themes/solarLight';
+import { VividDark } from '../themes/vividDark';
+import { VividLight } from '../themes/vividLight';
 
 type ThemeMap = { [key in AgChartThemeName | 'undefined' | 'null']?: () => ChartTheme };
 

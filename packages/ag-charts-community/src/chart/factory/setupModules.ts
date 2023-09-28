@@ -1,11 +1,11 @@
 import { REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../../module/module';
-import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
+import { Logger } from '../../util/logger';
 import { JSON_APPLY_PLUGINS } from '../chartOptions';
+import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
 import { registerChartDefaults } from './chartTypes';
+import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
 import { registerLegend } from './legendTypes';
 import { registerSeries } from './seriesTypes';
-import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
-import { Logger } from '../../util/logger';
 
 export function setupModules() {
     for (const m of REGISTERED_MODULES) {

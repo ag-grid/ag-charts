@@ -1,20 +1,21 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
+import type { AgCartesianChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
-import {
-    waitForChartStability,
-    IMAGE_SNAPSHOT_DEFAULTS,
-    setupMockCanvas,
-    extractImageData,
-    deproxy,
-    clickAction,
-    doubleClickAction,
-    prepareTestOptions,
-} from './test/utils';
 import * as examples from './test/examples';
-import type { AgCartesianChartOptions } from '../options/agChartOptions';
 import { seedRandom } from './test/random';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
+    deproxy,
+    doubleClickAction,
+    extractImageData,
+    prepareTestOptions,
+    setupMockCanvas,
+    waitForChartStability,
+} from './test/utils';
 
 function buildSeries(data: { x: number; y: number }) {
     return {

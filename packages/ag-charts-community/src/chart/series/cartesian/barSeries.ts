@@ -23,12 +23,12 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import type { ValidatePredicate } from '../../../util/validation';
 import {
     NUMBER,
+    OPTIONAL,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
     OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
-    OPTIONAL,
     STRING_UNION,
     Validate,
 } from '../../../util/validation';
@@ -39,11 +39,11 @@ import { LogAxis } from '../../axis/logAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import { diff, normaliseGroupTo, SMALLEST_KEY_INTERVAL } from '../../data/processors';
+import { SMALLEST_KEY_INTERVAL, diff, normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
-import { groupAccumulativeValueProperty, keyProperty, SeriesNodePickMode, valueProperty } from '../series';
+import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { RectConfig } from './barUtil';
 import { checkCrisp, getRectConfig, updateRect } from './barUtil';

@@ -1,45 +1,45 @@
-import { PointerEvents } from '../../scene/node';
-import { Group } from '../../scene/group';
-import { Text } from '../../scene/shape/text';
-import type { BBox } from '../../scene/bbox';
-import type { Scale } from '../../scale/scale';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { createId } from '../../util/id';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import type { CrossLineLabelPosition } from './crossLineLabelPosition';
-import {
-    labeldDirectionHandling,
-    POSITION_TOP_COORDINATES,
-    calculateLabelTranslation,
-    calculateLabelChartPadding,
-} from './crossLineLabelPosition';
-import { checkDatum } from '../../util/value';
-import { Layers } from '../layers';
-import type { Point } from '../../scene/point';
-import { Range } from '../../scene/shape/range';
-import {
-    OPT_ARRAY,
-    OPT_BOOLEAN,
-    OPT_NUMBER,
-    OPT_STRING,
-    OPT_COLOR_STRING,
-    STRING,
-    Validate,
-    OPT_LINE_DASH,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    NUMBER,
-    OPTIONAL,
-    predicateWithMessage,
-} from '../../util/validation';
 import type {
-    FontStyle,
-    FontWeight,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
+    FontStyle,
+    FontWeight,
 } from '../../options/agChartOptions';
+import { ContinuousScale } from '../../scale/continuousScale';
+import type { Scale } from '../../scale/scale';
+import type { BBox } from '../../scene/bbox';
+import { Group } from '../../scene/group';
+import { PointerEvents } from '../../scene/node';
+import type { Point } from '../../scene/point';
+import { Range } from '../../scene/shape/range';
+import { Text } from '../../scene/shape/text';
+import { createId } from '../../util/id';
+import {
+    NUMBER,
+    OPTIONAL,
+    OPT_ARRAY,
+    OPT_BOOLEAN,
+    OPT_COLOR_STRING,
+    OPT_FONT_STYLE,
+    OPT_FONT_WEIGHT,
+    OPT_LINE_DASH,
+    OPT_NUMBER,
+    OPT_STRING,
+    STRING,
+    Validate,
+    predicateWithMessage,
+} from '../../util/validation';
+import { checkDatum } from '../../util/value';
+import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
+import { Layers } from '../layers';
 import type { CrossLine, CrossLineType } from './crossLine';
+import type { CrossLineLabelPosition } from './crossLineLabelPosition';
+import {
+    POSITION_TOP_COORDINATES,
+    calculateLabelChartPadding,
+    calculateLabelTranslation,
+    labeldDirectionHandling,
+} from './crossLineLabelPosition';
 
 const CROSSLINE_LABEL_POSITIONS = [
     'top',

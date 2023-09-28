@@ -1,24 +1,25 @@
-import { jsonMerge, jsonWalk } from '../../util/json';
-import { deepMerge } from '../../util/object';
 import type {
-    AgChartThemePalette,
+    AgChartTheme,
     AgChartThemeOptions,
     AgChartThemeOverrides,
-    InteractionRange,
-    AgChartTheme,
+    AgChartThemePalette,
     AgCommonThemeableChartOptions,
+    InteractionRange,
 } from '../../options/agChartOptions';
+import { jsonMerge, jsonWalk } from '../../util/json';
+import { deepMerge } from '../../util/object';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
+import { BOTTOM, NORMAL } from './constants';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
@@ -28,13 +29,12 @@ import {
     EXTENDS_AXES_TICK_DEFAULTS,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_CHART_DEFAULTS,
-    EXTENDS_SERIES_DEFAULTS,
-    OVERRIDE_SERIES_LABEL_DEFAULTS,
     EXTENDS_LEGEND_DEFAULTS,
     EXTENDS_LEGEND_ITEM_DEFAULTS,
     EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS,
+    EXTENDS_SERIES_DEFAULTS,
+    OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
-import { NORMAL, BOTTOM } from './constants';
 
 const palette: AgChartThemePalette = {
     fills: [

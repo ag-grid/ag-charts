@@ -1,19 +1,19 @@
 import type { Scale } from '../../scale/scale';
+import type { TimeScale } from '../../scale/timeScale';
+import { Default } from '../../util/default';
+import { TimeInterval } from '../../util/time/interval';
 import {
     AND,
     BOOLEAN,
-    NUMBER,
     LESS_THAN,
+    NUMBER,
     NUMBER_OR_NAN,
+    OPTIONAL,
     OPT_ARRAY,
     OPT_COLOR_STRING,
-    OPTIONAL,
-    predicateWithMessage,
     Validate,
+    predicateWithMessage,
 } from '../../util/validation';
-import { Default } from '../../util/default';
-import type { TimeScale } from '../../scale/timeScale';
-import { TimeInterval } from '../../util/time/interval';
 
 export type TickInterval<S> = S extends TimeScale ? number | TimeInterval : number;
 

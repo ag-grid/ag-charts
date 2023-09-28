@@ -1,7 +1,8 @@
-import classnames from 'classnames';
-import React from 'react';
 import { Icon } from '@components/icon/Icon';
 import { doOnEnter } from '@utils/doOnEnter';
+import classnames from 'classnames';
+import React from 'react';
+
 import styles from './Chart.module.scss';
 import { data, series } from './templates';
 import { deepClone } from './utils';

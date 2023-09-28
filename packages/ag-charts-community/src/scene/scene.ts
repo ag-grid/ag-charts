@@ -1,12 +1,12 @@
-import type { Size } from './canvas/hdpiCanvas';
-import { HdpiCanvas } from './canvas/hdpiCanvas';
-import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { toArray } from '../util/array';
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { windowValue } from '../util/window';
+import type { Size } from './canvas/hdpiCanvas';
+import { HdpiCanvas } from './canvas/hdpiCanvas';
+import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { Group } from './group';
 import type { Node, RenderContext, ZIndexSubOrder } from './node';
 import { RedrawType } from './node';

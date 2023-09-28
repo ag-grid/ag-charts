@@ -1,4 +1,4 @@
-import type { SizedPoint, Point } from '../../scene/point';
+import type { Point, SizedPoint } from '../../scene/point';
 import { BaseManager } from './baseManager';
 
 interface HighlightState {

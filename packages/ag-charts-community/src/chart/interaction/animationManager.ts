@@ -1,9 +1,9 @@
-import { Debug } from '../../util/debug';
-import { BaseManager } from './baseManager';
-import type { InteractionManager } from './interactionManager';
 import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
+import { Debug } from '../../util/debug';
 import type { Mutex } from '../../util/mutex';
+import { BaseManager } from './baseManager';
+import type { InteractionManager } from './interactionManager';
 
 type AnimationEventType = 'animation-frame';
 
@@ -34,7 +34,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     defaultDuration = 1000;
 
-    constructor(private readonly interactionManager: InteractionManager, private readonly chartUpdateMutex: Mutex) {
+    constructor(
+        private readonly interactionManager: InteractionManager,
+        private readonly chartUpdateMutex: Mutex
+    ) {
         super();
     }
 

@@ -1,7 +1,8 @@
-import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
-import { getTypeLink } from './getTypeLinks';
 import type { Framework } from '@ag-grid-types';
+import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+
 import type { PropertyType } from '../types';
+import { getTypeLink } from './getTypeLinks';
 import type { JsonModelProperty } from './model';
 
 export const inferType = (value: any): string | null => {

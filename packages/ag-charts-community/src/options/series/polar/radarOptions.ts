@@ -1,14 +1,14 @@
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
+import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgSeriesMarker,
     AgSeriesMarkerFormatterParams,
 } from '../seriesOptions';
-import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 
 export interface AgRadarSeriesThemeableOptions<DatumType = any>
     extends StrokeOptions,

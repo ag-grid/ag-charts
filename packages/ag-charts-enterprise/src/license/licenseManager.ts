@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/no-duplicate-string */
+
 /* eslint-disable no-console */
 import { MD5 } from './md5';
 

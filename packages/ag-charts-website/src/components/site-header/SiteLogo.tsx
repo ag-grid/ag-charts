@@ -1,8 +1,9 @@
-import { FunctionComponent, useState } from 'react';
-import styles from './SiteHeader.module.scss';
-import { ReactComponent as LogoType } from '@images/inline-svgs/ag-charts-logotype.svg';
-import LogoMark from '../logo/LogoMark';
 import { SITE_BASE_URL } from '@constants';
+import { ReactComponent as LogoType } from '@images/inline-svgs/ag-charts-logotype.svg';
+import { FunctionComponent, useState } from 'react';
+
+import LogoMark from '../logo/LogoMark';
+import styles from './SiteHeader.module.scss';
 
 export const SiteLogo: FunctionComponent = () => {
     const [isLogoHover, setIsLogoHover] = useState(false);

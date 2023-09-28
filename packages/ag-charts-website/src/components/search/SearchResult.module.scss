@@ -39,7 +39,9 @@
         border: 2px solid var(--border-color);
         background-color: transparent;
         outline: none;
-        transition: color $default-transition-timing, background-color $default-transition-timing,
+        transition:
+            color $default-transition-timing,
+            background-color $default-transition-timing,
             border-color $default-transition-timing;
 
         &:focus,

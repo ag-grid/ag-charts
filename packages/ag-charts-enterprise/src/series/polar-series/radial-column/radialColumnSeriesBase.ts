@@ -6,6 +6,7 @@ import type {
     AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
 import { AngleCategoryAxis } from '../../../axes/angle-category/angleCategoryAxis';
 
 const {
@@ -84,7 +85,7 @@ type RadialColumnAnimationState = 'empty' | 'ready';
 type RadialColumnAnimationEvent = 'update' | 'resize';
 
 export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _Scene.Path
+    ItemPathType extends _Scene.Path,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
     readonly label = new RadialColumnSeriesLabel();
 

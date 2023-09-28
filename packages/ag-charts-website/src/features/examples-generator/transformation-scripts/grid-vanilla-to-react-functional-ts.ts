@@ -10,7 +10,8 @@ import {
     handleRowGenericInterface,
     isInstanceMethod,
 } from './parser-utils';
-import { convertFunctionalTemplate, convertFunctionToConstCallbackTs, getImport, getValueType } from './react-utils';
+import { convertFunctionToConstCallbackTs, convertFunctionalTemplate, getImport, getValueType } from './react-utils';
+
 const path = require('path');
 
 function getModuleImports(
@@ -127,8 +128,8 @@ function getTemplate(bindings: any, componentAttributes: string[], rowDataGeneri
     const { gridSettings } = bindings;
     const agGridTag = `
         <div ${gridSettings.myGridReference ? 'id="myGrid"' : ''} style={gridStyle} className="${
-        gridSettings.theme
-    }">             
+            gridSettings.theme
+        }">             
             <AgGridReact${rowDataGeneric}
                 ref={gridRef}
                 ${componentAttributes.join('\n')}

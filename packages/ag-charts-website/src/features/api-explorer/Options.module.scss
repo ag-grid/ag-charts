@@ -83,7 +83,9 @@
             --icon-size: 1em;
 
             margin-left: auto;
-            transition: transform 0.3s ease-out, fill $default-transition-timing;
+            transition:
+                transform 0.3s ease-out,
+                fill $default-transition-timing;
         }
 
         &:hover {

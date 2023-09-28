@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
-import { setupMockCanvas, extractImageData } from '../../chart/test/utils';
-import { Rect } from './rect';
+
+import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
 import { DropShadow } from '../dropShadow';
+import { Rect } from './rect';
 
 describe('Rect', () => {
     describe('rendering', () => {

@@ -1,5 +1,5 @@
 import type { BBox } from '../scene/bbox';
-import { segmentIntersection, arcIntersections } from '../scene/intersection';
+import { arcIntersections, segmentIntersection } from '../scene/intersection';
 import { normalizeAngle180 } from './angle';
 
 interface SectorBoundaries {

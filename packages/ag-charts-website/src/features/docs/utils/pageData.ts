@@ -1,7 +1,8 @@
 import { FRAMEWORKS } from '@constants';
-import { getPagesList, getInternalFrameworkExamples } from './filesData';
 import type { DocsPage } from '@utils/pages';
+
 import { getGeneratedDocsContentsFileList } from './examplesGenerator';
+import { getInternalFrameworkExamples, getPagesList } from './filesData';
 
 export function getDocsPages(pages: DocsPage[]) {
     const frameworkPages = FRAMEWORKS.map((framework) => {

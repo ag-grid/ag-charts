@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+
 import minute from './minute';
 
 test('minute', () => {

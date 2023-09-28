@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+
 import { toFixed } from './number';
 
 test('toFixed', () => {

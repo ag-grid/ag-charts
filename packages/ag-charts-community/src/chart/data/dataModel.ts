@@ -179,7 +179,7 @@ export type AggregatePropertyDefinition<
     D,
     K extends keyof D & string,
     R = [number, number],
-    R2 = R
+    R2 = R,
 > = PropertyIdentifiers &
     PropertySelectors & {
         type: 'aggregate';
@@ -222,7 +222,7 @@ const INVALID_VALUE = Symbol('invalid');
 export class DataModel<
     D extends object,
     K extends keyof D & string = keyof D & string,
-    Grouped extends boolean | undefined = undefined
+    Grouped extends boolean | undefined = undefined,
 > {
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
@@ -293,8 +293,8 @@ export class DataModel<
         const verifyMatchIds = ({ matchIds }: { matchIds?: [string, string][] }) => {
             for (const matchId of matchIds ?? []) {
                 if (
-                    !this.values.some((def) =>
-                        def.ids?.some(([scope, id]) => scope === matchId[0] && id === matchId[1])
+                    !this.values.some(
+                        (def) => def.ids?.some(([scope, id]) => scope === matchId[0] && id === matchId[1])
                     )
                 ) {
                     throw new Error(
@@ -491,8 +491,9 @@ export class DataModel<
                 if (!matchIds) return true;
                 if (def.ids == null) return false;
 
-                return matchIds.some(([matchScope, matchId]) =>
-                    def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
+                return matchIds.some(
+                    ([matchScope, matchId]) =>
+                        def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
                 );
             })
             .map(({ index }) => index);

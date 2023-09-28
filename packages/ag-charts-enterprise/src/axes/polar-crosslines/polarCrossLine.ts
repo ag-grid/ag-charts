@@ -1,4 +1,4 @@
-import type { _Scale, FontStyle, FontWeight, AgBaseCrossLineLabelOptions } from 'ag-charts-community';
+import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight, _Scale } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {

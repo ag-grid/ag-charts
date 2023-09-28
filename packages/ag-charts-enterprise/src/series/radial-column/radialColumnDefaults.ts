@@ -1,4 +1,5 @@
 import { _Theme } from 'ag-charts-community';
+
 const { POLAR_AXIS_TYPES, CIRCLE } = _Theme;
 export const RADIAL_COLUMN_DEFAULTS = {
     axes: [

@@ -1,9 +1,10 @@
-import type { FunctionComponent } from 'react';
-import classnames from 'classnames';
-import styles from './SideNavigation.module.scss';
-import type { MarkdownHeading } from 'astro';
 import { addNonBreakingSpaceBetweenLastWords } from '@utils/addNonBreakingSpaceBetweenLastWords';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
+import type { MarkdownHeading } from 'astro';
+import classnames from 'classnames';
+import type { FunctionComponent } from 'react';
+
+import styles from './SideNavigation.module.scss';
 
 interface Props {
     title: string;

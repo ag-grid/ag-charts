@@ -1,19 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import type { _ModuleSupport, AgChartOptions } from 'ag-charts-community';
+
+import type { AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
-    cartesianChartAssertions,
-    deproxy,
-    extractImageData,
     GALLERY_EXAMPLES,
     HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
     HISTOGRAM_SERIES_LABELS,
-    hoverAction,
     IMAGE_SNAPSHOT_DEFAULTS,
+    type TestCase,
+    cartesianChartAssertions,
+    deproxy,
+    extractImageData,
+    hoverAction,
     setupMockCanvas,
     spyOnAnimationManager,
-    type TestCase,
     waitForChartStability,
 } from 'ag-charts-community-test';
+
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

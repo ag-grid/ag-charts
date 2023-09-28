@@ -38,12 +38,12 @@ import type { SeriesNodeDataContext } from '../series';
 import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import {
-    areaAnimateEmptyUpdateReady,
-    areaAnimateReadyUpdate,
     type AreaPathDatum,
     type AreaPathPoint,
-    areaResetMarkersAndPaths,
     AreaSeriesTag,
+    areaAnimateEmptyUpdateReady,
+    areaAnimateReadyUpdate,
+    areaResetMarkersAndPaths,
 } from './areaUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {

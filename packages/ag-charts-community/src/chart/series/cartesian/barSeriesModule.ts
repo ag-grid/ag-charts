@@ -1,14 +1,14 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { singleSeriesPaletteFactory } from '../../../util/theme';
 import type { AgBarSeriesOptions } from '../../../options/agChartOptions';
-import { BarSeries } from './barSeries';
+import { singleSeriesPaletteFactory } from '../../../util/theme';
+import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES, NORMAL } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { NORMAL, CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } from '../../themes/constants';
+import { BarSeries } from './barSeries';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',

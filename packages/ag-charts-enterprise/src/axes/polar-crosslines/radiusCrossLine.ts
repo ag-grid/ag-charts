@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
 const { ChartAxisDirection, Validate, OPT_NUMBER } = _ModuleSupport;
