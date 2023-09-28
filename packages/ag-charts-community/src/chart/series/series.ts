@@ -1,76 +1,44 @@
+import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
+import type { ModuleContextInitialiser } from '../../module/moduleMap';
+import { ModuleMap } from '../../module/moduleMap';
+import type { SeriesOptionModule } from '../../module/optionModules';
+import type { InteractionRange } from '../../options/chart/types';
+import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
-import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import type { ZIndexSubOrder } from '../../scene/node';
+import type { Point } from '../../scene/point';
+import { createId } from '../../util/id';
+import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import type { ChartAxis } from '../chartAxis';
-import { createId } from '../../util/id';
-import { checkDatum } from '../../util/value';
+import { ActionOnSet } from '../../util/proxy';
 import {
     BOOLEAN,
     INTERACTION_RANGE,
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
-    OPT_FUNCTION,
     OPT_LINE_DASH,
     OPT_NUMBER,
-    OPT_STRING,
     STRING,
     Validate,
 } from '../../util/validation';
-import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
-import { Layers } from '../layers';
-import type { Point } from '../../scene/point';
-import type { BBox } from '../../scene/bbox';
+import { checkDatum } from '../../util/value';
+import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import type {
-    AgSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    InteractionRange,
-} from '../../options/agChartOptions';
-import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
-import { fixNumericExtent } from '../data/dataModel';
-import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
+import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
+import { fixNumericExtent } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
-import { ActionOnSet } from '../../util/proxy';
+import { Layers } from '../layers';
+import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { SeriesGrouping } from './seriesStateManager';
-import type { ZIndexSubOrder } from '../../scene/node';
-import { interpolate } from '../../util/string';
-import type { ModuleContextInitialiser } from '../../module/moduleMap';
-import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionModule } from '../../module/optionModules';
+import type { SeriesTooltip } from './seriesTooltip';
+import { Listeners } from '../../util/listeners';
+import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
+import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { ChartSeries, SeriesNodeDatum } from '../chartSeries';
 import { SeriesNodePickMode } from '../chartSeries';
-
-/**
- * Processed series datum used in node selections,
- * contains information used to render pie sectors, bars, markers, etc.
- */
-export interface SeriesNodeDatum {
-    // For example, in `sectorNode.datum.seriesDatum`:
-    // `sectorNode` - represents a pie sector
-    // `datum` - contains metadata derived from the immutable series datum and used
-    //           to set the properties of the node, such as start/end angles
-    // `datum` - raw series datum, an element from the `series.data` array
-    readonly series: Series<any>;
-    readonly itemId?: any;
-    readonly datum: any;
-    readonly point?: Readonly<SizedPoint>;
-    nodeMidPoint?: Readonly<Point>;
-}
-
-/** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
-export enum SeriesNodePickMode {
-    /** Pick matches based upon pick coordinates being inside a matching shape/marker. */
-    EXACT_SHAPE_MATCH,
-    /** Pick matches by nearest category/X-axis value, then distance within that category/X-value. */
-    NEAREST_BY_MAIN_AXIS_FIRST,
-    /** Pick matches by nearest category value, then distance within that category. */
-    NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
-    /** Pick matches based upon distance to ideal position */
-    NEAREST_NODE,
-}
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -268,50 +236,6 @@ export class HighlightStyle {
     readonly item = new SeriesItemHighlightStyle();
     readonly series = new SeriesHighlightStyle();
     readonly text = new TextHighlightStyle();
-}
-
-export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> {
-    @Validate(BOOLEAN)
-    enabled: boolean = true;
-
-    @Validate(OPT_BOOLEAN)
-    showArrow?: boolean = undefined;
-
-    @Validate(OPT_FUNCTION)
-    renderer?: (params: P) => string | AgTooltipRendererResult = undefined;
-
-    @Validate(OPT_STRING)
-    format?: string = undefined;
-
-    interaction?: SeriesTooltipInteraction = new SeriesTooltipInteraction();
-
-    readonly position: TooltipPosition = new TooltipPosition();
-
-    toTooltipHtml(
-        defaults: AgTooltipRendererResult,
-        params: P,
-        overrides?: Partial<{ format: string; renderer: (params: P) => string | AgTooltipRendererResult }>
-    ) {
-        const formatFn = overrides?.format ?? this.format;
-        const rendererFn = overrides?.renderer ?? this.renderer;
-        if (formatFn) {
-            return toTooltipHtml(
-                {
-                    content: interpolate(formatFn, params),
-                },
-                defaults
-            );
-        }
-        if (rendererFn) {
-            return toTooltipHtml(rendererFn(params), defaults);
-        }
-        return toTooltipHtml(defaults);
-    }
-}
-
-export class SeriesTooltipInteraction {
-    @Validate(BOOLEAN)
-    enabled = false;
 }
 
 export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
@@ -528,10 +452,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
     }
 
-    getGroupZIndexSubOrder(
-        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
-        subIndex = 0
-    ): ZIndexSubOrder {
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         let mainAdjust = 0;
         switch (type) {
             case 'data':
@@ -539,6 +460,9 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
                 break;
             case 'labels':
                 mainAdjust += 20000;
+                break;
+            case 'error-bars':
+                mainAdjust += 15000;
                 break;
             case 'marker':
                 mainAdjust += 10000;
@@ -550,6 +474,22 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
         const main = () => this._declarationOrder + mainAdjust;
         return [main, subIndex];
+    }
+
+    private seriesListeners = new Listeners<SeriesEventType, (event: any) => any>();
+
+    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
+        type: T,
+        listener: (event: E) => R
+    ) {
+        return this.seriesListeners.addListener(type, listener);
+    }
+
+    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
+        type: T,
+        event: E
+    ): R[] | void {
+        return this.seriesListeners.dispatch(type, event);
     }
 
     addChartEventListeners(): void {
@@ -767,11 +707,12 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return new SeriesNodeDoubleClickEvent(event, datum, this);
     }
 
-    abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum[];
+    abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
-    protected toggleSeriesItem(_itemId: any, enabled: boolean): void {
+    protected toggleSeriesItem(itemId: any, enabled: boolean): void {
         this.visible = enabled;
         this.nodeDataRefresh = true;
+        this.dispatch('visibility-changed', { itemId, enabled });
     }
 
     isEnabled() {

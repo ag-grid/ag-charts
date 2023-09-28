@@ -145,8 +145,86 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
-                chart = deproxy(AgChart.create(options));
+                chart = AgChart.create(options);
+                await compare();
+            });
+        }
+    });
+
+    describe('remove animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, 1);
+
+                const options: AgPolarChartOptions = examples.PIE_SERIES;
+                prepareTestOptions(options);
+
+                chart = AgChart.create(options);
                 await waitForChartStability(chart);
+
+                AgChart.update(chart, {
+                    ...options,
+                    data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
+                });
+                spyOnAnimationManager(1200, ratio);
+                await compare();
+            });
+        }
+    });
+
+    describe('add animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, 1);
+
+                const options: AgPolarChartOptions = examples.PIE_SERIES;
+                prepareTestOptions(options);
+
+                chart = AgChart.create(options);
+                await waitForChartStability(chart);
+
+                AgChart.update(chart, {
+                    ...options,
+                    data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
+                });
+                await waitForChartStability(chart);
+
+                AgChart.update(chart, { ...options, data: options.data });
+                spyOnAnimationManager(1200, ratio);
+
+                await compare();
+            });
+        }
+    });
+
+    describe('update animation', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
+                spyOnAnimationManager(1200, 1);
+
+                const options: AgPolarChartOptions = examples.PIE_SERIES;
+                prepareTestOptions(options);
+
+                chart = AgChart.create(options);
+                await waitForChartStability(chart);
+
+                AgChart.update(chart, {
+                    ...options,
+                    data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),
+                });
+                spyOnAnimationManager(1200, ratio);
                 await compare();
             });
         }

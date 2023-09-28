@@ -1,31 +1,33 @@
-import type { Selection } from '../../../scene/selection';
-import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, valueProperty, keyProperty } from '../series';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { ColorScale } from '../../../scale/colorScale';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { extent } from '../../../util/array';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { Label } from '../../label';
-import type { Text } from '../../../scene/shape/text';
-import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
-import type { Marker } from '../../marker/marker';
-import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
-import { OPT_FUNCTION, OPT_STRING, OPT_NUMBER_ARRAY, COLOR_STRING_ARRAY, Validate } from '../../../util/validation';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type {
+    AgCartesianSeriesMarkerFormat,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesTooltipRendererParams,
     AgTooltipRendererResult,
-    AgCartesianSeriesMarkerFormat,
 } from '../../../options/agChartOptions';
-import type { ModuleContext } from '../../../module/moduleContext';
+import { ColorScale } from '../../../scale/colorScale';
+import { ContinuousScale } from '../../../scale/continuousScale';
+import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
+import type { Selection } from '../../../scene/selection';
+import type { Text } from '../../../scene/shape/text';
+import { extent } from '../../../util/array';
+import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
+import { sanitizeHtml } from '../../../util/sanitize';
+import { COLOR_STRING_ARRAY, OPT_FUNCTION, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
+import type { SeriesNodeDataContext } from '../series';
+import { keyProperty, valueProperty } from '../series';
+import { SeriesTooltip } from '../seriesTooltip';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
+import type { DataModelOptions } from '../../data/dataModel';
 import { SeriesNodePickMode } from '../../chartSeries';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
@@ -119,17 +121,24 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
 
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
+        const props: DataModelOptions<any, false>['props'] = [
+            keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
+            keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
+            ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
+            valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
+            valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
+            ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
+            ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
+            ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
+        ];
+
+        const listenerProps: (typeof props)[] =
+            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
+        for (const moreProps of listenerProps) {
+            props.push(...moreProps);
+        }
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
-            props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
-                keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
-                valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
-            ],
+            props,
             dataVisible: this.visible,
         });
         this.dataModel = dataModel;
@@ -430,15 +439,15 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { id, data, xKey, yKey, yName, title, visible, marker } = this;
-        const { fill, stroke, fillOpacity, strokeOpacity } = marker;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
         if (!(data?.length && xKey && yKey && legendType === 'category')) {
             return [];
         }
 
-        const legendData: CategoryLegendDatum[] = [
+        return [
             {
                 legendType: 'category',
                 id,
@@ -454,10 +463,10 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
                     stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: fillOpacity ?? 1,
                     strokeOpacity: strokeOpacity ?? 1,
+                    strokeWidth: strokeWidth ?? 0,
                 },
             },
         ];
-        return legendData;
     }
 
     animateEmptyUpdateReady(animationData: ScatterAnimationData) {

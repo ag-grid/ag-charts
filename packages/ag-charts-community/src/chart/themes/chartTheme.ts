@@ -30,6 +30,9 @@ import {
     EXTENDS_CHART_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
     OVERRIDE_SERIES_LABEL_DEFAULTS,
+    EXTENDS_LEGEND_DEFAULTS,
+    EXTENDS_LEGEND_ITEM_DEFAULTS,
+    EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS,
 } from './symbols';
 import { NORMAL, BOTTOM } from './constants';
 
@@ -47,16 +50,16 @@ const palette: AgChartThemePalette = {
         '#00aee4',
     ],
     strokes: [
-        '#294ed1',
-        '#7d5bdc',
-        '#b045b1',
-        '#cc366e',
-        '#d15326',
-        '#c67d00',
-        '#ada400',
-        '#009426',
-        '#00957f',
-        '#008ec3',
+        '#132baf',
+        '#623bba',
+        '#8f2291',
+        '#a90352',
+        '#ae3200',
+        '#a55f00',
+        '#8f8500',
+        '#007500',
+        '#007762',
+        '#006fa3',
     ],
 };
 
@@ -176,9 +179,17 @@ export class ChartTheme {
         return {
             enabled: true,
             shape: 'circle',
-            size: 4,
+            size: 6,
             strokeWidth: 1,
             formatter: undefined,
+        };
+    }
+
+    private static getLegendItemMarkerDefaults() {
+        return {
+            shape: undefined,
+            size: 15,
+            padding: 8,
         };
     }
 
@@ -201,7 +212,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
-                spacing: 20,
+                spacing: 15,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 16,
@@ -212,7 +223,7 @@ export class ChartTheme {
             subtitle: {
                 enabled: false,
                 text: 'Subtitle',
-                spacing: 20,
+                spacing: 15,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
@@ -238,12 +249,7 @@ export class ChartTheme {
                 item: {
                     paddingX: 16,
                     paddingY: 8,
-                    marker: {
-                        shape: undefined,
-                        size: 15,
-                        strokeWidth: 1,
-                        padding: 8,
-                    },
+                    marker: ChartTheme.getLegendItemMarkerDefaults(),
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
                         fontStyle: undefined,
@@ -421,7 +427,7 @@ export class ChartTheme {
         return defaults;
     }
 
-    private templateTheme(themeTemplate: {}): {} {
+    templateTheme<T>(themeTemplate: T): T {
         const themeInstance = jsonMerge([themeTemplate]);
         const { extensions, properties } = this.getTemplateParameters();
 
@@ -466,6 +472,9 @@ export class ChartTheme {
         const extensions = new Map();
         extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
         extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
+        extensions.set(EXTENDS_LEGEND_DEFAULTS, ChartTheme.getChartDefaults().legend);
+        extensions.set(EXTENDS_LEGEND_ITEM_DEFAULTS, ChartTheme.getChartDefaults().legend.item);
+        extensions.set(EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS, ChartTheme.getLegendItemMarkerDefaults());
         extensions.set(EXTENDS_AXES_LABEL_DEFAULTS, ChartTheme.getAxisDefaults().label);
         extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);
         extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);

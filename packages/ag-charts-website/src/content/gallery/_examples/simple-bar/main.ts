@@ -1,37 +1,51 @@
 import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
 import { getData } from './data';
 
+function formatNumber(value: number) {
+    value /= 1000_000;
+    return `${Math.floor(value)}M`;
+}
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Gross Weekly Earnings',
+        text: 'Total Visitors to Museums and Galleries',
     },
     footnote: {
-        text: 'Source: Office for National Statistics',
+        text: 'Source: Department for Digital, Culture, Media & Sport',
     },
     series: [
         {
             type: 'bar',
-            direction: 'horizontal',
-            xKey: 'type',
-            yKey: 'earnings',
+            xKey: 'year',
+            yKey: 'visitors',
             label: {
-                formatter: ({ value }) => `£${value.toFixed(0)}`,
+                formatter: ({ value }) => formatNumber(value),
+            },
+            tooltip: {
+                renderer: ({ yValue, xValue }) => {
+                    return { title: xValue, content: formatNumber(yValue) };
+                },
             },
         },
     ],
     axes: [
         {
             type: 'category',
-            position: 'left',
+            position: 'bottom',
+            title: {
+                text: 'Year',
+            },
         },
         {
             type: 'number',
-            position: 'bottom',
+            position: 'left',
             title: {
-                enabled: true,
-                text: '£ / Week',
+                text: 'Total Visitors',
+            },
+            label: {
+                formatter: ({ value }) => formatNumber(value),
             },
         },
     ],

@@ -72,20 +72,20 @@ describe('Zoom', () => {
 
     describe('when a user scrolls the mouse wheel', () => {
         it('should zoom in', async () => {
-            await scrollAction(cx, cy, -1);
+            await scrollAction(cx, cy, -1)(chart);
 
             await compare();
         });
 
         it('should zoom in then out', async () => {
-            await scrollAction(cx, cy, -1);
-            await scrollAction(cx, cy, 1);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, 1)(chart);
 
             await compare();
         });
 
         it('should zoom in to the given location', async () => {
-            await scrollAction(cx * 1.5, cy * 1.5, -1);
+            await scrollAction(cx * 1.5, cy * 1.5, -1)(chart);
 
             await compare();
         });

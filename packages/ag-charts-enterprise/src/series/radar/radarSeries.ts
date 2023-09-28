@@ -1,13 +1,13 @@
 import type {
+    AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
     AgPieSeriesTooltipRendererParams,
-    AgPieSeriesFormat,
-    AgTooltipRendererResult,
     AgRadarSeriesLabelFormatterParams,
     AgRadarSeriesMarkerFormat,
     AgRadarSeriesMarkerFormatterParams,
+    AgTooltipRendererResult,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
     ChartAxisDirection,
@@ -18,8 +18,9 @@ const {
     OPT_LINE_DASH,
     OPT_STRING,
     PolarAxis,
-    STRING,
     SeriesNodePickMode,
+    StateMachine,
+    STRING,
     Validate,
     valueProperty,
 } = _ModuleSupport;
@@ -83,7 +84,6 @@ export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
 
 type RadarAnimationState = 'empty' | 'ready';
 type RadarAnimationEvent = 'update' | 'resize';
-class RadarStateMachine extends _ModuleSupport.StateMachine<RadarAnimationState, RadarAnimationEvent> {}
 
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
     static className = 'RadarSeries';
@@ -97,7 +97,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     protected labelSelection: _Scene.Selection<_Scene.Text, RadarNodeDatum>;
     protected highlightSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
 
-    protected animationState: RadarStateMachine;
+    protected animationState: _ModuleSupport.StateMachine<RadarAnimationState, RadarAnimationEvent>;
 
     protected nodeData: RadarNodeDatum[] = [];
 
@@ -177,7 +177,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         this.highlightSelection = Selection.select(this.highlightGroup, markerFactory);
 
-        this.animationState = new RadarStateMachine('empty', {
+        this.animationState = new StateMachine('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -252,19 +252,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
-    maybeRefreshNodeData() {
+    async maybeRefreshNodeData() {
         const didCircleChange = this.didCircleChange();
         if (!didCircleChange && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = this._createNodeData();
+        const [{ nodeData = [] } = {}] = await this.createNodeData();
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
 
     async createNodeData() {
-        return this._createNodeData();
-    }
-
-    protected _createNodeData() {
         const { processedData, dataModel, angleKey, radiusKey } = this;
 
         if (!processedData || !dataModel || !angleKey || !radiusKey) {
@@ -338,7 +334,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     async update() {
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
@@ -499,14 +495,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, data, angleKey, radiusKey, radiusName, visible, marker, stroke, strokeOpacity } = this;
 
         if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {
             return [];
         }
 
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [
+        return [
             {
                 legendType: 'category',
                 id: id,
@@ -522,10 +518,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                     stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
+                    strokeWidth: marker.strokeWidth ?? 0,
                 },
             },
         ];
-        return legendData;
     }
 
     onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
@@ -580,10 +576,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
     }
 
-    computeLabelsBBox() {
+    async computeLabelsBBox() {
         const { label } = this;
 
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
 
         const textBoxes: _Scene.BBox[] = [];
         const tempText = new Text();

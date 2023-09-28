@@ -40,17 +40,14 @@ const { series } = galleryData;
                     <div class="chart-type">
                         <h3 id={series.name}>
                             <span>{series.title} Charts</span>
-
                             {series.enterprise && (
                                 <span class="enterpriseIcon">
                                     <Icon client:only name="enterprise" />
                                 </span>
                             )}
 
-                            <a
-                                class="font-size-small"
-                                href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}
-                            >
+                            {/* [[TODO]] make series type docs links respect selected framework */}
+                            <a class="font-size-small" href={`./javascript/${series.name}-series/`}>
                                 View {series.title} Series Documentation
                                 <span class="arrow-icon">
                                     <Icon client:only name="arrowRight" />
@@ -96,7 +93,7 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
+        --horizontal-padding: #{$size-6};
         --menu-width: 14rem;
         --gallery-list-gap: #{$size-3};
 
@@ -216,10 +213,10 @@ const { series } = galleryData;
     }
 
     .content {
-        padding: $site-header-height var(--horizontal-padding) 0;
+        padding: $site-header-height var(--horizontal-padding) $size-8;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: 0 var(--horizontal-padding) 0 $size-6;
+            padding: 0 var(--horizontal-padding) $size-10;
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
@@ -306,7 +303,7 @@ const { series } = galleryData;
             --columns: 3;
         }
 
-        @media screen and (min-width: 1800px) {
+        @media screen and (min-width: 2000px) {
             --columns: 4;
         }
 

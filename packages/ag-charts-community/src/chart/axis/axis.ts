@@ -99,7 +99,6 @@ type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
 
 type AxisAnimationState = 'empty' | 'align' | 'ready';
 type AxisAnimationEvent = 'update';
-class AxisStateMachine extends StateMachine<AxisAnimationState, AxisAnimationEvent> {}
 type AxisUpdateDiff = {
     changed: boolean;
     tickCount: number;
@@ -207,7 +206,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
 
     private animationManager: AnimationManager;
-    private animationState: AxisStateMachine;
+    private animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
     private destroyFns: Function[] = [];
 
@@ -220,7 +219,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.destroyFns.push(moduleCtx.interactionManager.addListener('hover', (e) => this.checkAxisHover(e)));
 
         this.animationManager = moduleCtx.animationManager;
-        this.animationState = new AxisStateMachine('empty', {
+        this.animationState = new StateMachine('empty', {
             empty: {
                 update: {
                     target: 'align',
@@ -919,35 +918,32 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { minTickCount, maxTickCount, defaultTickCount };
     }
 
+    private updateNodeVisibility = (node: Line | Text | Arc) => {
+        const requestedRangeMin = Math.min(...this.range);
+        const requestedRangeMax = Math.max(...this.range);
+
+        const min = Math.floor(requestedRangeMin);
+        const max = Math.ceil(requestedRangeMax);
+        if (min === max) {
+            node.visible = false;
+            return;
+        }
+
+        // Fix an effect of rounding error
+        if (node.translationY >= min - 1 && node.translationY < min) {
+            node.translationY = min;
+        }
+        if (node.translationY > max && node.translationY <= max + 1) {
+            node.translationY = max;
+        }
+
+        node.visible = node.translationY >= min && node.translationY <= max;
+    };
     private updateVisibility() {
-        const { range: requestedRange } = this;
-
-        const requestedRangeMin = Math.min(...requestedRange);
-        const requestedRangeMax = Math.max(...requestedRange);
-
-        const visibleFn = (node: Line | Text | Arc) => {
-            const min = Math.floor(requestedRangeMin);
-            const max = Math.ceil(requestedRangeMax);
-            if (min === max) {
-                node.visible = false;
-                return;
-            }
-
-            // Fix an effect of rounding error
-            if (node.translationY >= min - 1 && node.translationY < min) {
-                node.translationY = min;
-            }
-            if (node.translationY > max && node.translationY <= max + 1) {
-                node.translationY = max;
-            }
-
-            node.visible = node.translationY >= min && node.translationY <= max;
-        };
-
         const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
-        gridLineGroupSelection.each(visibleFn);
-        tickLineGroupSelection.each(visibleFn);
-        tickLabelGroupSelection.each(visibleFn);
+        gridLineGroupSelection.each((n) => this.updateNodeVisibility(n));
+        tickLineGroupSelection.each((n) => this.updateNodeVisibility(n));
+        tickLabelGroupSelection.each((n) => this.updateNodeVisibility(n));
 
         this.tickLineGroup.visible = this.tick.enabled;
         this.tickLabelGroup.visible = this.label.enabled;
@@ -1382,8 +1378,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     to,
                     ease: easing.easeOut,
                     disableInteractions: false,
-                    onUpdate(props) {
+                    onUpdate: (props) => {
                         node.setProperties(props);
+                        this.updateNodeVisibility(node);
                     },
                     onStop() {
                         selection.cleanup();
@@ -1404,6 +1401,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 // But node `translationY` values must be rounded to get pixel grid alignment
                 node.translationY = Math.round(node.datum.translationY);
                 node.opacity = 1;
+                this.updateNodeVisibility(node);
             });
         }
     }

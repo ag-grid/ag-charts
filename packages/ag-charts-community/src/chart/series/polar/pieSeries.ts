@@ -1,62 +1,61 @@
-import { Group } from '../../../scene/group';
-import { Line } from '../../../scene/shape/line';
-import { Text } from '../../../scene/shape/text';
-import { Circle } from '../../marker/circle';
-import { Selection } from '../../../scene/selection';
-import type { DropShadow } from '../../../scene/dropShadow';
+import type { ModuleContext } from '../../../module/moduleContext';
+import * as easing from '../../../motion/easing';
+import { StateMachine } from '../../../motion/states';
+import type {
+    AgPieSeriesFormat,
+    AgPieSeriesFormatterParams,
+    AgPieSeriesLabelFormatterParams,
+    AgPieSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+} from '../../../options/agChartOptions';
 import { LinearScale } from '../../../scale/linearScale';
-import { Sector } from '../../../scene/shape/sector';
 import { BBox } from '../../../scene/bbox';
-import {
-    HighlightStyle,
-    SeriesTooltip,
-    SeriesNodeBaseClickEvent,
-    valueProperty,
-    rangedValueProperty,
-    accumulativeValueProperty,
-    keyProperty,
-} from './../series';
-import { Label } from '../../label';
+import type { DropShadow } from '../../../scene/dropShadow';
+import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
+import { Selection } from '../../../scene/selection';
+import { Line } from '../../../scene/shape/line';
+import { Sector } from '../../../scene/shape/sector';
+import { Text } from '../../../scene/shape/text';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
-import { toFixed, mod } from '../../../util/number';
-import { Layers } from '../../layers';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { Caption } from '../../caption';
-import { PolarSeries } from './polarSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { isPointInSector, boxCollidesSector } from '../../../util/sector';
+import { mod, toFixed } from '../../../util/number';
+import { boxCollidesSector, isPointInSector } from '../../../util/sector';
+import type { Has } from '../../../util/types';
 import {
     BOOLEAN,
+    COLOR_STRING,
+    COLOR_STRING_ARRAY,
     NUMBER,
+    OPT_COLOR_STRING_ARRAY,
     OPT_FUNCTION,
     OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
     STRING,
-    COLOR_STRING_ARRAY,
-    OPT_COLOR_STRING_ARRAY,
     Validate,
-    COLOR_STRING,
 } from '../../../util/validation';
-import type {
-    AgPieSeriesLabelFormatterParams,
-    AgPieSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    AgPieSeriesFormat,
-    AgPieSeriesFormatterParams,
-} from '../../../options/agChartOptions';
-import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
-import { StateMachine } from '../../../motion/states';
-import * as easing from '../../../motion/easing';
-import { createDatumId, normalisePropertyTo } from '../../data/processors';
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { Has } from '../../../util/types';
+import { zipObject } from '../../../util/zip';
+import { Caption } from '../../caption';
+import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { SeriesNodeDatum } from '../../chartSeries';
 import type { DataController } from '../../data/dataController';
 import type { DataModel } from '../../data/dataModel';
-import { diff } from '../../data/processors';
-import { zipObject } from '../../../util/zip';
-import type { SeriesNodeDatum } from '../../chartSeries';
+import { createDatumId, diff, normalisePropertyTo } from '../../data/processors';
+import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
+import { Label } from '../../label';
+import { Layers } from '../../layers';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import { Circle } from '../../marker/circle';
+import {
+    accumulativeValueProperty,
+    HighlightStyle,
+    keyProperty,
+    rangedValueProperty,
+    SeriesNodeBaseClickEvent,
+    valueProperty,
+} from '../series';
+import { SeriesTooltip } from '../seriesTooltip';
+import { PolarSeries } from './polarSeries';
 
 class PieSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -188,7 +187,6 @@ export class DoughnutInnerCircle {
 
 type PieAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type PieAnimationEvent = 'update' | 'updateData' | 'clear';
-class PieStateMachine extends StateMachine<PieAnimationState, PieAnimationEvent> {}
 
 export class PieSeries extends PolarSeries<PieNodeDatum> {
     static className = 'PieSeries';
@@ -201,7 +199,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     private sectorLabelSelection: Selection<Text, PieNodeDatum>;
     private innerLabelsSelection: Selection<Text, DoughnutInnerLabel>;
 
-    private animationState: PieStateMachine;
+    private animationState: StateMachine<PieAnimationState, PieAnimationEvent>;
 
     // The group node that contains the background graphics.
     readonly backgroundGroup: Group;
@@ -346,7 +344,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         this.sectorLabelSelection = Selection.select(pieSectorLabels, Text);
         this.innerLabelsSelection = Selection.select(innerLabels, Text);
 
-        this.animationState = new PieStateMachine('empty', {
+        this.animationState = new StateMachine('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -467,15 +465,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         }
     }
 
-    maybeRefreshNodeData() {
+    async maybeRefreshNodeData() {
         if (!this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = this._createNodeData();
+        const [{ nodeData = [] } = {}] = await this.createNodeData();
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
-    }
-
-    async createNodeData() {
-        return this._createNodeData();
     }
 
     private getProcessedDataIndexes(dataModel: DataModel<any>) {
@@ -494,7 +488,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         return { angleIdx, radiusIdx, calloutLabelIdx, sectorLabelIdx, legendItemIdx };
     }
 
-    private _createNodeData() {
+    async createNodeData() {
         const { id: seriesId, processedData, dataModel, rotation, angleScale } = this;
 
         if (!processedData || !dataModel || processedData.type !== 'ungrouped') return [];
@@ -776,7 +770,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     async update({ seriesRect }: { seriesRect: BBox }) {
         const { title } = this;
 
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
         this.updateTitleNodes();
         this.updateRadiusScale();
         this.updateInnerCircleNodes();
@@ -1264,7 +1258,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
+    async computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
         const { radiusScale, calloutLabel, calloutLine } = this;
         const calloutLength = calloutLine.length;
         const { offset, maxCollisionOffset, minSpacing } = calloutLabel;
@@ -1273,7 +1267,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             return null;
         }
 
-        this.maybeRefreshNodeData();
+        await this.maybeRefreshNodeData();
 
         this.updateRadiusScale();
         this.computeCalloutLabelCollisionOffsets();
@@ -1546,7 +1540,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { processedData, calloutLabelKey, legendItemKey, id, dataModel } = this;
 
         if (!dataModel || !processedData || processedData.data.length === 0 || legendType !== 'category') return [];
@@ -1601,6 +1595,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                     stroke: sectorFormat.stroke,
                     fillOpacity: this.fillOpacity,
                     strokeOpacity: this.strokeOpacity,
+                    strokeWidth: this.strokeWidth,
                 },
             });
         }

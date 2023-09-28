@@ -1,13 +1,33 @@
+import type { ModuleContext } from '../../../module/moduleContext';
+import type {
+    AgCartesianSeriesLabelFormatterParams,
+    AgCartesianSeriesMarkerFormat,
+    AgCartesianSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Point } from '../../../scene/point';
-import type { Selection } from '../../../scene/selection';
-import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, valueProperty, keyProperty } from '../series';
-import { extent } from '../../../util/array';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
+import type { Point } from '../../../scene/point';
+import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import { extent } from '../../../util/array';
+import { sanitizeHtml } from '../../../util/sanitize';
+import { NUMBER, OPT_COLOR_STRING, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
+import { zipObject } from '../../../util/zip';
+import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { DataController } from '../../data/dataController';
+import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
+import { createDatumId, diff } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
+import type { SeriesNodeDataContext } from '../series';
+import { keyProperty, valueProperty } from '../series';
+import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -15,25 +35,6 @@ import {
     CartesianSeriesNodeClickEvent,
     CartesianSeriesNodeDoubleClickEvent,
 } from './cartesianSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
-import { Label } from '../../label';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { zipObject } from '../../../util/zip';
-import type { Marker } from '../../marker/marker';
-import { NUMBER, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, OPT_COLOR_STRING, Validate } from '../../../util/validation';
-import type {
-    AgCartesianSeriesLabelFormatterParams,
-    AgCartesianSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    FontStyle,
-    FontWeight,
-    AgCartesianSeriesMarkerFormat,
-} from '../../../options/agChartOptions';
-import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
-import { createDatumId, diff } from '../../data/processors';
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { DataController } from '../../data/dataController';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 import type { SeriesNodeDatum} from '../../chartSeries';
 import { SeriesNodePickMode } from '../../chartSeries';
@@ -151,6 +152,11 @@ export class LineSeries extends CartesianSeries<LineContext> {
             props.push(diff(this.processedData));
         }
 
+        const listenerProps: (typeof props)[] =
+            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
+        for (const moreProps of listenerProps) {
+            props.push(...moreProps);
+        }
         const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
             props,
             dataVisible: this.visible,
@@ -158,7 +164,8 @@ export class LineSeries extends CartesianSeries<LineContext> {
         this.dataModel = dataModel;
         this.processedData = processedData;
 
-        if (processedData.reduced?.diff?.added.length > 0 && processedData.reduced?.diff?.removed.length > 0) {
+        // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
+        if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {
             this.animationTransitionClear();
         } else {
             this.animationState.transition('updateData');
@@ -274,7 +281,6 @@ export class LineSeries extends CartesianSeries<LineContext> {
             }
         }
         nodeData.length = actualLength;
-        this.fireDataProcessed(dataModel, processedData);
 
         return [{ itemId: yKey, nodeData, labelData: nodeData }];
     }
@@ -421,7 +427,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         const title = sanitizeHtml(this.title ?? yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
+        const { formatter: markerFormatter, fill: markerFill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
 
         let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
@@ -430,7 +436,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 datum,
                 xKey,
                 yKey,
-                fill,
+                fill: markerFill,
                 stroke,
                 strokeWidth,
                 size,
@@ -439,7 +445,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
             });
         }
 
-        const color = format?.fill ?? fill;
+        const color = format?.fill ?? stroke ?? markerFill;
 
         const defaults: AgTooltipRendererResult = {
             title,
@@ -461,14 +467,14 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { id, data, xKey, yKey, yName, visible, title, marker, stroke, strokeOpacity } = this;
 
         if (!(data?.length && xKey && yKey && legendType === 'category')) {
             return [];
         }
 
-        const legendData: CategoryLegendDatum[] = [
+        return [
             {
                 legendType: 'category',
                 id: id,
@@ -484,10 +490,10 @@ export class LineSeries extends CartesianSeries<LineContext> {
                     stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
+                    strokeWidth: marker.strokeWidth ?? 0,
                 },
             },
         ];
-        return legendData;
     }
 
     animateEmptyUpdateReady(animationData: LineAnimationData) {
@@ -734,6 +740,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
                 from: 0,
                 to: 1,
                 duration,
+                shortCircuitId: this.id,
                 onUpdate: (ratio) => {
                     linePath.clear({ trackChanges: true });
 

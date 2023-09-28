@@ -1,71 +1,71 @@
-import { Scene } from '../scene/scene';
-import { Group } from '../scene/group';
-import { Text } from '../scene/shape/text';
-import { Debug } from '../util/debug';
-import type { ChartSeries, SeriesNodeDatum } from './chartSeries';
-import { SeriesNodePickMode } from './chartSeries';
-import { Padding } from '../util/padding';
-
-import { BBox } from '../scene/bbox';
-import { SizeMonitor } from '../util/sizeMonitor';
-import type { Caption } from './caption';
-import type { TypedEvent } from '../util/observable';
-import { Observable } from '../util/observable';
-import type { ChartAxis } from './chartAxis';
-import type { ChartAxisDirection } from './chartAxisDirection';
-import { createId } from '../util/id';
-import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
-import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
+import type { ModuleInstance } from '../module/baseModule';
+import type { LegendModule, RootModule } from '../module/coreModules';
+import type { Module } from '../module/module';
+import type { ModuleContext } from '../module/moduleContext';
 import type {
-    AgChartOptions,
     AgChartClickEvent,
     AgChartDoubleClickEvent,
     AgChartInstance,
+    AgChartOptions,
 } from '../options/agChartOptions';
-import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
+import { BBox } from '../scene/bbox';
+import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
-import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
+import { Scene } from '../scene/scene';
+import { Text } from '../scene/shape/text';
 import { sleep } from '../util/async';
-import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
-import { Tooltip } from './tooltip/tooltip';
-import { ChartOverlays } from './overlay/chartOverlays';
+import { CallbackCache } from '../util/callbackCache';
+import { Debug } from '../util/debug';
+import { createId } from '../util/id';
 import { jsonMerge } from '../util/json';
-import { Layers } from './layers';
+import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
+import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
+import { Logger } from '../util/logger';
+import { Mutex } from '../util/mutex';
+import type { TypedEvent } from '../util/observable';
+import { Observable } from '../util/observable';
+import { Padding } from '../util/padding';
+import { ActionOnSet } from '../util/proxy';
+import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
+import { SizeMonitor } from '../util/sizeMonitor';
+import type { PickRequired } from '../util/types';
+import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
+import type { Caption } from './caption';
+import type { ChartAxis } from './chartAxis';
+import type { ChartAxisDirection } from './chartAxisDirection';
+import { ChartHighlight } from './chartHighlight';
+import { ChartSeries, SeriesNodeDatum, SeriesNodePickMode } from './chartSeries';
+import { ChartUpdateType } from './chartUpdateType';
+import { DataController } from './data/dataController';
+import { DataService } from './dataService';
 import { AnimationManager } from './interaction/animationManager';
-import { CursorManager } from './interaction/cursorManager';
 import { ChartEventManager } from './interaction/chartEventManager';
+import { CursorManager } from './interaction/cursorManager';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
+import { Layers } from './layers';
 import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
-import { DataService } from './dataService';
-import { UpdateService } from './updateService';
-import { ChartUpdateType } from './chartUpdateType';
-import type { CategoryLegendDatum, ChartLegendDatum, ChartLegend, ChartLegendType } from './legendDatum';
-import { Logger } from '../util/logger';
-import { ActionOnSet } from '../util/proxy';
-import { ChartHighlight } from './chartHighlight';
-import { CallbackCache } from '../util/callbackCache';
-import { DataController } from './data/dataController';
-import { SeriesStateManager } from './series/seriesStateManager';
-import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesOptionsTypes } from './mapping/types';
 import { Legend } from './legend';
-import type { Module } from '../module/module';
-import type { ModuleContext } from '../module/moduleContext';
-import type { LegendModule, RootModule } from '../module/coreModules';
-import type { ModuleInstance } from '../module/baseModule';
+import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
+import type { SeriesOptionsTypes } from './mapping/types';
+import { ChartOverlays } from './overlay/chartOverlays';
+import { SeriesLayerManager } from './series/seriesLayerManager';
+import { SeriesStateManager } from './series/seriesStateManager';
+import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
+import { Tooltip } from './tooltip/tooltip';
+import { UpdateService } from './updateService';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
 export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
 export type SpecialOverrides = {
     overrideDevicePixelRatio?: number;
-    document: Document;
-    window: Window & typeof globalThis;
+    document?: Document;
+    window?: Window & typeof globalThis;
 };
 
 type PickedNode = {
@@ -74,7 +74,7 @@ type PickedNode = {
     distance: number;
 };
 
-function initialiseSpecialOverrides(opts: Partial<SpecialOverrides>): SpecialOverrides {
+function initialiseSpecialOverrides(opts: SpecialOverrides): PickRequired<SpecialOverrides, 'document' | 'window'> {
     let globalWindow;
     if (opts.window != null) {
         globalWindow = opts.window;
@@ -238,6 +238,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     mode: 'standalone' | 'integrated' = 'standalone';
 
     private _destroyed: boolean = false;
+    private readonly _destroyFns: (() => void)[] = [];
     get destroyed() {
         return this._destroyed;
     }
@@ -259,9 +260,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
-    private readonly specialOverrides: SpecialOverrides;
+    private readonly specialOverrides: PickRequired<SpecialOverrides, 'document' | 'window'>;
 
-    protected constructor(specialOverrides: Partial<SpecialOverrides>, resources?: TransferableResources) {
+    protected constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
         super();
 
         this.specialOverrides = initialiseSpecialOverrides(specialOverrides);
@@ -306,7 +307,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
 
-        this.animationManager = new AnimationManager(this.interactionManager);
+        this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
         this.animationManager.skip();
         this.animationManager.play();
 
@@ -316,46 +317,30 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlight = new ChartHighlight();
         this.container = container;
 
-        SizeMonitor.observe(this.element, (size) => {
-            let { width, height } = size;
-            width = Math.floor(width);
-            height = Math.floor(height);
+        SizeMonitor.observe(this.element, (size) => this.rawResize(size));
+        this._destroyFns.push(
+            // eslint-disable-next-line sonarjs/no-duplicate-string
+            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
+            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect)),
+            this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e)),
 
-            if (!this.autoSize) {
-                return;
-            }
+            this.interactionManager.addListener('click', (event) => this.onClick(event)),
+            this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
+            this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
+            this.interactionManager.addListener('leave', (event) => this.onLeave(event)),
+            this.interactionManager.addListener('page-left', () => this.destroy()),
+            this.interactionManager.addListener('wheel', () => this.disablePointer()),
 
-            if (width === 0 && height === 0) {
-                return;
-            }
+            // Block redundant and interfering attempts to update the hovered element during dragging.
+            this.interactionManager.addListener('drag-start', () => this.disablePointer()),
 
-            const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
-            if (autoWidth === width && authHeight === height) {
-                return;
-            }
-
-            this._lastAutoSize = [width, height];
-            this.resize(undefined, undefined, 'SizeMonitor');
-        });
-        // eslint-disable-next-line sonarjs/no-duplicate-string
-        this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect));
-        this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect));
-        this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e));
-
-        // Add interaction listeners last so child components are registered first.
-        this.interactionManager.addListener('click', (event) => this.onClick(event));
-        this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event));
-        this.interactionManager.addListener('hover', (event) => this.onMouseMove(event));
-        this.interactionManager.addListener('leave', (event) => this.onLeave(event));
-        this.interactionManager.addListener('page-left', () => this.destroy());
-        this.interactionManager.addListener('wheel', () => this.disablePointer());
-
-        this.animationManager.addListener('animation-frame', (_) => {
-            this.update(ChartUpdateType.SCENE_RENDER);
-        });
-        this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event));
-        this.zoomManager.addListener('zoom-change', (_) =>
-            this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true })
+            this.animationManager.addListener('animation-frame', (_) => {
+                this.update(ChartUpdateType.SCENE_RENDER);
+            }),
+            this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
+            this.zoomManager.addListener('zoom-change', (_) =>
+                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true })
+            )
         );
 
         this.attachLegend('category', 'legend', Legend);
@@ -368,7 +353,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const moduleInstance = new module.instanceConstructor(this.getModuleContext());
         this.modules[module.optionsKey] = { instance: moduleInstance };
-
         (this as any)[module.optionsKey] = moduleInstance;
     }
 
@@ -461,8 +445,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         let result: TransferableResources | undefined = undefined;
 
         this._performUpdateType = ChartUpdateType.NONE;
-        this._pendingFactoryUpdates.splice(0);
 
+        this._destroyFns.forEach((fn) => fn());
         this.tooltipManager.destroy();
         this.tooltip.destroy();
         Object.values(this.legends).forEach((legend) => legend.destroy());
@@ -510,46 +494,19 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private _pendingFactoryUpdates: (() => Promise<void>)[] = [];
-
     requestFactoryUpdate(cb: () => Promise<void>) {
-        const callbacks = this._pendingFactoryUpdates;
-        const count = callbacks.length;
-        if (count === 0) {
-            callbacks.push(cb);
-            this._processCallbacks().catch((e) => Logger.errorOnce(e));
-        } else {
-            // Factory callback process already running, the callback will be invoked asynchronously.
-            // Clear the queue after the first callback to prevent unnecessary re-renderings.
-            callbacks.splice(1, count - 1, cb);
-        }
+        this._pendingFactoryUpdatesCount++;
+        this.updateMutex.acquire(async () => {
+            await cb();
+            this._pendingFactoryUpdatesCount--;
+        });
     }
 
-    private async _processCallbacks() {
-        const callbacks = this._pendingFactoryUpdates;
-        while (callbacks.length > 0) {
-            if (this.updatePending) {
-                await sleep(1);
-                continue; // Make sure to check queue has an item before continuing.
-            }
-            try {
-                await callbacks[0]();
-                this.callbackCache.invalidateCache();
-            } catch (e) {
-                Logger.error('update error', e);
-            }
-
-            callbacks.shift();
-        }
-    }
-
+    private _pendingFactoryUpdatesCount = 0;
     private _performUpdateNoRenderCount = 0;
     private _performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
     get performUpdateType() {
         return this._performUpdateType;
-    }
-    get updatePending(): boolean {
-        return this._performUpdateType !== ChartUpdateType.NONE || this.lastInteractionEvent != null;
     }
     private _lastPerformUpdateError?: Error;
     get lastPerformUpdateError() {
@@ -558,19 +515,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private updateShortcutCount = 0;
     private seriesToUpdate: Set<ChartSeries> = new Set();
+    private updateMutex = new Mutex();
+    private updateRequestors: Record<string, ChartUpdateType> = {};
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this._destroyed) return;
 
-        try {
-            await this.performUpdate(count);
-        } catch (error) {
-            this._lastPerformUpdateError = error as Error;
-            Logger.error('update error', error);
-        }
+        this.updateMutex.acquire(async () => {
+            try {
+                await this.performUpdate(count);
+            } catch (error) {
+                this._lastPerformUpdateError = error as Error;
+                Logger.error('update error', error);
+            }
+        });
     });
-    public async awaitUpdateCompletion() {
-        await this.performUpdateTrigger.await();
-    }
     public update(
         type = ChartUpdateType.FULL,
         opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<ChartSeries>; backOffMs?: number }
@@ -583,6 +541,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         for (const series of seriesToUpdate) {
             this.seriesToUpdate.add(series);
+        }
+
+        if (Debug.check(true)) {
+            let stack = new Error().stack ?? '<unknown>';
+            stack = stack.replace(/\([^)]*/g, '');
+            this.updateRequestors[stack] = type;
         }
 
         if (type < this._performUpdateType) {
@@ -631,7 +595,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
-                if (performUpdateType < ChartUpdateType.SERIES_UPDATE && tooltipMeta?.event?.type === 'hover') {
+                const isHovered = tooltipMeta?.event?.type === 'hover';
+                if (performUpdateType < ChartUpdateType.SERIES_UPDATE && isHovered) {
                     this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
                 }
                 splits['↖'] = performance.now();
@@ -640,12 +605,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
             case ChartUpdateType.SCENE_RENDER:
                 if (this.checkUpdateShortcut(ChartUpdateType.SCENE_RENDER)) break;
 
+                extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
             // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.NONE:
                 // Do nothing.
                 this.updateShortcutCount = 0;
+                this.updateRequestors = {};
         }
 
         const end = performance.now();
@@ -664,7 +631,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             Logger.warn(
                 `exceeded the maximum number of simultaneous updates (${
                     maxShortcuts + 1
-                }), discarding changes and rendering`
+                }), discarding changes and rendering`,
+                this.updateRequestors
             );
             return false;
         }
@@ -853,6 +821,28 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    private rawResize(size: { width: number; height: number }) {
+        let { width, height } = size;
+        width = Math.floor(width);
+        height = Math.floor(height);
+
+        if (!this.autoSize) {
+            return;
+        }
+
+        if (width === 0 && height === 0) {
+            return;
+        }
+
+        const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
+        if (autoWidth === width && authHeight === height) {
+            return;
+        }
+
+        this._lastAutoSize = [width, height];
+        this.resize(undefined, undefined, 'SizeMonitor');
+    }
+
     private resize(width?: number, height?: number, source?: string) {
         width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : this.scene.canvas.width);
         height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : this.scene.canvas.height);
@@ -908,23 +898,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private async updateLegend() {
         this.legends.forEach((legend, legendType) => {
-            const legendData: ChartLegendDatum[] = [];
-            this.series
-                .filter((s) => s.showInLegend)
-                .forEach((series) => {
-                    const data = series.getLegendData(legendType);
-                    legendData.push(...data);
-                });
+            const isCategoryLegendData = (
+                data: Array<CategoryLegendDatum | GradientLegendDatum>
+            ): data is CategoryLegendDatum[] => data.every((d) => d.legendType === 'category');
+            const legendData = this.series.filter((s) => s.showInLegend).flatMap((s) => s.getLegendData(legendType));
 
-            if (legendType === 'category') {
-                this.validateLegendData(legendData);
+            if (isCategoryLegendData(legendData)) {
+                this.validateCategoryLegendData(legendData);
             }
 
             legend.data = legendData;
         });
     }
 
-    protected validateLegendData(legendData: ChartLegendDatum[]) {
+    protected validateCategoryLegendData(legendData: CategoryLegendDatum[]) {
         // Validate each series that shares a legend item label uses the same fill colour
         const labelMarkerFills: { [key: string]: { [key: string]: Set<string> } } = {};
 
@@ -932,24 +919,22 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const seriesType = this.series.find((s) => s.id === d.seriesId)?.type;
             if (!seriesType) return;
 
-            const dc = d as CategoryLegendDatum;
-            labelMarkerFills[seriesType] ??= { [dc.label.text]: new Set() };
-            labelMarkerFills[seriesType][dc.label.text] ??= new Set();
-            if (dc.marker.fill != null) {
-                labelMarkerFills[seriesType][dc.label.text].add(dc.marker.fill);
+            labelMarkerFills[seriesType] ??= {};
+            labelMarkerFills[seriesType][d.label.text] ??= new Set();
+            if (d.marker.fill != null) {
+                labelMarkerFills[seriesType][d.label.text].add(d.marker.fill);
             }
         });
 
-        Object.keys(labelMarkerFills).forEach((seriesType) => {
-            Object.keys(labelMarkerFills[seriesType]).forEach((name) => {
-                const fills = labelMarkerFills[seriesType][name];
+        for (const seriesMarkers of Object.values(labelMarkerFills)) {
+            for (const [name, fills] of Object.entries(seriesMarkers)) {
                 if (fills.size > 1) {
                     Logger.warnOnce(
                         `legend item '${name}' has multiple fill colors, this may cause unexpected behaviour.`
                     );
                 }
-            });
-        });
+            }
+        }
     }
 
     protected async performLayout() {
@@ -1368,13 +1353,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
     async waitForUpdate(timeoutMs = 5000): Promise<void> {
         const start = performance.now();
 
-        while (this._pendingFactoryUpdates.length > 0 || this.updatePending) {
+        if (this._pendingFactoryUpdatesCount > 0) {
+            // Await until any pending updates are flushed through.
+            await this.updateMutex.waitForClearAcquireQueue();
+        }
+
+        while (this._performUpdateType !== ChartUpdateType.NONE) {
             if (performance.now() - start > timeoutMs) {
                 throw new Error('waitForUpdate() timeout reached.');
             }
             await sleep(5);
         }
-        await this.awaitUpdateCompletion();
+
+        // Await until any remaining updates are flushed through.
+        await this.updateMutex.waitForClearAcquireQueue();
     }
 
     protected handleOverlays() {

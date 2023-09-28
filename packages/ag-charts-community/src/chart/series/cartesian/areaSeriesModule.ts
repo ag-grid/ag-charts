@@ -42,9 +42,10 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
         },
         marker: {
             __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+            enabled: false,
             fillOpacity: 1,
             strokeOpacity: 1,
-            enabled: false,
+            strokeWidth: 0,
         },
         label: {
             enabled: false,
@@ -59,8 +60,8 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);
         return {
-            stroke: marker.stroke,
             fill: marker.fill,
+            stroke: marker.stroke,
             marker,
         };
     },

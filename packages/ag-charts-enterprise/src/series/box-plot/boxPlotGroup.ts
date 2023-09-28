@@ -28,7 +28,7 @@ export class BoxPlotGroup extends _Scene.Group {
     updateDatumStyles(
         datum: BoxPlotNodeDatum,
         activeStyles: _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
-        invertAxes = false
+        isVertical: boolean
     ) {
         const {
             bandwidth,
@@ -36,7 +36,7 @@ export class BoxPlotGroup extends _Scene.Group {
         } = datum;
         let { minValue, q1Value, q3Value, maxValue } = datum.scaledValues;
 
-        if (invertAxes) {
+        if (isVertical) {
             [maxValue, q3Value, q1Value, minValue] = [minValue, q1Value, q3Value, maxValue];
         }
 
@@ -108,7 +108,7 @@ export class BoxPlotGroup extends _Scene.Group {
             y: Math.floor(axisValue + bandwidth / 2),
         });
 
-        if (invertAxes) {
+        if (isVertical) {
             _ModuleSupport.invertShapeDirection(outline, median, ...boxes, ...caps, ...whiskers);
         }
 

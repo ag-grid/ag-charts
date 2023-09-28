@@ -1,7 +1,7 @@
 ---
 import type { Framework } from '@ag-grid-types';
 import { JsObjectPropertiesView } from '@features/api-documentation/components/JsObjectPropertiesView';
-import JsObjectPropertiesViewLayout from '@layouts/JsObjectPropertiesViewLayout.astro';
+import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
 import { getEntry } from 'astro:content';
 
@@ -15,7 +15,7 @@ const framework = Astro.params.framework as Framework;
 const interfaceName = 'AgChartTheme';
 ---
 
-<JsObjectPropertiesViewLayout>
+<APIViewLayout>
     <JsObjectPropertiesView
         client:load
         interfaceName={interfaceName}
@@ -29,4 +29,4 @@ const interfaceName = 'AgChartTheme';
             topLevelParentProperties: ['overrides', 'overrides.*', 'overrides.*.axes', 'overrides.*.series'],
         }}
     />
-</JsObjectPropertiesViewLayout>
+</APIViewLayout>

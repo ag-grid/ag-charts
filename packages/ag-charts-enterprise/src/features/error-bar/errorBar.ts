@@ -4,26 +4,34 @@ import type { ErrorBarPoints, ErrorBarNodeProperties } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
-const { mergeDefaults, ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
+const {
+    mergeDefaults,
+    valueProperty,
+    ChartAxisDirection,
+    Validate,
+    NUMBER,
+    STRING,
+    OPT_BOOLEAN,
+    OPT_COLOR_STRING,
+    OPT_NUMBER,
+    OPT_STRING,
+} = _ModuleSupport;
+const { Logger } = _Util;
 
-type CartesianSeries<
-    C extends _ModuleSupport.SeriesNodeDataContext<any, any>,
-    N extends _Scene.Node
-> = _ModuleSupport.CartesianSeries<C, N>;
-
+type AnyScale = _Scale.Scale<any, any, any>;
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
 
 class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
-    @Validate(BOOLEAN)
+    @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(OPT_COLOR_STRING)
     stroke?: string = undefined;
 
-    @Validate(NUMBER(1))
+    @Validate(OPT_NUMBER(1))
     strokeWidth?: number = undefined;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = undefined;
 
     @Validate(NUMBER(0, 1))
@@ -34,28 +42,40 @@ export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, OptionalErrorBarNodeProperties
 {
-    @Validate(OPT_STRING)
+    @Validate(STRING)
     yLowerKey: string = '';
 
     @Validate(OPT_STRING)
     yLowerName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING)
     yUpperKey: string = '';
 
     @Validate(OPT_STRING)
     yUpperName?: string = undefined;
 
-    @Validate(BOOLEAN)
-    visible?: boolean = true;
+    @Validate(OPT_STRING)
+    xLowerKey?: string = undefined;
 
     @Validate(OPT_STRING)
+    xLowerName?: string = undefined;
+
+    @Validate(OPT_STRING)
+    xUpperKey?: string = undefined;
+
+    @Validate(OPT_STRING)
+    xUpperName?: string = undefined;
+
+    @Validate(OPT_BOOLEAN)
+    visible?: boolean = true;
+
+    @Validate(OPT_COLOR_STRING)
     stroke? = 'black';
 
-    @Validate(NUMBER(1))
+    @Validate(OPT_NUMBER(1))
     strokeWidth?: number = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = 1;
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
@@ -68,7 +88,7 @@ export class ErrorBars
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
-        const supportedSeriesTypes = ['line'];
+        const supportedSeriesTypes = ['bar', 'line', 'scatter'];
         if (!supportedSeriesTypes.includes(ctx.series.type)) {
             throw new Error(
                 `AG Charts - unsupported series type '${
@@ -76,17 +96,49 @@ export class ErrorBars
                 }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
             );
         }
-        this.cartesianSeries = ctx.series as CartesianSeries<any, any>;
+        this.cartesianSeries = ctx.series as _ModuleSupport.CartesianSeries<any, any>;
         const { contentGroup } = this.cartesianSeries;
 
-        this.groupNode = new _Scene.Group({ name: `${contentGroup.id}-series-errorBars` });
+        this.groupNode = new _Scene.Group({
+            name: `${contentGroup.id}-series-errorBars`,
+            zIndex: _ModuleSupport.Layers.SERIES_ERRORBAR_ZINDEX,
+            zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('error-bars'),
+        });
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
-        this.destroyFns.push(this.cartesianSeries.addListener('data-model', (event) => this.onDataProcessed(event)));
+        this.destroyFns.push(
+            this.cartesianSeries.addListener(
+                'processData-prerequest',
+                (event: _ModuleSupport.SeriesPrerequestDataEvent) => this.onPrerequestData(event)
+            ),
+            this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>
+                this.onDataUpdate(event)
+            ),
+            this.cartesianSeries.addListener('visibility-changed', (event: _ModuleSupport.SeriesVisibilityEvent) =>
+                this.onToggleSeriesItem(event)
+            )
+        );
     }
 
-    onDataProcessed(event: {
+    onPrerequestData(event: { isContinuousX: boolean; isContinuousY: boolean }) {
+        const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
+        const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        const { isContinuousX, isContinuousY } = event;
+        props.push(
+            valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: 'yValue' }),
+            valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: 'yValue' })
+        );
+        if (xLowerKey !== undefined && xUpperKey !== undefined) {
+            props.push(
+                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: 'xValue' }),
+                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: 'xValue' })
+            );
+        }
+        return props;
+    }
+
+    onDataUpdate(event: {
         dataModel: _ModuleSupport.DataModel<any, any, any>;
         processedData: _ModuleSupport.ProcessedData<any>;
     }) {
@@ -100,34 +152,103 @@ export class ErrorBars
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        const { yLowerKey, yUpperKey, nodeData } = this;
-        const xIndex = dataModel?.resolveProcessedDataIndexById(this.cartesianSeries, `xValue`).index;
+        const { nodeData } = this;
+        const { xIndex, yIndex } = this.getDatumIndices(dataModel);
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
-        if (!xScale || !yScale || !yLowerKey || !yUpperKey || xIndex === undefined) {
+        // xIndex is required because all series must have a y-axis error bar.
+        // yIndex is optional because only the scatter series has a x-axis error bar.
+        if (!xScale || !yScale || xIndex === undefined) {
             return;
         }
-
-        const convert = (scale: _Scale.Scale<any, any, any>, value: any) => {
-            const offset = (scale.bandwidth ?? 0) / 2;
-            return scale.convert(value) + offset;
-        };
 
         nodeData.length = processedData.data.length;
 
         for (let i = 0; i < processedData.data.length; i++) {
-            const { datum, values } = processedData.data[i];
-            const xDatum = values[xIndex];
-
-            if (yLowerKey in datum && yUpperKey in datum) {
-                nodeData[i] = {
-                    yLowerPoint: { x: convert(xScale, xDatum), y: convert(yScale, datum[yLowerKey]) },
-                    yUpperPoint: { x: convert(xScale, xDatum), y: convert(yScale, datum[yUpperKey]) },
-                };
+            const { xDatum, xLower, xUpper, yDatum, yLower, yUpper } = this.getDatum(processedData, i, xIndex, yIndex);
+            const xBar = this.calculatePoints(xScale, xLower, xUpper, yScale, yDatum, yDatum);
+            const yBar = this.calculatePoints(xScale, xDatum, xDatum, yScale, yLower, yUpper);
+            if (yBar !== undefined) {
+                nodeData[i] = { xBar, yBar };
             } else {
                 nodeData[i] = undefined;
             }
         }
+    }
+
+    private getDatumIndices(dataModel: _ModuleSupport.DataModel<any, any, any>) {
+        const xIndex = 'xValue';
+        const yIndex = this.cartesianSeries.type == 'bar' ? 'yValue-end' : 'yValue';
+        return {
+            xIndex: dataModel.resolveProcessedDataIndexById(this.cartesianSeries, xIndex).index,
+            yIndex: dataModel.resolveProcessedDataIndexById(this.cartesianSeries, yIndex).index,
+        };
+    }
+
+    private getDatum(
+        processedData: _ModuleSupport.ProcessedData<any>,
+        datumIndex: number,
+        xIndex: number,
+        yIndex: number
+    ) {
+        const { type } = this.cartesianSeries;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        const { datum, keys, values } = processedData.data[datumIndex];
+
+        if (type === 'bar') {
+            return {
+                xDatum: keys[xIndex],
+                xLower: undefined,
+                xUpper: undefined,
+                yDatum: values[0][yIndex],
+                yLower: datum[0][yLowerKey] ?? undefined,
+                yUpper: datum[0][yUpperKey] ?? undefined,
+            };
+        } else if (type === 'line') {
+            return {
+                xDatum: values[xIndex],
+                xLower: undefined,
+                xUpper: undefined,
+                yDatum: values[yIndex],
+                yLower: datum[yLowerKey] ?? undefined,
+                yUpper: datum[yUpperKey] ?? undefined,
+            };
+        } else if (type === 'scatter') {
+            const xLower = xLowerKey === undefined ? undefined : datum[xLowerKey] ?? undefined;
+            const xUpper = xUpperKey === undefined ? undefined : datum[xUpperKey] ?? undefined;
+            if (xLower === undefined || xUpper == undefined) {
+                Logger.warnOnce(
+                    `AG Charts - series type 'scatter' requires xLowerKey (= ${xLowerKey}) and xUpperKey (= ${xUpperKey}) to exist in all data points`
+                );
+            }
+
+            return {
+                xDatum: values[xIndex],
+                xLower: xLower,
+                xUpper: xUpper,
+                yDatum: values[yIndex],
+                yLower: datum[yLowerKey] ?? undefined,
+                yUpper: datum[yUpperKey] ?? undefined,
+            };
+        } else {
+            throw new Error(`Expected series type '${type}`);
+        }
+    }
+
+    private calculatePoints(xScale: AnyScale, xLower: any, xUpper: any, yScale: AnyScale, yLower: any, yUpper: any) {
+        if ([xLower, xUpper, yLower, yUpper].includes(undefined)) {
+            return undefined;
+        }
+        return {
+            lowerPoint: this.calculatePoint(xScale, xLower, yScale, yLower),
+            upperPoint: this.calculatePoint(xScale, xUpper, yScale, yUpper),
+        };
+    }
+
+    private calculatePoint(xScale: AnyScale, x: any, yScale: AnyScale, y: any) {
+        const xOffset = (xScale.bandwidth ?? 0) / 2;
+        const yOffset = (yScale.bandwidth ?? 0) / 2;
+        return { x: xScale.convert(x) + xOffset, y: yScale.convert(y) + yOffset };
     }
 
     update() {
@@ -144,6 +265,10 @@ export class ErrorBars
             const capProps = mergeDefaults(this.cap, whiskerProps);
             node.update(points, whiskerProps, capProps);
         }
+    }
+
+    private onToggleSeriesItem(event: { enabled: boolean }): void {
+        this.groupNode.visible = event.enabled;
     }
 
     private errorBarFactory(): ErrorBarNode {

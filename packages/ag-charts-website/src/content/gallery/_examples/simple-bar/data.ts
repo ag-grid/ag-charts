@@ -1,11 +1,12 @@
 export function getData() {
     return [
-        { type: 'Manager', earnings: 954 },
-        { type: 'Engineer', earnings: 844 },
-        { type: 'Entrepreneur', earnings: 699 },
-        { type: 'Lawyer', earnings: 503 },
-        { type: 'Teacher', earnings: 501 },
-        { type: 'Freelancer', earnings: 407 },
-        { type: 'Doctor', earnings: 358 },
+        { year: '2016', visitors: 46636720 },
+        { year: '2017', visitors: 48772922 },
+        { year: '2018', visitors: 50800193 },
+        { year: '2019', visitors: 48023342 },
+        { year: '2020', visitors: 47271912 },
+        { year: '2021', visitors: 47155093 },
+        { year: '2022', visitors: 49441678 },
+        { year: '2023', visitors: 50368190 },
     ];
 }

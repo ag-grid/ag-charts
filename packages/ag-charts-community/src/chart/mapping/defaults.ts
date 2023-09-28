@@ -1,17 +1,16 @@
-import type { AgCartesianChartOptions, AgChartOptions } from '../../options/agChartOptions';
-import { NumberAxis } from '../axis/numberAxis';
-import { CategoryAxis } from '../axis/categoryAxis';
+import type { AgChartOptions } from '../../options/agChartOptions';
+import { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } from '../themes/constants';
 import { isAgCartesianChartOptions } from './types';
 
-export const DEFAULT_CARTESIAN_CHART_OVERRIDES: AgCartesianChartOptions = {
+export const DEFAULT_CARTESIAN_CHART_OVERRIDES = {
     axes: [
         {
-            type: NumberAxis.type,
-            position: 'left',
+            type: CARTESIAN_AXIS_TYPES.NUMBER,
+            position: CARTESIAN_AXIS_POSITIONS.LEFT,
         },
         {
-            type: CategoryAxis.type,
-            position: 'bottom',
+            type: CARTESIAN_AXIS_TYPES.CATEGORY,
+            position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
         },
     ],
 };

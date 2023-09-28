@@ -35,14 +35,30 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
         }
     }
 
-    public dispatch(eventType: EventType, ...params: Parameters<EventHandler>) {
+    public dispatch<R = void>(eventType: EventType, ...params: Parameters<EventHandler>): R[] | void {
+        // This is a utility class to store all the results of Listeners (or do nothing
+        // if R = void).
+        class ResultArray<R = void> {
+            results: R[] | void = undefined;
+
+            push(result: R) {
+                if (result !== undefined) {
+                    if (this.results == undefined) {
+                        this.results = [];
+                    }
+                    this.results.push(result);
+                }
+            }
+        }
+        const results: ResultArray<R> = new ResultArray<R>();
         for (const listener of this.getListenersByType(eventType)) {
             try {
-                listener.handler(...params);
+                results.push(listener.handler(...params));
             } catch (e) {
                 Logger.errorOnce(e);
             }
         }
+        return results.results;
     }
 
     public dispatchWrapHandlers(

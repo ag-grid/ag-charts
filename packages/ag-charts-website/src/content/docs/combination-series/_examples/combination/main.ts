@@ -22,7 +22,6 @@ const WOMEN: AgBarSeriesOptions = {
   yKey: "women",
   yName: "Women",
   grouped: true,
-  strokeWidth: 0,
   tooltip: {
     renderer: tooltipRenderer,
   },
@@ -34,7 +33,6 @@ const MEN: AgBarSeriesOptions = {
   yKey: "men",
   yName: "Men",
   grouped: true,
-  strokeWidth: 0,
   tooltip: {
     renderer: tooltipRenderer,
   },
@@ -45,10 +43,6 @@ const PORTIONS: AgLineSeriesOptions = {
   xKey: "year",
   yKey: "portions",
   yName: "Portions",
-  strokeWidth: 3,
-  marker: {
-    enabled: false,
-  },
   tooltip: {
     renderer: tooltipRenderer,
   },
@@ -69,26 +63,13 @@ const AREA_AND_COLUMN: AgCartesianSeriesOptions[] = [
 const options: AgCartesianChartOptions = {
   container: document.querySelector("#myChart") as HTMLElement,
   data: getData(),
-  theme: {
-    palette: {
-      fills: ["#7cecb3", "#7cb5ec", "#ecb37c", "#ec7cb5", "#7c7dec"],
-      strokes: ["#7cecb3", "#7cb5ec", "#ecb37c", "#ec7cb5", "#7c7dec"],
-    },
-  },
   title: {
     text: "Fruit & Vegetable Consumption",
-    fontSize: 15,
   },
   series: COLUMN_AND_LINE,
   axes: [
     {
       type: "category",
-      position: "bottom",
-      gridStyle: [
-        {
-          stroke: undefined,
-        },
-      ],
     },
     {
       // primary y axis
@@ -102,20 +83,12 @@ const options: AgCartesianChartOptions = {
     {
       // secondary y axis
       type: "number",
-      position: "right",
       keys: ["portions"],
       title: {
         text: "Portions Consumed (Per Day)",
       },
     },
   ] as AgCartesianAxisOptions[],
-  legend: {
-    item: {
-      marker: {
-        strokeWidth: 0,
-      },
-    },
-  },
 }
 
 var chart = AgChart.create(options)

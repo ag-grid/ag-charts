@@ -134,7 +134,7 @@ export class BoxPlotSeries extends CartesianSeries<
     stroke: string = '#333';
 
     @Validate(NUMBER(0))
-    strokeWidth: number = 3;
+    strokeWidth: number = 1;
 
     @Validate(NUMBER(0, 1))
     strokeOpacity = 1;
@@ -146,7 +146,7 @@ export class BoxPlotSeries extends CartesianSeries<
     lineDashOffset: number = 0;
 
     @Validate(STRING_UNION('vertical', 'horizontal'))
-    direction: 'vertical' | 'horizontal' = 'horizontal';
+    direction: 'vertical' | 'horizontal' = 'vertical';
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesStyles = undefined;
@@ -205,11 +205,11 @@ export class BoxPlotSeries extends CartesianSeries<
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
-        if (direction === this.getBarDirection()) {
+        if (direction === this.getValuesDirection()) {
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return this.fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
+            return this.fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
         }
 
         const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -227,7 +227,7 @@ export class BoxPlotSeries extends CartesianSeries<
         const { visible, dataModel } = this;
 
         const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+        const yAxis = this.getValuesAxis();
 
         if (!(dataModel && visible && xAxis && yAxis)) {
             return [];
@@ -337,7 +337,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return [context];
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const {
             id,
             data,
@@ -350,26 +350,27 @@ export class BoxPlotSeries extends CartesianSeries<
             stroke,
             fillOpacity,
             strokeOpacity,
+            strokeWidth,
         } = this;
 
         if (!(showInLegend && data?.length && xKey && legendType === 'category')) {
             return [];
         }
 
-        const categoryLegend: _ModuleSupport.CategoryLegendDatum = {
-            legendType: 'category',
-            id,
-            itemId: id,
-            seriesId: id,
-            enabled: visible,
-            label: {
-                text: legendItemName ?? yName ?? id,
+        return [
+            {
+                legendType: 'category',
+                id,
+                itemId: id,
+                seriesId: id,
+                enabled: visible,
+                label: {
+                    text: legendItemName ?? yName ?? id,
+                },
+                legendItemName,
+                marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth },
             },
-            legendItemName,
-            marker: { fill, fillOpacity, stroke, strokeOpacity },
-        };
-
-        return [categoryLegend];
+        ];
     }
 
     protected getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<any> {
@@ -403,7 +404,7 @@ export class BoxPlotSeries extends CartesianSeries<
         const { datum } = nodeDatum;
 
         const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+        const yAxis = this.getValuesAxis();
 
         if (!xAxis || !yAxis || !xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return '';
 
@@ -447,10 +448,10 @@ export class BoxPlotSeries extends CartesianSeries<
     protected animateEmptyUpdateReady({
         datumSelections,
     }: _ModuleSupport.CartesianAnimationData<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>, BoxPlotGroup>) {
-        const invertAxes = this.direction === 'vertical';
+        const isVertical = this.direction === 'vertical';
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((boxPlotGroup, datum) => {
-                if (invertAxes) {
+                if (isVertical) {
                     boxPlotGroup.scalingCenterY = datum.scaledValues.medianValue;
                 } else {
                     boxPlotGroup.scalingCenterX = datum.scaledValues.medianValue;
@@ -463,11 +464,17 @@ export class BoxPlotSeries extends CartesianSeries<
                 ease: _ModuleSupport.Motion.easeOut,
                 onUpdate(value) {
                     datumSelection.each((boxPlotGroup) => {
-                        if (invertAxes) {
+                        if (isVertical) {
                             boxPlotGroup.scalingY = value;
                         } else {
                             boxPlotGroup.scalingX = value;
                         }
+                    });
+                },
+                onStop() {
+                    datumSelection.each((boxPlotGroup) => {
+                        boxPlotGroup.scalingX = 1;
+                        boxPlotGroup.scalingY = 1;
                     });
                 },
             });
@@ -496,7 +503,7 @@ export class BoxPlotSeries extends CartesianSeries<
         highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
-        const invertAxes = this.direction === 'vertical';
+        const invertAxes = this.isVertical();
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -593,20 +600,24 @@ export class BoxPlotSeries extends CartesianSeries<
         return { inner: 0.2, outer: 0.1 };
     }
 
-    protected getBarDirection() {
-        return this.direction === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+    protected isVertical() {
+        return this.direction === 'vertical';
+    }
+
+    protected getValuesDirection() {
+        return this.isVertical() ? ChartAxisDirection.Y : ChartAxisDirection.X;
     }
 
     protected getCategoryDirection() {
-        return this.direction === 'horizontal' ? ChartAxisDirection.Y : ChartAxisDirection.X;
+        return this.isVertical() ? ChartAxisDirection.X : ChartAxisDirection.Y;
     }
 
     protected getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
         return this.axes[this.getCategoryDirection()];
     }
 
-    protected getValueAxis(): _ModuleSupport.ChartAxis | undefined {
-        return this.axes[this.getBarDirection()];
+    protected getValuesAxis(): _ModuleSupport.ChartAxis | undefined {
+        return this.axes[this.getValuesDirection()];
     }
 
     convertValuesToScaleByDefs<T extends string>(
@@ -614,7 +625,7 @@ export class BoxPlotSeries extends CartesianSeries<
         values: Record<T, unknown>
     ): Record<T, number> {
         const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+        const yAxis = this.getValuesAxis();
         if (!(xAxis && yAxis)) {
             throw new Error('Axes must be defined');
         }

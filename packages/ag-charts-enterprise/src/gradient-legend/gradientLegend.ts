@@ -5,8 +5,7 @@ import type {
     FontStyle,
     FontWeight,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type { GradientLegendDatum } from './gradientLegendDatum';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Layers,
@@ -102,7 +101,7 @@ export class GradientLegend {
 
     readonly stop = new GradientLegendStop();
 
-    data: GradientLegendDatum[] = [];
+    data: _ModuleSupport.GradientLegendDatum[] = [];
 
     listeners: any = {};
 
@@ -169,7 +168,7 @@ export class GradientLegend {
         return { shrinkRect: newShrinkRect };
     }
 
-    private normalizeColorArrays(data: GradientLegendDatum) {
+    private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {
         let colorDomain = data.colorDomain.slice();
         const colorRange = data.colorRange.slice();
 

@@ -1,4 +1,7 @@
 export const EXTENDS_CHART_DEFAULTS = Symbol('extends-chart-defaults') as unknown as string;
+export const EXTENDS_LEGEND_DEFAULTS = Symbol('extends-legend-defaults') as unknown as string;
+export const EXTENDS_LEGEND_ITEM_DEFAULTS = Symbol('extends-legend-item-defaults') as unknown as string;
+export const EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS = Symbol('extends-legend-item-marker-defaults') as unknown as string;
 export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults') as unknown as string;
 export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults') as unknown as string;
 export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults') as unknown as string;

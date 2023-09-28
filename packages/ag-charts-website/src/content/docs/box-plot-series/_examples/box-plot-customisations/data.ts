@@ -1,7 +1,7 @@
 export function getData() {
     return [
         {
-            role: 'Sales Executive',
+            role: 'Sales',
             min: 4001,
             q1: 5071,
             median: 6232,
@@ -9,7 +9,7 @@ export function getData() {
             max: 13872,
         },
         {
-            role: 'Research Scientist',
+            role: 'Research',
             min: 1009,
             q1: 2389,
             median: 2889,
@@ -17,28 +17,12 @@ export function getData() {
             max: 5974,
         },
         {
-            role: 'Laboratory Technician',
-            min: 1102,
-            q1: 2380,
-            median: 2926,
-            q3: 3907,
-            max: 6074,
-        },
-        {
-            role: 'Manufacturing Director',
+            role: 'Manufacturing',
             min: 4011,
             q1: 5121,
             median: 6474,
             q3: 9547,
             max: 13973,
-        },
-        {
-            role: 'Healthcare Representative',
-            min: 4000,
-            q1: 5562,
-            median: 6812,
-            q3: 9824,
-            max: 13966,
         },
         {
             role: 'Manager',
@@ -49,23 +33,7 @@ export function getData() {
             max: 19999,
         },
         {
-            role: 'Sales Representative',
-            min: 1359,
-            q1: 2269,
-            median: 2610,
-            q3: 2909,
-            max: 3540,
-        },
-        {
-            role: 'Research Director',
-            min: 11031,
-            q1: 13499,
-            median: 16598,
-            q3: 19038,
-            max: 19973,
-        },
-        {
-            role: 'Human Resources',
+            role: 'HR',
             min: 1555,
             q1: 2342,
             median: 3195,

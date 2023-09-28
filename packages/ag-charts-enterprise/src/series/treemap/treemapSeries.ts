@@ -952,7 +952,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         });
     }
 
-    getLegendData(): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData() {
         // Override point for subclasses.
         return [];
     }

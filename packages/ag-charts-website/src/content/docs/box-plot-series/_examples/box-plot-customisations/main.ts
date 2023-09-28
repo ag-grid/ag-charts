@@ -12,16 +12,22 @@ const options: AgChartOptions = {
     data: getData(),
     series: [
         {
-            // common props
             type: 'box-plot',
-            yName: 'Job Role',
+            yName: 'Employee Salaries',
             xKey: 'role',
+            xName: 'Role',
             minKey: 'min',
+            minName: 'Min',
             q1Key: 'q1',
+            q1Name: 'Q1',
             medianKey: 'median',
+            medianName: 'Median',
             q3Key: 'q3',
+            q3Name: 'Q3',
             maxKey: 'max',
-            // styling props
+            maxName: 'Max',
+            fill: 'green',
+            stroke: 'purple',
             strokeWidth: 1,
             cap: {
                 lengthRatio: 0.8,

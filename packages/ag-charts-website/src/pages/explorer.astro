@@ -1,0 +1,47 @@
+---
+import type { Framework } from '@ag-grid-types';
+import APIViewLayout from '@layouts/APIViewLayout.astro';
+import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
+import { ChartsApiExplorer } from '@features/api-explorer/ChartsApiExplorer';
+
+const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
+const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+
+// TODO: Figure out framework
+const framework: Framework = 'javascript';
+---
+
+<APIViewLayout>
+    <div class="page-margin container">
+        <h1>API Explorer</h1>
+
+        <p>
+            The API explorer can be used to gain familiarity with the AG Charts API and see in real-time how different <code
+                >options</code
+            > affect charts. A code snippet showing the use of the API is produced based on the point and click configurations
+            specified in the explorer.
+        </p>
+
+        <ChartsApiExplorer
+            client:only
+            framework={framework}
+            codeLookup={codeLookup}
+            interfaceLookup={interfaceLookup}
+        />
+    </div>
+</APIViewLayout>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    .container {
+        margin-top: $size-4;
+        margin-bottom: $size-4;
+    }
+
+    p {
+        --font-size-extra-large: 1.5rem;
+        font-size: var(--font-size-extra-large);
+        margin-bottom: $size-4;
+    }
+</style>

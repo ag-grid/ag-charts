@@ -4,7 +4,7 @@ import type { Group } from '../scene/group';
 import type { ZIndexSubOrder } from '../scene/node';
 import type { Point, SizedPoint } from '../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
-import type { ModuleMap } from '../util/moduleMap';
+import type { ModuleMap } from '../module/moduleMap';
 import type { TypedEventListener } from '../util/observable';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
@@ -92,7 +92,7 @@ export interface ChartSeries {
     getModuleMap(): ModuleMap<any, any, any>;
     update(opts: { seriesRect?: BBox }): Promise<void>;
     hasData(): boolean | undefined;
-    getLegendData(legendType: ChartLegendType): ChartLegendDatum[];
+    getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     markNodeDataDirty(): void;
     removeEventListener(key: string, cb: TypedEventListener): void;
     clearEventListeners(): void;

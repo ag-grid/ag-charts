@@ -33,6 +33,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
             fillOpacity: 1,
             strokeOpacity: 1,
+            strokeWidth: 0,
         },
         label: {
             enabled: false,

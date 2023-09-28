@@ -20,6 +20,6 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
 
     swapDefaultAxesCondition({ series }) {
         const [{ direction }] = series as [AgBoxPlotSeriesOptions];
-        return direction === 'vertical';
+        return direction === 'horizontal';
     },
 };

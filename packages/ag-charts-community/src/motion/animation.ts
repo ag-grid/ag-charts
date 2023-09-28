@@ -148,7 +148,7 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
 
         this.onUpdate?.(value, this);
 
-        if (this.elapsed - this.delay > this.duration) {
+        if (this.elapsed - this.delay >= this.duration) {
             if (this.iteration < this.repeat) {
                 this.iteration++;
                 this.elapsed = ((this.elapsed - this.delay) % this.duration) + this.delay;

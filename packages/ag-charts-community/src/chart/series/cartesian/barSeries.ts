@@ -1,55 +1,56 @@
+import type { ModuleContext } from '../../../module/moduleContext';
+import * as easing from '../../../motion/easing';
+import type {
+    AgBarSeriesFormat,
+    AgBarSeriesFormatterParams,
+    AgBarSeriesLabelPlacement,
+    AgBarSeriesTooltipRendererParams,
+    AgCartesianSeriesLabelFormatterParams,
+    AgTooltipRendererResult,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
+import { BandScale } from '../../../scale/bandScale';
+import { ContinuousScale } from '../../../scale/continuousScale';
+import type { DropShadow } from '../../../scene/dropShadow';
+import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { BandScale } from '../../../scale/bandScale';
-import type { DropShadow } from '../../../scene/dropShadow';
-import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, keyProperty, valueProperty, groupAccumulativeValueProperty } from '../series';
-import { Label } from '../../label';
-import { PointerEvents } from '../../../scene/node';
-import type { ChartLegendDatum, CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
-import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Point } from '../../../scene/point';
 import type { ValidatePredicate } from '../../../util/validation';
 import {
     NUMBER,
+    OPT_COLOR_STRING,
     OPT_FUNCTION,
     OPT_LINE_DASH,
     OPT_NUMBER,
-    Validate,
-    OPTIONAL,
     OPT_STRING,
-    OPT_COLOR_STRING,
+    OPTIONAL,
     STRING_UNION,
+    Validate,
 } from '../../../util/validation';
 import { zipObject } from '../../../util/zip';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
-import type {
-    AgCartesianSeriesLabelFormatterParams,
-    AgTooltipRendererResult,
-    AgBarSeriesFormatterParams,
-    AgBarSeriesTooltipRendererParams,
-    AgBarSeriesFormat,
-    AgBarSeriesLabelPlacement,
-    FontStyle,
-    FontWeight,
-} from '../../../options/agChartOptions';
 import { LogAxis } from '../../axis/logAxis';
-import { normaliseGroupTo, SMALLEST_KEY_INTERVAL, diff } from '../../data/processors';
-import * as easing from '../../../motion/easing';
-import type { RectConfig } from './barUtil';
-import { getRectConfig, updateRect, checkCrisp } from './barUtil';
-import { updateLabel, createLabelData } from './labelUtil';
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { DataController } from '../../data/dataController';
+import type { ChartAxis } from '../../chartAxis';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import { SeriesNodePickMode } from '../../chartSeries';
+import type { DataController } from '../../data/dataController';
+import { diff, normaliseGroupTo, SMALLEST_KEY_INTERVAL } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { SeriesNodeDataContext } from '../series';
+import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { SeriesTooltip } from '../seriesTooltip';
+import type { RectConfig } from './barUtil';
+import { checkCrisp, getRectConfig, updateRect } from './barUtil';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
+import { createLabelData, updateLabel } from './labelUtil';
 
 const BAR_LABEL_PLACEMENTS: AgBarSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_BAR_LABEL_PLACEMENT: ValidatePredicate = (v: any, ctx) =>
@@ -176,6 +177,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     shadow?: DropShadow = undefined;
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
+
     async processData(dataController: DataController) {
         const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
@@ -330,11 +332,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         }
 
         // To get exactly `0` padding we need to turn off rounding
-        if (groupScale.padding === 0) {
-            groupScale.round = false;
-        } else {
-            groupScale.round = true;
-        }
+        groupScale.round = groupScale.padding !== 0;
 
         const barWidth =
             groupScale.bandwidth >= 1
@@ -592,7 +590,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         });
     }
 
-    getLegendData(legendType: ChartLegendType): ChartLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const {
             id,
             data,
@@ -602,6 +600,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             legendItemName,
             fill,
             stroke,
+            strokeWidth,
             fillOpacity,
             strokeOpacity,
             visible,
@@ -612,27 +611,26 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return [];
         }
 
-        const legendData: CategoryLegendDatum[] = [];
-
-        legendData.push({
-            legendType: 'category',
-            id,
-            itemId: yKey,
-            seriesId: id,
-            enabled: visible,
-            label: {
-                text: legendItemName ?? yName ?? yKey,
+        return [
+            {
+                legendType: 'category',
+                id,
+                itemId: yKey,
+                seriesId: id,
+                enabled: visible,
+                label: {
+                    text: legendItemName ?? yName ?? yKey,
+                },
+                legendItemName,
+                marker: {
+                    fill,
+                    stroke,
+                    fillOpacity: fillOpacity,
+                    strokeOpacity: strokeOpacity,
+                    strokeWidth: strokeWidth,
+                },
             },
-            legendItemName,
-            marker: {
-                fill,
-                stroke,
-                fillOpacity: fillOpacity,
-                strokeOpacity: strokeOpacity,
-            },
-        });
-
-        return legendData;
+        ];
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {

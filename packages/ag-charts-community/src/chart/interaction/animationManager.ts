@@ -3,6 +3,7 @@ import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
 import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
+import type { Mutex } from '../../util/mutex';
 
 type AnimationEventType = 'animation-frame';
 
@@ -15,6 +16,7 @@ interface AdditionalAnimationOptions {
     id?: string;
     disableInteractions?: boolean;
     immutable?: boolean;
+    shortCircuitId?: string;
 }
 
 /**
@@ -23,6 +25,7 @@ interface AdditionalAnimationOptions {
  */
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
     private readonly controllers: Map<string, IAnimation<any>> = new Map();
+    private readonly shortCircuits: Map<string, number> = new Map();
     private readonly debug = Debug.create(true, 'animation');
 
     private isPlaying = false;
@@ -31,7 +34,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     defaultDuration = 1000;
 
-    constructor(private interactionManager: InteractionManager) {
+    constructor(private readonly interactionManager: InteractionManager, private readonly chartUpdateMutex: Mutex) {
         super();
     }
 
@@ -52,6 +55,18 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
 
         const id = opts.id ?? Math.random().toString();
+
+        if (opts.shortCircuitId) {
+            const shortCircuitTime = this.shortCircuits.get(opts.shortCircuitId);
+            const isShortCircuited = shortCircuitTime && opts.duration && Date.now() - shortCircuitTime < opts.duration;
+
+            if (isShortCircuited) {
+                opts.delay = 0;
+                opts.duration = 1;
+            }
+
+            this.shortCircuits.set(opts.shortCircuitId, Date.now());
+        }
 
         return new Animation({
             ...opts,
@@ -143,17 +158,22 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         const onAnimationFrame = (time: number) => {
             this.requestId = requestAnimationFrame(onAnimationFrame);
 
-            const deltaTime = time - (prevTime ?? time);
+            const executeAnimationFrame = async () => {
+                const deltaTime = time - (prevTime ?? time);
 
-            prevTime = time;
+                prevTime = time;
 
-            this.debug('AnimationManager - onAnimationFrame()', { controllersCount: this.controllers.size });
+                this.debug('AnimationManager - onAnimationFrame()', { controllersCount: this.controllers.size });
 
-            for (const controller of this.controllers.values()) {
-                controller.update(deltaTime);
-            }
+                for (const controller of this.controllers.values()) {
+                    controller.update(deltaTime);
+                }
 
-            this.listeners.dispatch('animation-frame', { type: 'animation-frame', deltaMs: deltaTime });
+                this.listeners.dispatch('animation-frame', { type: 'animation-frame', deltaMs: deltaTime });
+            };
+
+            // Only run the animation frame if we can acquire the chart update mutex immediately.
+            this.chartUpdateMutex.acquireImmediately(executeAnimationFrame);
         };
 
         this.requestId = requestAnimationFrame(onAnimationFrame);

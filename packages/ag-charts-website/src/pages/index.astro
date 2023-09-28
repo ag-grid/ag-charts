@@ -1,11 +1,488 @@
 ---
-import ComingSoon from '@components/ComingSoon.astro';
+import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
+import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
+import { Icon, IconName } from '@components/icon/Icon';
+import Code from '@components/Code';
+import type { GalleryData, GalleryExampleChartType } from '@ag-grid-types';
+import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
+import { pathJoin } from '@utils/pathJoin';
+import { SITE_BASE_URL } from '@constants';
+import { getCacheBustingUrl, getChartScriptPath, getChartEnterpriseScriptPath } from '@utils/pages';
+
+const frameworksData = [
+    {
+        name: 'javascript',
+        url: '/javascript/overview',
+    },
+    {
+        name: 'react',
+        url: '/react/overview',
+    },
+    {
+        name: 'angular',
+        url: '/angular/overview',
+    },
+    {
+        name: 'vue',
+        url: '/vue/overview',
+    },
+];
+
+const devExCode = `const options = {
+  container: document.getElementById('myChart'),
+  data: [
+    { label: 'Android', value: 56.9 },
+    { label: 'iOS', value: 22.5 },
+    { label: 'BlackBerry', value: 6.8 },
+    { label: 'Symbian', value: 8.5 },
+    { label: 'Windows', value: 2.6 },
+  ],
+  series: [
+    {
+      type: 'pie',
+      angleKey: 'value',
+      calloutLabelKey: 'label',
+      sectorLabelKey: 'value',
+    },
+  ],
+};
+
+agCharts.AgChart.create(options);`;
+
+const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryData: GalleryData = galleryDataEntry?.data;
+const { series } = galleryData;
+
+const heroInternalFramework = 'vanilla';
+const heroDocsPageName = 'homepage';
+const heroDocsExampleName = 'hero-chart';
+
+const modifiedTimeMs = Date.now();
+const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
+const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
+const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
+
+const isEnterprise = true;
 ---
 
 <Layout>
-    <ComingSoon name="Homepage">
-        <h2>A taster...</h2>
-        <div id="myChart" style="width: 400px; height: 400px"></div>
-    </ComingSoon>
+    <script src={chartScriptPath}></script>
+    {isEnterprise && <script src={chartScriptEnterprisePath} />}
+
+    <div class="homepageHero">
+        <div class="heroInner page-margin">
+            <div class="heroHeadings">
+                <h1 class="font-size-extra-large">The Best JavaScript Charts in the World</h1>
+                <h2 class="font-size-medium normal-weight-text">
+                    The profesional choice for developers building enterprise applications
+                </h2>
+            </div>
+            <div class="heroChart">
+                <HomepageExampleRunner
+                    internalFramework={heroInternalFramework}
+                    pageName={heroDocsPageName}
+                    exampleName={heroDocsExampleName}
+                />
+            </div>
+        </div>
+    </div>
+
+    <div class="homepageFrameworks">
+        <div class="frameworksInner page-margin">
+            <span class="frameworksLabel text-secondary">Get&nbsp;started</span>
+            <FrameworkSelector data={frameworksData} isFullWidth />
+        </div>
+    </div>
+
+    <div class="homepageSeries">
+        <div class="seriesInner page-margin">
+            <h2 class="font-size-gargantuan text-secondary">More series than you can shake a stick at...</h2>
+
+            <div class="seriesChart">
+                <div class="dummy">
+                    <!-- <span>Series example chart</span> -->
+                    <HomepageExampleRunner
+                        internalFramework={heroInternalFramework}
+                        pageName={'homepage'}
+                        exampleName={'simple-bar'}
+                    />
+                </div>
+            </div>
+
+            <div class="seriesList">
+                <ul class="list-style-none">
+                    {
+                        series.map((series: GalleryExampleChartType) => (
+                            <li>
+                                <button class="button-secondary">
+                                    <Icon client:only name={series.icon as IconName} />
+                                    <span>{series.title}</span>
+                                </button>
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="homepageBenefits">
+        <div class="benefitsInner page-margin">
+            <!-- ChatGPT content to be replaced -->
+            <ul class="list-style-none">
+                <li>
+                    <Icon name="docs-rendering" />
+                    <h3>Versatile and Customizable</h3>
+                    <p>
+                        AG-Charts offers a wide range of chart types and extensive customization options, allowing
+                        developers to create visually appealing and tailored data visualizations that seamlessly match
+                        their application's design and needs.
+                    </p>
+                </li>
+                <li>
+                    <Icon name="docs-sparklines" />
+                    <h3>High Performance</h3>
+                    <p>
+                        AG-Charts is optimized for efficiency, ensuring smooth rendering and interaction with large
+                        datasets, making it suitable for real-time updates and handling big data without sacrificing
+                        performance.
+                    </p>
+                </li>
+                <li>
+                    <Icon name="docs-api" />
+                    <h3>Easy Integration</h3>
+                    <p>
+                        Compatible with popular web development frameworks and various data formats, AG-Charts
+                        seamlessly integrates into existing applications, offering flexibility in data sources and
+                        simplifying chart implementation.
+                    </p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="homepageDevEx">
+        <div class="devExInner page-margin">
+            {/* [TODO] add linenumbers */}
+            <div class="devExExample">
+                <div class="tmpImgOuter">
+                    <img src="images/TMP-homepage-pie-tmp-image.png" alt="TEMP IMAGE" />
+                </div>
+
+                <Code code={devExCode} />
+            </div>
+            <div class="devExCopy">
+                <h3 class="font-size-massive">
+                    Your first chart in 20 lines...<br />The next 200 charts just as easy.
+                </h3>
+                <p class="font-size-large">
+                    Get started quickly with our simple guide, then customise every aspect of our charts with our
+                    <a href="./options/">robust API</a>.
+                </p>
+                <p class="font-size-large">
+                    Learn at speed with our comprehensive <a href="./javascript/getting-started/">documentation</a>,
+                    packed with examples, refrences, and sandboxes.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="homepageGrid">
+        <div class="gridInner page-margin">
+            <div class="gridCopy">
+                <img class="agGridLogo" src="images/AG-Grid-Logo.svg" alt="AG Grid Logo" />
+                <!-- Dummy copy, to be reviewed -->
+                <p class="font-size-large">
+                    <b>AG Charts</b> was created by the amazing team behind <a href="ag-grid.com"><b>AG Grid</b></a>,
+                    the best javascript grid in the world.
+                </p>
+                <p class="font-size-large">
+                    Designed to work seamlessly with <b>AG Grid</b>, <b>AG Charts</b> can make your data heavy applications
+                    even more beautiful and insightful. Use <b>AG Grid</b> & <b>AG Charts</b> enterprise together to get
+                    access to best
+                    <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">intergrated charting</a> available
+                    bar none.
+                </p>
+            </div>
+            <div class="gridExample">
+                <video src="videos/integrated-charts.mp4" muted autoplay loop></video>
+            </div>
+        </div>
+    </div>
 </Layout>
+
+<style lang="scss">
+    @use '../design-system' as *;
+
+    .homepageHero {
+        --text-color: var(--white);
+
+        padding-top: $size-5;
+        background-color: var(--dark-cerulean-blue);
+
+        @media screen and (min-width: $breakpoint-hero-small) {
+            padding-top: $size-7;
+        }
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            padding-top: $size-8;
+        }
+    }
+
+    .heroInner {
+        display: flex;
+        flex-direction: column;
+        gap: 0 $size-4;
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            flex-direction: row;
+        }
+    }
+
+    .heroHeadings {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            text-align: unset;
+        }
+
+        h1,
+        h2 {
+            --line-height: var(--line-height-tight);
+
+            color: var(--text-color);
+        }
+
+        h1 {
+            --font-size: 28px;
+
+            @media screen and (min-width: $breakpoint-hero-small) {
+                --font-size: var(--font-size-massive);
+            }
+
+            @media screen and (min-width: $breakpoint-hero-large) {
+                --font-size: min(3.4vw, 54px);
+
+                margin-top: -0.225em;
+                margin-bottom: 0.5em;
+            }
+        }
+
+        h2 {
+            max-width: 18em;
+            margin-right: auto;
+            margin-left: auto;
+            margin-bottom: 1.4em;
+
+            @media screen and (min-width: $breakpoint-hero-small) {
+                --font-size: 22px;
+            }
+
+            @media screen and (min-width: $breakpoint-hero-large) {
+                --font-size: min(1.9vw, 30px);
+                --font-weight: var(--font-weight-thin);
+
+                max-width: unset;
+            }
+        }
+    }
+
+    .heroChart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 320px;
+        background-color: var(--ag-grid-dark-blue);
+        border-radius: var(--border-radius);
+        margin-bottom: $size-6;
+        color: white;
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            width: 860px;
+            height: 416px;
+        }
+    }
+
+    .homepageFrameworks {
+        background-color: var(--bright-blue-gray);
+        padding-top: $size-2;
+        padding-bottom: $size-6;
+
+        @media screen and (min-width: 640px) {
+            padding-top: $size-6;
+        }
+    }
+
+    .frameworksInner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: $size-1;
+
+        @media screen and (min-width: 640px) {
+            flex-direction: row;
+        }
+
+        @media screen and (min-width: 1020px) {
+            gap: $size-2;
+        }
+    }
+
+    .frameworksLabel {
+        font-size: var(--font-size);
+        font-weight: var(--font-weight);
+
+        @media screen and (min-width: 1020px) {
+            --font-size: var(--font-size-extra-large);
+            --font-weight: var(--font-weight-thin);
+        }
+    }
+
+    .homepageSeries {
+        padding-top: $size-7;
+        padding-bottom: $size-9;
+    }
+
+    .seriesInner {
+        display: flex;
+        flex-wrap: wrap;
+
+        h2 {
+            width: 100%;
+            margin-bottom: $size-6 !important;
+            text-align: center;
+            opacity: 0.6;
+        }
+    }
+
+    .seriesChart {
+        width: 50%;
+        padding-right: $size-7;
+    }
+
+    .dummy {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        aspect-ratio: 4 / 3;
+        border-radius: var(--border-radius);
+        background-color: var(--border-color);
+    }
+
+    .seriesList {
+        width: 50%;
+
+        ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: $size-2;
+        }
+    }
+
+    .homepageBenefits {
+        background-color: var(--bright-blue-gray);
+        padding-top: $size-7;
+        padding-bottom: $size-8;
+    }
+
+    .benefitsInner {
+        ul {
+            display: flex;
+            gap: $size-2;
+        }
+
+        li {
+            width: 33.33%;
+            text-align: center;
+        }
+
+        :global(.icon) {
+            --icon-size: #{$size-7};
+            --text-color: var(--auro-metal);
+
+            margin-bottom: $size-3;
+        }
+
+        p {
+            text-align: left;
+        }
+    }
+
+    .homepageGrid {
+        padding-top: $size-6;
+        padding-bottom: $size-10;
+    }
+
+    .gridInner {
+        display: flex;
+    }
+
+    .gridCopy {
+        width: 40%;
+        padding-right: $size-4;
+    }
+
+    .agGridLogo {
+        max-width: 320px;
+        margin-left: -22px;
+    }
+
+    .gridExample {
+        width: 60%;
+
+        video {
+            margin-top: $size-8;
+            width: 100%;
+            border-radius: 4px;
+            box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.15);
+        }
+    }
+
+    .homepageDevEx {
+        margin-top: $size-8;
+        margin-bottom: $size-7;
+    }
+
+    .devExInner {
+        display: flex;
+        gap: $size-4;
+    }
+
+    .devExExample {
+        display: flex;
+        width: 66.66%;
+        border-radius: var(--border-radius);
+        border: 2px solid var(--border-color);
+
+        .tmpImgOuter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        img {
+            width: 90%;
+        }
+
+        :global(.code) {
+            width: 540px;
+            margin-bottom: 0;
+            border: none;
+            border-left: 2px solid var(--border-color);
+            border-radius: 0;
+        }
+    }
+
+    .devExCopy {
+        width: 30%;
+
+        h3 {
+            line-height: var(--line-height-tight);
+        }
+    }
+</style>

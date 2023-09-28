@@ -1,4 +1,4 @@
-import type { AgChartThemeOptions } from '../../options/agChartOptions';
+import type { AgChartThemeOptions, AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
@@ -7,6 +7,33 @@ import {
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
 } from './symbols';
+
+const palette: AgChartThemePalette = {
+    fills: [
+        '#436ff4',
+        '#9a7bff',
+        '#d165d2',
+        '#f0598b',
+        '#f47348',
+        '#f2a602',
+        '#e9e201',
+        '#21b448',
+        '#00b9a2',
+        '#00aee4',
+    ],
+    strokes: [
+        '#7cb0ff',
+        '#d8bcff',
+        '#ffa5ff',
+        '#ff9bc9',
+        '#ffb488',
+        '#ffe86b',
+        '#ffff76',
+        '#73f688',
+        '#6efbe2',
+        '#6cf0ff',
+    ],
+};
 
 export class DarkTheme extends ChartTheme {
     protected getTemplateParameters() {
@@ -19,6 +46,10 @@ export class DarkTheme extends ChartTheme {
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
 
         return result;
+    }
+
+    protected getPalette(): AgChartThemePalette {
+        return palette;
     }
 
     constructor(options?: AgChartThemeOptions) {

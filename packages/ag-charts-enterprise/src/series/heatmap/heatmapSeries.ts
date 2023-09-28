@@ -5,7 +5,6 @@ import type {
     AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type { GradientLegendDatum } from '../../gradient-legend/gradientLegendDatum';
 
 const {
     Validate,
@@ -227,7 +226,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const text = labelKey ? String(values[labelDataIdx]) : '';
+            const text = labelKey ? String(values[labelDataIdx]) : colorKey ? String(values[colorDataIdx]) : '';
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
@@ -349,8 +348,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         labelSelection: _Scene.Selection<_Scene.Text, HeatmapNodeDatum>;
     }) {
         const { labelData, labelSelection } = opts;
+        const { labelKey } = this;
         const { enabled } = this.label;
-        const data = enabled ? labelData : [];
+        const data = enabled || labelKey ? labelData : [];
 
         return labelSelection.update(data);
     }
@@ -436,8 +436,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
 
         let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
+            `<b>${sanitizeHtml(xName || xKey)}</b>: ${xString}<br>` +
+            `<b>${sanitizeHtml(yName || yKey)}</b>: ${yString}`;
 
         if (colorKey) {
             content = `<b>${sanitizeHtml(colorName || colorKey)}</b>: ${sanitizeHtml(colorValue)}<br>` + content;
@@ -469,32 +469,27 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): GradientLegendDatum[] {
-        const { data, dataModel, xKey, yKey } = this;
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
+        const { data, dataModel, xKey, yKey, colorKey } = this;
 
-        if (!(data?.length && xKey && yKey && dataModel && legendType === 'gradient')) {
+        if (!(data?.length && xKey && yKey && colorKey && dataModel && legendType === 'gradient')) {
             return [];
         }
 
-        const { colorKey } = this;
-        if (colorKey) {
-            let colorDomain = this.colorDomain;
-            if (!colorDomain) {
-                const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
-                colorDomain = this.processedData!.domain.values[colorKeyIdx];
-            }
-            return [
-                {
-                    legendType: 'gradient',
-                    enabled: this.visible,
-                    seriesId: this.id,
-                    colorName: this.colorName,
-                    colorDomain,
-                    colorRange: this.colorRange,
-                },
-            ];
-        }
-        return [];
+        return [
+            {
+                legendType: 'gradient',
+                enabled: this.visible,
+                seriesId: this.id,
+                colorName: this.colorName,
+                colorDomain:
+                    this.colorDomain ??
+                    this.processedData!.domain.values[
+                        dataModel.resolveProcessedDataIndexById(this, 'colorValue').index
+                    ],
+                colorRange: this.colorRange,
+            },
+        ];
     }
 
     protected isLabelEnabled() {
