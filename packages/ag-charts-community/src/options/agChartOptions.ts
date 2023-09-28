@@ -1,3 +1,4 @@
+import type { Chart } from '../chart/chart';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './chart/themeOptions';
 import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
@@ -62,10 +63,15 @@ export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, Ag
 export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
 
 export interface AgChartInstance {
+    className?: string;
     /** Get the `AgChartOptions` representing the current chart configuration. */
     getOptions(): AgChartOptions;
     /** Destroy the chart instance and any allocated resources to support its rendering. */
     destroy(): void;
+}
+
+export interface AgChartProxy extends AgChartInstance {
+    chart: Chart;
 }
 
 /**

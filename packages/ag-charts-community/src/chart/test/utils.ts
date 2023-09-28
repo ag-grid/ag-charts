@@ -6,7 +6,7 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import * as pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
-import { AgChart, _ModuleSupport } from '../../main';
+import { AgChart, type AgChartProxy, _ModuleSupport } from '../../main';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -38,7 +38,7 @@ export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
 };
-export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: (Canvas as any).PNG_NO_FILTERS };
+export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: new Canvas(0, 0).PNG_NO_FILTERS };
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
@@ -76,10 +76,12 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     return options;
 }
 
-export function deproxy(chartOrProxy: Chart | AgChartInstance): Chart {
-    const isChartInstance =
-        chartOrProxy?.constructor?.name !== 'AgChartInstanceProxy' || (chartOrProxy as any)?.className != null;
-    return isChartInstance ? (chartOrProxy as any) : (chartOrProxy as any).chart;
+function isChartInstance(chartOrProxy: AgChartInstance): chartOrProxy is Chart {
+    return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || chartOrProxy.className != null;
+}
+
+export function deproxy(chartOrProxy: AgChartProxy | Chart): Chart {
+    return isChartInstance(chartOrProxy) ? chartOrProxy : chartOrProxy.chart;
 }
 
 export function repeat<T>(value: T, count: number): T[] {
@@ -111,9 +113,9 @@ export function dateRange(start: Date, end: Date, step = 24 * 60 * 60 * 1000): D
     return result;
 }
 
-export async function waitForChartStability(chartOrProxy: Chart | AgChartInstance, timeoutMs = 5000): Promise<void> {
+export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, timeoutMs = 5000): Promise<void> {
     const chart = deproxy(chartOrProxy);
-    const chartAny = chart as any;
+    const chartAny = chart as any; // to access private properties
     await chart.waitForUpdate(timeoutMs);
     if (chart.autoSize === true && !chartAny._lastAutoSize) {
         // Bypass wait for SizeObservable callback - it's never going to be invoked.
@@ -126,19 +128,19 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartInstanc
 }
 
 export function mouseMoveEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
-    const event = new MouseEvent('mousemove', { bubbles: true } as any);
+    const event = new MouseEvent('mousemove', { bubbles: true });
     Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
     return event;
 }
 
 export function clickEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
-    const event = new MouseEvent('click', { bubbles: true } as any);
+    const event = new MouseEvent('click', { bubbles: true });
     Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
     return event;
 }
 
 export function doubleClickEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
-    const event = new MouseEvent('dblclick', { bubbles: true } as any);
+    const event = new MouseEvent('dblclick', { bubbles: true });
     Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
     return event;
 }
@@ -152,13 +154,13 @@ export function wheelEvent({
     clientY: number;
     deltaY: number;
 }): WheelEvent {
-    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaY } as any);
+    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaY });
 }
 
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
     const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartInstance) => {
+    return async (chartOrProxy: Chart | AgChartProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('CartesianChart');
         expect(chart.axes).toHaveLength(axisTypes.length);
@@ -170,7 +172,7 @@ export function cartesianChartAssertions(params?: { type?: string; axisTypes?: s
 export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['pie'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartInstance) => {
+    return async (chartOrProxy: Chart | AgChartProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('PolarChart');
         expect(chart.axes).toHaveLength(0);
@@ -181,7 +183,7 @@ export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
 export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['treemap'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartInstance) => {
+    return async (chartOrProxy: Chart | AgChartProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('HierarchyChart');
         expect(chart.axes).toHaveLength(0);
@@ -193,10 +195,10 @@ const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
-export function hoverAction(x: number, y: number): (chart: Chart | AgChartInstance) => Promise<void> {
+export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.scene.canvas.element as HTMLElement;
+        const target = chart.scene.canvas.element;
         checkTargetValid(target);
 
         // Reveal tooltip.
@@ -209,7 +211,7 @@ export function hoverAction(x: number, y: number): (chart: Chart | AgChartInstan
     };
 }
 
-export function clickAction(x: number, y: number): (chart: Chart | AgChartInstance) => Promise<void> {
+export function clickAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
@@ -222,7 +224,7 @@ export function clickAction(x: number, y: number): (chart: Chart | AgChartInstan
     };
 }
 
-export function doubleClickAction(x: number, y: number): (chart: Chart | AgChartInstance) => Promise<void> {
+export function doubleClickAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
@@ -240,7 +242,7 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
     };
 }
 
-export function scrollAction(x: number, y: number, delta: number): (chart: Chart | AgChartInstance) => Promise<void> {
+export function scrollAction(x: number, y: number, delta: number): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
@@ -313,7 +315,7 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
     const pass = diffPercentage <= 0.05;
 
     if (!pass && writeDiff) {
-        fs.writeFileSync(diffOutputFilename, (PNG as any).sync.write(diff));
+        fs.writeFileSync(diffOutputFilename, PNG.sync.write(diff));
     } else if (fs.existsSync(diffOutputFilename)) {
         fs.unlinkSync(diffOutputFilename);
     }

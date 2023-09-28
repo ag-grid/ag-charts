@@ -1,40 +1,41 @@
 import { Logger } from './logger';
+import type { DeepPartial } from './types';
 
-type LiteralProperties = 'shape' | 'data';
-type SkippableProperties = 'axes' | 'series' | 'container' | 'customChartThemes';
-type IsLiteralProperty<T, K extends keyof T> = K extends LiteralProperties
-    ? true
-    : T[K] extends Array<any>
-    ? true
-    : false;
-type IsSkippableProperty<T, K extends keyof T> = K extends SkippableProperties ? true : false;
-
-// Needs to be recursive when we move to TS 4.x+; only supports a maximum level of nesting right now.
-type DeepPartial<T> = {
-    [P1 in keyof T]?: IsSkippableProperty<T, P1> extends true
-        ? any
-        : IsLiteralProperty<T, P1> extends true
-        ? T[P1]
-        : {
-              [P2 in keyof T[P1]]?: IsSkippableProperty<T[P1], P2> extends true
-                  ? any
-                  : IsLiteralProperty<T[P1], P2> extends true
-                  ? T[P1][P2]
-                  : {
-                        [P3 in keyof T[P1][P2]]?: IsSkippableProperty<T[P1][P2], P3> extends true
-                            ? any
-                            : IsLiteralProperty<T[P1][P2], P3> extends true
-                            ? T[P1][P2][P3]
-                            : {
-                                  [P4 in keyof T[P1][P2][P3]]?: IsSkippableProperty<T[P1][P2][P3], P4> extends true
-                                      ? any
-                                      : IsLiteralProperty<T[P1][P2][P3], P4> extends true
-                                      ? T[P1][P2][P3][P4]
-                                      : Partial<T[P1][P2][P3][P4]>;
-                              };
-                    };
-          };
-};
+// type LiteralProperties = 'shape' | 'data';
+// type SkippableProperties = 'axes' | 'series' | 'container' | 'customChartThemes';
+// type IsLiteralProperty<T, K extends keyof T> = K extends LiteralProperties
+//     ? true
+//     : T[K] extends Array<any>
+//     ? true
+//     : false;
+// type IsSkippableProperty<T, K extends keyof T> = K extends SkippableProperties ? true : false;
+//
+// // Needs to be recursive when we move to TS 4.x+; only supports a maximum level of nesting right now.
+// type DeepPartial<T> = {
+//     [P1 in keyof T]?: IsSkippableProperty<T, P1> extends true
+//         ? any
+//         : IsLiteralProperty<T, P1> extends true
+//         ? T[P1]
+//         : {
+//               [P2 in keyof T[P1]]?: IsSkippableProperty<T[P1], P2> extends true
+//                   ? any
+//                   : IsLiteralProperty<T[P1], P2> extends true
+//                   ? T[P1][P2]
+//                   : {
+//                         [P3 in keyof T[P1][P2]]?: IsSkippableProperty<T[P1][P2], P3> extends true
+//                             ? any
+//                             : IsLiteralProperty<T[P1][P2], P3> extends true
+//                             ? T[P1][P2][P3]
+//                             : {
+//                                   [P4 in keyof T[P1][P2][P3]]?: IsSkippableProperty<T[P1][P2][P3], P4> extends true
+//                                       ? any
+//                                       : IsLiteralProperty<T[P1][P2][P3], P4> extends true
+//                                       ? T[P1][P2][P3][P4]
+//                                       : Partial<T[P1][P2][P3][P4]>;
+//                               };
+//                     };
+//           };
+// };
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -145,9 +146,9 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
  * Special value used by `jsonMerge` to signal that a property should be removed from the merged
  * output.
  */
-export const DELETE = Symbol('<delete-property>') as any;
+export const DELETE = Symbol('<delete-property>');
 
-const NOT_SPECIFIED = Symbol('<unspecified-property>') as any;
+const NOT_SPECIFIED = Symbol('<unspecified-property>');
 
 export interface JsonMergeOptions {
     /**
@@ -167,7 +168,7 @@ export interface JsonMergeOptions {
  * @param opts merge options
  * @param opts.avoidDeepClone contains a list of properties where deep clones should be avoided
  *
- * @returns the combination of all of the json inputs
+ * @returns the combination of all the json inputs
  */
 export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
     const avoidDeepClone = opts?.avoidDeepClone ?? [];
@@ -246,6 +247,7 @@ export type JsonApplyParams = {
  *
  * @param target to apply source JSON properties into
  * @param source to be applied
+ * @param params
  * @param params.path path for logging/error purposes, to aid with pinpointing problems
  * @param params.matcherPath path for pattern matching, to lookup allowedTypes override.
  * @param params.skip property names to skip from the source
@@ -361,7 +363,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             }
         } catch (error: any) {
             Logger.warn(`unable to set [${propertyPath}] in [${targetClass?.name}]; nested error is: ${error.message}`);
-            continue;
         }
     }
 

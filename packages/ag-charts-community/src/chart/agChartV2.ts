@@ -7,6 +7,7 @@ import type {
     AgBaseSeriesOptions,
     AgChartInstance,
     AgChartOptions,
+    AgChartProxy,
 } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
@@ -17,6 +18,7 @@ import { CartesianChart } from './cartesianChart';
 import type { Chart, SpecialOverrides } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { getJsonApplyOptions } from './chartOptions';
+import { AgChartInstanceProxy } from './chartProxy';
 import { ChartUpdateType } from './chartUpdateType';
 import { getAxis } from './factory/axisTypes';
 import { getLegendKeys } from './factory/legendTypes';
@@ -79,7 +81,7 @@ export abstract class AgChart {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create(options: AgChartExtendedOptions): AgChartInstance {
+    public static create(options: AgChartExtendedOptions): AgChartProxy {
         return AgChartInternal.createOrUpdate(options);
     }
 
@@ -133,44 +135,6 @@ export abstract class AgChart {
             throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
         return AgChartInternal.getImageDataURL(chart, options);
-    }
-}
-
-/**
- * Proxy class, to allow library users to keep a stable reference to their chart, even if we need
- * to switch concrete class (e.g. when switching between CartesianChart vs. PolarChart).
- */
-class AgChartInstanceProxy implements AgChartInstance {
-    chart: Chart;
-
-    static isInstance(x: any): x is AgChartInstanceProxy {
-        if (x instanceof AgChartInstanceProxy) {
-            // Simple case.
-            return true;
-        }
-
-        if (x.constructor?.name === 'AgChartInstanceProxy' && x.chart != null) {
-            // instanceof can fail if mixing bundles (e.g. grid all-modules vs. standalone).
-            return true;
-        }
-
-        const signatureProps = Object.keys(x.constructor?.prototype);
-        const heuristicTypeCheck = Object.keys(AgChartInstanceProxy.prototype).every((prop) =>
-            signatureProps.includes(prop)
-        );
-        return !!(heuristicTypeCheck && x.chart != null);
-    }
-
-    constructor(chart: Chart) {
-        this.chart = chart;
-    }
-
-    getOptions() {
-        return this.chart.getOptions();
-    }
-
-    destroy() {
-        this.chart.destroy();
     }
 }
 
@@ -243,10 +207,10 @@ abstract class AgChartInternal {
         } = proxy;
 
         const lastUpdateOptions = queuedUserOptions[queuedUserOptions.length - 1] ?? chart.userOptions;
-        const userOptions = jsonMerge([lastUpdateOptions, deltaOptions]);
+        const userOptions = jsonMerge([lastUpdateOptions, deltaOptions]) as AgChartOptions;
         debug('>>> AgChartV2.updateUserDelta() user delta', deltaOptions);
         debug('AgChartV2.updateUserDelta() - base options', lastUpdateOptions);
-        AgChartInternal.createOrUpdate(userOptions as any, proxy);
+        AgChartInternal.createOrUpdate(userOptions, proxy);
     }
 
     /**
