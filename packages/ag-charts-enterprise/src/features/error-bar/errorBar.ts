@@ -111,14 +111,10 @@ export class ErrorBars
             this.cartesianSeries.addListener(
                 'processData-prerequest',
                 (event: _ModuleSupport.SeriesPrerequestDataEvent) => this.onPrerequestData(event)
-            )
-        );
-        this.destroyFns.push(
+            ),
             this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>
                 this.onDataUpdate(event)
-            )
-        );
-        this.destroyFns.push(
+            ),
             this.cartesianSeries.addListener('visibility-changed', (event: _ModuleSupport.SeriesVisibilityEvent) =>
                 this.onToggleSeriesItem(event)
             )
