@@ -36,6 +36,7 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import { Listeners } from '../../util/listeners';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
+import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 
 /**
  * Processed series datum used in node selections,
@@ -70,15 +71,6 @@ export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
 };
-
-export type SeriesGroupZIndexSubOrderType =
-    | 'data'
-    | 'labels'
-    | 'highlight'
-    | 'path'
-    | 'marker'
-    | 'paths'
-    | 'error-bars';
 
 function basicContinuousCheckDatumValidation(v: any) {
     return checkDatum(v, true) != null;
