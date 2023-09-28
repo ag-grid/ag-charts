@@ -1,7 +1,7 @@
 export function getData() {
     return [
         {
-            role: 'Sales Executive',
+            role: 'Sales',
             min: 4001,
             q1: 5071,
             median: 6232,
@@ -9,7 +9,7 @@ export function getData() {
             max: 13872,
         },
         {
-            role: 'Research Scientist',
+            role: 'Research',
             min: 1009,
             q1: 2389,
             median: 2889,
@@ -17,7 +17,7 @@ export function getData() {
             max: 5974,
         },
         {
-            role: 'Manufacturing Director',
+            role: 'Manufacturing',
             min: 4011,
             q1: 5121,
             median: 6474,
@@ -33,15 +33,7 @@ export function getData() {
             max: 19999,
         },
         {
-            role: 'Research Director',
-            min: 11031,
-            q1: 13499,
-            median: 16598,
-            q3: 19038,
-            max: 19973,
-        },
-        {
-            role: 'Human Resources',
+            role: 'HR',
             min: 1555,
             q1: 2342,
             median: 3195,

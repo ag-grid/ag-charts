@@ -1,7 +1,7 @@
 export function getBoxPlotData() {
     return [
         {
-            role: 'Sales Executive',
+            role: 'Sales',
             min: 4001,
             q1: 5071,
             median: 6232,
@@ -10,7 +10,7 @@ export function getBoxPlotData() {
             outliers: [],
         },
         {
-            role: 'Research Scientist',
+            role: 'Research',
             min: 1009,
             q1: 2389,
             median: 2889,
@@ -19,7 +19,7 @@ export function getBoxPlotData() {
             outliers: [6220, 6322, 6545, 6646, 6854, 6962, 9724],
         },
         {
-            role: 'Manufacturing Director',
+            role: 'Manufacturing',
             min: 4011,
             q1: 5121,
             median: 6474,
@@ -37,16 +37,7 @@ export function getBoxPlotData() {
             outliers: [11244, 11557, 11631, 11849, 11878, 11904, 11916, 11996],
         },
         {
-            role: 'Research Director',
-            min: 11031,
-            q1: 13499,
-            median: 16598,
-            q3: 19038,
-            max: 19973,
-            outliers: [],
-        },
-        {
-            role: 'Human Resources',
+            role: 'HR',
             min: 1555,
             q1: 2342,
             median: 3195,
