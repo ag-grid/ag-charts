@@ -121,23 +121,21 @@ export class ErrorBars
         );
     }
 
-    onPrerequestData(event: {
-        props: _ModuleSupport.PropertyDefinition<unknown>[];
-        isContinuousX: boolean;
-        isContinuousY: boolean;
-    }) {
+    onPrerequestData(event: { isContinuousX: boolean; isContinuousY: boolean }) {
+        const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         const { isContinuousX, isContinuousY } = event;
-        event.props.push(
+        props.push(
             valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: 'yValue' }),
             valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: 'yValue' })
         );
         if (xLowerKey !== undefined && xUpperKey !== undefined) {
-            event.props.push(
+            props.push(
                 valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: 'xValue' })
             );
         }
+        return props;
     }
 
     onDataUpdate(event: {

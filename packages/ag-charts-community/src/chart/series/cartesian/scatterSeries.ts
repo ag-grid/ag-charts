@@ -131,7 +131,11 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
             ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
         ];
 
-        this.dispatch('processData-prerequest', { props, isContinuousX, isContinuousY });
+        const listenerProps: (typeof props)[] =
+            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
+        for (const moreProps of listenerProps) {
+            props.push(...moreProps);
+        }
         const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
             props,
             dataVisible: this.visible,

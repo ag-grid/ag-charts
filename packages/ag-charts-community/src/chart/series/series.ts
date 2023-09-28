@@ -504,14 +504,20 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return [main, subIndex];
     }
 
-    private seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
+    private seriesListeners = new Listeners<SeriesEventType, (event: any) => any>();
 
-    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, listener: (event: E) => void) {
+    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
+        type: T,
+        listener: (event: E) => R
+    ) {
         return this.seriesListeners.addListener(type, listener);
     }
 
-    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, event: E) {
-        this.seriesListeners.dispatch(type, event);
+    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
+        type: T,
+        event: E
+    ): R[] | void {
+        return this.seriesListeners.dispatch(type, event);
     }
 
     addChartEventListeners(): void {
