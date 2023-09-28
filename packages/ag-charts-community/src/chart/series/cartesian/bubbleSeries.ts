@@ -1,40 +1,41 @@
-import type { Selection } from '../../../scene/selection';
-import type { SeriesNodeDataContext } from '../series';
-import { SeriesTooltip, SeriesNodePickMode, valueProperty, keyProperty } from '../series';
-import type { ChartLegendDatum, CategoryLegendDatum } from '../../legendDatum';
-import { ColorScale } from '../../../scale/colorScale';
-import { LinearScale } from '../../../scale/linearScale';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeBaseClickEvent } from './cartesianSeries';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { extent } from '../../../util/array';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { Label } from '../../label';
-import type { Text } from '../../../scene/shape/text';
-import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
-import type { Marker } from '../../marker/marker';
-import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
-import {
-    OPT_FUNCTION,
-    OPT_STRING,
-    OPT_NUMBER_ARRAY,
-    COLOR_STRING_ARRAY,
-    Validate,
-    NUMBER,
-} from '../../../util/validation';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
     AgCartesianSeriesMarkerFormat,
+    AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
-import type { ModuleContext } from '../../../module/moduleContext';
+import { ColorScale } from '../../../scale/colorScale';
+import { ContinuousScale } from '../../../scale/continuousScale';
+import { LinearScale } from '../../../scale/linearScale';
+import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
+import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import type { Selection } from '../../../scene/selection';
+import type { Text } from '../../../scene/shape/text';
+import { extent } from '../../../util/array';
+import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
+import { sanitizeHtml } from '../../../util/sanitize';
+import {
+    COLOR_STRING_ARRAY,
+    NUMBER,
+    OPT_FUNCTION,
+    OPT_NUMBER_ARRAY,
+    OPT_STRING,
+    Validate,
+} from '../../../util/validation';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum } from '../../legendDatum';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
+import type { SeriesNodeDataContext } from '../series';
+import { keyProperty, SeriesNodePickMode, valueProperty } from '../series';
+import { SeriesTooltip } from '../seriesTooltip';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeBaseClickEvent } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
-import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 
 interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
@@ -516,7 +517,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
         });
     }
 
-    getLegendData(): ChartLegendDatum[] {
+    getLegendData(): CategoryLegendDatum[] {
         const { id, data, xKey, yKey, yName, title, visible, marker } = this;
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
@@ -524,7 +525,7 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
             return [];
         }
 
-        const legendData: CategoryLegendDatum[] = [
+        return [
             {
                 legendType: 'category',
                 id,
@@ -544,7 +545,6 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
                 },
             },
         ];
-        return legendData;
     }
 
     animateEmptyUpdateReady(animationData: BubbleAnimationData) {

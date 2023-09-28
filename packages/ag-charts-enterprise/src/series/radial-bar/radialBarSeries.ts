@@ -18,6 +18,7 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     PolarAxis,
+    StateMachine,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
@@ -77,7 +78,6 @@ class RadialBarSeriesLabel extends _Scene.Label {
 
 type RadialBarAnimationState = 'empty' | 'ready';
 type RadialBarAnimationEvent = 'update' | 'resize';
-class RadialBarStateMachine extends _ModuleSupport.StateMachine<RadialBarAnimationState, RadialBarAnimationEvent> {}
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
     static className = 'RadialBarSeries';
@@ -88,7 +88,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
     protected highlightSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
 
-    protected animationState: RadialBarStateMachine;
+    protected animationState: _ModuleSupport.StateMachine<RadialBarAnimationState, RadialBarAnimationEvent>;
 
     protected nodeData: RadialBarNodeDatum[] = [];
 
@@ -159,7 +159,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
         this.highlightSelection = Selection.select(this.highlightGroup, Sector);
 
-        this.animationState = new RadialBarStateMachine('empty', {
+        this.animationState = new StateMachine('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -315,12 +315,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
                 labelText = String(angleDatum);
             }
             if (labelText) {
-                const labelX = x;
-                const labelY = y;
                 return {
+                    x,
+                    y,
                     text: labelText,
-                    x: labelX,
-                    y: labelY,
                     textAlign: 'center',
                     textBaseline: 'middle',
                 };
@@ -610,14 +608,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, data, angleKey, angleName, radiusKey, visible } = this;
 
         if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {
             return [];
         }
 
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [
+        return [
             {
                 legendType: 'category',
                 id,
@@ -636,7 +634,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
                 },
             },
         ];
-        return legendData;
     }
 
     onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {

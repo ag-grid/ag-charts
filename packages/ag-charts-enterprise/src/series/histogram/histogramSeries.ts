@@ -1,13 +1,13 @@
 import {
+    _ModuleSupport,
+    _Scene,
+    _Util,
     type AgCartesianSeriesLabelFormatterParams,
     type AgHistogramSeriesOptions,
     type AgHistogramSeriesTooltipRendererParams,
     type AgTooltipRendererResult,
     type FontStyle,
     type FontWeight,
-    _ModuleSupport,
-    _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 const {
@@ -154,8 +154,6 @@ export class HistogramSeries extends CartesianSeries<
 
     shadow?: _Scene.DropShadow = undefined;
     calculatedBins: [number, number][] = [];
-
-    protected highlightedDatum?: HistogramNodeDatum;
 
     // During processData phase, used to unify different ways of the user specifying
     // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
@@ -556,14 +554,14 @@ export class HistogramSeries extends CartesianSeries<
         });
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.ChartLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const { id, data, xKey, yName, visible, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this;
 
         if (!data || data.length === 0 || legendType !== 'category') {
             return [];
         }
 
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [
+        return [
             {
                 legendType: 'category',
                 id,
@@ -582,7 +580,6 @@ export class HistogramSeries extends CartesianSeries<
                 },
             },
         ];
-        return legendData;
     }
 
     animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {

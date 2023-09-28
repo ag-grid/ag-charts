@@ -165,11 +165,11 @@ export class TooltipPosition {
 
     @Validate(NUMBER())
     /** The horizontal offset in pixels for the position of the tooltip. */
-    xOffset?: number = 0;
+    xOffset: number = 0;
 
     @Validate(NUMBER())
     /** The vertical offset in pixels for the position of the tooltip. */
-    yOffset?: number = 0;
+    yOffset: number = 0;
 }
 
 export class Tooltip {

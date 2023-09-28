@@ -99,7 +99,6 @@ type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
 
 type AxisAnimationState = 'empty' | 'align' | 'ready';
 type AxisAnimationEvent = 'update';
-class AxisStateMachine extends StateMachine<AxisAnimationState, AxisAnimationEvent> {}
 type AxisUpdateDiff = {
     changed: boolean;
     tickCount: number;
@@ -207,7 +206,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
 
     private animationManager: AnimationManager;
-    private animationState: AxisStateMachine;
+    private animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
     private destroyFns: Function[] = [];
 
@@ -220,7 +219,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.destroyFns.push(moduleCtx.interactionManager.addListener('hover', (e) => this.checkAxisHover(e)));
 
         this.animationManager = moduleCtx.animationManager;
-        this.animationState = new AxisStateMachine('empty', {
+        this.animationState = new StateMachine('empty', {
             empty: {
                 update: {
                     target: 'align',
