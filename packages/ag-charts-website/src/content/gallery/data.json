@@ -335,28 +335,57 @@
             "name": "radar",
             "icon": "chartsRadar",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Radar Line",
+                    "description": "A Radar Line Series is typically used to contrast different datasets across shared categories for easy visual comparison.",
+                    "name": "simple-radar-line"
+                },
+                {
+                    "title": "Simple Radar Area",
+                    "description": "A Radar Area Series shows the magnitude of various datasets within shared categories, making it easier to gauge area-based trends.",
+                    "name": "simple-radar-area"
+                }
+            ]
         },
         {
             "title": "Nightingale",
             "name": "nightingale",
             "icon": "chartsNightingale",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Nightingale",
+                    "description": "A Nightingale Series represents data as radial segments, with one segment per category value. It can simplify the comparison of datasets across multiple categories, providing a concise depiction of data trends.",
+                    "name": "simple-nightingale"
+                }
+            ]
         },
         {
             "title": "Radial Column",
             "name": "radial-column",
             "icon": "chartsRadialColumn",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Radial Column",
+                    "description": "A Radial Column Series visualises data through rectangular columns arranged along a polar axis.",
+                    "name": "simple-radial-column"
+                }
+            ]
         },
         {
             "title": "Radial Bar",
             "name": "radial-bar",
             "icon": "chartsRadialBar",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Stacked Radial Bar",
+                    "description": "A Radial Bar Series visualises data through rectangular bars arranged along a polar axis.",
+                    "name": "stacked-radial-bar"
+                }
+            ]
         },
         {
             "title": "Treemap",
