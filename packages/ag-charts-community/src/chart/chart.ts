@@ -49,7 +49,7 @@ import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
 import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
 import { Legend } from './legend';
-import type { CategoryLegendDatum, ChartLegend, ChartLegendType } from './legendDatum';
+import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
 import type { Series, SeriesNodeDatum } from './series/series';
@@ -908,10 +908,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private async updateLegend() {
         this.legends.forEach((legend, legendType) => {
-            const isCategory = (_data: unknown): _data is CategoryLegendDatum[] => legendType === 'category';
+            const isCategoryLegendData = (
+                data: Array<CategoryLegendDatum | GradientLegendDatum>
+            ): data is CategoryLegendDatum[] => data.every((d) => d.legendType === 'category');
             const legendData = this.series.filter((s) => s.showInLegend).flatMap((s) => s.getLegendData(legendType));
 
-            if (isCategory(legendData)) {
+            if (isCategoryLegendData(legendData)) {
                 this.validateCategoryLegendData(legendData);
             }
 
