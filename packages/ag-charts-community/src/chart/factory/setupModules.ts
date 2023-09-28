@@ -1,4 +1,4 @@
-import { REGISTERED_MODULES } from '../../module/module';
+import { REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../../module/module';
 import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
 import { JSON_APPLY_PLUGINS } from '../chartOptions';
 import { registerChartDefaults } from './chartTypes';
@@ -8,10 +8,7 @@ import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnte
 import { Logger } from '../../util/logger';
 
 export function setupModules() {
-    let enterpriseModulesFound = false;
-
     for (const m of REGISTERED_MODULES) {
-        enterpriseModulesFound ||= m.packageType === 'enterprise';
         if (m.packageType === 'enterprise' && !verifyIfModuleExpected(m)) {
             Logger.errorOnce('Unexpected enterprise module registered: ' + m.identifier);
         }
@@ -67,7 +64,7 @@ export function setupModules() {
         }
     }
 
-    if (enterpriseModulesFound) {
+    if (hasRegisteredEnterpriseModules()) {
         const expectedButUnused = getUnusedExpectedModules();
 
         if (expectedButUnused.length > 0) {

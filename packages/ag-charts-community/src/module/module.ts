@@ -43,3 +43,7 @@ export function registerModule(module: Module) {
         REGISTERED_MODULES.push(module);
     }
 }
+
+export function hasRegisteredEnterpriseModules() {
+    return REGISTERED_MODULES.some((m) => m.packageType === 'enterprise');
+}
