@@ -1,31 +1,27 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fail } from 'assert';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
+
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgPolarChartOptions,
+    InteractionRange,
+} from '../options/agChartOptions';
 import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
-import type {
-    AgAreaSeriesOptions,
-    AgCartesianChartOptions,
-    InteractionRange,
-    AgBarSeriesOptions,
-    AgLineSeriesOptions,
-    AgPieSeriesOptions,
-    AgPolarChartOptions,
-    AgScatterSeriesOptions,
-    AgChartInstance,
-} from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
 import { Circle } from './marker/circle';
 import {
-    waitForChartStability,
-    setupMockCanvas,
-    hoverAction,
     clickAction,
     deproxy,
+    hoverAction,
     prepareTestOptions,
+    setupMockCanvas,
+    waitForChartStability,
 } from './test/utils';
 
 expect.extend({ toMatchImageSnapshot });
@@ -238,7 +234,7 @@ describe('Chart', () => {
     describe(`Line Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,
-            seriesOptions: <AgLineSeriesOptions>{
+            seriesOptions: {
                 type: 'line',
                 data: datasets.economy.data,
                 xKey: datasets.economy.categoryKey,
@@ -256,7 +252,7 @@ describe('Chart', () => {
     describe(`Area Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,
-            seriesOptions: <AgAreaSeriesOptions>{
+            seriesOptions: {
                 type: 'area',
                 data: datasets.economy.data,
                 xKey: datasets.economy.categoryKey,
@@ -277,7 +273,7 @@ describe('Chart', () => {
     describe(`Scatter Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,
-            seriesOptions: <AgScatterSeriesOptions>{
+            seriesOptions: {
                 type: 'scatter',
                 data: datasets.economy.data,
                 xKey: datasets.economy.categoryKey,
@@ -301,7 +297,7 @@ describe('Chart', () => {
     describe(`Column Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,
-            seriesOptions: <AgBarSeriesOptions>{
+            seriesOptions: {
                 type: 'bar',
                 data: datasets.economy.data,
                 xKey: datasets.economy.categoryKey,
@@ -318,7 +314,7 @@ describe('Chart', () => {
 
     describe(`Pie Series Pointer Events`, () => {
         testPointerEvents({
-            seriesOptions: <AgPieSeriesOptions>{
+            seriesOptions: {
                 type: 'pie',
                 data: datasets.economy.data,
                 angleKey: datasets.economy.valueKey,

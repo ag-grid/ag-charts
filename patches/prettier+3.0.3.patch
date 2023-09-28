@@ -1,0 +1,14 @@
+diff --git a/node_modules/prettier/index.mjs b/node_modules/prettier/index.mjs
+index f6561ec3f..e36251989 100644
+--- a/node_modules/prettier/index.mjs
++++ b/node_modules/prettier/index.mjs
+@@ -21004,7 +21004,8 @@ var languages_evaluate_default7 = [
+       ".mkdown",
+       ".ronn",
+       ".scd",
+-      ".workbook"
++      ".workbook",
++      ".mdoc"
+     ],
+     "filenames": [
+       "contents.lr",
