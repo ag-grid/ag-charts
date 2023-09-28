@@ -400,7 +400,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
                 series: this,
                 itemId: yKey,
                 datum: seriesDatum[0],
-                cumulativeValue: prevY + currY,
+                cumulativeValue: currY,
                 xValue,
                 yValue: yRawValue,
                 yKey,

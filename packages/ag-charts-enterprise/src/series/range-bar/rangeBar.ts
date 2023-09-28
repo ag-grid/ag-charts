@@ -72,7 +72,6 @@ interface RangeBarNodeDatum
     readonly yHighKey: string;
     readonly yLowValue: number;
     readonly yHighValue: number;
-    readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
     readonly labels: RangeBarNodeLabelDatum[];
@@ -413,7 +412,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
                 series: this,
                 itemId,
                 datum,
-                cumulativeValue: 0,
                 xValue: xDatum,
                 yLowValue: rawLowValue,
                 yHighValue: rawHighValue,
