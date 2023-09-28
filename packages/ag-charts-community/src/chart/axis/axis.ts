@@ -1325,7 +1325,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     public createModuleContext(): ModuleContextWithParent<AxisContext> {
-        return { ...this.moduleCtx, parent: this.createAxisContext() };
+        if (this.axisContext) {
+            return { ...this.moduleCtx, parent: this.axisContext };
+        } else {
+            return { ...this.moduleCtx, parent: (this.axisContext = this.createAxisContext()) };
+        }
     }
 
     protected createAxisContext(): AxisContext {
