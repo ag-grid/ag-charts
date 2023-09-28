@@ -240,11 +240,15 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
     };
 }
 
-export function scrollAction(x: number, y: number, delta: number): Promise<void> {
-    window.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY: delta }));
-    return new Promise((resolve) => {
-        setTimeout(resolve, 50);
-    });
+export function scrollAction(x: number, y: number, delta: number): (chart: Chart | AgChartInstance) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const target = chart.scene.canvas.element;
+        target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY: delta }));
+        await new Promise((resolve) => {
+            setTimeout(resolve, 50);
+        });
+    };
 }
 
 export function extractImageData({

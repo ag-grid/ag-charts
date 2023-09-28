@@ -27,7 +27,7 @@ export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         strokeWidth: 1,
-        fillOpacity: 0.8,
+        fillOpacity: 1,
         strokeOpacity: 1,
         lineDash: [0],
         lineDashOffset: 0,

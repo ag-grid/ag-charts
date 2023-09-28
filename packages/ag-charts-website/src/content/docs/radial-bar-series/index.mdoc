@@ -101,25 +101,6 @@ axes: [
 ],
 ```
 
-### Radius Axis Position
-
-{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
-
-Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
-
-```js
-axes: [
-    { type: 'angle-number' },
-    {
-        type: 'radius-category',
-        positionAngle: 90,
-        label: {
-            rotation: -90,
-        },
-    },
-],
-```
-
 ## API Reference
 
 {% interfaceDocumentation interfaceName="AgRadialBarSeriesOptions" config="{ \"showSnippets\": false }" /%}

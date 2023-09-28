@@ -21,7 +21,6 @@ const options: AgChartOptions = {
     overrides: {
       bar: {
         series: {
-          strokeWidth: 0,
           highlightStyle: {
             series: {
               strokeWidth: 1,
@@ -34,8 +33,6 @@ const options: AgChartOptions = {
   },
   title: {
     text: "UK Housing Stock",
-    fontSize: 18,
-    spacing: 25,
   },
   footnote: {
     text: "Source: Ministry of Housing, Communities & Local Government",
@@ -87,4 +84,4 @@ const options: AgChartOptions = {
   ],
 }
 
-const chart = AgChart.create(options)
+AgChart.create(options)

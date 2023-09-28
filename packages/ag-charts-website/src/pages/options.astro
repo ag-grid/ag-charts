@@ -1,7 +1,7 @@
 ---
 import type { Framework } from '@ag-grid-types';
 import { JsObjectPropertiesView } from '@features/api-documentation/components/JsObjectPropertiesView';
-import JsObjectPropertiesViewLayout from '@layouts/JsObjectPropertiesViewLayout.astro';
+import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
 import { getEntry } from 'astro:content';
 
@@ -17,7 +17,7 @@ const interfaceName = 'AgCartesianChartOptions';
 const breadcrumbs = ['options'];
 ---
 
-<JsObjectPropertiesViewLayout>
+<APIViewLayout>
     <JsObjectPropertiesView
         client:load
         interfaceName={interfaceName}
@@ -31,4 +31,4 @@ const breadcrumbs = ['options'];
             limitChildrenProperties: ['theme', 'axes', 'axes.*', 'series', 'series.*'],
         }}
     />
-</JsObjectPropertiesViewLayout>
+</APIViewLayout>

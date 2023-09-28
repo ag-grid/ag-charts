@@ -226,7 +226,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const text = labelKey ? String(values[labelDataIdx]) : '';
+            const text = labelKey ? String(values[labelDataIdx]) : colorKey ? String(values[colorDataIdx]) : '';
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
@@ -348,8 +348,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         labelSelection: _Scene.Selection<_Scene.Text, HeatmapNodeDatum>;
     }) {
         const { labelData, labelSelection } = opts;
+        const { labelKey } = this;
         const { enabled } = this.label;
-        const data = enabled ? labelData : [];
+        const data = enabled || labelKey ? labelData : [];
 
         return labelSelection.update(data);
     }
@@ -435,8 +436,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
 
         let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
+            `<b>${sanitizeHtml(xName || xKey)}</b>: ${xString}<br>` +
+            `<b>${sanitizeHtml(yName || yKey)}</b>: ${yString}`;
 
         if (colorKey) {
             content = `<b>${sanitizeHtml(colorName || colorKey)}</b>: ${sanitizeHtml(colorValue)}<br>` + content;
