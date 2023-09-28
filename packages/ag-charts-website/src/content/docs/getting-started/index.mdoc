@@ -463,10 +463,12 @@ npm install # in certain circumstances npm will perform an "auto prune". This st
 After a few seconds of waiting, you should be good to go. Let's get to the actual coding! As a first step, let's add the AG Charts Angular module to our app module (`src/app/app.module.ts`):
 
 ```ts
-import { AppComponent } from './app.component';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+
 import { AgChartsAngularModule } from 'ag-charts-angular';
+
+import { AppComponent } from './app.component';
 
 @NgModule({
     imports: [BrowserModule, AgChartsAngularModule],
@@ -1443,8 +1445,8 @@ Angular AG Charts AG Charts Package
 
 ---
 
-+14 6 - 8+ ag-charts-angular  
-12 - 13 6 - 8 ag-charts-angular  
++14 6 - 8+ ag-charts-angular
+12 - 13 6 - 8 ag-charts-angular
 8 - 11 6 - 7 ag-charts-angular-legacy
 8 - 11 2 - 5 ag-charts-angular
 
