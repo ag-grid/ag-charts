@@ -5,33 +5,34 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Changes in Prison Population',
+        text: 'Gross Weekly Earnings',
     },
     footnote: {
-        text: 'Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service',
+        text: 'Source: Office for National Statistics',
     },
     series: [
         {
             type: 'bar',
-            xKey: 'month',
-            yKey: 'menDelta',
-            yName: 'Male',
-        },
-        {
-            type: 'bar',
-            xKey: 'month',
-            yKey: 'womenDelta',
-            yName: 'Female',
+            direction: 'horizontal',
+            xKey: 'type',
+            yKey: 'earnings',
+            label: {
+                formatter: ({ value }) => `£${value.toFixed(0)}`,
+            },
         },
     ],
     axes: [
         {
             type: 'category',
-            position: 'bottom',
+            position: 'left',
         },
         {
             type: 'number',
-            position: 'left',
+            position: 'bottom',
+            title: {
+                enabled: true,
+                text: '£ / Week',
+            },
         },
     ],
 };

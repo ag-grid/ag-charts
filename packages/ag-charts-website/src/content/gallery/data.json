@@ -9,32 +9,32 @@
                 {
                     "title": "Simple Bar",
                     "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "simple-column"
+                    "name": "simple-bar"
                 },
                 {
                     "title": "Grouped Bar",
-                    "description": "Grouped Bar charts (also known as clustered bar charts) present multiple series with the <a href='./simple-column/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "column-with-negative-values"
+                    "description": "Grouped Bar charts (also known as clustered bar charts) present multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                    "name": "grouped-bar"
                 },
                 {
                     "title": "Stacked Bar",
-                    "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-column/'>bars</a>.",
-                    "name": "stacked-column"
+                    "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-bar/'>bars</a>.",
+                    "name": "stacked-bar"
                 },
                 {
                     "title": "Simple Horizontal Bar",
                     "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "simple-bar"
+                    "name": "simple-horizontal-bar"
                 },
                 {
                     "title": "Grouped Horizontal Bar",
                     "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-bar"
+                    "name": "grouped-horizontal-bar"
                 },
                 {
                     "title": "Stacked Horizontal Bar",
                     "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
-                    "name": "stacked-bar"
+                    "name": "stacked-horizontal-bar"
                 }
             ]
         },
@@ -46,7 +46,7 @@
             "examples": [
                 {
                     "title": "Simple Line",
-                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> or <a href='./simple-column/'>column</a> charts.",
+                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
                     "name": "simple-line"
                 },
                 {
