@@ -1,7 +1,7 @@
 export function getData() {
     return [
         {
-            financials: 'Income Tax',
+            financials: 'Income\nTax',
             amount: 185,
         },
         {
@@ -13,11 +13,11 @@ export function getData() {
             amount: 134,
         },
         {
-            financials: 'Corp Tax',
+            financials: 'Corp\nTax',
             amount: 55,
         },
         {
-            financials: 'Council Tax',
+            financials: 'Council\nTax',
             amount: 34,
         },
         {
@@ -33,7 +33,7 @@ export function getData() {
             amount: -165,
         },
         {
-            financials: 'Interest',
+            financials: 'Debt\nInterest',
             amount: -163,
         },
         {

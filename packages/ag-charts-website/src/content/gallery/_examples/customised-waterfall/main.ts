@@ -33,13 +33,13 @@ const options: AgChartOptions = {
                 },
             },
             totals: [
-                { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
+                { totalType: 'subtotal', index: 4, axisLabel: 'Total\nRevenue' },
                 {
                     totalType: 'subtotal',
                     index: 9,
-                    axisLabel: 'Total Expenditure',
+                    axisLabel: 'Total\nExpenditure',
                 },
-                { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
+                { totalType: 'total', index: 9, axisLabel: 'Total\nBorrowing' },
             ],
         },
     ],
