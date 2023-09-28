@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import type { FunctionComponent } from 'react';
+
 import type {
     JsObjectPropertiesViewConfig,
     JsObjectPropertiesViewProps,

@@ -3,6 +3,7 @@ import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import type { MarkdownHeading } from 'astro';
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
+
 import styles from './SideNavigation.module.scss';
 
 interface Props {

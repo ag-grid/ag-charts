@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import type { FunctionComponent, ReactNode } from 'react';
+
 import type { JsObjectSelection } from '../types';
 import styles from './ApiDocumentation.module.scss';
 import { JsObjectPropertyView } from './JsObjectPropertyView';

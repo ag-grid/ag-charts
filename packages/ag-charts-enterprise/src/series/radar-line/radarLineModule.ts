@@ -1,5 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
+
 import { POLAR_DEFAULTS } from '../polarDefaults';
 import { RadarLineSeries } from './radarLineSeries';
 import { RADAR_LINE_SERIES_THEME } from './radarLineThemes';

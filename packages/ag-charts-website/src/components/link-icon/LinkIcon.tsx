@@ -1,5 +1,6 @@
 import { Icon } from '@components/icon/Icon';
 import type { FunctionComponent } from 'react';
+
 import './LinkIcon.module.scss';
 
 interface Props {

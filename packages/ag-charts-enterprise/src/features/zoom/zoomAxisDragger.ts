@@ -1,5 +1,6 @@
 import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+
 import { constrainZoom, definedZoomState, pointToRatio } from './zoomTransformers';
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
 

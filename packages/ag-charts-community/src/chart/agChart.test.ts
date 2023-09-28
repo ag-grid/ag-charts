@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import 'jest-canvas-mock';
+
 import type { AgChartInstance } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import { NumberAxis } from './axis/numberAxis';

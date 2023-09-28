@@ -5,6 +5,7 @@ import { Icon } from '@components/icon/Icon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
+
 import styles from './PagesNavigation.module.scss';
 
 const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';

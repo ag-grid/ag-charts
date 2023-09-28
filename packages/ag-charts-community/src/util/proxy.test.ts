@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import { ProxyOnWrite, ProxyPropertyOnWrite } from './proxy';
 
 interface TestProxyObject {

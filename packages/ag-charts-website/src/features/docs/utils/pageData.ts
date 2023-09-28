@@ -1,5 +1,6 @@
 import { FRAMEWORKS } from '@constants';
 import type { DocsPage } from '@utils/pages';
+
 import { getGeneratedDocsContentsFileList } from './examplesGenerator';
 import { getInternalFrameworkExamples, getPagesList } from './filesData';
 

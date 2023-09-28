@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+
 import type { ContextMenuActionParams } from './contextMenu';
 import { ContextMenu } from './contextMenu';
 

@@ -1,5 +1,6 @@
 import { expect, jest } from '@jest/globals';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
+
 import { toMatchImage } from 'ag-charts-community-test';
 
 declare module 'expect' {

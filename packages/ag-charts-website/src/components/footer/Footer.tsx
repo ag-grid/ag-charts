@@ -1,6 +1,7 @@
 import { SITE_BASE_URL } from '@constants';
 import { urlWithBaseUrl } from '@utils/pages';
 import classNames from 'classnames';
+
 import { Icon } from '../icon/Icon';
 import styles from './Footer.module.scss';
 import footerItems from './footer-items.json';

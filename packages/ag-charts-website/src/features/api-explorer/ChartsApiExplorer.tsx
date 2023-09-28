@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import { useState } from 'react';
+
 import { Chart } from './Chart';
 import { ChartTypeSelector } from './ChartTypeSelector';
 import styles from './ChartsApiExplorer.module.scss';

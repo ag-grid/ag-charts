@@ -8,6 +8,7 @@ import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '@st
 import { getFrameworkFromInternalFramework } from '@utils/framework';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
+
 import { getExampleContentsUrl, getExampleUrl, getExampleWithRelativePathUrl } from '../utils/urlPaths';
 
 interface Props {

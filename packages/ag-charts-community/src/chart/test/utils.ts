@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import * as pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
+
 import { AgChart, _ModuleSupport } from '../../main';
 import type {
     AgCartesianChartOptions,

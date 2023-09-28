@@ -1,4 +1,5 @@
 import type { JsonArray, JsonModel, JsonObjectProperty, JsonUnionType } from '@features/api-documentation/utils/model';
+
 import { UNION_DISCRIMINATOR_PROP } from '../constants';
 import type { JsObjectPropertiesViewConfig, JsObjectSelection, JsObjectSelectionProperty } from '../types';
 import { getShouldLimitChildren } from './getShouldLimitChildren';

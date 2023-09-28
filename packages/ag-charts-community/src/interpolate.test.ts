@@ -1,4 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
+
 import { interpolateColor } from './interpolate';
 import { Color } from './util/color';
 

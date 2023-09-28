@@ -1,4 +1,5 @@
 import path from 'path';
+
 import { templatePlaceholder } from './grid-vanilla-src-parser';
 import type { ImportType } from './parser-utils';
 import {

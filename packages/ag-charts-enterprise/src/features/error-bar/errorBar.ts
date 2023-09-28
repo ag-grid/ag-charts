@@ -1,5 +1,6 @@
 import type { _Scale } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
 import type { ErrorBarNodeProperties, ErrorBarPoints } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';

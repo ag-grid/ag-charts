@@ -6,6 +6,7 @@ import type { JsonModelProperty, JsonProperty } from '@features/api-documentatio
 import classnames from 'classnames';
 import React, { useState } from 'react';
 import { AlphaPicker, HuePicker } from 'react-color';
+
 import styles from './Editors.module.scss';
 
 type FontFamily = string;

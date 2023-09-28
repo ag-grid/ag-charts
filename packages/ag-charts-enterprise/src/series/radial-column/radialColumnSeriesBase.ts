@@ -6,6 +6,7 @@ import type {
     AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 
 const {

@@ -13,6 +13,7 @@ import {
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { type ReactNode, useState } from 'react';
+
 import { PresetEditor, getPrimitiveEditor, getPrimitivePropertyEditor } from './Editors';
 import styles from './Options.module.scss';
 import { deepClone, formatJson, isXAxisNumeric } from './utils';

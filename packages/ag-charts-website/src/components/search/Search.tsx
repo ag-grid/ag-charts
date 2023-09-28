@@ -2,6 +2,7 @@ import { getIsDev } from '@utils/env';
 import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
 import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';
+
 import styles from './Search.module.scss';
 import SearchBox from './SearchBox';
 import SearchResult from './SearchResult';

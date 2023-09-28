@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fail } from 'assert';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
+
 import type {
     AgCartesianChartOptions,
     AgChartInstance,

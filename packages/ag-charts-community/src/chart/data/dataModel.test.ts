@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+
 import { isNumber } from '../../util/value';
 import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';

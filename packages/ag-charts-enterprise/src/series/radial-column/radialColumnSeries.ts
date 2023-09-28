@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 

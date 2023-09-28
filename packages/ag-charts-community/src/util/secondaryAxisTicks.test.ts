@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+
 import { calculateNiceSecondaryAxis } from './secondaryAxisTicks';
 
 function ticks(a: number, b: number, count: number): number[] {

@@ -1,6 +1,7 @@
 // NOTE: These imports can't be aliases because it is used by `astro.config.mjs`
 // and ts alias paths don't work there
 import fs from 'fs/promises';
+
 import { INTERNAL_FRAMEWORKS } from '../../../constants';
 import { getFolders } from '../../../utils/fs';
 import { type DocsPage, type InternalFrameworkExample, getContentRootFileUrl } from '../../../utils/pages';

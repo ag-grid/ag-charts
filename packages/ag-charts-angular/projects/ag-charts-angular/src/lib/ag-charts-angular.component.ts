@@ -9,6 +9,7 @@ import {
     Output,
     ViewEncapsulation,
 } from '@angular/core';
+
 import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 
 // noinspection AngularIncorrectTemplateDefinition

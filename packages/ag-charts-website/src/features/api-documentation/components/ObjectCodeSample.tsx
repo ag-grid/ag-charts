@@ -1,5 +1,6 @@
 import Code from '@components/Code';
 import type { FunctionComponent } from 'react';
+
 import type { ObjectCode } from '../types';
 import { escapeGenericCode, getLinkedType } from '../utils/documentationHelpers';
 import { formatJson } from '../utils/formatJson';

@@ -2,6 +2,7 @@ import type { Framework } from '@ag-grid-types';
 import { Icon } from '@components/icon/Icon';
 import { getFrameworkDisplayText } from '@utils/framework';
 import type { FunctionComponent } from 'react';
+
 import styles from './Header.module.scss';
 
 interface Props {

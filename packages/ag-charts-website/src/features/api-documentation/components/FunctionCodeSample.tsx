@@ -1,5 +1,6 @@
 import Code from '@components/Code';
 import type { FunctionComponent } from 'react';
+
 import type { FunctionCode, ICallSignature } from '../types';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
 import { escapeGenericCode, extractInterfaces, getLinkedType, writeAllInterfaces } from '../utils/documentationHelpers';

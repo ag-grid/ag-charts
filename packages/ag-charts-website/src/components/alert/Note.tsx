@@ -1,4 +1,5 @@
 import type { FunctionComponent, ReactElement } from 'react';
+
 import { Alert } from './Alert';
 
 interface Props {

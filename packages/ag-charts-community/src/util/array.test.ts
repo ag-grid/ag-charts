@@ -1,4 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
+
 import { arraysEqual, extent } from './array';
 
 describe('extent with isContinuous', () => {

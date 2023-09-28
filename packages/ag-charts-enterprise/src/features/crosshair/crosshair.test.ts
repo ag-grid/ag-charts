@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -14,6 +15,7 @@ import {
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

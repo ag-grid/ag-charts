@@ -1,6 +1,7 @@
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
 import j from 'jscodeshift';
+
 import { parseExampleOptions } from '../../../../../ag-charts-community/src/chart/test/load-example';
 
 /**

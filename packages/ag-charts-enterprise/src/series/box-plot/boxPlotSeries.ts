@@ -5,6 +5,7 @@ import type {
     _Scene,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
+
 import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 

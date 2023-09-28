@@ -6,6 +6,7 @@ import type {
     FontWeight,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
 import type { GradientLegendDatum } from './gradientLegendDatum';
 
 const {

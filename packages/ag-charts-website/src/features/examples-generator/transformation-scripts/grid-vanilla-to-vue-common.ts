@@ -1,4 +1,5 @@
 import * as JSON5 from 'json5';
+
 import { templatePlaceholder } from './grid-vanilla-src-parser';
 import type { ImportType } from './parser-utils';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';

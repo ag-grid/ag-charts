@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+
 import { Node } from './node';
 import { Selection } from './selection';
 

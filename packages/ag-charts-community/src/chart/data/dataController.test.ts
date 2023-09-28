@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+
 import { DataController } from './dataController';
 
 describe('DataController', () => {

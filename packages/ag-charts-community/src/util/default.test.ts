@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import { Default } from './default';
 
 class DefaultTest {

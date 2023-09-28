@@ -1,4 +1,5 @@
 import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+
 import { HistogramSeries } from './histogramSeries';
 
 const {

@@ -3,6 +3,7 @@ import type { ExampleType } from '@features/examples-generator/types';
 import { isGeneratedExample } from '@features/examples-generator/utils/isGeneratedExample';
 import { setInternalFramework } from '@stores/frameworkStore';
 import { isReactInternalFramework, isVueInternalFramework } from '@utils/framework';
+
 import styles from './CodeOptions.module.scss';
 
 type SelectorType = 'typescript' | 'react' | 'vue';

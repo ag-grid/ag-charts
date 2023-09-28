@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
 import { AngleAxis } from '../angle/angleAxis';
 
 const { NUMBER, Validate } = _ModuleSupport;

@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed, async } from '@angular/core/testing';
+
 import { AgChartOptions } from 'ag-charts-community';
+
 import { AgChartsAngular } from './ag-charts-angular.component';
 
 const DATA_UK_LABOUR_MARKET_FEB_2020 = [

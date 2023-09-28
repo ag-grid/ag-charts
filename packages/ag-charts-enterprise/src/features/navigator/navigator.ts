@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
+
 import { NavigatorHandle } from './navigatorHandle';
 import { NavigatorMask } from './navigatorMask';
 import { RangeSelector } from './shapes/rangeSelector';

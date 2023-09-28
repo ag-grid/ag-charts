@@ -1,4 +1,5 @@
 import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+
 import { BOX_PLOT_SERIES_DEFAULTS } from './boxPlotDefaults';
 import { BoxPlotSeries } from './boxPlotSeries';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';

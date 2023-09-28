@@ -1,5 +1,6 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
+
 import type { LabelMeta } from './crosshairLabel';
 import { CrosshairLabel } from './crosshairLabel';
 

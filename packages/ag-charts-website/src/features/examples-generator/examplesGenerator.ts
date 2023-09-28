@@ -1,5 +1,6 @@
 import type { InternalFramework } from '@ag-grid-types';
 import fs from 'node:fs/promises';
+
 import { SOURCE_ENTRY_FILE_NAME } from './constants';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import type { GeneratedContents } from './types.d';

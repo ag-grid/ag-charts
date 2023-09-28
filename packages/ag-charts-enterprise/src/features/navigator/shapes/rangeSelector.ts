@@ -1,4 +1,5 @@
 import { _Scene } from 'ag-charts-community';
+
 import { RangeHandle } from './rangeHandle';
 import { RangeMask } from './rangeMask';
 

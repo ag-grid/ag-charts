@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
+
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgChart } from '../agChartV2';
 import type { Chart } from '../chart';

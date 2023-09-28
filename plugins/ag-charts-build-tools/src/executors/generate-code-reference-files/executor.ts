@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type { ExecutorContext } from '@nx/devkit';
 import * as fs from 'fs';
+
 import { generate } from './generate-code-reference-files.mjs';
 import type { GenerateCodeReferenceFilesExecutorSchema } from './schema';
 

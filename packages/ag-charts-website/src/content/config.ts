@@ -1,5 +1,6 @@
 import { ICON_MAP } from '@components/icon/Icon';
 import { defineCollection, z } from 'astro:content';
+
 import { FRAMEWORKS } from '../constants';
 
 const menuItemBase = {

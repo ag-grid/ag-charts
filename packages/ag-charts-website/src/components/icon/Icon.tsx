@@ -18,6 +18,7 @@ import { ReactComponent as StackBlitzIcon } from '@images/inline-svgs/stack-blit
 import { ReactComponent as TakeControlIcon } from '@images/inline-svgs/take-control-icon.svg';
 import { ReactComponent as TickIcon } from '@images/inline-svgs/tick.svg';
 import classNames from 'classnames';
+
 import styles from './Icon.module.scss';
 
 // Uses IBM Carbon Design System icons as a base

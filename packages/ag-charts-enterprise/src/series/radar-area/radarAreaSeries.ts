@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
 import { RadarSeries } from '../radar/radarSeries';
 
 const { NUMBER, OPT_COLOR_STRING, Validate } = _ModuleSupport;

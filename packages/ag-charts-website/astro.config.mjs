@@ -2,6 +2,7 @@ import markdoc from '@astrojs/markdoc';
 import react from '@astrojs/react';
 import { defineConfig } from 'astro/config';
 import svgr from 'vite-plugin-svgr';
+
 import agHotModuleReload from './src/astro/plugins/agHotModuleReload';
 import { getDevFileList } from './src/utils/pages';
 

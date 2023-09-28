@@ -1,4 +1,5 @@
 import { isPathExactMatch } from '@utils/isPathExactMatch';
+
 import type { JsObjectPropertiesViewConfig } from '../types';
 
 export function getShouldLimitParent({

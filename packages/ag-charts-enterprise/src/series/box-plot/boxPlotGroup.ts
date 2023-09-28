@@ -1,5 +1,6 @@
 import type { AgBoxPlotSeriesStyles } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
+
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 enum GroupTags {

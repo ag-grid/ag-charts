@@ -3,6 +3,7 @@ import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
 import { Fragment, type FunctionComponent, useEffect, useRef, useState } from 'react';
+
 import type { ICallSignature, InterfaceEntry, PropertyCall } from '../types';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
 import {

@@ -3,6 +3,7 @@ import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
+
 import type { Config, DocEntryMap, SectionProps } from '../types';
 import { convertMarkdown, getLongestNameLength } from '../utils/documentationHelpers';
 import styles from './ApiDocumentation.module.scss';

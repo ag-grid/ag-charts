@@ -1,5 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import 'jest-canvas-mock';
+
 import type { AgAreaSeriesOptions, AgBarSeriesOptions, AgLineSeriesOptions } from '../../options/agChartOptions';
 import { clearDoOnceFlags } from '../../util/function';
 import { addGroupableSeriesType, addStackableSeriesType, addStackedByDefaultSeriesType } from '../factory/seriesTypes';

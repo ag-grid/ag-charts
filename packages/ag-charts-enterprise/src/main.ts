@@ -1,5 +1,6 @@
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import { AgChart, _ModuleSupport } from 'ag-charts-community';
+
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
 import { RadiusCategoryAxisModule } from './axes/radius-category/main';

@@ -1,6 +1,7 @@
 import { Icon } from '@components/icon/Icon';
 import classnames from 'classnames';
 import { Fragment, type FunctionComponent, createContext, useContext, useState } from 'react';
+
 import { UNION_DISCRIMINATOR_PROP } from '../constants';
 import type { Config, JsObjectPropertiesViewConfig, JsObjectViewProps } from '../types';
 import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';

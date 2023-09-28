@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import {
     AND,
     COLOR_STRING,

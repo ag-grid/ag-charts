@@ -1,5 +1,6 @@
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import { useCallback, useState } from 'react';
+
 import type {
     JsObjectPropertiesViewConfig,
     JsObjectSelection,

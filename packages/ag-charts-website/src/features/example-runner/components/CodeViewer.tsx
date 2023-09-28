@@ -5,6 +5,7 @@ import type { ExampleType, FileContents } from '@features/examples-generator/typ
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
+
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
 

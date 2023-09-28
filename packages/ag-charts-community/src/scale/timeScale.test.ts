@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+
 import day from '../util/time/day';
 import {
     durationDay,

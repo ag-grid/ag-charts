@@ -1,5 +1,6 @@
 import * as PropTypes from 'prop-types';
 import { Component, RefObject, createElement, createRef } from 'react';
+
 import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 
 export interface AgChartProps {

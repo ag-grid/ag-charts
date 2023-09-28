@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+
 import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
 import { DropShadow } from '../dropShadow';
 import { Rect } from './rect';

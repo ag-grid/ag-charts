@@ -6,6 +6,7 @@ import type {
     AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 
 const {

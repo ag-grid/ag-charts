@@ -1,5 +1,6 @@
 import type { Canvas } from 'canvas';
 import { Image, createCanvas } from 'canvas';
+
 import { mockCanvasText } from './mock-canvas-text';
 
 export class MockContext {

@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+
 import { isContinuous, isDiscrete, isNumber } from './value';
 
 test('isNumber', () => {

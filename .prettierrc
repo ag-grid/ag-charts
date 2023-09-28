@@ -5,6 +5,7 @@
     "singleQuote": true,
     "importOrder": ["^ag-charts-(.*)$", "^[./]"],
     "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+    "importOrderSeparation": true,
     "importOrderSortSpecifiers": true,
     "overrides": [
         {
@@ -23,6 +24,12 @@
             "files": ["*.{jsx,tsx}"],
             "options": {
                 "importOrderParserPlugins": ["typescript", "decorators-legacy", "jsx"]
+            }
+        },
+        {
+            "files": ["*.mdoc"],
+            "options": {
+                "parser": "markdown"
             }
         }
     ],

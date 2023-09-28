@@ -1,4 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
+
 import { LinearScale } from '../scale/linearScale';
 import { format } from './numberFormat';
 

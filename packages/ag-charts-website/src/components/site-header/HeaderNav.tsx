@@ -5,6 +5,7 @@ import { useWindowSize } from '@utils/hooks/useWindowSize';
 import { pathJoin } from '@utils/pathJoin';
 import classnames from 'classnames';
 import { useState } from 'react';
+
 import { Collapsible } from '../Collapsible';
 import { Icon } from '../icon/Icon';
 import styles from './SiteHeader.module.scss';
