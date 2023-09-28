@@ -8,18 +8,20 @@ import type {
     AgChartInstance,
     AgChartOptions,
 } from '../options/agChartOptions';
-
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
-import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
-import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
-import { Tooltip } from './tooltip/tooltip';
-import { ChartOverlays } from './overlay/chartOverlays';
+import { Scene } from '../scene/scene';
+import { Text } from '../scene/shape/text';
+import { sleep } from '../util/async';
+import { CallbackCache } from '../util/callbackCache';
+import { Debug } from '../util/debug';
+import { createId } from '../util/id';
 import { jsonMerge } from '../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import { Logger } from '../util/logger';
+import { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
@@ -53,14 +55,10 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import type { Series, SeriesNodeDatum } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesOptionsTypes } from './mapping/types';
-import { Legend } from './legend';
-import type { Module } from '../module/module';
-import type { ModuleContext } from '../module/moduleContext';
-import type { LegendModule, RootModule } from '../module/coreModules';
-import type { ModuleInstance } from '../module/baseModule';
-import { Mutex } from '../util/mutex';
-import { sleep } from '../util/async';
+import { SeriesStateManager } from './series/seriesStateManager';
+import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
+import { Tooltip } from './tooltip/tooltip';
+import { UpdateService } from './updateService';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
