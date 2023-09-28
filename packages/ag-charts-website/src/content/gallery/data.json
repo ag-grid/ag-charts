@@ -182,7 +182,7 @@
             "examples": [
                 {
                     "title": "Simple Combination",
-                    "description": "COMBO MF!",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
                     "name": "combination-of-different-series-types"
                 }
             ]
