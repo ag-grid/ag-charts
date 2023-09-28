@@ -179,7 +179,13 @@
             "name": "combination",
             "icon": "chartsCombination",
             "enterprise": false,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Combination",
+                    "description": "COMBO MF!",
+                    "name": "combination-of-different-series-types"
+                }
+            ]
         },
         {
             "title": "Histogram",
