@@ -4,23 +4,34 @@ import type { ErrorBarPoints, ErrorBarNodeProperties } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
-const { mergeDefaults, ChartAxisDirection, Validate, BOOLEAN, OPT_STRING, NUMBER } = _ModuleSupport;
+const {
+    mergeDefaults,
+    valueProperty,
+    ChartAxisDirection,
+    Validate,
+    NUMBER,
+    STRING,
+    OPT_BOOLEAN,
+    OPT_COLOR_STRING,
+    OPT_NUMBER,
+    OPT_STRING,
+} = _ModuleSupport;
 const { Logger } = _Util;
-type AnyScale = _Scale.Scale<any, any, any>;
 
+type AnyScale = _Scale.Scale<any, any, any>;
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
 
 class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
-    @Validate(BOOLEAN)
+    @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(OPT_COLOR_STRING)
     stroke?: string = undefined;
 
-    @Validate(NUMBER(1))
+    @Validate(OPT_NUMBER(1))
     strokeWidth?: number = undefined;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = undefined;
 
     @Validate(NUMBER(0, 1))
@@ -31,13 +42,13 @@ export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, OptionalErrorBarNodeProperties
 {
-    @Validate(OPT_STRING)
+    @Validate(STRING)
     yLowerKey: string = '';
 
     @Validate(OPT_STRING)
     yLowerName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING)
     yUpperKey: string = '';
 
     @Validate(OPT_STRING)
@@ -55,16 +66,16 @@ export class ErrorBars
     @Validate(OPT_STRING)
     xUpperName?: string = undefined;
 
-    @Validate(BOOLEAN)
+    @Validate(OPT_BOOLEAN)
     visible?: boolean = true;
 
-    @Validate(OPT_STRING)
+    @Validate(OPT_COLOR_STRING)
     stroke? = 'black';
 
-    @Validate(NUMBER(1))
+    @Validate(OPT_NUMBER(1))
     strokeWidth?: number = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = 1;
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
@@ -88,14 +99,46 @@ export class ErrorBars
         this.cartesianSeries = ctx.series as _ModuleSupport.CartesianSeries<any, any>;
         const { contentGroup } = this.cartesianSeries;
 
-        this.groupNode = new _Scene.Group({ name: `${contentGroup.id}-series-errorBars` });
+        this.groupNode = new _Scene.Group({
+            name: `${contentGroup.id}-series-errorBars`,
+            zIndex: _ModuleSupport.Layers.SERIES_ERRORBAR_ZINDEX,
+            zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('error-bars'),
+        });
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
-        this.destroyFns.push(this.cartesianSeries.addListener('data-model', (event) => this.onDataProcessed(event)));
+        this.destroyFns.push(
+            this.cartesianSeries.addListener(
+                'processData-prerequest',
+                (event: _ModuleSupport.SeriesPrerequestDataEvent) => this.onPrerequestData(event)
+            ),
+            this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>
+                this.onDataUpdate(event)
+            ),
+            this.cartesianSeries.addListener('visibility-changed', (event: _ModuleSupport.SeriesVisibilityEvent) =>
+                this.onToggleSeriesItem(event)
+            )
+        );
     }
 
-    onDataProcessed(event: {
+    onPrerequestData(event: { isContinuousX: boolean; isContinuousY: boolean }) {
+        const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
+        const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        const { isContinuousX, isContinuousY } = event;
+        props.push(
+            valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: 'yValue' }),
+            valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: 'yValue' })
+        );
+        if (xLowerKey !== undefined && xUpperKey !== undefined) {
+            props.push(
+                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: 'xValue' }),
+                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: 'xValue' })
+            );
+        }
+        return props;
+    }
+
+    onDataUpdate(event: {
         dataModel: _ModuleSupport.DataModel<any, any, any>;
         processedData: _ModuleSupport.ProcessedData<any>;
     }) {
@@ -222,6 +265,10 @@ export class ErrorBars
             const capProps = mergeDefaults(this.cap, whiskerProps);
             node.update(points, whiskerProps, capProps);
         }
+    }
+
+    private onToggleSeriesItem(event: { enabled: boolean }): void {
+        this.groupNode.visible = event.enabled;
     }
 
     private errorBarFactory(): ErrorBarNode {

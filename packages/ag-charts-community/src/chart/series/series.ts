@@ -34,6 +34,9 @@ import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
+import { Listeners } from '../../util/listeners';
+import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
+import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 
 /**
  * Processed series datum used in node selections,
@@ -477,10 +480,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
     }
 
-    getGroupZIndexSubOrder(
-        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
-        subIndex = 0
-    ): ZIndexSubOrder {
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         let mainAdjust = 0;
         switch (type) {
             case 'data':
@@ -488,6 +488,9 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
                 break;
             case 'labels':
                 mainAdjust += 20000;
+                break;
+            case 'error-bars':
+                mainAdjust += 15000;
                 break;
             case 'marker':
                 mainAdjust += 10000;
@@ -499,6 +502,22 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         }
         const main = () => this._declarationOrder + mainAdjust;
         return [main, subIndex];
+    }
+
+    private seriesListeners = new Listeners<SeriesEventType, (event: any) => any>();
+
+    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
+        type: T,
+        listener: (event: E) => R
+    ) {
+        return this.seriesListeners.addListener(type, listener);
+    }
+
+    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
+        type: T,
+        event: E
+    ): R[] | void {
+        return this.seriesListeners.dispatch(type, event);
     }
 
     addChartEventListeners(): void {
@@ -718,9 +737,10 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
 
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
-    protected toggleSeriesItem(_itemId: any, enabled: boolean): void {
+    protected toggleSeriesItem(itemId: any, enabled: boolean): void {
         this.visible = enabled;
         this.nodeDataRefresh = true;
+        this.dispatch('visibility-changed', { itemId, enabled });
     }
 
     isEnabled() {

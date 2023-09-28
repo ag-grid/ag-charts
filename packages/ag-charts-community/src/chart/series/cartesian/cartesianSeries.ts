@@ -14,10 +14,8 @@ import { Text } from '../../../scene/shape/text';
 import { Debug } from '../../../util/debug';
 import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { Listeners } from '../../../util/listeners';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
-import { isContinuous, isDiscrete } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
@@ -28,6 +26,7 @@ import { getMarker } from '../../marker/util';
 import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { Series, SeriesNodeBaseClickEvent } from '../series';
 import { SeriesMarker } from '../seriesMarker';
+import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -109,12 +108,6 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
     duration?: number;
 }
 
-type DataEventType = 'data-model';
-type DataEvent = {
-    dataModel: DataModel<any, any, any>;
-    processedData: ProcessedData<any>;
-};
-
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
     N extends Node = Group
@@ -146,7 +139,6 @@ export abstract class CartesianSeries<
 
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
-    private dataModelListeners = new Listeners<DataEventType, (event: DataEvent) => void>();
 
     protected constructor({
         pathsPerSeries = 1,
@@ -240,30 +232,6 @@ export abstract class CartesianSeries<
         this.subGroups.splice(0, this.subGroups.length);
     }
 
-    public addListener(type: DataEventType, listener: (event: DataEvent) => void) {
-        return this.dataModelListeners.addListener(type, listener);
-    }
-
-    protected fireDataProcessed(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
-        this.dataModelListeners.dispatch('data-model', { dataModel: dataModel, processedData: processedData });
-    }
-
-    /**
-     * Note: we are passing `isContinuousX` and `isContinuousY` into this method because it will
-     *       typically be called inside a loop and this check only needs to happen once.
-     * @param x A domain value to be plotted along the x-axis.
-     * @param y A domain value to be plotted along the y-axis.
-     * @param isContinuousX Typically this will be the value of `xAxis.scale instanceof ContinuousScale`.
-     * @param isContinuousY Typically this will be the value of `yAxis.scale instanceof ContinuousScale`.
-     * @returns `[x, y]`, if both x and y are valid domain values for their respective axes/scales, or `undefined`.
-     */
-    protected checkDomainXY<T, K>(x: T, y: K, isContinuousX: boolean, isContinuousY: boolean): [T, K] | undefined {
-        const isValidDatum =
-            ((isContinuousX && isContinuous(x)) || (!isContinuousX && isDiscrete(x))) &&
-            ((isContinuousY && isContinuous(y)) || (!isContinuousY && isDiscrete(y)));
-        return isValidDatum ? [x, y] : undefined;
-    }
-
     async update({ seriesRect }: { seriesRect?: BBox }) {
         const { visible } = this;
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
@@ -308,7 +276,7 @@ export abstract class CartesianSeries<
 
             const { dataModel, processedData } = this;
             if (dataModel !== undefined && processedData !== undefined) {
-                this.fireDataProcessed(dataModel, processedData);
+                this.dispatch('data-update', { dataModel, processedData });
             }
         }
 
@@ -419,10 +387,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    getGroupZIndexSubOrder(
-        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
-        subIndex = 0
-    ): ZIndexSubOrder {
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         const result = super.getGroupZIndexSubOrder(type, subIndex);
         if (type === 'paths') {
             const pathOffset = this.opts.pathsZIndexSubOrderOffset[subIndex] ?? 0;

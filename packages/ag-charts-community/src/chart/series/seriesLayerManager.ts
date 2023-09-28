@@ -3,16 +3,22 @@ import type { ZIndexSubOrder } from '../../scene/node';
 import { Layers } from '../layers';
 import type { SeriesGrouping } from './seriesStateManager';
 
+export type SeriesGroupZIndexSubOrderType =
+    | 'data'
+    | 'labels'
+    | 'highlight'
+    | 'path'
+    | 'marker'
+    | 'paths'
+    | 'error-bars';
+
 export type SeriesConfig = {
     id: string;
     seriesGrouping?: SeriesGrouping;
     rootGroup: Group;
     highlightGroup: Group;
     type: string;
-    getGroupZIndexSubOrder(
-        type: 'data' | 'labels' | 'highlight' | 'path' | 'marker' | 'paths',
-        subIndex?: number
-    ): ZIndexSubOrder;
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex?: number): ZIndexSubOrder;
 };
 
 type LayerState = {
