@@ -212,7 +212,7 @@
         },
         {
             "title": "Range Bar",
-            "name": "range",
+            "name": "range-bar",
             "icon": "chartsRange",
             "enterprise": true,
             "examples": [
@@ -240,7 +240,7 @@
         },
         {
             "title": "Range Area",
-            "name": "range",
+            "name": "range-area",
             "icon": "chartsRange",
             "enterprise": true,
             "examples": [
@@ -286,7 +286,7 @@
         },
         {
             "title": "Error Bars",
-            "name": "error-bar",
+            "name": "error-bars",
             "icon": "chartsErrorBar",
             "enterprise": true,
             "examples": [
