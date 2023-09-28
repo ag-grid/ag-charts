@@ -199,6 +199,8 @@ export class Tooltip {
     @Validate(INTERACTION_RANGE)
     range: InteractionRange = 'nearest';
 
+    private lastVisibilityChange: number = Date.now();
+
     readonly position: TooltipPosition = new TooltipPosition();
     private readonly window: Window;
 
@@ -253,9 +255,17 @@ export class Tooltip {
     }
 
     private updateClass(visible?: boolean, showArrow?: boolean) {
-        const { element, class: newClass, lastClass, enableInteraction } = this;
+        const { element, class: newClass, lastClass, enableInteraction, lastVisibilityChange } = this;
 
         const wasVisible = this.isVisible();
+        const nowVisible = !!visible;
+        let timeSinceLastVisibilityChangeMs = Infinity;
+
+        if (wasVisible !== nowVisible) {
+            const now = Date.now();
+            timeSinceLastVisibilityChangeMs = now - lastVisibilityChange;
+            this.lastVisibilityChange = now;
+        }
 
         const toggleClass = (name: string, include: boolean) => {
             const className = `${DEFAULT_TOOLTIP_CLASS}-${name}`;
@@ -266,7 +276,18 @@ export class Tooltip {
             }
         };
 
-        toggleClass('no-animation', !wasVisible && !!visible); // No animation on first show.
+        // Time below which an animated move should be used.
+        const animatedMoveThresholdMs = 100;
+        // Time below which we should treat updates as indistinguishable to users, and we shouldn't
+        // adjust the `no-animation` CSS class.
+        const thrashingThresholdMs = 5;
+
+        // No animation on first show or if tooltip is disabled for a non-trivial amount of time.
+        // Don't change the `no-animation` class on fast update.
+        const noAnimation = !wasVisible && nowVisible && timeSinceLastVisibilityChangeMs > animatedMoveThresholdMs;
+        if (timeSinceLastVisibilityChangeMs > thrashingThresholdMs) {
+            toggleClass('no-animation', noAnimation);
+        }
         toggleClass('no-interaction', !enableInteraction); // Prevent interaction.
         toggleClass('hidden', !visible); // Hide if not visible.
         toggleClass('arrow', !!showArrow); // Add arrow if tooltip is constrained.

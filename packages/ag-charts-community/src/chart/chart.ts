@@ -262,7 +262,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
     private readonly specialOverrides: PickRequired<SpecialOverrides, 'document' | 'window'>;
-    private reapplyPointerOnPerformUpdate = true;
 
     protected constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
         super();
@@ -332,11 +331,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.interactionManager.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
             this.interactionManager.addListener('wheel', () => this.disablePointer()),
-            this.interactionManager.addListener('wheel', () => this.disablePointer()),
 
             // Block redundant and interfering attempts to update the hovered element during dragging.
-            this.interactionManager.addListener('drag-start', () => (this.reapplyPointerOnPerformUpdate = false)),
-            this.interactionManager.addListener('drag-end', () => (this.reapplyPointerOnPerformUpdate = true)),
+            this.interactionManager.addListener('drag-start', () => this.disablePointer()),
 
             this.animationManager.addListener('animation-frame', (_) => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -600,11 +597,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
                 const isHovered = tooltipMeta?.event?.type === 'hover';
-                if (
-                    performUpdateType < ChartUpdateType.SERIES_UPDATE &&
-                    isHovered &&
-                    this.reapplyPointerOnPerformUpdate
-                ) {
+                if (performUpdateType < ChartUpdateType.SERIES_UPDATE && isHovered) {
                     this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
                 }
                 splits['↖'] = performance.now();
