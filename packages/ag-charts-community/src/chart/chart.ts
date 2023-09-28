@@ -327,7 +327,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect)),
             this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e)),
 
-            // Add interaction listeners last so child components are registered first.
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
