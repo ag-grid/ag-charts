@@ -25,6 +25,10 @@ export class Mutex {
         return true;
     }
 
+    public async waitForClearAcquireQueue() {
+        return this.acquire(async () => undefined);
+    }
+
     private async dispatchNext() {
         this.available = false;
 

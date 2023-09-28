@@ -621,6 +621,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             case ChartUpdateType.SCENE_RENDER:
                 if (this.checkUpdateShortcut(ChartUpdateType.SCENE_RENDER)) break;
 
+                extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
             // eslint-disable-next-line no-fallthrough
@@ -1353,7 +1354,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (this._pendingFactoryUpdatesCount > 0) {
             // Await until any pending updates are flushed through.
-            await this.updateMutex.acquire(async () => undefined);
+            await this.updateMutex.waitForClearAcquireQueue();
         }
 
         while (this._performUpdateType !== ChartUpdateType.NONE) {
@@ -1364,7 +1365,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         // Await until any remaining updates are flushed through.
-        return this.updateMutex.acquire(async () => undefined);
+        await this.updateMutex.waitForClearAcquireQueue();
     }
 
     protected handleOverlays() {
