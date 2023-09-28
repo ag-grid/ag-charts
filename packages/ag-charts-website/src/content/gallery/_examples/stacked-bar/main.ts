@@ -1,66 +1,92 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianSeriesTooltipRendererParams,
+    AgEnterpriseCharts,
+    AgChartOptions,
+    AgTooltipRendererResult,
+} from 'ag-charts-enterprise';
 import { getData } from './data';
 
-function getTotal(datum: any) {
-    return datum.ownerOccupied + datum.privateRented + datum.localAuthority + datum.housingAssociation;
-}
+const numFormatter = new Intl.NumberFormat('en-US');
+const tooltip = {
+    renderer: ({ title, xValue, yValue }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
+        title,
+        content: `${xValue}: ${numFormatter.format(yValue)}`,
+    }),
+};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData().sort(function (a: any, b: any) {
-        return getTotal(b) - getTotal(a);
-    }),
+    data: getData(),
     title: {
-        text: 'UK Housing Stock',
+        text: 'Average Station Entries',
+        fontSize: 18,
+    },
+    subtitle: {
+        text: 'Victoria Line (2010)',
     },
     footnote: {
-        text: 'Source: Ministry of Housing, Communities & Local Government',
+        text: 'Source: Transport for London',
     },
     series: [
         {
             type: 'bar',
-            direction: 'horizontal',
-            xKey: 'type',
-            yKey: 'ownerOccupied',
-            yName: 'Owner occupied',
+            xKey: 'station',
+            yKey: 'early',
             stacked: true,
+            yName: 'Early',
+            tooltip,
         },
         {
             type: 'bar',
-            direction: 'horizontal',
-            xKey: 'type',
-            yKey: 'privateRented',
-            yName: 'Private rented',
+            xKey: 'station',
+            yKey: 'morningPeak',
+            yName: 'Morning peak',
             stacked: true,
+            tooltip,
         },
         {
             type: 'bar',
-            direction: 'horizontal',
-            xKey: 'type',
-            yKey: 'localAuthority',
-            yName: 'Local authority',
+            xKey: 'station',
+            yKey: 'interPeak',
+            yName: 'Between peak',
             stacked: true,
+            tooltip,
         },
         {
             type: 'bar',
-            direction: 'horizontal',
-            xKey: 'type',
-            yKey: 'housingAssociation',
-            yName: 'Housing association',
+            xKey: 'station',
+            yKey: 'afternoonPeak',
+            yName: 'Afternoon peak',
             stacked: true,
+            tooltip,
+        },
+        {
+            type: 'bar',
+            xKey: 'station',
+            yKey: 'evening',
+            yName: 'Evening',
+            stacked: true,
+            tooltip,
         },
     ],
     axes: [
         {
             type: 'category',
-            position: 'left',
+            position: 'bottom',
         },
         {
             type: 'number',
-            position: 'top',
-            nice: false,
+            position: 'left',
+            label: {
+                formatter: (params) => {
+                    return params.value / 1000 + 'k';
+                },
+            },
         },
     ],
+    padding: {
+        bottom: 40,
+    },
 };
 
 AgEnterpriseCharts.create(options);

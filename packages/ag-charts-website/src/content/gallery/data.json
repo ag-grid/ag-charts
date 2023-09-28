@@ -9,32 +9,32 @@
                 {
                     "title": "Simple Bar",
                     "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "simple-column"
+                    "name": "simple-bar"
                 },
                 {
                     "title": "Grouped Bar",
-                    "description": "Grouped Bar charts (also known as clustered bar charts) present multiple series with the <a href='./simple-column/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "column-with-negative-values"
+                    "description": "Grouped Bar charts (also known as clustered bar charts) present multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                    "name": "grouped-bar"
                 },
                 {
                     "title": "Stacked Bar",
-                    "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-column/'>bars</a>.",
-                    "name": "stacked-column"
+                    "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-bar/'>bars</a>.",
+                    "name": "stacked-bar"
                 },
                 {
                     "title": "Simple Horizontal Bar",
                     "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "simple-bar"
+                    "name": "simple-horizontal-bar"
                 },
                 {
                     "title": "Grouped Horizontal Bar",
                     "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-bar"
+                    "name": "grouped-horizontal-bar"
                 },
                 {
                     "title": "Stacked Horizontal Bar",
                     "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
-                    "name": "stacked-bar"
+                    "name": "stacked-horizontal-bar"
                 }
             ]
         },
@@ -46,7 +46,7 @@
             "examples": [
                 {
                     "title": "Simple Line",
-                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> or <a href='./simple-column/'>column</a> charts.",
+                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
                     "name": "simple-line"
                 },
                 {
@@ -149,19 +149,6 @@
             ]
         },
         {
-            "title": "Scatter",
-            "name": "scatter",
-            "icon": "chartsScatter",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Scatter",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "simple-scatter"
-                }
-            ]
-        },
-        {
             "title": "Doughnut",
             "name": "doughnut",
             "icon": "chartsDonut",
@@ -179,7 +166,13 @@
             "name": "combination",
             "icon": "chartsCombination",
             "enterprise": false,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Combination",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                    "name": "combination-of-different-series-types"
+                }
+            ]
         },
         {
             "title": "Histogram",
@@ -209,63 +202,190 @@
             "name": "heatmap",
             "icon": "chartsHeatmap",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Heatmap",
+                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                    "name": "simple-heatmap"
+                }
+            ]
         },
         {
-            "title": "Range",
-            "name": "range",
+            "title": "Range Bar",
+            "name": "range-bar",
             "icon": "chartsRange",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Range Bar",
+                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "simple-range-bar"
+                },
+                {
+                    "title": "Multiple Range Bars",
+                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "multiple-range-bars"
+                },
+                {
+                    "title": "Horizontal Range Bar",
+                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "horizontal-range-bar"
+                },
+                {
+                    "title": "Multiple Horizontal Range Bar",
+                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "multiple-horizontal-range-bars"
+                }
+            ]
+        },
+        {
+            "title": "Range Area",
+            "name": "range-area",
+            "icon": "chartsRange",
+            "enterprise": true,
+            "examples": [
+                {
+                    "title": "Simple Range Area",
+                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                    "name": "simple-range-area"
+                },
+                {
+                    "title": "Range Area Missing Data",
+                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                    "name": "range-area-missing-data"
+                },
+                {
+                    "title": "Multiple Range Areas",
+                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                    "name": "multiple-range-areas"
+                }
+            ]
         },
         {
             "title": "Box Plot",
             "name": "box-plot",
             "icon": "chartsBoxPlot",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Box Plot",
+                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                    "name": "simple-box-plot"
+                },
+                {
+                    "title": "Horizontal Box Plot",
+                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                    "name": "horizontal-box-plot"
+                },
+                {
+                    "title": "Box Plot Outliers",
+                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                    "name": "box-plot-outliers"
+                }
+            ]
         },
         {
             "title": "Error Bars",
-            "name": "error-bar",
+            "name": "error-bars",
             "icon": "chartsErrorBar",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Line Series Error Bars",
+                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
+                    "name": "line-series-error-bars"
+                },
+                {
+                    "title": "Bar Series Error Bars",
+                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
+                    "name": "bar-series-error-bars"
+                },
+                {
+                    "title": "Scatter Series Error Bars",
+                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
+                    "name": "scatter-series-error-bars"
+                }
+            ]
         },
         {
             "title": "Waterfall",
             "name": "waterfall",
             "icon": "chartsWaterfall",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Waterfall",
+                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                    "name": "simple-waterfall"
+                },
+                {
+                    "title": "Horizontal Waterfall",
+                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                    "name": "horizontal-waterfall"
+                },
+                {
+                    "title": "Customised Waterfall",
+                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                    "name": "customised-waterfall"
+                }
+            ]
         },
         {
             "title": "Radar",
             "name": "radar",
             "icon": "chartsRadar",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Radar Line",
+                    "description": "A Radar Line Series is typically used to contrast different datasets across shared categories for easy visual comparison.",
+                    "name": "simple-radar-line"
+                },
+                {
+                    "title": "Simple Radar Area",
+                    "description": "A Radar Area Series shows the magnitude of various datasets within shared categories, making it easier to gauge area-based trends.",
+                    "name": "simple-radar-area"
+                }
+            ]
         },
         {
             "title": "Nightingale",
             "name": "nightingale",
             "icon": "chartsNightingale",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Nightingale",
+                    "description": "A Nightingale Series represents data as radial segments, with one segment per category value. It can simplify the comparison of datasets across multiple categories, providing a concise depiction of data trends.",
+                    "name": "simple-nightingale"
+                }
+            ]
         },
         {
             "title": "Radial Column",
             "name": "radial-column",
             "icon": "chartsRadialColumn",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Simple Radial Column",
+                    "description": "A Radial Column Series visualises data through rectangular columns arranged along a polar axis.",
+                    "name": "simple-radial-column"
+                }
+            ]
         },
         {
             "title": "Radial Bar",
             "name": "radial-bar",
             "icon": "chartsRadialBar",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Stacked Radial Bar",
+                    "description": "A Radial Bar Series visualises data through rectangular bars arranged along a polar axis.",
+                    "name": "stacked-radial-bar"
+                }
+            ]
         },
         {
             "title": "Treemap",

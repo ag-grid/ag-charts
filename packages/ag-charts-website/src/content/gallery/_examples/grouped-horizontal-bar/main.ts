@@ -5,33 +5,38 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Changes in Prison Population',
+        text: 'Annual Growth in Pay',
     },
     footnote: {
-        text: 'Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service',
+        text: 'Source: Office for National Statistics',
     },
     series: [
         {
             type: 'bar',
-            xKey: 'month',
-            yKey: 'menDelta',
-            yName: 'Male',
+            direction: 'horizontal',
+            xKey: 'type',
+            yKey: 'total',
+            yName: 'Annual growth in total pay',
         },
         {
             type: 'bar',
-            xKey: 'month',
-            yKey: 'womenDelta',
-            yName: 'Female',
+            direction: 'horizontal',
+            xKey: 'type',
+            yKey: 'regular',
+            yName: 'Annual growth in regular pay',
         },
     ],
     axes: [
         {
             type: 'category',
-            position: 'bottom',
+            position: 'left',
         },
         {
             type: 'number',
-            position: 'left',
+            position: 'bottom',
+            title: {
+                text: '%',
+            },
         },
     ],
 };
