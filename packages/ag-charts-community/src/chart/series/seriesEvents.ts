@@ -10,7 +10,7 @@ export interface SeriesDataUpdateEvent extends BaseSeriesEvent<'data-update'> {
 }
 
 export interface SeriesPrerequestDataEvent extends BaseSeriesEvent<'processData-prerequest'> {
-    props: PropertyDefinition<string>[];
+    props: PropertyDefinition<unknown>[];
     isContinuousX: boolean;
     isContinuousY: boolean;
 }

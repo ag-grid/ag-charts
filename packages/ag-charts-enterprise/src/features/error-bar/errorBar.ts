@@ -122,7 +122,7 @@ export class ErrorBars
     }
 
     onPrerequestData(event: {
-        props: _ModuleSupport.PropertyDefinition<string>[];
+        props: _ModuleSupport.PropertyDefinition<unknown>[];
         isContinuousX: boolean;
         isContinuousY: boolean;
     }) {
