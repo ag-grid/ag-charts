@@ -240,6 +240,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     mode: 'standalone' | 'integrated' = 'standalone';
 
     private _destroyed: boolean = false;
+    private readonly _destroyFns: (() => void)[] = [];
     get destroyed() {
         return this._destroyed;
     }
@@ -262,6 +263,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
     private readonly specialOverrides: PickRequired<SpecialOverrides, 'document' | 'window'>;
+    private reapplyPointerOnPerformUpdate = true;
 
     protected constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
         super();
@@ -318,46 +320,33 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlight = new ChartHighlight();
         this.container = container;
 
-        SizeMonitor.observe(this.element, (size) => {
-            let { width, height } = size;
-            width = Math.floor(width);
-            height = Math.floor(height);
+        SizeMonitor.observe(this.element, (size) => this.rawResize(size));
+        this._destroyFns.push(
+            // eslint-disable-next-line sonarjs/no-duplicate-string
+            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
+            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect)),
+            this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e)),
 
-            if (!this.autoSize) {
-                return;
-            }
+            // Add interaction listeners last so child components are registered first.
+            this.interactionManager.addListener('click', (event) => this.onClick(event)),
+            this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
+            this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
+            this.interactionManager.addListener('leave', (event) => this.onLeave(event)),
+            this.interactionManager.addListener('page-left', () => this.destroy()),
+            this.interactionManager.addListener('wheel', () => this.disablePointer()),
+            this.interactionManager.addListener('wheel', () => this.disablePointer()),
 
-            if (width === 0 && height === 0) {
-                return;
-            }
+            // Block redundant and interfering attempts to update the hovered element during dragging.
+            this.interactionManager.addListener('drag-start', () => (this.reapplyPointerOnPerformUpdate = false)),
+            this.interactionManager.addListener('drag-end', () => (this.reapplyPointerOnPerformUpdate = true)),
 
-            const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
-            if (autoWidth === width && authHeight === height) {
-                return;
-            }
-
-            this._lastAutoSize = [width, height];
-            this.resize(undefined, undefined, 'SizeMonitor');
-        });
-        // eslint-disable-next-line sonarjs/no-duplicate-string
-        this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect));
-        this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect));
-        this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e));
-
-        // Add interaction listeners last so child components are registered first.
-        this.interactionManager.addListener('click', (event) => this.onClick(event));
-        this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event));
-        this.interactionManager.addListener('hover', (event) => this.onMouseMove(event));
-        this.interactionManager.addListener('leave', (event) => this.onLeave(event));
-        this.interactionManager.addListener('page-left', () => this.destroy());
-        this.interactionManager.addListener('wheel', () => this.disablePointer());
-
-        this.animationManager.addListener('animation-frame', (_) => {
-            this.update(ChartUpdateType.SCENE_RENDER);
-        });
-        this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event));
-        this.zoomManager.addListener('zoom-change', (_) =>
-            this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true })
+            this.animationManager.addListener('animation-frame', (_) => {
+                this.update(ChartUpdateType.SCENE_RENDER);
+            }),
+            this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
+            this.zoomManager.addListener('zoom-change', (_) =>
+                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true })
+            )
         );
 
         this.attachLegend('category', 'legend', Legend);
@@ -464,6 +453,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this._performUpdateType = ChartUpdateType.NONE;
 
+        this._destroyFns.forEach((fn) => fn());
         this.tooltipManager.destroy();
         this.tooltip.destroy();
         Object.values(this.legends).forEach((legend) => legend.destroy());
@@ -612,7 +602,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
-                if (performUpdateType < ChartUpdateType.SERIES_UPDATE && tooltipMeta?.event?.type === 'hover') {
+                const isHovered = tooltipMeta?.event?.type === 'hover';
+                if (
+                    performUpdateType < ChartUpdateType.SERIES_UPDATE &&
+                    isHovered &&
+                    this.reapplyPointerOnPerformUpdate
+                ) {
                     this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
                 }
                 splits['↖'] = performance.now();
@@ -835,6 +830,28 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 }
             }
         }
+    }
+
+    private rawResize(size: { width: number; height: number }) {
+        let { width, height } = size;
+        width = Math.floor(width);
+        height = Math.floor(height);
+
+        if (!this.autoSize) {
+            return;
+        }
+
+        if (width === 0 && height === 0) {
+            return;
+        }
+
+        const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
+        if (autoWidth === width && authHeight === height) {
+            return;
+        }
+
+        this._lastAutoSize = [width, height];
+        this.resize(undefined, undefined, 'SizeMonitor');
     }
 
     private resize(width?: number, height?: number, source?: string) {
