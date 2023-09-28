@@ -28,15 +28,6 @@ export function getBoxPlotData() {
             outliers: [],
         },
         {
-            role: 'Manager',
-            min: 12504,
-            q1: 16437,
-            median: 17465,
-            q3: 19187,
-            max: 19999,
-            outliers: [11244, 11557, 11631, 11849, 11878, 11904, 11916, 11996],
-        },
-        {
             role: 'Research\nDirector',
             min: 11031,
             q1: 13499,
