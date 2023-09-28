@@ -513,10 +513,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return this.seriesListeners.addListener(type, listener);
     }
 
-    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
-        type: T,
-        event: E
-    ): R[] | void {
+    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R>(type: T, event: E): R[] | undefined {
         return this.seriesListeners.dispatch(type, event);
     }
 
