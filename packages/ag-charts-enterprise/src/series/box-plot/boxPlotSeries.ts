@@ -448,10 +448,10 @@ export class BoxPlotSeries extends CartesianSeries<
     protected animateEmptyUpdateReady({
         datumSelections,
     }: _ModuleSupport.CartesianAnimationData<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>, BoxPlotGroup>) {
-        const invertAxes = this.direction === 'vertical';
+        const isVertical = this.direction === 'vertical';
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((boxPlotGroup, datum) => {
-                if (invertAxes) {
+                if (isVertical) {
                     boxPlotGroup.scalingCenterY = datum.scaledValues.medianValue;
                 } else {
                     boxPlotGroup.scalingCenterX = datum.scaledValues.medianValue;
@@ -464,11 +464,17 @@ export class BoxPlotSeries extends CartesianSeries<
                 ease: _ModuleSupport.Motion.easeOut,
                 onUpdate(value) {
                     datumSelection.each((boxPlotGroup) => {
-                        if (invertAxes) {
+                        if (isVertical) {
                             boxPlotGroup.scalingY = value;
                         } else {
                             boxPlotGroup.scalingX = value;
                         }
+                    });
+                },
+                onStop() {
+                    datumSelection.each((boxPlotGroup) => {
+                        boxPlotGroup.scalingX = 1;
+                        boxPlotGroup.scalingY = 1;
                     });
                 },
             });
