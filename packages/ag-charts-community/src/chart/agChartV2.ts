@@ -1,6 +1,6 @@
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
-import { type Module, REGISTERED_MODULES } from '../module/module';
+import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
     AgBaseAxisOptions,
@@ -311,6 +311,12 @@ abstract class AgChartInternal {
             autoSize: false,
             overrideDevicePixelRatio: 1,
         };
+
+        if (hasRegisteredEnterpriseModules()) {
+            // Disable enterprise features that may interfere with image generation.
+            options.animation ??= {};
+            options.animation.enabled = false;
+        }
 
         const clonedChart = AgChartInternal.createOrUpdate(options);
 
