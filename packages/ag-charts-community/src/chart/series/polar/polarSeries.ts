@@ -1,10 +1,15 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { StateMachine } from '../../../motion/states';
 import type { BBox } from '../../../scene/bbox';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
 import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
 import { Series, SeriesNodePickMode } from '../series';
+
+export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+export type PolarAnimationEvent = 'update' | 'updateData' | 'clear';
+export type PolarAnimationData = { duration?: number };
 
 export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<SeriesNodeDataContext<S>> {
     /**
@@ -25,6 +30,7 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<Seri
 
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
+    protected animationState: StateMachine<PolarAnimationState, PolarAnimationEvent>;
 
     constructor({
         moduleCtx,
@@ -52,6 +58,51 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<Seri
             },
             canHaveAxes,
         });
+
+        this.animationState = new StateMachine('empty', {
+            empty: {
+                update: {
+                    target: 'ready',
+                    action: (data) => this.animateEmptyUpdateReady(data),
+                },
+            },
+            ready: {
+                updateData: {
+                    target: 'waiting',
+                },
+                update: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyUpdate(data),
+                },
+                highlight: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyHighlight(data),
+                },
+                highlightMarkers: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyHighlightMarkers(data),
+                },
+                resize: {
+                    target: 'ready',
+                    action: (data) => this.animateReadyResize(data),
+                },
+                clear: {
+                    target: 'clearing',
+                },
+            },
+            waiting: {
+                update: {
+                    target: 'ready',
+                    action: (data) => this.animateWaitingUpdateReady(data),
+                },
+            },
+            clearing: {
+                update: {
+                    target: 'empty',
+                    action: (data) => this.animateClearingUpdateEmpty(data),
+                },
+            },
+        });
     }
 
     getLabelData(): PointLabelDatum[] {
@@ -60,5 +111,41 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<Seri
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null | Promise<BBox | null> {
         return null;
+    }
+
+    protected animateEmptyUpdateReady(_data: PolarAnimationData) {
+        // Override point for sub-classes.
+    }
+
+    protected animateReadyUpdate(_data: PolarAnimationData) {
+        // Override point for sub-classes.
+    }
+
+    protected animateWaitingUpdateReady(_data: PolarAnimationData) {
+        // Override point for sub-classes.
+    }
+
+    protected animateReadyHighlight(_data: unknown) {
+        // Override point for sub-classes.
+    }
+
+    protected animateReadyHighlightMarkers(_data: unknown) {
+        // Override point for sub-classes.
+    }
+
+    protected animateReadyResize(_data: PolarAnimationData) {
+        // Override point for sub-classes.
+    }
+
+    protected animateClearingUpdateEmpty(_data: PolarAnimationData) {
+        // Override point for sub-classes.
+    }
+
+    protected animationTransitionClear() {
+        this.animationState.transition('clear', this.getAnimationData());
+    }
+
+    private getAnimationData(seriesRect?: BBox) {
+        return { seriesRect };
     }
 }
