@@ -55,7 +55,7 @@ import {
     valueProperty,
 } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
-import { PolarSeries } from './polarSeries';
+import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class PieSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
     readonly angleKey: string;
@@ -1631,7 +1631,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    override animateEmptyUpdateReady(data?: { duration: number }) {
+    override animateEmptyUpdateReady(data?: PolarAnimationData) {
         const duration = data?.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 

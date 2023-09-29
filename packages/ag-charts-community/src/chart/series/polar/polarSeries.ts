@@ -7,9 +7,9 @@ import type { DataModel, ProcessedData } from '../../data/dataModel';
 import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
 import { Series, SeriesNodePickMode } from '../series';
 
-type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type PolarAnimationEvent = 'update' | 'updateData' | 'clear';
-type PolarAnimationData = { duration: number };
+export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+export type PolarAnimationEvent = 'update' | 'updateData' | 'clear';
+export type PolarAnimationData = { duration?: number };
 
 export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<SeriesNodeDataContext<S>> {
     /**
