@@ -29,7 +29,7 @@ const palette: AgChartThemePalette = {
 };
 
 export class VividLight extends ChartTheme {
-    protected getPalette(): AgChartThemePalette {
+    protected override getPalette(): AgChartThemePalette {
         return palette;
     }
 }

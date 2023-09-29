@@ -6,7 +6,7 @@ import { Shape } from './shape';
 export class Range extends Shape {
     static className = 'Range';
 
-    protected static defaultStyles = {
+    protected static override defaultStyles = {
         ...Shape.defaultStyles,
         strokeWidth: 1,
     };
@@ -37,7 +37,7 @@ export class Range extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
     isRange: boolean = false;
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         return new BBox(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
     }
 
@@ -45,7 +45,7 @@ export class Range extends Shape {
         return false;
     }
 
-    render(renderCtx: RenderContext) {
+    override render(renderCtx: RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
