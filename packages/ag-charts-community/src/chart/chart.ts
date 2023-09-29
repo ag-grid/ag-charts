@@ -109,6 +109,8 @@ class SeriesArea {
 export abstract class Chart extends Observable implements AgChartInstance {
     readonly id = createId(this);
 
+    className?: string;
+
     processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
     userOptions: AgChartOptions = {};
     queuedUserOptions: AgChartOptions[] = [];

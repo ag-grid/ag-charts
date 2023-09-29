@@ -6,7 +6,7 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import * as pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
-import { AgChart, type AgChartProxy, _ModuleSupport } from '../../main';
+import { AgChart, _ModuleSupport } from '../../main';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -15,6 +15,7 @@ import type {
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
 import type { Chart } from '../chart';
+import type { AgChartProxy } from '../chartProxy';
 import * as mockCanvas from './mock-canvas';
 
 const { Animation, AnimationManager, resetIds } = _ModuleSupport;
@@ -77,7 +78,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
 }
 
 function isChartInstance(chartOrProxy: AgChartInstance): chartOrProxy is Chart {
-    return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || chartOrProxy.className != null;
+    return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || (chartOrProxy as Chart).className != null;
 }
 
 export function deproxy(chartOrProxy: AgChartProxy | Chart): Chart {

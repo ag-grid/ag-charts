@@ -1,5 +1,9 @@
-import type { AgChartProxy } from '../options/chart/chartBuilderOptions';
+import type { AgChartInstance } from '../options/chart/chartBuilderOptions';
 import type { Chart } from './chart';
+
+export interface AgChartProxy extends AgChartInstance {
+    chart: AgChartInstance;
+}
 
 /**
  * Proxy class, to allow library users to keep a stable reference to their chart, even if we need
