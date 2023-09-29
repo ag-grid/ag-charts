@@ -1,4 +1,4 @@
-import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../../options/chart/crossLineOptions';
+import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../../options/agChartOptions';
 import type { Scale } from '../../scale/scale';
 import type { Group } from '../../scene/group';
 import type { ChartAxisDirection } from '../chartAxisDirection';

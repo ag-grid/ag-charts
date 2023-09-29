@@ -1,4 +1,4 @@
-import type { AgChartLegendListeners } from '../options/chart/legendOptions';
+import type { AgChartLegendListeners } from '../options/agChartOptions';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { Marker } from './marker/marker';

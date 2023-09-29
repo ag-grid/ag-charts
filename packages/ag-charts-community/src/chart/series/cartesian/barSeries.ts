@@ -1,14 +1,15 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import * as easing from '../../../motion/easing';
-import type { AgTooltipRendererResult } from '../../../options/chart/tooltipOptions';
-import type { FontStyle, FontWeight } from '../../../options/chart/types';
 import type {
     AgBarSeriesFormat,
     AgBarSeriesFormatterParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesTooltipRendererParams,
-} from '../../../options/series/cartesian/barOptions';
-import type { AgCartesianSeriesLabelFormatterParams } from '../../../options/series/cartesian/cartesianLabelOptions';
+    AgCartesianSeriesLabelFormatterParams,
+    AgTooltipRendererResult,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';

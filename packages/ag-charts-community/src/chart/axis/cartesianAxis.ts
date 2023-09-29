@@ -1,5 +1,5 @@
 import type { AxisContext } from '../../module/moduleContext';
-import type { AgCartesianAxisPosition } from '../../options/series/cartesian/cartesianOptions';
+import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
 import type { Scale } from '../../scale/scale';
 import { NUMBER, POSITION, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';

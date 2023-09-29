@@ -25,5 +25,3 @@ export type DeepPartial<T> = T extends Array<unknown>
     : T;
 
 export type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-
-export type Intersection<U> = (U extends any ? (u: U) => void : never) extends (u: infer I) => void ? I : never;

@@ -1,5 +1,4 @@
-import type { AgChartThemeOptions } from '../../options/agChartOptions';
-import type { AgChartThemePalette } from '../../options/chart/themeOptions';
+import type { AgChartThemeOptions, AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_AXIS_GRID_COLOUR,

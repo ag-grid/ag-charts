@@ -2,7 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
-} from '../../../options/series/cartesian/cartesianSeriesMarkerOptions';
+} from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import { PointerEvents } from '../../../scene/node';

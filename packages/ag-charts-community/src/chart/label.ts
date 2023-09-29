@@ -1,4 +1,4 @@
-import type { FontStyle, FontWeight } from '../options/chart/types';
+import type { FontStyle, FontWeight } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import { getFont } from '../scene/shape/text';

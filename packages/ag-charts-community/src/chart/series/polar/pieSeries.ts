@@ -1,13 +1,13 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import * as easing from '../../../motion/easing';
 import { StateMachine } from '../../../motion/states';
-import type { AgTooltipRendererResult } from '../../../options/chart/tooltipOptions';
 import type {
     AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesTooltipRendererParams,
-} from '../../../options/series/polar/pieOptions';
+    AgTooltipRendererResult,
+} from '../../../options/agChartOptions';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';

@@ -1,5 +1,4 @@
-import type { AgAxisLabelFormatterParams } from '../../options/chart/axisOptions';
-import type { FontStyle, FontWeight } from '../../options/chart/types';
+import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../options/agChartOptions';
 import { getFont } from '../../scene/shape/text';
 import { Default } from '../../util/default';
 import {

@@ -1,7 +1,11 @@
-import type { AgChartLegendPosition } from '../../options/chart/legendOptions';
-import type { AgPolarAxisShape, AgPolarAxisType } from '../../options/chart/polarAxisOptions';
-import type { FontWeight } from '../../options/chart/types';
-import type { AgCartesianAxisPosition, AgCartesianAxisType } from '../../options/series/cartesian/cartesianOptions';
+import type {
+    AgCartesianAxisPosition,
+    AgCartesianAxisType,
+    AgChartLegendPosition,
+    AgPolarAxisShape,
+    AgPolarAxisType,
+    FontWeight,
+} from '../../options/agChartOptions';
 
 export const BOLD: FontWeight = 'bold';
 export const NORMAL: FontWeight = 'normal';

@@ -1,4 +1,4 @@
-import type { FontStyle, FontWeight, TextWrap } from '../options/chart/types';
+import type { FontStyle, FontWeight, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../util/proxy';

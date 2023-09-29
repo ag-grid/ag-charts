@@ -1,4 +1,4 @@
-import type { AgChartThemePalette } from '../../options/chart/themeOptions';
+import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 
 const palette: AgChartThemePalette = {

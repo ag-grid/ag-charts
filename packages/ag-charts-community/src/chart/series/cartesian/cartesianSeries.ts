@@ -3,7 +3,7 @@ import { StateMachine } from '../../../motion/states';
 import type {
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
-} from '../../../options/series/cartesian/cartesianSeriesMarkerOptions';
+} from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import { Group } from '../../../scene/group';

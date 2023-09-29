@@ -1,5 +1,10 @@
-import type { AgAxisCaptionFormatterParams, AgAxisCaptionOptions } from '../../options/chart/axisOptions';
-import type { FontStyle, FontWeight, TextWrap } from '../../options/chart/types';
+import type {
+    AgAxisCaptionFormatterParams,
+    AgAxisCaptionOptions,
+    FontStyle,
+    FontWeight,
+    TextWrap,
+} from '../../options/agChartOptions';
 import {
     BOOLEAN,
     NUMBER,

@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import type { AgBarSeriesOptions } from '../../../options/series/cartesian/barOptions';
+import type { AgBarSeriesOptions } from '../../../options/agChartOptions';
 import { singleSeriesPaletteFactory } from '../../../util/theme';
 import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES, NORMAL } from '../../themes/constants';
 import {
