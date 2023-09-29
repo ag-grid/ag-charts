@@ -361,7 +361,10 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         ];
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: BoxPlotNodeDatum
+    ): BoxPlotSeriesNodeClickEvent<'nodeClick'> {
         return new BoxPlotSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 

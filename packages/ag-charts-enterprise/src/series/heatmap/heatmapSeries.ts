@@ -155,7 +155,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         }
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: HeatmapNodeDatum): HeatmapSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: HeatmapNodeDatum
+    ): HeatmapSeriesNodeClickEvent<'nodeClick'> {
         return new HeatmapSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 

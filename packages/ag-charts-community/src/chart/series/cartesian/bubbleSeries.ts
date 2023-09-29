@@ -214,7 +214,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return this.fixNumericExtent(extent(domain), axis);
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: BubbleNodeDatum): BubbleSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: BubbleNodeDatum
+    ): BubbleSeriesNodeClickEvent<'nodeClick'> {
         return new BubbleSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 

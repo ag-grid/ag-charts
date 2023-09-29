@@ -420,7 +420,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RadarNodeDatum
+    ): RadarSeriesNodeClickEvent<'nodeClick'> {
         return new RadarSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
