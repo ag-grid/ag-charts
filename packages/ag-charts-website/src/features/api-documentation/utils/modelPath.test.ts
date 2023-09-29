@@ -1,4 +1,4 @@
-import { getLastTopLevelPath, createUnionNestedObjectPathItemRegex } from './modelPath';
+import { createUnionNestedObjectPathItemRegex, getLastTopLevelPath } from './modelPath';
 
 describe('createUnionNestedObjectPathItemRegex', () => {
     it('returns null for simple path items', () => {

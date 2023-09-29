@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+
 import { Alert } from './Alert';
 
 interface Props {

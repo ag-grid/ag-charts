@@ -2,11 +2,11 @@ import type { SeriesModule } from '../../../module/coreModules';
 import { NORMAL } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
 } from '../../themes/symbols';
 import { PieSeries } from './pieSeries';
 

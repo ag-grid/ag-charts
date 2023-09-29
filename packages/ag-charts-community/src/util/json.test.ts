@@ -1,5 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { jsonDiff, jsonMerge, DELETE, jsonWalk, jsonApply } from './json';
+
+import { DELETE, jsonApply, jsonDiff, jsonMerge, jsonWalk } from './json';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
 

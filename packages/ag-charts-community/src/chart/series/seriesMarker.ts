@@ -1,7 +1,7 @@
-import { Marker } from '../marker/marker';
-import { Circle } from '../marker/circle';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
-import { BOOLEAN, NUMBER, OPT_COLOR_STRING, OPT_NUMBER, predicateWithMessage, Validate } from '../../util/validation';
+import { BOOLEAN, NUMBER, OPT_COLOR_STRING, OPT_NUMBER, Validate, predicateWithMessage } from '../../util/validation';
+import { Circle } from '../marker/circle';
+import { Marker } from '../marker/marker';
 
 const MARKER_SHAPES = ['circle', 'cross', 'diamond', 'heart', 'plus', 'square', 'triangle'];
 const MARKER_SHAPE = predicateWithMessage(

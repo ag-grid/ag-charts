@@ -1,8 +1,8 @@
-import { Shape } from './shape';
-import { Path, ScenePathChangeDetection } from './path';
-import { BBox } from '../bbox';
 import { normalizeAngle360 } from '../../util/angle';
 import { isEqual } from '../../util/number';
+import { BBox } from '../bbox';
+import { Path, ScenePathChangeDetection } from './path';
+import { Shape } from './shape';
 
 enum ArcType {
     Open,

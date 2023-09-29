@@ -1,5 +1,5 @@
-import javascriptSvg from './javascript.svg';
 import angularSvg from './angular.svg';
+import javascriptSvg from './javascript.svg';
 import reactSvg from './react.svg';
 import solidSvg from './solid.svg';
 import vueSvg from './vue.svg';

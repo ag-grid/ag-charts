@@ -1,9 +1,10 @@
 import Code from '@components/Code';
-import { escapeGenericCode, getLinkedType } from '../utils/documentationHelpers';
+import type { FunctionComponent } from 'react';
+
 import type { ObjectCode } from '../types';
+import { escapeGenericCode, getLinkedType } from '../utils/documentationHelpers';
 import { formatJson } from '../utils/formatJson';
 import { getInterfaceName } from '../utils/getInterfaceName';
-import type { FunctionComponent } from 'react';
 
 export const ObjectCodeSample: FunctionComponent<ObjectCode> = ({ framework, id, breadcrumbs, properties }) => {
     const lines = [];

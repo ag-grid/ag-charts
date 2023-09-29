@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -14,10 +15,10 @@ import { ChartUpdateType } from '../chartUpdateType';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import {
+    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
     extractImageData,
-    IMAGE_SNAPSHOT_DEFAULTS,
     repeat,
     setupMockCanvas,
     waitForChartStability,

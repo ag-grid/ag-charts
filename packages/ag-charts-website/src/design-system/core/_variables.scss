@@ -40,7 +40,12 @@ $site-header-height: 64px;
 $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-$monospace-font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
+$monospace-font-family:
+    Consolas,
+    Monaco,
+    Andale Mono,
+    Ubuntu Mono,
+    monospace;
 
 $font-size-extra-small: px-to-rem(12); // convert px values to rems
 $font-size-small: px-to-rem(14); // convert px values to rems

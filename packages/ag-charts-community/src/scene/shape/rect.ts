@@ -1,7 +1,7 @@
-import { Path, ScenePathChangeDetection } from './path';
 import { BBox } from '../bbox';
-import { Shape } from './shape';
 import { Path2D } from '../path2D';
+import { Path, ScenePathChangeDetection } from './path';
+import { Shape } from './shape';
 
 export class Rect extends Path {
     static className = 'Rect';

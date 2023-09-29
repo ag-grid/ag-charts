@@ -1,20 +1,20 @@
 import type {
-    AgChartOptions,
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
+    AgChartOptions,
     AgChartThemePalette,
     AgTooltipPositionOptions,
 } from '../../options/agChartOptions';
-import { swapAxes } from './defaults';
 import type { JsonMergeOptions } from '../../util/json';
-import { jsonMerge, DELETE, jsonWalk } from '../../util/json';
-import { getChartTheme } from './themes';
-import type { SeriesOptions } from './prepareSeries';
-import { processSeriesOptions } from './prepareSeries';
+import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
+import { swapAxes } from './defaults';
+import type { SeriesOptions } from './prepareSeries';
+import { processSeriesOptions } from './prepareSeries';
+import { getChartTheme } from './themes';
 import {
     type AxesOptionsTypes,
     type SeriesOptionsTypes,

@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { Image } = _Scene;
 

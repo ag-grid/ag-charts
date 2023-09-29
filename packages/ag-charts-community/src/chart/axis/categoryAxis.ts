@@ -1,6 +1,6 @@
-import { NUMBER, Validate } from '../../util/validation';
-import { BandScale } from '../../scale/bandScale';
 import type { ModuleContext } from '../../module/moduleContext';
+import { BandScale } from '../../scale/bandScale';
+import { NUMBER, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {

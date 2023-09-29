@@ -9,6 +9,7 @@ import type { ZIndexSubOrder } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { createId } from '../../util/id';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
+import { Listeners } from '../../util/listeners';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
@@ -25,6 +26,8 @@ import {
 import { checkDatum } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
+import type { ChartSeries, SeriesNodeDatum } from '../chartSeries';
+import { SeriesNodePickMode } from '../chartSeries';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
@@ -32,13 +35,10 @@ import { fixNumericExtent } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
-import type { SeriesGrouping } from './seriesStateManager';
-import type { SeriesTooltip } from './seriesTooltip';
-import { Listeners } from '../../util/listeners';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
-import type { ChartSeries, SeriesNodeDatum } from '../chartSeries';
-import { SeriesNodePickMode } from '../chartSeries';
+import type { SeriesGrouping } from './seriesStateManager';
+import type { SeriesTooltip } from './seriesTooltip';
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -485,10 +485,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
         return this.seriesListeners.addListener(type, listener);
     }
 
-    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
-        type: T,
-        event: E
-    ): R[] | void {
+    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R>(type: T, event: E): R[] | undefined {
         return this.seriesListeners.dispatch(type, event);
     }
 

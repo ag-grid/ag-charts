@@ -1,11 +1,11 @@
-import { _Scene, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
+
+import { NavigatorHandle } from './navigatorHandle';
+import { NavigatorMask } from './navigatorMask';
+import { RangeSelector } from './shapes/rangeSelector';
 
 const { BBox } = _Scene;
 const { BOOLEAN, NUMBER, Validate } = _ModuleSupport;
-
-import { RangeSelector } from './shapes/rangeSelector';
-import { NavigatorMask } from './navigatorMask';
-import { NavigatorHandle } from './navigatorHandle';
 
 interface Offset {
     offsetX: number;

@@ -1,7 +1,8 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
-import { HeatmapSeries } from './heatmapSeries';
+
 import { HEATMAP_DEFAULTS } from './heatmapDefaults';
+import { HeatmapSeries } from './heatmapSeries';
 import { HEATMAP_SERIES_THEME } from './heatmapThemes';
 
 export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {

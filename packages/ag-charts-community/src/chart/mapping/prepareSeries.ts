@@ -1,13 +1,13 @@
-import { Debug } from '../../util/debug';
-import { Logger } from '../../util/logger';
 import type {
     AgCartesianSeriesOptions,
-    AgPolarSeriesOptions,
-    AgHierarchySeriesOptions,
     AgChartOptions,
+    AgHierarchySeriesOptions,
+    AgPolarSeriesOptions,
 } from '../../options/agChartOptions';
+import { Debug } from '../../util/debug';
+import { Logger } from '../../util/logger';
+import { isGroupableSeries, isSeriesStackedByDefault, isStackableSeries } from '../factory/seriesTypes';
 import type { SeriesGrouping } from '../series/seriesStateManager';
-import { isStackableSeries, isGroupableSeries, isSeriesStackedByDefault } from '../factory/seriesTypes';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
 
@@ -120,14 +120,17 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
     });
 
     const grouped = groupSeriesByType(preprocessed);
-    const groupCount = grouped.reduce((result, next) => {
-        if (next.type === 'ungrouped') return result;
+    const groupCount = grouped.reduce(
+        (result, next) => {
+            if (next.type === 'ungrouped') return result;
 
-        const seriesType = next.opts[0].type ?? 'line';
-        result[seriesType] ??= 0;
-        result[seriesType] += next.type === 'stack' ? 1 : next.opts.length;
-        return result;
-    }, {} as Record<string, number>);
+            const seriesType = next.opts[0].type ?? 'line';
+            result[seriesType] ??= 0;
+            result[seriesType] += next.type === 'stack' ? 1 : next.opts.length;
+            return result;
+        },
+        {} as Record<string, number>
+    );
 
     const groupIdx: Record<string, number> = {};
     const addSeriesGroupingMeta = (group: { type: 'group' | 'stack' | 'ungrouped'; opts: SeriesOptions[] }) => {

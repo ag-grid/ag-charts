@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+
 import { ColorScale } from './colorScale';
 
 test('domain', () => {

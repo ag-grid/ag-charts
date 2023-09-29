@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+
 import { interpolate } from './string';
 import { buildFormatter } from './timeFormat';
 

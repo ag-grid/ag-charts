@@ -1,4 +1,5 @@
 import Code from '@components/Code';
+
 import styles from './CodeView.module.scss';
 import { formatJson } from './utils';
 

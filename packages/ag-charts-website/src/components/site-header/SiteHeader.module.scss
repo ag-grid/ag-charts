@@ -206,7 +206,9 @@
             background-color: var(--link-color);
             opacity: 0;
             transform: scaleX(0);
-            transition: transform 0.33s ease-in-out, opacity 0.33s ease-in-out;
+            transition:
+                transform 0.33s ease-in-out,
+                opacity 0.33s ease-in-out;
         }
     }
 
@@ -240,7 +242,9 @@
         padding-left: 24px;
 
         &:hover svg {
-            box-shadow: 0 0 0 3px var(--site-header-background), 0 0 0 6px rgba(white, 0.3);
+            box-shadow:
+                0 0 0 3px var(--site-header-background),
+                0 0 0 6px rgba(white, 0.3);
         }
 
         svg {

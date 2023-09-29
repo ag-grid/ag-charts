@@ -1,17 +1,17 @@
-import { PointerEvents } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import type { DropShadow } from '../../../scene/dropShadow';
-import type { BBox } from '../../../scene/bbox';
-import type { Marker } from '../../marker/marker';
-import type { Text } from '../../../scene/shape/text';
-import type { Path } from '../../../scene/shape/path';
-import type { Point } from '../../../scene/point';
+import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
+import type { BBox } from '../../../scene/bbox';
+import type { DropShadow } from '../../../scene/dropShadow';
+import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
+import type { Selection } from '../../../scene/selection';
+import type { Path } from '../../../scene/shape/path';
+import type { Text } from '../../../scene/shape/text';
+import type { Marker } from '../../marker/marker';
 import type { SeriesNodeDataContext } from '../series';
-import type { ModuleContext } from '../../../module/moduleContext';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 export enum AreaSeriesTag {
@@ -56,7 +56,7 @@ export function areaAnimateEmptyUpdateReady<
         strokeData: StrokeDatum;
     },
     FormatterParams extends Omit<AgCartesianSeriesMarkerFormatterParams<MarkerNodeDatum>, 'yKey' | 'yValue'>,
-    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined
+    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined,
 >({
     markerSelections,
     labelSelections,
@@ -274,7 +274,7 @@ export function areaAnimateReadyUpdate<
     ContextDatum extends SeriesNodeDataContext<MarkerNodeDatum, LabelNodeDatum> & {
         fillData: FillDatum;
         strokeData: StrokeDatum;
-    }
+    },
 >({
     contextData,
     paths,
@@ -348,7 +348,7 @@ export function areaResetMarkersAndPaths<
         strokeData: StrokeDatum;
     },
     FormatterParams extends Omit<AgCartesianSeriesMarkerFormatterParams<MarkerNodeDatum>, 'yKey' | 'yValue'>,
-    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined
+    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined,
 >({
     markerSelections,
     labelSelections,
@@ -442,7 +442,7 @@ export function areaResetMarkersAndPaths<
 function areaAnimateFormatter<
     MarkerNodeDatum extends MarkerDatum,
     FormatterParams extends Omit<AgCartesianSeriesMarkerFormatterParams<MarkerNodeDatum>, 'yKey' | 'yValue'>,
-    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined
+    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined,
 >({
     datum,
     ctx: { callbackCache },

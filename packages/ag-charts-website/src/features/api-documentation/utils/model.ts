@@ -379,14 +379,17 @@ function resolveFunctionType(
             param,
             resolveType(typeStr, interfaceLookup, codeLookup, context, config),
         ])
-        .reduce((result, [param, type]) => {
-            result[param] = {
-                deprecated: false,
-                desc: type,
-                required: true,
-            };
-            return result;
-        }, {} as Record<string, JsonModelProperty>);
+        .reduce(
+            (result, [param, type]) => {
+                result[param] = {
+                    deprecated: false,
+                    desc: type,
+                    required: true,
+                };
+                return result;
+            },
+            {} as Record<string, JsonModelProperty>
+        );
 
     return {
         type: 'function',

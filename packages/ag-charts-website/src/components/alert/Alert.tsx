@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import type { FunctionComponent, ReactNode } from 'react';
+
 import { Icon } from '../icon/Icon';
 import styles from './Alert.module.scss';
 

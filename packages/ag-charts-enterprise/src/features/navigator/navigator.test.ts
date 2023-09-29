@@ -1,15 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import type { AgCartesianChartOptions } from 'ag-charts-community';
 import {
-    cartesianChartAssertions,
-    type CartesianTestCase,
     CROSSLINE_EXAMPLES,
-    extractImageData,
+    type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
+    cartesianChartAssertions,
+    extractImageData,
     repeat,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

@@ -1,10 +1,10 @@
-import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, predicateWithMessage, Validate } from '../../util/validation';
-import { Default } from '../../util/default';
-import { LogScale } from '../../scale/logScale';
-import { NumberAxis } from './numberAxis';
-import { normalisedExtentWithMetadata } from '../../util/array';
-import { Logger } from '../../util/logger';
 import type { ModuleContext } from '../../module/moduleContext';
+import { LogScale } from '../../scale/logScale';
+import { normalisedExtentWithMetadata } from '../../util/array';
+import { Default } from '../../util/default';
+import { Logger } from '../../util/logger';
+import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate, predicateWithMessage } from '../../util/validation';
+import { NumberAxis } from './numberAxis';
 
 function NON_ZERO_NUMBER() {
     // Cannot be 0

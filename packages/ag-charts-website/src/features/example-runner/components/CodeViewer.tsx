@@ -1,12 +1,13 @@
+import type { InternalFramework } from '@ag-grid-types';
+import Code from '@components/Code';
+import { Icon } from '@components/icon/Icon';
+import type { ExampleType, FileContents } from '@features/examples-generator/types';
+import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
-import Code from '@components/Code';
-import { doOnEnter } from '@utils/doOnEnter';
-import { Icon } from '@components/icon/Icon';
+
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
-import type { InternalFramework } from '@ag-grid-types';
-import type { ExampleType, FileContents } from '@features/examples-generator/types';
 
 /**
  * This renders the code viewer in the example runner.

@@ -1,16 +1,16 @@
-export const prerender = true;
-
-import { getEntry } from 'astro:content';
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+import { getEntry } from 'astro:content';
 import { JSDOM } from 'jsdom';
+
+import { AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import * as mockCanvas from '../../../../../ag-charts-community/src/chart/test/mock-canvas';
-import { AgEnterpriseCharts } from 'ag-charts-enterprise';
-
-import { getGeneratedGalleryContents } from '../../../features/gallery/utils/examplesGenerator';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../../../features/gallery/constants';
+import { getGeneratedGalleryContents } from '../../../features/gallery/utils/examplesGenerator';
 import { transformPlainEntryFile } from '../../../features/gallery/utils/transformPlainEntryFile';
+
+export const prerender = true;
 
 interface Params {
     exampleName: string;

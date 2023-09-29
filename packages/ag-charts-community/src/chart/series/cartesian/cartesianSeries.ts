@@ -1,3 +1,4 @@
+import type { ModuleContext } from '../../../module/moduleContext';
 import { StateMachine } from '../../../motion/states';
 import type {
     AgCartesianSeriesMarkerFormat,
@@ -14,20 +15,19 @@ import { Text } from '../../../scene/shape/text';
 import { Debug } from '../../../util/debug';
 import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import type { ModuleContext } from '../../../module/moduleContext';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { getMarker } from '../../marker/util';
+import type { ChartSeries, SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
-import type { ChartSeries, SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
+import { Layers } from '../../layers';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
 import type { SeriesNodeDataContext, SeriesNodePickMatch } from '../series';
 import { Series, SeriesNodeBaseClickEvent } from '../series';
-import type { Marker } from '../../marker/marker';
-import { Layers } from '../../layers';
-import { SeriesMarker } from '../seriesMarker';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
+import { SeriesMarker } from '../seriesMarker';
 
 type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
     N,
@@ -85,13 +85,13 @@ export class CartesianSeriesNodeBaseClickEvent<Datum extends { datum: any }> ext
 }
 
 export class CartesianSeriesNodeClickEvent<
-    Datum extends { datum: any }
+    Datum extends { datum: any },
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeClick';
 }
 
 export class CartesianSeriesNodeDoubleClickEvent<
-    Datum extends { datum: any }
+    Datum extends { datum: any },
 > extends CartesianSeriesNodeBaseClickEvent<Datum> {
     readonly type = 'nodeDoubleClick';
 }
@@ -111,7 +111,7 @@ export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any
 
 export abstract class CartesianSeries<
     C extends SeriesNodeDataContext<any, any>,
-    N extends Node = Group
+    N extends Node = Group,
 > extends Series<C> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;

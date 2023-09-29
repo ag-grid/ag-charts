@@ -1,7 +1,7 @@
-import type { Scale } from './scale';
+import { interpolateColor } from '../interpolate';
 import { Color } from '../util/color';
 import { Logger } from '../util/logger';
-import { interpolateColor } from '../interpolate';
+import type { Scale } from './scale';
 
 export class ColorScale implements Scale<number, string, number> {
     domain = [0, 1];

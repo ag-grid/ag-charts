@@ -1,4 +1,5 @@
 import type { FunctionComponent } from 'react';
+
 import type { ApiDocumentationProps, Config, DocEntryMap } from '../types';
 import { Section } from './Section';
 

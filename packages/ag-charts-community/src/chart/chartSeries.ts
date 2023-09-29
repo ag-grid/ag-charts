@@ -1,10 +1,10 @@
+import type { ModuleMap } from '../module/moduleMap';
 import type { InteractionRange } from '../options/chart/types';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { ZIndexSubOrder } from '../scene/node';
 import type { Point, SizedPoint } from '../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
-import type { ModuleMap } from '../module/moduleMap';
 import type { TypedEventListener } from '../util/observable';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
@@ -103,7 +103,7 @@ export interface ChartSeries {
         placeLabels(): Map<ChartSeries, PlacedLabel[]>;
         getSeriesRect(): Readonly<BBox> | undefined;
     };
-    setChartData(input: unknown[]) : void;
+    setChartData(input: unknown[]): void;
     rootGroup: Group;
     contentGroup: Group;
     getGroupZIndexSubOrder(

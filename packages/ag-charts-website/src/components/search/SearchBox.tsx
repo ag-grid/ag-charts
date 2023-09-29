@@ -1,6 +1,7 @@
 import classnames from 'classnames';
 import React, { useState } from 'react';
 import { connectSearchBox } from 'react-instantsearch-dom';
+
 import { Icon } from '../icon/Icon';
 import styles from './SearchBox.module.scss';
 

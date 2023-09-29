@@ -3,8 +3,8 @@ import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
 export interface AgHistogramSeriesLabelOptions extends AgCartesianSeriesLabelOptions {}
 

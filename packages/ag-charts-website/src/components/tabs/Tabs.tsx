@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import { FunctionComponent, ReactNode, useState } from 'react';
+
 import styles from './Tabs.module.scss';
 
 const TAB_LABEL_PROP = 'tab-label'; // NOTE: kebab case to match markdown html props

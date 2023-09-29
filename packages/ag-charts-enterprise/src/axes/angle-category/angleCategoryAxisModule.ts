@@ -1,7 +1,8 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
-import { AngleCategoryAxis } from './angleCategoryAxis';
+
 import { ANGLE_AXIS_THEME } from '../angle/angleAxisThemes';
+import { AngleCategoryAxis } from './angleCategoryAxis';
 
 export const AngleCategoryAxisModule: _ModuleSupport.AxisModule = {
     type: 'axis',

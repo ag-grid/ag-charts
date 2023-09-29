@@ -1,5 +1,5 @@
-import { Background } from './background';
 import type { Module } from '../../module/module';
+import { Background } from './background';
 
 export const BackgroundModule: Module = {
     type: 'root',

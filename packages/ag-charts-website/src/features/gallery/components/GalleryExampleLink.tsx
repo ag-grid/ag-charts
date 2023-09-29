@@ -1,6 +1,7 @@
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
-import { getPlainExampleImageUrl, getPageUrl } from '../utils/urlPaths';
+
+import { getPageUrl, getPlainExampleImageUrl } from '../utils/urlPaths';
 import styles from './GalleryExampleLink.module.scss';
 
 interface Props {

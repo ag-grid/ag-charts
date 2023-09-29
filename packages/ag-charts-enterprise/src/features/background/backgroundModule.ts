@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+
 import { Background } from './background';
 import { BackgroundImage } from './backgroundImage';
 

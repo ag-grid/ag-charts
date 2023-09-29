@@ -76,7 +76,9 @@
     border: 2px solid transparent;
     color: var(--secondary-text-color);
     font-weight: var(--font-weight-bold);
-    transition: color $default-transition-timing, border-color $default-transition-timing;
+    transition:
+        color $default-transition-timing,
+        border-color $default-transition-timing;
 
     &::before {
         content: '';
@@ -131,7 +133,9 @@ a.sectionHeader {
     color: var(--text-color) !important;
     border: 2px solid transparent;
     outline: none;
-    transition: color $default-transition-timing, border-color $default-transition-timing;
+    transition:
+        color $default-transition-timing,
+        border-color $default-transition-timing;
     border-radius: var(--border-radius);
 
     &:hover {
@@ -160,7 +164,9 @@ a.sectionHeader {
         position: relative;
         top: -1px;
         margin-right: $size-1;
-        transition: transform 0.33s ease-in-out, fill $default-transition-timing;
+        transition:
+            transform 0.33s ease-in-out,
+            fill $default-transition-timing;
 
         &.active {
             transform: rotate(90deg) !important;
@@ -220,7 +226,9 @@ a.sectionHeader {
     border: 2px solid transparent;
     color: var(--secondary-text-color);
     font-weight: var(--font-weight-bold);
-    transition: color $default-transition-timing, border-color $default-transition-timing;
+    transition:
+        color $default-transition-timing,
+        border-color $default-transition-timing;
 
     &::before {
         content: '';
@@ -323,7 +331,9 @@ button .menuIcon {
     bottom: 0.15em;
     margin-right: $size-half;
     opacity: 0.6666;
-    transition: fill $default-transition-timing, opacity $default-transition-timing;
+    transition:
+        fill $default-transition-timing,
+        opacity $default-transition-timing;
 }
 
 a :global(.icon).menuIcon {
@@ -333,5 +343,7 @@ a :global(.icon).menuIcon {
     margin-bottom: $size-half;
     margin-right: $size-half;
     opacity: 0.5;
-    transition: fill $default-transition-timing, opacity $default-transition-timing;
+    transition:
+        fill $default-transition-timing,
+        opacity $default-transition-timing;
 }

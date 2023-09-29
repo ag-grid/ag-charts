@@ -1,5 +1,5 @@
+import { durationDay, durationWeek } from './duration';
 import { CountableTimeInterval } from './interval';
-import { durationWeek, durationDay } from './duration';
 
 const baseSunday = Date.UTC(2023, 0, 1);
 

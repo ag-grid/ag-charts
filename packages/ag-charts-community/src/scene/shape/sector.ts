@@ -1,8 +1,8 @@
-import { Path, ScenePathChangeDetection } from './path';
 import { normalizeAngle360 } from '../../util/angle';
 import { isEqual } from '../../util/number';
 import { isPointInSector } from '../../util/sector';
 import { BBox } from '../bbox';
+import { Path, ScenePathChangeDetection } from './path';
 
 export class Sector extends Path {
     static className = 'Sector';

@@ -1,14 +1,9 @@
+import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../../options/agChartOptions';
+import { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import type { Marker } from '../marker/marker';
-import { Triangle } from '../marker/triangle';
 import { Text } from '../../scene/shape/text';
-import { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
-import { getMarker } from '../marker/util';
 import { createId } from '../../util/id';
-import type { InteractionEvent, InteractionManager } from '../interaction/interactionManager';
-import type { CursorManager } from '../interaction/cursorManager';
-import { ChartUpdateType } from '../chartUpdateType';
 import {
     COLOR_STRING,
     NUMBER,
@@ -19,7 +14,12 @@ import {
     STRING,
     Validate,
 } from '../../util/validation';
-import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../../options/agChartOptions';
+import { ChartUpdateType } from '../chartUpdateType';
+import type { CursorManager } from '../interaction/cursorManager';
+import type { InteractionEvent, InteractionManager } from '../interaction/interactionManager';
+import type { Marker } from '../marker/marker';
+import { Triangle } from '../marker/triangle';
+import { getMarker } from '../marker/util';
 
 class PaginationLabel {
     @Validate(COLOR_STRING)

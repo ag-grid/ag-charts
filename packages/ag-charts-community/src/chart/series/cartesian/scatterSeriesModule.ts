@@ -1,12 +1,12 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../util/theme';
+import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } from '../../themes/constants';
 import { ScatterSeries } from './scatterSeries';
 
 export const ScatterSeriesModule: SeriesModule<'scatter'> = {

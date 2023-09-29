@@ -1,5 +1,6 @@
 import type { AgAngleAxisLabelOrientation, _Scale } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
 const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate, predicateWithMessage } =

@@ -1,3 +1,4 @@
+import { templatePlaceholder } from './grid-vanilla-src-parser';
 import type { ImportType } from './parser-utils';
 import {
     convertFunctionToConstProperty,
@@ -5,8 +6,8 @@ import {
     getModuleRegistration,
     isInstanceMethod,
 } from './parser-utils';
-import { convertFunctionalTemplate, convertFunctionToConstCallback, getImport, getValueType } from './react-utils';
-import { templatePlaceholder } from './grid-vanilla-src-parser';
+import { convertFunctionToConstCallback, convertFunctionalTemplate, getImport, getValueType } from './react-utils';
+
 const path = require('path');
 
 function getModuleImports(bindings: any, componentFilenames: string[], allStylesheets: string[]): string[] {
@@ -92,8 +93,8 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
     const { gridSettings } = bindings;
     const agGridTag = `
         <div ${gridSettings.myGridReference ? 'id="myGrid"' : ''} style={gridStyle} className="${
-        gridSettings.theme
-    }">             
+            gridSettings.theme
+        }">             
             <AgGridReact
                 ref={gridRef}
                 ${componentAttributes.join('\n')}

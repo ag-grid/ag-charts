@@ -1,9 +1,9 @@
-import type { RenderContext, LayerManager, ZIndexSubOrder } from './node';
-import { Node, RedrawType, SceneChangeDetection } from './node';
+import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import { compoundAscending, ascendingStringNumberUndefined } from '../util/compare';
+import type { LayerManager, RenderContext, ZIndexSubOrder } from './node';
+import { Node, RedrawType, SceneChangeDetection } from './node';
 
 type OffscreenCanvasRenderingContext2D = any;
 

@@ -1,26 +1,26 @@
-import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
-import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
-import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
+import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
+import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
+import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
+import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rangeAreaOptions';
 import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/rangeBarOptions';
+import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
+import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
+import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
+import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
 import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from '../series/polar/polarOptions';
 import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAreaOptions';
+import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
-import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
-import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
-import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
-import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
-import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
-import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
-import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
-import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
-import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rangeAreaOptions';
+import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 
 export type AgChartThemeName =
     | 'ag-default'

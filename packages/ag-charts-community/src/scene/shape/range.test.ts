@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { setupMockCanvas, extractImageData } from '../../chart/test/utils';
+
+import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
 import { Range } from './range';
 
 const CANVAS_WIDTH = 1150;

@@ -1,7 +1,7 @@
-import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
-import { templatePlaceholder } from './chart-vanilla-src-parser';
-import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './vue-utils';
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
+import { templatePlaceholder } from './chart-vanilla-src-parser';
+import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
+import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './vue-utils';
 
 function processFunction(code: string): string {
     return wrapOptionsUpdateCode(removeFunctionKeyword(code));

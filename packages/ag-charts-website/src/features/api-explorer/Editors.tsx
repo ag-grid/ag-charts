@@ -2,12 +2,12 @@
  * These are the different editors available to be used in the Standalone Charts API Explorer, depending on the data
  * type of the particular option.
  */
-
+import type { JsonModelProperty, JsonProperty } from '@features/api-documentation/utils/model';
 import classnames from 'classnames';
 import React, { useState } from 'react';
 import { AlphaPicker, HuePicker } from 'react-color';
+
 import styles from './Editors.module.scss';
-import type { JsonModelProperty, JsonProperty } from '@features/api-documentation/utils/model';
 
 type FontFamily = string;
 type FontSize = number;

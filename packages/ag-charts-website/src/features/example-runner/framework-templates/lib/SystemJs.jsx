@@ -1,21 +1,20 @@
-import React from 'react';
 import {
+    DEV_FILE_BASE_PATH,
+    SITE_BASE_URL,
     agChartsAngularVersion,
     agChartsReactVersion,
     agChartsVersion,
     agChartsVueVersion,
     agGridAngularVersion,
+    agGridEnterpriseVersion,
     agGridReactVersion,
     agGridVersion,
     agGridVue3Version,
     agGridVueVersion,
-    agGridEnterpriseVersion,
-    SITE_BASE_URL,
-    DEV_FILE_BASE_PATH,
 } from '@constants';
+import { isBuildServerBuild, isPreProductionBuild, isUsingPublishedPackages } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
-
-import { isUsingPublishedPackages, isBuildServerBuild, isPreProductionBuild } from '@utils/pages';
+import React from 'react';
 
 const localPrefix = pathJoin(import.meta.env?.SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
 

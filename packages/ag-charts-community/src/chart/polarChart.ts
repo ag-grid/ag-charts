@@ -1,14 +1,14 @@
-import type { SpecialOverrides, TransferableResources } from './chart';
-import { Chart } from './chart';
-import { PolarSeries } from './series/polar/polarSeries';
+import { BBox } from '../scene/bbox';
 import { toRadians } from '../util/angle';
 import { Padding } from '../util/padding';
-import { BBox } from '../scene/bbox';
-import { PieSeries } from './series/polar/pieSeries';
-import { ChartAxisDirection } from './chartAxisDirection';
 import { PolarAxis } from './axis/polarAxis';
-import { Layers } from './layers';
+import type { SpecialOverrides, TransferableResources } from './chart';
+import { Chart } from './chart';
+import { ChartAxisDirection } from './chartAxisDirection';
 import type { SeriesNodeDatum } from './chartSeries';
+import { Layers } from './layers';
+import { PieSeries } from './series/polar/pieSeries';
+import { PolarSeries } from './series/polar/polarSeries';
 
 export class PolarChart extends Chart {
     static className = 'PolarChart';

@@ -1,5 +1,5 @@
-import { CountableTimeInterval } from './interval';
 import { durationMinute } from './duration';
+import { CountableTimeInterval } from './interval';
 
 function encode(date: Date) {
     return Math.floor(date.getTime() / durationMinute);

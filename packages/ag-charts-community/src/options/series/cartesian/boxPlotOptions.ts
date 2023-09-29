@@ -1,5 +1,7 @@
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { CssColor, Ratio } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type {
     AgSeriesFormatterParams,
     AxisOptions,
@@ -7,8 +9,6 @@ import type {
     LineDashOptions,
     StrokeOptions,
 } from './commonOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, Ratio } from '../../chart/types';
 
 interface BoxPlotUniqueOptions {
     // required

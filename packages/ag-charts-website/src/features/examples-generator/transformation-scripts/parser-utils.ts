@@ -1,5 +1,5 @@
-import ts from 'typescript';
 import { transform } from 'sucrase';
+import ts from 'typescript';
 
 export type ImportType = 'packages' | 'modules';
 

@@ -1,5 +1,6 @@
 import type { ImportType } from './parser-utils';
 import { addBindingImports } from './parser-utils';
+
 const fs = require('fs-extra');
 
 export function vanillaToTypescript(bindings: any, mainFilePath: string): (importType: ImportType) => string {

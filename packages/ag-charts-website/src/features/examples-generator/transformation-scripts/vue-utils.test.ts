@@ -1,12 +1,12 @@
 import {
-    toKebabCase,
-    toInput,
-    toConst,
-    toOutput,
-    toMember,
-    toAssignment,
-    getImport,
     convertTemplate,
+    getImport,
+    toAssignment,
+    toConst,
+    toInput,
+    toKebabCase,
+    toMember,
+    toOutput,
 } from './vue-utils';
 
 describe('toKebabCase', () => {

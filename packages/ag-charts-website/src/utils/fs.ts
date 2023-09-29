@@ -1,5 +1,6 @@
 import fsOriginal from 'node:fs';
 import fs from 'node:fs/promises';
+
 import { pathJoin } from './pathJoin';
 
 /**

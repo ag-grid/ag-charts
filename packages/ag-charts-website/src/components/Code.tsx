@@ -1,4 +1,3 @@
-import { memo, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-bash';
@@ -10,6 +9,7 @@ import 'prismjs/components/prism-sql';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/plugins/keep-markup/prism-keep-markup';
 import 'prismjs/plugins/line-numbers/prism-line-numbers';
+import { memo, useEffect, useRef } from 'react';
 
 const GrammarMap = {
     js: Prism.languages.javascript,

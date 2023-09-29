@@ -18,6 +18,8 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { NUMBER, OPT_COLOR_STRING, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
 import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { SeriesNodeDatum } from '../../chartSeries';
+import { SeriesNodePickMode } from '../../chartSeries';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
@@ -36,8 +38,6 @@ import {
     CartesianSeriesNodeDoubleClickEvent,
 } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
-import type { SeriesNodeDatum} from '../../chartSeries';
-import { SeriesNodePickMode } from '../../chartSeries';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
     readonly point: SeriesNodeDatum['point'] & {

@@ -1,5 +1,6 @@
 import { expect } from '@jest/globals';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
+
 import { toMatchImage } from './src/chart/test/utils';
 
 declare module 'expect' {

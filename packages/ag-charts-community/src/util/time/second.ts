@@ -1,5 +1,5 @@
+import { durationMinute, durationSecond } from './duration';
 import { CountableTimeInterval } from './interval';
-import { durationSecond, durationMinute } from './duration';
 
 const offset = new Date().getTimezoneOffset() * durationMinute;
 

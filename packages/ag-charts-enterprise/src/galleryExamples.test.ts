@@ -1,22 +1,27 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import type { AgChartOptions } from 'ag-charts-community';
 import {
-    extractImageData,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+
 import { AgEnterpriseCharts } from './main';
 import { prepareEnterpriseTestOptions } from './test/utils';
 
 const ENTERPRISE_GALLERY_EXAMPLES = Object.entries(GALLERY_EXAMPLES)
     .filter(([, v]) => v.enterprise)
-    .reduce((pv, [k, v]) => {
-        pv[k] = v;
-        return pv;
-    }, {} as typeof GALLERY_EXAMPLES);
+    .reduce(
+        (pv, [k, v]) => {
+            pv[k] = v;
+            return pv;
+        },
+        {} as typeof GALLERY_EXAMPLES
+    );
 
 describe('Gallery Examples', () => {
     let chart: any;

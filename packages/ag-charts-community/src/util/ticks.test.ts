@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+
 import type { NumericTicks } from './ticks';
 import getTicks from './ticks';
 

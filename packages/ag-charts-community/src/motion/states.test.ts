@@ -1,4 +1,5 @@
-import { describe, expect, it, beforeEach, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import { StateMachine } from './states';
 
 describe('Animation States', () => {

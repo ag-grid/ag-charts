@@ -1,7 +1,8 @@
-import type { ImportType } from './parser-utils';
-import { isInstanceMethod, convertFunctionToProperty, getModuleRegistration } from './parser-utils';
-import { convertTemplate, getImport } from './react-utils';
 import { templatePlaceholder } from './grid-vanilla-src-parser';
+import type { ImportType } from './parser-utils';
+import { convertFunctionToProperty, getModuleRegistration, isInstanceMethod } from './parser-utils';
+import { convertTemplate, getImport } from './react-utils';
+
 const path = require('path');
 
 function getModuleImports(bindings: any, componentFilenames: string[], allStylesheets: string[]): string[] {

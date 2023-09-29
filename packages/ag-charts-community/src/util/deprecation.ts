@@ -1,4 +1,4 @@
-import { addTransformToInstanceProperty, BREAK_TRANSFORM_CHAIN } from './decorator';
+import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { Logger } from './logger';
 
 function createDeprecationWarning() {

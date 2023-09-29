@@ -1,12 +1,12 @@
-import { Rect } from '../../scene/shape/rect';
-import { Group } from '../../scene/group';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
+import { Group } from '../../scene/group';
+import { Rect } from '../../scene/shape/rect';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { BOOLEAN, OPT_COLOR_STRING, Validate } from '../../util/validation';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
 import { Layers } from '../layers';
+import type { LayoutCompleteEvent } from '../layout/layoutService';
 
 export class Background extends BaseModuleInstance implements ModuleInstance {
     private node: Group;

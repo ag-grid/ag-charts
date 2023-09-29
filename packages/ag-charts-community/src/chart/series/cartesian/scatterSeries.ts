@@ -15,7 +15,9 @@ import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacemen
 import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING_ARRAY, OPT_FUNCTION, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { SeriesNodePickMode } from '../../chartSeries';
 import type { DataController } from '../../data/dataController';
+import type { DataModelOptions } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -27,8 +29,6 @@ import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
-import type { DataModelOptions } from '../../data/dataModel';
-import { SeriesNodePickMode } from '../../chartSeries';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly label: MeasuredLabel;

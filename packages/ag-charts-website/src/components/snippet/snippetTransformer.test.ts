@@ -1,5 +1,6 @@
-import { FRAMEWORKS } from '@constants';
 import type { Framework } from '@ag-grid-types';
+import { FRAMEWORKS } from '@constants';
+
 import { transform } from './snippetTransformer';
 
 const supportedFrameworks = FRAMEWORKS;

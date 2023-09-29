@@ -1,13 +1,13 @@
+import type { ModuleContext } from '../../module/moduleContext';
 import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
-import { Validate, GREATER_THAN, AND, LESS_THAN, NUMBER_OR_NAN } from '../../util/validation';
 import { Default } from '../../util/default';
-import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { Logger } from '../../util/logger';
+import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
+import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } from '../../util/validation';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-import type { ModuleContext } from '../../module/moduleContext';
 
 class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))

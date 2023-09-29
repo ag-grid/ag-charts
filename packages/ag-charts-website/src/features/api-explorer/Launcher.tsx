@@ -1,5 +1,6 @@
 import { Icon } from '@components/icon/Icon';
 import { doOnEnter } from '@utils/doOnEnter';
+
 import styles from './Launcher.module.scss';
 
 interface Props {

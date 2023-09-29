@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+
 import { ErrorBars } from './errorBar';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 

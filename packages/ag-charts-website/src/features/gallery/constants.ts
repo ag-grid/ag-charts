@@ -1,5 +1,6 @@
-import { SITE_BASE_URL_SEGMENTS } from '@constants';
 import type { InternalFramework } from '@ag-grid-types';
+import { SITE_BASE_URL_SEGMENTS } from '@constants';
+
 import type { ExampleType } from '../examples-generator/types';
 
 export const GALLERY_INTERNAL_FRAMEWORK: InternalFramework = 'vanilla';

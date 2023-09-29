@@ -1,7 +1,6 @@
-import type { PointLabelDatum } from '../../../util/labelPlacement';
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { SeriesNodeDatum} from '../../chartSeries';
-import { SeriesNodePickMode } from '../../chartSeries';
+import type { PointLabelDatum } from '../../../util/labelPlacement';
+import { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
 import type { HierarchyChart } from '../../hierarchyChart';
 import type { SeriesNodeDataContext } from '../series';
 import { Series } from '../series';

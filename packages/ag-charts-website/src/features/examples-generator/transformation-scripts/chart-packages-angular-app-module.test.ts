@@ -1,5 +1,5 @@
-import { standardiseWhitespace } from './test-utils';
 import { appModuleAngular } from './chart-packages-angular-app-module';
+import { standardiseWhitespace } from './test-utils';
 
 describe('appModuleAngular', () => {
     it('returns basic app module content', () => {

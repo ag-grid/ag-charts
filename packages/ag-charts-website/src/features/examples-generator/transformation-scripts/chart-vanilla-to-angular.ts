@@ -1,7 +1,7 @@
+import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './angular-utils';
+import { wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { addBindingImports, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
-import { toInput, toConst, toMember, toAssignment, convertTemplate, getImport } from './angular-utils';
-import { wrapOptionsUpdateCode } from './chart-utils';
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(convertFunctionToProperty(code));

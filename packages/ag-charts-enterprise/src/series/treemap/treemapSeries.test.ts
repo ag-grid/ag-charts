@@ -1,23 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgPolarChartOptions,
-    AgTreemapSeriesOptions,
     InteractionRange,
 } from 'ag-charts-community';
 import {
+    GALLERY_EXAMPLES,
+    IMAGE_SNAPSHOT_DEFAULTS,
+    TREEMAP_SERIES_LABELS,
     clickAction,
     deproxy,
     extractImageData,
-    GALLERY_EXAMPLES,
     hierarchyChartAssertions,
     hoverAction,
-    IMAGE_SNAPSHOT_DEFAULTS,
     setupMockCanvas,
-    TREEMAP_SERIES_LABELS,
     waitForChartStability,
 } from 'ag-charts-community-test';
+
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
@@ -307,7 +308,7 @@ describe('HierarchyChart', () => {
 
         testPointerEvents({
             ...cartesianTestParams,
-            seriesOptions: <AgTreemapSeriesOptions>{
+            seriesOptions: {
                 type: 'treemap',
                 labelKey: datasets.food.labelKey,
                 sizeKey: datasets.food.valueKey,

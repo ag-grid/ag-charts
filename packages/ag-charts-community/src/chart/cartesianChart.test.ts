@@ -1,19 +1,20 @@
-import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { fail } from 'assert';
+
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
 import { AgChart } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';
-import {
-    waitForChartStability,
-    IMAGE_SNAPSHOT_DEFAULTS,
-    setupMockCanvas,
-    extractImageData,
-    deproxy,
-    prepareTestOptions,
-} from './test/utils';
 import * as examples from './test/examples';
-import { fail } from 'assert';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
+    extractImageData,
+    prepareTestOptions,
+    setupMockCanvas,
+    waitForChartStability,
+} from './test/utils';
 
 export function getData(): any[] {
     return [

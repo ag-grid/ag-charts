@@ -1,49 +1,49 @@
-import type { Node } from '../scene/node';
-import { RedrawType } from '../scene/node';
-import { Group } from '../scene/group';
-import { Selection } from '../scene/selection';
-import { MarkerLabel } from './markerLabel';
-import { BBox } from '../scene/bbox';
-import { getFont } from '../scene/shape/text';
-import type { Marker } from './marker/marker';
+import type { ModuleContext } from '../module/moduleContext';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendDoubleClickEvent,
-    AgChartLegendListeners,
     AgChartLegendLabelFormatterParams,
+    AgChartLegendListeners,
+    AgChartLegendOrientation,
     AgChartLegendPosition,
     FontStyle,
     FontWeight,
-    AgChartLegendOrientation,
 } from '../options/agChartOptions';
-import { getMarker } from './marker/util';
-import { createId } from '../util/id';
+import { BBox } from '../scene/bbox';
 import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
+import { Group } from '../scene/group';
+import type { Node } from '../scene/node';
+import { RedrawType } from '../scene/node';
+import { Selection } from '../scene/selection';
+import { getFont } from '../scene/shape/text';
+import { createId } from '../util/id';
+import { Logger } from '../util/logger';
 import {
     BOOLEAN,
+    COLOR_STRING,
     NUMBER,
+    OPTIONAL,
     OPT_BOOLEAN,
     OPT_FONT_STYLE,
     OPT_FONT_WEIGHT,
     OPT_FUNCTION,
     OPT_NUMBER,
     POSITION,
-    COLOR_STRING,
     STRING,
     Validate,
     predicateWithMessage,
-    OPTIONAL,
 } from '../util/validation';
-import { Layers } from './layers';
 import { ChartUpdateType } from './chartUpdateType';
-import type { InteractionEvent } from './interaction/interactionManager';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
+import type { InteractionEvent } from './interaction/interactionManager';
+import { Layers } from './layers';
+import type { CategoryLegendDatum } from './legendDatum';
+import type { Marker } from './marker/marker';
+import { getMarker } from './marker/util';
+import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { toTooltipHtml } from './tooltip/tooltip';
-import type { CategoryLegendDatum } from './legendDatum';
-import { Logger } from '../util/logger';
-import type { ModuleContext } from '../module/moduleContext';
 
 const ORIENTATIONS = ['horizontal', 'vertical'];
 const OPT_ORIENTATION = predicateWithMessage(

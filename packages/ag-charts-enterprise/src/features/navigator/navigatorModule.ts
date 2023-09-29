@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+
 import { Navigator } from './navigator';
 
 export const NavigatorModule: _ModuleSupport.Module = {

@@ -1,7 +1,7 @@
-import { readAsJsFile } from '../transformation-scripts/parser-utils';
-import { getFileList } from './fileUtils';
-import type { FileContents, TransformTsFileExt } from '../types.d';
 import { SOURCE_ENTRY_FILE_NAME } from '../constants';
+import { readAsJsFile } from '../transformation-scripts/parser-utils';
+import type { FileContents, TransformTsFileExt } from '../types.d';
+import { getFileList } from './fileUtils';
 
 const getOtherTsGeneratedFiles = async ({
     folderUrl,

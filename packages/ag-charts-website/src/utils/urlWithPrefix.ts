@@ -1,6 +1,7 @@
-import { SITE_BASE_URL } from '@constants';
-import { pathJoin } from './pathJoin';
 import type { Framework } from '@ag-grid-types';
+import { SITE_BASE_URL } from '@constants';
+
+import { pathJoin } from './pathJoin';
 
 export const urlWithPrefix = ({
     url = '',

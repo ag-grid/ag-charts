@@ -1,9 +1,9 @@
-import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/agChartOptions';
-import type { Rect } from '../../../scene/shape/rect';
-import type { DropShadow } from '../../../scene/dropShadow';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
-import type { SeriesItemHighlightStyle } from '../series';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/agChartOptions';
+import type { DropShadow } from '../../../scene/dropShadow';
+import type { Rect } from '../../../scene/shape/rect';
+import type { SeriesItemHighlightStyle } from '../series';
+import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 export type RectConfig = {
     fill: string;
@@ -47,7 +47,7 @@ interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
 
 export function getRectConfig<
     Params extends Omit<Parameters<NonNullable<AgBarSeriesOptions['formatter']>>[0], 'yKey' | 'value'>,
-    ExtraParams extends {}
+    ExtraParams extends {},
 >({
     datum,
     isHighlighted,

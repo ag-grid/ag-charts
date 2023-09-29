@@ -1,4 +1,3 @@
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { DataService } from '../chart/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
@@ -11,6 +10,7 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
+import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 

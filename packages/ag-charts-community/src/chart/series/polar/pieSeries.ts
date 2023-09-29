@@ -47,11 +47,11 @@ import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import {
-    accumulativeValueProperty,
     HighlightStyle,
+    SeriesNodeBaseClickEvent,
+    accumulativeValueProperty,
     keyProperty,
     rangedValueProperty,
-    SeriesNodeBaseClickEvent,
     valueProperty,
 } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';

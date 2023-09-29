@@ -1,4 +1,5 @@
 import { Component, Vue } from 'vue-property-decorator';
+
 import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 
 @Component({

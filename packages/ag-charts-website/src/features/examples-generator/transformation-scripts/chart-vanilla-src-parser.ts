@@ -1,5 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { SignatureDeclaration } from 'typescript';
+
+import type { ExampleSettings } from '../types.d';
 import {
     extractEventHandlers,
     extractImportStatements,
@@ -24,7 +26,6 @@ import {
     tsNodeIsUnusedFunction,
     usesChartApi,
 } from './parser-utils';
-import type { ExampleSettings } from '../types.d';
 
 export const templatePlaceholder = '$$CHART$$';
 

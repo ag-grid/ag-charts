@@ -1,11 +1,12 @@
+import { getIsDev } from '@utils/env';
 import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
-import { connectSearchBox, InstantSearch } from 'react-instantsearch-dom';
+import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';
+
 import styles from './Search.module.scss';
 import SearchBox from './SearchBox';
 import SearchResult from './SearchResult';
 import { useClickOutside } from './useClickOutside';
-import { getIsDev } from '@utils/env';
 
 /**
  * The website uses Algolia to power its search functionality. This component builds on components provided by Algolia
