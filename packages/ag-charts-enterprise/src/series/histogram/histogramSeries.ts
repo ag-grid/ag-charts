@@ -92,7 +92,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
     readonly label = new HistogramSeriesLabel();
 
-    tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams>();
+    tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 
     @Validate(OPT_COLOR_STRING)
     fill?: string = undefined;
@@ -529,10 +529,12 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         };
 
         return tooltip.toTooltipHtml(defaults, {
-            datum: nodeDatum.datum,
-            aggregatedValue: nodeDatum.aggregatedValue,
-            domain: nodeDatum.domain,
-            frequency: nodeDatum.frequency,
+            datum: {
+                data: nodeDatum.datum,
+                aggregatedValue: nodeDatum.aggregatedValue,
+                domain: nodeDatum.domain,
+                frequency: nodeDatum.frequency,
+            },
             xKey,
             xValue: domain,
             xName,

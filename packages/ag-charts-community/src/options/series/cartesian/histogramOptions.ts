@@ -8,14 +8,18 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 
 export interface AgHistogramSeriesLabelOptions extends AgCartesianSeriesLabelOptions {}
 
-export interface AgHistogramSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
-    datum: unknown;
+export interface AgHistogramSeriesTooltipRendererParams<TDatum> extends AgCartesianSeriesTooltipRendererParams {
+    datum: AgHistogramBinDatum<TDatum>;
+}
+
+export interface AgHistogramBinDatum<TDatum> {
+    data: TDatum[];
     aggregatedValue: number;
     frequency: number;
     domain: [number, number];
 }
 
-export interface AgHistogramSeriesThemeableOptions<_DatumType = any> extends AgBaseSeriesThemeableOptions {
+export interface AgHistogramSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
     /** The colour of the fill for the histogram bars. */
     fill?: CssColor;
     /** The colour of the stroke for the histogram bars. */
@@ -35,13 +39,13 @@ export interface AgHistogramSeriesThemeableOptions<_DatumType = any> extends AgB
     /** Configuration for the labels shown on bars. */
     label?: AgHistogramSeriesLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum>>;
 }
 
 /** Configuration for histogram series. */
-export interface AgHistogramSeriesOptions<DatumType = any>
-    extends AgHistogramSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgHistogramSeriesOptions<TDatum = any>
+    extends AgHistogramSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     type: 'histogram';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
@@ -60,5 +64,5 @@ export interface AgHistogramSeriesOptions<DatumType = any>
     /** Dictates how the bins are aggregated. If set to 'sum', the value shown for the bins will be the total of the yKey values. If set to 'mean', it will display the average yKey value of the bin. */
     aggregation?: 'count' | 'sum' | 'mean';
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
+    listeners?: AgSeriesListeners<TDatum>;
 }
