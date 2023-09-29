@@ -8,7 +8,6 @@ import type { Node } from '../scene/node';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { AxisLayout } from './layout/layoutService';
 
-
 export interface BoundSeries {
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];
