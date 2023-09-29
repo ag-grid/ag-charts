@@ -1,10 +1,10 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import type { HierarchyChart } from '../../hierarchyChart';
-import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
+import type { SeriesNodeDatum } from '../series';
 import { Series, SeriesNodePickMode } from '../series';
 
-export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<SeriesNodeDataContext<S>> {
+export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<S> {
     override chart?: HierarchyChart;
 
     constructor(moduleCtx: ModuleContext) {

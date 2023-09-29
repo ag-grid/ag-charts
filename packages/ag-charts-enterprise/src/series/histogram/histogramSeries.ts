@@ -21,7 +21,6 @@ const {
     BOOLEAN,
     CartesianSeries,
     CartesianSeriesNodeClickEvent,
-    CartesianSeriesNodeDoubleClickEvent,
     ChartAxisDirection,
     NUMBER,
     OPT_ARRAY,
@@ -85,21 +84,15 @@ interface HistogramNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
 
 type HistogramAggregation = NonNullable<AgHistogramSeriesOptions['aggregation']>;
 
-type HistogramAnimationData = _ModuleSupport.CartesianAnimationData<
-    _ModuleSupport.SeriesNodeDataContext<HistogramNodeDatum>,
-    _Scene.Rect
->;
+type HistogramAnimationData = _ModuleSupport.CartesianAnimationData<_Scene.Rect, HistogramNodeDatum>;
 
-export class HistogramSeries extends CartesianSeries<
-    _ModuleSupport.SeriesNodeDataContext<HistogramNodeDatum>,
-    _Scene.Rect
-> {
+export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeDatum> {
     static className = 'HistogramSeries';
     static type = 'histogram' as const;
 
     readonly label = new HistogramSeriesLabel();
 
-    tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams>();
+    tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 
     @Validate(OPT_COLOR_STRING)
     fill?: string = undefined;
@@ -300,15 +293,15 @@ export class HistogramSeries extends CartesianSeries<
     protected override getNodeClickEvent(
         event: MouseEvent,
         datum: HistogramNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<any> {
-        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', this.yKey ?? '', event, datum, this);
+    ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: HistogramNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', this.yKey ?? '', event, datum, this);
+    ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeDoubleClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     async createNodeData() {

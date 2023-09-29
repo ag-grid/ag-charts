@@ -1,12 +1,7 @@
-import type { AgBaseChartOptions } from './chart/chartOptions';
-import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './chart/themeOptions';
-import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
-import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
-import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
-
 export * from './chart/axisOptions';
 export * from './chart/crosshairOptions';
 export * from './chart/chartOptions';
+export * from './chart/chartBuilderOptions';
 export * from './chart/crossLineOptions';
 export * from './chart/dropShadowOptions';
 export * from './chart/errorBarOptions';
@@ -46,27 +41,6 @@ export * from './series/polar/radarOptions';
 export * from './series/polar/radarLineOptions';
 export * from './series/polar/radarAreaOptions';
 export * from './series/polar/radialColumnOptions';
-
-export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
-export type AgChartThemeOverrides = NonNullable<AgChartThemeOptions['overrides']>;
-
-export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions<any> {
-    theme?: AgChartTheme | AgChartThemeName;
-}
-export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
-
-export interface AgChartInstance {
-    /** Get the `AgChartOptions` representing the current chart configuration. */
-    getOptions(): AgChartOptions;
-    /** Destroy the chart instance and any allocated resources to support its rendering. */
-    destroy(): void;
-}
 
 /**
  * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7

@@ -31,29 +31,21 @@ const { BandScale } = _Scale;
 const { Group, Selection, Text } = _Scene;
 const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
-class RadialColumnSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
-    readonly angleKey: string;
-    readonly radiusKey: string;
-
+class RadialColumnSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeClickEvent<RadialColumnNodeDatum, TEvent> {
+    readonly angleKey?: string;
+    readonly radiusKey?: string;
     constructor(
-        angleKey: string,
-        radiusKey: string,
+        type: TEvent,
         nativeEvent: MouseEvent,
         datum: RadialColumnNodeDatum,
         series: RadialColumnSeriesBase<any>
     ) {
-        super(nativeEvent, datum, series);
-        this.angleKey = angleKey;
-        this.radiusKey = radiusKey;
+        super(type, nativeEvent, datum, series);
+        this.angleKey = series.angleKey;
+        this.radiusKey = series.radiusKey;
     }
-}
-
-class RadialColumnSeriesNodeClickEvent extends RadialColumnSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeClick';
-}
-
-class RadialColumnSeriesNodeDoubleClickEvent extends RadialColumnSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeDoubleClick';
 }
 
 interface RadialColumnLabelNodeDatum {
@@ -532,15 +524,15 @@ export abstract class RadialColumnSeriesBase<
     protected override getNodeClickEvent(
         event: MouseEvent,
         datum: RadialColumnNodeDatum
-    ): RadialColumnSeriesNodeClickEvent {
-        return new RadialColumnSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+    ): RadialColumnSeriesNodeClickEvent<'nodeClick'> {
+        return new RadialColumnSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RadialColumnNodeDatum
-    ): RadialColumnSeriesNodeDoubleClickEvent {
-        return new RadialColumnSeriesNodeDoubleClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+    ): RadialColumnSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new RadialColumnSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): string {

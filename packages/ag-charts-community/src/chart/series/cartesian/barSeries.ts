@@ -48,7 +48,7 @@ import { SeriesTooltip } from '../seriesTooltip';
 import type { RectConfig } from './barUtil';
 import { checkCrisp, getRectConfig, updateRect } from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
 import { createLabelData, updateLabel } from './labelUtil';
 
 const BAR_LABEL_PLACEMENTS: AgBarSeriesLabelPlacement[] = ['inside', 'outside'];
@@ -79,7 +79,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
     readonly label?: BarNodeLabelDatum;
 }
 
-type BarAnimationData = CartesianAnimationData<SeriesNodeDataContext<BarNodeDatum>, Rect>;
+type BarAnimationData = CartesianAnimationData<Rect, BarNodeDatum>;
 
 enum BarSeriesNodeTag {
     Bar,
@@ -94,7 +94,7 @@ class BarSeriesLabel extends Label {
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
 
-export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatum>, Rect> {
+export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     static className = 'BarSeries';
     static type = 'bar' as const;
 
@@ -138,6 +138,17 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     @Validate(STRING_UNION('vertical', 'horizontal'))
     direction: 'vertical' | 'horizontal' = 'vertical';
 
+    @Validate(OPT_STRING)
+    stackGroup?: string = undefined;
+
+    @Validate(OPT_NUMBER())
+    normalizedTo?: number;
+
+    @Validate(NUMBER(0))
+    strokeWidth: number = 1;
+
+    shadow?: DropShadow = undefined;
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -145,8 +156,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
         });
-
-        this.label.enabled = false;
     }
 
     /**
@@ -163,17 +172,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         }
         return direction;
     }
-
-    @Validate(OPT_STRING)
-    stackGroup?: string = undefined;
-
-    @Validate(OPT_NUMBER())
-    normalizedTo?: number;
-
-    @Validate(NUMBER(0))
-    strokeWidth: number = 1;
-
-    shadow?: DropShadow = undefined;
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
@@ -262,15 +260,18 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         }
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: BarNodeDatum): CartesianSeriesNodeClickEvent<any> {
-        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: BarNodeDatum
+    ): CartesianSeriesNodeClickEvent<BarNodeDatum, BarSeries, 'nodeClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: BarNodeDatum
-    ): CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
+    ): CartesianSeriesNodeClickEvent<BarNodeDatum, BarSeries, 'nodeDoubleClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     private getCategoryAxis(): ChartAxis | undefined {

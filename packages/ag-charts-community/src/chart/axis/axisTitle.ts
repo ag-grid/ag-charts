@@ -31,10 +31,10 @@ export class AxisTitle implements AgAxisCaptionOptions {
     spacing?: number = Caption.PADDING;
 
     @Validate(OPT_FONT_STYLE)
-    fontStyle: FontStyle | undefined = undefined;
+    fontStyle?: FontStyle = undefined;
 
     @Validate(OPT_FONT_WEIGHT)
-    fontWeight: FontWeight | undefined = undefined;
+    fontWeight?: FontWeight = undefined;
 
     @Validate(NUMBER(0))
     fontSize: number = 10;

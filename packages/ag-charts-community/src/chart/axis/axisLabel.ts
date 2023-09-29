@@ -81,7 +81,7 @@ export class AxisLabel implements ChartAxisLabel {
     avoidCollisions: boolean = true;
 
     /**
-     * By default labels and ticks are positioned to the left of the axis line.
+     * By default, labels and ticks are positioned to the left of the axis line.
      * `true` positions the labels to the right of the axis line.
      * However, if the axis is rotated, it's easier to think in terms
      * of this side or the opposite side, rather than left and right.

@@ -8,6 +8,7 @@ import type {
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
+import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 
 const {
     ChartAxisDirection,
@@ -31,25 +32,16 @@ const { BandScale } = _Scale;
 const { Group, Sector, Selection, Text } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
-class RadialBarSeriesNodeClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
-    readonly angleKey: string;
-    readonly radiusKey: string;
-
-    constructor(
-        angleKey: string,
-        radiusKey: string,
-        nativeEvent: MouseEvent,
-        datum: RadialBarNodeDatum,
-        series: RadialBarSeries
-    ) {
-        super(nativeEvent, datum, series);
-        this.angleKey = angleKey;
-        this.radiusKey = radiusKey;
+class RadialBarSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeClickEvent<RadialBarNodeDatum, TEvent> {
+    readonly angleKey?: string;
+    readonly radiusKey?: string;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadialBarNodeDatum, series: RadialBarSeries) {
+        super(type, nativeEvent, datum, series);
+        this.angleKey = series.angleKey;
+        this.radiusKey = series.radiusKey;
     }
-}
-
-class RadialBarSeriesNodeDoubleClickEvent extends RadialBarSeriesNodeClickEvent {
-    override readonly type = 'nodeDoubleClick';
 }
 
 interface RadialBarLabelNodeDatum {
@@ -510,15 +502,18 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: RadialBarNodeDatum): RadialBarSeriesNodeClickEvent {
-        return new RadialBarSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RadialColumnNodeDatum
+    ): RadialBarSeriesNodeClickEvent<'nodeClick'> {
+        return new RadialBarSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
-        datum: RadialBarNodeDatum
-    ): RadialBarSeriesNodeDoubleClickEvent {
-        return new RadialBarSeriesNodeDoubleClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+        datum: RadialColumnNodeDatum
+    ): RadialBarSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new RadialBarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {
