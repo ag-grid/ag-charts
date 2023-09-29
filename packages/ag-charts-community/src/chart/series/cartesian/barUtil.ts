@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/agChartOptions';
+import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/series/cartesian/barOptions';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
 import type { SeriesItemHighlightStyle } from '../series';

@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { FontFamily, FontStyle, FontWeight } from '../../../options/agChartOptions';
+import type { FontFamily, FontStyle, FontWeight } from '../../../options/chart/types';
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
 import { isNumber } from '../../../util/value';

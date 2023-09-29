@@ -1,4 +1,5 @@
-import type { AgTooltipRendererResult, InteractionRange } from '../../options/agChartOptions';
+import type { AgTooltipRendererResult } from '../../options/chart/tooltipOptions';
+import type { InteractionRange } from '../../options/chart/types';
 import { BBox } from '../../scene/bbox';
 import {
     BOOLEAN,

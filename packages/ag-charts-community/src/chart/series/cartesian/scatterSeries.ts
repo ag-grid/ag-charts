@@ -1,10 +1,10 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AgTooltipRendererResult } from '../../../options/chart/tooltipOptions';
+import type { AgCartesianSeriesMarkerFormat } from '../../../options/series/cartesian/cartesianSeriesMarkerOptions';
 import type {
-    AgCartesianSeriesMarkerFormat,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-} from '../../../options/agChartOptions';
+} from '../../../options/series/cartesian/scatterOptions';
 import { ColorScale } from '../../../scale/colorScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';

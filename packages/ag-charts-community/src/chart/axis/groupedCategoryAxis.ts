@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
+import type { AgAxisCaptionFormatterParams } from '../../options/chart/axisOptions';
 import { BandScale } from '../../scale/bandScale';
 import type { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';

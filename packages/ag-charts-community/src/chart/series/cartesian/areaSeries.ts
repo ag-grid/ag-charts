@@ -1,13 +1,12 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AgTooltipRendererResult } from '../../../options/chart/tooltipOptions';
+import type { FontStyle, FontWeight } from '../../../options/chart/types';
+import type { AgCartesianSeriesLabelFormatterParams } from '../../../options/series/cartesian/cartesianLabelOptions';
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
-    AgCartesianSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    FontStyle,
-    FontWeight,
-} from '../../../options/agChartOptions';
+} from '../../../options/series/cartesian/cartesianSeriesMarkerOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from '../../../options/series/cartesian/cartesianSeriesTooltipOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';

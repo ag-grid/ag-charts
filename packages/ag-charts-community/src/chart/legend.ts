@@ -6,9 +6,8 @@ import type {
     AgChartLegendListeners,
     AgChartLegendOrientation,
     AgChartLegendPosition,
-    FontStyle,
-    FontWeight,
-} from '../options/agChartOptions';
+} from '../options/chart/legendOptions';
+import type { FontStyle, FontWeight } from '../options/chart/types';
 import { BBox } from '../scene/bbox';
 import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';

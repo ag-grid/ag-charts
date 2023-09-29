@@ -1,9 +1,6 @@
-import type {
-    AgCartesianCrossLineLabelOptions,
-    AgCrossLineLabelPosition,
-    FontStyle,
-    FontWeight,
-} from '../../options/agChartOptions';
+import type { AgCrossLineLabelPosition } from '../../options/chart/crossLineOptions';
+import type { FontStyle, FontWeight } from '../../options/chart/types';
+import type { AgCartesianCrossLineLabelOptions } from '../../options/series/cartesian/cartesianOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';

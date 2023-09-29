@@ -1,4 +1,5 @@
-import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../../options/agChartOptions';
+import type { AgChartLegendOrientation } from '../../options/chart/legendOptions';
+import type { FontStyle, FontWeight } from '../../options/chart/types';
 import { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';

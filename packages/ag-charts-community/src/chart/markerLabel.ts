@@ -1,4 +1,4 @@
-import type { FontStyle, FontWeight } from '../options/agChartOptions';
+import type { FontStyle, FontWeight } from '../options/chart/types';
 import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';

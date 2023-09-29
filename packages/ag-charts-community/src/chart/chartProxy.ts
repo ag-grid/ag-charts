@@ -1,4 +1,4 @@
-import type { AgChartProxy } from '../options/agChartOptions';
+import type { AgChartProxy } from '../options/chart/chartBuilderOptions';
 import type { Chart } from './chart';
 
 /**

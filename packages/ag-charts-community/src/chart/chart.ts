@@ -2,12 +2,8 @@ import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import type { Module } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
-import type {
-    AgChartClickEvent,
-    AgChartDoubleClickEvent,
-    AgChartInstance,
-    AgChartOptions,
-} from '../options/agChartOptions';
+import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
+import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';

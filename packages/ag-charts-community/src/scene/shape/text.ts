@@ -1,4 +1,4 @@
-import type { FontStyle, FontWeight, TextWrap } from '../../options/agChartOptions';
+import type { FontStyle, FontWeight, TextWrap } from '../../options/chart/types';
 import { BBox } from '../bbox';
 import { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { RenderContext } from '../node';

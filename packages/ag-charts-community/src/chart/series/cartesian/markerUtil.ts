@@ -1,9 +1,9 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AgCartesianSeriesMarkerFormat } from '../../../options/series/cartesian/cartesianSeriesMarkerOptions';
 import type {
-    AgCartesianSeriesMarkerFormat,
     AgSeriesHighlightMarkerStyle,
     AgSeriesMarkerFormatterParams,
-} from '../../../options/agChartOptions';
+} from '../../../options/series/seriesOptions';
 import type { SizedPoint } from '../../../scene/point';
 import type { Marker } from '../../marker/marker';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';

@@ -81,7 +81,7 @@ function isChartInstance(chartOrProxy: AgChartInstance): chartOrProxy is Chart {
 }
 
 export function deproxy(chartOrProxy: AgChartProxy | Chart): Chart {
-    return isChartInstance(chartOrProxy) ? chartOrProxy : chartOrProxy.chart;
+    return isChartInstance(chartOrProxy) ? chartOrProxy : (chartOrProxy.chart as Chart);
 }
 
 export function repeat<T>(value: T, count: number): T[] {

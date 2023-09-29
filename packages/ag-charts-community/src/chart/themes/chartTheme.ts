@@ -1,11 +1,10 @@
+import type { AgChartThemeOptions, AgChartThemeOverrides } from '../../options/agChartOptions';
 import type {
     AgChartTheme,
-    AgChartThemeOptions,
-    AgChartThemeOverrides,
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
-    InteractionRange,
-} from '../../options/agChartOptions';
+} from '../../options/chart/themeOptions';
+import type { InteractionRange } from '../../options/chart/types';
 import { jsonMerge, jsonWalk } from '../../util/json';
 import { deepMerge } from '../../util/object';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';

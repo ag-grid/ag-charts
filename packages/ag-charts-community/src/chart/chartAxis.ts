@@ -1,9 +1,6 @@
-import type {
-    AgAxisLabelFormatterParams,
-    AgCartesianAxisPosition,
-    FontStyle,
-    FontWeight,
-} from '../options/agChartOptions';
+import type { AgAxisLabelFormatterParams } from '../options/chart/axisOptions';
+import type { FontStyle, FontWeight } from '../options/chart/types';
+import type { AgCartesianAxisPosition } from '../options/series/cartesian/cartesianOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';

@@ -3,7 +3,7 @@ import type { AxisContext, ModuleContext } from '../../module/moduleContext';
 import type { AxisOptionModule } from '../../module/optionModules';
 import * as easing from '../../motion/easing';
 import { StateMachine } from '../../motion/states';
-import type { AgAxisCaptionFormatterParams, AgAxisGridStyle } from '../../options/agChartOptions';
+import type { AgAxisCaptionFormatterParams, AgAxisGridStyle } from '../../options/chart/axisOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import type { Scale } from '../../scale/scale';
