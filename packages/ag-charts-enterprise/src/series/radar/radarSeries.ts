@@ -19,7 +19,6 @@ const {
     OPT_STRING,
     PolarAxis,
     SeriesNodePickMode,
-    StateMachine,
     STRING,
     Validate,
     valueProperty,
@@ -82,9 +81,6 @@ export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     formatter?: (params: AgRadarSeriesMarkerFormatterParams<any>) => AgRadarSeriesMarkerFormat = undefined;
 }
 
-type RadarAnimationState = 'empty' | 'ready';
-type RadarAnimationEvent = 'update' | 'resize';
-
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
     static className = 'RadarSeries';
 
@@ -96,8 +92,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     protected markerSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadarNodeDatum>;
     protected highlightSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
-
-    protected animationState: _ModuleSupport.StateMachine<RadarAnimationState, RadarAnimationEvent>;
 
     protected nodeData: RadarNodeDatum[] = [];
 
@@ -176,25 +170,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.labelSelection = Selection.select(this.labelGroup!, Text);
 
         this.highlightSelection = Selection.select(this.highlightGroup, markerFactory);
-
-        this.animationState = new StateMachine('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateEmptyUpdateReady(),
-                },
-            },
-            ready: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateReadyUpdate(),
-                },
-                resize: {
-                    target: 'ready',
-                    action: () => this.animateReadyResize(),
-                },
-            },
-        });
     }
 
     override addChartEventListeners(): void {
@@ -695,7 +670,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.animateSinglePath(this.getLineNode(), linePoints, totalDuration, timePassed);
     }
 
-    animateEmptyUpdateReady() {
+    override animateEmptyUpdateReady() {
         if (!this.visible) {
             return;
         }
@@ -750,11 +725,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    animateReadyUpdate() {
+    override animateReadyUpdate() {
         this.resetMarkersAndPaths();
     }
 
-    animateReadyResize() {
+    override animateReadyResize() {
         this.resetMarkersAndPaths();
     }
 
