@@ -166,7 +166,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 

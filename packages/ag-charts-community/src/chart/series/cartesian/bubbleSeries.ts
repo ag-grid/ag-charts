@@ -200,7 +200,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         this.animationTransitionClear();
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 

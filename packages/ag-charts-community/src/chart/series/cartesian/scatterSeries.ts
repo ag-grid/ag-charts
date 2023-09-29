@@ -153,7 +153,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         this.animationTransitionClear();
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 

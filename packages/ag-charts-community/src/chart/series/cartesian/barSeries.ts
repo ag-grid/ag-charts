@@ -236,7 +236,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         this.animationState.transition('updateData');
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return [];
 

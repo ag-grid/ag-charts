@@ -197,7 +197,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         this.processedData = processedData;
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!(processedData && dataModel)) return [];
 

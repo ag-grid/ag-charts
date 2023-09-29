@@ -372,7 +372,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         this.seriesItemEnabled = data?.map(() => visible) ?? [];
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         if (direction === ChartAxisDirection.X) {
             return this.angleScale.domain;
         } else {

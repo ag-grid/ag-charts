@@ -165,7 +165,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         }
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 

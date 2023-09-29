@@ -307,7 +307,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         this.updateSeriesItemTypes();
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 

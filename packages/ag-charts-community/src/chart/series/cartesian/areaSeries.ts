@@ -222,7 +222,7 @@ export class AreaSeries extends CartesianSeries<
         this.processedData = processedData;
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel) return [];
 

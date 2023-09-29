@@ -191,7 +191,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         };
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 

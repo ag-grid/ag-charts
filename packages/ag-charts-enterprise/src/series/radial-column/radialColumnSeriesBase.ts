@@ -160,7 +160,7 @@ export abstract class RadialColumnSeriesBase<
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 

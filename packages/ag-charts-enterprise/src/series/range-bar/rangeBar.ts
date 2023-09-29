@@ -240,7 +240,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         this.animationState.transition('updateData');
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 

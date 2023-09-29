@@ -569,7 +569,16 @@ export abstract class Series<
         return direction;
     }
 
-    abstract getDomain(direction: ChartAxisDirection): any[];
+    // The union of the series domain ('community') and series-option domains ('enterprise').
+    getDomain(direction: ChartAxisDirection): any[] {
+        const seriesDomain: any[] = this.getSeriesDomain(direction);
+        const moduleDomains: any[][] = this.dispatch('getDomain', { direction }) ?? [];
+        // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
+        return moduleDomains.reduce((total, current) => total.concat(current), seriesDomain);
+    }
+
+    // Get the 'community' domain (excluding any additional data from series-option modules).
+    abstract getSeriesDomain(direction: ChartAxisDirection): any[];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void>;
