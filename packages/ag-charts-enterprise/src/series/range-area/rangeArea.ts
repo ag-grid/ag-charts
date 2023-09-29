@@ -87,11 +87,11 @@ class RangeAreaSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseCli
 }
 
 export class RangeAreaSeriesNodeClickEvent extends RangeAreaSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
+    override readonly type = 'nodeClick';
 }
 
 export class RangeAreaSeriesNodeDoubleClickEvent extends RangeAreaSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
+    override readonly type = 'nodeDoubleClick';
 }
 
 class RangeAreaSeriesLabel extends _Scene.Label {
@@ -238,11 +238,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         }
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: RangeAreaMarkerDatum): RangeAreaSeriesNodeClickEvent {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RangeAreaMarkerDatum
+    ): RangeAreaSeriesNodeClickEvent {
         return new RangeAreaSeriesNodeClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RangeAreaMarkerDatum
     ): RangeAreaSeriesNodeDoubleClickEvent {
@@ -475,17 +478,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));
     }
 
-    protected isPathOrSelectionDirty(): boolean {
+    protected override isPathOrSelectionDirty(): boolean {
         return this.marker.isDirty();
     }
 
-    protected markerFactory() {
+    protected override markerFactory() {
         const { shape } = this.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
 
-    protected async updateMarkerSelection(opts: {
+    protected override async updateMarkerSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
         markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
     }) {
@@ -504,7 +507,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         });
     }
 
-    protected async updateMarkerNodes(opts: {
+    protected override async updateMarkerNodes(opts: {
         markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
@@ -576,7 +579,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         });
     }
 
-    protected getHighlightLabelData(
+    protected override getHighlightLabelData(
         labelData: RangeAreaLabelDatum[],
         highlightedItem: RangeAreaMarkerDatum
     ): RangeAreaLabelDatum[] | undefined {
@@ -584,7 +587,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         return labelItems.length > 0 ? labelItems : undefined;
     }
 
-    protected getHighlightData(
+    protected override getHighlightData(
         nodeData: RangeAreaMarkerDatum[],
         highlightedItem: RangeAreaMarkerDatum
     ): RangeAreaMarkerDatum[] | undefined {
@@ -680,7 +683,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         ];
     }
 
-    animateEmptyUpdateReady({
+    override animateEmptyUpdateReady({
         markerSelections,
         labelSelections,
         contextData,
@@ -751,7 +754,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         });
     }
 
-    animateReadyUpdate({
+    override animateReadyUpdate({
         contextData,
         paths,
     }: {
@@ -776,5 +779,5 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         return this.label.enabled;
     }
 
-    onDataChange() {}
+    override onDataChange() {}
 }

@@ -14,10 +14,10 @@ class RadiusCrossLineLabel extends PolarCrossLineLabel {
 export class RadiusCrossLine extends PolarCrossLine {
     static className = 'RadiusCrossLine';
 
-    direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.Y;
+    override direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.Y;
     gridAngles?: number[];
 
-    label = new RadiusCrossLineLabel();
+    override label = new RadiusCrossLineLabel();
 
     private polygonNode = new Path();
     private sectorNode = new Sector();

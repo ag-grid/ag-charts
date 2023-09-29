@@ -24,7 +24,7 @@ export class Image extends Node {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     opacity: number = 1;
 
-    render(renderCtx: RenderContext): void {
+    override render(renderCtx: RenderContext): void {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {

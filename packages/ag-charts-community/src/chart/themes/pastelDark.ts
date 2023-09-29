@@ -29,7 +29,7 @@ const palette: AgChartThemePalette = {
 };
 
 export class PastelDark extends DarkTheme {
-    protected getPalette(): AgChartThemePalette {
+    protected override getPalette(): AgChartThemePalette {
         return palette;
     }
 }

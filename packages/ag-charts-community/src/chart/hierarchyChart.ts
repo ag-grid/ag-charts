@@ -12,7 +12,7 @@ export class HierarchyChart extends Chart {
 
     protected _data: any = {};
 
-    async performLayout() {
+    override async performLayout() {
         const shrinkRect = await super.performLayout();
 
         const {

@@ -50,7 +50,7 @@ class RadialBarSeriesNodeClickEvent extends _ModuleSupport.SeriesNodeBaseClickEv
 }
 
 class RadialBarSeriesNodeDoubleClickEvent extends RadialBarSeriesNodeClickEvent {
-    readonly type = 'nodeDoubleClick';
+    override readonly type = 'nodeDoubleClick';
 }
 
 interface RadialBarLabelNodeDatum {
@@ -140,7 +140,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     @Validate(OPT_NUMBER())
     normalizedTo?: number;
 
-    readonly highlightStyle = new HighlightStyle();
+    override readonly highlightStyle = new HighlightStyle();
 
     private groupScale = new BandScale<string>();
 
@@ -180,7 +180,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    addChartEventListeners(): void {
+    override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
         this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
             this.onLegendItemDoubleClick(event)
@@ -535,11 +535,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: RadialBarNodeDatum): RadialBarSeriesNodeClickEvent {
+    protected override getNodeClickEvent(event: MouseEvent, datum: RadialBarNodeDatum): RadialBarSeriesNodeClickEvent {
         return new RadialBarSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RadialBarNodeDatum
     ): RadialBarSeriesNodeDoubleClickEvent {
@@ -656,7 +656,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         this.toggleSeriesItem(itemId, newEnabled);
     }
 
-    computeLabelsBBox() {
+    override computeLabelsBBox() {
         return null;
     }
 

@@ -34,7 +34,7 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
         return this.scale.paddingOuter;
     }
 
-    normaliseDataDomain(d: (string | object)[]) {
+    override normaliseDataDomain(d: (string | object)[]) {
         const domain = [];
         const uniqueValues = new Set();
         for (const v of d) {
@@ -48,7 +48,7 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
         return { domain, clipped: false };
     }
 
-    protected calculateDomain() {
+    protected override calculateDomain() {
         if (!this._paddingOverrideEnabled) {
             const { boundSeries } = this;
             const paddings = boundSeries.map((s) => s.getBandScalePadding?.()).filter((p) => p != null);

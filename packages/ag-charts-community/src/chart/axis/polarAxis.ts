@@ -11,7 +11,7 @@ export abstract class PolarAxis<S extends Scale<any, any, any> = Scale<any, any,
     @Validate(NUMBER(0, 1))
     innerRadiusRatio: number = 0;
 
-    protected defaultTickMinSpacing = 20;
+    protected override defaultTickMinSpacing = 20;
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null {
         return null;

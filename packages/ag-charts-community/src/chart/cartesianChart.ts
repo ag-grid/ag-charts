@@ -23,7 +23,7 @@ export class CartesianChart extends Chart {
         super(specialOverrides, resources);
     }
 
-    async performLayout() {
+    override async performLayout() {
         const shrinkRect = await super.performLayout();
 
         const { seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);

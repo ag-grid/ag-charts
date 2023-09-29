@@ -5,7 +5,7 @@ import { BBox } from '../bbox';
 import { Path, ScenePathChangeDetection } from './path';
 
 export class Sector extends Path {
-    static className = 'Sector';
+    static override className = 'Sector';
 
     @ScenePathChangeDetection()
     centerX: number = 0;
@@ -28,12 +28,12 @@ export class Sector extends Path {
     @ScenePathChangeDetection()
     angleOffset: number = 0;
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         const radius = this.outerRadius;
         return new BBox(this.centerX - radius, this.centerY - radius, radius * 2, radius * 2);
     }
 
-    updatePath(): void {
+    override updatePath(): void {
         const path = this.path;
 
         const angleOffset = this.angleOffset;
@@ -69,7 +69,7 @@ export class Sector extends Path {
         this.dirtyPath = false;
     }
 
-    isPointInPath(x: number, y: number): boolean {
+    override isPointInPath(x: number, y: number): boolean {
         const { angleOffset } = this;
         const startAngle = this.startAngle + angleOffset;
         const endAngle = this.endAngle + angleOffset;

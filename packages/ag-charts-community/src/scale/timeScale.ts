@@ -52,7 +52,7 @@ function toNumber(x: any) {
 export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     readonly type = 'time';
 
-    protected cacheProps: Array<keyof this> = [
+    protected override cacheProps: Array<keyof this> = [
         'domain',
         'range',
         'nice',
@@ -281,7 +281,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return countableTimeInterval.every(step);
     }
 
-    invert(y: number): Date {
+    override invert(y: number): Date {
         return new Date(super.invert(y));
     }
 

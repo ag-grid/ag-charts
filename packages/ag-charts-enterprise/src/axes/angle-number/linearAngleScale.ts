@@ -4,7 +4,7 @@ const { LinearScale } = _Scale;
 const { range } = _Util;
 
 export class LinearAngleScale extends LinearScale {
-    ticks() {
+    override ticks() {
         const count = 8;
         if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d))) {
             return [];

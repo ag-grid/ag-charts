@@ -1,9 +1,9 @@
 import { Marker } from './marker';
 
 export class Square extends Marker {
-    static className = 'Square';
+    static override className = 'Square';
 
-    updatePath() {
+    override updatePath() {
         const { path, x, y } = this;
         const hs = this.size / 2;
 

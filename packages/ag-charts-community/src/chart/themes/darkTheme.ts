@@ -36,7 +36,7 @@ const palette: AgChartThemePalette = {
 };
 
 export class DarkTheme extends ChartTheme {
-    protected getTemplateParameters() {
+    protected override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
         result.properties.set(DEFAULT_LABEL_COLOUR, 'rgb(200, 200, 200)');
@@ -48,7 +48,7 @@ export class DarkTheme extends ChartTheme {
         return result;
     }
 
-    protected getPalette(): AgChartThemePalette {
+    protected override getPalette(): AgChartThemePalette {
         return palette;
     }
 

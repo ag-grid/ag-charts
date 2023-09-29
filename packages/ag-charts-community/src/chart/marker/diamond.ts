@@ -2,7 +2,7 @@ import type { MarkerPathMove } from './marker';
 import { Marker } from './marker';
 
 export class Diamond extends Marker {
-    static className = 'Diamond';
+    static override className = 'Diamond';
 
     static moves: MarkerPathMove[] = [
         { x: 0, y: -1, t: 'move' },
@@ -12,7 +12,7 @@ export class Diamond extends Marker {
         { x: +1, y: -1 },
     ];
 
-    updatePath() {
+    override updatePath() {
         const s = this.size / 2;
 
         super.applyPath(s, Diamond.moves);

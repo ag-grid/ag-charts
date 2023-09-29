@@ -4,7 +4,7 @@ import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
 
 export class Rect extends Path {
-    static className = 'Rect';
+    static override className = 'Rect';
 
     readonly borderPath = new Path2D();
 
@@ -35,7 +35,7 @@ export class Rect extends Path {
 
     private lastUpdatePathStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
-    protected isDirtyPath() {
+    protected override isDirtyPath() {
         if (this.lastUpdatePathStrokeWidth !== this.strokeWidth) {
             return true;
         }
@@ -52,7 +52,7 @@ export class Rect extends Path {
      */
     protected microPixelEffectOpacity: number = 1;
 
-    updatePath() {
+    override updatePath() {
         const { path, borderPath, crisp } = this;
         let { x, y, width: w, height: h, strokeWidth } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
@@ -120,25 +120,25 @@ export class Rect extends Path {
         this.microPixelEffectOpacity = microPixelEffectOpacity;
     }
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         const { x, y, width, height } = this;
         return new BBox(x, y, width, height);
     }
 
-    isPointInPath(x: number, y: number): boolean {
+    override isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
         const bbox = this.computeBBox();
 
         return bbox.containsPoint(point.x, point.y);
     }
 
-    protected applyFillAlpha(ctx: CanvasRenderingContext2D) {
+    protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {
         const { fillOpacity, microPixelEffectOpacity, opacity } = this;
         const { globalAlpha } = ctx;
         ctx.globalAlpha = globalAlpha * opacity * fillOpacity * microPixelEffectOpacity;
     }
 
-    protected renderStroke(ctx: CanvasRenderingContext2D) {
+    protected override renderStroke(ctx: CanvasRenderingContext2D) {
         const { stroke, effectiveStrokeWidth, borderPath, borderClipPath, opacity, microPixelEffectOpacity } = this;
 
         const borderActive = !!stroke && !!effectiveStrokeWidth;

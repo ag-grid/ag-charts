@@ -18,7 +18,7 @@ export class RadiusNumberAxis extends RadiusAxis {
     static className = 'RadiusNumberAxis';
     static type = 'radius-number' as const;
 
-    shape: 'polygon' | 'circle' = 'polygon';
+    override shape: 'polygon' | 'circle' = 'polygon';
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
     @Default(NaN)
@@ -47,7 +47,7 @@ export class RadiusNumberAxis extends RadiusAxis {
         return maxRadius - tickDatum.translationY + minRadius;
     }
 
-    normaliseDataDomain(d: number[]) {
+    override normaliseDataDomain(d: number[]) {
         const { min, max } = this;
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 

@@ -21,7 +21,7 @@ const { toRadians } = _Util;
 class RadiusAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
     @Default(NaN)
-    maxSpacing: number = NaN;
+    override maxSpacing: number = NaN;
 }
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
@@ -72,7 +72,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         assignJsonApplyConstructedArray(crossLines, RadiusCrossLine);
     }
 
-    protected getAxisTransform() {
+    protected override getAxisTransform() {
         const maxRadius = this.scale.range[0];
         const { translation, positionAngle, innerRadiusRatio } = this;
         const innerRadius = maxRadius * innerRadiusRatio;
@@ -89,7 +89,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     protected abstract prepareTickData(tickData: RadiusTickDatum[]): RadiusTickDatum[];
     protected abstract getTickRadius(tickDatum: RadiusTickDatum): number;
 
-    protected updateSelections(data: RadiusTickDatum[]) {
+    protected override updateSelections(data: RadiusTickDatum[]) {
         super.updateSelections(data);
 
         const { gridStyle, tick, shape } = this;
@@ -141,7 +141,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         });
     }
 
-    protected updateTitle() {
+    protected override updateTitle() {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
         const {
             title,
@@ -182,11 +182,11 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         titleNode.visible = titleVisible;
     }
 
-    protected createTick() {
+    protected override createTick() {
         return new RadiusAxisTick();
     }
 
-    protected updateCrossLines() {
+    protected override updateCrossLines() {
         this.crossLines?.forEach((crossLine) => {
             if (crossLine instanceof RadiusCrossLine) {
                 crossLine.shape = this.shape;
@@ -196,7 +196,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0, sideFlag: -1 });
     }
 
-    protected createLabel() {
+    protected override createLabel() {
         return new RadiusAxisLabel();
     }
 }

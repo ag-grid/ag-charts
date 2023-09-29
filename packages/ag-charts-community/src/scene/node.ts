@@ -452,7 +452,7 @@ export abstract class Node extends ChangeDetectable {
         ctx.clearRect(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
     }
 
-    markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
+    override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
         if (this._dirty > type) {
             return;
         }
@@ -472,7 +472,7 @@ export abstract class Node extends ChangeDetectable {
         return this._dirty;
     }
 
-    markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
+    override markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
         const { force = false, recursive = true } = opts ?? {};
 
         if (this._dirty === RedrawType.NONE && !force) {

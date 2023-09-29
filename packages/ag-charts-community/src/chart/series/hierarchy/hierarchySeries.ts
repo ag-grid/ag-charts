@@ -6,7 +6,7 @@ import type { SeriesNodeDataContext } from '../series';
 import { Series } from '../series';
 
 export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<SeriesNodeDataContext<S>> {
-    chart?: HierarchyChart;
+    override chart?: HierarchyChart;
 
     constructor(moduleCtx: ModuleContext) {
         super({ moduleCtx, pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH] });

@@ -74,11 +74,11 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         assignJsonApplyConstructedArray(crossLines, AngleCrossLine);
     }
 
-    protected createLabel() {
+    protected override createLabel() {
         return new AngleAxisLabel();
     }
 
-    update() {
+    override update() {
         this.updateScale();
         this.updatePosition();
         this.updateGridLines();
@@ -89,7 +89,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         return this.scale.ticks?.().length ?? 0;
     }
 
-    updatePosition() {
+    override updatePosition() {
         const { translation, axisGroup, gridGroup, crossLineGroup } = this;
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
@@ -180,7 +180,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         return this.tickData.filter((tick) => tick.visible).map(({ value }) => value);
     }
 
-    protected updateGridLines() {
+    protected override updateGridLines() {
         const { scale, gridLength: radius, gridStyle, tick, innerRadiusRatio } = this;
         if (!(gridStyle && radius > 0)) {
             return;
@@ -202,7 +202,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         });
     }
 
-    protected updateLabels() {
+    protected override updateLabels() {
         const { label, tickLabelGroupSelection } = this;
 
         const ticks = this.getVisibleTicks();
@@ -231,7 +231,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         });
     }
 
-    protected updateTickLines() {
+    protected override updateTickLines() {
         const { scale, gridLength: radius, tick, tickLineGroupSelection } = this;
 
         const ticks = this.getVisibleTicks();
@@ -373,7 +373,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         });
     }
 
-    computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _Scene.BBox) {
+    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _Scene.BBox) {
         this.tickData = this.createTickVisibilityData();
         this.labelData = this.createLabelNodeData(options, seriesRect);
 
@@ -442,7 +442,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         return { textAlign, textBaseline };
     }
 
-    protected updateCrossLines() {
+    protected override updateCrossLines() {
         this.crossLines?.forEach((crossLine) => {
             if (crossLine instanceof AngleCrossLine) {
                 crossLine.shape = this.shape;

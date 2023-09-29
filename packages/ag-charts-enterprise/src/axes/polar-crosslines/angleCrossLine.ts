@@ -8,7 +8,7 @@ const { normalizeAngle360, isNumberEqual } = _Util;
 export class AngleCrossLine extends PolarCrossLine {
     static className = 'AngleCrossLine';
 
-    direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.X;
+    override direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.X;
 
     private polygonNode = new Path();
     private sectorNode = new Sector();

@@ -6,7 +6,7 @@ import { Shape } from './shape';
 export class Line extends Shape {
     static className = 'Line';
 
-    protected static defaultStyles = Object.assign({}, Shape.defaultStyles, {
+    protected static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
         fill: undefined,
         strokeWidth: 1,
     });
@@ -38,7 +38,7 @@ export class Line extends Shape {
         this.y2 = value;
     }
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         return new BBox(
             Math.min(this.x1, this.x2),
             Math.min(this.y1, this.y2),
@@ -57,7 +57,7 @@ export class Line extends Shape {
         return false;
     }
 
-    render(renderCtx: RenderContext) {
+    override render(renderCtx: RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
