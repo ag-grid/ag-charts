@@ -350,11 +350,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const moduleInstance = new module.instanceConstructor(this.getModuleContext());
         this.modules[module.optionsKey] = { instance: moduleInstance };
+        (this as any)[module.optionsKey] = moduleInstance; // TODO remove
     }
 
-    removeModule(module: RootModule) {
-        this.modules[module.optionsKey]?.instance?.destroy();
+    removeModule(module: { optionsKey: string }) {
+        this.modules[module.optionsKey]?.instance.destroy();
         delete this.modules[module.optionsKey];
+        delete (this as any)[module.optionsKey]; // TODO remove
     }
 
     private legends: Map<ChartLegendType, ChartLegend> = new Map();
@@ -376,12 +378,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const legend = this.attachLegend(module.identifier, module.instanceConstructor);
         this.modules[module.optionsKey] = { instance: legend };
+        (this as any)[module.optionsKey] = legend;
     }
 
     removeLegendModule(module: LegendModule) {
-        this.modules[module.optionsKey]?.instance.destroy();
-        delete this.modules[module.optionsKey];
         this.legends.delete(module.identifier);
+        this.removeModule(module);
     }
 
     isModuleEnabled(module: Module) {
@@ -446,9 +448,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.overlays.noData.hide();
         SizeMonitor.unobserve(this.element);
 
-        for (const [key, module] of Object.entries(this.modules)) {
-            module.instance.destroy();
-            delete this.modules[key];
+        for (const optionsKey of Object.keys(this.modules)) {
+            this.removeModule({ optionsKey });
         }
 
         this.interactionManager.destroy();

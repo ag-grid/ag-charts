@@ -7,7 +7,6 @@ import type {
     AgBaseSeriesOptions,
     AgChartInstance,
     AgChartOptions,
-    AgChartProxy,
 } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
@@ -81,7 +80,7 @@ export abstract class AgChart {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create(options: AgChartExtendedOptions): AgChartProxy {
+    public static create(options: AgChartExtendedOptions): AgChartInstance {
         return AgChartInternal.createOrUpdate(options);
     }
 

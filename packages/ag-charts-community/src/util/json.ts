@@ -1,7 +1,7 @@
 import { Logger } from './logger';
 
 type LiteralProperties = 'shape' | 'data';
-type SkippableProperties = 'axes' | 'series' | 'container' | 'customChartThemes';
+type SkippableProperties = 'axes' | 'series' | 'container';
 type IsLiteralProperty<T, K extends keyof T> = K extends LiteralProperties
     ? true
     : T[K] extends Array<any>

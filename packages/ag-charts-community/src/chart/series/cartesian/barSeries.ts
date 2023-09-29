@@ -137,6 +137,17 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     @Validate(STRING_UNION('vertical', 'horizontal'))
     direction: 'vertical' | 'horizontal' = 'vertical';
 
+    @Validate(OPT_STRING)
+    stackGroup?: string = undefined;
+
+    @Validate(OPT_NUMBER())
+    normalizedTo?: number;
+
+    @Validate(NUMBER(0))
+    strokeWidth: number = 1;
+
+    shadow?: DropShadow = undefined;
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -144,8 +155,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
         });
-
-        this.label.enabled = false;
     }
 
     /**
@@ -162,17 +171,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         }
         return direction;
     }
-
-    @Validate(OPT_STRING)
-    stackGroup?: string = undefined;
-
-    @Validate(OPT_NUMBER())
-    normalizedTo?: number;
-
-    @Validate(NUMBER(0))
-    strokeWidth: number = 1;
-
-    shadow?: DropShadow = undefined;
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 

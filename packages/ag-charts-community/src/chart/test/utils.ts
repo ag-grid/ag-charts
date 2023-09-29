@@ -21,7 +21,7 @@ const { Animation, AnimationManager, resetIds } = _ModuleSupport;
 
 export interface TestCase {
     options: AgChartOptions;
-    assertions: (chart: AgChartInstance) => Promise<void>;
+    assertions: (chart: Chart | AgChartProxy) => Promise<void>;
     extraScreenshotActions?: (chart: AgChartInstance) => Promise<void>;
 }
 
@@ -325,7 +325,7 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 
 export async function createChart(options: AgChartOptions) {
     options = prepareTestOptions({ ...options });
-    const chart = deproxy(AgChart.create(options));
+    const chart = deproxy(AgChart.create(options) as AgChartProxy);
     await waitForChartStability(chart);
     return chart;
 }
