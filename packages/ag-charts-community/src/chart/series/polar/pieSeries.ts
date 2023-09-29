@@ -55,7 +55,7 @@ import {
     valueProperty,
 } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
-import { PolarSeries } from './polarSeries';
+import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class PieSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
     PieNodeDatum,
@@ -171,9 +171,6 @@ export class DoughnutInnerCircle {
     fillOpacity? = 1;
 }
 
-type PieAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type PieAnimationEvent = 'update' | 'updateData' | 'clear';
-
 export class PieSeries extends PolarSeries<PieNodeDatum> {
     static className = 'PieSeries';
     static type = 'pie' as const;
@@ -184,8 +181,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
     private calloutLabelSelection: Selection<Group, PieNodeDatum>;
     private sectorLabelSelection: Selection<Text, PieNodeDatum>;
     private innerLabelsSelection: Selection<Text, DoughnutInnerLabel>;
-
-    private animationState: StateMachine<PieAnimationState, PieAnimationEvent>;
 
     // The group node that contains the background graphics.
     readonly backgroundGroup: Group;
@@ -1609,7 +1604,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    animateEmptyUpdateReady(data?: { duration: number }) {
+    override animateEmptyUpdateReady(data?: PolarAnimationData) {
         const duration = data?.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
@@ -1667,7 +1662,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         this.resetSectors();
     }
 
-    animateWaitingUpdateReady() {
+    override animateWaitingUpdateReady() {
         const { groupSelection, processedData } = this;
         const diff = processedData?.reduced?.diff;
 
@@ -1810,7 +1805,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    animateClearingUpdateEmpty() {
+    override animateClearingUpdateEmpty() {
         const updateDuration = this.ctx.animationManager.defaultDuration / 2;
         const clearDuration = 200;
 

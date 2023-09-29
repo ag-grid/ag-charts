@@ -19,7 +19,6 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     PolarAxis,
-    StateMachine,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
@@ -73,9 +72,6 @@ class RadialColumnSeriesLabel extends _Scene.Label {
     formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
 }
 
-type RadialColumnAnimationState = 'empty' | 'ready';
-type RadialColumnAnimationEvent = 'update' | 'resize';
-
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Path,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
@@ -84,8 +80,6 @@ export abstract class RadialColumnSeriesBase<
     protected itemSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialColumnNodeDatum>;
     protected highlightSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
-
-    protected animationState: _ModuleSupport.StateMachine<RadialColumnAnimationState, RadialColumnAnimationEvent>;
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 
@@ -155,25 +149,6 @@ export abstract class RadialColumnSeriesBase<
         this.labelSelection = Selection.select(this.labelGroup!, Text);
 
         this.highlightSelection = this.createPathSelection(this.highlightGroup);
-
-        this.animationState = new StateMachine('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateEmptyUpdateReady(),
-                },
-            },
-            ready: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateReadyUpdate(),
-                },
-                resize: {
-                    target: 'ready',
-                    action: () => this.animateReadyResize(),
-                },
-            },
-        });
     }
 
     protected abstract createPathSelection(parent: _Scene.Group): _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
@@ -510,7 +485,7 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract animateItemsShapes(): void;
 
-    protected animateEmptyUpdateReady() {
+    protected override animateEmptyUpdateReady() {
         if (!this.visible) {
             return;
         }
@@ -534,11 +509,11 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    protected animateReadyUpdate() {
+    protected override animateReadyUpdate() {
         this.resetSectors();
     }
 
-    protected animateReadyResize() {
+    protected override animateReadyResize() {
         this.resetSectors();
     }
 

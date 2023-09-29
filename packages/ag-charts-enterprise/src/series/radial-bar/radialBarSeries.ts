@@ -20,7 +20,6 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     PolarAxis,
-    StateMachine,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
@@ -69,9 +68,6 @@ class RadialBarSeriesLabel extends _Scene.Label {
     formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
 }
 
-type RadialBarAnimationState = 'empty' | 'ready';
-type RadialBarAnimationEvent = 'update' | 'resize';
-
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
     static className = 'RadialBarSeries';
 
@@ -80,8 +76,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected itemSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
     protected highlightSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
-
-    protected animationState: _ModuleSupport.StateMachine<RadialBarAnimationState, RadialBarAnimationEvent>;
 
     protected nodeData: RadialBarNodeDatum[] = [];
 
@@ -151,25 +145,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         this.labelSelection = Selection.select(this.labelGroup!, Text);
 
         this.highlightSelection = Selection.select(this.highlightGroup, Sector);
-
-        this.animationState = new StateMachine('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateEmptyUpdateReady(),
-                },
-            },
-            ready: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateReadyUpdate(),
-                },
-                resize: {
-                    target: 'ready',
-                    action: () => this.animateReadyResize(),
-                },
-            },
-        });
     }
 
     override addChartEventListeners(): void {
@@ -489,7 +464,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected animateEmptyUpdateReady() {
+    protected override animateEmptyUpdateReady() {
         if (!this.visible) {
             return;
         }
@@ -513,11 +488,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected animateReadyUpdate() {
+    protected override animateReadyUpdate() {
         this.resetSectors();
     }
 
-    protected animateReadyResize() {
+    protected override animateReadyResize() {
         this.resetSectors();
     }
 
