@@ -1,21 +1,28 @@
 import type { BaseModule, ModuleInstance } from './baseModule';
-import type { ModuleContext } from './moduleContext';
 
-interface Module<C extends ModuleContext, I extends ModuleInstance = ModuleInstance> extends BaseModule {
+interface Module<C, I extends ModuleInstance = ModuleInstance> extends BaseModule {
     instanceConstructor: new (ctx: C) => I;
 }
 
-export interface ModuleContextInitialiser<C extends ModuleContext> {
+export interface ModuleContextInitialiser<C> {
     createModuleContext: () => C;
 }
 
-export class ModuleMap<M extends Module<C, I>, C extends ModuleContext, I extends ModuleInstance = ModuleInstance> {
+export class ModuleMap<M extends Module<C, I>, C, I extends ModuleInstance = ModuleInstance> {
     private readonly modules: Record<string, { instance: I }> = {};
     private moduleContext?: C;
     private parent: ModuleContextInitialiser<C>;
 
     constructor(parent: ModuleContextInitialiser<C>) {
         this.parent = parent;
+    }
+
+    destroy() {
+        for (const [key, module] of Object.entries(this.modules)) {
+            module.instance.destroy();
+            delete this.modules[key];
+            delete (this.parent as any)[key];
+        }
     }
 
     addModule(module: M) {

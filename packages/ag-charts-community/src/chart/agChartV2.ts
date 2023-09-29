@@ -576,15 +576,16 @@ function applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
 
     for (const next of rootModules) {
         const shouldBeEnabled = (options as any)[next.optionsKey] != null;
-        const isEnabled = axis.isModuleEnabled(next);
+        const moduleMap = axis.getModuleMap();
+        const isEnabled = moduleMap.isModuleEnabled(next);
 
         if (shouldBeEnabled === isEnabled) continue;
         modulesChanged = true;
 
         if (shouldBeEnabled) {
-            axis.addModule(next);
+            moduleMap.addModule(next);
         } else {
-            axis.removeModule(next);
+            moduleMap.removeModule(next);
         }
     }
 
