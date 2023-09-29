@@ -228,7 +228,10 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
         return new BubbleSeriesNodeClickEvent(this.sizeKey, this.xKey ?? '', this.yKey ?? '', event, datum, this);
     }
 
-    protected override getNodeDoubleClickEvent(event: MouseEvent, datum: BubbleNodeDatum): BubbleSeriesNodeDoubleClickEvent {
+    protected override getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: BubbleNodeDatum
+    ): BubbleSeriesNodeDoubleClickEvent {
         return new BubbleSeriesNodeDoubleClickEvent(this.sizeKey, this.xKey ?? '', this.yKey ?? '', event, datum, this);
     }
 

@@ -175,7 +175,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return new HeatmapSeriesNodeClickEvent(this.labelKey, this.xKey ?? '', this.yKey ?? '', event, datum, this);
     }
 
-    protected override getNodeDoubleClickEvent(event: MouseEvent, datum: HeatmapNodeDatum): HeatmapSeriesNodeDoubleClickEvent {
+    protected override getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: HeatmapNodeDatum
+    ): HeatmapSeriesNodeDoubleClickEvent {
         return new HeatmapSeriesNodeDoubleClickEvent(
             this.labelKey,
             this.xKey ?? '',

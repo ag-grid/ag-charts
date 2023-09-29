@@ -238,7 +238,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         }
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: RangeAreaMarkerDatum): RangeAreaSeriesNodeClickEvent {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RangeAreaMarkerDatum
+    ): RangeAreaSeriesNodeClickEvent {
         return new RangeAreaSeriesNodeClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
     }
 

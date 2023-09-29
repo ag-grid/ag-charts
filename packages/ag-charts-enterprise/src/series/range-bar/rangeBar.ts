@@ -287,7 +287,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         return new RangeBarSeriesNodeClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
     }
 
-    protected override getNodeDoubleClickEvent(event: MouseEvent, datum: RangeBarNodeDatum): RangeBarSeriesNodeDoubleClickEvent {
+    protected override getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: RangeBarNodeDatum
+    ): RangeBarSeriesNodeDoubleClickEvent {
         return new RangeBarSeriesNodeDoubleClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
     }
 

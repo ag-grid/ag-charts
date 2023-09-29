@@ -556,7 +556,10 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: RadialColumnNodeDatum): RadialColumnSeriesNodeClickEvent {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RadialColumnNodeDatum
+    ): RadialColumnSeriesNodeClickEvent {
         return new RadialColumnSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 

@@ -883,7 +883,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         return new TreemapSeriesNodeClickEvent(this.labelKey, this.sizeKey, this.colorKey, event, datum, this);
     }
 
-    protected override getNodeDoubleClickEvent(event: MouseEvent, datum: TreemapNodeDatum): TreemapSeriesNodeDoubleClickEvent {
+    protected override getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: TreemapNodeDatum
+    ): TreemapSeriesNodeDoubleClickEvent {
         return new TreemapSeriesNodeDoubleClickEvent(this.labelKey, this.sizeKey, this.colorKey, event, datum, this);
     }
 

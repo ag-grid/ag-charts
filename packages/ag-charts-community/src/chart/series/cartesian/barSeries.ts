@@ -452,7 +452,10 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         return datumSelection.update(nodeData, (rect) => (rect.tag = BarSeriesNodeTag.Bar), getDatumId);
     }
 
-    protected override async updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
+    protected override async updateDatumNodes(opts: {
+        datumSelection: Selection<Rect, BarNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const { datumSelection, isHighlight } = opts;
         const {
             yKey = '',

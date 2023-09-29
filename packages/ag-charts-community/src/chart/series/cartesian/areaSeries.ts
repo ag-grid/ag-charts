@@ -556,7 +556,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         });
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: MarkerSelectionDatum): CartesianSeriesNodeClickEvent<any> {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: MarkerSelectionDatum
+    ): CartesianSeriesNodeClickEvent<any> {
         return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
     }
 
@@ -673,7 +676,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         ];
     }
 
-    override animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths, seriesRect }: AreaAnimationData) {
+    override animateEmptyUpdateReady({
+        markerSelections,
+        labelSelections,
+        contextData,
+        paths,
+        seriesRect,
+    }: AreaAnimationData) {
         const { seriesId, styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
         areaAnimateEmptyUpdateReady({
             markerSelections,
