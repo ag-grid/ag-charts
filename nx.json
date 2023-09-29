@@ -20,7 +20,8 @@
     "tsDefaults": [
       "{projectRoot}/package.json",
       "{projectRoot}/src/**/*",
-      "{projectRoot}/(tsconfig.*.json|rollup.*.js)",
+      "{projectRoot}/tsconfig.*.json",
+      "{projectRoot}/rollup.*.cjs",
       "tsDeclarations",
       "sharedGlobals"
     ],
