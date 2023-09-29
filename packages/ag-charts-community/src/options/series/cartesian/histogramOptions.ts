@@ -9,11 +9,7 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 export interface AgHistogramSeriesLabelOptions extends AgCartesianSeriesLabelOptions {}
 
 export interface AgHistogramSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
-    datum: AgHistogramBinDatum<any>;
-}
-
-export interface AgHistogramBinDatum<DatumType> {
-    data: DatumType[];
+    datum: unknown;
     aggregatedValue: number;
     frequency: number;
     domain: [number, number];

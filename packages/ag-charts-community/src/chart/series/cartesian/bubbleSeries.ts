@@ -10,6 +10,7 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
@@ -30,11 +31,11 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDataContext } from '../series';
+import type { SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeBaseClickEvent } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
@@ -43,35 +44,24 @@ interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly fill: string | undefined;
 }
 
-type BubbleAnimationData = CartesianAnimationData<SeriesNodeDataContext<BubbleNodeDatum>, any>;
+type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 
 class BubbleSeriesLabel extends Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBubbleSeriesLabelFormatterParams<any>) => string = undefined;
 }
 
-class BubbleSeriesNodeBaseClickEvent extends CartesianSeriesNodeBaseClickEvent<any> {
+class BubbleSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeClickEvent<
+    BubbleNodeDatum,
+    BubbleSeries,
+    TEvent
+> {
     readonly sizeKey?: string;
 
-    constructor(
-        sizeKey: string | undefined,
-        xKey: string,
-        yKey: string,
-        nativeEvent: MouseEvent,
-        datum: BubbleNodeDatum,
-        series: BubbleSeries
-    ) {
-        super(xKey, yKey, nativeEvent, datum, series);
-        this.sizeKey = sizeKey;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: BubbleNodeDatum, series: BubbleSeries) {
+        super(type, nativeEvent, datum, series);
+        this.sizeKey = series.sizeKey;
     }
-}
-
-class BubbleSeriesNodeClickEvent extends BubbleSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
-}
-
-class BubbleSeriesNodeDoubleClickEvent extends BubbleSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
 }
 
 class BubbleSeriesMarker extends CartesianSeriesMarker {
@@ -90,7 +80,7 @@ class BubbleSeriesMarker extends CartesianSeriesMarker {
     domain?: [number, number] = undefined;
 }
 
-export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNodeDatum>> {
+export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     static className = 'BubbleSeries';
     static type = 'bubble' as const;
 
@@ -224,12 +214,15 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
         return this.fixNumericExtent(extent(domain), axis);
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: BubbleNodeDatum): BubbleSeriesNodeClickEvent {
-        return new BubbleSeriesNodeClickEvent(this.sizeKey, this.xKey ?? '', this.yKey ?? '', event, datum, this);
+    protected getNodeClickEvent(event: MouseEvent, datum: BubbleNodeDatum): BubbleSeriesNodeClickEvent<'nodeClick'> {
+        return new BubbleSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(event: MouseEvent, datum: BubbleNodeDatum): BubbleSeriesNodeDoubleClickEvent {
-        return new BubbleSeriesNodeDoubleClickEvent(this.sizeKey, this.xKey ?? '', this.yKey ?? '', event, datum, this);
+    protected getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: BubbleNodeDatum
+    ): BubbleSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new BubbleSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     async createNodeData() {
@@ -764,5 +757,9 @@ export class BubbleSeries extends CartesianSeries<SeriesNodeDataContext<BubbleNo
 
     protected isLabelEnabled() {
         return this.label.enabled;
+    }
+
+    protected nodeFactory() {
+        return new Group();
     }
 }

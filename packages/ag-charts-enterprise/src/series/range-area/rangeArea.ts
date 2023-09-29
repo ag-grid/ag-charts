@@ -61,37 +61,24 @@ interface RangeAreaMarkerDatum extends Required<Omit<_ModuleSupport.CartesianSer
     readonly yHighValue: number;
 }
 
-type RangeAreaContext = _ModuleSupport.SeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> & {
+interface RangeAreaContext extends _ModuleSupport.SeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
     fillData: _ModuleSupport.AreaPathDatum;
     strokeData: _ModuleSupport.AreaPathDatum;
-};
+}
 
-class RangeAreaSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<RangeAreaMarkerDatum> {
-    readonly xKey: string;
-    readonly yLowKey: string;
-    readonly yHighKey: string;
+class RangeAreaSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeClickEvent<RangeAreaMarkerDatum, TEvent> {
+    readonly xKey?: string;
+    readonly yLowKey?: string;
+    readonly yHighKey?: string;
 
-    constructor(
-        xKey: string,
-        yLowKey: string,
-        yHighKey: string,
-        nativeEvent: MouseEvent,
-        datum: RangeAreaMarkerDatum,
-        series: RangeAreaSeries
-    ) {
-        super(nativeEvent, datum, series);
-        this.xKey = xKey;
-        this.yLowKey = yLowKey;
-        this.yHighKey = yHighKey;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeAreaMarkerDatum, series: RangeAreaSeries) {
+        super(type, nativeEvent, datum, series);
+        this.xKey = series.xKey;
+        this.yLowKey = series.yLowKey;
+        this.yHighKey = series.yHighKey;
     }
-}
-
-export class RangeAreaSeriesNodeClickEvent extends RangeAreaSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
-}
-
-export class RangeAreaSeriesNodeDoubleClickEvent extends RangeAreaSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
 }
 
 class RangeAreaSeriesLabel extends _Scene.Label {
@@ -113,7 +100,12 @@ class RangeAreaSeriesMarker extends _ModuleSupport.SeriesMarker {
     ) => AgCartesianSeriesMarkerFormat = undefined;
 }
 
-export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaContext> {
+export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
+    _Scene.Group,
+    RangeAreaMarkerDatum,
+    RangeAreaLabelDatum,
+    RangeAreaContext
+> {
     static className = 'RangeAreaSeries';
     static type: 'range-area' = 'range-area' as const;
 
@@ -238,15 +230,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
         }
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: RangeAreaMarkerDatum): RangeAreaSeriesNodeClickEvent {
-        return new RangeAreaSeriesNodeClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
+    protected getNodeClickEvent(
+        event: MouseEvent,
+        datum: RangeAreaMarkerDatum
+    ): RangeAreaSeriesNodeClickEvent<'nodeClick'> {
+        return new RangeAreaSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RangeAreaMarkerDatum
-    ): RangeAreaSeriesNodeDoubleClickEvent {
-        return new RangeAreaSeriesNodeDoubleClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
+    ): RangeAreaSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new RangeAreaSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     async createNodeData() {
@@ -777,4 +772,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaCon
     }
 
     onDataChange() {}
+
+    protected nodeFactory() {
+        return new _Scene.Group();
+    }
 }

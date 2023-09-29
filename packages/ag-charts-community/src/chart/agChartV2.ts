@@ -490,7 +490,7 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
     return true;
 }
 
-function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
+function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[] {
     const series: Series<any>[] = [];
     const moduleContext = chart.getModuleContext();
 
@@ -506,7 +506,7 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series[] {
     return series;
 }
 
-function applySeriesOptionModules(series: Series, options: AgBaseSeriesOptions<any>) {
+function applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOptions<any>) {
     const seriesOptionModules = REGISTERED_MODULES.filter((m): m is SeriesOptionModule => m.type === 'series-option');
 
     for (const mod of seriesOptionModules) {

@@ -201,23 +201,23 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export class SeriesNodeBaseClickEvent<Datum extends { datum: any }> implements TypedEvent {
-    readonly type: 'nodeClick' | 'nodeDoubleClick' = 'nodeClick';
-    readonly datum: any;
-    readonly event: Event;
+export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
+
+export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, Type extends string = SeriesNodeEventTypes>
+    implements TypedEvent
+{
+    readonly datum: unknown;
     readonly seriesId: string;
 
-    constructor(nativeEvent: Event, datum: Datum, series: Series) {
-        this.event = nativeEvent;
-        this.datum = datum.datum;
+    constructor(
+        readonly type: Type,
+        readonly event: Event,
+        { datum }: TDatum,
+        series: Series<TDatum, any>
+    ) {
+        this.datum = datum;
         this.seriesId = series.id;
     }
-}
-
-export class SeriesNodeClickEvent<Datum extends { datum: any }> extends SeriesNodeBaseClickEvent<Datum> {}
-
-export class SeriesNodeDoubleClickEvent<Datum extends { datum: any }> extends SeriesNodeBaseClickEvent<Datum> {
-    readonly type = 'nodeDoubleClick';
 }
 
 export class SeriesItemHighlightStyle {
@@ -276,7 +276,11 @@ const OTHER_HIGHLIGHTED = 'other-highlighted';
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext>;
 
-export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataContext>
+export abstract class Series<
+        TDatum extends SeriesNodeDatum,
+        TLabel = TDatum,
+        TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
+    >
     extends Observable
     implements ModuleContextInitialiser<SeriesContext>
 {
@@ -377,7 +381,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     @Validate(INTERACTION_RANGE)
     nodeClickRange: InteractionRange = 'exact';
 
-    @ActionOnSet<Series>({
+    @ActionOnSet<Series<TDatum, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
@@ -571,7 +575,7 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
     abstract processData(dataController: DataController): Promise<void>;
 
     // Using processed data, create data that backs visible nodes.
-    abstract createNodeData(): Promise<C[]>;
+    abstract createNodeData(): Promise<TContext[]>;
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
@@ -714,22 +718,22 @@ export abstract class Series<C extends SeriesNodeDataContext = SeriesNodeDataCon
 
     abstract getLabelData(): PointLabelDatum[];
 
-    fireNodeClickEvent(event: Event, _datum: C['nodeData'][number]): void {
+    fireNodeClickEvent(event: Event, _datum: TDatum): void {
         const eventObject = this.getNodeClickEvent(event, _datum);
         this.fireEvent(eventObject);
     }
 
-    fireNodeDoubleClickEvent(event: Event, _datum: C['nodeData'][number]): void {
+    fireNodeDoubleClickEvent(event: Event, _datum: TDatum): void {
         const eventObject = this.getNodeDoubleClickEvent(event, _datum);
         this.fireEvent(eventObject);
     }
 
-    protected getNodeClickEvent(event: Event, datum: SeriesNodeDatum): SeriesNodeClickEvent<any> {
-        return new SeriesNodeClickEvent(event, datum, this);
+    protected getNodeClickEvent(event: Event, datum: TDatum): SeriesNodeClickEvent<TDatum, 'nodeClick'> {
+        return new SeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum): SeriesNodeDoubleClickEvent<any> {
-        return new SeriesNodeDoubleClickEvent(event, datum, this);
+    protected getNodeDoubleClickEvent(event: Event, datum: TDatum): SeriesNodeClickEvent<TDatum, 'nodeDoubleClick'> {
+        return new SeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];

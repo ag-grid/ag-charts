@@ -45,10 +45,10 @@ import { Label } from '../../label';
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
-import type { SeriesNodeDatum } from '../series';
+import type { SeriesNodeDatum, SeriesNodeEventTypes } from '../series';
 import {
     HighlightStyle,
-    SeriesNodeBaseClickEvent,
+    SeriesNodeClickEvent,
     accumulativeValueProperty,
     keyProperty,
     rangedValueProperty,
@@ -57,35 +57,21 @@ import {
 import { SeriesTooltip } from '../seriesTooltip';
 import { PolarSeries } from './polarSeries';
 
-class PieSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
-    readonly angleKey: string;
+class PieSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
+    PieNodeDatum,
+    TEvent
+> {
+    readonly angleKey?: string;
     readonly calloutLabelKey?: string;
     readonly sectorLabelKey?: string;
     readonly radiusKey?: string;
-
-    constructor(
-        angleKey: string,
-        calloutLabelKey: string | undefined,
-        sectorLabelKey: string | undefined,
-        radiusKey: string | undefined,
-        nativeEvent: MouseEvent,
-        datum: PieNodeDatum,
-        series: PieSeries
-    ) {
-        super(nativeEvent, datum, series);
-        this.angleKey = angleKey;
-        this.calloutLabelKey = calloutLabelKey;
-        this.sectorLabelKey = sectorLabelKey;
-        this.radiusKey = radiusKey;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: PieNodeDatum, series: PieSeries) {
+        super(type, nativeEvent, datum, series);
+        this.angleKey = series.angleKey;
+        this.calloutLabelKey = series.calloutLabelKey;
+        this.sectorLabelKey = series.sectorLabelKey;
+        this.radiusKey = series.radiusKey;
     }
-}
-
-class PieSeriesNodeClickEvent extends PieSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
-}
-
-class PieSeriesNodeDoubleClickEvent extends PieSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
 }
 
 interface PieNodeDatum extends SeriesNodeDatum {
@@ -1462,28 +1448,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: PieNodeDatum): PieSeriesNodeClickEvent {
-        return new PieSeriesNodeClickEvent(
-            this.angleKey,
-            this.calloutLabelKey,
-            this.sectorLabelKey,
-            this.radiusKey,
-            event,
-            datum,
-            this
-        );
+    protected getNodeClickEvent(event: MouseEvent, datum: PieNodeDatum): PieSeriesNodeClickEvent<'nodeClick'> {
+        return new PieSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(event: MouseEvent, datum: PieNodeDatum): PieSeriesNodeDoubleClickEvent {
-        return new PieSeriesNodeDoubleClickEvent(
-            this.angleKey,
-            this.calloutLabelKey,
-            this.sectorLabelKey,
-            this.radiusKey,
-            event,
-            datum,
-            this
-        );
+    protected getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: PieNodeDatum
+    ): PieSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new PieSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: PieNodeDatum): string {

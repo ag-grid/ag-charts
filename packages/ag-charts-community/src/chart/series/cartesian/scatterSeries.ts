@@ -8,6 +8,7 @@ import type {
 import { ColorScale } from '../../../scale/colorScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
+import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
@@ -17,12 +18,11 @@ import { COLOR_STRING_ARRAY, OPT_FUNCTION, OPT_NUMBER_ARRAY, OPT_STRING, Validat
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions } from '../../data/dataModel';
-import { createDatumId, diff } from '../../data/processors';
+import { diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -34,14 +34,14 @@ interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly fill: string | undefined;
 }
 
-type ScatterAnimationData = CartesianAnimationData<SeriesNodeDataContext<ScatterNodeDatum>, any>;
+type ScatterAnimationData = CartesianAnimationData<Group, ScatterNodeDatum>;
 
 class ScatterSeriesLabel extends Label {
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgScatterSeriesLabelFormatterParams<any>) => string = undefined;
 }
 
-export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<ScatterNodeDatum>> {
+export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     static className = 'ScatterSeries';
     static type = 'scatter' as const;
 
@@ -680,13 +680,17 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         return format;
     }
 
-    getDatumId(datum: ScatterNodeDatum) {
-        const keys = [`${datum.xValue}`, `${datum.yValue}`];
-        if (this.labelKey) keys.push(datum.label.text);
-        return createDatumId(keys);
-    }
+    // getDatumId(datum: ScatterNodeDatum) {
+    //     const keys = [`${datum.xValue}`, `${datum.yValue}`];
+    //     if (this.labelKey) keys.push(datum.label.text);
+    //     return createDatumId(keys);
+    // }
 
     protected isLabelEnabled() {
         return this.label.enabled;
+    }
+
+    protected nodeFactory() {
+        return new Group();
     }
 }

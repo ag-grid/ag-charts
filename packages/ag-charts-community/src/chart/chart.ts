@@ -509,7 +509,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private updateShortcutCount = 0;
-    private seriesToUpdate: Set<Series> = new Set();
+    private seriesToUpdate: Set<Series<any>> = new Set();
     private updateMutex = new Mutex();
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
@@ -526,7 +526,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     });
     public update(
         type = ChartUpdateType.FULL,
-        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<Series>; backOffMs?: number }
+        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<Series<any>>; backOffMs?: number }
     ) {
         const { forceNodeDataRefresh = false, seriesToUpdate = this.series } = opts ?? {};
 
@@ -641,7 +641,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return false;
     }
 
-    private checkFirstAutoSize(seriesToUpdate: Series[]) {
+    private checkFirstAutoSize(seriesToUpdate: Series<any>[]) {
         if (this.autoSize && !this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
             const backOffMs = (count ^ 2) * 10;
@@ -687,13 +687,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this._axes;
     }
 
-    protected _series: Series[] = [];
-    set series(values: Series[]) {
+    protected _series: Series<any>[] = [];
+    set series(values: Series<any>[]) {
         this.removeAllSeries();
         this.seriesLayerManager.setSeriesCount(values.length);
         values.forEach((series) => this.addSeries(series));
     }
-    get series(): Series[] {
+    get series(): Series<any>[] {
         return this._series;
     }
 
@@ -865,7 +865,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     placeLabels(): Map<Series<any>, PlacedLabel[]> {
-        const visibleSeries: Series[] = [];
+        const visibleSeries: Series<any>[] = [];
         const data: (readonly PointLabelDatum[])[] = [];
         for (const series of this.series) {
             if (!series.visible) {
@@ -1178,7 +1178,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected handlePointerNode(event: InteractionEvent<'hover'>) {
-        const found = this.checkSeriesNodeRange(event, (series: Series, datum: any) => {
+        const found = this.checkSeriesNodeRange(event, (series: Series<any>, datum: any) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.cursorManager.updateCursor('chart', 'pointer');
             }
@@ -1220,20 +1220,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkSeriesNodeClick(event: InteractionEvent<'click'>): boolean {
-        return this.checkSeriesNodeRange(event, (series: Series, datum: any) =>
+        return this.checkSeriesNodeRange(event, (series: Series<any>, datum: any) =>
             series.fireNodeClickEvent(event.sourceEvent, datum)
         );
     }
 
     private checkSeriesNodeDoubleClick(event: InteractionEvent<'dblclick'>): boolean {
-        return this.checkSeriesNodeRange(event, (series: Series, datum: any) =>
+        return this.checkSeriesNodeRange(event, (series: Series<any>, datum: any) =>
             series.fireNodeDoubleClickEvent(event.sourceEvent, datum)
         );
     }
 
     private checkSeriesNodeRange(
         event: InteractionEvent<'click' | 'dblclick' | 'hover'>,
-        callback: (series: Series, datum: any) => void
+        callback: (series: Series<any>, datum: any) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
 
@@ -1315,7 +1315,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     changeHighlightDatum(event: HighlightChangeEvent) {
-        const seriesToUpdate: Set<Series> = new Set<Series>();
+        const seriesToUpdate: Set<Series<any>> = new Set();
         const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
         const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
 

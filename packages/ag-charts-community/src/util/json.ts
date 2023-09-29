@@ -1,41 +1,40 @@
 import { Logger } from './logger';
-import type { DeepPartial } from './types';
 
-// type LiteralProperties = 'shape' | 'data';
-// type SkippableProperties = 'axes' | 'series' | 'container' | 'customChartThemes';
-// type IsLiteralProperty<T, K extends keyof T> = K extends LiteralProperties
-//     ? true
-//     : T[K] extends Array<any>
-//     ? true
-//     : false;
-// type IsSkippableProperty<T, K extends keyof T> = K extends SkippableProperties ? true : false;
-//
-// // Needs to be recursive when we move to TS 4.x+; only supports a maximum level of nesting right now.
-// type DeepPartial<T> = {
-//     [P1 in keyof T]?: IsSkippableProperty<T, P1> extends true
-//         ? any
-//         : IsLiteralProperty<T, P1> extends true
-//         ? T[P1]
-//         : {
-//               [P2 in keyof T[P1]]?: IsSkippableProperty<T[P1], P2> extends true
-//                   ? any
-//                   : IsLiteralProperty<T[P1], P2> extends true
-//                   ? T[P1][P2]
-//                   : {
-//                         [P3 in keyof T[P1][P2]]?: IsSkippableProperty<T[P1][P2], P3> extends true
-//                             ? any
-//                             : IsLiteralProperty<T[P1][P2], P3> extends true
-//                             ? T[P1][P2][P3]
-//                             : {
-//                                   [P4 in keyof T[P1][P2][P3]]?: IsSkippableProperty<T[P1][P2][P3], P4> extends true
-//                                       ? any
-//                                       : IsLiteralProperty<T[P1][P2][P3], P4> extends true
-//                                       ? T[P1][P2][P3][P4]
-//                                       : Partial<T[P1][P2][P3][P4]>;
-//                               };
-//                     };
-//           };
-// };
+type LiteralProperties = 'shape' | 'data';
+type SkippableProperties = 'axes' | 'series' | 'container' | 'customChartThemes';
+type IsLiteralProperty<T, K extends keyof T> = K extends LiteralProperties
+    ? true
+    : T[K] extends Array<any>
+    ? true
+    : false;
+type IsSkippableProperty<T, K extends keyof T> = K extends SkippableProperties ? true : false;
+
+// Needs to be recursive when we move to TS 4.x+; only supports a maximum level of nesting right now.
+type DeepPartial<T> = {
+    [P1 in keyof T]?: IsSkippableProperty<T, P1> extends true
+        ? any
+        : IsLiteralProperty<T, P1> extends true
+        ? T[P1]
+        : {
+              [P2 in keyof T[P1]]?: IsSkippableProperty<T[P1], P2> extends true
+                  ? any
+                  : IsLiteralProperty<T[P1], P2> extends true
+                  ? T[P1][P2]
+                  : {
+                        [P3 in keyof T[P1][P2]]?: IsSkippableProperty<T[P1][P2], P3> extends true
+                            ? any
+                            : IsLiteralProperty<T[P1][P2], P3> extends true
+                            ? T[P1][P2][P3]
+                            : {
+                                  [P4 in keyof T[P1][P2][P3]]?: IsSkippableProperty<T[P1][P2][P3], P4> extends true
+                                      ? any
+                                      : IsLiteralProperty<T[P1][P2][P3], P4> extends true
+                                      ? T[P1][P2][P3][P4]
+                                      : Partial<T[P1][P2][P3][P4]>;
+                              };
+                    };
+          };
+};
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -176,7 +175,7 @@ export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
     if (jsonTypes.some((v) => v === 'array')) {
         // Clone final array.
         const finalValue = json[json.length - 1];
-        if (finalValue instanceof Array) {
+        if (Array.isArray(finalValue)) {
             return finalValue.map((v) => {
                 const type = classify(v);
 
@@ -425,7 +424,7 @@ function classify(value: any): 'array' | 'object' | 'function' | 'primitive' | '
         return null;
     } else if (isBrowser && value instanceof HTMLElement) {
         return 'primitive';
-    } else if (value instanceof Array) {
+    } else if (Array.isArray(value)) {
         return 'array';
     } else if (value instanceof Date) {
         return 'primitive';

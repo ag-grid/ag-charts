@@ -3,10 +3,10 @@ import type { BBox } from '../../../scene/bbox';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
-import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
+import type { SeriesNodeDatum } from '../series';
 import { Series, SeriesNodePickMode } from '../series';
 
-export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<SeriesNodeDataContext<S>> {
+export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
     /**
      * The center of the polar series (for example, the center of a pie).
      * If the polar chart has multiple series, all of them will have their

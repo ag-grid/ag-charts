@@ -20,7 +20,7 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     SeriesTooltip,
-    SeriesNodeBaseClickEvent,
+    SeriesNodeClickEvent,
     TEXT_WRAP,
     HighlightStyle,
     STRING,
@@ -50,32 +50,18 @@ interface TreemapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     children: TreemapNodeDatum[];
 }
 
-class TreemapSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
-    readonly labelKey: string;
-    readonly sizeKey?: string;
+class TreemapSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends SeriesNodeClickEvent<TreemapNodeDatum, TEvent> {
     readonly colorKey?: string;
-
-    constructor(
-        labelKey: string,
-        sizeKey: string | undefined,
-        colorKey: string | undefined,
-        nativeEvent: MouseEvent,
-        datum: TreemapNodeDatum,
-        series: TreemapSeries
-    ) {
-        super(nativeEvent, datum, series);
-        this.labelKey = labelKey;
-        this.sizeKey = sizeKey;
-        this.colorKey = colorKey;
+    readonly labelKey?: string;
+    readonly sizeKey?: string;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: TreemapNodeDatum, series: TreemapSeries) {
+        super(type, nativeEvent, datum, series);
+        this.colorKey = series.colorKey;
+        this.labelKey = series.labelKey;
+        this.sizeKey = series.sizeKey;
     }
-}
-
-class TreemapSeriesNodeClickEvent extends TreemapSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
-}
-
-class TreemapSeriesNodeDoubleClickEvent extends TreemapSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
 }
 
 class TreemapSeriesLabel extends Label {
@@ -879,12 +865,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         return [0, 1];
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: TreemapNodeDatum): TreemapSeriesNodeClickEvent {
-        return new TreemapSeriesNodeClickEvent(this.labelKey, this.sizeKey, this.colorKey, event, datum, this);
+    protected getNodeClickEvent(event: MouseEvent, datum: TreemapNodeDatum): TreemapSeriesNodeClickEvent<'nodeClick'> {
+        return new TreemapSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(event: MouseEvent, datum: TreemapNodeDatum): TreemapSeriesNodeDoubleClickEvent {
-        return new TreemapSeriesNodeDoubleClickEvent(this.labelKey, this.sizeKey, this.colorKey, event, datum, this);
+    protected getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: TreemapNodeDatum
+    ): TreemapSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new TreemapSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: TreemapNodeDatum): string {

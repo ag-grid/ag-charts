@@ -23,35 +23,32 @@ import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from 
 import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDataContext, SeriesNodeDatum, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
-import { Series, SeriesNodeBaseClickEvent } from '../series';
+import type {
+    SeriesNodeDataContext,
+    SeriesNodeDatum,
+    SeriesNodeEventTypes,
+    SeriesNodePickMatch,
+    SeriesNodePickMode,
+} from '../series';
+import { Series, SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesMarker } from '../seriesMarker';
 
-type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
-    N,
-    ContextType['nodeData'][number]
->;
-type LabelDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
-    N,
-    ContextType['labelData'][number]
->;
-
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly xKey: string;
-    readonly yKey: string;
-    readonly xValue: any;
-    readonly yValue: any;
+    readonly yKey?: string;
+    readonly xValue?: any;
+    readonly yValue?: any;
 }
 
-interface SubGroup<C extends SeriesNodeDataContext, SceneNodeType extends Node> {
+interface SubGroup<SceneNodeType extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
     paths: Path[];
     dataNodeGroup: Group;
     labelGroup: Group;
     markerGroup?: Group;
-    datumSelection: NodeDataSelection<SceneNodeType, C>;
-    labelSelection: LabelDataSelection<Text, C>;
-    markerSelection?: NodeDataSelection<Marker, C>;
+    datumSelection: Selection<SceneNodeType, TDatum>;
+    labelSelection: Selection<Text, TLabel>;
+    markerSelection?: Selection<Marker, TDatum>;
 }
 interface SeriesOpts {
     pathsPerSeries: number;
@@ -72,62 +69,61 @@ const DEFAULT_DIRECTION_NAMES: { [key in ChartAxisDirection]?: string[] } = {
     [ChartAxisDirection.Y]: ['yName'],
 };
 
-export class CartesianSeriesNodeBaseClickEvent<Datum extends { datum: any }> extends SeriesNodeBaseClickEvent<Datum> {
-    readonly xKey: string;
-    readonly yKey: string;
-
-    constructor(xKey: string, yKey: string, nativeEvent: MouseEvent, datum: Datum, series: Series<any>) {
-        super(nativeEvent, datum, series);
-        this.xKey = xKey;
-        this.yKey = yKey;
-    }
-}
-
 export class CartesianSeriesNodeClickEvent<
-    Datum extends { datum: any },
-> extends CartesianSeriesNodeBaseClickEvent<Datum> {
-    readonly type = 'nodeClick';
-}
+    TDatum extends CartesianSeriesNodeDatum,
+    TSeries extends CartesianSeries<any, any, any, any> & { xKey?: string; yKey?: string },
+    TEvent extends string = SeriesNodeEventTypes,
+> extends SeriesNodeClickEvent<TDatum, TEvent> {
+    readonly xKey?: string;
+    readonly yKey?: string;
 
-export class CartesianSeriesNodeDoubleClickEvent<
-    Datum extends { datum: any },
-> extends CartesianSeriesNodeBaseClickEvent<Datum> {
-    readonly type = 'nodeDoubleClick';
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: TDatum, series: TSeries) {
+        super(type, nativeEvent, datum, series);
+        this.xKey = series.xKey;
+        this.yKey = series.yKey;
+    }
 }
 
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type CartesianAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize' | 'clear';
 
-export interface CartesianAnimationData<C extends SeriesNodeDataContext<any, any>, N extends Node = Group> {
-    datumSelections: Array<NodeDataSelection<N, C>>;
-    markerSelections: Array<NodeDataSelection<Marker, C>>;
-    labelSelections: Array<LabelDataSelection<Text, C>>;
-    contextData: Array<C>;
-    paths: Array<Array<Path>>;
+export interface CartesianAnimationData<
+    TNode extends Node,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel = TDatum,
+    TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
+> {
+    datumSelections: Selection<TNode, TDatum>[];
+    markerSelections: Selection<Marker, TDatum>[];
+    labelSelections: Selection<Text, TLabel>[];
+    contextData: TContext[];
+    paths: Path[][];
     seriesRect?: BBox;
     duration?: number;
 }
 
 export abstract class CartesianSeries<
-    C extends SeriesNodeDataContext<any, any>,
-    N extends Node = Group,
-> extends Series<C> {
+    TNode extends Node,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum = TDatum,
+    TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
+> extends Series<TDatum, TLabel, TContext> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
 
-    private _contextNodeData: C[] = [];
-    get contextNodeData(): C[] {
-        return this._contextNodeData?.slice();
+    private _contextNodeData: TContext[] = [];
+    get contextNodeData() {
+        return this._contextNodeData.slice();
     }
 
     private nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
 
     private highlightSelection = Selection.select(this.highlightNode, () =>
-        this.opts.hasMarkers ? this.markerFactory() : (this.nodeFactory() as any)
-    ) as NodeDataSelection<N, C>;
-    private highlightLabelSelection = Selection.select(this.highlightLabel, Text) as LabelDataSelection<Text, C>;
+        this.opts.hasMarkers ? this.markerFactory() : this.nodeFactory()
+    ) as Selection<TNode, TDatum>;
+    private highlightLabelSelection = Selection.select<Text, TLabel>(this.highlightLabel, Text);
 
-    private subGroups: SubGroup<C, any>[] = [];
+    private subGroups: SubGroup<any, TDatum, TLabel>[] = [];
     private subGroupId: number = 0;
 
     private readonly opts: SeriesOpts;
@@ -283,7 +279,7 @@ export abstract class CartesianSeries<
         await Promise.all(this.subGroups.map((g, i) => this.updateSeriesGroupSelections(g, i)));
     }
 
-    private async updateSeriesGroupSelections(subGroup: SubGroup<C, any>, seriesIdx: number) {
+    private async updateSeriesGroupSelections(subGroup: SubGroup<any, TDatum, TLabel>, seriesIdx: number) {
         const { datumSelection, labelSelection, markerSelection } = subGroup;
         const contextData = this._contextNodeData[seriesIdx];
         const { nodeData, labelData } = contextData;
@@ -295,9 +291,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected nodeFactory(): Node {
-        return new Group();
-    }
+    protected abstract nodeFactory(): TNode;
 
     protected markerFactory(): Marker {
         const MarkerShape = getMarker();
@@ -402,7 +396,7 @@ export abstract class CartesianSeries<
     }
 
     protected async updateNodes(
-        highlightedItems: C['nodeData'] | undefined,
+        highlightedItems: TDatum[] | undefined,
         seriesHighlighted: boolean | undefined,
         anySeriesItemEnabled: boolean
     ) {
@@ -487,20 +481,14 @@ export abstract class CartesianSeries<
         );
     }
 
-    protected getHighlightLabelData(
-        labelData: C['labelData'],
-        highlightedItem: C['nodeData'][number]
-    ): C['labelData'] | undefined {
+    protected getHighlightLabelData(labelData: TLabel[], highlightedItem: TDatum): TLabel[] | undefined {
         const labelItem = labelData.find(
             (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
         );
         return labelItem ? [labelItem] : undefined;
     }
 
-    protected getHighlightData(
-        _nodeData: C['nodeData'],
-        highlightedItem: C['nodeData'][number]
-    ): C['nodeData'] | undefined {
+    protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
         return highlightedItem ? [highlightedItem] : undefined;
     }
 
@@ -508,11 +496,10 @@ export abstract class CartesianSeries<
         const { highlightSelection, highlightLabelSelection, _contextNodeData: contextNodeData } = this;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const item =
-            seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as C['nodeData'][number]) : undefined;
+        const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as TDatum) : undefined;
 
-        let labelItems: C['labelData'] | undefined;
-        let highlightItems: C['nodeData'] | undefined;
+        let labelItems: TLabel[] | undefined;
+        let highlightItems: TDatum[] | undefined;
         if (item != null) {
             const labelsEnabled = this.isLabelEnabled();
             for (const { labelData, nodeData } of contextNodeData) {
@@ -572,7 +559,7 @@ export abstract class CartesianSeries<
         const hitPoint = rootGroup.transformPoint(x, y);
 
         let minDistance = Infinity;
-        let closestDatum: CartesianSeriesNodeDatum | undefined;
+        let closestDatum: TDatum | undefined;
 
         for (const context of contextNodeData) {
             for (const datum of context.nodeData) {
@@ -605,7 +592,7 @@ export abstract class CartesianSeries<
     protected pickNodeMainAxisFirst(
         point: Point,
         requireCategoryAxis: boolean
-    ): { datum: CartesianSeriesNodeDatum; distance: number } | undefined {
+    ): { datum: TDatum; distance: number } | undefined {
         const { x, y } = point;
         const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
 
@@ -628,7 +615,7 @@ export abstract class CartesianSeries<
             primaryDirection === ChartAxisDirection.X ? [hitPoint.x, hitPoint.y] : [hitPoint.y, hitPoint.x];
 
         const minDistance = [Infinity, Infinity];
-        let closestDatum: CartesianSeriesNodeDatum | undefined = undefined;
+        let closestDatum: TDatum | undefined;
 
         for (const context of contextNodeData) {
             for (const datum of context.nodeData) {
@@ -710,9 +697,9 @@ export abstract class CartesianSeries<
     }
 
     protected async updateHighlightSelectionItem(opts: {
-        items?: C['nodeData'];
-        highlightSelection: NodeDataSelection<N, C>;
-    }): Promise<NodeDataSelection<N, C>> {
+        items?: TDatum[];
+        highlightSelection: Selection<TNode, TDatum>;
+    }): Promise<Selection<TNode, TDatum>> {
         const {
             opts: { hasMarkers },
         } = this;
@@ -729,9 +716,9 @@ export abstract class CartesianSeries<
     }
 
     protected async updateHighlightSelectionLabel(opts: {
-        items?: C['labelData'];
-        highlightLabelSelection: LabelDataSelection<Text, C>;
-    }): Promise<LabelDataSelection<Text, C>> {
+        items?: TLabel[];
+        highlightLabelSelection: Selection<Text, TLabel>;
+    }): Promise<Selection<Text, TLabel>> {
         const { items, highlightLabelSelection } = opts;
         const labelData = items ?? [];
 
@@ -739,16 +726,16 @@ export abstract class CartesianSeries<
     }
 
     protected async updateDatumSelection(opts: {
-        nodeData: C['nodeData'];
-        datumSelection: NodeDataSelection<N, C>;
+        nodeData: TDatum[];
+        datumSelection: Selection<TNode, TDatum>;
         seriesIdx: number;
-    }): Promise<NodeDataSelection<N, C>> {
+    }): Promise<Selection<TNode, TDatum>> {
         // Override point for sub-classes.
         return opts.datumSelection;
     }
     protected async updateDatumNodes(_opts: {
-        datumSelection: NodeDataSelection<N, C>;
-        highlightedItems?: C['nodeData'];
+        datumSelection: Selection<TNode, TDatum>;
+        highlightedItems?: TDatum[];
         isHighlight: boolean;
         seriesIdx: number;
     }): Promise<void> {
@@ -756,46 +743,46 @@ export abstract class CartesianSeries<
     }
 
     protected async updateMarkerSelection(opts: {
-        nodeData: C['nodeData'];
-        markerSelection: NodeDataSelection<Marker, C>;
+        nodeData: TDatum[];
+        markerSelection: Selection<Marker, TDatum>;
         seriesIdx: number;
-    }): Promise<NodeDataSelection<Marker, C>> {
+    }): Promise<Selection<Marker, TDatum>> {
         // Override point for sub-classes.
         return opts.markerSelection;
     }
     protected async updateMarkerNodes(_opts: {
-        markerSelection: NodeDataSelection<Marker, C>;
+        markerSelection: Selection<Marker, TDatum>;
         isHighlight: boolean;
         seriesIdx: number;
     }): Promise<void> {
         // Override point for sub-classes.
     }
 
-    protected animateEmptyUpdateReady(_data: CartesianAnimationData<C, N>) {
+    protected animateEmptyUpdateReady(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Override point for sub-classes.
     }
 
-    protected animateReadyUpdate(_data: CartesianAnimationData<C, N>) {
+    protected animateReadyUpdate(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Override point for sub-classes.
     }
 
-    protected animateWaitingUpdateReady(_data: CartesianAnimationData<C, N>) {
+    protected animateWaitingUpdateReady(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Override point for sub-classes.
     }
 
-    protected animateReadyHighlight(_data: NodeDataSelection<N, C>) {
+    protected animateReadyHighlight(_data: Selection<TNode, TDatum>) {
         // Override point for sub-classes.
     }
 
-    protected animateReadyHighlightMarkers(_data: NodeDataSelection<Marker, C>) {
+    protected animateReadyHighlightMarkers(_data: Selection<Marker, TDatum>) {
         // Override point for sub-classes.
     }
 
-    protected animateReadyResize(_data: CartesianAnimationData<C, N>) {
+    protected animateReadyResize(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Override point for sub-classes.
     }
 
-    protected animateClearingUpdateEmpty(_data: CartesianAnimationData<C, N>) {
+    protected animateClearingUpdateEmpty(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Override point for sub-classes.
     }
 
@@ -804,7 +791,7 @@ export abstract class CartesianSeries<
     }
 
     private getAnimationData(seriesRect?: BBox) {
-        const animationData: CartesianAnimationData<C, N> = {
+        const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
             markerSelections: this.subGroups
                 .filter(({ markerSelection }) => markerSelection !== undefined)
@@ -819,13 +806,13 @@ export abstract class CartesianSeries<
     }
 
     protected abstract updateLabelSelection(opts: {
-        labelData: C['labelData'];
-        labelSelection: LabelDataSelection<Text, C>;
+        labelData: TLabel[];
+        labelSelection: Selection<Text, TLabel>;
         seriesIdx: number;
-    }): Promise<LabelDataSelection<Text, C>>;
+    }): Promise<Selection<Text, TLabel>>;
 
     protected abstract updateLabelNodes(opts: {
-        labelSelection: LabelDataSelection<Text, C>;
+        labelSelection: Selection<Text, TLabel>;
         seriesIdx: number;
     }): Promise<void>;
 
