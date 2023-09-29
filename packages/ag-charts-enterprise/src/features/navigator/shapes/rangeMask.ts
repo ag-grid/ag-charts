@@ -10,7 +10,7 @@ function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown
 }
 
 export class RangeMask extends _Scene.Path {
-    static className = 'RangeMask';
+    static override className = 'RangeMask';
 
     @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
     @Validate(NUMBER(0))
@@ -60,7 +60,7 @@ export class RangeMask extends _Scene.Path {
 
     onRangeChange?: () => any;
 
-    computeBBox() {
+    override computeBBox() {
         const { x, y, width, height } = this;
         return new BBox(x, y, width, height);
     }
@@ -72,7 +72,7 @@ export class RangeMask extends _Scene.Path {
         return new BBox(minX, y, maxX - minX, height);
     }
 
-    updatePath() {
+    override updatePath() {
         const { path, x, y, width, height, min, max } = this;
 
         path.clear();

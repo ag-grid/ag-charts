@@ -52,11 +52,11 @@ class RadarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEv
 }
 
 class RadarSeriesNodeClickEvent extends RadarSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
+    override readonly type = 'nodeClick';
 }
 
 class RadarSeriesNodeDoubleClickEvent extends RadarSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
+    override readonly type = 'nodeDoubleClick';
 }
 
 interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
@@ -148,7 +148,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     @Validate(NUMBER(0))
     strokeWidth = 1;
 
-    readonly highlightStyle = new HighlightStyle();
+    override readonly highlightStyle = new HighlightStyle();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -197,7 +197,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    addChartEventListeners(): void {
+    override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
         this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
             this.onLegendItemDoubleClick(event)
@@ -433,11 +433,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeClickEvent {
+    protected override getNodeClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeClickEvent {
         return new RadarSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeDoubleClickEvent {
+    protected override getNodeDoubleClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeDoubleClickEvent {
         return new RadarSeriesNodeDoubleClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 
@@ -543,7 +543,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.toggleSeriesItem(itemId, newEnabled);
     }
 
-    protected pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { rootGroup, nodeData, centerX: cx, centerY: cy, marker } = this;
         const hitPoint = rootGroup.transformPoint(x, y);
@@ -576,7 +576,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
     }
 
-    async computeLabelsBBox() {
+    override async computeLabelsBBox() {
         const { label } = this;
 
         await this.maybeRefreshNodeData();

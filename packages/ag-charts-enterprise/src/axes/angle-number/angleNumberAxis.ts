@@ -10,7 +10,7 @@ export class AngleNumberAxis extends AngleAxis {
     static className = 'AngleNumberAxis';
     static type = 'angle-number' as const;
 
-    shape = 'circle' as const;
+    override shape = 'circle' as const;
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
     @Default(NaN)
@@ -24,7 +24,7 @@ export class AngleNumberAxis extends AngleAxis {
         super(moduleCtx, new LinearAngleScale());
     }
 
-    normaliseDataDomain(d: number[]) {
+    override normaliseDataDomain(d: number[]) {
         const { min, max } = this;
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 

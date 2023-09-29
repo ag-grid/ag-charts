@@ -51,13 +51,13 @@ export class BoxPlotSeriesNodeBaseClickEvent<
 }
 
 export class BoxPlotSeriesNodeClickEvent<Datum extends { datum: any }> extends BoxPlotSeriesNodeBaseClickEvent<Datum> {
-    readonly type = 'nodeClick';
+    override readonly type = 'nodeClick';
 }
 
 export class BoxPlotSeriesNodeDoubleClickEvent<
     Datum extends { datum: any },
 > extends BoxPlotSeriesNodeBaseClickEvent<Datum> {
-    readonly type = 'nodeDoubleClick';
+    override readonly type = 'nodeDoubleClick';
 }
 
 class BoxPlotSeriesCap {
@@ -374,11 +374,11 @@ export class BoxPlotSeries extends CartesianSeries<
         ];
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<any> {
+    protected override getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<any> {
         return new BoxPlotSeriesNodeClickEvent(event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: BoxPlotNodeDatum
     ): BoxPlotSeriesNodeDoubleClickEvent<any> {
@@ -446,7 +446,7 @@ export class BoxPlotSeries extends CartesianSeries<
         );
     }
 
-    protected animateEmptyUpdateReady({
+    protected override animateEmptyUpdateReady({
         datumSelections,
     }: _ModuleSupport.CartesianAnimationData<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>, BoxPlotGroup>) {
         const isVertical = this.direction === 'vertical';
@@ -486,7 +486,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return false;
     }
 
-    protected async updateDatumSelection(opts: {
+    protected override async updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         seriesIdx: number;
@@ -495,7 +495,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return opts.datumSelection.update(data);
     }
 
-    protected async updateDatumNodes({
+    protected override async updateDatumNodes({
         datumSelection,
         highlightedItems,
         isHighlight: highlighted,
@@ -548,7 +548,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return labelSelection.update(labelData);
     }
 
-    protected nodeFactory() {
+    protected override nodeFactory() {
         return new BoxPlotGroup();
     }
 
@@ -597,7 +597,7 @@ export class BoxPlotSeries extends CartesianSeries<
         return activeStyles;
     }
 
-    getBandScalePadding() {
+    override getBandScalePadding() {
         return { inner: 0.2, outer: 0.1 };
     }
 

@@ -4,7 +4,7 @@
     "module": "commonjs",
     "strict": true,
     "forceConsistentCasingInFileNames": false,
-    "noImplicitOverride": false,
+    "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": false,
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,

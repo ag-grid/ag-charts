@@ -311,7 +311,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    public destroy() {
+    public override destroy() {
         super.destroy();
 
         this.intersectionObserver?.unobserve(this.canvasElement);

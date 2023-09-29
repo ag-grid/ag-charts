@@ -10,7 +10,7 @@ export class RadiusCategoryAxis extends RadiusAxis {
     static className = 'RadiusCategoryAxis';
     static type = 'radius-category' as const;
 
-    shape = 'circle' as const;
+    override shape = 'circle' as const;
 
     @Validate(NUMBER(0, 1))
     groupPaddingInner: number = 0;
