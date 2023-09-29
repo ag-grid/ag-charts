@@ -155,11 +155,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         }
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: HeatmapNodeDatum): HeatmapSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(event: MouseEvent, datum: HeatmapNodeDatum): HeatmapSeriesNodeClickEvent<'nodeClick'> {
         return new HeatmapSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: HeatmapNodeDatum
     ): HeatmapSeriesNodeClickEvent<'nodeDoubleClick'> {
@@ -238,15 +238,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
 
-    getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _Util.PointLabelDatum[] {
         return this.contextNodeData?.reduce<_Util.PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
     }
 
-    protected nodeFactory() {
+    protected override nodeFactory() {
         return new Rect();
     }
 
-    protected async updateDatumSelection(opts: {
+    protected override async updateDatumSelection(opts: {
         nodeData: HeatmapNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, HeatmapNodeDatum>;
     }) {
@@ -255,7 +255,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         return datumSelection.update(data);
     }
 
-    protected async updateDatumNodes(opts: {
+    protected override async updateDatumNodes(opts: {
         datumSelection: _Scene.Selection<_Scene.Rect, HeatmapNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -476,7 +476,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         return this.label.enabled;
     }
 
-    getBandScalePadding() {
+    override getBandScalePadding() {
         return { inner: 0, outer: 0 };
     }
 }

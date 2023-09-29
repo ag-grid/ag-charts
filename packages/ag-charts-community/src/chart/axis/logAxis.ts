@@ -14,10 +14,10 @@ function NON_ZERO_NUMBER() {
 }
 
 export class LogAxis extends NumberAxis {
-    static className = 'LogAxis';
-    static type = 'log' as const;
+    static override className = 'LogAxis';
+    static override type = 'log' as const;
 
-    normaliseDataDomain(d: number[]) {
+    override normaliseDataDomain(d: number[]) {
         const { min, max } = this;
 
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
@@ -49,11 +49,11 @@ export class LogAxis extends NumberAxis {
 
     @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max'), NON_ZERO_NUMBER()))
     @Default(NaN)
-    min: number = NaN;
+    override min: number = NaN;
 
     @Validate(AND(NUMBER_OR_NAN(), GREATER_THAN('min'), NON_ZERO_NUMBER()))
     @Default(NaN)
-    max: number = NaN;
+    override max: number = NaN;
 
     set base(value: number) {
         (this.scale as LogScale).base = value;

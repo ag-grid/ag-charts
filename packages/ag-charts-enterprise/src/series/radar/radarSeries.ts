@@ -135,7 +135,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     @Validate(NUMBER(0))
     strokeWidth = 1;
 
-    readonly highlightStyle = new HighlightStyle();
+    override readonly highlightStyle = new HighlightStyle();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -184,7 +184,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    addChartEventListeners(): void {
+    override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
         this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
             this.onLegendItemDoubleClick(event)
@@ -420,11 +420,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeClickEvent<'nodeClick'> {
         return new RadarSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RadarNodeDatum
     ): RadarSeriesNodeClickEvent<'nodeDoubleClick'> {
@@ -533,7 +533,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.toggleSeriesItem(itemId, newEnabled);
     }
 
-    protected pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { rootGroup, nodeData, centerX: cx, centerY: cy, marker } = this;
         const hitPoint = rootGroup.transformPoint(x, y);
@@ -566,7 +566,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
     }
 
-    async computeLabelsBBox() {
+    override async computeLabelsBBox() {
         const { label } = this;
 
         await this.maybeRefreshNodeData();

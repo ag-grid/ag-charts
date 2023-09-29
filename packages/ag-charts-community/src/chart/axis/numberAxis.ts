@@ -12,7 +12,7 @@ import { CartesianAxis } from './cartesianAxis';
 class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
     @Default(NaN)
-    maxSpacing: number = NaN;
+    override maxSpacing: number = NaN;
 }
 
 export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
@@ -23,7 +23,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         super(moduleCtx, scale);
     }
 
-    normaliseDataDomain(d: number[]) {
+    override normaliseDataDomain(d: number[]) {
         const { min, max } = this;
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
@@ -38,7 +38,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     @Default(NaN)
     max: number = NaN;
 
-    formatDatum(datum: number): string {
+    override formatDatum(datum: number): string {
         if (typeof datum === 'number') {
             return datum.toFixed(2);
         } else {
@@ -49,11 +49,11 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         }
     }
 
-    protected createTick() {
+    protected override createTick() {
         return new NumberAxisTick();
     }
 
-    updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
+    override updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
         if (this.dataDomain == null) {
             throw new Error('AG Charts - dataDomain not calculated, cannot perform tick calculation.');
         }

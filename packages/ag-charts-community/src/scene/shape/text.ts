@@ -29,7 +29,7 @@ export class Text extends Shape {
     // The default line spacing for document editors is usually 1.15
     static defaultLineHeightRatio = 1.15;
 
-    static defaultStyles = Object.assign({}, Shape.defaultStyles, {
+    static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
         textAlign: 'start' as CanvasTextAlign,
         fontStyle: undefined,
         fontWeight: undefined,
@@ -85,7 +85,7 @@ export class Text extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     lineHeight?: number = undefined;
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         return HdpiCanvas.has.textMetrics
             ? getPreciseBBox(this.lines, this.x, this.y, this)
             : getApproximateBBox(this.lines, this.x, this.y, this);
@@ -112,7 +112,7 @@ export class Text extends Shape {
         return bbox ? bbox.containsPoint(point.x, point.y) : false;
     }
 
-    render(renderCtx: RenderContext): void {
+    override render(renderCtx: RenderContext): void {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {

@@ -20,7 +20,7 @@ export class Group extends Node {
     })
     opacity: number = 1;
 
-    protected zIndexChanged() {
+    protected override zIndexChanged() {
         if (this.layer) {
             this._layerManager?.moveLayer(this.layer, this.zIndex, this.zIndexSubOrder);
         }
@@ -53,7 +53,7 @@ export class Group extends Node {
         this.name = this.opts?.name;
     }
 
-    _setLayerManager(scene?: LayerManager) {
+    override _setLayerManager(scene?: LayerManager) {
         if (this._layerManager && this.layer) {
             this._layerManager.removeLayer(this.layer);
             this.layer = undefined;
@@ -96,13 +96,13 @@ export class Group extends Node {
         return visible;
     }
 
-    protected visibilityChanged() {
+    protected override visibilityChanged() {
         if (this.layer) {
             this.layer.enabled = this.visible;
         }
     }
 
-    markDirty(source: Node, type = RedrawType.TRIVIAL) {
+    override markDirty(source: Node, type = RedrawType.TRIVIAL) {
         if (this.isVirtual) {
             // Always percolate directly for virtual nodes - they don't exist for rendering purposes.
             super.markDirty(source, type);
@@ -119,23 +119,23 @@ export class Group extends Node {
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
-    containsPoint(_x: number, _y: number): boolean {
+    override containsPoint(_x: number, _y: number): boolean {
         return true;
     }
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         this.computeTransformMatrix();
 
         return Group.computeBBox(this.children);
     }
 
-    computeTransformedBBox(): BBox | undefined {
+    override computeTransformedBBox(): BBox | undefined {
         return this.computeBBox();
     }
 
     private lastBBox?: BBox = undefined;
 
-    render(renderCtx: RenderContext) {
+    override render(renderCtx: RenderContext) {
         const { opts: { name = undefined } = {}, _debug: debug = () => {} } = this;
         const { dirty, dirtyZIndex, layer, children, clipRect, dirtyTransform } = this;
         let { ctx, forceRender, clipBBox } = renderCtx;

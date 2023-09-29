@@ -299,7 +299,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
     shadow?: DropShadow = undefined;
 
-    readonly highlightStyle = new HighlightStyle();
+    override readonly highlightStyle = new HighlightStyle();
 
     surroundingRadius?: number = undefined;
 
@@ -364,11 +364,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    addChartEventListeners(): void {
+    override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
     }
 
-    visibleChanged() {
+    override visibleChanged() {
         this.processSeriesItemEnabled();
     }
 
@@ -1244,7 +1244,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    async computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
+    override async computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
         const { radiusScale, calloutLabel, calloutLine } = this;
         const calloutLength = calloutLine.length;
         const { offset, maxCollisionOffset, minSpacing } = calloutLabel;
@@ -1448,11 +1448,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         });
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: PieNodeDatum): PieSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(event: MouseEvent, datum: PieNodeDatum): PieSeriesNodeClickEvent<'nodeClick'> {
         return new PieSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: PieNodeDatum
     ): PieSeriesNodeClickEvent<'nodeDoubleClick'> {
@@ -1586,7 +1586,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         }
     }
 
-    protected toggleSeriesItem(itemId: number, enabled: boolean): void {
+    protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
         this.nodeDataRefresh = true;
     }
@@ -1913,7 +1913,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         return sectors;
     }
 
-    protected onDataChange() {
+    protected override onDataChange() {
         this.processSeriesItemEnabled();
     }
 }

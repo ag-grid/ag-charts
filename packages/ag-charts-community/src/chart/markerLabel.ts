@@ -8,7 +8,7 @@ import type { Marker } from './marker/marker';
 import { Square } from './marker/square';
 
 export class MarkerLabel extends Group {
-    static className = 'MarkerLabel';
+    static override className = 'MarkerLabel';
 
     private label = new Text();
 
@@ -104,7 +104,7 @@ export class MarkerLabel extends Group {
         this.label.x = markerSize / 2 + this.spacing;
     }
 
-    render(renderCtx: RenderContext): void {
+    override render(renderCtx: RenderContext): void {
         // Cannot override field Group.opacity with get/set pair, so
         // propagate opacity changes here.
         this.marker.opacity = this.opacity;

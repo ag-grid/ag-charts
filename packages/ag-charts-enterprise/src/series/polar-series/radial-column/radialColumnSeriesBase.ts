@@ -136,7 +136,7 @@ export abstract class RadialColumnSeriesBase<
     @Validate(OPT_NUMBER())
     normalizedTo?: number;
 
-    readonly highlightStyle = new HighlightStyle();
+    override readonly highlightStyle = new HighlightStyle();
 
     private groupScale = new BandScale<string>();
 
@@ -178,7 +178,7 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract createPathSelection(parent: _Scene.Group): _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
-    addChartEventListeners(): void {
+    override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
         this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
             this.onLegendItemDoubleClick(event)
@@ -548,14 +548,14 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    protected getNodeClickEvent(
+    protected override getNodeClickEvent(
         event: MouseEvent,
         datum: RadialColumnNodeDatum
     ): RadialColumnSeriesNodeClickEvent<'nodeClick'> {
         return new RadialColumnSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RadialColumnNodeDatum
     ): RadialColumnSeriesNodeClickEvent<'nodeDoubleClick'> {
@@ -684,7 +684,7 @@ export abstract class RadialColumnSeriesBase<
         this.toggleSeriesItem(itemId, newEnabled);
     }
 
-    computeLabelsBBox() {
+    override computeLabelsBBox() {
         return null;
     }
 }

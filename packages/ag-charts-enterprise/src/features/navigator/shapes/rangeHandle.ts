@@ -4,7 +4,7 @@ const { BBox } = _Scene;
 const { LINE_CAP, NUMBER, COLOR_STRING, Validate } = _ModuleSupport;
 
 export class RangeHandle extends _Scene.Path {
-    static className = 'RangeHandle';
+    static override className = 'RangeHandle';
 
     @Validate(COLOR_STRING)
     protected _fill = '#f2f2f2';
@@ -91,7 +91,7 @@ export class RangeHandle extends _Scene.Path {
         return this._height;
     }
 
-    computeBBox() {
+    override computeBBox() {
         const { centerX, centerY, width, height } = this;
         const x = centerX - width / 2;
         const y = centerY - height / 2;
@@ -99,14 +99,14 @@ export class RangeHandle extends _Scene.Path {
         return new BBox(x, y, width, height);
     }
 
-    isPointInPath(x: number, y: number): boolean {
+    override isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
         const bbox = this.computeBBox();
 
         return bbox.containsPoint(point.x, point.y);
     }
 
-    updatePath() {
+    override updatePath() {
         const { path, centerX, centerY, width, height } = this;
 
         path.clear();

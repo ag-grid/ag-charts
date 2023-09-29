@@ -9,7 +9,7 @@ import { CartesianAxis } from './cartesianAxis';
 class TimeAxisTick extends AxisTick<TimeScale, number | Date> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
     @Default(NaN)
-    maxSpacing: number = NaN;
+    override maxSpacing: number = NaN;
 }
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
@@ -36,7 +36,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @Validate(AND(OPT_DATE_OR_DATETIME_MS, GREATER_THAN('min')))
     max?: Date | number = undefined;
 
-    normaliseDataDomain(d: Date[]) {
+    override normaliseDataDomain(d: Date[]) {
         let { min, max } = this;
         let clipped = false;
 
@@ -65,11 +65,11 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return { domain: d, clipped };
     }
 
-    protected createTick() {
+    protected override createTick() {
         return new TimeAxisTick();
     }
 
-    protected onLabelFormatChange(ticks: any[], format?: string) {
+    protected override onLabelFormatChange(ticks: any[], format?: string) {
         if (format) {
             super.onLabelFormatChange(ticks, format);
         } else {
@@ -78,11 +78,11 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         }
     }
 
-    formatDatum(datum: Date): string {
+    override formatDatum(datum: Date): string {
         return this.moduleCtx.callbackCache.call(this.datumFormatter, datum) ?? String(datum);
     }
 
-    calculatePadding(_min: number, _max: number): [number, number] {
+    override calculatePadding(_min: number, _max: number): [number, number] {
         // numbers in domain correspond to Unix timestamps
         // automatically expand domain by 1 in forward direction
         return [0, 1];

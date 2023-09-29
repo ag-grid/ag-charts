@@ -56,7 +56,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.labelSelection = Selection.select(tickLabelGroup, Text);
     }
 
-    protected updateRange() {
+    protected override updateRange() {
         const { range: rr, visibleRange: vr, scale } = this;
         const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
         const shift = span * vr[0];
@@ -83,14 +83,14 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         }
     }
 
-    readonly translation: Point = {
+    override readonly translation: Point = {
         x: 0,
         y: 0,
     };
 
-    readonly line = new AxisLine();
+    override readonly line = new AxisLine();
 
-    readonly label = new GroupedCategoryAxisLabel();
+    override readonly label = new GroupedCategoryAxisLabel();
 
     private get lineHeight() {
         return this.label.fontSize * 1.5;
@@ -106,7 +106,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
      */
-    set gridLength(value: number) {
+    override set gridLength(value: number) {
         // Was visible and now invisible, or was invisible and now visible.
         if ((this._gridLength && !value) || (!this._gridLength && value)) {
             this.gridLineSelection.clear();
@@ -114,11 +114,11 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         }
         this._gridLength = value;
     }
-    get gridLength(): number {
+    override get gridLength(): number {
         return this._gridLength;
     }
 
-    protected calculateDomain() {
+    protected override calculateDomain() {
         const { direction, boundSeries } = this;
         const domains: any[][] = [];
         let isNumericX: boolean | undefined = undefined;
@@ -148,7 +148,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.scale.domain = this.dataDomain.domain;
     }
 
-    normaliseDataDomain(d: any[]) {
+    override normaliseDataDomain(d: any[]) {
         // Prevent duplicate categories.
         const values = d.filter((s, i, arr) => arr.indexOf(s) === i);
 
@@ -177,7 +177,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
      * but this extra level of async indirection will not just introduce an unwanted delay,
      * it will also make it harder to reason about the program.
      */
-    update(primaryTickCount?: number): number | undefined {
+    override update(primaryTickCount?: number): number | undefined {
         this.updateDirection();
         this.calculateDomain();
         this.updateRange();

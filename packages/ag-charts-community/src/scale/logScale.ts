@@ -22,14 +22,14 @@ export class LogScale extends ContinuousScale<number> {
     @Validate(NUMBER(0))
     base = 10;
 
-    protected transform(x: any) {
+    protected override transform(x: any) {
         return this.domain[0] >= 0 ? Math.log(x) : -Math.log(-x);
     }
-    protected transformInvert(x: any) {
+    protected override transformInvert(x: any) {
         return this.domain[0] >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
 
-    protected cacheProps: Array<keyof this> = ['domain', 'range', 'nice', 'tickCount', 'base'];
+    protected override cacheProps: Array<keyof this> = ['domain', 'range', 'nice', 'tickCount', 'base'];
 
     update() {
         if (!this.domain || this.domain.length < 2) {

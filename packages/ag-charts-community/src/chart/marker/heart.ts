@@ -1,13 +1,13 @@
 import { Marker } from './marker';
 
 export class Heart extends Marker {
-    static className = 'Heart';
+    static override className = 'Heart';
 
     rad(degree: number) {
         return (degree / 180) * Math.PI;
     }
 
-    updatePath() {
+    override updatePath() {
         const { x, path, size, rad } = this;
         const r = size / 4;
         const y = this.y + r / 2;

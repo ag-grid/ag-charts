@@ -8,7 +8,7 @@ import { ContinuousScale } from './continuousScale';
 export class LinearScale extends ContinuousScale<number> {
     readonly type = 'linear';
 
-    interval?: number;
+    override interval?: number;
 
     public constructor() {
         super([0, 1], [0, 1]);

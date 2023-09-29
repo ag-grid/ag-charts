@@ -2,7 +2,7 @@ import type { MarkerPathMove } from './marker';
 import { Marker } from './marker';
 
 export class Plus extends Marker {
-    static className = 'Plus';
+    static override className = 'Plus';
 
     static moves: MarkerPathMove[] = [
         { x: -0.5, y: -0.5, t: 'move' },
@@ -19,7 +19,7 @@ export class Plus extends Marker {
         { x: 0, y: -1 },
     ];
 
-    updatePath() {
+    override updatePath() {
         const s = this.size / 3;
 
         super.applyPath(s, Plus.moves);

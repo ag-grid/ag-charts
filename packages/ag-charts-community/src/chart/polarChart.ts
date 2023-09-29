@@ -14,14 +14,14 @@ export class PolarChart extends Chart {
     static className = 'PolarChart';
     static type = 'polar' as const;
 
-    padding = new Padding(40);
+    override padding = new Padding(40);
 
     constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
         super(specialOverrides, resources);
         this.axisGroup.zIndex = Layers.AXIS_FOREGROUND_ZINDEX;
     }
 
-    async performLayout() {
+    override async performLayout() {
         const shrinkRect = await super.performLayout();
 
         const fullSeriesRect = shrinkRect.clone();

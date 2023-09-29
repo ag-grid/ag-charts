@@ -167,7 +167,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
      */
     private groupScale = new BandScale<string>();
 
-    protected resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
+    protected override resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
         if (this.getBarDirection() === ChartAxisDirection.X) {
             if (direction === ChartAxisDirection.X) {
                 return ChartAxisDirection.Y;
@@ -278,14 +278,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected getNodeClickEvent(
+    protected override getNodeClickEvent(
         event: MouseEvent,
         datum: RangeBarNodeDatum
     ): RangeBarSeriesNodeClickEvent<'nodeClick'> {
         return new RangeBarSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RangeBarNodeDatum
     ): RangeBarSeriesNodeClickEvent<'nodeDoubleClick'> {
@@ -512,13 +512,13 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
     }
 
-    protected nodeFactory() {
+    protected override nodeFactory() {
         return new Rect();
     }
 
-    datumSelectionGarbageCollection = false;
+    override datumSelectionGarbageCollection = false;
 
-    protected async updateDatumSelection(opts: {
+    protected override async updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>;
     }) {
@@ -527,7 +527,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    protected async updateDatumNodes(opts: {
+    protected override async updateDatumNodes(opts: {
         datumSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -587,7 +587,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected getHighlightLabelData(
+    protected override getHighlightLabelData(
         labelData: RangeBarNodeLabelDatum[],
         highlightedItem: RangeBarNodeDatum
     ): RangeBarNodeLabelDatum[] | undefined {
@@ -735,7 +735,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         ];
     }
 
-    animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {
         contextData.forEach((_, contextDataIndex) => {
             this.animateRects(datumSelections[contextDataIndex]);
             this.animateLabels(labelSelections[contextDataIndex]);
@@ -761,7 +761,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateWaitingUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
+    override animateWaitingUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
@@ -863,15 +863,15 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateReadyUpdate({ datumSelections }: RangeBarAnimationData) {
+    override animateReadyUpdate({ datumSelections }: RangeBarAnimationData) {
         this.resetSelections(datumSelections);
     }
 
-    animateReadyHighlight(highlightSelection: RangeBarAnimationData['datumSelections'][number]) {
+    override animateReadyHighlight(highlightSelection: RangeBarAnimationData['datumSelections'][number]) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({ datumSelections }: RangeBarAnimationData) {
+    override animateReadyResize({ datumSelections }: RangeBarAnimationData) {
         this.resetSelections(datumSelections);
     }
 
@@ -913,9 +913,9 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return ChartAxisDirection.X;
     }
 
-    getBandScalePadding() {
+    override getBandScalePadding() {
         return { inner: 0.2, outer: 0.1 };
     }
 
-    protected onDataChange() {}
+    protected override onDataChange() {}
 }

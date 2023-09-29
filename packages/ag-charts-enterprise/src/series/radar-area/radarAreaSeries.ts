@@ -7,7 +7,7 @@ const { NUMBER, OPT_COLOR_STRING, Validate } = _ModuleSupport;
 const { Group, Path, PointerEvents, Selection } = _Scene;
 
 export class RadarAreaSeries extends RadarSeries {
-    static className = 'RadarAreaSeries';
+    static override className = 'RadarAreaSeries';
     static type = 'radar-area' as const;
 
     protected areaSelection: _Scene.Selection<_Scene.Path, boolean>;
@@ -26,7 +26,7 @@ export class RadarAreaSeries extends RadarSeries {
         this.areaSelection = Selection.select(areaGroup, Path);
     }
 
-    protected updatePathSelections() {
+    protected override updatePathSelections() {
         const pathData = this.visible ? [true] : [];
         this.areaSelection.update(pathData);
         super.updatePathSelections();
@@ -36,11 +36,11 @@ export class RadarAreaSeries extends RadarSeries {
         return this.areaSelection.nodes()[0];
     }
 
-    protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
+    protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
         return highlightedStyle?.fill ?? this.marker.fill ?? this.fill;
     }
 
-    protected beforePathAnimation() {
+    protected override beforePathAnimation() {
         super.beforePathAnimation();
 
         const areaNode = this.getAreaNode();
@@ -50,13 +50,13 @@ export class RadarAreaSeries extends RadarSeries {
         areaNode.stroke = undefined;
     }
 
-    protected animatePaths(totalDuration: number, timePassed: number) {
+    protected override animatePaths(totalDuration: number, timePassed: number) {
         super.animatePaths(totalDuration, timePassed);
         const areaPoints = this.getLinePoints({ breakMissingPoints: false });
         this.animateSinglePath(this.getAreaNode(), areaPoints, totalDuration, timePassed);
     }
 
-    protected resetMarkersAndPaths() {
+    protected override resetMarkersAndPaths() {
         super.resetMarkersAndPaths();
         const areaNode = this.getAreaNode();
 

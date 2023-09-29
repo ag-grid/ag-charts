@@ -14,9 +14,9 @@ enum ArcType {
  * Elliptical arc node.
  */
 export class Arc extends Path {
-    static className = 'Arc';
+    static override className = 'Arc';
 
-    protected static defaultStyles = Object.assign({}, Shape.defaultStyles, {
+    protected static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
         lineWidth: 1,
         fillStyle: null,
     });
@@ -63,7 +63,7 @@ export class Arc extends Path {
     @ScenePathChangeDetection()
     type: ArcType = ArcType.Open;
 
-    updatePath(): void {
+    override updatePath(): void {
         const path = this.path;
 
         path.clear(); // No need to recreate the Path, can simply clear the existing one.
@@ -77,12 +77,12 @@ export class Arc extends Path {
         }
     }
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         // Only works with full arcs (circles) and untransformed ellipses.
         return new BBox(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2);
     }
 
-    isPointInPath(x: number, y: number): boolean {
+    override isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
         const bbox = this.computeBBox();
 

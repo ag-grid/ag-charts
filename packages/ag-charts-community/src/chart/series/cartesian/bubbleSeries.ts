@@ -214,11 +214,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return this.fixNumericExtent(extent(domain), axis);
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: BubbleNodeDatum): BubbleSeriesNodeClickEvent<'nodeClick'> {
+    protected override getNodeClickEvent(event: MouseEvent, datum: BubbleNodeDatum): BubbleSeriesNodeClickEvent<'nodeClick'> {
         return new BubbleSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: BubbleNodeDatum
     ): BubbleSeriesNodeClickEvent<'nodeDoubleClick'> {
@@ -301,23 +301,23 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
 
-    protected isPathOrSelectionDirty(): boolean {
+    protected override isPathOrSelectionDirty(): boolean {
         return this.marker.isDirty();
     }
 
-    getLabelData(): PointLabelDatum[] {
+    override getLabelData(): PointLabelDatum[] {
         return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
     }
 
-    protected markerFactory() {
+    protected override markerFactory() {
         const { shape } = this.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
 
-    markerSelectionGarbageCollection = false;
+    override markerSelectionGarbageCollection = false;
 
-    protected async updateMarkerSelection(opts: {
+    protected override async updateMarkerSelection(opts: {
         nodeData: BubbleNodeDatum[];
         markerSelection: Selection<Marker, BubbleNodeDatum>;
     }) {
@@ -334,7 +334,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return markerSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    protected async updateMarkerNodes(opts: {
+    protected override async updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, BubbleNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -540,7 +540,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         ];
     }
 
-    animateEmptyUpdateReady(animationData: BubbleAnimationData) {
+    override animateEmptyUpdateReady(animationData: BubbleAnimationData) {
         const { markerSelections, labelSelections } = animationData;
         const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
@@ -581,7 +581,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         });
     }
 
-    animateReadyResize({ markerSelections }: BubbleAnimationData) {
+    override animateReadyResize({ markerSelections }: BubbleAnimationData) {
         this.ctx.animationManager.reset();
         markerSelections.forEach((markerSelection) => {
             this.resetMarkers(markerSelection);
@@ -682,7 +682,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     }
     */
 
-    animateClearingUpdateEmpty(animationData: BubbleAnimationData) {
+    override animateClearingUpdateEmpty(animationData: BubbleAnimationData) {
         const { markerSelections } = animationData;
 
         const updateDuration = this.ctx.animationManager.defaultDuration / 2;

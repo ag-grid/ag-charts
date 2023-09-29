@@ -5,7 +5,7 @@ import type { SeriesNodeDatum } from '../series';
 import { Series, SeriesNodePickMode } from '../series';
 
 export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<S> {
-    chart?: HierarchyChart;
+    override chart?: HierarchyChart;
 
     constructor(moduleCtx: ModuleContext) {
         super({ moduleCtx, pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH] });

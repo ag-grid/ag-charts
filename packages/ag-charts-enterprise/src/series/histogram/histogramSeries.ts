@@ -290,14 +290,14 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         return fixNumericExtent(yDomain);
     }
 
-    protected getNodeClickEvent(
+    protected override getNodeClickEvent(
         event: MouseEvent,
         datum: HistogramNodeDatum
     ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeClick'> {
         return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: HistogramNodeDatum
     ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeDoubleClick'> {
@@ -400,13 +400,13 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
 
-    protected nodeFactory() {
+    protected override nodeFactory() {
         return new Rect();
     }
 
-    datumSelectionGarbageCollection = false;
+    override datumSelectionGarbageCollection = false;
 
-    protected async updateDatumSelection(opts: {
+    protected override async updateDatumSelection(opts: {
         nodeData: HistogramNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>;
     }) {
@@ -422,7 +422,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         );
     }
 
-    protected async updateDatumNodes(opts: {
+    protected override async updateDatumNodes(opts: {
         datumSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -575,7 +575,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         ];
     }
 
-    animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
+    override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
         const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
@@ -617,19 +617,19 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         });
     }
 
-    animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
+    override animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
         this.resetSelections(datumSelections);
     }
 
-    animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>) {
+    override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({ datumSelections }: HistogramAnimationData) {
+    override animateReadyResize({ datumSelections }: HistogramAnimationData) {
         this.resetSelections(datumSelections);
     }
 
-    animateWaitingUpdateReady({
+    override animateWaitingUpdateReady({
         datumSelections,
         labelSelections,
     }: {

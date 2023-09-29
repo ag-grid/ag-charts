@@ -183,7 +183,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
+    protected override resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
         if (this.getBarDirection() === ChartAxisDirection.X) {
             if (direction === ChartAxisDirection.X) {
                 return ChartAxisDirection.Y;
@@ -324,14 +324,14 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected getNodeClickEvent(
+    protected override getNodeClickEvent(
         event: MouseEvent,
         datum: WaterfallNodeDatum
     ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeClick'> {
         return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: WaterfallNodeDatum
     ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeDoubleClick'> {
@@ -576,7 +576,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         return datumType === 'total';
     }
 
-    protected nodeFactory() {
+    protected override nodeFactory() {
         return new Rect();
     }
 
@@ -599,7 +599,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected async updateDatumSelection(opts: {
+    protected override async updateDatumSelection(opts: {
         nodeData: WaterfallNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>;
     }) {
@@ -608,7 +608,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(data);
     }
 
-    protected async updateDatumNodes(opts: {
+    protected override async updateDatumNodes(opts: {
         datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -801,9 +801,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         return legendData;
     }
 
-    protected toggleSeriesItem(): void {}
+    protected override toggleSeriesItem(): void {}
 
-    animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
+    override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
         contextData.forEach(({ pointData }, contextDataIndex) => {
             this.animateRects(datumSelections[contextDataIndex]);
             this.animateLabels(labelSelections[contextDataIndex]);
@@ -937,15 +937,15 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateReadyUpdate(data: WaterfallAnimationData) {
+    override animateReadyUpdate(data: WaterfallAnimationData) {
         this.resetSelectionRectsAndPaths(data);
     }
 
-    animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
+    override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize(data: WaterfallAnimationData) {
+    override animateReadyResize(data: WaterfallAnimationData) {
         this.resetSelectionRectsAndPaths(data);
     }
 
@@ -1029,9 +1029,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         return ChartAxisDirection.X;
     }
 
-    getBandScalePadding() {
+    override getBandScalePadding() {
         return { inner: 0.2, outer: 0.1 };
     }
 
-    protected onDataChange() {}
+    protected override onDataChange() {}
 }

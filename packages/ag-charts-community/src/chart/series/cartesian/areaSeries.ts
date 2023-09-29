@@ -452,17 +452,17 @@ export class AreaSeries extends CartesianSeries<
         return [context];
     }
 
-    protected isPathOrSelectionDirty(): boolean {
+    protected override isPathOrSelectionDirty(): boolean {
         return this.marker.isDirty();
     }
 
-    protected markerFactory() {
+    protected override markerFactory() {
         const { shape } = this.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
 
-    protected async updateMarkerSelection(opts: {
+    protected override async updateMarkerSelection(opts: {
         nodeData: MarkerSelectionDatum[];
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
     }) {
@@ -481,7 +481,7 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    protected async updateMarkerNodes(opts: {
+    protected override async updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
     }) {
@@ -563,14 +563,14 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    protected getNodeClickEvent(
+    protected override getNodeClickEvent(
         event: MouseEvent,
         datum: MarkerSelectionDatum
     ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeClick'> {
         return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: MarkerSelectionDatum
     ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeDoubleClick'> {
@@ -683,7 +683,13 @@ export class AreaSeries extends CartesianSeries<
         ];
     }
 
-    animateEmptyUpdateReady({ markerSelections, labelSelections, contextData, paths, seriesRect }: AreaAnimationData) {
+    override animateEmptyUpdateReady({
+        markerSelections,
+        labelSelections,
+        contextData,
+        paths,
+        seriesRect,
+    }: AreaAnimationData) {
         const { seriesId, styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
         areaAnimateEmptyUpdateReady({
             markerSelections,
@@ -699,12 +705,12 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    animateReadyUpdate({ contextData, paths }: AreaAnimationData) {
+    override animateReadyUpdate({ contextData, paths }: AreaAnimationData) {
         const { styles } = this.getAnimationOptions();
         areaAnimateReadyUpdate({ contextData, paths, styles });
     }
 
-    animateReadyResize({ contextData, markerSelections, labelSelections, paths }: AreaAnimationData) {
+    override animateReadyResize({ contextData, markerSelections, labelSelections, paths }: AreaAnimationData) {
         const { styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
 
         areaResetMarkersAndPaths({

@@ -214,14 +214,14 @@ export abstract class CartesianSeries<
         });
     }
 
-    addChartEventListeners(): void {
+    override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
         this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
             this.onLegendItemDoubleClick(event)
         );
     }
 
-    destroy() {
+    override destroy() {
         super.destroy();
 
         this._contextNodeData.splice(0, this._contextNodeData.length);
@@ -381,7 +381,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
+    override getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         const result = super.getGroupZIndexSubOrder(type, subIndex);
         if (type === 'paths') {
             const pathOffset = this.opts.pathsZIndexSubOrderOffset[subIndex] ?? 0;
@@ -524,7 +524,7 @@ export abstract class CartesianSeries<
         return highlightItems;
     }
 
-    protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
+    protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
         const result = super.pickNodeExactShape(point);
 
         if (result) {
@@ -549,7 +549,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
 
@@ -589,7 +589,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected pickNodeMainAxisFirst(
+    protected override pickNodeMainAxisFirst(
         point: Point,
         requireCategoryAxis: boolean
     ): { datum: TDatum; distance: number } | undefined {

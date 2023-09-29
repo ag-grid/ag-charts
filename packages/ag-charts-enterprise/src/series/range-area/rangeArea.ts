@@ -230,14 +230,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected getNodeClickEvent(
+    protected override getNodeClickEvent(
         event: MouseEvent,
         datum: RangeAreaMarkerDatum
     ): RangeAreaSeriesNodeClickEvent<'nodeClick'> {
         return new RangeAreaSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RangeAreaMarkerDatum
     ): RangeAreaSeriesNodeClickEvent<'nodeDoubleClick'> {
@@ -470,17 +470,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));
     }
 
-    protected isPathOrSelectionDirty(): boolean {
+    protected override isPathOrSelectionDirty(): boolean {
         return this.marker.isDirty();
     }
 
-    protected markerFactory() {
+    protected override markerFactory() {
         const { shape } = this.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
 
-    protected async updateMarkerSelection(opts: {
+    protected override async updateMarkerSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
         markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
     }) {
@@ -499,7 +499,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected async updateMarkerNodes(opts: {
+    protected override async updateMarkerNodes(opts: {
         markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
@@ -571,7 +571,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected getHighlightLabelData(
+    protected override getHighlightLabelData(
         labelData: RangeAreaLabelDatum[],
         highlightedItem: RangeAreaMarkerDatum
     ): RangeAreaLabelDatum[] | undefined {
@@ -579,7 +579,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return labelItems.length > 0 ? labelItems : undefined;
     }
 
-    protected getHighlightData(
+    protected override getHighlightData(
         nodeData: RangeAreaMarkerDatum[],
         highlightedItem: RangeAreaMarkerDatum
     ): RangeAreaMarkerDatum[] | undefined {
@@ -675,7 +675,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         ];
     }
 
-    animateEmptyUpdateReady({
+    override animateEmptyUpdateReady({
         markerSelections,
         labelSelections,
         contextData,
@@ -746,7 +746,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    animateReadyUpdate({
+    override animateReadyUpdate({
         contextData,
         paths,
     }: {
@@ -771,7 +771,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return this.label.enabled;
     }
 
-    onDataChange() {}
+    override onDataChange() {}
 
     protected nodeFactory() {
         return new _Scene.Group();
