@@ -54,12 +54,12 @@ export abstract class CartesianAxis<
         }
     }
 
-    update(primaryTickCount?: number): number | undefined {
+    override update(primaryTickCount?: number): number | undefined {
         this.updateDirection();
         return super.update(primaryTickCount);
     }
 
-    protected createAxisContext(): AxisContext {
+    protected override createAxisContext(): AxisContext {
         return {
             ...super.createAxisContext(),
             position: this.position,
@@ -70,7 +70,7 @@ export abstract class CartesianAxis<
         assignJsonApplyConstructedArray(crossLines, CartesianCrossLine);
     }
 
-    protected createLabel() {
+    protected override createLabel() {
         return new CartesianAxisLabel();
     }
 }

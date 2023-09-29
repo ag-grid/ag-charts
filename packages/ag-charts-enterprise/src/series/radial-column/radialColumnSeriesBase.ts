@@ -50,11 +50,11 @@ class RadialColumnSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBase
 }
 
 class RadialColumnSeriesNodeClickEvent extends RadialColumnSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
+    override readonly type = 'nodeClick';
 }
 
 class RadialColumnSeriesNodeDoubleClickEvent extends RadialColumnSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
+    override readonly type = 'nodeDoubleClick';
 }
 
 interface RadialColumnLabelNodeDatum {
@@ -144,7 +144,7 @@ export abstract class RadialColumnSeriesBase<
     @Validate(OPT_NUMBER())
     normalizedTo?: number;
 
-    readonly highlightStyle = new HighlightStyle();
+    override readonly highlightStyle = new HighlightStyle();
 
     private groupScale = new BandScale<string>();
 
@@ -186,7 +186,7 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract createPathSelection(parent: _Scene.Group): _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
-    addChartEventListeners(): void {
+    override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
         this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
             this.onLegendItemDoubleClick(event)
@@ -554,11 +554,14 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: RadialColumnNodeDatum): RadialColumnSeriesNodeClickEvent {
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RadialColumnNodeDatum
+    ): RadialColumnSeriesNodeClickEvent {
         return new RadialColumnSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RadialColumnNodeDatum
     ): RadialColumnSeriesNodeDoubleClickEvent {
@@ -675,7 +678,7 @@ export abstract class RadialColumnSeriesBase<
         this.toggleSeriesItem(itemId, newEnabled);
     }
 
-    computeLabelsBBox() {
+    override computeLabelsBBox() {
         return null;
     }
 }

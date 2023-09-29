@@ -238,23 +238,23 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
 
-    protected isPathOrSelectionDirty(): boolean {
+    protected override isPathOrSelectionDirty(): boolean {
         return this.marker.isDirty();
     }
 
-    getLabelData(): PointLabelDatum[] {
+    override getLabelData(): PointLabelDatum[] {
         return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
     }
 
-    protected markerFactory() {
+    protected override markerFactory() {
         const { shape } = this.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
 
-    markerSelectionGarbageCollection = false;
+    override markerSelectionGarbageCollection = false;
 
-    protected async updateMarkerSelection(opts: {
+    protected override async updateMarkerSelection(opts: {
         nodeData: ScatterNodeDatum[];
         markerSelection: Selection<Marker, ScatterNodeDatum>;
     }) {
@@ -271,7 +271,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         return markerSelection.update(data);
     }
 
-    protected async updateMarkerNodes(opts: {
+    protected override async updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -468,7 +468,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         ];
     }
 
-    animateEmptyUpdateReady(animationData: ScatterAnimationData) {
+    override animateEmptyUpdateReady(animationData: ScatterAnimationData) {
         const { markerSelections, labelSelections } = animationData;
         const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
@@ -509,7 +509,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
         });
     }
 
-    animateReadyResize({ markerSelections }: ScatterAnimationData) {
+    override animateReadyResize({ markerSelections }: ScatterAnimationData) {
         this.ctx.animationManager.reset();
         markerSelections.forEach((markerSelection) => {
             this.resetMarkers(markerSelection);
@@ -610,7 +610,7 @@ export class ScatterSeries extends CartesianSeries<SeriesNodeDataContext<Scatter
     }
     */
 
-    animateClearingUpdateEmpty(animationData: ScatterAnimationData) {
+    override animateClearingUpdateEmpty(animationData: ScatterAnimationData) {
         const { markerSelections } = animationData;
 
         const updateDuration = this.ctx.animationManager.defaultDuration / 2;

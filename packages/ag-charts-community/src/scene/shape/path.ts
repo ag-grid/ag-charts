@@ -70,7 +70,7 @@ export class Path extends Shape {
         // Override point for subclasses.
     }
 
-    render(renderCtx: RenderContext) {
+    override render(renderCtx: RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {

@@ -38,7 +38,7 @@ type Handler<T extends EventTypes> = T extends LayoutStage ? LayoutProcessor : L
 export class LayoutService extends Listeners<EventTypes, Handler<EventTypes>> {
     private readonly layoutComplete = 'layout-complete';
 
-    public addListener<T extends EventTypes>(eventType: T, handler: Handler<T>) {
+    public override addListener<T extends EventTypes>(eventType: T, handler: Handler<T>) {
         if (this.isLayoutStage(eventType) || this.isLayoutComplete(eventType)) {
             return super.addListener(eventType, handler);
         }

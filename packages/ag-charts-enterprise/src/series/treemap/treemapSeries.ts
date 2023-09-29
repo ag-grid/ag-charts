@@ -71,11 +71,11 @@ class TreemapSeriesNodeBaseClickEvent extends SeriesNodeBaseClickEvent<any> {
 }
 
 class TreemapSeriesNodeClickEvent extends TreemapSeriesNodeBaseClickEvent {
-    readonly type = 'nodeClick';
+    override readonly type = 'nodeClick';
 }
 
 class TreemapSeriesNodeDoubleClickEvent extends TreemapSeriesNodeBaseClickEvent {
-    readonly type = 'nodeDoubleClick';
+    override readonly type = 'nodeDoubleClick';
 }
 
 class TreemapSeriesLabel extends Label {
@@ -145,7 +145,7 @@ class TreemapTextHighlightStyle {
 }
 
 class TreemapHighlightStyle extends HighlightStyle {
-    readonly text = new TreemapTextHighlightStyle();
+    override readonly text = new TreemapTextHighlightStyle();
 }
 
 export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDatum> {
@@ -265,7 +265,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
     readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
-    readonly highlightStyle = new TreemapHighlightStyle();
+    override readonly highlightStyle = new TreemapHighlightStyle();
 
     private getNodePaddingTop(nodeDatum: TreemapNodeDatum, bbox: _Scene.BBox) {
         const { title, subtitle, nodePadding } = this;
@@ -879,11 +879,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         return [0, 1];
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: TreemapNodeDatum): TreemapSeriesNodeClickEvent {
+    protected override getNodeClickEvent(event: MouseEvent, datum: TreemapNodeDatum): TreemapSeriesNodeClickEvent {
         return new TreemapSeriesNodeClickEvent(this.labelKey, this.sizeKey, this.colorKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(event: MouseEvent, datum: TreemapNodeDatum): TreemapSeriesNodeDoubleClickEvent {
+    protected override getNodeDoubleClickEvent(
+        event: MouseEvent,
+        datum: TreemapNodeDatum
+    ): TreemapSeriesNodeDoubleClickEvent {
         return new TreemapSeriesNodeDoubleClickEvent(this.labelKey, this.sizeKey, this.colorKey, event, datum, this);
     }
 

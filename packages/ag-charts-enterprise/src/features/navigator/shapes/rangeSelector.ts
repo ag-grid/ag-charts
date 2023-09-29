@@ -6,7 +6,7 @@ import { RangeMask } from './rangeMask';
 const { RedrawType } = _Scene;
 
 export class RangeSelector extends _Scene.Group {
-    static className = 'Range';
+    static override className = 'Range';
 
     private static defaults = {
         x: 0,
@@ -112,7 +112,7 @@ export class RangeSelector extends _Scene.Group {
         minHandle.centerY = maxHandle.centerY = y + height / 2;
     }
 
-    computeBBox() {
+    override computeBBox() {
         return this.mask.computeBBox();
     }
 
@@ -120,7 +120,7 @@ export class RangeSelector extends _Scene.Group {
         return this.mask.computeVisibleRangeBBox();
     }
 
-    render(renderCtx: _Scene.RenderContext) {
+    override render(renderCtx: _Scene.RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {

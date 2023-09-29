@@ -154,7 +154,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
      */
     private groupScale = new BandScale<string>();
 
-    protected resolveKeyDirection(direction: ChartAxisDirection) {
+    protected override resolveKeyDirection(direction: ChartAxisDirection) {
         if (this.getBarDirection() === ChartAxisDirection.X) {
             if (direction === ChartAxisDirection.X) {
                 return ChartAxisDirection.Y;
@@ -262,11 +262,11 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         }
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: BarNodeDatum): CartesianSeriesNodeClickEvent<any> {
+    protected override getNodeClickEvent(event: MouseEvent, datum: BarNodeDatum): CartesianSeriesNodeClickEvent<any> {
         return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: BarNodeDatum
     ): CartesianSeriesNodeDoubleClickEvent<any> {
@@ -435,13 +435,13 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         return [context];
     }
 
-    protected nodeFactory() {
+    protected override nodeFactory() {
         return new Rect();
     }
 
-    datumSelectionGarbageCollection = false;
+    override datumSelectionGarbageCollection = false;
 
-    protected async updateDatumSelection(opts: {
+    protected override async updateDatumSelection(opts: {
         nodeData: BarNodeDatum[];
         datumSelection: Selection<Rect, BarNodeDatum>;
     }) {
@@ -452,7 +452,10 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         return datumSelection.update(nodeData, (rect) => (rect.tag = BarSeriesNodeTag.Bar), getDatumId);
     }
 
-    protected async updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
+    protected override async updateDatumNodes(opts: {
+        datumSelection: Selection<Rect, BarNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const { datumSelection, isHighlight } = opts;
         const {
             yKey = '',
@@ -632,7 +635,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         ];
     }
 
-    animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
         const duration = this.ctx.animationManager.defaultDuration;
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
@@ -673,17 +676,17 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         });
     }
 
-    animateReadyHighlight(highlightSelection: Selection<Rect, BarNodeDatum>) {
+    override animateReadyHighlight(highlightSelection: Selection<Rect, BarNodeDatum>) {
         this.resetSelectionRects(highlightSelection);
     }
 
-    animateReadyResize({ datumSelections }: BarAnimationData) {
+    override animateReadyResize({ datumSelections }: BarAnimationData) {
         datumSelections.forEach((datumSelection) => {
             this.resetSelectionRects(datumSelection);
         });
     }
 
-    animateWaitingUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
+    override animateWaitingUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
@@ -815,7 +818,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
         return this.label.enabled;
     }
 
-    getBandScalePadding() {
+    override getBandScalePadding() {
         return { inner: 0.2, outer: 0.1 };
     }
 

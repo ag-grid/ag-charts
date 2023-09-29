@@ -283,19 +283,19 @@ export class LineSeries extends CartesianSeries<LineContext> {
         return [{ itemId: yKey, nodeData, labelData: nodeData }];
     }
 
-    protected isPathOrSelectionDirty(): boolean {
+    protected override isPathOrSelectionDirty(): boolean {
         return this.marker.isDirty();
     }
 
-    protected markerFactory() {
+    protected override markerFactory() {
         const { shape } = this.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
 
-    markerSelectionGarbageCollection = false;
+    override markerSelectionGarbageCollection = false;
 
-    protected async updateMarkerSelection(opts: {
+    protected override async updateMarkerSelection(opts: {
         nodeData: LineNodeDatum[];
         markerSelection: Selection<Marker, LineNodeDatum>;
     }) {
@@ -315,7 +315,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         );
     }
 
-    protected async updateMarkerNodes(opts: {
+    protected override async updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -397,11 +397,11 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    protected getNodeClickEvent(event: MouseEvent, datum: LineNodeDatum): CartesianSeriesNodeClickEvent<any> {
+    protected override getNodeClickEvent(event: MouseEvent, datum: LineNodeDatum): CartesianSeriesNodeClickEvent<any> {
         return new CartesianSeriesNodeClickEvent(this.xKey ?? '', this.yKey ?? '', event, datum, this);
     }
 
-    protected getNodeDoubleClickEvent(
+    protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: LineNodeDatum
     ): CartesianSeriesNodeDoubleClickEvent<any> {
@@ -494,7 +494,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         ];
     }
 
-    animateEmptyUpdateReady(animationData: LineAnimationData) {
+    override animateEmptyUpdateReady(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
 
         contextData.forEach(({ nodeData }, contextDataIndex) => {
@@ -606,15 +606,15 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    animateReadyUpdate(animationData: LineAnimationData) {
+    override animateReadyUpdate(animationData: LineAnimationData) {
         this.resetMarkersAndPaths(animationData);
     }
 
-    animateReadyResize(animationData: LineAnimationData) {
+    override animateReadyResize(animationData: LineAnimationData) {
         this.resetMarkersAndPaths(animationData);
     }
 
-    animateWaitingUpdateReady(animationData: LineAnimationData) {
+    override animateWaitingUpdateReady(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { processedData, extendLine, findPointOnLine } = this;
         const diff = processedData?.reduced?.diff;
@@ -969,7 +969,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    protected animateClearingUpdateEmpty(animationData: LineAnimationData) {
+    protected override animateClearingUpdateEmpty(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
 
         const updateDuration = this.ctx.animationManager.defaultDuration / 2;
@@ -1103,7 +1103,7 @@ export class LineSeries extends CartesianSeries<LineContext> {
         return this.label.enabled;
     }
 
-    getBandScalePadding() {
+    override getBandScalePadding() {
         return { inner: 1, outer: 0.1 };
     }
 }

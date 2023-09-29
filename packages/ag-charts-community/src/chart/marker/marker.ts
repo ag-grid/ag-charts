@@ -13,7 +13,7 @@ export abstract class Marker extends Path {
     @ScenePathChangeDetection({ convertor: Math.abs })
     size: number = 12;
 
-    computeBBox(): BBox {
+    override computeBBox(): BBox {
         const { x, y, size } = this;
         const half = size / 2;
 
