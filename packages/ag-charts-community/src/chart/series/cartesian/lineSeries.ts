@@ -156,6 +156,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
         this.dataModel = dataModel;
         this.processedData = processedData;
+        this.dispatch('data-processed', { dataModel, processedData });
 
         // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
         if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {

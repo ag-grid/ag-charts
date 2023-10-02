@@ -6,6 +6,7 @@ import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
 const {
+    fixNumericExtent,
     mergeDefaults,
     valueProperty,
     ChartAxisDirection,
@@ -18,6 +19,9 @@ const {
     OPT_STRING,
 } = _ModuleSupport;
 const { Logger } = _Util;
+
+const XVALUE_ERRORS_ID = 'xValue-errors';
+const YVALUE_ERRORS_ID = 'yValue-errors';
 
 type AnyScale = _Scale.Scale<any, any, any>;
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
@@ -86,6 +90,9 @@ export class ErrorBars
     private readonly selection: _Scene.Selection<ErrorBarNode>;
     private nodeData: (ErrorBarPoints | undefined)[] = [];
 
+    private dataModel?: _ModuleSupport.DataModel<any, any, any>;
+    private processedData?: _ModuleSupport.ProcessedData<any>;
+
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
@@ -113,6 +120,12 @@ export class ErrorBars
                 'processData-prerequest',
                 (event: _ModuleSupport.SeriesPrerequestDataEvent) => this.onPrerequestData(event)
             ),
+            this.cartesianSeries.addListener('data-processed', (event: _ModuleSupport.SeriesDataProcessedEvent) =>
+                this.onDataProcessed(event)
+            ),
+            this.cartesianSeries.addListener('getDomain', (event: _ModuleSupport.SeriesGetDomainDataEvent) =>
+                this.onGetDomain(event)
+            ),
             this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>
                 this.onDataUpdate(event)
             ),
@@ -127,22 +140,51 @@ export class ErrorBars
         const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         const { isContinuousX, isContinuousY } = event;
         props.push(
-            valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: 'yValue' }),
-            valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: 'yValue' })
+            valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: YVALUE_ERRORS_ID }),
+            valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: YVALUE_ERRORS_ID })
         );
         if (xLowerKey !== undefined && xUpperKey !== undefined) {
             props.push(
-                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: 'xValue' })
+                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: XVALUE_ERRORS_ID }),
+                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: XVALUE_ERRORS_ID })
             );
         }
         return props;
+    }
+
+    onDataProcessed(event: {
+        dataModel: _ModuleSupport.DataModel<any, any, any>;
+        processedData: _ModuleSupport.ProcessedData<any>;
+    }) {
+        this.dataModel = event.dataModel;
+        this.processedData = event.processedData;
+    }
+
+    private hasAxis(direction: _ModuleSupport.ChartAxisDirection): boolean {
+        if (direction == ChartAxisDirection.X) {
+            return this.xLowerKey !== undefined && this.xUpperKey != undefined;
+        }
+        return true;
+    }
+
+    onGetDomain(event: { direction: _ModuleSupport.ChartAxisDirection }) {
+        if (this.hasAxis(event.direction)) {
+            const { dataModel, processedData, cartesianSeries } = this;
+            const axis = cartesianSeries.axes[event.direction];
+            const id = { x: XVALUE_ERRORS_ID, y: YVALUE_ERRORS_ID }[event.direction];
+            if (dataModel !== undefined && processedData !== undefined) {
+                const domain = dataModel.getDomain(cartesianSeries, id, 'value', processedData);
+                return fixNumericExtent(domain as any, axis);
+            }
+        }
     }
 
     onDataUpdate(event: {
         dataModel: _ModuleSupport.DataModel<any, any, any>;
         processedData: _ModuleSupport.ProcessedData<any>;
     }) {
+        this.dataModel = event.dataModel;
+        this.processedData = event.processedData;
         if (event.dataModel !== undefined && event.processedData !== undefined) {
             this.createNodeData(event.dataModel, event.processedData);
             this.update();
