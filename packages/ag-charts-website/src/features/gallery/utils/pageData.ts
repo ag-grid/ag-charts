@@ -26,6 +26,19 @@ export function getGalleryPages({ galleryData }: { galleryData: GalleryData }) {
 
 export function getGalleryExamplePages({ galleryData }: { galleryData: GalleryData }) {
     const galleryExamples = getGalleryExamples({ galleryData });
+    const galleryExamplePages = galleryExamples.map(({ exampleName }) => {
+        return {
+            params: {
+                exampleName,
+            },
+        };
+    });
+
+    return galleryExamplePages;
+}
+
+export function getGalleryExampleThemePages({ galleryData }: { galleryData: GalleryData }) {
+    const galleryExamples = getGalleryExamples({ galleryData });
     const themes = [
         'ag-default',
         'ag-material',

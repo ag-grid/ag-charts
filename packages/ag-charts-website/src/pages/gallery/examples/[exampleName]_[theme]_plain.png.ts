@@ -1,4 +1,4 @@
-import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+import { getGalleryExampleThemePages } from '@features/gallery/utils/pageData';
 import { transformPlainEntryFile } from '@features/gallery/utils/transformPlainEntryFile';
 import type { ThemeName } from '@stores/themeStore';
 import { getEntry } from 'astro:content';
@@ -20,7 +20,7 @@ interface Params {
 
 export async function getStaticPaths() {
     const galleryDataEntry = await getEntry('gallery', 'data');
-    const pages = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
+    const pages = getGalleryExampleThemePages({ galleryData: galleryDataEntry.data });
     return pages;
 }
 
