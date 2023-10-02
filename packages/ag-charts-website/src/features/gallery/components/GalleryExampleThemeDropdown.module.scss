@@ -1,0 +1,14 @@
+@use '../../../design-system' as *;
+
+.toolPanel {
+    padding-top: 48px;
+    text-align: center;
+    font-size: 12px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}

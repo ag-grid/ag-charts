@@ -1,4 +1,6 @@
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+import { transformPlainEntryFile } from '@features/gallery/utils/transformPlainEntryFile';
+import type { ThemeName } from '@stores/themeStore';
 import { getEntry } from 'astro:content';
 import { JSDOM } from 'jsdom';
 
@@ -8,12 +10,12 @@ import { AgEnterpriseCharts } from 'ag-charts-enterprise';
 import * as mockCanvas from '../../../../../ag-charts-community/src/chart/test/mock-canvas';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../../../features/gallery/constants';
 import { getGeneratedGalleryContents } from '../../../features/gallery/utils/examplesGenerator';
-import { transformPlainEntryFile } from '../../../features/gallery/utils/transformPlainEntryFile';
 
 export const prerender = true;
 
 interface Params {
     exampleName: string;
+    theme: ThemeName;
 }
 
 export async function getStaticPaths() {
@@ -23,7 +25,7 @@ export async function getStaticPaths() {
 }
 
 export async function get({ params }: { params: Params }) {
-    const { exampleName } = params;
+    const { exampleName, theme } = params;
 
     const jsdom = new JSDOM('<html><head><style></style></head><body><div id="myChart"></div></body></html>');
 
@@ -44,6 +46,7 @@ export async function get({ params }: { params: Params }) {
         let { options } = transformPlainEntryFile(entryFile, files['data.js']);
         options = {
             ...options,
+            theme,
             animation: { enabled: false },
             document: jsdom.window.document,
             window: jsdom.window,

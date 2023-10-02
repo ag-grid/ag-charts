@@ -1,4 +1,5 @@
 import { SITE_BASE_URL } from '@constants';
+import type { ThemeName } from '@stores/themeStore';
 import { pathJoin } from '@utils/pathJoin';
 
 export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string; isFullPath?: boolean }) => {
@@ -7,8 +8,8 @@ export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string
     return isFullPath ? fullPath : path;
 };
 
-export const getPlainExampleImageUrl = ({ exampleName }: { exampleName: string }) => {
-    const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}-plain.png`);
+export const getPlainExampleImageUrl = ({ exampleName, theme }: { exampleName: string; theme: ThemeName }) => {
+    const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}_${theme}_plain.png`);
     return imageUrl;
 };
 
