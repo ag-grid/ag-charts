@@ -23,13 +23,6 @@ export const getPlainThumbnailFolderUrl = ({ isDev }: { isDev?: boolean }) => {
     return new URL(thumbnailFolderPath, import.meta.url);
 };
 
-export const getPlainThumbnailFileUrl = ({ exampleName, isDev }: { exampleName: string; isDev?: boolean }) => {
-    const folderPath = getPlainThumbnailFolderUrl({ isDev });
-    const thumbnailFilePath = pathJoin(folderPath.pathname, `${exampleName}-plain.png`);
-
-    return new URL(thumbnailFilePath, import.meta.url);
-};
-
 export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
     const contentRoot = getContentRootFileUrl();
     const sourceExamplesPath = pathJoin(contentRoot.pathname, 'gallery', '_examples', exampleName);
