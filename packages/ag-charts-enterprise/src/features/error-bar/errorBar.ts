@@ -23,7 +23,17 @@ const { Logger } = _Util;
 const XVALUE_ERRORS_ID = 'xValue-errors';
 const YVALUE_ERRORS_ID = 'yValue-errors';
 
+type AnyCartesianSeries = _ModuleSupport.CartesianSeries<any, any>;
+type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
+type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
+
+type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
+type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
+type SeriesDataGetDomainEvent = _ModuleSupport.SeriesDataGetDomainEvent;
+type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
+type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
+
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
 
 class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
@@ -85,13 +95,13 @@ export class ErrorBars
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
 
-    private readonly cartesianSeries: _ModuleSupport.CartesianSeries<any, any>;
+    private readonly cartesianSeries: AnyCartesianSeries;
     private readonly groupNode: _Scene.Group;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
     private nodeData: (ErrorBarPoints | undefined)[] = [];
 
-    private dataModel?: _ModuleSupport.DataModel<any, any, any>;
-    private processedData?: _ModuleSupport.ProcessedData<any>;
+    private dataModel?: AnyDataModel;
+    private processedData?: AnyProcessedData;
 
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
@@ -104,7 +114,7 @@ export class ErrorBars
                 }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
             );
         }
-        this.cartesianSeries = ctx.series as _ModuleSupport.CartesianSeries<any, any>;
+        this.cartesianSeries = ctx.series as AnyCartesianSeries;
         const { contentGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
@@ -115,27 +125,17 @@ export class ErrorBars
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
+        const series = this.cartesianSeries;
         this.destroyFns.push(
-            this.cartesianSeries.addListener(
-                'data-prerequest',
-                (event: _ModuleSupport.SeriesDataPrerequestEvent) => this.onPrerequestData(event)
-            ),
-            this.cartesianSeries.addListener('data-processed', (event: _ModuleSupport.SeriesDataProcessedEvent) =>
-                this.onDataProcessed(event)
-            ),
-            this.cartesianSeries.addListener('data-getDomain', (event: _ModuleSupport.SeriesDataGetDomainEvent) =>
-                this.onGetDomain(event)
-            ),
-            this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>
-                this.onDataUpdate(event)
-            ),
-            this.cartesianSeries.addListener('visibility-changed', (event: _ModuleSupport.SeriesVisibilityEvent) =>
-                this.onToggleSeriesItem(event)
-            )
+            series.addListener('data-prerequest', (event: SeriesDataPrerequestEvent) => this.onPrerequestData(event)),
+            series.addListener('data-processed', (event: SeriesDataProcessedEvent) => this.onDataProcessed(event)),
+            series.addListener('data-getDomain', (event: SeriesDataGetDomainEvent) => this.onGetDomain(event)),
+            series.addListener('data-update', (event: SeriesDataUpdateEvent) => this.onDataUpdate(event)),
+            series.addListener('visibility-changed', (event: SeriesVisibilityEvent) => this.onToggleSeriesItem(event))
         );
     }
 
-    onPrerequestData(event: { isContinuousX: boolean; isContinuousY: boolean }) {
+    onPrerequestData(event: SeriesDataPrerequestEvent) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         const { isContinuousX, isContinuousY } = event;
@@ -152,10 +152,7 @@ export class ErrorBars
         return props;
     }
 
-    onDataProcessed(event: {
-        dataModel: _ModuleSupport.DataModel<any, any, any>;
-        processedData: _ModuleSupport.ProcessedData<any>;
-    }) {
+    onDataProcessed(event: SeriesDataProcessedEvent) {
         this.dataModel = event.dataModel;
         this.processedData = event.processedData;
     }
@@ -167,7 +164,7 @@ export class ErrorBars
         return true;
     }
 
-    onGetDomain(event: { direction: _ModuleSupport.ChartAxisDirection }) {
+    onGetDomain(event: SeriesDataGetDomainEvent) {
         if (this.hasAxis(event.direction)) {
             const { dataModel, processedData, cartesianSeries } = this;
             const axis = cartesianSeries.axes[event.direction];
@@ -179,10 +176,7 @@ export class ErrorBars
         }
     }
 
-    onDataUpdate(event: {
-        dataModel: _ModuleSupport.DataModel<any, any, any>;
-        processedData: _ModuleSupport.ProcessedData<any>;
-    }) {
+    onDataUpdate(event: SeriesDataUpdateEvent) {
         this.dataModel = event.dataModel;
         this.processedData = event.processedData;
         if (event.dataModel !== undefined && event.processedData !== undefined) {
@@ -191,10 +185,7 @@ export class ErrorBars
         }
     }
 
-    createNodeData(
-        dataModel: _ModuleSupport.DataModel<any, any, any>,
-        processedData: _ModuleSupport.ProcessedData<any>
-    ) {
+    createNodeData(dataModel: AnyDataModel, processedData: AnyProcessedData) {
         const { nodeData } = this;
         const { xIndex, yIndex } = this.getDatumIndices(dataModel);
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
@@ -219,7 +210,7 @@ export class ErrorBars
         }
     }
 
-    private getDatumIndices(dataModel: _ModuleSupport.DataModel<any, any, any>) {
+    private getDatumIndices(dataModel: AnyDataModel) {
         const xIndex = 'xValue';
         const yIndex = this.cartesianSeries.type == 'bar' ? 'yValue-end' : 'yValue';
         return {
@@ -228,12 +219,7 @@ export class ErrorBars
         };
     }
 
-    private getDatum(
-        processedData: _ModuleSupport.ProcessedData<any>,
-        datumIndex: number,
-        xIndex: number,
-        yIndex: number
-    ) {
+    private getDatum(processedData: AnyProcessedData, datumIndex: number, xIndex: number, yIndex: number) {
         const { type } = this.cartesianSeries;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         const { datum, keys, values } = processedData.data[datumIndex];
