@@ -7,9 +7,9 @@ import { JSDOM } from 'jsdom';
 import { AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import * as mockCanvas from '../../../../../ag-charts-community/src/chart/test/mock-canvas';
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../../../features/gallery/constants';
-import { getGeneratedGalleryContents } from '../../../features/gallery/utils/examplesGenerator';
+import * as mockCanvas from '../../../../../../ag-charts-community/src/chart/test/mock-canvas';
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../../../../features/gallery/constants';
+import { getGeneratedGalleryContents } from '../../../../features/gallery/utils/examplesGenerator';
 
 export const prerender = true;
 

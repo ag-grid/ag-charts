@@ -9,7 +9,7 @@ export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string
 };
 
 export const getPlainExampleImageUrl = ({ exampleName, theme }: { exampleName: string; theme: ThemeName }) => {
-    const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}_${theme}_plain.png`);
+    const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}/${theme}-plain.png`);
     return imageUrl;
 };
 
