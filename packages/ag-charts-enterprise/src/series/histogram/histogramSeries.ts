@@ -268,13 +268,11 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             props.push(diff(this.processedData, false));
         }
 
-        const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
+        await this.requestDataModel<any>(dataController, data ?? [], {
             props,
             dataVisible: this.visible,
             groupByFn,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.animationState.transition('updateData');
     }

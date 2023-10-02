@@ -7,7 +7,6 @@ import type {
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
@@ -117,13 +116,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     yName?: string = undefined;
 
     override async processData(dataController: DataController) {
-        const { axes, xKey = '', yKey = '' } = this;
+        const { xKey = '', yKey = '' } = this;
         const data = xKey && yKey && this.data ? this.data : [];
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const props: DataModelOptions<any, false>['props'] = [];
 
@@ -146,18 +142,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             props.push(diff(this.processedData));
         }
 
-        const listenerProps: (typeof props)[] =
-            this.dispatch('data-prerequest', { isContinuousX, isContinuousY }) ?? [];
-        for (const moreProps of listenerProps) {
-            props.push(...moreProps);
-        }
-        const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
+        const { processedData } = await this.requestDataModel<any>(dataController, data, {
             props,
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
-        this.dispatch('data-processed', { dataModel, processedData });
 
         // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
         if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {

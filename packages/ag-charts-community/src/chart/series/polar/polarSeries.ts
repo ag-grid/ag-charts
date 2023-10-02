@@ -3,15 +3,15 @@ import { StateMachine } from '../../../motion/states';
 import type { BBox } from '../../../scene/bbox';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { DataModel, ProcessedData } from '../../data/dataModel';
+import { DataModelSeries } from '../dataModelSeries';
 import type { SeriesNodeDatum } from '../series';
-import { Series, SeriesNodePickMode } from '../series';
+import { SeriesNodePickMode } from '../series';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type PolarAnimationEvent = 'update' | 'updateData' | 'clear';
 export type PolarAnimationData = { duration?: number };
 
-export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
+export abstract class PolarSeries<S extends SeriesNodeDatum> extends DataModelSeries<S> {
     /**
      * The center of the polar series (for example, the center of a pie).
      * If the polar chart has multiple series, all of them will have their
@@ -28,8 +28,6 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
      */
     radius: number = 0;
 
-    protected dataModel?: DataModel<any, any, any>;
-    protected processedData?: ProcessedData<any>;
     protected animationState: StateMachine<PolarAnimationState, PolarAnimationEvent>;
 
     constructor({

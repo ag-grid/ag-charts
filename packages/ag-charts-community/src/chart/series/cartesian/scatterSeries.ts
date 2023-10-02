@@ -6,7 +6,6 @@ import type {
     AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
@@ -17,7 +16,6 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING_ARRAY, OPT_FUNCTION, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModelOptions } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { diff } from '../../data/processors';
 import { Label } from '../../label';
@@ -109,40 +107,26 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             xKey = '',
             yKey = '',
             labelKey,
-            axes,
             data,
             ctx: { animationManager },
         } = this;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
-
+        const { isContinuousX, isContinuousY } = this.isContinuous();
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
-        const props: DataModelOptions<any, false>['props'] = [
-            keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
-            keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
-            ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
-            valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
-            valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-            ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
-            ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-            ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
-        ];
-
-        const listenerProps: (typeof props)[] =
-            this.dispatch('data-prerequest', { isContinuousX, isContinuousY }) ?? [];
-        for (const moreProps of listenerProps) {
-            props.push(...moreProps);
-        }
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
-            props,
+        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
+            props: [
+                keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
+                keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
+                valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
+                ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
+                ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
+                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
+            ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;

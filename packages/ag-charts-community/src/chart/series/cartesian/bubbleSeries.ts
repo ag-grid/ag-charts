@@ -6,7 +6,6 @@ import type {
     AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
@@ -157,20 +156,16 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             yKey = '',
             sizeKey = '',
             labelKey,
-            axes,
             marker,
             data,
             ctx: { animationManager },
         } = this;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
+        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
                 keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
@@ -184,8 +179,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
         const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];

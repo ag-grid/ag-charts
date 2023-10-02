@@ -170,7 +170,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
 
         const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
 
-        const { dataModel, processedData } = await dataController.request(this.id, data, {
+        const { processedData } = await this.requestDataModel(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, minKey, true, { id: `minValue` }),
@@ -182,9 +182,6 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             ],
             dataVisible: this.visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,

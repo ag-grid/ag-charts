@@ -267,7 +267,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             }
         });
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, dataWithTotals, {
+        await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 accumulativeValueProperty(this, yKey, true, {
@@ -302,8 +302,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.updateSeriesItemTypes();
     }

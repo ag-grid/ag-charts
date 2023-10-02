@@ -203,38 +203,28 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             extraProps.push(diff(this.processedData));
         }
 
-        const props = [
-            keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-            valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
-            ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
-                id: `yValue-end`,
-                invalidValue: null,
-                groupId: stackGroupName,
-                separateNegative: true,
-            }),
-            ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
-                id: `yValue-start`,
-                invalidValue: null,
-                groupId: stackGroupTrailingName,
-                separateNegative: true,
-            }),
-            ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
-            ...extraProps,
-        ];
-        const listenerProps: (typeof props)[] =
-            this.dispatch('data-prerequest', { isContinuousX, isContinuousY }) ?? [];
-        for (const moreProps of listenerProps) {
-            props.push(...moreProps);
-        }
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
-            props: props,
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
+            props: [
+                keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
+                valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
+                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
+                    id: `yValue-end`,
+                    invalidValue: null,
+                    groupId: stackGroupName,
+                    separateNegative: true,
+                }),
+                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
+                    id: `yValue-start`,
+                    invalidValue: null,
+                    groupId: stackGroupTrailingName,
+                    separateNegative: true,
+                }),
+                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
+                ...extraProps,
+            ],
             groupByKeys: true,
             dataVisible: this.visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
-        this.dispatch('data-processed', { dataModel, processedData });
 
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,

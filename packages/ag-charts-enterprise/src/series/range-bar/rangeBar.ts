@@ -219,7 +219,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             animationProp.push(diff(this.processedData));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
@@ -230,8 +230,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             groupByKeys: true,
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
