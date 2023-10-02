@@ -117,13 +117,13 @@ export class ErrorBars
 
         this.destroyFns.push(
             this.cartesianSeries.addListener(
-                'processData-prerequest',
-                (event: _ModuleSupport.SeriesPrerequestDataEvent) => this.onPrerequestData(event)
+                'data-prerequest',
+                (event: _ModuleSupport.SeriesDataPrerequestEvent) => this.onPrerequestData(event)
             ),
             this.cartesianSeries.addListener('data-processed', (event: _ModuleSupport.SeriesDataProcessedEvent) =>
                 this.onDataProcessed(event)
             ),
-            this.cartesianSeries.addListener('getDomain', (event: _ModuleSupport.SeriesGetDomainDataEvent) =>
+            this.cartesianSeries.addListener('data-getDomain', (event: _ModuleSupport.SeriesDataGetDomainEvent) =>
                 this.onGetDomain(event)
             ),
             this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>

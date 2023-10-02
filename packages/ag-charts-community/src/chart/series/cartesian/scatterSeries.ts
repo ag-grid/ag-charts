@@ -132,7 +132,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         ];
 
         const listenerProps: (typeof props)[] =
-            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
+            this.dispatch('data-prerequest', { isContinuousX, isContinuousY }) ?? [];
         for (const moreProps of listenerProps) {
             props.push(...moreProps);
         }

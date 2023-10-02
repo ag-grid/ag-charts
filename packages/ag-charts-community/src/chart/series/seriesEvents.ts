@@ -3,9 +3,9 @@ import type { DataModel, ProcessedData } from '../data/dataModel';
 
 export type SeriesEventType =
     | 'data-update'
-    | 'processData-prerequest'
+    | 'data-prerequest'
     | 'data-processed'
-    | 'getDomain'
+    | 'data-getDomain'
     | 'visibility-changed';
 
 export interface BaseSeriesEvent<_T extends SeriesEventType> {}
@@ -15,7 +15,7 @@ export interface SeriesDataUpdateEvent extends BaseSeriesEvent<'data-update'> {
     readonly processedData: ProcessedData<any>;
 }
 
-export interface SeriesPrerequestDataEvent extends BaseSeriesEvent<'processData-prerequest'> {
+export interface SeriesDataPrerequestEvent extends BaseSeriesEvent<'data-prerequest'> {
     readonly isContinuousX: boolean;
     readonly isContinuousY: boolean;
 }
@@ -25,7 +25,7 @@ export interface SeriesDataProcessedEvent extends BaseSeriesEvent<'data-processe
     readonly processedData: ProcessedData<any>;
 }
 
-export interface SeriesGetDomainDataEvent extends BaseSeriesEvent<'getDomain'> {
+export interface SeriesDataGetDomainEvent extends BaseSeriesEvent<'data-getDomain'> {
     readonly direction: ChartAxisDirection;
 }
 

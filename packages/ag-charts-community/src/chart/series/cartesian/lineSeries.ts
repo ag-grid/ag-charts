@@ -146,7 +146,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         }
 
         const listenerProps: (typeof props)[] =
-            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
+            this.dispatch('data-prerequest', { isContinuousX, isContinuousY }) ?? [];
         for (const moreProps of listenerProps) {
             props.push(...moreProps);
         }

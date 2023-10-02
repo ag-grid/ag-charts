@@ -571,7 +571,7 @@ export abstract class Series<
     // The union of the series domain ('community') and series-option domains ('enterprise').
     getDomain(direction: ChartAxisDirection): any[] {
         const seriesDomain: any[] = this.getSeriesDomain(direction);
-        const moduleDomains: any[][] = this.dispatch('getDomain', { direction }) ?? [];
+        const moduleDomains: any[][] = this.dispatch('data-getDomain', { direction }) ?? [];
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
         return moduleDomains.reduce((total, current) => total.concat(current), seriesDomain);
     }
