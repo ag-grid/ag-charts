@@ -26,16 +26,18 @@ export function getGalleryPages({ galleryData }: { galleryData: GalleryData }) {
 
 export function getGalleryExamplePages({ galleryData }: { galleryData: GalleryData }) {
     const galleryExamples = getGalleryExamples({ galleryData });
-    const themes = ['ag-default',
-    'ag-material',
-    'ag-pastel',
-    'ag-solar',
-    'ag-vivid',
-    'ag-default-dark' ,
-    'ag-material-dark' ,
-    'ag-pastel-dark' ,
-    'ag-solar-dark' ,
-    'ag-vivid-dark'];
+    const themes = [
+        'ag-default',
+        'ag-material',
+        'ag-pastel',
+        'ag-solar',
+        'ag-vivid',
+        'ag-default-dark',
+        'ag-material-dark',
+        'ag-pastel-dark',
+        'ag-solar-dark',
+        'ag-vivid-dark',
+    ];
     const galleryExamplePages = galleryExamples.flatMap(({ exampleName }) => {
         return themes.map((theme) => {
             return {
