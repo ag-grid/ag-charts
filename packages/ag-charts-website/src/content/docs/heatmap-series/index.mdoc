@@ -85,60 +85,6 @@ series: [
 
 {% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" options="{ \"enterprise\": true }" /%}
 
-### Colour Domain
-
-The `colorDomain` property can help with a better mapping of colours and numeric values. By default the Colour Domain is automatically calculated based on minimal and maximal values from the data. Supplying values for Colour Domain will define the miminum and maximum numeric values that will map to the first and the last colours from the `colorRange`.
-
-```js
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-        colorRange: [
-            '#4A90E2',
-            '#FF6B6B',
-        ],
-        colorDomain: [
-            0,
-            20,
-        ],
-    },
-],
-```
-
-{% chartExampleRunner title="Customising Colour Domain" name="customising-color-domain" type="generated" options="{ \"enterprise\": true }" /%}
-
-Supplying 3 and more values to `colorDomain` will create a non-linear gradient.
-
-```js
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-        colorRange: [
-            '#4A90E2',
-            '#777777',
-            '#FF6B6B',
-        ],
-        colorDomain: [
-            -10,
-            0,
-            20,
-        ],
-    },
-],
-```
-
-{% chartExampleRunner title="Colour Domain With Many Values" name="color-domain-with-many-values" type="generated" options="{ \"enterprise\": true }" /%}
-
-{% note %}
-When 3 or more values are supplied for the Colour Domain, the number of colours in the Colour Range should be exactly the same.
-{% /note %}
-
 ## Gradient Legend
 
 The Gradient Legend helps for better understanding of colour coding of the Heatmap Series. In order to add a Gradient Legend, `gradientLegend.enabled = true` should be added to the root of the chart options.
