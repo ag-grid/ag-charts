@@ -18,8 +18,8 @@ export type NodeUpdateState = 'added' | 'removed' | 'updated' | 'moved';
  * @param fromFn callback to determine per-node starting properties
  * @param toFn callback to determine per-node final properties
  * @param extraOpts optional additional animation properties to pass to AnimationManager#animate.
- * @param idFn optional per-datum 'id' generation function for diff calculation - must be specified
- *             iff diff is specified
+ * @param getDatumId optional per-datum 'id' generation function for diff calculation - must be
+ *                   specified iff diff is specified
  * @param diff optional diff from a DataModel to use to detect added/moved/removed cases
  */
 export function fromToMotion<N extends Shape, T extends AnimationValue & Partial<N>, D>(
@@ -29,12 +29,12 @@ export function fromToMotion<N extends Shape, T extends AnimationValue & Partial
     fromFn: (node: N, datum: D, state: NodeUpdateState) => T,
     toFn: (node: N, datum: D, state: NodeUpdateState) => T,
     extraOpts: Partial<AnimationOptions<T> & AdditionalAnimationOptions> = {},
-    idFn?: (node: N, datum: D) => string,
+    getDatumId?: (node: N, datum: D) => string,
     diff?: ProcessedOutputDiff
 ) {
     // Dynamic case with varying add/update/remove behavior.
     const ids = { added: {}, removed: {} };
-    if (idFn && diff) {
+    if (getDatumId && diff) {
         ids.added = zipObject(diff.added, true);
         ids.removed = zipObject(diff.removed, true);
     }
@@ -45,14 +45,14 @@ export function fromToMotion<N extends Shape, T extends AnimationValue & Partial
 
         for (const node of selection.nodes()) {
             let status: NodeUpdateState = 'added';
-            if (idFn && diff) {
-                status = calculateStatus(node, node.datum, idFn, ids);
+            if (getDatumId && diff) {
+                status = calculateStatus(node, node.datum, getDatumId, ids);
             }
 
             cleanup ||= status === 'removed';
 
-            const from = typeof fromFn === 'function' ? fromFn(node, node.datum, status) : fromFn;
-            const to = typeof toFn === 'function' ? toFn(node, node.datum, status) : toFn;
+            const from = fromFn(node, node.datum, status);
+            const to = toFn(node, node.datum, status);
 
             animationManager.animate({
                 id: `${id}_${node.id}`,
@@ -121,13 +121,13 @@ export function staticFromToMotion<N extends Shape, T extends AnimationValue & P
 function calculateStatus<N extends Shape, D>(
     node: N,
     datum: D,
-    idFn: (node: N, datum: D) => string,
+    getDatumId: (node: N, datum: D) => string,
     ids: {
         added: Record<string, true>;
         removed: Record<string, true>;
     }
 ): NodeUpdateState {
-    const id = idFn(node, datum);
+    const id = getDatumId(node, datum);
 
     if (ids.added[id]) {
         return 'added';
