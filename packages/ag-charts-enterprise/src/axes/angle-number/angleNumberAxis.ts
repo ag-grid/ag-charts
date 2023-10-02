@@ -62,7 +62,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         scale.tickCount = preferredTicksCount;
         scale.minTickCount = minTicksCount;
         scale.maxTickCount = maxTicksCount;
-        const ticks = scale.ticks();
+        const ticks = tick.values ?? scale.ticks();
         return ticks.map((value) => {
             return { value, visible: true };
         });
