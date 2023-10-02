@@ -162,11 +162,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     static className = 'WaterfallSeries';
     static type = 'waterfall' as const;
 
-    readonly item: WaterfallSeriesItems = new WaterfallSeriesItems();
-
-    readonly totals: TotalMeta[] = [];
-
+    readonly item = new WaterfallSeriesItems();
     readonly line = new WaterfallSeriesConnectorLine();
+    readonly totals: TotalMeta[] = [];
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 
@@ -705,12 +703,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { xName, yName, id: seriesId } = this;
-
         const { datum, itemId, xValue, yValue } = nodeDatum;
+        const { fill, strokeWidth, name, formatter } = this.getItemConfig(itemId);
 
-        const { fill, strokeWidth, name, formatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
-
-        let format: any | undefined = undefined;
+        let format;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -745,33 +741,28 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             backgroundColor: color,
         };
 
-        return this.tooltip.toTooltipHtml(
-            defaults,
-            {
-                datum,
-                xKey,
-                xValue,
-                xName,
-                yKey,
-                yValue,
-                yName,
-                color,
-                seriesId,
-                itemId,
-            },
-            itemTooltip
-        );
+        return this.tooltip.toTooltipHtml(defaults, {
+            datum,
+            xKey,
+            xValue,
+            xName,
+            yKey,
+            yValue,
+            yName,
+            color,
+            seriesId,
+            itemId,
+        });
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType) {
         if (legendType !== 'category') {
             return [];
         }
 
         const { id, seriesItemTypes } = this;
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
-        const getLegendItemText = (item: SeriesItemType, name?: string) =>
-            name !== undefined ? name : `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
+        const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
@@ -781,16 +772,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 itemId: item,
                 seriesId: id,
                 enabled: true,
-                label: {
-                    text: getLegendItemText(item, name),
-                },
-                marker: {
-                    fill,
-                    stroke,
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                },
+                label: { text: name ?? capitalise(item) },
+                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
             });
         });
 

@@ -9,7 +9,7 @@ import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight } from './ty
  * @typeparam TDatum - The type of data associated with the chart.
  * @typeparam TParams - The type of parameters expected by the label formatter function.
  */
-export interface AgChartLabelOptions<TParams = {}> {
+export interface AgChartLabelOptions<TDatum = any, TParams = {}> {
     /**  Determines whether the labels should be displayed on the chart. */
     enabled?: boolean;
     /** The color to apply to the labels. */
@@ -23,7 +23,7 @@ export interface AgChartLabelOptions<TParams = {}> {
     /**  The font family to use for the labels.  */
     fontFamily?: FontFamily;
     /** A custom formatting function used to convert data values into text for display by labels. */
-    formatter?: <TDatum>(params: AgChartLabelFormatterParams<TDatum> & TParams) => string;
+    formatter?: (params: AgChartLabelFormatterParams<TDatum> & TParams) => string;
 }
 
 export interface AgChartLabelFormatterParams<TDatum> extends AgChartCallbackParams<TDatum> {

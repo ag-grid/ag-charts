@@ -17,7 +17,7 @@ import {
 } from '../util/validation';
 import type { ChartAxisLabelFlipFlag } from './chartAxis';
 
-export class Label<TParams = {}> implements AgChartLabelOptions<TParams> {
+export class Label<TParams = {}, TDatum = any> implements AgChartLabelOptions<TDatum, TParams> {
     @Validate(BOOLEAN)
     enabled = true;
 
@@ -37,7 +37,7 @@ export class Label<TParams = {}> implements AgChartLabelOptions<TParams> {
     fontFamily = 'Verdana, sans-serif';
 
     @Validate(OPT_FUNCTION)
-    formatter?: <TDatum>(params: AgChartLabelFormatterParams<TDatum> & TParams) => string;
+    formatter?: (params: AgChartLabelFormatterParams<TDatum> & TParams) => string;
 
     getFont(): string {
         return getFont(this);
