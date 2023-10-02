@@ -22,7 +22,7 @@ const {
     STRING,
 } = _ModuleSupport;
 const { BBox, Group, Rect, Selection, Text, Triangle } = _Scene;
-const { createId, tickFormat } = _Util;
+const { createId } = _Util;
 
 class GradientLegendLabel {
     @Validate(OPT_NUMBER(0))
@@ -275,7 +275,7 @@ export class GradientLegend {
             colorDomain = colorDomain.slice().reverse();
         }
 
-        const format = this.formatDomain(colorDomain);
+        const format = this.getLabelFormatter();
 
         const setTextPosition = (node: _Scene.Text, index: number) => {
             const t = index / (colorDomain.length - 1);
@@ -375,18 +375,18 @@ export class GradientLegend {
         arrow.visible = true;
     }
 
-    private formatDomain(domain: number[]) {
+    private getLabelFormatter() {
         const formatter = this.stop.label.formatter;
         if (formatter) {
             return (d: number) => this.ctx.callbackCache.call(formatter, { value: d } as any);
         }
-        return tickFormat(domain, ',.2g');
+        return (x: number) => String(x);
     }
 
     private measureMaxText(colorDomain: number[]) {
         const { label } = this.stop;
         const tempText = new Text();
-        const format = this.formatDomain(colorDomain);
+        const format = this.getLabelFormatter();
         const boxes: _Scene.BBox[] = colorDomain.map((d) => {
             const text = format(d);
             tempText.text = text;
