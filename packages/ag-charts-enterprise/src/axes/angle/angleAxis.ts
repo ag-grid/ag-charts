@@ -19,11 +19,6 @@ interface AngleAxisLabelDatum {
     box: _Scene.BBox | undefined;
 }
 
-interface AngleAxisTickDatum {
-    value: string | number;
-    visible: boolean;
-}
-
 function loopSymmetrically<T>(items: T[], step: number, iterator: (prev: T, next: T) => any) {
     const loop = (start: number, end: number, step: number, iterator: (prev: T, next: T) => any) => {
         let prev = items[0];
@@ -52,7 +47,7 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
-export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<any, any>> {
+export abstract class AngleAxis<TDomain, TScale extends _Scale.Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<TScale> {
     @ProxyOnWrite('rotation')
     @Validate(NUMBER(0, 360))
     startAngle: number = 0;
@@ -61,10 +56,10 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     endAngle: number | undefined = undefined;
 
     protected labelData: AngleAxisLabelDatum[] = [];
-    protected tickData: AngleAxisTickDatum[] = [];
+    protected tickData: TDomain[] = [];
     protected radiusLine: _Scene.Path = this.axisGroup.appendChild(new Path());
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: _Scale.Scale<any, any>) {
+    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {
         super(moduleCtx, scale);
         this.includeInvisibleDomains = true;
     }
@@ -89,7 +84,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         this.updateLabels();
         this.updateRadiusLine();
         this.updateCrossLines();
-        return this.scale.ticks?.().length ?? 0;
+        return this.tickData.length;
     }
 
     override computeRange = () => {
@@ -97,6 +92,8 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         const endAngle = this.endAngle == undefined ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
         this.range = [startAngle, endAngle];
     };
+
+    protected abstract generateAngleTicks(): any[];
 
     override updatePosition() {
         const { translation, axisGroup, gridGroup, crossLineGroup } = this;
@@ -185,17 +182,13 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         return [{ value: startTick, visible: true }];
     }
 
-    protected getVisibleTicks() {
-        return this.tickData.filter((tick) => tick.visible).map(({ value }) => value);
-    }
-
     protected override updateGridLines() {
         const { scale, gridLength: radius, gridStyle, tick, innerRadiusRatio } = this;
         if (!(gridStyle && radius > 0)) {
             return;
         }
 
-        const ticks = this.getVisibleTicks();
+        const ticks = this.tickData;
         const innerRadius = radius * innerRadiusRatio;
         this.gridLineGroupSelection.update(tick.enabled ? ticks : []).each((line, value, index) => {
             const style = gridStyle[index % gridStyle.length];
@@ -214,7 +207,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     protected override updateLabels() {
         const { label, tickLabelGroupSelection } = this;
 
-        const ticks = this.getVisibleTicks();
+        const ticks = this.tickData;
         tickLabelGroupSelection.update(label.enabled ? ticks : []).each((node, _, index) => {
             const labelDatum = this.labelData[index];
             if (labelDatum.hidden) {
@@ -243,7 +236,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     protected override updateTickLines() {
         const { scale, gridLength: radius, tick, tickLineGroupSelection } = this;
 
-        const ticks = this.getVisibleTicks();
+        const ticks = this.tickData;
         tickLineGroupSelection.update(tick.enabled ? ticks : []).each((line, value) => {
             const angle = scale.convert(value);
             const cos = Math.cos(angle);
@@ -258,6 +251,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     }
 
     protected createLabelNodeData(
+        ticks: any[],
         options: { hideWhenNecessary: boolean },
         seriesRect: _Scene.BBox
     ): AngleAxisLabelDatum[] {
@@ -265,8 +259,6 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         if (!label.enabled) {
             return [];
         }
-
-        const ticks = this.getVisibleTicks();
 
         const tempText = new Text();
 
@@ -383,8 +375,8 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     }
 
     override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _Scene.BBox) {
-        this.tickData = this.createTickVisibilityData();
-        this.labelData = this.createLabelNodeData(options, seriesRect);
+        this.tickData = this.generateAngleTicks();
+        this.labelData = this.createLabelNodeData(this.tickData, options, seriesRect);
 
         const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _Scene.BBox => box != null);
 

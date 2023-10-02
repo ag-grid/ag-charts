@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 
 const { LinearScale } = _Scale;
-const { range } = _Util;
+const { isNumberEqual, range, tickStep } = _Util;
 
 export class LinearAngleScale extends LinearScale {
     override ticks() {
@@ -20,9 +20,17 @@ export class LinearAngleScale extends LinearScale {
             }
         }
         
-        const angleStep = Math.PI / 4;
-        const { range: scaleRange } = this;
-        let tickStep = this.invert(scaleRange[0] + angleStep) - d0;
+        const { tickCount } = this;
+        const minTickCount = isNaN(this.minTickCount) ? 1 : this.minTickCount;
+        const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount; 
+        const angleRange = this.range.slice().sort((a, b) => a - b);
+
+        const rawTickCount = Math.max(minTickCount, Math.min(maxTickCount, tickCount));
+        const rawCircleTickCount = rawTickCount / (angleRange[1] - angleRange[0]) * 2 * Math.PI;
+        const niceCircleTickCount = Math.pow(2, Math.ceil(Math.log(rawCircleTickCount) / Math.log(2)));
+        const angleStep = 2 * Math.PI / niceCircleTickCount;
+        
+        let tickStep = this.invert(angleRange[0] + angleStep) - d0;
         if (tickStep > 1e-15) {
             tickStep = parseFloat(tickStep.toPrecision(15));
         }
@@ -32,5 +40,34 @@ export class LinearAngleScale extends LinearScale {
             ticks.push(d1);
         }
         return ticks;
+    }
+
+    protected updateNiceDomain() {
+        const range = this.range.slice().sort((a, b) => a - b);
+        const niceRanges = [Math.PI, 2 * Math.PI];
+        if (!niceRanges.some((r) => isNumberEqual(r, range[1] - range[0]))) {
+            return super.updateNiceDomain();
+        }
+        const { tickCount } = this;
+        const minTickCount = isNaN(this.minTickCount) ? 1 : this.minTickCount;
+        const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount;
+
+        let [start, stop] = this.domain;
+        const step = this.interval ?? tickStep(start, stop, tickCount, minTickCount, maxTickCount);
+        if (step >= 1) {
+            start = Math.floor(start / step) * step;
+        } else {
+            const s = 1 / step; // Prevent floating point error
+            start = Math.floor(start * s) / s;
+        }
+        const expectedTickCount = (stop - start) / step;
+        const niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
+        if (step >= 1) {
+            stop = Math.ceil(start / step + niceTickCount) * step;
+        } else {
+            const s = 1 / step; // Prevent floating point error
+            stop = Math.ceil((start + niceTickCount * step) * s) / s;
+        }
+        this.niceDomain = [start, stop];
     }
 }

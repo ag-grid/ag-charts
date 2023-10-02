@@ -5,7 +5,7 @@ import { AngleAxis } from '../angle/angleAxis';
 const { NUMBER, Validate } = _ModuleSupport;
 const { BandScale } = _Scale;
 
-export class AngleCategoryAxis extends AngleAxis {
+export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string>> {
     static className = 'AngleCategoryAxis';
     static type = 'angle-category' as const;
 
@@ -17,5 +17,9 @@ export class AngleCategoryAxis extends AngleAxis {
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new BandScale());
+    }
+
+    protected generateAngleTicks() {
+        return this.scale.ticks?.() ?? [];
     }
 }
