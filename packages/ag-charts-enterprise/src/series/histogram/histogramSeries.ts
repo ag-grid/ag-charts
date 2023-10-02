@@ -38,9 +38,11 @@ const {
     fixNumericExtent,
     keyProperty,
     valueProperty,
+    getBarDirectionStartingValues,
+    prepareBarAnimationFunctions,
 } = _ModuleSupport;
-const { Rect, Label, PointerEvents, easing } = _Scene;
-const { ticks, sanitizeHtml, zipObject, tickStep } = _Util;
+const { Rect, Label, PointerEvents, motion } = _Scene;
+const { ticks, sanitizeHtml, tickStep } = _Util;
 
 const HISTOGRAM_AGGREGATIONS = ['count', 'sum', 'mean'];
 const HISTOGRAM_AGGREGATION = predicateWithMessage(
@@ -586,42 +588,19 @@ export class HistogramSeries extends CartesianSeries<
         const duration = this.ctx.animationManager.defaultDuration;
         const labelDuration = 200;
 
-        let startingY = 0;
-        datumSelections.forEach((datumSelection) =>
-            datumSelection.each((_, datum) => {
-                startingY = Math.max(startingY, datum.height + datum.y);
-            })
+        const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
+        const { toFn, fromFn } = prepareBarAnimationFunctions<HistogramNodeDatum>(true, startingX, startingY);
+
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
+
+        motion.staticFromToMotion(
+            `${this.id}_empty-update-ready_labels`,
+            this.ctx.animationManager,
+            labelSelections,
+            { opacity: 0 },
+            { opacity: 1 },
+            { delay: duration, duration: labelDuration }
         );
-
-        datumSelections.forEach((datumSelection) => {
-            datumSelection.each((rect, datum) => {
-                this.ctx.animationManager.animate({
-                    id: `${this.id}_empty-update-ready_${rect.id}`,
-                    from: { y: startingY, height: 0 },
-                    to: { y: datum.y, height: datum.height },
-                    duration,
-                    ease: easing.easeOut,
-                    onUpdate(props) {
-                        rect.setProperties({ ...props, x: datum.x, width: datum.width });
-                    },
-                });
-            });
-        });
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                labelSelections.forEach((labelSelection) => {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                });
-            },
-        });
     }
 
     override animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
@@ -643,7 +622,11 @@ export class HistogramSeries extends CartesianSeries<
         datumSelections: Array<_Scene.Selection<_Scene.Rect, HistogramNodeDatum>>;
         labelSelections: Array<_Scene.Selection<_Scene.Text, HistogramNodeDatum>>;
     }) {
-        const { processedData, getDatumId } = this;
+        const {
+            processedData,
+            getDatumId,
+            ctx: { animationManager },
+        } = this;
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
@@ -651,74 +634,29 @@ export class HistogramSeries extends CartesianSeries<
             return;
         }
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-
-        let startingY = 0;
-        datumSelections.forEach((datumSelection) =>
-            datumSelection.each((_, datum) => {
-                startingY = Math.max(startingY, datum.height + datum.y);
-            })
+        const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
+        const { toFn, fromFn } = prepareBarAnimationFunctions<HistogramNodeDatum>(true, startingX, startingY);
+        motion.fromToMotion(
+            `${this.id}_waiting-update-ready`,
+            animationManager,
+            datumSelections,
+            fromFn,
+            toFn,
+            {},
+            (_, datum) => getDatumId(datum),
+            diff
         );
 
-        const addedIds = zipObject(diff.added, true);
-        const removedIds = zipObject(diff.removed, true);
-
-        datumSelections.forEach((datumSelection) => {
-            datumSelection.each((rect, datum, index) => {
-                let from = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
-                let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
-                const cleanup = index === datumSelection.nodes().length - 1;
-
-                const datumId = getDatumId(datum);
-                const context = { y: startingY, height: 0 };
-
-                if (addedIds[datumId]) {
-                    from = { ...to, ...context };
-                } else if (removedIds[datumId]) {
-                    from = { ...from, y: datum.y, height: datum.height };
-                    to = { ...to, ...context };
-                }
-
-                this.ctx.animationManager.animate({
-                    id: `${this.id}_waiting-update-ready_${rect.id}`,
-                    from,
-                    to,
-                    duration,
-                    ease: easing.easeOut,
-                    onUpdate(props) {
-                        rect.setProperties(props);
-                    },
-                    onComplete() {
-                        if (cleanup) {
-                            datumSelection.cleanup();
-                        }
-                    },
-                });
-            });
-        });
-
-        labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label) => {
-                label.opacity = 0;
-            });
-        });
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_waiting-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            repeat: 0,
-            onUpdate: (opacity) => {
-                labelSelections.forEach((labelSelection) => {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                });
-            },
-        });
+        const duration = this.ctx.animationManager.defaultDuration;
+        const labelDuration = 200;
+        motion.staticFromToMotion(
+            `${this.id}_waiting-update-ready_labels`,
+            animationManager,
+            labelSelections,
+            { opacity: 0 },
+            { opacity: 1 },
+            { delay: duration, duration: labelDuration }
+        );
     }
 
     resetSelections(datumSelections: HistogramAnimationData['datumSelections']) {

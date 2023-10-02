@@ -45,7 +45,13 @@ import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { RectConfig } from './barUtil';
-import { checkCrisp, getRectConfig, prepareAnimationFunctions, updateRect } from './barUtil';
+import {
+    checkCrisp,
+    getBarDirectionStartingValues,
+    getRectConfig,
+    prepareBarAnimationFunctions,
+    updateRect,
+} from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import { createLabelData, updateLabel } from './labelUtil';
@@ -636,8 +642,9 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-        const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
-        const { toFn, fromFn } = prepareAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
+
+        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
+        const { toFn, fromFn } = prepareBarAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
 
         fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
@@ -676,10 +683,10 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return;
         }
 
-        const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
-
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-        const { toFn, fromFn } = prepareAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
+
+        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
+        const { toFn, fromFn } = prepareBarAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
         fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
@@ -708,49 +715,6 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             rect.setProperties({ x, y, width, height });
         });
         selection.cleanup();
-    }
-
-    protected getDirectionStartingValues(datumSelections: Array<Selection<Rect, BarNodeDatum>>) {
-        const isColumnSeries = this.getBarDirection() === ChartAxisDirection.Y;
-
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
-
-        let startingX = Infinity;
-        let startingY = 0;
-
-        if (yAxis && isColumnSeries) {
-            if (isContinuousY) {
-                startingY = yAxis.scale.convert(0);
-            } else {
-                datumSelections.forEach((datumSelection) =>
-                    datumSelection.each((_, datum) => {
-                        if (typeof datum.yValue === 'number' && datum.yValue >= 0) {
-                            startingY = Math.max(startingY, datum.height + datum.y);
-                        }
-                    })
-                );
-            }
-        }
-
-        if (xAxis && !isColumnSeries) {
-            if (isContinuousX) {
-                startingX = xAxis.scale.convert(0);
-            } else {
-                datumSelections.forEach((datumSelection) =>
-                    datumSelection.each((_, datum) => {
-                        if (typeof datum.yValue === 'number' && datum.yValue >= 0) {
-                            startingX = Math.min(startingX, datum.x);
-                        }
-                    })
-                );
-            }
-        }
-
-        return { startingX, startingY };
     }
 
     protected isLabelEnabled() {
