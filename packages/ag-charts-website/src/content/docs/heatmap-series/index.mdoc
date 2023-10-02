@@ -85,6 +85,40 @@ series: [
 
 {% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" options="{ \"enterprise\": true }" /%}
 
+## Labels
+
+There are multiple ways to display labels for the Heatmap items:
+
+- `labelKey` can be used to supply numerical values for the labels.
+
+```js
+labelKey: 'temperature',
+```
+
+-   If `label.enabled` is set to `true` and `labelKey` is not specified, the labels will show a value from `colorKey`.
+
+```js
+label: {
+    enabled: true,
+},
+```
+
+A label formatter can be used to customise the labels.
+
+```js
+labelKey: 'temperature',
+label: {
+    enabled: true,
+    formatter: ({ value }) => {
+        return `${value.toFixed(0)}°C`;
+    },
+},
+```
+
+This configuration generates labels as shown in the example below.
+
+{% chartExampleRunner title="Heatmap Label" name="customising-labels" type="generated" options="{ \"enterprise\": true }" /%}
+
 ## Gradient Legend
 
 The Gradient Legend helps for better understanding of colour coding of the Heatmap Series. In order to add a Gradient Legend, `gradientLegend.enabled = true` should be added to the root of the chart options.

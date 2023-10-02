@@ -1,5 +1,6 @@
+import type {AgChartLabelOptions} from '../../agChartOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
-import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
@@ -31,7 +32,17 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
     readonly labelName?: string;
 }
 
-export interface AgHeatmapSeriesLabelOptions extends AgTooltipRendererResult {}
+export interface AgHeatmapSeriesLabelFormatterParams {
+    /** The ID of the series. */
+    readonly seriesId: string;
+    /** The value of `labelKey` or `colorKey` as specified on series options. */
+    readonly value: any;
+}
+
+export interface AgHeatmapSeriesLabelOptions extends AgChartLabelOptions {
+    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
+    formatter?: (params: AgHeatmapSeriesLabelFormatterParams) => string;
+}
 
 export interface AgHeatmapSeriesThemeableOptions<DatumType = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
