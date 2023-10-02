@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import * as easing from '../../../motion/easing';
+import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type {
     AgBarSeriesFormat,
     AgBarSeriesFormatterParams,
@@ -32,7 +32,6 @@ import {
     STRING_UNION,
     Validate,
 } from '../../../util/validation';
-import { zipObject } from '../../../util/zip';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import { LogAxis } from '../../axis/logAxis';
@@ -46,7 +45,7 @@ import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { RectConfig } from './barUtil';
-import { checkCrisp, getRectConfig, updateRect } from './barUtil';
+import { checkCrisp, getRectConfig, prepareAnimationFunctions, updateRect } from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent, CartesianSeriesNodeDoubleClickEvent } from './cartesianSeries';
 import { createLabelData, updateLabel } from './labelUtil';
@@ -68,8 +67,8 @@ interface BarNodeLabelDatum extends Readonly<Point> {
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    readonly xValue: number;
-    readonly yValue: number;
+    readonly xValue: string | number;
+    readonly yValue: string | number;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -636,44 +635,21 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration;
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
+        const { toFn, fromFn } = prepareAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
 
-        datumSelections.forEach((datumSelection) => {
-            datumSelection.each((rect, datum) => {
-                this.ctx.animationManager.animate({
-                    id: `${this.id}_empty-update-ready_${rect.id}`,
-                    from: {
-                        x: isVertical ? datum.x : startingX,
-                        y: isVertical ? startingY : datum.y,
-                        width: isVertical ? datum.width : 0,
-                        height: isVertical ? 0 : datum.height,
-                    },
-                    to: { x: datum.x, y: datum.y, width: datum.width, height: datum.height },
-                    duration,
-                    ease: easing.easeOut,
-                    onUpdate(props) {
-                        rect.setProperties(props);
-                    },
-                });
-            });
-        });
+        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
-        labelSelections.forEach((labelSelection) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_labels`,
-                from: 0,
-                to: 1,
-                duration: 200,
-                delay: duration,
-                onUpdate(opacity) {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                },
-            });
-        });
+        const duration = this.ctx.animationManager.defaultDuration;
+        staticFromToMotion(
+            `${this.id}_empty-update-ready_labels`,
+            this.ctx.animationManager,
+            labelSelections,
+            { opacity: 0 },
+            { opacity: 1 },
+            { delay: duration, duration: 200 }
+        );
     }
 
     override animateReadyHighlight(highlightSelection: Selection<Rect, BarNodeDatum>) {
@@ -687,7 +663,10 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
     }
 
     override animateWaitingUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const { processedData } = this;
+        const {
+            processedData,
+            ctx: { animationManager },
+        } = this;
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
@@ -697,71 +676,31 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             return;
         }
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-
         const { startingX, startingY } = this.getDirectionStartingValues(datumSelections);
 
-        const addedIds = zipObject(diff.added, true);
-        const removedIds = zipObject(diff.removed, true);
+        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
+        const { toFn, fromFn } = prepareAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
+        fromToMotion(
+            `${this.id}_waiting-update-ready`,
+            animationManager,
+            datumSelections,
+            fromFn,
+            toFn,
+            {},
+            (_, datum) => String(datum.xValue),
+            diff
+        );
 
-        datumSelections.forEach((datumSelection) => {
-            datumSelection.each((rect, datum) => {
-                let from = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
-                let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
-
-                let cleanup = false;
-
-                const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
-                const isRemoved = datum.xValue !== undefined && removedIds[datum.xValue] !== undefined;
-                const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-
-                const context = {
-                    x: isVertical ? datum.x : startingX,
-                    y: isVertical ? startingY : datum.y,
-                    width: isVertical ? datum.width : 0,
-                    height: isVertical ? 0 : datum.height,
-                };
-
-                if (isAdded) {
-                    from = context;
-                } else if (isRemoved) {
-                    from = to;
-                    to = context;
-                    cleanup = true;
-                }
-
-                this.ctx.animationManager.animate({
-                    id: `${this.id}_waiting-update-ready_${rect.id}`,
-                    from,
-                    to,
-                    ease: easing.easeOut,
-                    onUpdate(props) {
-                        rect.setProperties(props);
-                    },
-                    onComplete() {
-                        if (cleanup) {
-                            datumSelection.cleanup();
-                        }
-                    },
-                });
-            });
-        });
-
-        labelSelections.forEach((labelSelection) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_waiting-update-ready_labels`,
-                from: 0,
-                to: 1,
-                delay: duration,
-                duration: labelDuration,
-                onUpdate(opacity) {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                },
-            });
-        });
+        const duration = this.ctx.animationManager.defaultDuration;
+        const labelDuration = 200;
+        staticFromToMotion(
+            `${this.id}_waiting-update-ready_labels`,
+            animationManager,
+            labelSelections,
+            { opacity: 0 },
+            { opacity: 1 },
+            { delay: duration, duration: labelDuration }
+        );
     }
 
     resetSelectionRects(selection: Selection<Rect, BarNodeDatum>) {
@@ -789,7 +728,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             } else {
                 datumSelections.forEach((datumSelection) =>
                     datumSelection.each((_, datum) => {
-                        if (datum.yValue >= 0) {
+                        if (typeof datum.yValue === 'number' && datum.yValue >= 0) {
                             startingY = Math.max(startingY, datum.height + datum.y);
                         }
                     })
@@ -803,7 +742,7 @@ export class BarSeries extends CartesianSeries<SeriesNodeDataContext<BarNodeDatu
             } else {
                 datumSelections.forEach((datumSelection) =>
                     datumSelection.each((_, datum) => {
-                        if (datum.yValue >= 0) {
+                        if (typeof datum.yValue === 'number' && datum.yValue >= 0) {
                             startingX = Math.min(startingX, datum.x);
                         }
                     })

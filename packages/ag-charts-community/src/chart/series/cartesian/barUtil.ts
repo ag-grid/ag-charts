@@ -1,4 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/agChartOptions';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
@@ -102,4 +103,38 @@ export function checkCrisp(visibleRange: number[] = []): boolean {
     const [visibleMin, visibleMax] = visibleRange;
     const isZoomed = visibleMin !== 0 || visibleMax !== 1;
     return !isZoomed;
+}
+
+type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
+export function prepareAnimationFunctions<T extends AnimatableBarDatum>(
+    isVertical: boolean,
+    startingX = 0,
+    startingY = 0
+) {
+    const fromFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
+        if (status === 'removed') {
+            return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
+        } else if (status === 'added') {
+            return {
+                x: isVertical ? datum.x : startingX,
+                y: isVertical ? startingY : datum.y,
+                width: isVertical ? datum.width : 0,
+                height: isVertical ? 0 : datum.height,
+            };
+        }
+        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    };
+    const toFn = (_rect: Rect, datum: T, status: NodeUpdateState) => {
+        if (status === 'removed') {
+            return {
+                x: isVertical ? datum.x : startingX,
+                y: isVertical ? startingY : datum.y,
+                width: isVertical ? datum.width : 0,
+                height: isVertical ? 0 : datum.height,
+            };
+        }
+        return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
+    };
+
+    return { toFn, fromFn };
 }
