@@ -23,7 +23,7 @@ const { Logger } = _Util;
 const XVALUE_ERRORS_ID = 'xValue-errors';
 const YVALUE_ERRORS_ID = 'yValue-errors';
 
-type AnyCartesianSeries = _ModuleSupport.CartesianSeries<any, any>;
+type AnyCartesianSeries = _ModuleSupport.CartesianSeries<_Scene.Node, _ModuleSupport.CartesianSeriesNodeDatum>;
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
@@ -135,7 +135,7 @@ export class ErrorBars
         );
     }
 
-    onPrerequestData(event: SeriesDataPrerequestEvent) {
+    private onPrerequestData(event: SeriesDataPrerequestEvent) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         const { isContinuousX, isContinuousY } = event;
@@ -152,7 +152,7 @@ export class ErrorBars
         return props;
     }
 
-    onDataProcessed(event: SeriesDataProcessedEvent) {
+    private onDataProcessed(event: SeriesDataProcessedEvent) {
         this.dataModel = event.dataModel;
         this.processedData = event.processedData;
     }
@@ -164,7 +164,7 @@ export class ErrorBars
         return true;
     }
 
-    onGetDomain(event: SeriesDataGetDomainEvent) {
+    private onGetDomain(event: SeriesDataGetDomainEvent) {
         if (this.hasAxis(event.direction)) {
             const { dataModel, processedData, cartesianSeries } = this;
             const axis = cartesianSeries.axes[event.direction];
@@ -176,7 +176,7 @@ export class ErrorBars
         }
     }
 
-    onDataUpdate(event: SeriesDataUpdateEvent) {
+    private onDataUpdate(event: SeriesDataUpdateEvent) {
         this.dataModel = event.dataModel;
         this.processedData = event.processedData;
         if (event.dataModel !== undefined && event.processedData !== undefined) {
@@ -185,7 +185,7 @@ export class ErrorBars
         }
     }
 
-    createNodeData(dataModel: AnyDataModel, processedData: AnyProcessedData) {
+    private createNodeData(dataModel: AnyDataModel, processedData: AnyProcessedData) {
         const { nodeData } = this;
         const { xIndex, yIndex } = this.getDatumIndices(dataModel);
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
@@ -280,7 +280,7 @@ export class ErrorBars
         return { x: xScale.convert(x) + xOffset, y: yScale.convert(y) + yOffset };
     }
 
-    update() {
+    private update() {
         this.selection.update(this.nodeData, undefined, undefined);
         this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
     }
