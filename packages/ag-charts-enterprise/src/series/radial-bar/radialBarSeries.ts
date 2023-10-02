@@ -583,39 +583,27 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
     }
-<<<<<<< HEAD
-=======
 
     protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
         node.centerX = 0;
         node.centerY = 0;
         node.innerRadius = datum.innerRadius;
         node.outerRadius = datum.outerRadius;
-        node.startAngle = Math.min(datum.startAngle, datum.endAngle);
-        node.endAngle = Math.max(datum.startAngle, datum.endAngle);
+        node.startAngle = datum.startAngle;
+        node.endAngle = datum.endAngle;
     }
 
     protected animateItemsShapes() {
-        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
-        if (!angleScale) {
-            return;
-        }
-        const { range } = angleScale;
-        const zeroAngle = angleScale.convert(0);
-        const axisStartAngle = Math.max(range[0], Math.min(range[1], zeroAngle));
+        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
         this.itemSelection.each((node, datum) => {
             this.ctx.animationManager.animate({
                 id: `${this.id}_empty-update-ready_${node.id}`,
                 from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
                 to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
                 onUpdate(props) {
-                    node.setProperties({
-                        startAngle: Math.min(props.startAngle, props.endAngle),
-                        endAngle: Math.max(props.startAngle, props.endAngle),
-                    });
+                    node.setProperties(props);
                 },
             });
         });
     }
->>>>>>> fe5d947a5 (AG-8260 Fix negative Radar Bar animation)
 }
