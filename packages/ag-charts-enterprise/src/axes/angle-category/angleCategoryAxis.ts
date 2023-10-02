@@ -1,8 +1,8 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
+import { loopSymmetrically } from '../../utils/polar';
 import { AngleAxis } from '../angle/angleAxis';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
-import { loopSymmetrically } from '../../utils/polar';
 
 const { NUMBER, Validate } = _ModuleSupport;
 const { BandScale } = _Scale;

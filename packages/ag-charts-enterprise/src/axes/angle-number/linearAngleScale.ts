@@ -42,7 +42,7 @@ export class LinearAngleScale extends LinearScale {
         return ticks;
     }
 
-    protected updateNiceDomain() {
+    protected override updateNiceDomain() {
         const range = this.range.slice().sort((a, b) => a - b);
         const niceRanges = [Math.PI, 2 * Math.PI];
         if (!niceRanges.some((r) => isNumberEqual(r, range[1] - range[0]))) {

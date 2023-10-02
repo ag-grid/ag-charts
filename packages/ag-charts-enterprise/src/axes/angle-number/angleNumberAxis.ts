@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type { AngleAxisLabelDatum } from '../angle/angleAxis'
+
+import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { LinearAngleScale } from './linearAngleScale';
 
