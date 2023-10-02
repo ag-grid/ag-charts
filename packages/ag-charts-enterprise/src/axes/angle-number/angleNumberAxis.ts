@@ -1,9 +1,16 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import type { AngleAxisLabelDatum } from '../angle/angleAxis'
 import { AngleAxis } from '../angle/angleAxis';
 import { LinearAngleScale } from './linearAngleScale';
 
 const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } = _ModuleSupport;
-const { angleBetween, normalisedExtentWithMetadata } = _Util;
+const { angleBetween, isNumberEqual, normalisedExtentWithMetadata } = _Util;
+
+class AngleNumberAxisTick extends _ModuleSupport.AxisTick<LinearAngleScale, number> {
+    @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
+    @Default(NaN)
+    override maxSpacing: number = NaN;
+}
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static className = 'AngleNumberAxis';
@@ -30,12 +37,16 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         return { domain: extent, clipped };
     }
 
+    protected override createTick() {
+        return new AngleNumberAxisTick();
+    }
+
     protected getRangeArcLength(): number {
         const { range: requestedRange } = this;
 
         const min = Math.min(...requestedRange);
         const max = Math.max(...requestedRange);
-        const rotation = angleBetween(min, max);
+        const rotation = angleBetween(min, max) || (2 * Math.PI);
         const radius = this.gridLength;
         return rotation * radius;
     }
@@ -43,13 +54,66 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     protected generateAngleTicks() {
         const arcLength = this.getRangeArcLength();
         const { scale, tick, range: requestedRange } = this;
-        const { minSpacing, maxSpacing = NaN } = tick;
+        const { minSpacing = NaN, maxSpacing = NaN } = tick;
         const minTicksCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
-        const maxTicksCount = Math.floor(arcLength / minSpacing);
+        const maxTicksCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
         const preferredTicksCount = Math.floor(4 / Math.PI * Math.abs(requestedRange[0] - requestedRange[1]));
         scale.tickCount = preferredTicksCount;
         scale.minTickCount = minTicksCount;
         scale.maxTickCount = maxTicksCount;
-        return scale.ticks();
+        const ticks = scale.ticks();
+        return ticks.map((value) => {
+            return { value, visible: true };
+        });
+    }
+
+    protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
+        let { minSpacing } = this.label;
+        if (!Number.isFinite(minSpacing)) {
+            minSpacing = 0;
+        }
+
+        const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
+            if (prev.hidden || next.hidden) {
+                return false;
+            }
+            const prevBox = prev.box!.clone().grow(minSpacing / 2);
+            const nextBox = next.box!.clone().grow(minSpacing / 2);
+            return prevBox.collidesBBox(nextBox);
+        };
+
+        const firstLabel = labelData[0];
+        const lastLabel = labelData[labelData.length - 1];
+        if (firstLabel !== lastLabel && isNumberEqual(firstLabel.x, lastLabel.x) && isNumberEqual(firstLabel.y, lastLabel.y)) {
+            lastLabel.hidden = true;
+        }
+
+        for (let step = 1; step < labelData.length; step *= 2) {
+            let collisionDetected = false;
+            for (let i = step; i < labelData.length; i += step) {
+                const next = labelData[i];
+                const prev = labelData[i - step];
+                if (labelsCollide(prev, next)) {
+                    collisionDetected = true;
+                    break;
+                }
+            }
+            if (!collisionDetected) {
+                labelData.forEach((datum, i) => {
+                    if (i % step > 0) {
+                        datum.hidden = true;
+                        datum.box = undefined;
+                    }
+                });
+                return;
+            }
+        }
+
+        labelData.forEach((datum, i) => {
+            if (i > 0) {
+                datum.hidden = true;
+                datum.box = undefined;
+            }
+        });
     }
 }

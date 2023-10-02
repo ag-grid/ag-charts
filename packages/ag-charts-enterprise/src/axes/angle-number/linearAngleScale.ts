@@ -31,8 +31,8 @@ export class LinearAngleScale extends LinearScale {
         const angleStep = 2 * Math.PI / niceCircleTickCount;
         
         let tickStep = this.invert(angleRange[0] + angleStep) - d0;
-        if (tickStep > 1e-15) {
-            tickStep = parseFloat(tickStep.toPrecision(15));
+        if (tickStep > 1e-12) {
+            tickStep = parseFloat(tickStep.toPrecision(12));
         }
         const ticks = range(d0, d1, tickStep);
         if (ticks[ticks.length - 1] > d1) {
@@ -61,7 +61,10 @@ export class LinearAngleScale extends LinearScale {
             start = Math.floor(start * s) / s;
         }
         const expectedTickCount = (stop - start) / step;
-        const niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
+        let niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
+        if (niceTickCount > maxTickCount) {
+            niceTickCount /= 2;
+        }
         if (step >= 1) {
             stop = Math.ceil(start / step + niceTickCount) * step;
         } else {
