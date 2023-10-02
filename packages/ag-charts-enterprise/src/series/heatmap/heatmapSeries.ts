@@ -176,7 +176,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     async createNodeData() {
-        const { data, visible, axes, dataModel, ctx: { callbackCache } } = this;
+        const {
+            data,
+            visible,
+            axes,
+            dataModel,
+            ctx: { callbackCache },
+        } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
