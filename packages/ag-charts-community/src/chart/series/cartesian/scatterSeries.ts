@@ -17,7 +17,7 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING_ARRAY, OPT_FUNCTION, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModelOptions } from '../../data/dataModel';
+import { DataModelOptions, fixNumericExtent } from '../../data/dataModel';
 import { diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -164,7 +164,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             return domain;
         }
         const axis = this.axes[direction];
-        return this.fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain), axis);
     }
 
     async createNodeData() {

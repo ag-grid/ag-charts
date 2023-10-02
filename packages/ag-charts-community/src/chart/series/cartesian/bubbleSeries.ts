@@ -26,6 +26,7 @@ import {
 } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum } from '../../legendDatum';
@@ -211,7 +212,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             return domain;
         }
         const axis = this.axes[direction];
-        return this.fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain), axis);
     }
 
     protected override getNodeClickEvent(

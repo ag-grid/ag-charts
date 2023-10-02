@@ -20,7 +20,7 @@ import { NUMBER, OPT_COLOR_STRING, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, Vali
 import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
+import { DataModelOptions, UngroupedDataItem, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -179,10 +179,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 return domain;
             }
 
-            return this.fixNumericExtent(extent(domain), xAxis);
+            return fixNumericExtent(extent(domain), xAxis);
         } else {
             const domain = dataModel.getDomain(this, `yValue`, 'value', processedData);
-            return this.fixNumericExtent(domain as any, yAxis);
+            return fixNumericExtent(domain as any, yAxis);
         }
     }
 

@@ -30,6 +30,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -238,12 +239,12 @@ export class AreaSeries extends CartesianSeries<
                 return keys;
             }
 
-            return this.fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys), xAxis);
         } else if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
-            return this.fixNumericExtent(yExtent as any, yAxis);
+            return fixNumericExtent(yExtent as any, yAxis);
         } else {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, yAxis);
+            return fixNumericExtent(fixedYExtent as any, yAxis);
         }
     }
 

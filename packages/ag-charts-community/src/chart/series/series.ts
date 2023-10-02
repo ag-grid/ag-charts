@@ -29,7 +29,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
-import { fixNumericExtent } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
@@ -758,25 +757,6 @@ export abstract class Series<
     }
 
     readonly highlightStyle = new HighlightStyle();
-
-    protected fixNumericExtent(extent?: [number | Date, number | Date], axis?: ChartAxis): number[] {
-        const fixedExtent = fixNumericExtent(extent);
-
-        if (fixedExtent.length === 0) {
-            return fixedExtent;
-        }
-
-        let [min, max] = fixedExtent;
-        if (min === max) {
-            // domain has zero length, there is only a single valid value in data
-
-            const [paddingMin, paddingMax] = axis?.calculatePadding(min, max) ?? [1, 1];
-            min -= paddingMin;
-            max += paddingMax;
-        }
-
-        return [min, max];
-    }
 
     private readonly moduleMap: SeriesModuleMap = new ModuleMap<SeriesOptionModule, SeriesContext>(this);
 

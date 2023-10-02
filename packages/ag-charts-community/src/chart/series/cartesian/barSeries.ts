@@ -39,6 +39,7 @@ import { LogAxis } from '../../axis/logAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { SMALLEST_KEY_INTERVAL, diff, normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -257,14 +258,14 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             const scalePadding = isFinite(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             if (direction === ChartAxisDirection.Y) {
-                return this.fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
             }
-            return this.fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
+            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
         } else if (this.getValueAxis() instanceof LogAxis) {
-            return this.fixNumericExtent(yExtent as any, valueAxis);
+            return fixNumericExtent(yExtent as any, valueAxis);
         } else {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, valueAxis);
+            return fixNumericExtent(fixedYExtent as any, valueAxis);
         }
     }
 

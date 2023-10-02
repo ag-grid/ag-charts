@@ -1,6 +1,7 @@
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import { isNumber } from '../../util/value';
+import type { ChartAxis } from '../chartAxis';
 import { DataDomain } from './dataDomain';
 import type { ContinuousDomain } from './utilFunctions';
 import { extendDomain } from './utilFunctions';
@@ -81,7 +82,7 @@ function round(val: number): number {
     return Math.round(val * accuracy) / accuracy;
 }
 
-export function fixNumericExtent(extent?: (number | Date)[]): [] | [number, number] {
+function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, number] {
     if (extent === undefined) {
         // Don't return a range, there is no range.
         return [];
@@ -109,6 +110,25 @@ export function fixNumericExtent(extent?: (number | Date)[]): [] | [number, numb
 
     if (!(isNumber(min) && isNumber(max))) {
         return [];
+    }
+
+    return [min, max];
+}
+
+export function fixNumericExtent(extent?: (number | Date)[], axis?: ChartAxis): [] | [number, number] {
+    const fixedExtent = fixNumericExtentInternal(extent);
+
+    if (fixedExtent.length === 0) {
+        return fixedExtent;
+    }
+
+    let [min, max] = fixedExtent;
+    if (min === max) {
+        // domain has zero length, there is only a single valid value in data
+
+        const [paddingMin, paddingMax] = axis?.calculatePadding(min, max) ?? [1, 1];
+        min -= paddingMin;
+        max += paddingMax;
     }
 
     return [min, max];
