@@ -20,7 +20,8 @@ import { NUMBER, OPT_COLOR_STRING, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, Vali
 import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import { DataModelOptions, UngroupedDataItem, fixNumericExtent } from '../../data/dataModel';
+import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
+import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
