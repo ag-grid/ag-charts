@@ -53,7 +53,7 @@ export class LinearAngleScale extends LinearScale {
         const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount;
 
         let [start, stop] = this.domain;
-        const step = this.interval ?? tickStep(start, stop, tickCount, minTickCount, maxTickCount);
+        let step = this.interval ?? tickStep(start, stop, tickCount, minTickCount, maxTickCount);
         if (step >= 1) {
             start = Math.floor(start / step) * step;
         } else {
@@ -64,6 +64,7 @@ export class LinearAngleScale extends LinearScale {
         let niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
         if (niceTickCount > maxTickCount) {
             niceTickCount /= 2;
+            step *= 2;
         }
         if (step >= 1) {
             stop = Math.ceil(start / step + niceTickCount) * step;
