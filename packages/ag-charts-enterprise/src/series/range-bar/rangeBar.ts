@@ -206,7 +206,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
         if (!yLowKey || !yHighKey) return;

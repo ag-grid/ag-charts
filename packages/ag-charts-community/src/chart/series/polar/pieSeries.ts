@@ -380,7 +380,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         }
     }
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         let { data = [] } = this;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, seriesItemEnabled } = this;
 

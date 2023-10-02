@@ -215,7 +215,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
     private seriesItemTypes: Set<SeriesItemType> = new Set(['positive', 'negative', 'total']);
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey = '', yKey } = this;
         const { data = [] } = this;
 

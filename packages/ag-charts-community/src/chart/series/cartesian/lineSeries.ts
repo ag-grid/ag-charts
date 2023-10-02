@@ -116,7 +116,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const { axes, xKey = '', yKey = '' } = this;
         const data = xKey && yKey && this.data ? this.data : [];
 

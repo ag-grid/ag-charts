@@ -169,7 +169,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [], visible } = this;
         const { angleKey, radiusKey } = this;
 

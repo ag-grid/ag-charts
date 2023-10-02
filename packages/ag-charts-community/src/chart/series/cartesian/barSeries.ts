@@ -184,7 +184,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 

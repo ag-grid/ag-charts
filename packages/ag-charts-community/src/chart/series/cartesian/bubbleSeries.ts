@@ -151,7 +151,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         label.enabled = false;
     }
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const {
             xKey = '',
             yKey = '',

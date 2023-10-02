@@ -112,7 +112,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         this.colorScale = new ColorScale();
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey = '', yKey = '', axes, labelKey } = this;
 
         const xAxis = axes[ChartAxisDirection.X];

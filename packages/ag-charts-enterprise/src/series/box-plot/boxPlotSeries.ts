@@ -163,7 +163,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         });
     }
 
-    async processData(dataController: _ModuleSupport.DataController): Promise<void> {
+    override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
 
         if (!xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;

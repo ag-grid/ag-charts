@@ -159,7 +159,7 @@ export class AreaSeries extends CartesianSeries<
 
     shadow?: DropShadow = undefined;
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const { xKey, yKey, axes, normalizedTo, data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
 
         if (!xKey || !yKey || !data) return;

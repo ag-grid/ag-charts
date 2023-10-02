@@ -170,7 +170,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
         if (!yLowKey || !yHighKey) return;

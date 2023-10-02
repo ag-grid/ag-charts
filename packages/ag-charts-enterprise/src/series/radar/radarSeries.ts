@@ -180,7 +180,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [] } = this;
         const { angleKey, radiusKey } = this;
 
