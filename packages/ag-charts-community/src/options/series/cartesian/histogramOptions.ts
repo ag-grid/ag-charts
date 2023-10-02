@@ -1,12 +1,10 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-
-export interface AgHistogramSeriesLabelOptions extends AgCartesianSeriesLabelOptions {}
 
 export interface AgHistogramSeriesTooltipRendererParams<TDatum> extends AgCartesianSeriesTooltipRendererParams {
     datum: AgHistogramBinDatum<TDatum>;
@@ -37,7 +35,7 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = any> extends AgBaseS
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
-    label?: AgHistogramSeriesLabelOptions;
+    label?: AgChartLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum>>;
 }

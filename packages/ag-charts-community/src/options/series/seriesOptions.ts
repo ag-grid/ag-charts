@@ -1,16 +1,9 @@
+import type { AgChartCallbackParams } from '../chart/callbackOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { CssColor, InteractionRange, MarkerShape, Opacity, PixelSize } from '../chart/types';
+import type { InteractionRange, MarkerShape, Opacity, PixelSize } from '../chart/types';
+import type { FillOptions, StrokeOptions } from './cartesian/commonOptions';
 
-export interface AgSeriesHighlightMarkerStyle {
-    /** The fill colour of a marker when tapped or hovered over. Use `undefined` for no highlight. */
-    fill?: CssColor;
-    /** The opacity of the fill for the highlighted item. */
-    fillOpacity?: Opacity;
-    /** The stroke colour of a marker when tapped or hovered over. Use `undefined` for no highlight. */
-    stroke?: CssColor;
-    /** The stroke width of a marker when tapped or hovered over. Use `undefined` for no highlight. */
-    strokeWidth?: PixelSize;
-}
+export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
 
 export interface AgSeriesHighlightSeriesStyle {
     enabled?: boolean;
@@ -55,31 +48,19 @@ export interface AgBaseSeriesOptions<DatumType> extends AgBaseSeriesThemeableOpt
     listeners?: AgSeriesListeners<DatumType>;
 }
 
-export interface AgSeriesMarker {
-    /** Whether or not to show markers. */
+export interface AgSeriesMarker extends FillOptions, StrokeOptions {
+    /** Whether to show markers. */
     enabled?: boolean;
     /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
     shape?: MarkerShape;
     /** The size in pixels of the markers. */
     size?: PixelSize;
-    /** The colour to use for marker fills. If this is not specified, the markers will take their fill from the series. */
-    fill?: CssColor;
-    /** Opacity of the marker fills. */
-    fillOpacity?: Opacity;
-    /** The colour to use for marker strokes. If this is not specified, the markers will take their stroke from the series. */
-    stroke?: CssColor;
-    /** The width in pixels of the marker stroke. If this is not specified, the markers will take their stroke width from the series. */
-    strokeWidth?: PixelSize;
-    /** Opacity of the marker strokes. */
-    strokeOpacity?: Opacity;
 }
 
-export interface AgSeriesMarkerFormatterParams<DatumType> {
-    datum: DatumType;
-    fill?: CssColor;
-    stroke?: CssColor;
-    strokeWidth: PixelSize;
-    size: number;
+export interface AgSeriesMarkerFormatterParams<DatumType>
+    extends AgChartCallbackParams<DatumType>,
+        FillOptions,
+        StrokeOptions {
     highlighted: boolean;
-    seriesId: string;
+    size: number;
 }

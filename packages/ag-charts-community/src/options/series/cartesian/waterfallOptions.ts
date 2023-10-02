@@ -1,9 +1,9 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
 export interface AgWaterfallSeriesFormatterParams<DatumType> {
@@ -36,7 +36,7 @@ export interface AgWaterfallSeriesItemTooltip {
     renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
-export interface AgWaterfallSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
+export interface AgWaterfallSeriesLabelOptions extends AgChartLabelOptions {
     /** Where to render series labels relative to the bars. */
     placement?: AgWaterfallSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */

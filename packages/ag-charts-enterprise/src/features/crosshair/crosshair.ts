@@ -209,10 +209,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { currentHighlight } = event;
 
         const hasCrosshair =
-            currentHighlight &&
-            currentHighlight.datum &&
-            (currentHighlight.series.axes.x.id === axisCtx.axisId ||
-                currentHighlight.series.axes.y.id === axisCtx.axisId);
+            currentHighlight?.datum &&
+            (currentHighlight.series.axes.x?.id === axisCtx.axisId ||
+                currentHighlight.series.axes.y?.id === axisCtx.axisId);
 
         if (!hasCrosshair) {
             this.activeHighlight = undefined;
@@ -253,9 +252,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         activeHighlight: Exclude<_ModuleSupport.HighlightChangeEvent['currentHighlight'], undefined>
     ): { position: number; value: any } {
         const { axisCtx } = this;
-        const { datum, xKey = '', yKey = '', aggregatedValue, series, cumulativeValue, nodeMidPoint } = activeHighlight;
+        const { datum, xKey = '', yKey = '', aggregatedValue, series, cumulativeValue, midPoint } = activeHighlight;
         const halfBandwidth = axisCtx.scaleBandwidth() / 2;
-        if (aggregatedValue !== undefined && series.axes.y.id === axisCtx.axisId) {
+        if (aggregatedValue !== undefined && series.axes.y?.id === axisCtx.axisId) {
             return { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth };
         }
 
@@ -265,7 +264,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
 
         const key = isYValue ? yKey : xKey;
-        const position = (axisCtx.direction === 'x' ? nodeMidPoint?.x : nodeMidPoint?.y) ?? 0;
+        const position = (axisCtx.direction === 'x' ? midPoint?.x : midPoint?.y) ?? 0;
         const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[key];
         return { value, position };
     }

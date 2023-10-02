@@ -1,7 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgCartesianSeriesMarkerFormat,
-    AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
@@ -14,7 +13,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { COLOR_STRING_ARRAY, OPT_FUNCTION, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import { COLOR_STRING_ARRAY, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions } from '../../data/dataModel';
@@ -36,18 +35,13 @@ interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
 
 type ScatterAnimationData = CartesianAnimationData<Group, ScatterNodeDatum>;
 
-class ScatterSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgScatterSeriesLabelFormatterParams<any>) => string = undefined;
-}
-
 export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     static className = 'ScatterSeries';
     static type = 'scatter' as const;
 
     readonly marker = new CartesianSeriesMarker();
 
-    readonly label = new ScatterSeriesLabel();
+    readonly label = new Label();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -209,7 +203,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
             let text = String(labelKey ? values[labelDataIdx] : yDatum);
             if (label.formatter) {
-                text = callbackCache.call(label.formatter, { value: text, seriesId, datum }) ?? '';
+                text = callbackCache.call(label.formatter, { defaultValue: text, seriesId, datum }) ?? '';
             }
 
             const size = HdpiCanvas.getTextSize(text, font);
@@ -224,7 +218,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 xValue: xDatum,
                 yValue: yDatum,
                 point: { x, y, size: marker.size },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 fill,
                 label: {
                     text,

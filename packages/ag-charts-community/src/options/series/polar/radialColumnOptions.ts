@@ -5,22 +5,22 @@ import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgBaseRadialColumnSeriesThemeableOptions<DatumType = any>
+export interface AgBaseRadialColumnSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
-    label?: AgRadialColumnSeriesLabelOptions;
+    label?: AgChartLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>;
     /** A formatter function for adjusting the styling of the radial columns. */
-    formatter?: (params: AgRadialColumnSeriesFormatterParams<DatumType>) => AgRadialColumnSeriesFormat;
+    formatter?: (params: AgRadialColumnSeriesFormatterParams<TDatum>) => AgRadialColumnSeriesFormat;
 }
 
 /** Base configuration for Radial Column series. */
-export interface AgBaseRadialColumnSeriesOptions<DatumType = any>
-    extends AgBaseRadialColumnSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgBaseRadialColumnSeriesOptions<TDatum = any>
+    extends AgBaseRadialColumnSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     type: 'radial-column' | 'nightingale';
     /** The key to use to retrieve angle values from the data. */
     angleKey: string;
@@ -39,11 +39,11 @@ export interface AgBaseRadialColumnSeriesOptions<DatumType = any>
     stackGroup?: string;
 
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
+    listeners?: AgSeriesListeners<TDatum>;
 }
 
-export interface AgRadialColumnSeriesThemeableOptions<DatumType = any>
-    extends AgBaseRadialColumnSeriesThemeableOptions<DatumType> {
+export interface AgRadialColumnSeriesThemeableOptions<TDatum = any>
+    extends AgBaseRadialColumnSeriesThemeableOptions<TDatum> {
     /** The ratio used to calculate the column width based on the circumference and padding between items. */
     columnWidthRatio?: Ratio;
     /** Prevents columns from becoming too wide. This value is relative to the diameter of the polar chart. */
@@ -51,9 +51,9 @@ export interface AgRadialColumnSeriesThemeableOptions<DatumType = any>
 }
 
 /** Configuration for Radial Column series. */
-export interface AgRadialColumnSeriesOptions<DatumType = any>
-    extends AgRadialColumnSeriesThemeableOptions<DatumType>,
-        AgBaseRadialColumnSeriesOptions<DatumType> {
+export interface AgRadialColumnSeriesOptions<TDatum = any>
+    extends AgRadialColumnSeriesThemeableOptions<TDatum>,
+        AgBaseRadialColumnSeriesOptions<TDatum> {
     type: 'radial-column';
 }
 
@@ -73,20 +73,8 @@ export interface AgRadialColumnSeriesTooltipRendererParams extends AgSeriesToolt
     readonly radiusName?: string;
 }
 
-export interface AgRadialColumnSeriesLabelFormatterParams {
-    /** The ID of the series. */
-    readonly seriesId: string;
-    /** The value of radiusKey as specified on series options. */
-    readonly value: number;
-}
-
-export interface AgRadialColumnSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string;
-}
-
-export interface AgRadialColumnSeriesFormatterParams<DatumType> {
-    readonly datum: DatumType;
+export interface AgRadialColumnSeriesFormatterParams<TDatum> {
+    readonly datum: TDatum;
     readonly fill?: CssColor;
     readonly stroke?: CssColor;
     readonly strokeWidth: PixelSize;

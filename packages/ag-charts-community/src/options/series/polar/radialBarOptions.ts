@@ -5,22 +5,22 @@ import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgRadialBarSeriesThemeableOptions<DatumType = any>
+export interface AgRadialBarSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
-    label?: AgRadialBarSeriesLabelOptions;
+    label?: AgChartLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialBarSeriesTooltipRendererParams>;
     /** A formatter function for adjusting the styling of the radial bar. */
-    formatter?: (params: AgRadialBarSeriesFormatterParams<DatumType>) => AgRadialBarSeriesFormat;
+    formatter?: (params: AgRadialBarSeriesFormatterParams<TDatum>) => AgRadialBarSeriesFormat;
 }
 
 /** Configuration for Radial Bar series. */
-export interface AgRadialBarSeriesOptions<DatumType = any>
-    extends AgRadialBarSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgRadialBarSeriesOptions<TDatum = any>
+    extends AgRadialBarSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     type: 'radial-bar';
     /** The key to use to retrieve angle values from the data. */
     angleKey: string;
@@ -39,7 +39,7 @@ export interface AgRadialBarSeriesOptions<DatumType = any>
     stackGroup?: string;
 
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
+    listeners?: AgSeriesListeners<TDatum>;
 }
 
 export interface AgRadialBarSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
@@ -58,20 +58,8 @@ export interface AgRadialBarSeriesTooltipRendererParams extends AgSeriesTooltipR
     readonly radiusName?: string;
 }
 
-export interface AgRadialBarSeriesLabelFormatterParams {
-    /** The ID of the series. */
-    readonly seriesId: string;
-    /** The value of radiusKey as specified on series options. */
-    readonly value: number;
-}
-
-export interface AgRadialBarSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgRadialBarSeriesLabelFormatterParams) => string;
-}
-
-export interface AgRadialBarSeriesFormatterParams<DatumType> {
-    readonly datum: DatumType;
+export interface AgRadialBarSeriesFormatterParams<TDatum> {
+    readonly datum: TDatum;
     readonly fill?: CssColor;
     readonly stroke?: CssColor;
     readonly strokeWidth: PixelSize;

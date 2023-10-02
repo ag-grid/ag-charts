@@ -1,6 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesTooltipRendererParams,
     AgCartesianSeriesMarkerFormat,
     AgTooltipRendererResult,
@@ -16,14 +15,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { sanitizeHtml } from '../../../util/sanitize';
-import {
-    COLOR_STRING_ARRAY,
-    NUMBER,
-    OPT_FUNCTION,
-    OPT_NUMBER_ARRAY,
-    OPT_STRING,
-    Validate,
-} from '../../../util/validation';
+import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { createDatumId, diff } from '../../data/processors';
@@ -45,11 +37,6 @@ interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
 }
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
-
-class BubbleSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgBubbleSeriesLabelFormatterParams<any>) => string = undefined;
-}
 
 class BubbleSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeClickEvent<
     BubbleNodeDatum,
@@ -88,7 +75,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
     readonly marker = new BubbleSeriesMarker();
 
-    readonly label = new BubbleSeriesLabel();
+    readonly label = new Label();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -273,7 +260,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
             let text = String(labelKey ? values[labelDataIdx] : yDatum);
             if (label.formatter) {
-                text = callbackCache.call(label.formatter, { value: text, seriesId, datum }) ?? '';
+                text = callbackCache.call(label.formatter, { defaultValue: text, seriesId, datum }) ?? '';
             }
 
             const size = HdpiCanvas.getTextSize(text, font);
@@ -290,7 +277,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 yValue: yDatum,
                 sizeValue: values[sizeDataIdx],
                 point: { x, y, size: markerSize },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 fill,
                 label: {
                     text,

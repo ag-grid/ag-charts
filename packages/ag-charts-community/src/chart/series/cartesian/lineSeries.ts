@@ -1,6 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -16,7 +15,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { NUMBER, OPT_COLOR_STRING, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
+import { NUMBER, OPT_COLOR_STRING, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
 import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -26,7 +25,6 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDatum } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -34,7 +32,7 @@ import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent }
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
-    readonly point: SeriesNodeDatum['point'] & {
+    readonly point: CartesianSeriesNodeDatum['point'] & {
         readonly moveTo: boolean;
     };
     readonly label?: {
@@ -49,11 +47,6 @@ interface LineNodeDatum extends CartesianSeriesNodeDatum {
     };
 }
 
-class LineSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
-}
-
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
 export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
@@ -62,7 +55,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
     readonly marker = new CartesianSeriesMarker();
 
-    readonly label = new LineSeriesLabel();
+    readonly label = new Label();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -238,7 +231,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
                 let labelText;
                 if (label.formatter) {
-                    labelText = callbackCache.call(label.formatter, { value: yDatum, seriesId });
+                    labelText = callbackCache.call(label.formatter, { defaultValue: yDatum, datum, seriesId });
                 }
 
                 if (labelText !== undefined) {
@@ -254,7 +247,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     yKey,
                     xKey,
                     point: { x, y, moveTo, size },
-                    nodeMidPoint: { x, y },
+                    midPoint: { x, y },
                     yValue: yDatum,
                     xValue: xDatum,
                     label: labelText

@@ -2,7 +2,6 @@ import type {
     AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
     AgPieSeriesTooltipRendererParams,
-    AgRadarSeriesLabelFormatterParams,
     AgRadarSeriesMarkerFormat,
     AgRadarSeriesMarkerFormatterParams,
     AgTooltipRendererResult,
@@ -57,11 +56,6 @@ interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly radiusValue: any;
 }
 
-class RadarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadarSeriesLabelFormatterParams) => string = undefined;
-}
-
 export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     @Validate(OPT_FUNCTION)
     @_Scene.SceneChangeDetection({ redraw: _Scene.RedrawType.MAJOR })
@@ -72,8 +66,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     static className = 'RadarSeries';
 
     readonly marker = new RadarSeriesMarker();
-
-    readonly label = new RadarSeriesLabel();
+    readonly label = new _Scene.Label();
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
     protected markerSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
@@ -262,7 +255,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             if (label.enabled) {
                 let labelText = '';
                 if (label.formatter) {
-                    labelText = label.formatter({ value: radiusDatum, seriesId });
+                    labelText = label.formatter({ defaultValue: radiusDatum, datum, seriesId });
                 } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
                     labelText = radiusDatum.toFixed(2);
                 } else if (radiusDatum) {
@@ -285,7 +278,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 series: this,
                 datum,
                 point: { x, y, size: markerSize },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,

@@ -1,7 +1,6 @@
 import type {
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -28,7 +27,7 @@ const {
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Selection, Text } = _Scene;
+const { Group, Selection, Text, Label } = _Scene;
 const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeClickEvent<
@@ -67,15 +66,10 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-class RadialColumnSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
-}
-
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Path,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
-    readonly label = new RadialColumnSeriesLabel();
+    readonly label = new Label();
 
     protected itemSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialColumnNodeDatum>;
@@ -285,13 +279,14 @@ export abstract class RadialColumnSeriesBase<
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
         const getLabelNodeDatum = (
+            datum: RadialColumnNodeDatum,
             radiusDatum: number,
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ value: radiusDatum, seriesId });
+                labelText = label.formatter({ defaultValue: radiusDatum, datum, seriesId });
             } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
                 labelText = radiusDatum.toFixed(2);
             } else if (radiusDatum) {
@@ -333,13 +328,13 @@ export abstract class RadialColumnSeriesBase<
             const x = cos * midRadius;
             const y = sin * midRadius;
 
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(radiusDatum, x, y) : undefined;
+            const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, radiusDatum, x, y) : undefined;
 
             return {
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,

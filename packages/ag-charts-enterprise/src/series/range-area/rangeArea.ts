@@ -1,6 +1,5 @@
 import type {
     AgCartesianSeriesMarkerFormat,
-    AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
     AgRangeAreaSeriesTooltipRendererParams,
@@ -81,10 +80,9 @@ class RangeAreaSeriesNodeClickEvent<
     }
 }
 
-class RangeAreaSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string = undefined;
+type RangeAreaKeys = 'xKey' | 'yLowKey' | 'yHighKey';
 
+class RangeAreaSeriesLabel extends _Scene.Label<{ [K in RangeAreaKeys]: string }> {
     @Validate(OPT_RANGE_AREA_LABEL_PLACEMENT)
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
@@ -107,7 +105,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     RangeAreaContext
 > {
     static className = 'RangeAreaSeries';
-    static type: 'range-area' = 'range-area' as const;
+    static type = 'range-area' as const;
 
     readonly marker = new RangeAreaSeriesMarker();
     readonly label = new RangeAreaSeriesLabel();
@@ -322,7 +320,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     series: this,
                     itemId,
                     datum,
-                    nodeMidPoint: { x, y },
+                    midPoint: { x, y },
                     yHighValue,
                     yLowValue,
                     xValue,
@@ -426,48 +424,42 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 ? -1
                 : 1;
 
-        const labelPadding = padding * direction;
-        const labelDatum: RangeAreaLabelDatum = {
+        return {
             x: point.x,
-            y: point.y + labelPadding,
-            textAlign: 'center',
-            textBaseline: direction === -1 ? 'bottom' : 'top',
-            text: this.getLabelText({ itemId, value, yLowValue, yHighValue }),
+            y: point.y + padding * direction,
+            series,
             itemId,
             datum,
-            series,
+            text: this.getLabelText({ itemId, datum, value, yLowValue, yHighValue }),
+            textAlign: 'center',
+            textBaseline: direction === -1 ? 'bottom' : 'top',
         };
-
-        return labelDatum;
     }
 
     private getLabelText({
         itemId,
+        datum,
         value,
-        yLowValue,
-        yHighValue,
     }: {
         itemId: string;
+        datum: RangeAreaMarkerDatum;
         value: any;
         yLowValue: any;
         yHighValue: any;
     }) {
-        const {
-            id: seriesId,
-            label: { formatter },
-            ctx: { callbackCache },
-        } = this;
-        let labelText;
-        if (formatter) {
-            labelText = callbackCache.call(formatter, {
-                value: isNumber(value) ? value : undefined,
-                seriesId,
+        const defaultValue = isNumber(value) ? value.toFixed(2) : String(value);
+        if (this.label.formatter) {
+            return this.ctx.callbackCache.call(this.label.formatter, {
+                seriesId: this.id,
+                defaultValue,
                 itemId,
-                yLowValue,
-                yHighValue,
+                datum,
+                xKey: '',
+                yLowKey: '',
+                yHighKey: '',
             });
         }
-        return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));
+        return defaultValue;
     }
 
     protected override isPathOrSelectionDirty(): boolean {

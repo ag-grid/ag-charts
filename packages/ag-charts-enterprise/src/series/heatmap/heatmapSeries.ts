@@ -232,7 +232,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                     text,
                     ...size,
                 },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
             };
         }
 
@@ -350,8 +350,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             text.visible = true;
             text.text = datum.label.text;
             text.fill = label.color;
-            text.x = datum.nodeMidPoint.x;
-            text.y = datum.nodeMidPoint.y;
+            text.x = datum.midPoint.x;
+            text.y = datum.midPoint.y;
             text.fontStyle = label.fontStyle;
             text.fontWeight = label.fontWeight;
             text.fontSize = label.fontSize;

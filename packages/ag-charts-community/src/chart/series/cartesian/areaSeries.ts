@@ -1,6 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
@@ -16,15 +15,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import {
-    COLOR_STRING,
-    NUMBER,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
-    Validate,
-} from '../../../util/validation';
+import { COLOR_STRING, NUMBER, OPT_LINE_DASH, OPT_NUMBER, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isNumber } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -73,11 +64,6 @@ interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     };
 }
 
-class AreaSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
-}
-
 interface AreaSeriesNodeDataContext extends SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
@@ -103,7 +89,7 @@ export class AreaSeries extends CartesianSeries<
 
     readonly marker = new CartesianSeriesMarker();
 
-    readonly label = new AreaSeriesLabel();
+    readonly label = new Label();
 
     @Validate(COLOR_STRING)
     fill: string = '#c16068';
@@ -360,7 +346,7 @@ export class AreaSeries extends CartesianSeries<
                         series: this,
                         itemId,
                         datum: seriesDatum,
-                        nodeMidPoint: { x: point.x, y: point.y },
+                        midPoint: { x: point.x, y: point.y },
                         cumulativeValue: yEnd,
                         yValue: yRawDatum,
                         xValue: xDatum,
@@ -377,7 +363,12 @@ export class AreaSeries extends CartesianSeries<
                 if (validPoint && label) {
                     let labelText;
                     if (label.formatter) {
-                        labelText = callbackCache.call(label.formatter, { value: yRawDatum, seriesId }) ?? '';
+                        labelText =
+                            callbackCache.call(label.formatter, {
+                                defaultValue: yRawDatum,
+                                datum: seriesDatum,
+                                seriesId,
+                            }) ?? '';
                     } else {
                         labelText = isNumber(yRawDatum) ? Number(yRawDatum).toFixed(2) : String(yRawDatum);
                     }

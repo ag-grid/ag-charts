@@ -1,18 +1,5 @@
-import type { BaseChartLegendDatum, ChartLegendDatum, ChartLegendType } from './legendDatum';
-
-interface Series {
-    id: string;
-    type: string;
-    getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
-    getLegendData(legendType: ChartLegendType): BaseChartLegendDatum[];
-}
-
-type SeriesGetter = () => Series[];
+import type { Series } from './series/series';
 
 export class DataService {
-    readonly getSeries: SeriesGetter;
-
-    constructor(getSeries: SeriesGetter) {
-        this.getSeries = getSeries;
-    }
+    constructor(readonly getSeries: () => Series<any>[]) {}
 }

@@ -687,7 +687,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
     private updateNodeMidPoint(boxes: Map<TreemapNodeDatum, _Scene.BBox>) {
         boxes.forEach((box, treeNodeDatum) => {
-            treeNodeDatum.nodeMidPoint = {
+            treeNodeDatum.midPoint = {
                 x: box.x + box.width / 2,
                 y: box.y,
             };

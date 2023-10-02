@@ -5,7 +5,6 @@ import type {
     AgBarSeriesFormatterParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesTooltipRendererParams,
-    AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
     FontStyle,
     FontWeight,
@@ -87,9 +86,6 @@ enum BarSeriesNodeTag {
 }
 
 class BarSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
-
     @Validate(OPT_BAR_LABEL_PLACEMENT)
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
@@ -373,10 +369,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 width: barAlongX ? Math.abs(bottomY - y) : barWidth,
                 height: barAlongX ? barWidth : Math.abs(bottomY - y),
             };
-            const nodeMidPoint = {
-                x: rect.x + rect.width / 2,
-                y: rect.y + rect.height / 2,
-            };
 
             const {
                 fontStyle: labelFontStyle,
@@ -410,7 +402,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
                 fill,
                 stroke,
                 strokeWidth,
@@ -436,7 +428,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return [context];
     }
 
-    protected override nodeFactory() {
+    protected nodeFactory() {
         return new Rect();
     }
 
@@ -446,11 +438,13 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         nodeData: BarNodeDatum[];
         datumSelection: Selection<Rect, BarNodeDatum>;
     }) {
-        const { nodeData, datumSelection } = opts;
-
-        const getDatumId = (datum: BarNodeDatum) => datum.xValue;
-
-        return datumSelection.update(nodeData, (rect) => (rect.tag = BarSeriesNodeTag.Bar), getDatumId);
+        return opts.datumSelection.update(
+            opts.nodeData,
+            (rect) => {
+                rect.tag = BarSeriesNodeTag.Bar;
+            },
+            (datum) => datum.xValue
+        );
     }
 
     protected override async updateDatumNodes(opts: {

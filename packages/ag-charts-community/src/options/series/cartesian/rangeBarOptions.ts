@@ -4,7 +4,6 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
-import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
 export interface AgRangeBarSeriesFormatterParams<DatumType> {
@@ -50,21 +49,10 @@ export interface AgRangeBarSeriesTooltipRendererParams
 }
 
 export interface AgRangeBarSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string;
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
     padding?: PixelSize;
-}
-
-export interface AgRangeBarSeriesLabelFormatterParams extends AgCartesianSeriesLabelFormatterParams {
-    /** The Id to distinguish the type of datum. This can be `low` or `high`. */
-    readonly itemId: string;
-    /** yLowValue as read from series data via the yLowKey property. */
-    readonly yLowValue?: any;
-    /** yHighValue as read from series data via the yHighKey property. */
-    readonly yHighValue?: any;
 }
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';

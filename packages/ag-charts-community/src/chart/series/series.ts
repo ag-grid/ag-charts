@@ -52,7 +52,7 @@ export interface SeriesNodeDatum {
     readonly itemId?: any;
     readonly datum: any;
     readonly point?: Readonly<SizedPoint>;
-    nodeMidPoint?: Readonly<Point>;
+    midPoint?: Readonly<Point>;
 }
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
@@ -736,6 +736,7 @@ export abstract class Series<
         return new SeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
+    abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
     protected toggleSeriesItem(itemId: any, enabled: boolean): void {

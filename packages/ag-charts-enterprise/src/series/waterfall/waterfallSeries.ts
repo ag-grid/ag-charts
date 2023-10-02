@@ -1,5 +1,4 @@
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
     AgWaterfallSeriesFormat,
     AgWaterfallSeriesFormatterParams,
@@ -75,13 +74,10 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 
 class WaterfallSeriesItemTooltip {
     @Validate(OPT_FUNCTION)
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
-class WaterfallSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams & { itemId: SeriesItemType }) => string = undefined;
-
+class WaterfallSeriesLabel extends _Scene.Label<{ itemId: SeriesItemType }> {
     @Validate(OPT_WATERFALL_LABEL_PLACEMENT)
     placement: AgWaterfallSeriesLabelPlacement = 'end';
 
@@ -503,7 +499,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill,
                 stroke,
                 strokeWidth,

@@ -1,7 +1,6 @@
 import type {
     AgRangeBarSeriesFormat,
     AgRangeBarSeriesFormatterParams,
-    AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -104,9 +103,6 @@ class RangeBarSeriesNodeClickEvent<
 }
 
 class RangeBarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string = undefined;
-
     @Validate(OPT_RANGE_BAR_LABEL_PLACEMENT)
     placement: AgRangeBarSeriesLabelPlacement = 'inside';
 
@@ -419,7 +415,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill,
                 stroke,
                 strokeWidth,
@@ -457,7 +453,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText({ itemId: 'low', value: yLowValue, yLowValue, yHighValue }),
+            text: this.getLabelText({ itemId: 'low', datum, value: yLowValue, yLowValue, yHighValue }),
             itemId: 'low',
             datum,
             series,
@@ -467,7 +463,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText({ itemId: 'high', value: yHighValue, yLowValue, yHighValue }),
+            text: this.getLabelText({ itemId: 'high', datum, value: yHighValue, yLowValue, yHighValue }),
             itemId: 'high',
             datum,
             series,
@@ -485,11 +481,11 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
     private getLabelText({
         itemId,
-        value,
-        yLowValue,
-        yHighValue,
+        datum,
+        value, // yLowValue, yHighValue,
     }: {
         itemId: string;
+        datum: RangeBarNodeDatum;
         value: any;
         yLowValue: any;
         yHighValue: any;
@@ -502,11 +498,12 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         let labelText;
         if (formatter) {
             labelText = callbackCache.call(formatter, {
-                value: isNumber(value) ? value : undefined,
+                defaultValue: isNumber(value) ? value : undefined,
                 seriesId,
                 itemId,
-                yLowValue,
-                yHighValue,
+                datum,
+                // yLowValue,
+                // yHighValue,
             });
         }
         return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
@@ -747,7 +744,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         datumSelection.each((rect, datum) => {
             this.ctx.animationManager.animate({
                 id: `${this.id}_empty-update-ready_${rect.id}`,
-                from: { cord: (horizontal ? datum.nodeMidPoint?.x : datum.nodeMidPoint?.y) ?? 0, dimension: 0 },
+                from: { cord: (horizontal ? datum.midPoint?.x : datum.midPoint?.y) ?? 0, dimension: 0 },
                 to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
                 ease: _ModuleSupport.Motion.easeOut,
                 onUpdate({ cord, dimension }) {
@@ -791,8 +788,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
 
                 const start = {
-                    x: horizontal ? datum.nodeMidPoint?.x ?? 0 : datum.x,
-                    y: horizontal ? datum.y : datum.nodeMidPoint?.y ?? 0,
+                    x: horizontal ? datum.midPoint?.x ?? 0 : datum.x,
+                    y: horizontal ? datum.y : datum.midPoint?.y ?? 0,
                     width: horizontal ? 0 : datum.width,
                     height: horizontal ? datum.height : 0,
                 };

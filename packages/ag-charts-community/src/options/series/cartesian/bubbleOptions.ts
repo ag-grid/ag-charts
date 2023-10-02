@@ -3,7 +3,6 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
@@ -19,28 +18,18 @@ export interface AgBubbleSeriesTooltipRendererParams extends AgCartesianSeriesTo
     readonly labelName?: string;
 }
 
-export interface AgBubbleSeriesLabelFormatterParams<DatumType> extends AgCartesianSeriesLabelFormatterParams {
-    /** Datum from the series data array. */
-    datum: DatumType;
-}
-
-export interface AgBubbleSeriesLabelOptions<DatumType> extends AgChartLabelOptions {
-    /** Function to modify the text displayed by the label. By default the values are simply stringified. */
-    formatter?: (params: AgBubbleSeriesLabelFormatterParams<DatumType>) => string;
-}
-
-export interface AgBubbleSeriesMarker<DatumType> extends AgCartesianSeriesMarker<DatumType> {
+export interface AgBubbleSeriesMarker<TDatum> extends AgCartesianSeriesMarker<TDatum> {
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series sizeKey. */
     domain?: [number, number];
 }
 
-export interface AgBubbleSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
+export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
     /** Configuration for the markers used in the series.  */
-    marker?: AgBubbleSeriesMarker<DatumType>;
+    marker?: AgBubbleSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points.  */
-    label?: AgBubbleSeriesLabelOptions<DatumType>;
+    label?: AgChartLabelOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
     title?: string;
     /** Series-specific tooltip configuration.  */
@@ -48,9 +37,9 @@ export interface AgBubbleSeriesThemeableOptions<DatumType = any> extends AgBaseS
 }
 
 /** Configuration for Bubble/bubble series. */
-export interface AgBubbleSeriesOptions<DatumType = any>
-    extends AgBubbleSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgBubbleSeriesOptions<TDatum = any>
+    extends AgBubbleSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     /** Configuration for the Bubble series.  */
     type: 'bubble';
     /** The key to use to retrieve x-values from the data.  */
@@ -70,5 +59,5 @@ export interface AgBubbleSeriesOptions<DatumType = any>
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     labelName?: string;
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
+    listeners?: AgSeriesListeners<TDatum>;
 }

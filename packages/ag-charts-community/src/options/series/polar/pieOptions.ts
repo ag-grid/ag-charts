@@ -1,6 +1,6 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type {
     CssColor,
@@ -15,28 +15,24 @@ import type {
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgPolarSeriesTooltipRendererParams } from './polarTooltipOptions';
 
-export interface AgPieSeriesLabelOptions<DatumType> extends AgChartLabelOptions {
+export interface AgPieSeriesLabelOptions<TParams> extends AgChartLabelOptions<TParams> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
     minAngle?: number;
     /** Avoid callout label collision and overflow by automatically moving colliding labels or reducing the pie radius. If set to `false`, callout labels may collide with each other and the pie radius will not change to prevent clipping of callout labels. */
     avoidCollisions?: boolean;
-    /** A function that allows the modification of the label text based on input parameters. */
-    formatter?: (params: AgPieSeriesLabelFormatterParams<DatumType>) => string;
 }
 
-export interface AgPieSeriesSectorLabelOptions<DatumType> extends AgChartLabelOptions {
+export interface AgPieSeriesSectorLabelOptions<TParams> extends AgChartLabelOptions<TParams> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to pie radius (or doughnut thickness). Additional offset in pixels can be applied by using positionOffset. */
     positionRatio?: Ratio;
-    /** A function that allows the modification of the label text based on input parameters. */
-    formatter?: (params: AgPieSeriesLabelFormatterParams<DatumType>) => string;
 }
 
-export interface AgPieSeriesFormatterParams<DatumType> {
-    readonly datum: DatumType;
+export interface AgPieSeriesFormatterParams<TDatum> {
+    readonly datum: TDatum;
     readonly fill?: CssColor;
     readonly stroke?: CssColor;
     readonly strokeWidth: PixelSize;
@@ -110,13 +106,13 @@ export interface AgDoughnutInnerCircle {
     fillOpacity?: Opacity;
 }
 
-export interface AgPieSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
+export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside of the sectors. */
-    calloutLabel?: AgPieSeriesLabelOptions<DatumType>;
+    calloutLabel?: AgPieSeriesLabelOptions<AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgPieSeriesSectorLabelOptions<DatumType>;
+    sectorLabel?: AgPieSeriesSectorLabelOptions<AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
@@ -156,13 +152,13 @@ export interface AgPieSeriesThemeableOptions<DatumType = any> extends AgBaseSeri
     /** Configuration for the area inside the series, only visible when rendering a doughnut chart by using innerRadiusOffset or innerRadiusRatio */
     innerCircle?: AgDoughnutInnerCircle;
     /** A formatter function for adjusting the styling of the pie sectors. */
-    formatter?: (params: AgPieSeriesFormatterParams<DatumType>) => AgPieSeriesFormat;
+    formatter?: (params: AgPieSeriesFormatterParams<TDatum>) => AgPieSeriesFormat;
 }
 
 /** Configuration for pie/doughnut series. */
-export interface AgPieSeriesOptions<DatumType = any>
-    extends Omit<AgPieSeriesThemeableOptions<DatumType>, 'innerLabels'>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgPieSeriesOptions<TDatum = any>
+    extends Omit<AgPieSeriesThemeableOptions<TDatum>, 'innerLabels'>,
+        AgBaseSeriesOptions<TDatum> {
     type: 'pie';
     /** The key to use to retrieve angle values from the data. */
     angleKey: string;
@@ -185,7 +181,7 @@ export interface AgPieSeriesOptions<DatumType = any>
     /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
     innerLabels?: AgDoughnutInnerLabel[];
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
+    listeners?: AgSeriesListeners<TDatum>;
 }
 
 export interface AgPieSeriesTooltipRendererParams extends AgPolarSeriesTooltipRendererParams {
@@ -199,38 +195,24 @@ export interface AgPieSeriesTooltipRendererParams extends AgPolarSeriesTooltipRe
     sectorLabelName?: string;
 }
 
-export interface AgPieSeriesLabelFormatterParams<DatumType> {
-    /** Datum from the series data array that the label is being rendered for. */
-    readonly datum: DatumType;
-
-    /** calloutLabelKey as specified on series options. */
-    readonly calloutLabelKey?: string;
-    /** calloutLabelValue as read from series data via the calloutLabelKey property. */
-    readonly calloutLabelValue?: string;
-    /** calloutLabelName as specified on series options. */
-    readonly calloutLabelName?: string;
-
-    /** sectorLabelKey as specified on series options. */
-    readonly sectorLabelKey?: string;
-    /** sectorLabelValue as read from series data via the sectorLabelKey property. */
-    readonly sectorLabelValue?: string;
-    /** sectorLabelName as specified on series options. */
-    readonly sectorLabelName?: string;
-
+export interface AgPieSeriesLabelFormatterParams<TDatum> extends AgChartLabelFormatterParams<TDatum> {
     /** angleKey as specified on series options. */
-    readonly angleKey: string;
-    /** angleValue as read from series data via the angleKey property. */
-    readonly angleValue?: any;
+    readonly angleKey: keyof TDatum & string;
     /** angleName as specified on series options. */
     readonly angleName?: string;
 
     /** radiusKey as specified on series options. */
-    readonly radiusKey?: string;
-    /** radiusValue as read from series data via the radiusKey property. */
-    readonly radiusValue?: any;
+    readonly radiusKey?: keyof TDatum & string;
     /** radiusName as specified on series options. */
     readonly radiusName?: string;
 
-    /** The ID of the series. */
-    readonly seriesId: string;
+    /** calloutLabelKey as specified on series options. */
+    readonly calloutLabelKey?: keyof TDatum & string;
+    /** calloutLabelName as specified on series options. */
+    readonly calloutLabelName?: string;
+
+    /** sectorLabelKey as specified on series options. */
+    readonly sectorLabelKey?: keyof TDatum & string;
+    /** sectorLabelName as specified on series options. */
+    readonly sectorLabelName?: string;
 }

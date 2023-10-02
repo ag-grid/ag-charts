@@ -1,16 +1,16 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgBarSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgBarSeriesLabelOptions extends AgCartesianSeriesLabelOptions {
+export interface AgBarSeriesLabelOptions extends AgChartLabelOptions {
     /** Where to render series labels relative to the segments. */
     placement?: AgBarSeriesLabelPlacement;
 }
