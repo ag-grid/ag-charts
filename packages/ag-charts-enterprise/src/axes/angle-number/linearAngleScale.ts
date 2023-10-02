@@ -19,17 +19,17 @@ export class LinearAngleScale extends LinearScale {
                 return range(d0, d1, step);
             }
         }
-        
+
         const { tickCount } = this;
         const minTickCount = isNaN(this.minTickCount) ? 1 : this.minTickCount;
-        const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount; 
+        const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount;
         const angleRange = this.range.slice().sort((a, b) => a - b);
 
         const rawTickCount = Math.max(minTickCount, Math.min(maxTickCount, tickCount));
-        const rawCircleTickCount = rawTickCount / (angleRange[1] - angleRange[0]) * 2 * Math.PI;
+        const rawCircleTickCount = (rawTickCount / (angleRange[1] - angleRange[0])) * 2 * Math.PI;
         const niceCircleTickCount = Math.pow(2, Math.ceil(Math.log(rawCircleTickCount) / Math.log(2)));
-        const angleStep = 2 * Math.PI / niceCircleTickCount;
-        
+        const angleStep = (2 * Math.PI) / niceCircleTickCount;
+
         let tickStep = this.invert(angleRange[0] + angleStep) - d0;
         if (tickStep > 1e-12) {
             tickStep = parseFloat(tickStep.toPrecision(12));

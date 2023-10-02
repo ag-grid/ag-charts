@@ -3,8 +3,17 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { AND, assignJsonApplyConstructedArray, ChartAxisDirection, GREATER_THAN, NUMBER, OPT_NUMBER, predicateWithMessage, ProxyOnWrite, Validate } =
-    _ModuleSupport;
+const {
+    AND,
+    assignJsonApplyConstructedArray,
+    ChartAxisDirection,
+    GREATER_THAN,
+    NUMBER,
+    OPT_NUMBER,
+    predicateWithMessage,
+    ProxyOnWrite,
+    Validate,
+} = _ModuleSupport;
 const { Path, Text } = _Scene;
 const { isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
@@ -36,7 +45,10 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
-export abstract class AngleAxis<TDomain, TScale extends _Scale.Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<TScale> {
+export abstract class AngleAxis<
+    TDomain,
+    TScale extends _Scale.Scale<TDomain, any>,
+> extends _ModuleSupport.PolarAxis<TScale> {
     @ProxyOnWrite('rotation')
     @Validate(NUMBER(0, 360))
     startAngle: number = 0;
@@ -78,7 +90,8 @@ export abstract class AngleAxis<TDomain, TScale extends _Scale.Scale<TDomain, an
 
     override computeRange = () => {
         const startAngle = -Math.PI / 2 + toRadians(this.startAngle);
-        const endAngle = this.endAngle == undefined ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
+        const endAngle =
+            this.endAngle == undefined ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
         this.range = [startAngle, endAngle];
     };
 

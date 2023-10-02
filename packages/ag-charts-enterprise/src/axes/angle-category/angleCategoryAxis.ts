@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleAxis } from '../angle/angleAxis';
-import type { AngleAxisLabelDatum } from '../angle/angleAxis'
+import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { loopSymmetrically } from '../../utils/polar';
 
 const { NUMBER, Validate } = _ModuleSupport;
@@ -85,7 +85,8 @@ export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string
         const firstLabel = labelData[0];
         const lastLabel = labelData[labelData.length - 1];
         const visibleLabels = new Set<AngleAxisLabelDatum>([firstLabel]);
-        const lastLabelIsOverFirst = isNumberEqual(firstLabel.x, lastLabel.x) && isNumberEqual(firstLabel.y, lastLabel.y);
+        const lastLabelIsOverFirst =
+            isNumberEqual(firstLabel.x, lastLabel.x) && isNumberEqual(firstLabel.y, lastLabel.y);
         const maxStep = Math.floor(labelData.length / 2);
         for (let step = 1; step <= maxStep; step++) {
             const labels = lastLabelIsOverFirst ? labelData.slice(0, -1) : labelData;

@@ -46,7 +46,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
         const min = Math.min(...requestedRange);
         const max = Math.max(...requestedRange);
-        const rotation = angleBetween(min, max) || (2 * Math.PI);
+        const rotation = angleBetween(min, max) || 2 * Math.PI;
         const radius = this.gridLength;
         return rotation * radius;
     }
@@ -57,7 +57,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         const { minSpacing = NaN, maxSpacing = NaN } = tick;
         const minTicksCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
         const maxTicksCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
-        const preferredTicksCount = Math.floor(4 / Math.PI * Math.abs(requestedRange[0] - requestedRange[1]));
+        const preferredTicksCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
         scale.tickCount = preferredTicksCount;
         scale.minTickCount = minTicksCount;
         scale.maxTickCount = maxTicksCount;
@@ -84,7 +84,11 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
         const firstLabel = labelData[0];
         const lastLabel = labelData[labelData.length - 1];
-        if (firstLabel !== lastLabel && isNumberEqual(firstLabel.x, lastLabel.x) && isNumberEqual(firstLabel.y, lastLabel.y)) {
+        if (
+            firstLabel !== lastLabel &&
+            isNumberEqual(firstLabel.x, lastLabel.x) &&
+            isNumberEqual(firstLabel.y, lastLabel.y)
+        ) {
             lastLabel.hidden = true;
         }
 
