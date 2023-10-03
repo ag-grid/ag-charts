@@ -33,3 +33,4 @@ export { HdpiCanvas } from './scene/canvas/hdpiCanvas';
 export { Image } from './scene/image';
 export { Path2D } from './scene/path2D';
 export * as easing from './motion/easing';
+export * as motion from './motion/fromToMotion';

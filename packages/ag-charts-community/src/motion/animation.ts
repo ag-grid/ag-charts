@@ -30,6 +30,13 @@ export interface AnimationOptions<T extends AnimationValue> {
     onUpdate?: (value: T, self: IAnimation<T>) => void;
 }
 
+export interface AdditionalAnimationOptions {
+    id?: string;
+    disableInteractions?: boolean;
+    immutable?: boolean;
+    shortCircuitId?: string;
+}
+
 export type ResetAnimationOptions<T extends AnimationValue> = Pick<
     AnimationOptions<T>,
     'from' | 'to' | 'delay' | 'duration' | 'ease'
