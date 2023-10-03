@@ -39,6 +39,8 @@ const {
     valueProperty,
     getBarDirectionStartingValues,
     prepareBarAnimationFunctions,
+    collapsedStartingBarPosition,
+    resetBarSelectionsFn,
 } = _ModuleSupport;
 const { Rect, Label, PointerEvents, motion } = _Scene;
 const { ticks, sanitizeHtml, tickStep } = _Util;
@@ -582,7 +584,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const labelDuration = 200;
 
         const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions<HistogramNodeDatum>(true, startingX, startingY);
+        const { toFn, fromFn } = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, startingX, startingY));
 
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
@@ -597,15 +599,15 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     }
 
     override animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
-        this.resetSelections(datumSelections);
+        motion.resetMotion(datumSelections, resetBarSelectionsFn);
     }
 
     override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>) {
-        this.resetSelectionRects(highlightSelection);
+        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
     }
 
     override animateReadyResize({ datumSelections }: HistogramAnimationData) {
-        this.resetSelections(datumSelections);
+        motion.resetMotion(datumSelections, resetBarSelectionsFn);
     }
 
     override animateWaitingUpdateReady({
@@ -623,12 +625,12 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            this.resetSelections(datumSelections);
+            motion.resetMotion(datumSelections, resetBarSelectionsFn);
             return;
         }
 
         const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions<HistogramNodeDatum>(true, startingX, startingY);
+        const { toFn, fromFn } = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, startingX, startingY));
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
@@ -650,21 +652,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             { opacity: 1 },
             { delay: duration, duration: labelDuration }
         );
-    }
-
-    resetSelections(datumSelections: HistogramAnimationData['datumSelections']) {
-        datumSelections.forEach((datumSelection) => {
-            this.resetSelectionRects(datumSelection);
-        });
-    }
-
-    resetSelectionRects(selection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>) {
-        selection.each((rect, datum) => {
-            rect.x = datum.x;
-            rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
-        });
     }
 
     getDatumId(datum: HistogramNodeDatum) {
