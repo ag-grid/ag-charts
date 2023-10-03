@@ -69,10 +69,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     labelName?: string = 'Label';
 
     @Validate(OPT_STRING)
-    colorKey?: string = 'color';
+    colorKey?: string = undefined;
 
     @Validate(OPT_STRING)
-    colorName?: string = 'color';
+    colorName?: string = 'Color';
 
     @Validate(OPT_NUMBER_ARRAY)
     colorDomain: number[] | undefined = undefined;
@@ -195,7 +195,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const { colorScale, label, labelKey, xKey = '', yKey = '', colorKey } = this;
+        const { colorScale, label, labelKey, xKey = '', yKey = '', colorKey = '' } = this;
         const nodeData: HeatmapNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
 
         const width = xScale.bandwidth ?? 10;
@@ -213,7 +213,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
-            const fill = colorScale.convert(colorValue);
+            const fill = colorKey ? colorScale.convert(colorValue) : this.colorRange[0];
 
             nodeData[actualLength++] = {
                 series: this,
