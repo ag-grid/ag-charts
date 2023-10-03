@@ -155,6 +155,14 @@ export abstract class Node extends ChangeDetectable {
     // Used to check for duplicate nodes.
     private childSet: { [id: string]: boolean } = {}; // new Set<Node>()
 
+    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
+        const keys = pickKeys ?? (Object.keys(styles) as (keyof T)[]);
+        for (const key of keys) {
+            (this as any)[key] = styles[key];
+        }
+        return this;
+    }
+
     /**
      * Appends one or more new node instances to this parent.
      * If one needs to:

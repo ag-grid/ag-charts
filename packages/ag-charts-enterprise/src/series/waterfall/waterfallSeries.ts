@@ -31,8 +31,12 @@ const {
     updateRect,
     checkCrisp,
     updateLabel,
+    getBarDirectionStartingValues,
+    prepareBarAnimationFunctions,
+    collapsedStartingBarPosition,
+    resetBarSelectionsFn,
 } = _ModuleSupport;
-const { ContinuousScale, Rect } = _Scene;
+const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
 
 const WATERFALL_LABEL_PLACEMENTS: AgWaterfallSeriesLabelPlacement[] = ['start', 'end', 'inside'];
@@ -804,10 +808,27 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        contextData.forEach(({ pointData }, contextDataIndex) => {
-            this.animateRects(datumSelections[contextDataIndex]);
-            this.animateLabels(labelSelections[contextDataIndex]);
+        const { animationManager } = this.ctx;
+        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
 
+        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
+        const { toFn, fromFn } = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(isVertical, startingX, startingY)
+        );
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
+
+        const duration = this.ctx.animationManager.defaultDuration;
+        const labelDuration = 200;
+        motion.staticFromToMotion(
+            `${this.id}empty-update-ready_labels`,
+            animationManager,
+            labelSelections,
+            { opacity: 0 },
+            { opacity: 1 },
+            { delay: duration, duration: labelDuration }
+        );
+
+        contextData.forEach(({ pointData }, contextDataIndex) => {
             if (contextDataIndex !== 0 || !pointData) {
                 return;
             }
@@ -818,42 +839,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             } else {
                 this.animateConnectorLinesHorizontal(lineNode, pointData);
             }
-        });
-    }
-
-    protected animateRects(datumSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
-        const horizontal = this.direction === 'horizontal';
-        const yAxis = this.getValueAxis();
-        datumSelection.each((rect, datum) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${rect.id}`,
-                from: { cord: yAxis?.scale.convert(0) ?? 0, dimension: 0 },
-                to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
-                ease: _ModuleSupport.Motion.easeOut,
-                onUpdate({ cord, dimension }) {
-                    rect.setProperties(
-                        horizontal
-                            ? { x: cord, y: datum.y, width: dimension, height: datum.height }
-                            : { x: datum.x, y: cord, width: datum.width, height: dimension }
-                    );
-                },
-            });
-        });
-    }
-
-    protected animateLabels(labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum>) {
-        const duration = this.ctx.animationManager.defaultDuration;
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: duration / 5,
-            onUpdate: (opacity) => {
-                labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
         });
     }
 
@@ -938,31 +923,22 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override animateReadyUpdate(data: WaterfallAnimationData) {
-        this.resetSelectionRectsAndPaths(data);
+        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        this.resetConnectorLinesPath(data);
     }
 
     override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
-        this.resetSelectionRects(highlightSelection);
+        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
     }
 
     override animateReadyResize(data: WaterfallAnimationData) {
-        this.resetSelectionRectsAndPaths(data);
+        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        this.resetConnectorLinesPath(data);
     }
 
-    resetSelectionRectsAndPaths({ datumSelections, contextData, paths }: WaterfallAnimationData) {
-        this.resetConnectorLinesPath({ contextData, paths });
-        datumSelections.forEach((datumSelection) => {
-            this.resetSelectionRects(datumSelection);
-        });
-    }
-
-    resetSelectionRects(selection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
-        selection.each((rect, datum) => {
-            rect.x = datum.x;
-            rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
-        });
+    resetSelectionRectsAndPaths(data: WaterfallAnimationData) {
+        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        this.resetConnectorLinesPath(data);
     }
 
     resetConnectorLinesPath({
