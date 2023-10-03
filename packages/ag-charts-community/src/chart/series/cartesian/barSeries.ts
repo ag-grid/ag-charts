@@ -51,7 +51,6 @@ import type { RectConfig } from './barUtil';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
-    getBarDirectionStartingValues,
     getRectConfig,
     prepareBarAnimationFunctions,
     resetBarSelectionsFn,
@@ -644,11 +643,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-
-        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
         const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(isVertical, startingX, startingY)
+            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
         );
 
         fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
@@ -675,11 +671,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             return;
         }
 
-        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-
-        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
         const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(isVertical, startingX, startingY)
+            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
         );
         fromToMotion(
             `${this.id}_waiting-update-ready`,

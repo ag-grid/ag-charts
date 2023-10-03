@@ -37,7 +37,6 @@ const {
     fixNumericExtent,
     keyProperty,
     valueProperty,
-    getBarDirectionStartingValues,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
@@ -579,9 +578,9 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, startingX, startingY));
-
+        const { toFn, fromFn } = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(ChartAxisDirection.Y, this.axes)
+        );
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
@@ -618,8 +617,9 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             return;
         }
 
-        const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, startingX, startingY));
+        const { toFn, fromFn } = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(ChartAxisDirection.Y, this.axes)
+        );
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
