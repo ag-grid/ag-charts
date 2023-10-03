@@ -90,7 +90,7 @@ export function createLabelData<E>({
     }
 
     return {
-        text: labelText ?? isNumber(value) ? value.toFixed(2) : '',
+        text: labelText ?? (isNumber(value) ? value.toFixed(2) : ''),
         ...adjustLabelPlacement({
             isPositive: value >= 0,
             isVertical: !barAlongX,

@@ -634,7 +634,7 @@ export abstract class Series<
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
 
         // Highlighting not active.
-        if (series != null) {
+        if (series == null) {
             return SeriesHighlight.None;
         }
 

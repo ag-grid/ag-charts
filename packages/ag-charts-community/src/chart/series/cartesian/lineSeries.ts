@@ -87,9 +87,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
         });
-
-        // this.marker.fill = '#c16068';
-        // this.marker.stroke = '#874349';
     }
 
     @Validate(OPT_STRING)

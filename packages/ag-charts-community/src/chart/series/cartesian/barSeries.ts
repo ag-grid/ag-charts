@@ -426,7 +426,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return [context];
     }
 
-    protected getLabelText(datum: unknown, defaultValue: any) {
+    protected getLabelText(datum: unknown, defaultValue: any): string {
         const { id: seriesId, ctx, label, xKey, yKey, xName, yName } = this;
 
         if (!xKey || !yKey) {
