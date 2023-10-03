@@ -437,6 +437,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             title,
             color,
             seriesId,
+            ...this.getModuleTooltipParams(datum),
         });
     }
 

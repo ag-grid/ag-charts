@@ -6,6 +6,7 @@ export type SeriesEventType =
     | 'data-prerequest'
     | 'data-processed'
     | 'data-getDomain'
+    | 'tooltip-getParams'
     | 'visibility-changed';
 
 export interface BaseSeriesEvent<_T extends SeriesEventType> {}
@@ -27,6 +28,10 @@ export interface SeriesDataProcessedEvent extends BaseSeriesEvent<'data-processe
 
 export interface SeriesDataGetDomainEvent extends BaseSeriesEvent<'data-getDomain'> {
     readonly direction: ChartAxisDirection;
+}
+
+export interface SeriesTooltipGetParamsEvent extends BaseSeriesEvent<'tooltip-getParams'> {
+    readonly datum: object;
 }
 
 export interface SeriesVisibilityEvent extends BaseSeriesEvent<'visibility-changed'> {
