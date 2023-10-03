@@ -99,6 +99,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 0,
             hasMarkers: false,
+            hasHighlightedLabels: true,
         });
 
         this.label.enabled = false;
@@ -476,7 +477,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return this.label.enabled || Boolean(this.labelKey);
     }
 
     override getBandScalePadding() {
