@@ -71,7 +71,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     colorName?: string = 'Color';
 
     @Validate(OPT_NUMBER_ARRAY)
-    colorDomain: number[] | undefined = undefined;
+    colorDomain?: number[];
 
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#ffff00', '#00ff00', '#0000ff'];
@@ -361,7 +361,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         const strokeWidth = this.getStrokeWidth(marker.strokeWidth ?? 1);
 
         const { formatter } = this.marker;
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -626,7 +626,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         const strokeWidth = markerStrokeWidth ?? 1;
         const size = datum.point?.size ?? marker.size;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum: datum.datum,

@@ -442,7 +442,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const keepTransferableResources = opts?.keepTransferableResources;
-        let result: TransferableResources | undefined = undefined;
+        let result: TransferableResources | undefined;
 
         this._performUpdateType = ChartUpdateType.NONE;
 
@@ -1049,7 +1049,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // declared series.
         const reverseSeries = [...this.series].reverse();
 
-        let result: { series: Series<any>; datum: SeriesNodeDatum; distance: number } | undefined = undefined;
+        let result: { series: Series<any>; datum: SeriesNodeDatum; distance: number } | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;

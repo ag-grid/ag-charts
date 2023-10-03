@@ -117,12 +117,6 @@ export class AreaSeries extends CartesianSeries<
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
         });
-
-        const { marker, label } = this;
-
-        marker.enabled = false;
-
-        label.enabled = false;
     }
 
     @Validate(OPT_STRING)
@@ -602,7 +596,7 @@ export class AreaSeries extends CartesianSeries<
         const fill = seriesFill ?? markerFill;
         const stroke = markerStroke ?? seriesStroke;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
 
         if (markerFormatter) {
             format = markerFormatter({

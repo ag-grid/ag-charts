@@ -419,7 +419,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
 
-        let format: AgRadarSeriesMarkerFormat | undefined = undefined;
+        let format: AgRadarSeriesMarkerFormat | undefined;
         if (markerFormatter) {
             format = markerFormatter({
                 datum,
@@ -756,7 +756,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const stroke = marker.stroke ?? lineStroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
-        let format: AgRadarSeriesMarkerFormat | undefined = undefined;
+        let format: AgRadarSeriesMarkerFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum: datum.datum,

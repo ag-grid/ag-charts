@@ -123,7 +123,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     areaPlot: boolean = false;
 
     @Validate(OPT_ARRAY())
-    bins: [number, number][] | undefined = undefined;
+    bins?: [number, number][];
 
     @Validate(HISTOGRAM_AGGREGATION)
     aggregation: HistogramAggregation = 'sum';

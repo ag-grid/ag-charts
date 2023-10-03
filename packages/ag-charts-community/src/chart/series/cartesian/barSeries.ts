@@ -566,7 +566,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const title = sanitizeHtml(yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        let format: AgBarSeriesStyle | undefined = undefined;
+        let format: AgBarSeriesStyle | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {

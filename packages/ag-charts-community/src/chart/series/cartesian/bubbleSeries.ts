@@ -112,7 +112,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     colorName?: string = 'Color';
 
     @Validate(OPT_NUMBER_ARRAY)
-    colorDomain: number[] | undefined = undefined;
+    colorDomain?: number[];
 
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#ffff00', '#00ff00', '#0000ff'];
@@ -431,7 +431,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const strokeWidth = this.getStrokeWidth(marker.strokeWidth ?? 1);
 
         const { formatter } = this.marker;
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -702,7 +702,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const strokeWidth = markerStrokeWidth ?? 1;
         const size = datum.point?.size ?? 0;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum: datum.datum,

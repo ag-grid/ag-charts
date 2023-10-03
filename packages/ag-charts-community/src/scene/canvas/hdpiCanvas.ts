@@ -73,7 +73,7 @@ export class HdpiCanvas {
         this.resize(width, height);
     }
 
-    private _container: HTMLElement | undefined = undefined;
+    private _container?: HTMLElement;
     set container(value: HTMLElement | undefined) {
         if (this._container !== value) {
             this.remove();

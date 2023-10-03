@@ -614,13 +614,9 @@ export abstract class Series<
     }
 
     protected getStrokeWidth(defaultStrokeWidth: number): number {
-        const {
-            highlightStyle: {
-                series: { strokeWidth, enabled = true },
-            },
-        } = this;
+        const { strokeWidth, enabled = true } = this.highlightStyle.series;
 
-        if (enabled === false || strokeWidth === undefined) {
+        if (!enabled || strokeWidth === undefined) {
             // No change in styling for highlight cases.
             return defaultStrokeWidth;
         }
@@ -667,7 +663,7 @@ export abstract class Series<
                 continue;
             }
 
-            let match: SeriesNodePickMatch | undefined = undefined;
+            let match: SeriesNodePickMatch | undefined;
 
             switch (pickMode) {
                 case SeriesNodePickMode.EXACT_SHAPE_MATCH:

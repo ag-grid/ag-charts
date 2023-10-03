@@ -1,7 +1,6 @@
 import type {
     AgHeatmapSeriesFormat,
     AgHeatmapSeriesFormatterParams,
-    AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
@@ -41,16 +40,11 @@ class HeatmapSeriesNodeClickEvent<
     }
 }
 
-class HeatmapSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgHeatmapSeriesLabelFormatterParams) => string = undefined;
-}
-
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum> {
     static className = 'HeatmapSeries';
     static type = 'heatmap' as const;
 
-    readonly label = new HeatmapSeriesLabel();
+    readonly label = new _Scene.Label();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -80,7 +74,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     colorName?: string = 'Color';
 
     @Validate(OPT_NUMBER_ARRAY)
-    colorDomain: number[] | undefined = undefined;
+    colorDomain?: number[];
 
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#cb4b3f', '#6acb64'];
@@ -218,16 +212,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const y = yScale.convert(yDatum) + yOffset;
 
             const labelValue = labelKey ? values[labelDataIdx] : colorKey ? values[colorDataIdx] : '';
-            let text: string;
-            if (label.formatter) {
-                const labelFormatterParams = {
-                    seriesId: this.id,
-                    value: labelValue,
-                };
-                text = callbackCache.call(label.formatter, labelFormatterParams) ?? '';
-            } else {
-                text = String(labelValue);
-            }
+            const text = label.formatter
+                ? callbackCache.call(label.formatter, { seriesId: this.id, datum, defaultValue: labelValue }) ?? ''
+                : String(labelValue);
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
@@ -317,7 +304,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                     ? highlightedDatumStrokeWidth
                     : this.strokeWidth;
 
-            let format: AgHeatmapSeriesFormat | undefined = undefined;
+            let format: AgHeatmapSeriesFormat | undefined;
             if (formatter) {
                 format = callbackCache.call(formatter, {
                     datum: datum.datum,
@@ -414,7 +401,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         } = nodeDatum;
         const fill = colorScale.convert(colorValue);
 
-        let format: AgHeatmapSeriesFormat | undefined = undefined;
+        let format: AgHeatmapSeriesFormat | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {

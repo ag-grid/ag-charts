@@ -9,7 +9,6 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { SeriesItemHighlightStyle } from '../series';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
-
 export type RectConfig = {
     fill: string;
     stroke: string;
@@ -77,7 +76,7 @@ export function getRectConfig<
     const fillOpacity = isHighlighted ? highlightStyle.fillOpacity ?? style.fillOpacity : style.fillOpacity;
     const { strokeOpacity, fillShadow, lineDash, lineDashOffset } = style;
 
-    let format: AgBarSeriesStyle | undefined = undefined;
+    let format: AgBarSeriesStyle | undefined;
     if (formatter) {
         format = callbackCache.call(formatter as any, {
             datum: datum.datum,

@@ -31,13 +31,6 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
     readonly labelName?: string;
 }
 
-export interface AgHeatmapSeriesLabelFormatterParams {
-    /** The ID of the series. */
-    readonly seriesId: string;
-    /** The value of `labelKey` or `colorKey` as specified on series options. */
-    readonly value: any;
-}
-
 export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum>;

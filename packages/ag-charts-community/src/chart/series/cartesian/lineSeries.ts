@@ -193,7 +193,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
 
         let moveTo = true;
-        let nextPoint: UngroupedDataItem<any, any> | undefined = undefined;
+        let nextPoint: UngroupedDataItem<any, any> | undefined;
         let actualLength = 0;
         for (let i = 0; i < processedData.data.length; i++) {
             const { datum, values } = nextPoint ?? processedData.data[i];
@@ -406,7 +406,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { formatter: markerFormatter, fill: markerFill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
         if (markerFormatter) {
             format = markerFormatter({
                 datum,
@@ -1037,7 +1037,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const stroke = marker.stroke ?? lineStroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum: datum.datum,
