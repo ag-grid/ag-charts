@@ -33,6 +33,7 @@ const {
     midpointStartingBarPosition,
     resetBarSelectionsFn,
     fixNumericExtent,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -742,15 +743,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const { toFn, fromFn } = prepareBarAnimationFunctions(midpointStartingBarPosition(isVertical));
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        motion.staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: 200 }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
@@ -776,15 +769,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             diff
         );
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        motion.staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: 200 }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyUpdate({ datumSelections }: RangeBarAnimationData) {

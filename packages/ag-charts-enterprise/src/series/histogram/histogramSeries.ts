@@ -41,6 +41,7 @@ const {
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 const { Rect, Label, PointerEvents, motion } = _Scene;
 const { ticks, sanitizeHtml, tickStep } = _Util;
@@ -578,22 +579,12 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-
         const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
         const { toFn, fromFn } = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, startingX, startingY));
 
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
-        motion.staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
@@ -640,16 +631,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             diff
         );
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-        motion.staticFromToMotion(
-            `${this.id}_waiting-update-ready_labels`,
-            animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     getDatumId(datum: HistogramNodeDatum) {

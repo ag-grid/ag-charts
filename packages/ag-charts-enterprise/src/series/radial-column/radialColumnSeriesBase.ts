@@ -26,6 +26,7 @@ const {
     normaliseGroupTo,
     valueProperty,
     fixNumericExtent,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -491,18 +492,7 @@ export abstract class RadialColumnSeriesBase<
         this.beforeSectorAnimation();
         this.animateItemsShapes();
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: this.ctx.animationManager.defaultDuration,
-            duration: 200,
-            onUpdate: (opacity) => {
-                this.labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.labelSelection]);
     }
 
     protected override animateReadyUpdate() {
