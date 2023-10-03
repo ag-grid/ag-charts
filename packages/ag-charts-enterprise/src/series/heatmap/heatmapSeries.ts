@@ -317,10 +317,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             }
 
             rect.crisp = crisp;
-            rect.x = point.x - width / 2;
-            rect.y = point.y - height / 2;
-            rect.width = width;
-            rect.height = height;
+            rect.x = Math.floor(point.x - width / 2);
+            rect.y = Math.floor(point.y - height / 2);
+            rect.width = Math.ceil(width);
+            rect.height = Math.ceil(height);
             rect.fill = format?.fill ?? fill;
             rect.stroke = format?.stroke ?? stroke;
             rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
