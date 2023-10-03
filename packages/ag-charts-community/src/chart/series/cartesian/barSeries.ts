@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import { fromToMotion } from '../../../motion/fromToMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type {
     AgBarSeriesFormat,
