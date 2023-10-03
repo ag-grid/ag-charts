@@ -480,10 +480,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yKey,
-            yValue,
             yName,
             sizeKey,
             sizeName,

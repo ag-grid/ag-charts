@@ -33,8 +33,8 @@ const options: AgChartOptions = {
         formatter: ({ defaultValue }) => formatNumber(defaultValue),
       },
       tooltip: {
-        renderer: ({ yValue, xValue }) => {
-          return { title: xValue, content: formatNumber(yValue) }
+        renderer: ({ datum, xKey, yKey }) => {
+          return { title: datum[xKey], content: formatNumber(datum[yKey]) }
         },
       },
     },

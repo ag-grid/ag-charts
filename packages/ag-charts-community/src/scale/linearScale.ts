@@ -8,8 +8,6 @@ import { ContinuousScale } from './continuousScale';
 export class LinearScale extends ContinuousScale<number> {
     readonly type = 'linear';
 
-    override interval?: number;
-
     public constructor() {
         super([0, 1], [0, 1]);
     }
@@ -49,7 +47,6 @@ export class LinearScale extends ContinuousScale<number> {
 
     /**
      * Extends the domain so that it starts and ends on nice round values.
-     * @param count Tick count.
      */
     protected updateNiceDomain() {
         const count = this.tickCount ?? ContinuousScale.defaultTickCount;

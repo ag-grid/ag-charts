@@ -636,19 +636,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             return '';
         }
 
-        const { xName, yLowName, yHighName, yName, id: seriesId } = this;
-
+        const { xName, yLowName, yHighName, yName, id: seriesId, fill, strokeWidth, formatter, tooltip } = this;
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
-        const { fill, strokeWidth, formatter, tooltip } = this;
-
-        let format: any | undefined = undefined;
+        let format;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum,
-                lowValue: yLowValue,
-                highValue: yHighValue,
                 xKey,
                 yLowKey,
                 yHighKey,
@@ -687,13 +682,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yLowKey,
-            yLowValue,
             yLowName,
             yHighKey,
-            yHighValue,
             yHighName,
             yName,
             color,

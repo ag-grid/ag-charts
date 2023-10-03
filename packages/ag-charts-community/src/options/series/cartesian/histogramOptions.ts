@@ -1,5 +1,4 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
@@ -61,6 +60,4 @@ export interface AgHistogramSeriesOptions<TDatum = any>
     binCount?: number;
     /** Dictates how the bins are aggregated. If set to 'sum', the value shown for the bins will be the total of the yKey values. If set to 'mean', it will display the average yKey value of the bin. */
     aggregation?: 'count' | 'sum' | 'mean';
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
 }

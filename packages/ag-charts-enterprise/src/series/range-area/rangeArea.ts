@@ -3,7 +3,6 @@ import type {
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
     AgRangeAreaSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -609,28 +608,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
               `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`
             : `${xString}: ${yLowString} - ${yHighString}`;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xValue,
-            xName,
-            yLowKey,
-            yLowValue,
-            yLowName,
-            yHighKey,
-            yHighValue,
-            yHighName,
-            yName,
-            color,
-            seriesId,
-            itemId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                seriesId,
+                itemId,
+                datum,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+                color,
+            }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

@@ -1,23 +1,22 @@
+import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgWaterfallSeriesFormatterParams<DatumType> {
-    readonly datum: DatumType;
+export interface AgWaterfallSeriesFormatterParams<TDatum>
+    extends AgChartCallbackParams<TDatum>,
+        FillOptions,
+        StrokeOptions {
+    readonly itemId: string;
     readonly value: number;
-    readonly fill?: CssColor;
-    readonly stroke?: CssColor;
-    readonly strokeWidth: PixelSize;
     readonly highlighted: boolean;
     readonly xKey: string;
     readonly yKey: string;
     readonly labelKey?: string;
-    readonly seriesId: string;
-    readonly itemId: string;
 }
 
 export interface AgWaterfallSeriesFormat {
@@ -45,14 +44,14 @@ export interface AgWaterfallSeriesLabelOptions extends AgChartLabelOptions {
 
 export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 
-export interface AgWaterfallSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
+export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
     /**
      * Sets the bar orientation. When `vertical` (default), bars are vertical with categories on the x-axis.
      * When set to `horizontal`, bars run horizontally with categories on the y-axis.
      */
     direction?: 'horizontal' | 'vertical';
     /** Configuration used for the waterfall series item types. */
-    item?: AgWaterfallSeriesItem<DatumType>;
+    item?: AgWaterfallSeriesItem<TDatum>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
@@ -62,9 +61,9 @@ export interface AgWaterfallSeriesThemeableOptions<DatumType = any> extends AgBa
 }
 
 /** Configuration for Waterfall series. */
-export interface AgWaterfallSeriesOptions<DatumType = any>
-    extends AgWaterfallSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgWaterfallSeriesOptions<TDatum = any>
+    extends AgWaterfallSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     /** Configuration for the Waterfall series. */
     type: 'waterfall';
     /** The key to use to retrieve x-values from the data. */
@@ -77,17 +76,15 @@ export interface AgWaterfallSeriesOptions<DatumType = any>
     yName?: string;
     /** Configuration of total and subtotal values. */
     totals?: WaterfallSeriesTotalMeta[];
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
 }
 
-export interface AgWaterfallSeriesItem<DatumType> {
+export interface AgWaterfallSeriesItem<TDatum> {
     /** Configuration for the negative series items. */
-    negative?: AgWaterfallSeriesItemOptions<DatumType>;
+    negative?: AgWaterfallSeriesItemOptions<TDatum>;
     /** Configuration for the positive series items. */
-    positive?: AgWaterfallSeriesItemOptions<DatumType>;
+    positive?: AgWaterfallSeriesItemOptions<TDatum>;
     /** Configuration for the total and subtotal series items. */
-    total?: AgWaterfallSeriesItemOptions<DatumType>;
+    total?: AgWaterfallSeriesItemOptions<TDatum>;
 }
 
 export interface WaterfallSeriesTotalMeta {
@@ -100,7 +97,7 @@ export interface WaterfallSeriesTotalMeta {
     axisLabel: any;
 }
 
-export interface AgWaterfallSeriesItemOptions<DatumType> {
+export interface AgWaterfallSeriesItemOptions<TDatum> {
     /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */
@@ -122,7 +119,7 @@ export interface AgWaterfallSeriesItemOptions<DatumType> {
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgWaterfallSeriesFormatterParams<DatumType>) => AgWaterfallSeriesFormat;
+    formatter?: (params: AgWaterfallSeriesFormatterParams<TDatum>) => AgWaterfallSeriesFormat;
     /** Series item specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesItemTooltip;
 }

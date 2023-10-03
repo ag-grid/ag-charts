@@ -1,4 +1,3 @@
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { PixelSize } from '../../chart/types';
@@ -58,6 +57,4 @@ export interface AgBubbleSeriesOptions<TDatum = any>
     labelKey?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     labelName?: string;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
 }

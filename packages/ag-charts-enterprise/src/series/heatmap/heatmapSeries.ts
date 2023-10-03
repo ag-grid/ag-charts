@@ -3,7 +3,6 @@ import type {
     AgHeatmapSeriesFormatterParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
@@ -449,26 +448,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             content = `<b>${sanitizeHtml(labelName || labelKey)}</b>: ${sanitizeHtml(labelValue)}<br>` + content;
         }
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xValue,
-            xName,
-            yKey,
-            yValue,
-            yName,
-            labelKey,
-            labelName,
-            title,
-            color,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                seriesId,
+                datum,
+                xKey,
+                yKey,
+                labelKey,
+                xName,
+                yName,
+                labelName,
+                title,
+                color,
+            }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {

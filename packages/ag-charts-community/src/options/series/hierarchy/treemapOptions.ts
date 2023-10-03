@@ -1,5 +1,4 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, DataValue, Opacity, PixelSize, TextWrap } from '../../chart/types';
@@ -139,8 +138,6 @@ export interface AgTreemapSeriesOptions<TDatum = any>
     sizeKey?: string;
     /** The name of the node key containing the color value. This value (along with `colorDomain` and `colorRange` configs) will be used to determine the tile color. */
     colorKey?: string;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
 }
 
 /** The parameters of the treemap series formatter function */

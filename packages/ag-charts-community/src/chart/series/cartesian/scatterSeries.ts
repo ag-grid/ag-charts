@@ -405,10 +405,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yKey,
-            yValue,
             yName,
             labelKey,
             labelName,

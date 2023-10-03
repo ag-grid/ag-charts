@@ -1,5 +1,4 @@
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -33,8 +32,6 @@ export interface AgLineSeriesOptions<TDatum = any>
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
     /** Configuration for the series error bars. */
     errorBar?: AgErrorBarOptions;
 }

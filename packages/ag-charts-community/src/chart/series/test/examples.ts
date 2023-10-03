@@ -1,12 +1,9 @@
-import type { AgChartLabelOptions } from '../../../options/agChartOptions';
 import type {
     AgAreaSeriesOptions,
     AgCartesianChartOptions,
+    AgChartLabelOptions,
     AgHierarchyChartOptions,
-    AgHistogramSeriesOptions,
-    AgLineSeriesOptions,
     AgPolarChartOptions,
-    AgScatterSeriesOptions,
 } from '../../../options/agChartOptions';
 import { DATA_APPLE_REVENUE_BY_PRODUCT, DATA_BROWSER_MARKET_SHARE } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
@@ -347,7 +344,7 @@ export const GROUPED_AREA_SERIES_LABELS: AgCartesianChartOptions = {
                 label: {
                     enabled: true,
                 },
-            } as AgAreaSeriesOptions;
+            };
         }) ?? []),
     ],
 };
@@ -356,28 +353,14 @@ export const LINE_SERIES_LABELS: AgCartesianChartOptions = {
     ...LINE_WITH_GAPS_EXAMPLE,
     series: [
         ...(LINE_WITH_GAPS_EXAMPLE.series?.slice(0, 3).map((s: any) => {
-            return {
-                ...s,
-                label: {
-                    enabled: true,
-                },
-            } as AgLineSeriesOptions;
+            return { ...s, label: { enabled: true } };
         }) ?? []),
     ],
 };
 
 export const HISTOGRAM_SERIES_LABELS: AgCartesianChartOptions = {
     ...HISTOGRAM_EXAMPLE,
-    series: [
-        ...(HISTOGRAM_EXAMPLE.series?.map((s: any) => {
-            return {
-                ...s,
-                label: {
-                    enabled: true,
-                },
-            } as AgHistogramSeriesOptions;
-        }) ?? []),
-    ],
+    series: [...(HISTOGRAM_EXAMPLE.series?.map((s: any) => ({ ...s, label: { enabled: true } })) ?? [])],
 };
 
 export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
@@ -390,7 +373,7 @@ export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
                 label: {
                     enabled: true,
                 },
-            } as AgScatterSeriesOptions;
+            };
         }) ?? []),
     ],
 };
@@ -398,16 +381,12 @@ export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
 export const GROUPED_SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
     ...GROUPED_LINE_EXAMPLE,
     series: [
-        ...(GROUPED_LINE_EXAMPLE.series?.map((s: any) => {
-            return {
-                ...s,
-                type: 'scatter' as const,
-                labelKey: 'magnitude',
-                label: {
-                    enabled: true,
-                },
-            } as AgScatterSeriesOptions;
-        }) ?? []),
+        ...(GROUPED_LINE_EXAMPLE.series?.map((s: any) => ({
+            ...s,
+            type: 'scatter',
+            labelKey: 'magnitude',
+            label: { enabled: true },
+        })) ?? []),
     ],
 };
 
@@ -421,7 +400,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 label: {
                     enabled: true,
                 },
-            } as AgScatterSeriesOptions;
+            };
         }) ?? []),
     ],
     axes: [

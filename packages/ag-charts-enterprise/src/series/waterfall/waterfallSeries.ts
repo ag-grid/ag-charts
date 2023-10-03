@@ -97,7 +97,7 @@ class WaterfallSeriesItem {
     tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat = undefined;
+    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat;
 
     shadow?: _Scene.DropShadow = undefined;
 
@@ -737,26 +737,13 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
         const title = sanitizeHtml(yName);
         const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` + `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
+            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
+            `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return this.tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xValue,
-            xName,
-            yKey,
-            yValue,
-            yName,
-            color,
-            seriesId,
-            itemId,
-        });
+        return this.tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            { seriesId, itemId, datum, xKey, yKey, xName, yName, color }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {

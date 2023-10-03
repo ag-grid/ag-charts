@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/agChartOptions';
+import type { AgBarSeriesOptions, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
@@ -8,6 +8,7 @@ import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { SeriesItemHighlightStyle } from '../series';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+
 
 export type RectConfig = {
     fill: string;
@@ -66,7 +67,7 @@ export function getRectConfig<
     isHighlighted: boolean;
     style: RectConfig;
     highlightStyle: SeriesItemHighlightStyle;
-    formatter?: (params: Params & ExtraParams) => AgBarSeriesFormat;
+    formatter?: (params: Params & ExtraParams) => AgBarSeriesStyle;
     seriesId: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
@@ -76,7 +77,7 @@ export function getRectConfig<
     const fillOpacity = isHighlighted ? highlightStyle.fillOpacity ?? style.fillOpacity : style.fillOpacity;
     const { strokeOpacity, fillShadow, lineDash, lineDashOffset } = style;
 
-    let format: AgBarSeriesFormat | undefined = undefined;
+    let format: AgBarSeriesStyle | undefined = undefined;
     if (formatter) {
         format = callbackCache.call(formatter as any, {
             datum: datum.datum,

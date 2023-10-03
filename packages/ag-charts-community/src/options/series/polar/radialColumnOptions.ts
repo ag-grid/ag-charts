@@ -1,4 +1,3 @@
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart/types';
@@ -37,9 +36,6 @@ export interface AgBaseRadialColumnSeriesOptions<TDatum = any>
     stacked?: boolean;
     /** An ID to be used to group stacked items. */
     stackGroup?: string;
-
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
 }
 
 export interface AgRadialColumnSeriesThemeableOptions<TDatum = any>

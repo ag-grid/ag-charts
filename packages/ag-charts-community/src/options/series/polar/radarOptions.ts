@@ -1,4 +1,3 @@
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
@@ -33,9 +32,6 @@ export interface AgBaseRadarSeriesOptions<TDatum = any>
     radiusKey: string;
     /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     radiusName?: string;
-
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
 }
 
 export interface AgRadarSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {

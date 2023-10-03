@@ -1,25 +1,22 @@
+import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeBarSeriesFormatterParams<DatumType> {
-    readonly datum: DatumType;
-    readonly lowValue: number;
-    readonly highValue: number;
-    readonly fill?: CssColor;
-    readonly stroke?: CssColor;
-    readonly strokeWidth: PixelSize;
+export interface AgRangeBarSeriesFormatterParams<TDatum>
+    extends AgChartCallbackParams<TDatum>,
+        FillOptions,
+        StrokeOptions {
+    readonly itemId: string;
     readonly highlighted: boolean;
     readonly xKey: string;
     readonly yLowKey: string;
     readonly yHighKey: string;
     readonly labelKey?: string;
-    readonly seriesId: string;
-    readonly itemId: string;
 }
 
 export interface AgRangeBarSeriesFormat {
@@ -57,7 +54,7 @@ export interface AgRangeBarSeriesLabelOptions extends AgChartLabelOptions {
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgRangeBarSeriesThemeableOptions<DatumType = any> extends AgBaseSeriesThemeableOptions {
+export interface AgRangeBarSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
     /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
@@ -83,13 +80,13 @@ export interface AgRangeBarSeriesThemeableOptions<DatumType = any> extends AgBas
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgRangeBarSeriesFormatterParams<DatumType>) => AgRangeBarSeriesFormat;
+    formatter?: (params: AgRangeBarSeriesFormatterParams<TDatum>) => AgRangeBarSeriesFormat;
 }
 
 /** Configuration for RangeBar series. */
-export interface AgRangeBarSeriesOptions<DatumType = any>
-    extends AgRangeBarSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgRangeBarSeriesOptions<TDatum = any>
+    extends AgRangeBarSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     /** Configuration for the RangeBar series. */
     type: 'range-bar';
     /** The key to use to retrieve x-values from the data. */
@@ -106,8 +103,6 @@ export interface AgRangeBarSeriesOptions<DatumType = any>
     yHighName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
 }
 
 /**

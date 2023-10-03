@@ -1,5 +1,4 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type {
@@ -24,7 +23,7 @@ export interface AgPieSeriesLabelOptions<TParams> extends AgChartLabelOptions<TP
     avoidCollisions?: boolean;
 }
 
-export interface AgPieSeriesSectorLabelOptions<TParams> extends AgChartLabelOptions<TParams> {
+export interface AgPieSeriesSectorLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to pie radius (or doughnut thickness). Additional offset in pixels can be applied by using positionOffset. */
@@ -112,7 +111,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     /** Configuration for the labels used outside of the sectors. */
     calloutLabel?: AgPieSeriesLabelOptions<AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgPieSeriesSectorLabelOptions<AgPieSeriesLabelFormatterParams<TDatum>>;
+    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
@@ -180,8 +179,6 @@ export interface AgPieSeriesOptions<TDatum = any>
     legendItemKey?: string;
     /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
     innerLabels?: AgDoughnutInnerLabel[];
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
 }
 
 export interface AgPieSeriesTooltipRendererParams extends AgPolarSeriesTooltipRendererParams {

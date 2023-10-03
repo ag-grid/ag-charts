@@ -88,12 +88,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             ],
         });
 
-        const { marker, label } = this;
-
-        marker.fill = '#c16068';
-        marker.stroke = '#874349';
-
-        label.enabled = false;
+        // this.marker.fill = '#c16068';
+        // this.marker.stroke = '#874349';
     }
 
     @Validate(OPT_STRING)
@@ -231,6 +227,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 } else if (yDatum) {
                     labelText = String(yDatum);
                 }
+
                 nodeData[actualLength++] = {
                     series: this,
                     datum,
@@ -435,10 +432,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yKey,
-            yValue,
             yName,
             title,
             color,

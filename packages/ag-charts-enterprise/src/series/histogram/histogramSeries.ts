@@ -509,7 +509,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const {
             aggregatedValue,
             frequency,
-            domain,
             domain: [rangeMin, rangeMax],
         } = nodeDatum;
         const title = `${sanitizeHtml(xName ?? xKey)}: ${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`;
@@ -533,10 +532,8 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 frequency: nodeDatum.frequency,
             },
             xKey,
-            xValue: domain,
             xName,
             yKey,
-            yValue: aggregatedValue,
             yName,
             color,
             title,
