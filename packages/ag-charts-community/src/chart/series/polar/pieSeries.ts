@@ -380,7 +380,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         }
     }
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         let { data = [] } = this;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, seriesItemEnabled } = this;
 
@@ -427,7 +427,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
                 accumulativeValueProperty(this, angleKey, true, { id: `angleValue` }),
@@ -436,8 +436,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 ...extraProps,
             ],
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         if (processedData?.reduced?.diff?.added.length > 0 && processedData?.reduced?.diff?.removed.length > 0) {
             this.animationState.transition('clear');

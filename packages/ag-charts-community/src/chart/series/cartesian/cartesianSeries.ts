@@ -18,11 +18,11 @@ import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { DataModel, ProcessedData } from '../../data/dataModel';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
+import { DataModelSeries } from '../dataModelSeries';
 import type {
     SeriesNodeDataContext,
     SeriesNodeDatum,
@@ -30,7 +30,7 @@ import type {
     SeriesNodePickMatch,
     SeriesNodePickMode,
 } from '../series';
-import { Series, SeriesNodeClickEvent } from '../series';
+import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesMarker } from '../seriesMarker';
 
@@ -107,7 +107,7 @@ export abstract class CartesianSeries<
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<TDatum, TLabel, TContext> {
+> extends DataModelSeries<TDatum, TLabel, TContext> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
 
@@ -132,9 +132,6 @@ export abstract class CartesianSeries<
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
     protected datumSelectionGarbageCollection = true;
     protected markerSelectionGarbageCollection = true;
-
-    protected dataModel?: DataModel<any, any, any>;
-    protected processedData?: ProcessedData<any>;
 
     protected constructor({
         pathsPerSeries = 1,

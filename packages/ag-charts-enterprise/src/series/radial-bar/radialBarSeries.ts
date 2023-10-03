@@ -169,7 +169,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [], visible } = this;
         const { angleKey, radiusKey } = this;
 
@@ -185,7 +185,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, radiusKey, false, { id: 'radiusValue' }),
                 valueProperty(this, angleKey, true, { id: 'angleValue-raw', invalidValue: undefined }),
@@ -203,9 +203,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             ],
             dataVisible: visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };

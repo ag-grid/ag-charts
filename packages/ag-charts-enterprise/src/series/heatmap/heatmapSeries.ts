@@ -20,7 +20,7 @@ const {
     OPT_COLOR_STRING,
 } = _ModuleSupport;
 const { Rect } = _Scene;
-const { ContinuousScale, ColorScale } = _Scale;
+const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
 interface HeatmapNodeDatum extends Required<_ModuleSupport.CartesianSeriesNodeDatum> {
@@ -112,7 +112,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         this.colorScale = new ColorScale();
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey = '', yKey = '', axes, labelKey } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -123,14 +123,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         }
 
         const data = xKey && yKey && this.data ? this.data : [];
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
-        const isContinuousX = xScale instanceof ContinuousScale;
-        const isContinuousY = yScale instanceof ContinuousScale;
+
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
-        const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
+        const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data ?? [], {
             props: [
                 valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yKey, isContinuousY, { id: 'yValue' }),
@@ -138,8 +136,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
             ],
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;

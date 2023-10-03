@@ -406,7 +406,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         });
     }
 
-    async processData() {
+    override async processData() {
         if (!this.data) {
             return;
         }

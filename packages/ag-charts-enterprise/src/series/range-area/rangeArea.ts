@@ -29,7 +29,7 @@ const {
     areaAnimateReadyUpdate,
     AreaSeriesTag,
 } = _ModuleSupport;
-const { getMarker, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
+const { getMarker, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
 const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside', 'outside'];
@@ -170,15 +170,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
         if (!yLowKey || !yHighKey) return;
 
-        const isContinuousX = this.axes[ChartAxisDirection.X]?.scale instanceof ContinuousScale;
-        const isContinuousY = this.axes[ChartAxisDirection.Y]?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
@@ -194,8 +193,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {

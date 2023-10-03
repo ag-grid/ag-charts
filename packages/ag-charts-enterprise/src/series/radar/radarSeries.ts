@@ -180,20 +180,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [] } = this;
         const { angleKey, radiusKey } = this;
 
         if (!angleKey || !radiusKey) return;
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 valueProperty(this, angleKey, false, { id: 'angleValue' }),
                 valueProperty(this, radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
             ],
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
