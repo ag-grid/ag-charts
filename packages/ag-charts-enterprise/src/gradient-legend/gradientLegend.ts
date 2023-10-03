@@ -275,7 +275,7 @@ export class GradientLegend {
             colorDomain = colorDomain.slice().reverse();
         }
 
-        const format = this.getLabelFormatter();
+        const format = this.getLabelFormatter(colorDomain);
 
         const setTextPosition = (node: _Scene.Text, index: number) => {
             const t = index / (colorDomain.length - 1);
@@ -375,18 +375,21 @@ export class GradientLegend {
         arrow.visible = true;
     }
 
-    private getLabelFormatter() {
+    private getLabelFormatter(colorDomain: number[]) {
         const formatter = this.stop.label.formatter;
         if (formatter) {
             return (d: number) => this.ctx.callbackCache.call(formatter, { value: d } as any);
         }
-        return (x: number) => String(x);
+        const d = colorDomain;
+        const step = d.length > 1 ? (d[1] - d[0]) / d.length : 0;
+        const l = Math.floor(Math.log10(Math.abs(step)));
+        return (x: number) => typeof x === 'number' ? x.toFixed(l < 0 ? -l : 0) : String(x);
     }
 
     private measureMaxText(colorDomain: number[]) {
         const { label } = this.stop;
         const tempText = new Text();
-        const format = this.getLabelFormatter();
+        const format = this.getLabelFormatter(colorDomain);
         const boxes: _Scene.BBox[] = colorDomain.map((d) => {
             const text = format(d);
             tempText.text = text;
