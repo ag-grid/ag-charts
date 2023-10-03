@@ -176,19 +176,18 @@ export class GradientLegend {
             return { colorDomain, colorRange };
         }
 
-        if (colorDomain.length === 2) {
-            const count = colorRange.length;
-            colorDomain = colorRange.map((_, i) => {
-                const [d0, d1] = colorDomain;
-                if (i === 0) return d0;
-                if (i === count - 1) return d1;
-                return d0 + ((d1 - d0) * i) / (count - 1);
-            });
-        } else if (colorDomain.length > colorRange.length) {
-            colorDomain.splice(colorRange.length);
-        } else {
+        if (colorDomain.length > colorRange.length) {
             colorRange.splice(colorDomain.length);
         }
+
+        const count = colorRange.length;
+        colorDomain = colorRange.map((_, i) => {
+            const [d0, d1] = colorDomain;
+            if (i === 0) return d0;
+            if (i === count - 1) return d1;
+            return d0 + ((d1 - d0) * i) / (count - 1);
+        });
+
         return { colorDomain, colorRange };
     }
 
