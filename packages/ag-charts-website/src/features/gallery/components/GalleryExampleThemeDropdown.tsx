@@ -24,6 +24,14 @@ export const GalleryExampleThemeDropdown: FunctionComponent = () => {
                 <option value="ag-pastel-dark">ag-pastel-dark</option>
                 <option value="ag-solar-dark">ag-solar-dark</option>
                 <option value="ag-vivid-dark">ag-vivid-dark</option>
+                <option value="deordered">deordered</option>
+                <option value="mini-hue">mini-hue</option>
+                <option value="enter">enter</option>
+                <option value='enter'></option>
+                <option value='enterprise-001'>enterprise-001</option>
+                <option value='enterprise-002'>enterprise-002</option>
+                <option value='enterprise-003'>enterprise-003</option>
+                <option value='excel'>excel</option>
             </select>
         </div>
     );
