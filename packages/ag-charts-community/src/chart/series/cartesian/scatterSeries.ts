@@ -23,6 +23,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
@@ -456,7 +457,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     override animateEmptyUpdateReady(animationData: ScatterAnimationData) {
         const { markerSelections, labelSelections } = animationData;
         const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
 
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready_markers`,
@@ -478,20 +478,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             },
         });
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                labelSelections.forEach((labelSelection) => {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyResize({ markerSelections }: ScatterAnimationData) {

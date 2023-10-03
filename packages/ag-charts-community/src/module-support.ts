@@ -32,6 +32,7 @@ export * from './chart/interaction/zoomManager';
 export * from './chart/layers';
 export * from './chart/series/series';
 export * from './chart/series/seriesEvents';
+export * from './chart/series/seriesLabelUtil';
 export * from './chart/series/seriesMarker';
 export * from './chart/series/seriesTooltip';
 export * from './chart/series/cartesian/cartesianSeries';

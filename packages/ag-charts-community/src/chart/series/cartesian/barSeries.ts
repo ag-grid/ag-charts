@@ -45,6 +45,7 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { RectConfig } from './barUtil';
 import {
@@ -651,16 +652,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         );
 
         fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
-
-        const duration = this.ctx.animationManager.defaultDuration;
-        staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: 200 }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyHighlight(highlightSelection: Selection<Rect, BarNodeDatum>) {

@@ -23,6 +23,7 @@ const {
     Validate,
     valueProperty,
     fixNumericExtent,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -700,18 +701,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             });
         });
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: markerDelay,
-            duration: markerDuration,
-            onUpdate: (opacity) => {
-                labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
     override animateReadyUpdate() {
