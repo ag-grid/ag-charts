@@ -24,6 +24,7 @@ const {
     getMarkerConfig,
     updateMarker,
     updateLabel,
+    fixNumericExtent,
     areaAnimateEmptyUpdateReady,
     areaAnimateReadyUpdate,
     AreaSeriesTag,
@@ -197,7 +198,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         this.processedData = processedData;
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -216,7 +217,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 return keys;
             }
 
-            return this.fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys), xAxis);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
             const yLowExtent = values[yLowIndex];
@@ -226,7 +227,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return this.fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent as any);
         }
     }
 

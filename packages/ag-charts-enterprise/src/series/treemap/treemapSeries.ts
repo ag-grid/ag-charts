@@ -861,7 +861,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         return labelMeta;
     }
 
-    getDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [0, 1];
     }
 

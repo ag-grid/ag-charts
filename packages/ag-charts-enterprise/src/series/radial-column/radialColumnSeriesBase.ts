@@ -25,6 +25,7 @@ const {
     keyProperty,
     normaliseGroupTo,
     valueProperty,
+    fixNumericExtent,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -160,7 +161,7 @@ export abstract class RadialColumnSeriesBase<
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -170,7 +171,7 @@ export abstract class RadialColumnSeriesBase<
             const radiusAxis = axes[ChartAxisDirection.Y];
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, radiusAxis);
+            return fixNumericExtent(fixedYExtent as any, radiusAxis);
         }
     }
 

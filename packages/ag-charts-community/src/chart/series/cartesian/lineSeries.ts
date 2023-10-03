@@ -21,6 +21,7 @@ import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
+import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -146,7 +147,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         }
 
         const listenerProps: (typeof props)[] =
-            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
+            this.dispatch('data-prerequest', { isContinuousX, isContinuousY }) ?? [];
         for (const moreProps of listenerProps) {
             props.push(...moreProps);
         }
@@ -156,6 +157,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
         this.dataModel = dataModel;
         this.processedData = processedData;
+        this.dispatch('data-processed', { dataModel, processedData });
 
         // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
         if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {
@@ -165,7 +167,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         }
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -179,10 +181,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 return domain;
             }
 
-            return this.fixNumericExtent(extent(domain), xAxis);
+            return fixNumericExtent(extent(domain), xAxis);
         } else {
             const domain = dataModel.getDomain(this, `yValue`, 'value', processedData);
-            return this.fixNumericExtent(domain as any, yAxis);
+            return fixNumericExtent(domain as any, yAxis);
         }
     }
 

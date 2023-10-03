@@ -15,6 +15,7 @@ const {
     ChartAxisDirection,
     extent,
     extractDecoratedProperties,
+    fixNumericExtent,
     keyProperty,
     mergeDefaults,
     NUMBER,
@@ -191,7 +192,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         };
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -199,7 +200,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return this.fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
+            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
         }
 
         const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -210,7 +211,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
 
         const keysExtent = extent(keys) ?? [NaN, NaN];
         const scalePadding = smallestDataInterval && isFinite(smallestDataInterval.x) ? smallestDataInterval.x : 0;
-        return this.fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
+        return fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
     }
 
     async createNodeData() {

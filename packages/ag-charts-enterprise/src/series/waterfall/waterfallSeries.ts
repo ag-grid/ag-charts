@@ -11,6 +11,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 const {
     Validate,
     SeriesNodePickMode,
+    fixNumericExtent,
     valueProperty,
     keyProperty,
     accumulativeValueProperty,
@@ -307,7 +308,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         this.updateSeriesItemTypes();
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -324,7 +325,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
             const yExtent = values[yCurrIndex];
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent as any);
         }
     }
 

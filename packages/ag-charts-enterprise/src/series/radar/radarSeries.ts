@@ -22,6 +22,7 @@ const {
     STRING,
     Validate,
     valueProperty,
+    fixNumericExtent,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -166,7 +167,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -175,7 +176,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         } else {
             const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
             const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
-            return this.fixNumericExtent(ext);
+            return fixNumericExtent(ext);
         }
     }
 

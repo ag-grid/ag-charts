@@ -26,6 +26,7 @@ const {
     keyProperty,
     normaliseGroupTo,
     valueProperty,
+    fixNumericExtent,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -154,7 +155,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -162,7 +163,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const angleAxis = axes[ChartAxisDirection.X];
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData);
             const fixedXExtent = [xExtent[0] > 0 ? 0 : xExtent[0], xExtent[1] < 0 ? 0 : xExtent[1]];
-            return this.fixNumericExtent(fixedXExtent as any, angleAxis);
+            return fixNumericExtent(fixedXExtent as any, angleAxis);
         } else {
             return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
         }
