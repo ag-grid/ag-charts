@@ -1,11 +1,12 @@
-import type {
-    AgBoxPlotSeriesFormatterParams,
-    AgBoxPlotSeriesStyles,
-    AgBoxPlotSeriesTooltipRendererParams,
+import {
+    type AgBoxPlotSeriesFormatterParams,
+    type AgBoxPlotSeriesStyles,
+    type AgBoxPlotSeriesTooltipRendererParams,
     _Scene,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 
+import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
@@ -28,6 +29,7 @@ const {
     Validate,
     valueProperty,
 } = _ModuleSupport;
+const { motion } = _Scene;
 
 export class BoxPlotSeriesNodeBaseClickEvent<
     Datum extends { datum: any },
@@ -450,36 +452,17 @@ export class BoxPlotSeries extends CartesianSeries<
         datumSelections,
     }: _ModuleSupport.CartesianAnimationData<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>, BoxPlotGroup>) {
         const isVertical = this.direction === 'vertical';
-        datumSelections.forEach((datumSelection) => {
-            datumSelection.each((boxPlotGroup, datum) => {
-                if (isVertical) {
-                    boxPlotGroup.scalingCenterY = datum.scaledValues.medianValue;
-                } else {
-                    boxPlotGroup.scalingCenterX = datum.scaledValues.medianValue;
-                }
-            });
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready`,
-                from: 0,
-                to: 1,
-                ease: _ModuleSupport.Motion.easeOut,
-                onUpdate(value) {
-                    datumSelection.each((boxPlotGroup) => {
-                        if (isVertical) {
-                            boxPlotGroup.scalingY = value;
-                        } else {
-                            boxPlotGroup.scalingX = value;
-                        }
-                    });
-                },
-                onStop() {
-                    datumSelection.each((boxPlotGroup) => {
-                        boxPlotGroup.scalingX = 1;
-                        boxPlotGroup.scalingY = 1;
-                    });
-                },
-            });
-        });
+
+        motion.resetMotion(datumSelections, resetBoxPlotSelectionsScalingCenterFn(isVertical));
+
+        const { from, to } = prepareBoxPlotFromTo(isVertical);
+        motion.staticFromToMotion(
+            `${this.id}_empty-update-ready`,
+            this.ctx.animationManager,
+            datumSelections,
+            from,
+            to
+        );
     }
 
     protected isLabelEnabled(): boolean {
