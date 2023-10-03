@@ -6,44 +6,14 @@ enterprise: true
 Error Bars show the uncertainty of continuous data values. They can be enabled
 on Line, Bar and Scatter Series.
 
-## Line Series Error Bars
+## Single Error Bars
 
-{% chartExampleRunner title="Line Series Error Bars" name="line-series-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Line Series Error Bars" name="single" type="generated" options="{ \"enterprise\": true }" /%}
 
-Error Bars can be enabled on Line Series using the `errorBars` key.
+Error Bars can be enabled on Line and Bar Series using the `errorBars` key.
 
-The `yLowerKey` and `yUpperKey` defines the keys used to retrieve the error
-values from the data.
-
-```js
-data: [
-    {
-        month: 'Jan',
-        temperature: 35,
-        temperatureLower: 32,
-        temperatureUpper: 37,
-    },
-],
-series: [
-    {
-        xKey: 'month',
-        yKey: 'temperature' ,
-        errorBar: {
-            yLowerKey: 'temperatureLower',
-            yUpperKey: 'temperatureUpper',
-        },
-    },
-],
-```
-
-## Bar Series Error Bars
-
-{% chartExampleRunner title="Bar Series Error Bars" name="bar-series-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
-
-Error Bars can be enabled on Bar Series using the `errorBars` key.
-
-The `yLowerKey` and `yUpperKey` defines the keys used to retrieve the error
-values from the data.
+The required `yLowerKey` and `yUpperKey` defines the keys used to retrieve the
+error values from the data.
 
 ```js
 data: [
@@ -56,7 +26,6 @@ data: [
 ],
 series: [
     {
-        type: 'bar',
         xKey: 'month',
         yKey: 'temperature' ,
         errorBar: {
@@ -69,7 +38,7 @@ series: [
 
 ## Scatter Series Error Bars
 
-{% chartExampleRunner title="Scatter Series Error Bars" name="scatter-series-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Scatter Series Error Bars" name="double" type="generated" options="{ \"enterprise\": true }" /%}
 
 Error Bars can be enabled on Scatter Series using the `errorBars` key.
 
