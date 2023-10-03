@@ -1,5 +1,5 @@
-import type { AgChartLabelOptions } from '../../agChartOptions';
 import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
