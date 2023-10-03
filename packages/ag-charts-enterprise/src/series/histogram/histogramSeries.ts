@@ -41,7 +41,7 @@ const {
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
-    seriesLabelFadeInAnimation: seriesLabelAnimation,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 const { Rect, Label, PointerEvents, motion } = _Scene;
 const { ticks, sanitizeHtml, tickStep } = _Util;
@@ -584,7 +584,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
-        seriesLabelAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
@@ -631,16 +631,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             diff
         );
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-        motion.staticFromToMotion(
-            `${this.id}_waiting-update-ready_labels`,
-            animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     getDatumId(datum: HistogramNodeDatum) {

@@ -11,7 +11,7 @@ export function seriesLabelFadeInAnimation<T>(
 ) {
     const duration = animationManager.defaultDuration;
     staticFromToMotion(
-        `${id}_empty-update-ready_labels`,
+        `${id}_labels`,
         animationManager,
         labelSelections,
         { opacity: 0 },

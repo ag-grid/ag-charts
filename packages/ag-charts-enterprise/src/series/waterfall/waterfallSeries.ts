@@ -36,6 +36,7 @@ const {
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
@@ -807,7 +808,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const { animationManager } = this.ctx;
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
 
         const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
@@ -816,16 +816,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         );
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-        motion.staticFromToMotion(
-            `${this.id}empty-update-ready_labels`,
-            animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
             if (contextDataIndex !== 0 || !pointData) {

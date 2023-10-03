@@ -692,16 +692,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             diff
         );
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-        staticFromToMotion(
-            `${this.id}_waiting-update-ready_labels`,
-            animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     protected isLabelEnabled() {
