@@ -1,6 +1,7 @@
 import type {
     AgHeatmapSeriesFormat,
     AgHeatmapSeriesFormatterParams,
+    AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -18,7 +19,7 @@ const {
     OPT_NUMBER_ARRAY,
     OPT_COLOR_STRING,
 } = _ModuleSupport;
-const { Rect, Label } = _Scene;
+const { Rect } = _Scene;
 const { ContinuousScale, ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
@@ -41,11 +42,16 @@ class HeatmapSeriesNodeClickEvent<
     }
 }
 
+class HeatmapSeriesLabel extends _Scene.Label {
+    @Validate(OPT_FUNCTION)
+    formatter?: (params: AgHeatmapSeriesLabelFormatterParams) => string = undefined;
+}
+
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum> {
     static className = 'HeatmapSeries';
     static type = 'heatmap' as const;
 
-    readonly label = new Label();
+    readonly label = new HeatmapSeriesLabel();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -170,7 +176,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     async createNodeData() {
-        const { data, visible, axes, dataModel } = this;
+        const {
+            data,
+            visible,
+            axes,
+            dataModel,
+            ctx: { callbackCache },
+        } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -209,7 +221,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const text = labelKey ? String(values[labelDataIdx]) : colorKey ? String(values[colorDataIdx]) : '';
+            const labelValue = labelKey ? values[labelDataIdx] : colorKey ? values[colorDataIdx] : '';
+            let text: string;
+            if (label.formatter) {
+                const labelFormatterParams = {
+                    seriesId: this.id,
+                    value: labelValue,
+                };
+                text = callbackCache.call(label.formatter, labelFormatterParams) ?? '';
+            } else {
+                text = String(labelValue);
+            }
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;

@@ -19,14 +19,14 @@ const options: AgChartOptions = {
 
             colorKey: 'temperature',
             colorName: 'Temperature',
-            colorRange: [
-                '#4A90E2',
-                '#FF6B6B',
-            ],
-            colorDomain: [
-                0,
-                20,
-            ],
+
+            labelKey: 'temperature',
+            label: {
+                enabled: true,
+                formatter: ({ value }) => {
+                    return `${value.toFixed(0)}°C`;
+                },
+            },
         },
     ],
 };
