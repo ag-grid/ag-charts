@@ -101,3 +101,61 @@ series: [
     },
 ],
 ```
+
+## Tooltip Parameters
+
+{% chartExampleRunner title="Error Bars Tooltips" name="tooltips-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
+
+[Tooltips](./tooltips) are not shown by default, but error bar parameters are
+provided the `renderer` for customization.
+
+```js
+function renderer(params: AgScatterSeriesTooltipRendererParams) {
+    return {
+        title: `${params.xValue}m³ / ${params.yValue}kPa`,
+        content: '<ul>'+
+            `<li>${params.xUpperName}: ${params.xUpperValue}m³</li>`+
+            `<li>${params.xLowerName}: ${params.xLowerValue}m³</li>`+
+            `<li>${params.yUpperName}: ${params.yUpperValue}kPa</li>`+
+            `<li>${params.yLowerName}: ${params.yLowerValue}kPa</li>`+
+            '</ul>'
+    }
+}
+
+const options: AgChartOptions = {
+    series: [
+        {
+            type: 'scatter',
+            xKey: 'volume',
+            yKey: 'pressure',
+            errorBar:  {
+                xLowerKey: 'volumeLower',
+                xUpperKey: 'volumeUpper',
+                yLowerKey: 'pressureLower',
+                yUpperKey: 'pressureUpper',
+                xLowerName: 'Volume (lower bound)',
+                xUpperName: 'Volume (upper bound)',
+            },
+            tooltip: { renderer: renderer },
+        },
+    ],
+};
+```
+
+The `renderer` has access to the keys, names, and values for the error data for
+both axes:
+
+-   `xLowerKey`
+-   `xLowerValue`
+-   `xLowerName`
+-   `xUpperKey`
+-   `xUpperValue`
+-   `xUpperName`
+-   `yLowerKey`
+-   `yLowerValue`
+-   `yLowerName`
+-   `yUpperKey`
+-   `yUpperValue`
+-   `yUpperName`
+
+The optional names will default to keys if unset.
