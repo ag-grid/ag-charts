@@ -8,6 +8,10 @@
       "executor": "nx:noop",
       "dependsOn": ["^build"]
     },
+    "build-tsc": {
+      "executor": "nx:noop",
+      "dependsOn": ["^build-tsc"]
+    },
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["^lint"],

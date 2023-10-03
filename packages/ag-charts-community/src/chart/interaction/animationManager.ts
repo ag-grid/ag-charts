@@ -1,4 +1,4 @@
-import type { AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
+import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import type { Mutex } from '../../util/mutex';
@@ -10,13 +10,6 @@ type AnimationEventType = 'animation-frame';
 interface AnimationEvent {
     type: AnimationEventType;
     deltaMs: number;
-}
-
-interface AdditionalAnimationOptions {
-    id?: string;
-    disableInteractions?: boolean;
-    immutable?: boolean;
-    shortCircuitId?: string;
 }
 
 /**

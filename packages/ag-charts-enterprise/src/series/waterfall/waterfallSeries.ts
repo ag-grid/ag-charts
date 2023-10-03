@@ -6,7 +6,7 @@ import type {
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesTooltipRendererParams,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
     Validate,
@@ -17,7 +17,6 @@ const {
     trailingAccumulatedValueProperty,
     ChartAxisDirection,
     CartesianSeriesNodeClickEvent,
-    CartesianSeriesNodeDoubleClickEvent,
     OPTIONAL,
     NUMBER,
     OPT_NUMBER,
@@ -63,35 +62,16 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly strokeWidth: number;
 }
 
-type WaterfallContext = _ModuleSupport.SeriesNodeDataContext<WaterfallNodeDatum> & {
+interface WaterfallContext extends _ModuleSupport.SeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
-};
-
-type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<WaterfallContext, _Scene.Rect>;
-
-class WaterfallSeriesNodeBaseClickEvent extends _ModuleSupport.CartesianSeriesNodeBaseClickEvent<any> {
-    readonly labelKey?: string;
-
-    constructor(
-        labelKey: string | undefined,
-        xKey: string,
-        yKey: string,
-        nativeEvent: MouseEvent,
-        datum: WaterfallNodeDatum,
-        series: WaterfallSeries
-    ) {
-        super(xKey, yKey, nativeEvent, datum, series);
-        this.labelKey = labelKey;
-    }
 }
 
-export class WaterfallSeriesNodeClickEvent extends WaterfallSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeClick';
-}
-
-export class WaterfallSeriesNodeDoubleClickEvent extends WaterfallSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeDoubleClick';
-}
+type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
+    _Scene.Rect,
+    WaterfallNodeDatum,
+    WaterfallNodeDatum,
+    WaterfallContext
+>;
 
 class WaterfallSeriesItemTooltip {
     @Validate(OPT_FUNCTION)
@@ -177,7 +157,12 @@ interface TotalMeta {
     axisLabel: any;
 }
 
-export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallContext, _Scene.Rect> {
+export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
+    _Scene.Rect,
+    WaterfallNodeDatum,
+    WaterfallNodeDatum,
+    WaterfallContext
+> {
     static className = 'WaterfallSeries';
     static type = 'waterfall' as const;
 
@@ -342,15 +327,15 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
     protected override getNodeClickEvent(
         event: MouseEvent,
         datum: WaterfallNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<any> {
-        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
+    ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: WaterfallNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
+    ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeDoubleClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
@@ -700,7 +685,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<WaterfallCon
         return labelSelection.update(data);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, any> }) {
+    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum> }) {
         const { labelSelection } = opts;
         labelSelection.each((text, datum) => {
             const labelDatum = datum.label;

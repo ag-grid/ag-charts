@@ -10,6 +10,7 @@ import type {
 } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
+import { Group } from '../../../scene/group';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
@@ -28,6 +29,7 @@ import { isContinuous, isNumber } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { SeriesNodeDatum } from '../../chartSeries';
 import type { DataController } from '../../data/dataController';
 import { normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
@@ -46,12 +48,7 @@ import {
     areaResetMarkersAndPaths,
 } from './areaUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import {
-    CartesianSeries,
-    CartesianSeriesMarker,
-    CartesianSeriesNodeClickEvent,
-    CartesianSeriesNodeDoubleClickEvent,
-} from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
@@ -62,7 +59,7 @@ interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
     readonly cumulativeValue: number;
 }
 
-interface LabelSelectionDatum extends Readonly<Point> {
+interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     readonly index: number;
     readonly itemId: any;
     readonly label?: {
@@ -82,14 +79,24 @@ class AreaSeriesLabel extends Label {
     formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
 }
 
-type AreaSeriesNodeDataContext = SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> & {
+interface AreaSeriesNodeDataContext extends SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
-};
+}
 
-type AreaAnimationData = CartesianAnimationData<AreaSeriesNodeDataContext>;
+type AreaAnimationData = CartesianAnimationData<
+    Group,
+    MarkerSelectionDatum,
+    LabelSelectionDatum,
+    AreaSeriesNodeDataContext
+>;
 
-export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
+export class AreaSeries extends CartesianSeries<
+    Group,
+    MarkerSelectionDatum,
+    LabelSelectionDatum,
+    AreaSeriesNodeDataContext
+> {
     static className = 'AreaSeries';
     static type = 'area' as const;
 
@@ -378,7 +385,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
 
                     labelData.push({
                         index: datumIdx,
+                        series: this,
                         itemId: yKey,
+                        datum: seriesDatum,
                         x: point.x,
                         y: point.y,
                         label: labelText
@@ -559,15 +568,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
     protected override getNodeClickEvent(
         event: MouseEvent,
         datum: MarkerSelectionDatum
-    ): CartesianSeriesNodeClickEvent<any> {
-        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
+    ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: MarkerSelectionDatum
-    ): CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', datum.yKey, event, datum, this);
+    ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeDoubleClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: MarkerSelectionDatum): string {
@@ -735,9 +744,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
         const fill = marker.fill ?? styles.fill;
         const stroke = marker.stroke ?? styles.stroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
-        const getFormatterParams = (
-            nodeDatum: MarkerSelectionDatum
-        ): AgCartesianSeriesMarkerFormatterParams<MarkerSelectionDatum> => {
+        const getFormatterParams = (nodeDatum: MarkerSelectionDatum): AgCartesianSeriesMarkerFormatterParams<any> => {
             return {
                 datum: nodeDatum.datum,
                 xKey,
@@ -756,5 +763,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesNodeDataContext> {
 
     protected isLabelEnabled() {
         return this.label.enabled;
+    }
+
+    protected nodeFactory() {
+        return new Group();
     }
 }

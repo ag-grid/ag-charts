@@ -1,7 +1,7 @@
 import { Logger } from './logger';
 
 type LiteralProperties = 'shape' | 'data';
-type SkippableProperties = 'axes' | 'series' | 'container' | 'customChartThemes';
+type SkippableProperties = 'axes' | 'series' | 'container';
 type IsLiteralProperty<T, K extends keyof T> = K extends LiteralProperties
     ? true
     : T[K] extends Array<any>
@@ -145,9 +145,9 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
  * Special value used by `jsonMerge` to signal that a property should be removed from the merged
  * output.
  */
-export const DELETE = Symbol('<delete-property>') as any;
+export const DELETE = Symbol('<delete-property>');
 
-const NOT_SPECIFIED = Symbol('<unspecified-property>') as any;
+const NOT_SPECIFIED = Symbol('<unspecified-property>');
 
 export interface JsonMergeOptions {
     /**
@@ -167,7 +167,7 @@ export interface JsonMergeOptions {
  * @param opts merge options
  * @param opts.avoidDeepClone contains a list of properties where deep clones should be avoided
  *
- * @returns the combination of all of the json inputs
+ * @returns the combination of all the json inputs
  */
 export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
     const avoidDeepClone = opts?.avoidDeepClone ?? [];
@@ -175,7 +175,7 @@ export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
     if (jsonTypes.some((v) => v === 'array')) {
         // Clone final array.
         const finalValue = json[json.length - 1];
-        if (finalValue instanceof Array) {
+        if (Array.isArray(finalValue)) {
             return finalValue.map((v) => {
                 const type = classify(v);
 
@@ -246,6 +246,7 @@ export type JsonApplyParams = {
  *
  * @param target to apply source JSON properties into
  * @param source to be applied
+ * @param params
  * @param params.path path for logging/error purposes, to aid with pinpointing problems
  * @param params.matcherPath path for pattern matching, to lookup allowedTypes override.
  * @param params.skip property names to skip from the source
@@ -361,7 +362,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             }
         } catch (error: any) {
             Logger.warn(`unable to set [${propertyPath}] in [${targetClass?.name}]; nested error is: ${error.message}`);
-            continue;
         }
     }
 
@@ -424,7 +424,7 @@ function classify(value: any): 'array' | 'object' | 'function' | 'primitive' | '
         return null;
     } else if (isBrowser && value instanceof HTMLElement) {
         return 'primitive';
-    } else if (value instanceof Array) {
+    } else if (Array.isArray(value)) {
         return 'array';
     } else if (value instanceof Date) {
         return 'primitive';

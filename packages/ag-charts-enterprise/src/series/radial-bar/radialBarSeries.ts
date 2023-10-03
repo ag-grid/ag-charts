@@ -8,6 +8,7 @@ import type {
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
+import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 
 const {
     ChartAxisDirection,
@@ -19,7 +20,6 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     PolarAxis,
-    StateMachine,
     STRING,
     Validate,
     groupAccumulativeValueProperty,
@@ -32,25 +32,16 @@ const { BandScale } = _Scale;
 const { Group, Sector, Selection, Text } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
-class RadialBarSeriesNodeClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
-    readonly angleKey: string;
-    readonly radiusKey: string;
-
-    constructor(
-        angleKey: string,
-        radiusKey: string,
-        nativeEvent: MouseEvent,
-        datum: RadialBarNodeDatum,
-        series: RadialBarSeries
-    ) {
-        super(nativeEvent, datum, series);
-        this.angleKey = angleKey;
-        this.radiusKey = radiusKey;
+class RadialBarSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeClickEvent<RadialBarNodeDatum, TEvent> {
+    readonly angleKey?: string;
+    readonly radiusKey?: string;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadialBarNodeDatum, series: RadialBarSeries) {
+        super(type, nativeEvent, datum, series);
+        this.angleKey = series.angleKey;
+        this.radiusKey = series.radiusKey;
     }
-}
-
-class RadialBarSeriesNodeDoubleClickEvent extends RadialBarSeriesNodeClickEvent {
-    override readonly type = 'nodeDoubleClick';
 }
 
 interface RadialBarLabelNodeDatum {
@@ -77,9 +68,6 @@ class RadialBarSeriesLabel extends _Scene.Label {
     formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
 }
 
-type RadialBarAnimationState = 'empty' | 'ready';
-type RadialBarAnimationEvent = 'update' | 'resize';
-
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
     static className = 'RadialBarSeries';
 
@@ -88,8 +76,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected itemSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
     protected highlightSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
-
-    protected animationState: _ModuleSupport.StateMachine<RadialBarAnimationState, RadialBarAnimationEvent>;
 
     protected nodeData: RadialBarNodeDatum[] = [];
 
@@ -159,25 +145,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         this.labelSelection = Selection.select(this.labelGroup!, Text);
 
         this.highlightSelection = Selection.select(this.highlightGroup, Sector);
-
-        this.animationState = new StateMachine('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateEmptyUpdateReady(),
-                },
-            },
-            ready: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateReadyUpdate(),
-                },
-                resize: {
-                    target: 'ready',
-                    action: () => this.animateReadyResize(),
-                },
-            },
-        });
     }
 
     override addChartEventListeners(): void {
@@ -497,7 +464,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected animateEmptyUpdateReady() {
+    protected override animateEmptyUpdateReady() {
         if (!this.visible) {
             return;
         }
@@ -521,11 +488,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected animateReadyUpdate() {
+    protected override animateReadyUpdate() {
         this.resetSectors();
     }
 
-    protected animateReadyResize() {
+    protected override animateReadyResize() {
         this.resetSectors();
     }
 
@@ -535,15 +502,18 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: RadialBarNodeDatum): RadialBarSeriesNodeClickEvent {
-        return new RadialBarSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RadialColumnNodeDatum
+    ): RadialBarSeriesNodeClickEvent<'nodeClick'> {
+        return new RadialBarSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
-        datum: RadialBarNodeDatum
-    ): RadialBarSeriesNodeDoubleClickEvent {
-        return new RadialBarSeriesNodeDoubleClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+        datum: RadialColumnNodeDatum
+    ): RadialBarSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new RadialBarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {

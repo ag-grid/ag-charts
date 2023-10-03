@@ -19,7 +19,6 @@ const {
     OPT_STRING,
     PolarAxis,
     SeriesNodePickMode,
-    StateMachine,
     STRING,
     Validate,
     valueProperty,
@@ -34,29 +33,16 @@ export interface RadarLinePoint {
     moveTo: boolean;
 }
 
-class RadarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<any> {
-    readonly angleKey: string;
-    readonly radiusKey: string;
-
-    constructor(
-        angleKey: string,
-        radiusKey: string,
-        nativeEvent: MouseEvent,
-        datum: RadarNodeDatum,
-        series: RadarSeries
-    ) {
-        super(nativeEvent, datum, series);
-        this.angleKey = angleKey;
-        this.radiusKey = radiusKey;
+class RadarSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeClickEvent<RadarNodeDatum, TEvent> {
+    readonly angleKey?: string;
+    readonly radiusKey?: string;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadarNodeDatum, series: RadarSeries) {
+        super(type, nativeEvent, datum, series);
+        this.angleKey = series.angleKey;
+        this.radiusKey = series.radiusKey;
     }
-}
-
-class RadarSeriesNodeClickEvent extends RadarSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeClick';
-}
-
-class RadarSeriesNodeDoubleClickEvent extends RadarSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeDoubleClick';
 }
 
 interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
@@ -82,9 +68,6 @@ export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     formatter?: (params: AgRadarSeriesMarkerFormatterParams<any>) => AgRadarSeriesMarkerFormat = undefined;
 }
 
-type RadarAnimationState = 'empty' | 'ready';
-type RadarAnimationEvent = 'update' | 'resize';
-
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
     static className = 'RadarSeries';
 
@@ -96,8 +79,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     protected markerSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadarNodeDatum>;
     protected highlightSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
-
-    protected animationState: _ModuleSupport.StateMachine<RadarAnimationState, RadarAnimationEvent>;
 
     protected nodeData: RadarNodeDatum[] = [];
 
@@ -176,25 +157,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.labelSelection = Selection.select(this.labelGroup!, Text);
 
         this.highlightSelection = Selection.select(this.highlightGroup, markerFactory);
-
-        this.animationState = new StateMachine('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateEmptyUpdateReady(),
-                },
-            },
-            ready: {
-                update: {
-                    target: 'ready',
-                    action: () => this.animateReadyUpdate(),
-                },
-                resize: {
-                    target: 'ready',
-                    action: () => this.animateReadyResize(),
-                },
-            },
-        });
     }
 
     override addChartEventListeners(): void {
@@ -433,15 +395,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: RadarNodeDatum): RadarSeriesNodeClickEvent {
-        return new RadarSeriesNodeClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RadarNodeDatum
+    ): RadarSeriesNodeClickEvent<'nodeClick'> {
+        return new RadarSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RadarNodeDatum
-    ): RadarSeriesNodeDoubleClickEvent {
-        return new RadarSeriesNodeDoubleClickEvent(this.angleKey, this.radiusKey, event, datum, this);
+    ): RadarSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new RadarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: RadarNodeDatum): string {
@@ -695,7 +660,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.animateSinglePath(this.getLineNode(), linePoints, totalDuration, timePassed);
     }
 
-    animateEmptyUpdateReady() {
+    override animateEmptyUpdateReady() {
         if (!this.visible) {
             return;
         }
@@ -750,11 +715,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    animateReadyUpdate() {
+    override animateReadyUpdate() {
         this.resetMarkersAndPaths();
     }
 
-    animateReadyResize() {
+    override animateReadyResize() {
         this.resetMarkersAndPaths();
     }
 

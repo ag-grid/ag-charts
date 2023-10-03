@@ -5,6 +5,7 @@ import { Icon, IconName } from '@components/icon/Icon';
 import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
+import { GalleryExampleThemeDropdown } from '@features/gallery/components/GalleryExampleThemeDropdown';
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
@@ -35,6 +36,7 @@ const { series } = galleryData;
         </div>
 
         <div class="content">
+        <GalleryExampleThemeDropdown client:only></GalleryExampleThemeDropdown>
             {
                 series.map((series: GalleryExampleChartType) => (
                     <div class="chart-type">
@@ -231,12 +233,15 @@ const { series } = galleryData;
         align-items: center;
         width: 100%;
         margin-bottom: $size-2;
-        padding-top: $size-6;
         scroll-margin-top: -$size-5;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
             scroll-margin-top: $site-header-height * 2 - $size-2;
         }
+    }
+
+    .chart-type h3:not(:first-child) {
+        padding-top: $size-6;
     }
 
     .chart-type:first-child h3 {

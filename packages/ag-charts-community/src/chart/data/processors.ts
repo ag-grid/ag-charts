@@ -239,10 +239,21 @@ export function accumulateGroup(
     };
 }
 
+export type ProcessedOutputDiff = {
+    changed: boolean;
+    moved: any[];
+    added: any[];
+    updated: any[];
+    removed: any[];
+    addedIndices: number[];
+    updatedIndices: number[];
+    removedIndices: number[];
+};
+
 export function diff(
     previousData: ProcessedData<any>,
     updateMovedDatums: boolean = true
-): ProcessorOutputPropertyDefinition<any> {
+): ProcessorOutputPropertyDefinition<ProcessedOutputDiff> {
     return {
         type: 'processor',
         property: 'diff',

@@ -61,11 +61,11 @@ export class AgEnterpriseCharts {
         const doc = typeof document !== 'undefined' ? document : undefined;
         new LicenseManager(options.container?.ownerDocument ?? doc).validateLicense();
 
-        return AgChart.create(options as any);
+        return AgChart.create(options);
     }
 
     public static update(chart: AgChartInstance, options: AgChartOptions) {
-        return AgChart.update(chart, options as any);
+        return AgChart.update(chart, options);
     }
 
     public static updateDelta(chart: AgChartInstance, deltaOptions: Parameters<(typeof AgChart)['updateDelta']>[1]) {

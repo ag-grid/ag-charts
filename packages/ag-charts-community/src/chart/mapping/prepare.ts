@@ -215,7 +215,7 @@ function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext
     const paletteOptions = calculateSeriesPalette(context, input);
 
     // Part of the options interface, but not directly consumed by the series implementations.
-    const removeOptions = { stacked: DELETE, grouped: DELETE } as T;
+    const removeOptions = { stacked: DELETE, grouped: DELETE } as any;
     return jsonMerge([...defaults, paletteOptions, input, removeOptions], noDataCloneMergeOptions);
 }
 

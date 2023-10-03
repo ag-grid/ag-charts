@@ -112,6 +112,8 @@ class SeriesArea {
 export abstract class Chart extends Observable implements AgChartInstance {
     readonly id = createId(this);
 
+    className?: string;
+
     processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
     userOptions: AgChartOptions = {};
     queuedUserOptions: AgChartOptions[] = [];
@@ -343,7 +345,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             )
         );
 
-        this.attachLegend('category', 'legend', Legend);
+        this.legend = this.attachLegend('category', Legend);
     }
 
     addModule(module: RootModule) {
@@ -353,24 +355,22 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const moduleInstance = new module.instanceConstructor(this.getModuleContext());
         this.modules[module.optionsKey] = { instance: moduleInstance };
-        (this as any)[module.optionsKey] = moduleInstance;
+        (this as any)[module.optionsKey] = moduleInstance; // TODO remove
     }
 
-    removeModule(module: RootModule) {
-        this.modules[module.optionsKey]?.instance?.destroy();
+    removeModule(module: { optionsKey: string }) {
+        this.modules[module.optionsKey]?.instance.destroy();
         delete this.modules[module.optionsKey];
-        delete (this as any)[module.optionsKey];
+        delete (this as any)[module.optionsKey]; // TODO remove
     }
 
     private legends: Map<ChartLegendType, ChartLegend> = new Map();
 
     private attachLegend(
         legendType: ChartLegendType,
-        legendKey: string,
         legendConstructor: new (moduleContext: ModuleContext) => ChartLegend
     ) {
         const legend = new legendConstructor(this.getModuleContext());
-        (this as any)[legendKey] = legend;
         this.legends.set(legendType, legend);
         legend.attachLegend(this.scene.root);
         return legend;
@@ -381,15 +381,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
             throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
         }
 
-        const legend = this.attachLegend(module.identifier, module.optionsKey, module.instanceConstructor);
+        const legend = this.attachLegend(module.identifier, module.instanceConstructor);
         this.modules[module.optionsKey] = { instance: legend };
+        (this as any)[module.optionsKey] = legend;
     }
 
     removeLegendModule(module: LegendModule) {
-        this.modules[module.optionsKey]?.instance?.destroy();
-        delete this.modules[module.optionsKey];
-        delete (this as any)[module.optionsKey];
         this.legends.delete(module.identifier);
+        this.removeModule(module);
     }
 
     isModuleEnabled(module: Module) {
@@ -454,10 +453,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.overlays.noData.hide();
         SizeMonitor.unobserve(this.element);
 
-        for (const [key, module] of Object.entries(this.modules)) {
-            module.instance.destroy();
-            delete this.modules[key];
-            delete (this as any)[key];
+        for (const optionsKey of Object.keys(this.modules)) {
+            this.removeModule({ optionsKey });
         }
 
         this.interactionManager.destroy();

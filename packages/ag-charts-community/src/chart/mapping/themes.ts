@@ -11,7 +11,7 @@ import { SolarLight } from '../themes/solarLight';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
-type ThemeMap = { [key in AgChartThemeName | 'undefined' | 'null']?: () => ChartTheme };
+export type ThemeMap = { [key in AgChartThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
 const lightTheme = () => new ChartTheme();
 const darkTheme = () => new DarkTheme();

@@ -29,9 +29,9 @@ const {
     valueProperty,
 } = _ModuleSupport;
 
-export class BoxPlotSeriesNodeBaseClickEvent<
-    Datum extends { datum: any },
-> extends _ModuleSupport.SeriesNodeBaseClickEvent<Datum> {
+class BoxPlotSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeClickEvent<BoxPlotNodeDatum, TEvent> {
     readonly xKey?: string;
     readonly minKey?: string;
     readonly q1Key?: string;
@@ -39,8 +39,8 @@ export class BoxPlotSeriesNodeBaseClickEvent<
     readonly q3Key?: string;
     readonly maxKey?: string;
 
-    constructor(nativeEvent: MouseEvent, datum: Datum, series: BoxPlotSeries) {
-        super(nativeEvent, datum, series);
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
+        super(type, nativeEvent, datum, series);
         this.xKey = series.xKey;
         this.minKey = series.minKey;
         this.q1Key = series.q1Key;
@@ -48,16 +48,6 @@ export class BoxPlotSeriesNodeBaseClickEvent<
         this.q3Key = series.q3Key;
         this.maxKey = series.maxKey;
     }
-}
-
-export class BoxPlotSeriesNodeClickEvent<Datum extends { datum: any }> extends BoxPlotSeriesNodeBaseClickEvent<Datum> {
-    override readonly type = 'nodeClick';
-}
-
-export class BoxPlotSeriesNodeDoubleClickEvent<
-    Datum extends { datum: any },
-> extends BoxPlotSeriesNodeBaseClickEvent<Datum> {
-    override readonly type = 'nodeDoubleClick';
 }
 
 class BoxPlotSeriesCap {
@@ -82,10 +72,7 @@ class BoxPlotSeriesWhisker {
     lineDashOffset?: number;
 }
 
-export class BoxPlotSeries extends CartesianSeries<
-    _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>,
-    BoxPlotGroup
-> {
+export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatum> {
     @Validate(OPT_STRING)
     xKey?: string = undefined;
 
@@ -150,7 +137,7 @@ export class BoxPlotSeries extends CartesianSeries<
     direction: 'vertical' | 'horizontal' = 'vertical';
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgBoxPlotSeriesFormatterParams<BoxPlotNodeDatum>) => AgBoxPlotSeriesStyles = undefined;
+    formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles = undefined;
 
     readonly cap = new BoxPlotSeriesCap();
 
@@ -374,15 +361,18 @@ export class BoxPlotSeries extends CartesianSeries<
         ];
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: BoxPlotNodeDatum): BoxPlotSeriesNodeClickEvent<any> {
-        return new BoxPlotSeriesNodeClickEvent(event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: BoxPlotNodeDatum
+    ): BoxPlotSeriesNodeClickEvent<'nodeClick'> {
+        return new BoxPlotSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: BoxPlotNodeDatum
-    ): BoxPlotSeriesNodeDoubleClickEvent<any> {
-        return new BoxPlotSeriesNodeDoubleClickEvent(event, datum, this);
+    ): BoxPlotSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new BoxPlotSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: BoxPlotNodeDatum): string {
@@ -402,7 +392,7 @@ export class BoxPlotSeries extends CartesianSeries<
             maxName,
             id: seriesId,
         } = this;
-        const { datum } = nodeDatum;
+        const { datum } = nodeDatum as { datum: any };
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValuesAxis();
@@ -448,7 +438,7 @@ export class BoxPlotSeries extends CartesianSeries<
 
     protected override animateEmptyUpdateReady({
         datumSelections,
-    }: _ModuleSupport.CartesianAnimationData<_ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum>, BoxPlotGroup>) {
+    }: _ModuleSupport.CartesianAnimationData<BoxPlotGroup, BoxPlotNodeDatum>) {
         const isVertical = this.direction === 'vertical';
         datumSelections.forEach((datumSelection) => {
             datumSelection.each((boxPlotGroup, datum) => {

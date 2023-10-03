@@ -82,34 +82,25 @@ interface RangeBarNodeDatum
 
 type RangeBarContext = _ModuleSupport.SeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
-type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<RangeBarContext, _Scene.Rect>;
+type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<
+    _Scene.Rect,
+    RangeBarNodeDatum,
+    RangeBarNodeLabelDatum
+>;
 
-class RangeBarSeriesNodeBaseClickEvent extends _ModuleSupport.SeriesNodeBaseClickEvent<RangeBarNodeDatum> {
-    readonly xKey: string;
-    readonly yLowKey: string;
-    readonly yHighKey: string;
+class RangeBarSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.SeriesNodeClickEvent<RangeBarNodeDatum, TEvent> {
+    readonly xKey?: string;
+    readonly yLowKey?: string;
+    readonly yHighKey?: string;
 
-    constructor(
-        xKey: string,
-        yLowKey: string,
-        yHighKey: string,
-        nativeEvent: MouseEvent,
-        datum: RangeBarNodeDatum,
-        series: RangeBarSeries
-    ) {
-        super(nativeEvent, datum, series);
-        this.xKey = xKey;
-        this.yLowKey = yLowKey;
-        this.yHighKey = yHighKey;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeBarNodeDatum, series: RangeBarSeries) {
+        super(type, nativeEvent, datum, series);
+        this.xKey = series.xKey;
+        this.yLowKey = series.yLowKey;
+        this.yHighKey = series.yHighKey;
     }
-}
-
-export class RangeBarSeriesNodeClickEvent extends RangeBarSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeClick';
-}
-
-export class RangeBarSeriesNodeDoubleClickEvent extends RangeBarSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeDoubleClick';
 }
 
 class RangeBarSeriesLabel extends _Scene.Label {
@@ -123,7 +114,11 @@ class RangeBarSeriesLabel extends _Scene.Label {
     padding: number = 6;
 }
 
-export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarContext, _Scene.Rect> {
+export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
+    _Scene.Rect,
+    RangeBarNodeDatum,
+    RangeBarNodeLabelDatum
+> {
     static className = 'RangeBarSeries';
     static type = 'range-bar' as const;
 
@@ -283,15 +278,18 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         }
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: RangeBarNodeDatum): RangeBarSeriesNodeClickEvent {
-        return new RangeBarSeriesNodeClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: RangeBarNodeDatum
+    ): RangeBarSeriesNodeClickEvent<'nodeClick'> {
+        return new RangeBarSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: RangeBarNodeDatum
-    ): RangeBarSeriesNodeDoubleClickEvent {
-        return new RangeBarSeriesNodeDoubleClickEvent(datum.xKey, datum.yLowKey, datum.yHighKey, event, datum, this);
+    ): RangeBarSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new RangeBarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
@@ -356,11 +354,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<RangeBarConte
         }
 
         // To get exactly `0` padding we need to turn off rounding
-        if (groupScale.padding === 0) {
-            groupScale.round = false;
-        } else {
-            groupScale.round = true;
-        }
+        groupScale.round = groupScale.padding !== 0;
 
         const barWidth =
             groupScale.bandwidth >= 1

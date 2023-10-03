@@ -30,34 +30,18 @@ interface HeatmapNodeDatum extends Required<_ModuleSupport.CartesianSeriesNodeDa
     readonly colorValue: any;
 }
 
-class HeatmapSeriesNodeBaseClickEvent extends _ModuleSupport.CartesianSeriesNodeBaseClickEvent<any> {
+class HeatmapSeriesNodeClickEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.CartesianSeriesNodeClickEvent<HeatmapNodeDatum, HeatmapSeries, TEvent> {
     readonly labelKey?: string;
 
-    constructor(
-        labelKey: string | undefined,
-        xKey: string,
-        yKey: string,
-        nativeEvent: MouseEvent,
-        datum: HeatmapNodeDatum,
-        series: HeatmapSeries
-    ) {
-        super(xKey, yKey, nativeEvent, datum, series);
-        this.labelKey = labelKey;
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: HeatmapNodeDatum, series: HeatmapSeries) {
+        super(type, nativeEvent, datum, series);
+        this.labelKey = series.labelKey;
     }
 }
 
-export class HeatmapSeriesNodeClickEvent extends HeatmapSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeClick';
-}
-
-export class HeatmapSeriesNodeDoubleClickEvent extends HeatmapSeriesNodeBaseClickEvent {
-    override readonly type = 'nodeDoubleClick';
-}
-
-export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
-    _ModuleSupport.SeriesNodeDataContext<any>,
-    _Scene.Rect
-> {
+export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum> {
     static className = 'HeatmapSeries';
     static type = 'heatmap' as const;
 
@@ -171,22 +155,18 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: HeatmapNodeDatum): HeatmapSeriesNodeClickEvent {
-        return new HeatmapSeriesNodeClickEvent(this.labelKey, this.xKey ?? '', this.yKey ?? '', event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: HeatmapNodeDatum
+    ): HeatmapSeriesNodeClickEvent<'nodeClick'> {
+        return new HeatmapSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: HeatmapNodeDatum
-    ): HeatmapSeriesNodeDoubleClickEvent {
-        return new HeatmapSeriesNodeDoubleClickEvent(
-            this.labelKey,
-            this.xKey ?? '',
-            this.yKey ?? '',
-            event,
-            datum,
-            this
-        );
+    ): HeatmapSeriesNodeClickEvent<'nodeDoubleClick'> {
+        return new HeatmapSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     async createNodeData() {

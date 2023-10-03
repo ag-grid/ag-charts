@@ -8,6 +8,7 @@ import type {
     FontWeight,
 } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
 import type { Point } from '../../../scene/point';
@@ -27,16 +28,10 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDataContext } from '../series';
 import { keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import {
-    CartesianSeries,
-    CartesianSeriesMarker,
-    CartesianSeriesNodeClickEvent,
-    CartesianSeriesNodeDoubleClickEvent,
-} from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
@@ -60,10 +55,9 @@ class LineSeriesLabel extends Label {
     formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
 }
 
-type LineContext = SeriesNodeDataContext<LineNodeDatum>;
-type LineAnimationData = CartesianAnimationData<LineContext>;
+type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
-export class LineSeries extends CartesianSeries<LineContext> {
+export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     static className = 'LineSeries';
     static type = 'line' as const;
 
@@ -399,15 +393,18 @@ export class LineSeries extends CartesianSeries<LineContext> {
         });
     }
 
-    protected override getNodeClickEvent(event: MouseEvent, datum: LineNodeDatum): CartesianSeriesNodeClickEvent<any> {
-        return new CartesianSeriesNodeClickEvent(this.xKey ?? '', this.yKey ?? '', event, datum, this);
+    protected override getNodeClickEvent(
+        event: MouseEvent,
+        datum: LineNodeDatum
+    ): CartesianSeriesNodeClickEvent<LineNodeDatum, LineSeries, 'nodeClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
     }
 
     protected override getNodeDoubleClickEvent(
         event: MouseEvent,
         datum: LineNodeDatum
-    ): CartesianSeriesNodeDoubleClickEvent<any> {
-        return new CartesianSeriesNodeDoubleClickEvent(this.xKey ?? '', this.yKey ?? '', event, datum, this);
+    ): CartesianSeriesNodeClickEvent<LineNodeDatum, LineSeries, 'nodeDoubleClick'> {
+        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: LineNodeDatum): string {
@@ -1107,5 +1104,9 @@ export class LineSeries extends CartesianSeries<LineContext> {
 
     override getBandScalePadding() {
         return { inner: 1, outer: 0.1 };
+    }
+
+    protected nodeFactory() {
+        return new Group();
     }
 }
