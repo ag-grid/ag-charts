@@ -16,6 +16,6 @@ export function seriesLabelFadeInAnimation<T>(
         labelSelections,
         { opacity: 0 },
         { opacity: 1 },
-        { delay: duration, duration: animationManager.defaultDuration * 0.2 }
+        { delay: duration, duration: 200 }
     );
 }
