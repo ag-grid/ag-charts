@@ -50,6 +50,13 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
         'ag-pastel-dark',
         'ag-solar-dark',
         'ag-vivid-dark',
+        'deordered',
+        'mini-hue',
+        'enter',
+        'enterprise-001',
+        'enterprise-002',
+        'enterprise-003',
+        'excel',
     ];
     const galleryExamplePages = galleryExamples.flatMap(({ exampleName }) => {
         return themes.map((theme) => {

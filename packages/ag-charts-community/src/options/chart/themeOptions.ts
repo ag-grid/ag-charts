@@ -32,7 +32,14 @@ export type AgChartThemeName =
     | 'ag-solar'
     | 'ag-solar-dark'
     | 'ag-vivid'
-    | 'ag-vivid-dark';
+    | 'ag-vivid-dark'
+    | 'deordered'
+    | 'mini-hue'
+    | 'enter'
+    | 'enterprise-001'
+    | 'enterprise-002'
+    | 'enterprise-003'
+    | 'excel';
 
 export interface AgChartThemePalette {
     /** The array of fills to be used. */

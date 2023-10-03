@@ -11,6 +11,15 @@ import { SolarLight } from '../themes/solarLight';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
+import { DeOrdered } from '../themes/deOrdered';
+import { MiniHue } from '../themes/miniHue';
+import { Enter } from '../themes/enter';
+
+import { Enterprise001 } from '../themes/enterprise001';
+import { Enterprise002 } from '../themes/enterprise002';
+import { Enterprise003 } from '../themes/enterprise003';
+import { Excel } from '../themes/excel';
+
 export type ThemeMap = { [key in AgChartThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
 const lightTheme = () => new ChartTheme();
@@ -24,6 +33,13 @@ const lightThemes: ThemeMap = {
     'ag-pastel': () => new PastelLight(),
     'ag-solar': () => new SolarLight(),
     'ag-vivid': () => new VividLight(),
+    'deordered': () => new DeOrdered(),
+    'mini-hue': () => new MiniHue(),
+    'enter': () => new Enter(),
+    'enterprise-001': () => new Enterprise001(),
+    'enterprise-002': () => new Enterprise002(),
+    'enterprise-003': () => new Enterprise003(),
+    'excel': () => new Excel(),
 };
 
 const darkThemes: ThemeMap = {

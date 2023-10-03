@@ -10,7 +10,14 @@ export type ThemeName =
     | 'ag-material-dark'
     | 'ag-pastel-dark'
     | 'ag-solar-dark'
-    | 'ag-vivid-dark';
+    | 'ag-vivid-dark'
+    | 'deordered'
+    | 'mini-hue'
+    | 'enter'
+    | 'enterprise-001'
+    | 'enterprise-002'
+    | 'enterprise-003'
+    | 'excel';
 
 const LOCALSTORAGE_PREFIX = 'documentation';
 const DEFAULT_INTERNAL_THEME: ThemeName = 'ag-default';
