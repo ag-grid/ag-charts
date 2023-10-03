@@ -21,6 +21,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -144,16 +145,12 @@ export class AreaSeries extends CartesianSeries<
 
     shadow?: DropShadow = undefined;
 
-    async processData(dataController: DataController) {
-        const { xKey, yKey, axes, normalizedTo, data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
+    override async processData(dataController: DataController) {
+        const { xKey, yKey, normalizedTo, data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
 
         if (!xKey || !yKey || !data) return;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
         const ids = [
             `area-stack-${groupIndex}-yValues`,
             `area-stack-${groupIndex}-yValues-trailing`,
@@ -169,7 +166,7 @@ export class AreaSeries extends CartesianSeries<
             extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normaliseTo, 'range'));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
@@ -203,12 +200,9 @@ export class AreaSeries extends CartesianSeries<
             groupByKeys: true,
             dataVisible: visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel) return [];
 
@@ -224,12 +218,12 @@ export class AreaSeries extends CartesianSeries<
                 return keys;
             }
 
-            return this.fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys), xAxis);
         } else if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
-            return this.fixNumericExtent(yExtent as any, yAxis);
+            return fixNumericExtent(yExtent as any, yAxis);
         } else {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, yAxis);
+            return fixNumericExtent(fixedYExtent as any, yAxis);
         }
     }
 

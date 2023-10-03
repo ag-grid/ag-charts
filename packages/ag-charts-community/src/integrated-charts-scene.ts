@@ -1,3 +1,6 @@
+import * as fromToMotion from './motion/fromToMotion';
+import * as resetMotion from './motion/resetMotion';
+
 export { Caption } from './chart/caption';
 export { DropShadow } from './scene/dropShadow';
 export { Group } from './scene/group';
@@ -33,4 +36,6 @@ export { HdpiCanvas } from './scene/canvas/hdpiCanvas';
 export { Image } from './scene/image';
 export { Path2D } from './scene/path2D';
 export * as easing from './motion/easing';
-export * as motion from './motion/fromToMotion';
+
+const motion = { ...fromToMotion, ...resetMotion };
+export { motion };

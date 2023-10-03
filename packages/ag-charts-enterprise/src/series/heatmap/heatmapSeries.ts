@@ -1,6 +1,7 @@
 import type {
     AgHeatmapSeriesFormat,
     AgHeatmapSeriesFormatterParams,
+    AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -18,8 +19,8 @@ const {
     OPT_NUMBER_ARRAY,
     OPT_COLOR_STRING,
 } = _ModuleSupport;
-const { Rect, Label } = _Scene;
-const { ContinuousScale, ColorScale } = _Scale;
+const { Rect } = _Scene;
+const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
 interface HeatmapNodeDatum extends Required<_ModuleSupport.CartesianSeriesNodeDatum> {
@@ -41,11 +42,16 @@ class HeatmapSeriesNodeClickEvent<
     }
 }
 
+class HeatmapSeriesLabel extends _Scene.Label {
+    @Validate(OPT_FUNCTION)
+    formatter?: (params: AgHeatmapSeriesLabelFormatterParams) => string = undefined;
+}
+
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum> {
     static className = 'HeatmapSeries';
     static type = 'heatmap' as const;
 
-    readonly label = new Label();
+    readonly label = new HeatmapSeriesLabel();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -69,10 +75,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     labelName?: string = 'Label';
 
     @Validate(OPT_STRING)
-    colorKey?: string = 'color';
+    colorKey?: string = undefined;
 
     @Validate(OPT_STRING)
-    colorName?: string = 'color';
+    colorName?: string = 'Color';
 
     @Validate(OPT_NUMBER_ARRAY)
     colorDomain: number[] | undefined = undefined;
@@ -99,6 +105,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 0,
             hasMarkers: false,
+            hasHighlightedLabels: true,
         });
 
         this.label.enabled = false;
@@ -106,7 +113,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         this.colorScale = new ColorScale();
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey = '', yKey = '', axes, labelKey } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -117,14 +124,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         }
 
         const data = xKey && yKey && this.data ? this.data : [];
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
-        const isContinuousX = xScale instanceof ContinuousScale;
-        const isContinuousY = yScale instanceof ContinuousScale;
+
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
-        const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
+        const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data ?? [], {
             props: [
                 valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yKey, isContinuousY, { id: 'yValue' }),
@@ -132,8 +137,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
             ],
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
@@ -143,7 +146,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         }
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
 
         if (!dataModel || !processedData) return [];
@@ -170,7 +173,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     async createNodeData() {
-        const { data, visible, axes, dataModel } = this;
+        const {
+            data,
+            visible,
+            axes,
+            dataModel,
+            ctx: { callbackCache },
+        } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -195,7 +204,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const { colorScale, label, labelKey, xKey = '', yKey = '', colorKey } = this;
+        const { colorScale, label, labelKey, xKey = '', yKey = '', colorKey = '' } = this;
         const nodeData: HeatmapNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
 
         const width = xScale.bandwidth ?? 10;
@@ -209,11 +218,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const text = labelKey ? String(values[labelDataIdx]) : colorKey ? String(values[colorDataIdx]) : '';
+            const labelValue = labelKey ? values[labelDataIdx] : colorKey ? values[colorDataIdx] : '';
+            let text: string;
+            if (label.formatter) {
+                const labelFormatterParams = {
+                    seriesId: this.id,
+                    value: labelValue,
+                };
+                text = callbackCache.call(label.formatter, labelFormatterParams) ?? '';
+            } else {
+                text = String(labelValue);
+            }
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
-            const fill = colorScale.convert(colorValue);
+            const fill = colorKey ? colorScale.convert(colorValue) : this.colorRange[0];
 
             nodeData[actualLength++] = {
                 series: this,
@@ -316,10 +335,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             }
 
             rect.crisp = crisp;
-            rect.x = point.x - width / 2;
-            rect.y = point.y - height / 2;
-            rect.width = width;
-            rect.height = height;
+            rect.x = Math.floor(point.x - width / 2);
+            rect.y = Math.floor(point.y - height / 2);
+            rect.width = Math.ceil(width);
+            rect.height = Math.ceil(height);
             rect.fill = format?.fill ?? fill;
             rect.stroke = format?.stroke ?? stroke;
             rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
@@ -476,7 +495,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return this.label.enabled || Boolean(this.labelKey);
     }
 
     override getBandScalePadding() {

@@ -1,11 +1,12 @@
-import type {
-    AgBoxPlotSeriesFormatterParams,
-    AgBoxPlotSeriesStyles,
-    AgBoxPlotSeriesTooltipRendererParams,
+import {
+    type AgBoxPlotSeriesFormatterParams,
+    type AgBoxPlotSeriesStyles,
+    type AgBoxPlotSeriesTooltipRendererParams,
     _Scene,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 
+import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
@@ -14,6 +15,7 @@ const {
     ChartAxisDirection,
     extent,
     extractDecoratedProperties,
+    fixNumericExtent,
     keyProperty,
     mergeDefaults,
     NUMBER,
@@ -28,6 +30,7 @@ const {
     Validate,
     valueProperty,
 } = _ModuleSupport;
+const { motion } = _Scene;
 
 class BoxPlotSeriesNodeClickEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -160,14 +163,14 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         });
     }
 
-    async processData(dataController: _ModuleSupport.DataController): Promise<void> {
+    override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
 
         if (!xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
 
         const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
 
-        const { dataModel, processedData } = await dataController.request(this.id, data, {
+        const { processedData } = await this.requestDataModel(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, minKey, true, { id: `minValue` }),
@@ -180,16 +183,13 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             dataVisible: this.visible,
         });
 
-        this.dataModel = dataModel;
-        this.processedData = processedData;
-
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
             y: Infinity,
         };
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -197,7 +197,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return this.fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
+            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
         }
 
         const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -208,7 +208,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
 
         const keysExtent = extent(keys) ?? [NaN, NaN];
         const scalePadding = smallestDataInterval && isFinite(smallestDataInterval.x) ? smallestDataInterval.x : 0;
-        return this.fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
+        return fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
     }
 
     async createNodeData() {
@@ -440,36 +440,17 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         datumSelections,
     }: _ModuleSupport.CartesianAnimationData<BoxPlotGroup, BoxPlotNodeDatum>) {
         const isVertical = this.direction === 'vertical';
-        datumSelections.forEach((datumSelection) => {
-            datumSelection.each((boxPlotGroup, datum) => {
-                if (isVertical) {
-                    boxPlotGroup.scalingCenterY = datum.scaledValues.medianValue;
-                } else {
-                    boxPlotGroup.scalingCenterX = datum.scaledValues.medianValue;
-                }
-            });
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready`,
-                from: 0,
-                to: 1,
-                ease: _ModuleSupport.Motion.easeOut,
-                onUpdate(value) {
-                    datumSelection.each((boxPlotGroup) => {
-                        if (isVertical) {
-                            boxPlotGroup.scalingY = value;
-                        } else {
-                            boxPlotGroup.scalingX = value;
-                        }
-                    });
-                },
-                onStop() {
-                    datumSelection.each((boxPlotGroup) => {
-                        boxPlotGroup.scalingX = 1;
-                        boxPlotGroup.scalingY = 1;
-                    });
-                },
-            });
-        });
+
+        motion.resetMotion(datumSelections, resetBoxPlotSelectionsScalingCenterFn(isVertical));
+
+        const { from, to } = prepareBoxPlotFromTo(isVertical);
+        motion.staticFromToMotion(
+            `${this.id}_empty-update-ready`,
+            this.ctx.animationManager,
+            datumSelections,
+            from,
+            to
+        );
     }
 
     protected isLabelEnabled(): boolean {

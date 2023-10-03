@@ -29,7 +29,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
-import { fixNumericExtent } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
@@ -569,7 +568,16 @@ export abstract class Series<
         return direction;
     }
 
-    abstract getDomain(direction: ChartAxisDirection): any[];
+    // The union of the series domain ('community') and series-option domains ('enterprise').
+    getDomain(direction: ChartAxisDirection): any[] {
+        const seriesDomain: any[] = this.getSeriesDomain(direction);
+        const moduleDomains: any[][] = this.dispatch('data-getDomain', { direction }) ?? [];
+        // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
+        return moduleDomains.reduce((total, current) => total.concat(current), seriesDomain);
+    }
+
+    // Get the 'community' domain (excluding any additional data from series-option modules).
+    abstract getSeriesDomain(direction: ChartAxisDirection): any[];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void>;
@@ -750,25 +758,6 @@ export abstract class Series<
     }
 
     readonly highlightStyle = new HighlightStyle();
-
-    protected fixNumericExtent(extent?: [number | Date, number | Date], axis?: ChartAxis): number[] {
-        const fixedExtent = fixNumericExtent(extent);
-
-        if (fixedExtent.length === 0) {
-            return fixedExtent;
-        }
-
-        let [min, max] = fixedExtent;
-        if (min === max) {
-            // domain has zero length, there is only a single valid value in data
-
-            const [paddingMin, paddingMax] = axis?.calculatePadding(min, max) ?? [1, 1];
-            min -= paddingMin;
-            max += paddingMax;
-        }
-
-        return [min, max];
-    }
 
     private readonly moduleMap: SeriesModuleMap = new ModuleMap<SeriesOptionModule, SeriesContext>(this);
 

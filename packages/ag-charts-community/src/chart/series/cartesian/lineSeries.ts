@@ -6,7 +6,6 @@ import type {
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Path2D } from '../../../scene/path2D';
@@ -20,6 +19,7 @@ import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
+import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -108,14 +108,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    async processData(dataController: DataController) {
-        const { axes, xKey = '', yKey = '' } = this;
+    override async processData(dataController: DataController) {
+        const { xKey = '', yKey = '' } = this;
         const data = xKey && yKey && this.data ? this.data : [];
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const props: DataModelOptions<any, false>['props'] = [];
 
@@ -138,17 +135,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             props.push(diff(this.processedData));
         }
 
-        const listenerProps: (typeof props)[] =
-            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
-        for (const moreProps of listenerProps) {
-            props.push(...moreProps);
-        }
-        const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
+        const { processedData } = await this.requestDataModel<any>(dataController, data, {
             props,
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
         if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {
@@ -158,7 +148,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         }
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -172,10 +162,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 return domain;
             }
 
-            return this.fixNumericExtent(extent(domain), xAxis);
+            return fixNumericExtent(extent(domain), xAxis);
         } else {
             const domain = dataModel.getDomain(this, `yValue`, 'value', processedData);
-            return this.fixNumericExtent(domain as any, yAxis);
+            return fixNumericExtent(domain as any, yAxis);
         }
     }
 

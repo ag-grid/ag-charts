@@ -21,6 +21,8 @@ const {
     STRING,
     Validate,
     valueProperty,
+    fixNumericExtent,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -159,7 +161,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -168,24 +170,22 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         } else {
             const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
             const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
-            return this.fixNumericExtent(ext);
+            return fixNumericExtent(ext);
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [] } = this;
         const { angleKey, radiusKey } = this;
 
         if (!angleKey || !radiusKey) return;
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 valueProperty(this, angleKey, false, { id: 'angleValue' }),
                 valueProperty(this, radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
             ],
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -694,18 +694,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             });
         });
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: markerDelay,
-            duration: markerDuration,
-            onUpdate: (opacity) => {
-                labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
     override animateReadyUpdate() {

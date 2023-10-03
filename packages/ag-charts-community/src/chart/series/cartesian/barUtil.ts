@@ -108,33 +108,46 @@ export function checkCrisp(visibleRange: number[] = []): boolean {
     return !isZoomed;
 }
 
-type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
-export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
+type StartingPositionFn<T> = (datum: T) => Partial<T>;
+export function collapsedStartingBarPosition(
     isVertical: boolean,
-    startingX = 0,
-    startingY = 0
-) {
-    const fromFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
+    startingX: number,
+    startingY: number
+): StartingPositionFn<AnimatableBarDatum> {
+    return (datum) => {
+        return {
+            x: isVertical ? datum.x : startingX,
+            y: isVertical ? startingY : datum.y,
+            width: isVertical ? datum.width : 0,
+            height: isVertical ? 0 : datum.height,
+        };
+    };
+}
+
+export function midpointStartingBarPosition(isVertical: boolean): StartingPositionFn<AnimatableBarDatum> {
+    return (datum) => {
+        return {
+            x: isVertical ? datum.x : datum.x + datum.width / 2,
+            y: isVertical ? datum.y + datum.height / 2 : datum.y,
+            width: isVertical ? datum.width : 0,
+            height: isVertical ? 0 : datum.height,
+        };
+    };
+}
+
+type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
+export function prepareBarAnimationFunctions(startPositionFn: StartingPositionFn<AnimatableBarDatum>) {
+    const fromFn = (rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
         if (status === 'removed') {
             return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
         } else if (status === 'added') {
-            return {
-                x: isVertical ? datum.x : startingX,
-                y: isVertical ? startingY : datum.y,
-                width: isVertical ? datum.width : 0,
-                height: isVertical ? 0 : datum.height,
-            };
+            return startPositionFn(datum);
         }
         return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
     };
-    const toFn = (_rect: Rect, datum: T, status: NodeUpdateState) => {
+    const toFn = (_rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
         if (status === 'removed') {
-            return {
-                x: isVertical ? datum.x : startingX,
-                y: isVertical ? startingY : datum.y,
-                width: isVertical ? datum.width : 0,
-                height: isVertical ? 0 : datum.height,
-            };
+            return startPositionFn(datum);
         }
         return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
     };
@@ -171,4 +184,13 @@ export function getBarDirectionStartingValues(
     }
 
     return { startingX, startingY };
+}
+
+export function resetBarSelectionsFn(_node: Rect, { x, y, width, height }: AnimatableBarDatum) {
+    return {
+        x,
+        y,
+        width,
+        height,
+    };
 }

@@ -1,7 +1,7 @@
 import type { ProcessedOutputDiff } from '../chart/data/processors';
 import type { AnimationManager } from '../chart/interaction/animationManager';
+import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
-import type { Shape } from '../scene/shape/shape';
 import { zipObject } from '../util/zip';
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue } from './animation';
 import * as easing from './easing';
@@ -22,7 +22,7 @@ export type NodeUpdateState = 'added' | 'removed' | 'updated' | 'moved';
  *                   specified iff diff is specified
  * @param diff optional diff from a DataModel to use to detect added/moved/removed cases
  */
-export function fromToMotion<N extends Shape, T extends AnimationValue & Partial<N>, D>(
+export function fromToMotion<N extends Node, T extends AnimationValue & Partial<N>, D>(
     id: string,
     animationManager: AnimationManager,
     selections: Selection<N, D>[],
@@ -62,6 +62,9 @@ export function fromToMotion<N extends Shape, T extends AnimationValue & Partial
                 onUpdate(props) {
                     node.setProperties(props);
                 },
+                onStop() {
+                    node.setProperties(to);
+                },
                 ...extraOpts,
             });
         }
@@ -93,7 +96,7 @@ export function fromToMotion<N extends Shape, T extends AnimationValue & Partial
  * @param to node final properties
  * @param extraOpts optional additional animation properties to pass to AnimationManager#animate.
  */
-export function staticFromToMotion<N extends Shape, T extends AnimationValue & Partial<N>, D>(
+export function staticFromToMotion<N extends Node, T extends AnimationValue & Partial<N>, D>(
     id: string,
     animationManager: AnimationManager,
     selections: Selection<N, D>[],
@@ -114,11 +117,18 @@ export function staticFromToMotion<N extends Shape, T extends AnimationValue & P
                 }
             }
         },
+        onStop() {
+            for (const selection of selections) {
+                for (const node of selection.nodes()) {
+                    node.setProperties(to);
+                }
+            }
+        },
         ...extraOpts,
     });
 }
 
-function calculateStatus<N extends Shape, D>(
+function calculateStatus<N extends Node, D>(
     node: N,
     datum: D,
     getDatumId: (node: N, datum: D) => string,

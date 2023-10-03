@@ -24,6 +24,8 @@ const {
     keyProperty,
     normaliseGroupTo,
     valueProperty,
+    fixNumericExtent,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -154,7 +156,7 @@ export abstract class RadialColumnSeriesBase<
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -164,13 +166,13 @@ export abstract class RadialColumnSeriesBase<
             const radiusAxis = axes[ChartAxisDirection.Y];
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, radiusAxis);
+            return fixNumericExtent(fixedYExtent as any, radiusAxis);
         }
     }
 
     protected abstract getStackId(): string;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [], visible } = this;
         const { angleKey, radiusKey } = this;
 
@@ -186,7 +188,7 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, angleKey, false, { id: 'angleValue' }),
                 valueProperty(this, radiusKey, true, { id: 'radiusValue-raw', invalidValue: undefined }),
@@ -204,9 +206,6 @@ export abstract class RadialColumnSeriesBase<
             ],
             dataVisible: visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -488,18 +487,7 @@ export abstract class RadialColumnSeriesBase<
         this.beforeSectorAnimation();
         this.animateItemsShapes();
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: this.ctx.animationManager.defaultDuration,
-            duration: 200,
-            onUpdate: (opacity) => {
-                this.labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.labelSelection]);
     }
 
     protected override animateReadyUpdate() {

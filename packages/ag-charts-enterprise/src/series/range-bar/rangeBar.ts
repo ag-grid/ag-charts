@@ -27,11 +27,15 @@ const {
     CategoryAxis,
     SMALLEST_KEY_INTERVAL,
     STRING_UNION,
-    Motion,
     diff,
+    prepareBarAnimationFunctions,
+    midpointStartingBarPosition,
+    resetBarSelectionsFn,
+    fixNumericExtent,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
-const { ContinuousScale, BandScale, Rect, PointerEvents } = _Scene;
-const { sanitizeHtml, isNumber, extent, zipObject } = _Util;
+const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
+const { sanitizeHtml, isNumber, extent } = _Util;
 
 const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
 const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
@@ -199,7 +203,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
         if (!yLowKey || !yHighKey) return;
@@ -212,7 +216,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             animationProp.push(diff(this.processedData));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
@@ -223,8 +227,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             groupByKeys: true,
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
@@ -234,7 +236,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         this.animationState.transition('updateData');
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -258,9 +260,9 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
             const categoryAxis = this.getCategoryAxis();
             if (direction === ChartAxisDirection.Y) {
-                return this.fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
             }
-            return this.fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
+            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
             const yLowExtent = values[yLowIndex];
@@ -270,7 +272,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return this.fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent as any);
         }
     }
 
@@ -732,30 +734,13 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData }: RangeBarAnimationData) {
-        contextData.forEach((_, contextDataIndex) => {
-            this.animateRects(datumSelections[contextDataIndex]);
-            this.animateLabels(labelSelections[contextDataIndex]);
-        });
-    }
+    override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
+        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
 
-    protected animateRects(datumSelection: RangeBarAnimationData['datumSelections'][number]) {
-        const horizontal = this.getBarDirection() === ChartAxisDirection.X;
-        datumSelection.each((rect, datum) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${rect.id}`,
-                from: { cord: (horizontal ? datum.midPoint?.x : datum.midPoint?.y) ?? 0, dimension: 0 },
-                to: { cord: horizontal ? datum.x : datum.y, dimension: horizontal ? datum.width : datum.height },
-                ease: _ModuleSupport.Motion.easeOut,
-                onUpdate({ cord, dimension }) {
-                    rect.setProperties(
-                        horizontal
-                            ? { x: cord, y: datum.y, width: dimension, height: datum.height }
-                            : { x: datum.x, y: cord, width: datum.width, height: dimension }
-                    );
-                },
-            });
-        });
+        const { toFn, fromFn } = prepareBarAnimationFunctions(midpointStartingBarPosition(isVertical));
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
+
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
@@ -763,129 +748,37 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            datumSelections.forEach((datumSelection) => {
-                this.resetSelectionRects(datumSelection);
-            });
+            motion.resetMotion(datumSelections, resetBarSelectionsFn);
             return;
         }
 
-        const totalDuration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = totalDuration / 5;
+        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
 
-        let sectionDuration = totalDuration;
-        if (diff.added.length > 0 || diff.removed.length > 0) {
-            sectionDuration = Math.floor(totalDuration / 2);
-        }
+        const { toFn, fromFn } = prepareBarAnimationFunctions(midpointStartingBarPosition(isVertical));
+        motion.fromToMotion(
+            `${this.id}_empty-update-ready`,
+            this.ctx.animationManager,
+            datumSelections,
+            fromFn,
+            toFn,
+            {},
+            (_, datum) => String(datum.xValue),
+            diff
+        );
 
-        const addedIds = zipObject(diff.added, true);
-        const removedIds = zipObject(diff.removed, true);
-
-        const horizontal = this.getBarDirection() === ChartAxisDirection.X;
-
-        datumSelections.forEach((datumSelection) => {
-            datumSelection.each((rect, datum, index) => {
-                let from = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
-                let to = { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
-
-                const start = {
-                    x: horizontal ? datum.midPoint?.x ?? 0 : datum.x,
-                    y: horizontal ? datum.y : datum.midPoint?.y ?? 0,
-                    width: horizontal ? 0 : datum.width,
-                    height: horizontal ? datum.height : 0,
-                };
-
-                const isAdded = datum.xValue !== undefined && addedIds[datum.xValue] !== undefined;
-                const isRemoved = datum.xValue !== undefined && removedIds[datum.xValue] !== undefined;
-                const cleanup = index === datumSelection.nodes().length - 1;
-
-                if (isAdded) {
-                    from = start;
-                } else if (isRemoved) {
-                    from = to;
-                    to = start;
-                }
-
-                this.ctx.animationManager.animate({
-                    id: `${this.id}_waiting-update-ready_${rect.id}`,
-                    from,
-                    to,
-                    duration: sectionDuration,
-                    ease: Motion.easeOut,
-                    onUpdate(props) {
-                        rect.setProperties(props);
-                    },
-                    onComplete() {
-                        if (cleanup) {
-                            datumSelection.cleanup();
-                        }
-                    },
-                    onStop() {
-                        if (cleanup) {
-                            datumSelection.cleanup();
-                        }
-                    },
-                });
-            });
-        });
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_waiting-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: totalDuration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                labelSelections.forEach((labelSelection) => {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                });
-            },
-        });
-    }
-
-    protected animateLabels(labelSelection: RangeBarAnimationData['labelSelections'][number]) {
-        const duration = this.ctx.animationManager.defaultDuration;
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: duration / 5,
-            onUpdate: (opacity) => {
-                labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyUpdate({ datumSelections }: RangeBarAnimationData) {
-        this.resetSelections(datumSelections);
+        motion.resetMotion(datumSelections, resetBarSelectionsFn);
     }
 
     override animateReadyHighlight(highlightSelection: RangeBarAnimationData['datumSelections'][number]) {
-        this.resetSelectionRects(highlightSelection);
+        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
     }
 
     override animateReadyResize({ datumSelections }: RangeBarAnimationData) {
-        this.resetSelections(datumSelections);
-    }
-
-    resetSelections(datumSelections: RangeBarAnimationData['datumSelections']) {
-        datumSelections.forEach((datumSelection) => {
-            this.resetSelectionRects(datumSelection);
-        });
-    }
-
-    resetSelectionRects(selection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>) {
-        selection.each((rect, datum) => {
-            rect.x = datum.x;
-            rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
-        });
-        selection.cleanup();
+        motion.resetMotion(datumSelections, resetBarSelectionsFn);
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {

@@ -25,6 +25,8 @@ const {
     keyProperty,
     normaliseGroupTo,
     valueProperty,
+    fixNumericExtent,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -148,7 +150,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -156,13 +158,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const angleAxis = axes[ChartAxisDirection.X];
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData);
             const fixedXExtent = [xExtent[0] > 0 ? 0 : xExtent[0], xExtent[1] < 0 ? 0 : xExtent[1]];
-            return this.fixNumericExtent(fixedXExtent as any, angleAxis);
+            return fixNumericExtent(fixedXExtent as any, angleAxis);
         } else {
             return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [], visible } = this;
         const { angleKey, radiusKey } = this;
 
@@ -178,7 +180,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, radiusKey, false, { id: 'radiusValue' }),
                 valueProperty(this, angleKey, true, { id: 'angleValue-raw', invalidValue: undefined }),
@@ -196,9 +198,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             ],
             dataVisible: visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -473,18 +472,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         this.beforeSectorAnimation();
         this.animateItemsShapes();
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: this.ctx.animationManager.defaultDuration,
-            duration: 200,
-            onUpdate: (opacity) => {
-                labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
     protected override animateReadyUpdate() {

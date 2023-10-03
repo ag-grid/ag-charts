@@ -1,5 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import { fromToMotion } from '../../../motion/fromToMotion';
+import { resetMotion } from '../../../motion/resetMotion';
 import type {
     AgBarSeriesFormat,
     AgBarSeriesFormatterParams,
@@ -37,18 +38,22 @@ import { LogAxis } from '../../axis/logAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { SMALLEST_KEY_INTERVAL, diff, normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { RectConfig } from './barUtil';
 import {
     checkCrisp,
+    collapsedStartingBarPosition,
     getBarDirectionStartingValues,
     getRectConfig,
     prepareBarAnimationFunctions,
+    resetBarSelectionsFn,
     updateRect,
 } from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -176,7 +181,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
@@ -195,7 +200,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             extraProps.push(diff(this.processedData));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
@@ -218,9 +223,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             dataVisible: this.visible,
         });
 
-        this.dataModel = dataModel;
-        this.processedData = processedData;
-
         this.smallestDataInterval = {
             x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
             y: Infinity,
@@ -229,7 +231,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         this.animationState.transition('updateData');
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return [];
 
@@ -250,14 +252,14 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             const scalePadding = isFinite(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             if (direction === ChartAxisDirection.Y) {
-                return this.fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
             }
-            return this.fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
+            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
         } else if (this.getValueAxis() instanceof LogAxis) {
-            return this.fixNumericExtent(yExtent as any, valueAxis);
+            return fixNumericExtent(yExtent as any, valueAxis);
         } else {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, valueAxis);
+            return fixNumericExtent(fixedYExtent as any, valueAxis);
         }
     }
 
@@ -639,29 +641,20 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
 
         const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
+        const { toFn, fromFn } = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(isVertical, startingX, startingY)
+        );
 
         fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
-
-        const duration = this.ctx.animationManager.defaultDuration;
-        staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: 200 }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyHighlight(highlightSelection: Selection<Rect, BarNodeDatum>) {
-        this.resetSelectionRects(highlightSelection);
+        resetMotion([highlightSelection], resetBarSelectionsFn);
     }
 
     override animateReadyResize({ datumSelections }: BarAnimationData) {
-        datumSelections.forEach((datumSelection) => {
-            this.resetSelectionRects(datumSelection);
-        });
+        resetMotion(datumSelections, resetBarSelectionsFn);
     }
 
     override animateWaitingUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
@@ -672,16 +665,16 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            datumSelections.forEach((datumSelection) => {
-                this.resetSelectionRects(datumSelection);
-            });
+            resetMotion(datumSelections, resetBarSelectionsFn);
             return;
         }
 
         const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
 
         const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions<BarNodeDatum>(isVertical, startingX, startingY);
+        const { toFn, fromFn } = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(isVertical, startingX, startingY)
+        );
         fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
@@ -693,23 +686,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             diff
         );
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-        staticFromToMotion(
-            `${this.id}_waiting-update-ready_labels`,
-            animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
-    }
-
-    resetSelectionRects(selection: Selection<Rect, BarNodeDatum>) {
-        selection.each((rect, { x, y, width, height }) => {
-            rect.setProperties({ x, y, width, height });
-        });
-        selection.cleanup();
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     protected isLabelEnabled() {

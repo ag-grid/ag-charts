@@ -5,7 +5,6 @@ import type {
     AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
@@ -18,6 +17,7 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum } from '../../legendDatum';
@@ -25,6 +25,7 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import type { SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
@@ -137,26 +138,22 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         label.enabled = false;
     }
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const {
             xKey = '',
             yKey = '',
             sizeKey = '',
             labelKey,
-            axes,
             marker,
             data,
             ctx: { animationManager },
         } = this;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
+        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
                 keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
@@ -170,8 +167,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
         const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];
@@ -187,7 +182,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         this.animationTransitionClear();
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -198,7 +193,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             return domain;
         }
         const axis = this.axes[direction];
-        return this.fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain), axis);
     }
 
     protected override getNodeClickEvent(
@@ -533,7 +528,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     override animateEmptyUpdateReady(animationData: BubbleAnimationData) {
         const { markerSelections, labelSelections } = animationData;
         const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
 
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready_markers`,
@@ -555,20 +549,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             },
         });
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                labelSelections.forEach((labelSelection) => {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyResize({ markerSelections }: BubbleAnimationData) {

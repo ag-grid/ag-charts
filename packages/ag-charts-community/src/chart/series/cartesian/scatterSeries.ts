@@ -5,7 +5,6 @@ import type {
     AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
@@ -16,13 +15,14 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING_ARRAY, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModelOptions } from '../../data/dataModel';
+import { fixNumericExtent } from '../../data/dataModel';
 import { diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
@@ -97,45 +97,31 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         label.enabled = false;
     }
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const {
             xKey = '',
             yKey = '',
             labelKey,
-            axes,
             data,
             ctx: { animationManager },
         } = this;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
-
+        const { isContinuousX, isContinuousY } = this.isContinuous();
         const { colorScale, colorDomain, colorRange, colorKey } = this;
 
-        const props: DataModelOptions<any, false>['props'] = [
-            keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
-            keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
-            ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
-            valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
-            valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-            ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
-            ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-            ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
-        ];
-
-        const listenerProps: (typeof props)[] =
-            this.dispatch('processData-prerequest', { isContinuousX, isContinuousY }) ?? [];
-        for (const moreProps of listenerProps) {
-            props.push(...moreProps);
-        }
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
-            props,
+        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
+            props: [
+                keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
+                keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
+                valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
+                ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
+                ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
+                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
+            ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
@@ -147,7 +133,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         this.animationTransitionClear();
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -158,7 +144,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             return domain;
         }
         const axis = this.axes[direction];
-        return this.fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain), axis);
     }
 
     async createNodeData() {
@@ -465,7 +451,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     override animateEmptyUpdateReady(animationData: ScatterAnimationData) {
         const { markerSelections, labelSelections } = animationData;
         const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
 
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready_markers`,
@@ -487,20 +472,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             },
         });
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                labelSelections.forEach((labelSelection) => {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateReadyResize({ markerSelections }: ScatterAnimationData) {

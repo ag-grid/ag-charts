@@ -23,11 +23,12 @@ const {
     getMarkerConfig,
     updateMarker,
     updateLabel,
+    fixNumericExtent,
     areaAnimateEmptyUpdateReady,
     areaAnimateReadyUpdate,
     AreaSeriesTag,
 } = _ModuleSupport;
-const { getMarker, ContinuousScale, PointerEvents, SceneChangeDetection } = _Scene;
+const { getMarker, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
 const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside', 'outside'];
@@ -167,15 +168,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
         if (!yLowKey || !yHighKey) return;
 
-        const isContinuousX = this.axes[ChartAxisDirection.X]?.scale instanceof ContinuousScale;
-        const isContinuousY = this.axes[ChartAxisDirection.Y]?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
@@ -191,11 +191,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -214,7 +212,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 return keys;
             }
 
-            return this.fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys), xAxis);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
             const yLowExtent = values[yLowIndex];
@@ -224,7 +222,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return this.fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent as any);
         }
     }
 

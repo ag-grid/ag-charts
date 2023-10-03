@@ -1,5 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import * as easing from '../../../motion/easing';
+import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
 import type {
     AgPieSeriesFormat,
@@ -53,6 +54,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../series';
+import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
@@ -365,7 +367,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         this.seriesItemEnabled = data?.map(() => visible) ?? [];
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         if (direction === ChartAxisDirection.X) {
             return this.angleScale.domain;
         } else {
@@ -373,7 +375,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         }
     }
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         let { data = [] } = this;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, seriesItemEnabled } = this;
 
@@ -420,7 +422,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
         data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
                 accumulativeValueProperty(this, angleKey, true, { id: `angleValue` }),
@@ -429,8 +431,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
                 ...extraProps,
             ],
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         if (processedData?.reduced?.diff?.added.length > 0 && processedData?.reduced?.diff?.removed.length > 0) {
             this.animationState.transition('clear');
@@ -1568,7 +1568,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
 
     override animateEmptyUpdateReady(data?: PolarAnimationData) {
         const duration = data?.duration ?? this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
 
         const rotation = Math.PI / -2 + toRadians(this.rotation);
 
@@ -1600,24 +1599,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             });
         });
 
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                this.calloutLabelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-                this.sectorLabelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-                this.innerLabelsSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.calloutLabelSelection]);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.sectorLabelSelection]);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.innerLabelsSelection]);
     }
 
     animateReadyUpdateReady() {
@@ -1634,7 +1618,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
         }
 
         const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
         const rotation = Math.PI / -2 + toRadians(this.rotation);
         const sectors = groupSelection.selectByTag<Sector>(PieNodeTag.Sector);
 
@@ -1737,34 +1720,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             sector.visible = false;
         });
 
-        this.calloutLabelSelection.each((label) => {
-            label.opacity = 0;
-        });
-        this.sectorLabelSelection.each((label) => {
-            label.opacity = 0;
-        });
-        this.innerLabelsSelection.each((label) => {
-            label.opacity = 0;
-        });
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_waiting-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                this.calloutLabelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-                this.sectorLabelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-                this.innerLabelsSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.calloutLabelSelection]);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.sectorLabelSelection]);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.innerLabelsSelection]);
     }
 
     override animateClearingUpdateEmpty() {
@@ -1793,17 +1751,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             });
         });
 
-        this.calloutLabelSelection.each((label) => {
-            label.opacity = 0;
-        });
-
-        this.sectorLabelSelection.each((label) => {
-            label.opacity = 0;
-        });
-
-        this.innerLabelsSelection.each((label) => {
-            label.opacity = 0;
-        });
+        resetMotion([this.calloutLabelSelection], () => ({ opacity: 0 }));
+        resetMotion([this.sectorLabelSelection], () => ({ opacity: 0 }));
+        resetMotion([this.innerLabelsSelection], () => ({ opacity: 0 }));
     }
 
     resetSectors() {
