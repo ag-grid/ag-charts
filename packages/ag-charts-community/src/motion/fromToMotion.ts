@@ -62,6 +62,9 @@ export function fromToMotion<N extends Node, T extends AnimationValue & Partial<
                 onUpdate(props) {
                     node.setProperties(props);
                 },
+                onStop() {
+                    node.setProperties(to);
+                },
                 ...extraOpts,
             });
         }
@@ -111,6 +114,13 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
             for (const selection of selections) {
                 for (const node of selection.nodes()) {
                     node.setProperties(props);
+                }
+            }
+        },
+        onStop() {
+            for (const selection of selections) {
+                for (const node of selection.nodes()) {
+                    node.setProperties(to);
                 }
             }
         },
