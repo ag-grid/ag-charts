@@ -56,6 +56,7 @@ import type { Series, SeriesNodeDatum } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { SeriesStateManager } from './series/seriesStateManager';
+import type { ISeries } from './series/seriesTypes';
 import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
 import { Tooltip } from './tooltip/tooltip';
 import { UpdateService } from './updateService';
@@ -255,7 +256,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly zoomManager: ZoomManager;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
-    protected readonly dataService: DataService;
+    protected readonly dataService: DataService<Series<any>>;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
     protected readonly callbackCache: CallbackCache;
@@ -301,7 +302,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
         this.zoomManager = new ZoomManager();
-        this.dataService = new DataService(() => this.series);
+        this.dataService = new DataService<Series<any>>(() => this.series);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, { forceNodeDataRefresh }) =>
             this.update(type, { forceNodeDataRefresh })
@@ -512,7 +513,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private updateShortcutCount = 0;
-    private seriesToUpdate: Set<Series<any>> = new Set();
+    private seriesToUpdate: Set<ISeries<any>> = new Set();
     private updateMutex = new Mutex();
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
@@ -529,7 +530,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     });
     public update(
         type = ChartUpdateType.FULL,
-        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<Series<any>>; backOffMs?: number }
+        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<ISeries<any>>; backOffMs?: number }
     ) {
         const { forceNodeDataRefresh = false, seriesToUpdate = this.series } = opts ?? {};
 
@@ -644,7 +645,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return false;
     }
 
-    private checkFirstAutoSize(seriesToUpdate: Series<any>[]) {
+    private checkFirstAutoSize(seriesToUpdate: ISeries<any>[]) {
         if (this.autoSize && !this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
             const backOffMs = (count ^ 2) * 10;
@@ -1181,7 +1182,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected handlePointerNode(event: InteractionEvent<'hover'>) {
-        const found = this.checkSeriesNodeRange(event, (series: Series<any>, datum: any) => {
+        const found = this.checkSeriesNodeRange(event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.cursorManager.updateCursor('chart', 'pointer');
             }
@@ -1223,20 +1224,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkSeriesNodeClick(event: InteractionEvent<'click'>): boolean {
-        return this.checkSeriesNodeRange(event, (series: Series<any>, datum: any) =>
-            series.fireNodeClickEvent(event.sourceEvent, datum)
-        );
+        return this.checkSeriesNodeRange(event, (series, datum) => series.fireNodeClickEvent(event.sourceEvent, datum));
     }
 
     private checkSeriesNodeDoubleClick(event: InteractionEvent<'dblclick'>): boolean {
-        return this.checkSeriesNodeRange(event, (series: Series<any>, datum: any) =>
+        return this.checkSeriesNodeRange(event, (series, datum) =>
             series.fireNodeDoubleClickEvent(event.sourceEvent, datum)
         );
     }
 
     private checkSeriesNodeRange(
         event: InteractionEvent<'click' | 'dblclick' | 'hover'>,
-        callback: (series: Series<any>, datum: any) => void
+        callback: (series: ISeries<any>, datum: any) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
 
@@ -1318,7 +1317,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     changeHighlightDatum(event: HighlightChangeEvent) {
-        const seriesToUpdate: Set<Series<any>> = new Set();
+        const seriesToUpdate: Set<ISeries<any>> = new Set();
         const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
         const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
 

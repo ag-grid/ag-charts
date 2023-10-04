@@ -6,7 +6,7 @@ import type { InteractionRange } from '../../options/chart/types';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
-import type { Point, SizedPoint } from '../../scene/point';
+import type { Point } from '../../scene/point';
 import { createId } from '../../util/id';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Listeners } from '../../util/listeners';
@@ -36,18 +36,9 @@ import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
+import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 
-/**
- * Processed series datum used in node selections,
- * contains information used to render pie sectors, bars, markers, etc.
- */
-export interface SeriesNodeDatum {
-    readonly series: Series<any>;
-    readonly itemId?: any;
-    readonly datum: any;
-    readonly point?: Readonly<SizedPoint>;
-    midPoint?: Readonly<Point>;
-}
+export type { SeriesNodeDatum } from './seriesTypes';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -279,7 +270,7 @@ export abstract class Series<
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ModuleContextInitialiser<SeriesContext>
+    implements ISeries<TDatum>, ModuleContextInitialiser<SeriesContext>
 {
     protected static readonly highlightedZIndex = 1000000000000;
 
@@ -708,13 +699,13 @@ export abstract class Series<
 
     abstract getLabelData(): PointLabelDatum[];
 
-    fireNodeClickEvent(event: Event, _datum: TDatum): void {
-        const eventObject = this.getNodeClickEvent(event, _datum);
+    fireNodeClickEvent(event: Event, datum: TDatum): void {
+        const eventObject = this.getNodeClickEvent(event, datum);
         this.fireEvent(eventObject);
     }
 
-    fireNodeDoubleClickEvent(event: Event, _datum: TDatum): void {
-        const eventObject = this.getNodeDoubleClickEvent(event, _datum);
+    fireNodeDoubleClickEvent(event: Event, datum: TDatum): void {
+        const eventObject = this.getNodeDoubleClickEvent(event, datum);
         this.fireEvent(eventObject);
     }
 

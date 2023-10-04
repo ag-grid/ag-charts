@@ -1,4 +1,4 @@
-import type { SeriesNodeDatum } from '../series/series';
+import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
 
 interface HighlightNodeDatum extends SeriesNodeDatum {

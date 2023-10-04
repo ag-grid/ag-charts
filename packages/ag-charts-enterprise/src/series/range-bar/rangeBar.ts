@@ -268,7 +268,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 
