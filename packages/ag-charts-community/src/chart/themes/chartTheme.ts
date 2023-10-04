@@ -291,14 +291,14 @@ export class ChartTheme {
         number: {
             ...ChartTheme.getAxisDefaults(),
             line: {
-                width: 0,
+                enabled: false,
             },
         },
         log: {
             ...ChartTheme.getAxisDefaults(),
             base: 10,
             line: {
-                width: 0,
+                enabled: false,
             },
         },
         category: {
