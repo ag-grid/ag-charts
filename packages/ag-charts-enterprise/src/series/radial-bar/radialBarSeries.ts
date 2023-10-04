@@ -8,6 +8,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
+import { prepareRadialBarSeriesAnimationFunctions, resetBarSelectionsFn } from './radialBarUtil';
 
 const {
     ChartAxisDirection,
@@ -30,7 +31,7 @@ const {
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Sector, Selection, Text } = _Scene;
+const { Group, Sector, Selection, Text, motion } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
 class RadialBarSeriesNodeClickEvent<
@@ -388,7 +389,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
                   })
                 : undefined;
 
-            this.updateItemPath(node, datum);
+            node.setProperties(resetBarSelectionsFn(node, node.datum));
             node.fill = format?.fill ?? fill;
             node.fillOpacity = format?.fillOpacity ?? fillOpacity;
             node.stroke = format?.stroke ?? stroke;
@@ -423,45 +424,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected beforeSectorAnimation() {
-        const {
-            formatter,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            id: seriesId,
-            angleKey,
-            radiusKey,
-        } = this;
-        const { callbackCache } = this.ctx;
-
-        this.itemSelection.each((node, datum) => {
-            const format = formatter
-                ? callbackCache.call(formatter, {
-                      datum,
-                      fill,
-                      stroke,
-                      strokeWidth,
-                      highlighted: false,
-                      angleKey,
-                      radiusKey,
-                      seriesId,
-                  })
-                : undefined;
-
-            this.updateItemPath(node, datum);
-            node.fill = format?.fill ?? fill;
-            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeOpacity = strokeOpacity;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.lineDash = this.lineDash;
-            node.lineJoin = 'round';
-        });
-    }
-
     protected override animateEmptyUpdateReady() {
         if (!this.visible) {
             return;
@@ -469,24 +431,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
         const { labelSelection } = this;
 
-        this.beforeSectorAnimation();
-        this.animateItemsShapes();
-
+        const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(
+            `${this.id}_empty-update-ready`,
+            this.ctx.animationManager,
+            [this.itemSelection],
+            fromFn,
+            toFn
+        );
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
     protected override animateReadyUpdate() {
-        this.resetSectors();
+        motion.resetMotion([this.itemSelection], resetBarSelectionsFn);
     }
 
     protected override animateReadyResize() {
-        this.resetSectors();
-    }
-
-    protected resetSectors() {
-        this.itemSelection.each((node, datum) => {
-            this.updateItemPath(node, datum);
-        });
+        motion.resetMotion([this.itemSelection], resetBarSelectionsFn);
     }
 
     protected override getNodeClickEvent(
@@ -620,28 +581,5 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
-    }
-
-    protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
-        node.centerX = 0;
-        node.centerY = 0;
-        node.innerRadius = datum.innerRadius;
-        node.outerRadius = datum.outerRadius;
-        node.startAngle = datum.startAngle;
-        node.endAngle = datum.endAngle;
-    }
-
-    protected animateItemsShapes() {
-        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
-        this.itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${node.id}`,
-                from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
-                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
-                onUpdate(props) {
-                    node.setProperties(props);
-                },
-            });
-        });
     }
 }

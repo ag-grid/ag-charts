@@ -25,11 +25,11 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import type { SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
-import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
-import { getMarkerConfig, updateMarker } from './markerUtil';
+import { getMarkerConfig, markerScaleInAnimation, resetMarkerFn, updateMarker } from './markerUtil';
 
 interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
@@ -131,6 +131,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ],
             pathsPerSeries: 0,
             hasMarkers: true,
+            animationResetFns: {
+                label: resetLabelFn,
+                marker: resetMarkerFn,
+            },
         });
 
         const { label } = this;
@@ -178,8 +182,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             colorScale.range = colorRange;
             colorScale.update();
         }
-
-        this.animationTransitionClear();
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
@@ -353,13 +355,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 strokeWidth: marker.strokeWidth ?? 1,
             });
 
-            const config = {
-                ...styles,
-                point: datum.point,
-                visible,
-                customMarker,
-                animatedMarker: !highlighted,
-            };
+            const config = { ...styles, point: datum.point, visible, customMarker };
             updateMarker({ node, config });
         });
 
@@ -529,171 +525,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         ];
     }
 
-    override animateEmptyUpdateReady(animationData: BubbleAnimationData) {
-        const { markerSelections, labelSelections } = animationData;
-        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_markers`,
-            from: 0,
-            to: 1,
-            duration,
-            onUpdate: (ratio) => {
-                markerSelections.forEach((markerSelection) => {
-                    markerSelection.each((marker, datum) => {
-                        const format = this.animateFormatter(marker, datum);
-                        const to = format?.size ?? datum.point.size;
-
-                        marker.translationX = datum.point.x;
-                        marker.translationY = datum.point.y;
-
-                        marker.size = ratio * to;
-                    });
-                });
-            },
-        });
-
+    override animateEmptyUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
+        markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
-    }
-
-    override animateReadyResize({ markerSelections }: BubbleAnimationData) {
-        this.ctx.animationManager.reset();
-        markerSelections.forEach((markerSelection) => {
-            this.resetMarkers(markerSelection);
-        });
-    }
-
-    /*
-    // This animation can not be used until we can provide a guaranteed unique datum id.
-    animateWaitingUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
-        const { processedData } = this;
-        const diff = processedData?.reduced?.diff;
-
-        if (!diff?.changed) {
-            markerSelections.forEach((markerSelection) => {
-                this.resetMarkers(markerSelection);
-            });
-            return;
-        }
-
-        const addedIds = zipObject(diff.added, true);
-        const removedIds = zipObject(diff.removed, true);
-
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-
-        markerSelections.forEach((markerSelection) => {
-            markerSelection.each((marker, datum, index) => {
-                const datumId = this.getDatumId(datum);
-                const cleanup = index === markerSelection.nodes().length - 1;
-
-                const markerFormat = this.animateFormatter(marker, datum);
-                const size = markerFormat?.size ?? datum.point.size ?? marker.size;
-
-                let props = [
-                    { from: marker.size, to: size },
-                    { from: marker.translationX, to: datum.point.x },
-                    { from: marker.translationY, to: datum.point.y },
-                ];
-
-                if (removedIds[datumId]) {
-                    props = [
-                        { from: marker.size, to: 0 },
-                        { from: marker.translationX, to: marker.translationX },
-                        { from: marker.translationY, to: marker.translationY },
-                    ];
-                } else if (addedIds[datumId]) {
-                    props = [
-                        { from: 0, to: size },
-                        { from: datum.point.x, to: datum.point.x },
-                        { from: datum.point.y, to: datum.point.y },
-                    ];
-                }
-
-                this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${marker.id}`, props, {
-                    duration,
-                    ease: easing.easeOut,
-                    onUpdate([size, x, y]) {
-                        marker.size = size;
-                        marker.translationX = x;
-                        marker.translationY = y;
-                    },
-                    onStop: () => {
-                        if (cleanup) this.resetMarkers(markerSelection);
-                    },
-                    onComplete: () => {
-                        if (cleanup) this.resetMarkers(markerSelection);
-                    },
-                });
-            });
-        });
-
-        labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label, datum) => {
-                const datumId = this.getDatumId(datum);
-
-                if (addedIds[datumId]) {
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
-                        from: 0,
-                        to: 1,
-                        delay: duration,
-                        duration: labelDuration,
-                        onUpdate: (opacity) => {
-                            label.opacity = opacity;
-                        },
-                    });
-                } else if (removedIds[datumId]) {
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
-                        from: 1,
-                        to: 0,
-                        duration: labelDuration,
-                        onUpdate: (opacity) => {
-                            label.opacity = opacity;
-                        },
-                    });
-                }
-            });
-        });
-    }
-    */
-
-    override animateClearingUpdateEmpty(animationData: BubbleAnimationData) {
-        const { markerSelections } = animationData;
-
-        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_clearing-update-empty`,
-            from: 1,
-            to: 0,
-            duration: 200,
-            onUpdate(opacity) {
-                markerSelections.forEach((markerSelection) => {
-                    markerSelection.each((marker) => {
-                        marker.opacity = opacity;
-                    });
-                });
-            },
-            onComplete: () => {
-                markerSelections.forEach((markerSelection) => {
-                    this.resetMarkers(markerSelection);
-                });
-                this.animationState.transition('update', {
-                    ...animationData,
-                    duration: updateDuration,
-                });
-            },
-        });
-    }
-
-    resetMarkers(markerSelection: Selection<Marker, BubbleNodeDatum>) {
-        markerSelection.cleanup().each((marker, datum) => {
-            const format = this.animateFormatter(marker, datum);
-            marker.size = format?.size ?? datum.point?.size ?? marker.size;
-            marker.translationX = datum.point.x;
-            marker.translationY = datum.point.y;
-            marker.opacity = 1;
-        });
     }
 
     animateFormatter(marker: Marker, datum: BubbleNodeDatum) {

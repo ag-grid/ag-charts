@@ -1,10 +1,14 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { staticFromToMotion } from '../../../motion/fromToMotion';
 import type {
     AgCartesianSeriesMarkerFormat,
     AgSeriesHighlightMarkerStyle,
     AgSeriesMarkerFormatterParams,
 } from '../../../options/agChartOptions';
+import type { Node } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
+import type { Selection } from '../../../scene/selection';
+import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
@@ -25,7 +29,6 @@ export type Style = {
 export type MarkerConfig = Style & {
     point: SizedPoint;
     customMarker: boolean;
-    animatedMarker?: boolean;
 };
 
 export function getMarkerConfig<ExtraParams extends {}>({
@@ -89,18 +92,7 @@ export function getMarkerConfig<ExtraParams extends {}>({
 }
 
 export function updateMarker({ node, config }: { node: Marker; config: MarkerConfig }) {
-    const {
-        point,
-        size,
-        fill,
-        stroke,
-        strokeWidth,
-        fillOpacity,
-        strokeOpacity,
-        visible = true,
-        customMarker,
-        animatedMarker,
-    } = config;
+    const { point, size, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, visible = true, customMarker } = config;
 
     node.fill = fill;
     node.stroke = stroke;
@@ -108,11 +100,9 @@ export function updateMarker({ node, config }: { node: Marker; config: MarkerCon
     node.fillOpacity = fillOpacity ?? 1;
     node.strokeOpacity = strokeOpacity ?? 1;
 
-    if (!animatedMarker) {
-        node.size = size ?? point.size;
-        node.translationX = point.x;
-        node.translationY = point.y;
-    }
+    node.size = size ?? point.size;
+    node.translationX = point.x;
+    node.translationY = point.y;
 
     node.visible = node.size > 0 && visible && !isNaN(point.x) && !isNaN(point.y);
 
@@ -124,4 +114,70 @@ export function updateMarker({ node, config }: { node: Marker; config: MarkerCon
     node.path.clear({ trackChanges: true });
     node.updatePath();
     node.checkPathDirty();
+}
+
+type NodeWithOpacity = Node & { opacity: number };
+export function markerFadeInAnimation<T>(
+    { id }: { id: string },
+    animationManager: AnimationManager,
+    markerSelections: Selection<NodeWithOpacity, T>[]
+) {
+    staticFromToMotion(
+        `${id}_markers`,
+        animationManager,
+        markerSelections,
+        { opacity: 0 },
+        { opacity: 1 },
+        { duration: animationManager.defaultDuration }
+    );
+}
+
+export function markerFadeOutAnimation<T>(
+    { id }: { id: string },
+    animationManager: AnimationManager,
+    markerSelections: Selection<NodeWithOpacity, T>[]
+) {
+    staticFromToMotion(
+        `${id}_markers`,
+        animationManager,
+        markerSelections,
+        { opacity: 1 },
+        { opacity: 0 },
+        { duration: animationManager.defaultDuration }
+    );
+}
+
+type NodeWithScaling = Node & { scalingX: number; scalingY: number };
+export function markerScaleInAnimation<T>(
+    { id }: { id: string },
+    animationManager: AnimationManager,
+    markerSelections: Selection<NodeWithScaling, T>[]
+) {
+    staticFromToMotion(
+        `${id}_markers`,
+        animationManager,
+        markerSelections,
+        { scalingX: 0, scalingY: 0 },
+        { scalingX: 1, scalingY: 1 },
+        { duration: animationManager.defaultDuration }
+    );
+}
+
+export function markerScaleOutAnimation<T>(
+    { id }: { id: string },
+    animationManager: AnimationManager,
+    markerSelections: Selection<NodeWithScaling, T>[]
+) {
+    staticFromToMotion(
+        `${id}_markers`,
+        animationManager,
+        markerSelections,
+        { scalingX: 1, scalingY: 1 },
+        { scalingX: 0, scalingY: 0 },
+        { duration: animationManager.defaultDuration }
+    );
+}
+
+export function resetMarkerFn(_node: NodeWithOpacity & NodeWithScaling) {
+    return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
