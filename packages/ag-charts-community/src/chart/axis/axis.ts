@@ -1083,7 +1083,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
         this.gridLineGroupSelection.each((line, _, index) => {
-            const { stroke, lineDash } = style[index % gridStyle.length];
+            const { stroke, lineDash } = style[index % style.length];
             line.setProperties({
                 x1: gridPadding,
                 x2: -sideFlag * gridLength + gridPadding,
