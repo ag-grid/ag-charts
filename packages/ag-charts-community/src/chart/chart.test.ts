@@ -13,7 +13,7 @@ import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
 import {
     clickAction,
-    createChart as createChartUtil,
+    createChart,
     deproxy,
     hoverAction,
     prepareTestOptions,
@@ -84,7 +84,7 @@ describe('Chart', () => {
     }) => {
         const format = (...values: any[]) => values.join(': ');
 
-        const createChart = async (params: {
+        const createChartPreset = async (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
@@ -114,7 +114,7 @@ describe('Chart', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            return createChartUtil(options);
+            return createChart(options);
         };
 
         const hoverChartNodes = async (
@@ -156,7 +156,7 @@ describe('Chart', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = await createChartPreset({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
@@ -184,36 +184,36 @@ describe('Chart', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = await createChartPreset({ hasTooltip: true });
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = await createChartPreset({ hasTooltip: true, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = await createChartPreset({ hasTooltip: false });
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = await createChartPreset({ hasTooltip: false, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };

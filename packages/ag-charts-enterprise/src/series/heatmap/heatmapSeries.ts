@@ -1,4 +1,5 @@
 import type {
+    AgChartLabelFormatterParams,
     AgHeatmapSeriesFormat,
     AgHeatmapSeriesFormatterParams,
     AgHeatmapSeriesTooltipRendererParams,
@@ -212,9 +213,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const y = yScale.convert(yDatum) + yOffset;
 
             const labelValue = labelKey ? values[labelDataIdx] : colorKey ? values[colorDataIdx] : '';
-            const text = label.formatter
-                ? callbackCache.call(label.formatter, { seriesId: this.id, datum, defaultValue: labelValue }) ?? ''
-                : String(labelValue);
+            const text = this.getLabelText({ datum, defaultValue: labelValue });
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
@@ -450,6 +449,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 color,
             }
         );
+    }
+
+    protected getLabelText(params: Omit<AgChartLabelFormatterParams<any>, 'seriesId'>) {
+        if (this.label.formatter) {
+            return this.ctx.callbackCache.call(this.label.formatter, { seriesId: this.id, ...params }) ?? '';
+        }
+        return String(params.defaultValue);
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
