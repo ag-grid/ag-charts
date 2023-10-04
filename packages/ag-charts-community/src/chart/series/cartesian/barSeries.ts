@@ -70,7 +70,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly fill: string;
 }
 
-interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
+export interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: string | number;
     readonly yValue: string | number;
