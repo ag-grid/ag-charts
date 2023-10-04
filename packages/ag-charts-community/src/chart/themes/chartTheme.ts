@@ -190,6 +190,7 @@ export class ChartTheme {
             shape: undefined,
             size: 15,
             padding: 8,
+            strokeWidth: 2,
         };
     }
 
