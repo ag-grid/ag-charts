@@ -167,13 +167,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     async createNodeData() {
-        const {
-            data,
-            visible,
-            axes,
-            dataModel,
-            ctx: { callbackCache },
-        } = this;
+        const { data, visible, axes, dataModel } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -199,13 +193,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const { colorScale, label, labelKey, xKey = '', yKey = '', colorKey = '' } = this;
-        const nodeData: HeatmapNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
+        const nodeData: HeatmapNodeDatum[] = [];
 
         const width = xScale.bandwidth ?? 10;
         const height = yScale.bandwidth ?? 10;
 
         const font = label.getFont();
-        let actualLength = 0;
         for (const { values, datum } of this.processedData?.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -219,7 +212,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
             const fill = colorKey ? colorScale.convert(colorValue) : this.colorRange[0];
 
-            nodeData[actualLength++] = {
+            nodeData.push({
                 series: this,
                 itemId: yKey,
                 yKey,
@@ -232,15 +225,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 width,
                 height,
                 fill,
-                label: {
-                    text,
-                    ...size,
-                },
+                label: { text, ...size },
                 midPoint: { x, y },
-            };
+            });
         }
-
-        nodeData.length = actualLength;
 
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }

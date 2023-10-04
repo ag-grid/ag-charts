@@ -122,7 +122,7 @@ function mergeAncestorProps(isDocStyle, parent, child, getProps) {
     const props = getProps(child);
     // child.type can be a string in case of a type alias
     if (child.meta.isTypeAlias && typeof props === 'string') {
-        console.warn(`Unable to merge props of type alias. (should be object, not string)`, props)
+        console.warn(`Unable to merge props of type alias. (should be object, not string)`, props);
         return {};
     }
     let mergedProps = { ...props };
@@ -152,7 +152,6 @@ function mergeAncestorProps(isDocStyle, parent, child, getProps) {
                                 newValue = { ...v, type: { ...v.type, returnType: newReturnType, arguments: newArgs } };
                             }
                         } else {
-
                             var newValue = v.replace(re, parent.params[i]);
                         }
                     }

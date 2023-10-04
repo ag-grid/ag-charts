@@ -243,12 +243,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const { sizeScale, marker } = this;
-        const nodeData: BubbleNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
+        const nodeData: BubbleNodeDatum[] = [];
 
         sizeScale.range = [marker.size, marker.maxSize];
 
         const font = label.getFont();
-        let actualLength = 0;
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -264,7 +263,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
-            nodeData[actualLength++] = {
+            nodeData.push({
                 series: this,
                 itemId: yKey,
                 yKey,
@@ -276,14 +275,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 point: { x, y, size: markerSize },
                 midPoint: { x, y },
                 fill,
-                label: {
-                    text,
-                    ...size,
-                },
-            };
+                label: { text, ...size },
+            });
         }
-
-        nodeData.length = actualLength;
 
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }

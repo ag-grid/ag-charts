@@ -183,7 +183,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const nodeData: LineNodeDatum[] = new Array(processedData.data.length);
+        const nodeData: LineNodeDatum[] = [];
         const size = markerEnabled ? markerSize : 0;
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
@@ -191,7 +191,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         let moveTo = true;
         let nextPoint: UngroupedDataItem<any, any> | undefined;
-        let actualLength = 0;
         for (let i = 0; i < processedData.data.length; i++) {
             const { datum, values } = nextPoint ?? processedData.data[i];
             const xDatum = values[xIdx];
@@ -229,7 +228,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     labelText = String(yDatum);
                 }
 
-                nodeData[actualLength++] = {
+                nodeData.push({
                     series: this,
                     datum,
                     yKey,
@@ -250,11 +249,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                               fill: label.color,
                           }
                         : undefined,
-                };
+                });
                 moveTo = false;
             }
         }
-        nodeData.length = actualLength;
 
         return [{ itemId: yKey, nodeData, labelData: nodeData }];
     }

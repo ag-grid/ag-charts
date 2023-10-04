@@ -179,10 +179,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const { marker } = this;
-        const nodeData: ScatterNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
+        const nodeData: ScatterNodeDatum[] = [];
 
         const font = label.getFont();
-        let actualLength = 0;
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -197,7 +196,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             const size = HdpiCanvas.getTextSize(text, font);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
-            nodeData[actualLength++] = {
+            nodeData.push({
                 series: this,
                 itemId: yKey,
                 yKey,
@@ -208,14 +207,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
                 fill,
-                label: {
-                    text,
-                    ...size,
-                },
-            };
+                label: { text, ...size },
+            });
         }
-
-        nodeData.length = actualLength;
 
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
