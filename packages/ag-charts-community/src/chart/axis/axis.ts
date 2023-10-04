@@ -335,7 +335,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
-    public title?: AxisTitle;
+    public title?: AxisTitle = undefined;
     protected _titleCaption = new Caption();
 
     private setDomain() {

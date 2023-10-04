@@ -12,8 +12,8 @@ const {
     trailingValueProperty,
     keyProperty,
     ChartAxisDirection,
-    OPTIONAL,
     NUMBER,
+    STRING_UNION,
     OPT_NUMBER,
     OPT_STRING,
     OPT_FUNCTION,
@@ -29,10 +29,6 @@ const {
 } = _ModuleSupport;
 const { getMarker, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
-
-const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside', 'outside'];
-const OPT_RANGE_AREA_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
-    OPTIONAL(v, ctx, (v: any) => RANGE_AREA_LABEL_PLACEMENTS.includes(v));
 
 const DEFAULT_DIRECTION_KEYS = {
     [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
@@ -82,8 +78,8 @@ class RangeAreaSeriesNodeClickEvent<
 
 type RangeAreaKeys = 'xKey' | 'yLowKey' | 'yHighKey';
 
-class RangeAreaSeriesLabel extends _Scene.Label<{ [K in RangeAreaKeys]: string }> {
-    @Validate(OPT_RANGE_AREA_LABEL_PLACEMENT)
+class RangeAreaSeriesLabel extends _Scene.Label<{ [K in RangeAreaKeys]?: string }> {
+    @Validate(STRING_UNION('inside', 'outside'))
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
     @Validate(OPT_NUMBER(0))
@@ -397,8 +393,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     private createLabelData({
         point,
         value,
-        yLowValue,
-        yHighValue,
         itemId,
         inverted,
         datum,
@@ -427,36 +421,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             series,
             itemId,
             datum,
-            text: this.getLabelText({ itemId, datum, value, yLowValue, yHighValue }),
+            text: this.getLabelText({ itemId, datum, value }),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
         };
     }
 
-    private getLabelText({
-        itemId,
-        datum,
-        value,
-    }: {
-        itemId: string;
-        datum: RangeAreaMarkerDatum;
-        value: any;
-        yLowValue: any;
-        yHighValue: any;
-    }) {
-        const defaultValue = isNumber(value) ? value.toFixed(2) : String(value);
+    private getLabelText({ itemId, datum, value }: { itemId: string; datum: RangeAreaMarkerDatum; value: any }) {
+        let labelText;
         if (this.label.formatter) {
-            return this.ctx.callbackCache.call(this.label.formatter, {
+            labelText = this.ctx.callbackCache.call(this.label.formatter, {
                 seriesId: this.id,
-                defaultValue,
                 itemId,
                 datum,
-                xKey: '',
-                yLowKey: '',
-                yHighKey: '',
+                defaultValue: value,
+                xKey: this.xKey,
+                yLowKey: this.yLowKey,
+                yHighKey: this.yHighKey,
             });
         }
-        return defaultValue;
+        return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));
     }
 
     protected override isPathOrSelectionDirty(): boolean {
