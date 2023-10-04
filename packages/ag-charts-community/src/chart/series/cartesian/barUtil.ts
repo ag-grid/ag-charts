@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { AgBarSeriesOptions, AgBarSeriesStyle } from '../../../options/agChartOptions';
+import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
@@ -50,7 +50,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
 
 export function getRectConfig<
-    Params extends Omit<Parameters<NonNullable<AgBarSeriesOptions['formatter']>>[0], 'yKey' | 'value'>,
+    Params extends Omit<AgBarSeriesFormatterParams<any>, 'yKey' | 'value'>,
     ExtraParams extends {},
 >({
     datum,

@@ -23,7 +23,7 @@ export interface AgBarSeriesFormatterParams<TDatum>
     readonly stackGroup?: string;
 }
 
-export type AgBarSeriesStyle = FillOptions & StrokeOptions & LineDashOptions;
+export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgBarSeriesTooltipRendererParams<TDatum = any>
     extends AgBarSeriesOptionsKeys,
