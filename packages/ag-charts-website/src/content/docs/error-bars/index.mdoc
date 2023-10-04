@@ -79,36 +79,18 @@ series: [
 provided the `renderer` for customization.
 
 ```js
-function renderer(params: AgScatterSeriesTooltipRendererParams) {
+function verbose_renderer(params) {
     return {
         title: `${params.xValue}m³ / ${params.yValue}kPa`,
-        content: '<ul>'+
-            `<li>${params.xUpperName}: ${params.xUpperValue}m³</li>`+
-            `<li>${params.xLowerName}: ${params.xLowerValue}m³</li>`+
-            `<li>${params.yUpperName}: ${params.yUpperValue}kPa</li>`+
-            `<li>${params.yLowerName}: ${params.yLowerValue}kPa</li>`+
-            '</ul>'
-    }
+        content:
+            '<ul>' +
+            `<li>${params.xUpperName}: ${params.xUpperValue}m³</li>` +
+            `<li>${params.xLowerName}: ${params.xLowerValue}m³</li>` +
+            `<li>${params.yUpperName}: ${params.yUpperValue}kPa</li>` +
+            `<li>${params.yLowerName}: ${params.yLowerValue}kPa</li>` +
+            '</ul>',
+    };
 }
-
-const options: AgChartOptions = {
-    series: [
-        {
-            type: 'scatter',
-            xKey: 'volume',
-            yKey: 'pressure',
-            errorBar:  {
-                xLowerKey: 'volumeLower',
-                xUpperKey: 'volumeUpper',
-                yLowerKey: 'pressureLower',
-                yUpperKey: 'pressureUpper',
-                xLowerName: 'Volume (lower bound)',
-                xUpperName: 'Volume (upper bound)',
-            },
-            tooltip: { renderer: renderer },
-        },
-    ],
-};
 ```
 
 The `renderer` has access to the keys, names, and values for the error data for
