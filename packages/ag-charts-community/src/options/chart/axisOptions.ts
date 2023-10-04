@@ -66,7 +66,7 @@ export interface AgAxisGridlineOptions {
     /** The width in pixels of the axis gridlines. */
     width?: PixelSize;
     /** Configuration of the lines used to form the grid in the chart series area. */
-    gridStyle?: AgAxisGridStyle[];
+    style?: AgAxisGridStyle[];
 }
 
 export interface AgAxisBaseTickOptions {

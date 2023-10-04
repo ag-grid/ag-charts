@@ -128,15 +128,18 @@ export class ChartTheme {
                 avoidCollisions: true,
             },
             line: {
+                enabled: true,
                 width: 1,
                 color: 'rgb(195, 195, 195)',
             },
             tick: {
+                enabled: true,
                 width: 1,
                 color: 'rgb(195, 195, 195)',
             },
             gridStyle: ChartTheme.getAxisGridlineStyleDefaults(),
             gridline: {
+                enabled: true,
                 style: ChartTheme.getAxisGridlineStyleDefaults(),
             },
             crossLines: {
