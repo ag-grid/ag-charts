@@ -159,13 +159,18 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
                 prevTime = time;
 
-                this.debug('AnimationManager - onAnimationFrame()', { controllersCount: this.controllers.size });
+                this.debug('AnimationManager - onAnimationFrame()', {
+                    controllersCount: this.controllers.size,
+                });
 
                 for (const controller of this.controllers.values()) {
                     controller.update(deltaTime);
                 }
 
-                this.listeners.dispatch('animation-frame', { type: 'animation-frame', deltaMs: deltaTime });
+                this.listeners.dispatch('animation-frame', {
+                    type: 'animation-frame',
+                    deltaMs: deltaTime,
+                });
             };
 
             // Only run the animation frame if we can acquire the chart update mutex immediately.

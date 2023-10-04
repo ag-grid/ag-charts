@@ -214,7 +214,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
                 let labelText;
                 if (label.formatter) {
-                    labelText = callbackCache.call(label.formatter, { defaultValue: yDatum, datum, seriesId });
+                    labelText = callbackCache.call(label.formatter, {
+                        defaultValue: yDatum,
+                        datum,
+                        seriesId,
+                    });
                 }
 
                 if (labelText !== undefined) {
@@ -976,7 +980,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 },
                 onComplete: () => {
                     this.resetMarkersAndPaths(animationData);
-                    this.animationState.transition('update', { ...animationData, duration: updateDuration });
+                    this.animationState.transition('update', {
+                        ...animationData,
+                        duration: updateDuration,
+                    });
                 },
             });
         });

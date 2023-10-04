@@ -1,7 +1,7 @@
 /**
  * These are used to create links from types to relevant documentation.
  */
-const TYPE_LINKS = {
+const TYPE_LINKS: Record<string, string> = {
     AgChartTheme: '/integrated-charts-customisation/#custom-chart-themes',
     AgChartThemeName: '/integrated-charts-customisation/#provided-themes',
     AgChartThemeOverrides: '/api-themes/#reference-theme.palette',

@@ -338,10 +338,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         if (format && scale && scale.tickFormat) {
             try {
-                this.labelFormatter = scale.tickFormat({
-                    ticks,
-                    specifier: format,
-                });
+                this.labelFormatter = scale.tickFormat({ ticks, specifier: format });
             } catch (e) {
                 this.labelFormatter = defaultLabelFormatter;
                 Logger.warnOnce(`the axis label format string ${format} is invalid. No formatting will be applied`);

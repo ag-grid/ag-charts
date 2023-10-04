@@ -56,11 +56,17 @@ const EXAMPLES: Record<string, TestCase> = {
     },
     LINE_NUMBER_AXES_0_X_DOMAIN: {
         options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['number', 'number'],
+            seriesTypes: repeat('line', 2),
+        }),
     },
     LINE_NUMBER_AXES_0_Y_DOMAIN: {
         options: examples.LINE_NUMBER_AXES_0_Y_DOMAIN,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['number', 'number'],
+            seriesTypes: repeat('line', 2),
+        }),
     },
     LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: {
         options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS,

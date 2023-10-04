@@ -1181,7 +1181,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
             // Detect text overflow
-            const align = { textAlign: label.collisionTextAlign ?? label.textAlign, textBaseline: label.textBaseline };
+            const align = {
+                textAlign: label.collisionTextAlign ?? label.textAlign,
+                textBaseline: label.textBaseline,
+            };
             tempTextNode.text = label.text;
             tempTextNode.x = x;
             tempTextNode.y = y;
@@ -1256,7 +1259,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum> {
             text.x = x;
             text.y = y;
             text.setFont(this.calloutLabel);
-            text.setAlign({ textAlign: label.collisionTextAlign ?? label.textAlign, textBaseline: label.textBaseline });
+            text.setAlign({
+                textAlign: label.collisionTextAlign ?? label.textAlign,
+                textBaseline: label.textBaseline,
+            });
             const box = text.computeBBox();
             label.box = box;
 

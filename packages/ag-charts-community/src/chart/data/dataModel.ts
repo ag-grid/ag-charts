@@ -664,7 +664,12 @@ export class DataModel<
                     }
                 }
             } else {
-                processedData.set(groupStr, { keys: group, values: [values], datum: [datum], validScopes });
+                processedData.set(groupStr, {
+                    keys: group,
+                    values: [values],
+                    datum: [datum],
+                    validScopes,
+                });
             }
         }
 

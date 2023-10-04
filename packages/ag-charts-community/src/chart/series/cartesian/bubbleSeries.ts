@@ -353,7 +353,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 strokeWidth: marker.strokeWidth ?? 1,
             });
 
-            const config = { ...styles, point: datum.point, visible, customMarker, animatedMarker: !highlighted };
+            const config = {
+                ...styles,
+                point: datum.point,
+                visible,
+                customMarker,
+                animatedMarker: !highlighted,
+            };
             updateMarker({ node, config });
         });
 
@@ -672,7 +678,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 markerSelections.forEach((markerSelection) => {
                     this.resetMarkers(markerSelection);
                 });
-                this.animationState.transition('update', { ...animationData, duration: updateDuration });
+                this.animationState.transition('update', {
+                    ...animationData,
+                    duration: updateDuration,
+                });
             },
         });
     }
