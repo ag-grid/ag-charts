@@ -17,6 +17,7 @@ import type { Arc } from '../../scene/shape/arc';
 import { Line } from '../../scene/shape/line';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { Text, measureText, splitText } from '../../scene/shape/text';
+import { jsonDiff } from '../../sparklines-util';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/array';
 import { areArrayNumbersEqual } from '../../util/equal';
@@ -98,7 +99,7 @@ type TickDatum = {
 type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
 
 type AxisAnimationState = 'empty' | 'align' | 'ready';
-type AxisAnimationEvent = 'update';
+type AxisAnimationEvent = 'update' | 'resize';
 type AxisUpdateDiff = {
     changed: boolean;
     tickCount: number;
@@ -240,11 +241,26 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     target: 'ready',
                     action: (data: AxisUpdateDiff) => this.animateReadyUpdate(data),
                 },
+                resize: {
+                    target: 'ready',
+                    action: () => this.resetSelectionNodes(),
+                },
             },
         });
 
         this._crossLines = [];
         this.assignCrossLineArrayConstructor(this._crossLines);
+
+        let previousSize: { width: number; height: number } | undefined = undefined;
+        this.destroyFns = [
+            moduleCtx.layoutService.addListener('layout-complete', (e) => {
+                // Fire resize animation action if chart canvas size changes.
+                if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
+                    this.animationState.transition('resize');
+                }
+                previousSize = { ...e.chart };
+            }),
+        ];
     }
 
     private attachCrossLine(crossLine: CrossLine) {
