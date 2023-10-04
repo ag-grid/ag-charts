@@ -40,6 +40,7 @@ const {
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
+    resetLabelFn,
     seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 const { Rect, Label, PointerEvents, motion } = _Scene;
@@ -117,7 +118,14 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     lineDashOffset: number = 0;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({ moduleCtx, pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH] });
+        super({
+            moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
+        });
 
         this.label.enabled = false;
     }
@@ -586,25 +594,8 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
-    override animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
-    }
-
-    override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>) {
-        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
-    }
-
-    override animateReadyResize({ datumSelections }: HistogramAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
-    }
-
-    override animateWaitingUpdateReady({
-        datumSelections,
-        labelSelections,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, HistogramNodeDatum>>;
-        labelSelections: Array<_Scene.Selection<_Scene.Text, HistogramNodeDatum>>;
-    }) {
+    override animateWaitingUpdateReady(data: HistogramAnimationData) {
+        const { datumSelections, labelSelections } = data;
         const {
             processedData,
             getDatumId,
@@ -613,7 +604,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            motion.resetMotion(datumSelections, resetBarSelectionsFn);
+            super.resetAllAnimation(data);
             return;
         }
 
