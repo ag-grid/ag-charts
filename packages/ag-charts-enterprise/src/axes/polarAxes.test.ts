@@ -94,7 +94,7 @@ describe('Polar Axes', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             axes: [
-                { type: 'angle-category', startAngle: -30 },
+                { type: 'angle-category', startAngle: 330 },
                 { type: 'radius-number', title: { text: 'Skill Score' } },
             ],
         };
@@ -240,7 +240,7 @@ describe('Polar Axes', () => {
             ...EXAMPLE_OPTIONS,
             series: RADAR_AREA_SERIES,
             axes: [
-                { type: 'angle-category', shape: 'circle', startAngle: -30 },
+                { type: 'angle-category', shape: 'circle', startAngle: 330 },
                 {
                     type: 'radius-number',
                     shape: 'circle',

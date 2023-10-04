@@ -1,5 +1,4 @@
 import { BBox } from '../scene/bbox';
-import { toRadians } from '../util/angle';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
 import type { SpecialOverrides, TransferableResources } from './chart';
@@ -52,10 +51,9 @@ export class PolarChart extends Chart {
         const angleScale = angleAxis.scale;
         const angles = angleScale.ticks?.().map((value: string) => angleScale.convert(value));
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
-        const rotation = toRadians(angleAxis.rotation ?? 0);
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
-        angleAxis.range = [-Math.PI / 2 + rotation, (3 * Math.PI) / 2 + rotation];
+        angleAxis.computeRange?.();
         angleAxis.gridLength = radius;
 
         radiusAxis.gridAngles = angles;

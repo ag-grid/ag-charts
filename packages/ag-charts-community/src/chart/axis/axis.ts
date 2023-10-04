@@ -899,7 +899,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return this.scale.ticks?.() ?? [];
     }
 
-    private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
+    protected estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
         minTickCount: number;
         maxTickCount: number;
         defaultTickCount: number;
@@ -1000,7 +1000,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    private calculateAvailableRange(): number {
+    protected calculateAvailableRange(): number {
         const { range: requestedRange } = this;
 
         const min = Math.min(...requestedRange);
