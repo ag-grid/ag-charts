@@ -28,7 +28,7 @@ export class AxisTitle implements AgAxisCaptionOptions {
     text?: string = undefined;
 
     @Validate(OPT_NUMBER(0))
-    spacing?: number = Caption.PADDING;
+    spacing?: number = Caption.SMALL_PADDING;
 
     @Validate(OPT_FONT_STYLE)
     fontStyle?: FontStyle = undefined;

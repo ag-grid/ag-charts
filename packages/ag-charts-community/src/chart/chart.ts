@@ -30,7 +30,7 @@ import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import type { PickRequired } from '../util/types';
 import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
-import type { Caption } from './caption';
+import { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
@@ -978,7 +978,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             caption.computeTextWrap(maxWidth, maxHeight);
         };
 
-        const positionTopAndShrinkBBox = (caption: Caption) => {
+        const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
             const baseY = newShrinkRect.y;
             caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
             caption.node.y = baseY;
@@ -989,11 +989,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             // As the bbox (x,y) ends up at a different location than specified above, we need to
             // take it into consideration when calculating how much space needs to be reserved to
             // accommodate the caption.
-            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + (caption.spacing ?? 0));
+            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
             newShrinkRect.shrink(bboxHeight, 'top');
         };
-        const positionBottomAndShrinkBBox = (caption: Caption) => {
+        const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
             const baseY = newShrinkRect.y + newShrinkRect.height;
             caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
             caption.node.y = baseY;
@@ -1001,29 +1001,32 @@ export abstract class Chart extends Observable implements AgChartInstance {
             updateCaption(caption);
             const bbox = caption.node.computeBBox();
 
-            const bboxHeight = Math.ceil(baseY - bbox.y + (caption.spacing ?? 0));
+            const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
             newShrinkRect.shrink(bboxHeight, 'bottom');
         };
 
+        if (subtitle) {
+            subtitle.node.visible = (title?.enabled && subtitle.enabled) ?? false;
+        }
+
         if (title) {
             title.node.visible = title.enabled;
             if (title.node.visible) {
-                positionTopAndShrinkBBox(title);
+                const defaultTitleSpacing = subtitle?.node.visible ? Caption.SMALL_PADDING : Caption.LARGE_PADDING;
+                const spacing = title.spacing ?? defaultTitleSpacing;
+                positionTopAndShrinkBBox(title, spacing);
             }
         }
 
-        if (subtitle) {
-            subtitle.node.visible = (title?.enabled && subtitle.enabled) ?? false;
-            if (subtitle.node.visible) {
-                positionTopAndShrinkBBox(subtitle);
-            }
+        if (subtitle && subtitle.node.visible) {
+            positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
         }
 
         if (footnote) {
             footnote.node.visible = footnote.enabled;
             if (footnote.node.visible) {
-                positionBottomAndShrinkBBox(footnote);
+                positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
             }
         }
 
