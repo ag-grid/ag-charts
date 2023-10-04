@@ -179,7 +179,7 @@ export class ChartTheme {
         return {
             enabled: true,
             shape: 'circle',
-            size: 6,
+            size: 7,
             strokeWidth: 1,
             formatter: undefined,
         };
