@@ -110,10 +110,12 @@ export function checkCrisp(visibleRange: number[] = []): boolean {
 
 type StartingPositionFn<T> = (datum: T) => Partial<T>;
 export function collapsedStartingBarPosition(
-    isVertical: boolean,
-    startingX: number,
-    startingY: number
+    barDirection: ChartAxisDirection,
+    axes: Record<ChartAxisDirection, ChartAxis | undefined>
 ): StartingPositionFn<AnimatableBarDatum> {
+    const isVertical = barDirection === ChartAxisDirection.Y;
+    const { startingX, startingY } = getBarDirectionStartingValues(barDirection, axes);
+
     return (datum) => {
         return {
             x: isVertical ? datum.x : startingX,
@@ -124,7 +126,9 @@ export function collapsedStartingBarPosition(
     };
 }
 
-export function midpointStartingBarPosition(isVertical: boolean): StartingPositionFn<AnimatableBarDatum> {
+export function midpointStartingBarPosition(barDirection: ChartAxisDirection): StartingPositionFn<AnimatableBarDatum> {
+    const isVertical = barDirection === ChartAxisDirection.Y;
+
     return (datum) => {
         return {
             x: isVertical ? datum.x : datum.x + datum.width / 2,
@@ -155,7 +159,7 @@ export function prepareBarAnimationFunctions(startPositionFn: StartingPositionFn
     return { toFn, fromFn };
 }
 
-export function getBarDirectionStartingValues(
+function getBarDirectionStartingValues(
     barDirection: ChartAxisDirection,
     axes: Record<ChartAxisDirection, ChartAxis | undefined>
 ) {

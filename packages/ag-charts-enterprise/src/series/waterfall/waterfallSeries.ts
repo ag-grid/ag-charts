@@ -32,7 +32,6 @@ const {
     updateRect,
     checkCrisp,
     updateLabel,
-    getBarDirectionStartingValues,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
@@ -808,11 +807,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-
-        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
         const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(isVertical, startingX, startingY)
+            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
         );
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 

@@ -39,3 +39,4 @@ export * as easing from './motion/easing';
 
 const motion = { ...fromToMotion, ...resetMotion };
 export { motion };
+export type { NodeUpdateState } from './motion/fromToMotion';
