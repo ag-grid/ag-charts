@@ -26,7 +26,7 @@ import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
-import { ARRAY, BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
+import { BOOLEAN, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { BoundSeries, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -37,24 +37,12 @@ import type { InteractionEvent } from '../interaction/interactionManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
+import { AxisGridline, GRID_STYLE } from './axisGridline';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
 import { AxisTick } from './axisTick';
 import type { AxisTitle } from './axisTitle';
-
-const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
-const GRID_STYLE = predicateWithMessage(
-    ARRAY(undefined, (o) => {
-        for (const key in o) {
-            if (!GRID_STYLE_KEYS.includes(key)) {
-                return false;
-            }
-        }
-        return true;
-    }),
-    `expecting an Array of objects with gridline style properties such as 'stroke' and 'lineDash'`
-);
 
 export enum Tags {
     TickLine,
@@ -189,6 +177,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     readonly line = new AxisLine();
     readonly tick: AxisTick<S> = this.createTick();
+    readonly gridline = new AxisGridline();
     readonly label = this.createLabel();
 
     protected defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
@@ -961,6 +950,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         tickLabelGroupSelection.each((n) => this.updateNodeVisibility(n));
 
         this.tickLineGroup.visible = this.tick.enabled;
+        this.gridLineGroup.visible = this.gridline.enabled;
         this.tickLabelGroup.visible = this.label.enabled;
     }
 
@@ -1084,20 +1074,24 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
-        const { gridStyle, tick, gridPadding, gridLength } = this;
-        if (gridLength === 0 || gridStyle.length === 0) {
+        const { gridStyle, gridline, gridPadding, gridLength } = this;
+
+        const style = gridline.style ?? gridStyle;
+        const width = gridline.width;
+
+        if (gridLength === 0 || style.length === 0) {
             return;
         }
         this.gridLineGroupSelection.each((line, _, index) => {
-            const style = gridStyle[index % gridStyle.length];
+            const { stroke, lineDash } = style[index % gridStyle.length];
             line.setProperties({
                 x1: gridPadding,
                 x2: -sideFlag * gridLength + gridPadding,
                 y: 0,
                 fill: undefined,
-                stroke: style.stroke,
-                strokeWidth: tick.width,
-                lineDash: style.lineDash,
+                stroke: stroke,
+                strokeWidth: width,
+                lineDash: lineDash,
             });
         });
     }

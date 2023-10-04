@@ -91,6 +91,15 @@ export class ChartTheme {
 
     readonly config: any;
 
+    private static getAxisGridlineStyleDefaults() {
+        return [
+            {
+                stroke: DEFAULT_AXIS_GRID_COLOUR,
+                lineDash: [],
+            },
+        ];
+    }
+
     private static getAxisDefaults() {
         return {
             top: {},
@@ -124,15 +133,12 @@ export class ChartTheme {
             },
             tick: {
                 width: 1,
-                size: 0,
                 color: 'rgb(195, 195, 195)',
             },
-            gridStyle: [
-                {
-                    stroke: DEFAULT_AXIS_GRID_COLOUR,
-                    lineDash: [],
-                },
-            ],
+            gridStyle: ChartTheme.getAxisGridlineStyleDefaults(),
+            gridline: {
+                style: ChartTheme.getAxisGridlineStyleDefaults(),
+            },
             crossLines: {
                 enabled: false,
                 fill: 'rgb(187,221,232)',
@@ -291,6 +297,7 @@ export class ChartTheme {
         number: {
             ...ChartTheme.getAxisDefaults(),
             line: {
+                ...ChartTheme.getAxisDefaults().line,
                 enabled: false,
             },
         },
@@ -298,6 +305,7 @@ export class ChartTheme {
             ...ChartTheme.getAxisDefaults(),
             base: 10,
             line: {
+                ...ChartTheme.getAxisDefaults().line,
                 enabled: false,
             },
         },
@@ -309,6 +317,11 @@ export class ChartTheme {
                 autoRotate: true,
             },
             tick: {
+                ...ChartTheme.getAxisDefaults().tick,
+                enabled: false,
+            },
+            gridline: {
+                ...ChartTheme.getAxisDefaults().gridline,
                 enabled: false,
             },
         },
@@ -318,6 +331,11 @@ export class ChartTheme {
         time: {
             ...ChartTheme.getAxisDefaults(),
             tick: {
+                ...ChartTheme.getAxisDefaults().tick,
+                enabled: false,
+            },
+            gridline: {
+                ...ChartTheme.getAxisDefaults().gridline,
                 enabled: false,
             },
         },
