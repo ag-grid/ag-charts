@@ -383,7 +383,7 @@ export class GradientLegend {
         const d = colorDomain;
         const step = d.length > 1 ? (d[1] - d[0]) / d.length : 0;
         const l = Math.floor(Math.log10(Math.abs(step)));
-        return (x: number) => typeof x === 'number' ? x.toFixed(l < 0 ? -l : 0) : String(x);
+        return (x: number) => (typeof x === 'number' ? x.toFixed(l < 0 ? -l : 0) : String(x));
     }
 
     private measureMaxText(colorDomain: number[]) {
