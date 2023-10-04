@@ -32,11 +32,11 @@ const {
     updateRect,
     checkCrisp,
     updateLabel,
-    getBarDirectionStartingValues,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
     seriesLabelFadeInAnimation,
+    resetLabelFn,
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
@@ -186,6 +186,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
         });
     }
 
@@ -808,11 +812,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-
-        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
         const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(isVertical, startingX, startingY)
+            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
         );
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
 
@@ -913,21 +914,12 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override animateReadyUpdate(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        super.animateReadyUpdate(data);
         this.resetConnectorLinesPath(data);
-    }
-
-    override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
-        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
     }
 
     override animateReadyResize(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
-        this.resetConnectorLinesPath(data);
-    }
-
-    resetSelectionRectsAndPaths(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        super.animateReadyResize(data);
         this.resetConnectorLinesPath(data);
     }
 

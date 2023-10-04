@@ -19,3 +19,23 @@ export function seriesLabelFadeInAnimation<T>(
         { delay: duration, duration: 200 }
     );
 }
+
+export function seriesLabelFadeOutAnimation<T>(
+    { id }: { id: string },
+    animationManager: AnimationManager,
+    labelSelections: Selection<NodeWithOpacity, T>[]
+) {
+    const duration = animationManager.defaultDuration;
+    staticFromToMotion(
+        `${id}_labels`,
+        animationManager,
+        labelSelections,
+        { opacity: 1 },
+        { opacity: 0 },
+        { delay: duration, duration: 200 }
+    );
+}
+
+export function resetLabelFn(_node: NodeWithOpacity) {
+    return { opacity: 1 };
+}
