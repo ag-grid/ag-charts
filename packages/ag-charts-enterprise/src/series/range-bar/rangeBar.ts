@@ -34,6 +34,7 @@ const {
     resetBarSelectionsFn,
     fixNumericExtent,
     seriesLabelFadeInAnimation,
+    resetLabelFn,
 } = _ModuleSupport;
 const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -163,6 +164,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             hasHighlightedLabels: true,
             directionKeys: DEFAULT_DIRECTION_KEYS,
             directionNames: DEFAULT_DIRECTION_NAMES,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
         });
     }
 
@@ -744,12 +749,13 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
-    override animateWaitingUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
+    override animateWaitingUpdateReady(data: RangeBarAnimationData) {
+        const { datumSelections, labelSelections } = data;
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            motion.resetMotion(datumSelections, resetBarSelectionsFn);
+            super.resetAllAnimation(data);
             return;
         }
 
@@ -766,18 +772,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         );
 
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
-    }
-
-    override animateReadyUpdate({ datumSelections }: RangeBarAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
-    }
-
-    override animateReadyHighlight(highlightSelection: RangeBarAnimationData['datumSelections'][number]) {
-        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
-    }
-
-    override animateReadyResize({ datumSelections }: RangeBarAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {

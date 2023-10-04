@@ -1,4 +1,5 @@
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { AnimationValue } from '../../../motion/animation';
+import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
 import type {
     AgCartesianSeriesMarkerFormat,
@@ -24,11 +25,11 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
 import type {
+    Series,
     SeriesNodeDataContext,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
     SeriesNodePickMatch,
-    SeriesNodePickMode,
 } from '../series';
 import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
@@ -50,13 +51,18 @@ interface SubGroup<SceneNodeType extends Node, TDatum extends SeriesNodeDatum, T
     labelSelection: Selection<Text, TLabel>;
     markerSelection?: Selection<Marker, TDatum>;
 }
-interface SeriesOpts {
+interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum, TLabel extends SeriesNodeDatum> {
     pathsPerSeries: number;
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
     directionKeys: { [key in ChartAxisDirection]?: string[] };
     directionNames: { [key in ChartAxisDirection]?: string[] };
+    animationResetFns?: {
+        datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
+        label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
+        marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
+    };
 }
 
 const DEFAULT_DIRECTION_KEYS: { [key in ChartAxisDirection]?: string[] } = {
@@ -126,7 +132,7 @@ export abstract class CartesianSeries<
     private subGroups: SubGroup<any, TDatum, TLabel>[] = [];
     private subGroupId: number = 0;
 
-    private readonly opts: SeriesOpts;
+    private readonly opts: SeriesOpts<TNode, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
@@ -140,30 +146,26 @@ export abstract class CartesianSeries<
         pathsZIndexSubOrderOffset = [],
         directionKeys = DEFAULT_DIRECTION_KEYS,
         directionNames = DEFAULT_DIRECTION_NAMES,
-        moduleCtx,
-        pickModes,
-    }: Partial<SeriesOpts> & {
-        moduleCtx: ModuleContext;
-        pickModes?: SeriesNodePickMode[];
-    }) {
-        const opts = {
+        animationResetFns,
+        ...otherOpts
+    }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof Series>[0]) {
+        super({
+            directionKeys,
+            directionNames,
+            useSeriesGroupLayer: true,
+            canHaveAxes: true,
+            ...otherOpts,
+        });
+
+        this.opts = {
             pathsPerSeries,
             hasMarkers,
             hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
             directionKeys,
             directionNames,
-            moduleCtx,
-            pickModes,
+            animationResetFns,
         };
-
-        super({
-            ...opts,
-            useSeriesGroupLayer: true,
-            canHaveAxes: true,
-        });
-
-        this.opts = opts;
 
         this.animationState = new StateMachine('empty', {
             empty: {
@@ -755,32 +757,51 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
-    protected animateEmptyUpdateReady(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { datum, label, marker } = this.opts?.animationResetFns ?? {};
+        if (datum) {
+            resetMotion(data.datumSelections, datum);
+        }
+        if (label) {
+            resetMotion(data.labelSelections, label);
+        }
+        if (marker) {
+            resetMotion(data.markerSelections, marker);
+        }
     }
 
-    protected animateReadyUpdate(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateEmptyUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
-    protected animateWaitingUpdateReady(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateReadyUpdate(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlight(_data: Selection<TNode, TDatum>) {
-        // Override point for sub-classes.
+    protected animateWaitingUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlightMarkers(_data: Selection<Marker, TDatum>) {
-        // Override point for sub-classes.
+    protected animateReadyHighlight(data: Selection<TNode, TDatum>) {
+        const { datum } = this.opts?.animationResetFns ?? {};
+        if (datum) {
+            resetMotion([data], datum);
+        }
     }
 
-    protected animateReadyResize(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateReadyHighlightMarkers(data: Selection<Marker, TDatum>) {
+        const { marker } = this.opts?.animationResetFns ?? {};
+        if (marker) {
+            resetMotion([data], marker);
+        }
     }
 
-    protected animateClearingUpdateEmpty(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateReadyResize(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
+    }
+
+    protected animateClearingUpdateEmpty(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
     protected animationTransitionClear() {

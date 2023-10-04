@@ -36,6 +36,7 @@ const {
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
     seriesLabelFadeInAnimation,
+    resetLabelFn,
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
@@ -185,6 +186,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
         });
     }
 
@@ -909,21 +914,12 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override animateReadyUpdate(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        super.animateReadyUpdate(data);
         this.resetConnectorLinesPath(data);
-    }
-
-    override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
-        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
     }
 
     override animateReadyResize(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
-        this.resetConnectorLinesPath(data);
-    }
-
-    resetSelectionRectsAndPaths(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        super.animateReadyResize(data);
         this.resetConnectorLinesPath(data);
     }
 

@@ -1,6 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { resetMotion } from '../../../motion/resetMotion';
 import type {
     AgBarSeriesFormat,
     AgBarSeriesFormatterParams,
@@ -45,7 +44,7 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
-import { seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { RectConfig } from './barUtil';
 import {
@@ -164,6 +163,10 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
         });
     }
 
@@ -651,15 +654,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
-    override animateReadyHighlight(highlightSelection: Selection<Rect, BarNodeDatum>) {
-        resetMotion([highlightSelection], resetBarSelectionsFn);
-    }
-
-    override animateReadyResize({ datumSelections }: BarAnimationData) {
-        resetMotion(datumSelections, resetBarSelectionsFn);
-    }
-
-    override animateWaitingUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
+    override animateWaitingUpdateReady(data: BarAnimationData) {
+        const { datumSelections, labelSelections } = data;
         const {
             processedData,
             ctx: { animationManager },
@@ -667,7 +663,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            resetMotion(datumSelections, resetBarSelectionsFn);
+            super.resetAllAnimation(data);
             return;
         }
 
