@@ -309,7 +309,7 @@ export class ChartTheme {
                 autoRotate: true,
             },
             tick: {
-                width: 0,
+                enabled: false,
             },
         },
         groupedCategory: {
@@ -318,7 +318,7 @@ export class ChartTheme {
         time: {
             ...ChartTheme.getAxisDefaults(),
             tick: {
-                width: 0,
+                enabled: false,
             },
         },
     };
