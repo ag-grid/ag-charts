@@ -301,7 +301,7 @@ export class ChartTheme {
             ...ChartTheme.getAxisDefaults(),
             line: {
                 ...ChartTheme.getAxisDefaults().line,
-                // enabled: false,
+                // enabled: false, TODO: fix breaking tests when this is set
             },
         },
         log: {
@@ -309,7 +309,7 @@ export class ChartTheme {
             base: 10,
             line: {
                 ...ChartTheme.getAxisDefaults().line,
-                // enabled: false,
+                // enabled: false, TODO: fix breaking tests when this is set
             },
         },
         category: {
