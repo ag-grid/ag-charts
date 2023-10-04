@@ -500,7 +500,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -553,7 +553,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "position": "right",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -955,7 +955,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -1526,7 +1526,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2141,7 +2141,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2191,7 +2191,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2451,7 +2451,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2898,7 +2898,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -3420,7 +3420,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -3693,7 +3693,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4168,7 +4168,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4221,7 +4221,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4479,7 +4479,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4808,7 +4808,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -5143,7 +5143,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -5741,7 +5741,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -6703,7 +6703,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -6753,7 +6753,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -7012,7 +7012,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -7674,7 +7674,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -8067,7 +8067,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -8614,7 +8614,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -9088,7 +9088,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -9591,7 +9591,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -10067,7 +10067,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -10117,7 +10117,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -10372,7 +10372,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -10988,7 +10988,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "position": "top",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -11415,7 +11415,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "enabled": true,
+        "enabled": false,
         "width": 1,
       },
       "title": {
