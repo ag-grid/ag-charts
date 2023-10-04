@@ -133,7 +133,7 @@ export class ChartTheme {
                 color: 'rgb(195, 195, 195)',
             },
             tick: {
-                enabled: true,
+                enabled: false,
                 width: 1,
                 color: 'rgb(195, 195, 195)',
             },
@@ -321,10 +321,6 @@ export class ChartTheme {
                 ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
             },
-            tick: {
-                ...ChartTheme.getAxisDefaults().tick,
-                enabled: false,
-            },
             gridline: {
                 ...ChartTheme.getAxisDefaults().gridline,
                 enabled: false,
@@ -335,10 +331,6 @@ export class ChartTheme {
         },
         time: {
             ...ChartTheme.getAxisDefaults(),
-            tick: {
-                ...ChartTheme.getAxisDefaults().tick,
-                enabled: false,
-            },
             gridline: {
                 ...ChartTheme.getAxisDefaults().gridline,
                 enabled: false,
