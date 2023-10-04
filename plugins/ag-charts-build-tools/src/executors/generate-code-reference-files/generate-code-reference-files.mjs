@@ -121,8 +121,8 @@ function isBuiltinUtilityType(type) {
 function mergeAncestorProps(isDocStyle, parent, child, getProps) {
     const props = getProps(child);
     // child.type can be a string in case of a type alias
-    if (child.meta.isTypeAlias && typeof props === 'string') {
-        console.warn(`Unable to merge props of type alias. (should be object, not string)`, props);
+    if (typeof props === 'string') {
+        console.warn(`Unable to merge props. Should be object, not string.`, props);
         return {};
     }
     let mergedProps = { ...props };
