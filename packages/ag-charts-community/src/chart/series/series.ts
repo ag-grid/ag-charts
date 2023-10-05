@@ -637,6 +637,13 @@ export abstract class Series<
         return SeriesHighlight.This;
     }
 
+    protected getModuleTooltipParams(datum: object): object {
+        const params: object[] = this.dispatch('tooltip-getParams', { datum }) ?? [];
+        return params.reduce((total, current) => {
+            return { ...current, ...total };
+        }, {});
+    }
+
     abstract getTooltipHtml(seriesDatum: any): string;
 
     pickNode(

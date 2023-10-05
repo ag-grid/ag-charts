@@ -602,6 +602,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             title,
             seriesId,
             stackGroup,
+            ...this.getModuleTooltipParams(datum),
         });
     }
 

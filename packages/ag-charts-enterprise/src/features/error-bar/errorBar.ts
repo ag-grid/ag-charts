@@ -32,6 +32,7 @@ type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
 type SeriesDataGetDomainEvent = _ModuleSupport.SeriesDataGetDomainEvent;
 type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
+type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
@@ -127,11 +128,12 @@ export class ErrorBars
 
         const series = this.cartesianSeries;
         this.destroyFns.push(
-            series.addListener('data-prerequest', (event: SeriesDataPrerequestEvent) => this.onPrerequestData(event)),
-            series.addListener('data-processed', (event: SeriesDataProcessedEvent) => this.onDataProcessed(event)),
-            series.addListener('data-getDomain', (event: SeriesDataGetDomainEvent) => this.onGetDomain(event)),
-            series.addListener('data-update', (event: SeriesDataUpdateEvent) => this.onDataUpdate(event)),
-            series.addListener('visibility-changed', (event: SeriesVisibilityEvent) => this.onToggleSeriesItem(event))
+            series.addListener('data-prerequest', (e: SeriesDataPrerequestEvent) => this.onPrerequestData(e)),
+            series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
+            series.addListener('data-getDomain', (e: SeriesDataGetDomainEvent) => this.onGetDomain(e)),
+            series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
+            series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
+            series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e))
         );
     }
 
@@ -260,7 +262,7 @@ export class ErrorBars
                 yUpper: datum[yUpperKey] ?? undefined,
             };
         } else {
-            throw new Error(`Expected series type '${type}`);
+            throw new Error(`AG Charts - expected series type '${type}`);
         }
     }
 
@@ -296,7 +298,41 @@ export class ErrorBars
         }
     }
 
-    private onToggleSeriesItem(event: { enabled: boolean }): void {
+    private onTooltipGetParams(event: SeriesTooltipGetParamsEvent) {
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        let { xLowerName, xUpperName, yLowerName, yUpperName } = this;
+        xLowerName ??= xLowerKey;
+        xUpperName ??= xUpperKey;
+        yLowerName ??= yLowerKey;
+        yUpperName ??= yUpperKey;
+
+        const datum: { [key: string]: any } = event.datum;
+        const getValue = (key?: string) => {
+            if (key !== undefined && key in datum) {
+                return datum[key];
+            }
+        };
+        const xLowerValue = getValue(xLowerKey);
+        const xUpperValue = getValue(xUpperKey);
+        const yLowerValue = getValue(yLowerKey);
+        const yUpperValue = getValue(yUpperKey);
+
+        return {
+            xLowerKey,
+            xLowerValue,
+            xLowerName,
+            xUpperKey,
+            xUpperValue,
+            xUpperName,
+            yLowerKey,
+            yLowerValue,
+            yLowerName,
+            yUpperKey,
+            yUpperValue,
+            yUpperName,
+        };
+    }
+    private onToggleSeriesItem(event: SeriesVisibilityEvent): void {
         this.groupNode.visible = event.enabled;
     }
 
