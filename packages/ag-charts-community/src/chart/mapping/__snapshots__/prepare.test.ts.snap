@@ -21,6 +21,15 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
           "stroke": "#162c53",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -34,12 +43,14 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       },
       "line": {
         "color": "#3f7cbf",
+        "enabled": true,
         "width": 1,
       },
       "nice": false,
       "position": "top",
       "tick": {
         "color": "#3f7cbf",
+        "enabled": true,
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
@@ -66,6 +77,15 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -79,12 +99,14 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       },
       "line": {
         "color": "#326baf",
+        "enabled": true,
         "width": 0,
       },
       "nice": false,
       "position": "right",
       "tick": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "size": 10,
         "width": 1,
       },
@@ -200,7 +222,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#3d7ab0",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -253,7 +275,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#b03d65",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -306,7 +328,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#80b03d",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -335,7 +357,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -394,6 +416,15 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -409,11 +440,14 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -434,6 +468,15 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "keys": [
         "male",
         "female",
@@ -450,12 +493,14 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -477,6 +522,15 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "keys": [
         "exportedTonnes",
       ],
@@ -492,12 +546,14 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "right",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -726,7 +782,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#80a0c3",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -755,7 +811,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -819,6 +875,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -834,11 +899,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -859,6 +927,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -871,12 +948,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -924,6 +1003,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -1295,7 +1375,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -1366,6 +1446,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -1381,11 +1470,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -1406,6 +1498,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -1418,12 +1519,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -1471,6 +1574,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -1961,7 +2065,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -2009,6 +2113,15 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2021,12 +2134,14 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2048,6 +2163,15 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2060,12 +2184,14 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2113,6 +2239,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -2210,7 +2337,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -2245,6 +2372,15 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2259,11 +2395,14 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -2284,6 +2423,15 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2296,12 +2444,14 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2415,7 +2565,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#5BC0EB",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -2468,7 +2618,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#FDE74C",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -2521,7 +2671,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#9BC53D",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -2574,7 +2724,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#E55934",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -2603,7 +2753,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -2668,6 +2818,15 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -2683,11 +2842,14 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -2708,6 +2870,15 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2720,12 +2891,14 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -2773,6 +2946,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -2835,7 +3009,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#af5517",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -2892,7 +3066,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#4086a4",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -2949,7 +3123,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#6c8a2b",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -3006,7 +3180,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#a03e24",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -3063,7 +3237,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#b1a235",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -3100,7 +3274,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -3166,6 +3340,15 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -3181,11 +3364,14 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -3206,6 +3392,15 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -3218,12 +3413,14 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -3271,6 +3468,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -3370,7 +3568,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -3415,6 +3613,15 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -3430,11 +3637,14 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -3455,6 +3665,15 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -3467,12 +3686,14 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -3520,6 +3741,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -3619,7 +3841,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -3659,6 +3881,15 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
           "stroke": "rgba(0,0,0,0.2)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -3674,6 +3905,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       },
       "line": {
         "color": undefined,
+        "enabled": true,
         "width": 1,
       },
       "paddingInner": 0.2,
@@ -3681,7 +3913,8 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "position": "bottom",
       "tick": {
         "color": "black",
-        "width": 0,
+        "enabled": true,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -3697,6 +3930,15 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     },
     {
       "gridStyle": [],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -3712,6 +3954,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       },
       "line": {
         "color": undefined,
+        "enabled": true,
         "width": 1,
       },
       "paddingInner": 0.2,
@@ -3719,7 +3962,8 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "position": "left",
       "tick": {
         "color": "black",
-        "width": 0,
+        "enabled": true,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -3766,6 +4010,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -3858,7 +4103,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "time distribution of commits",
     "wrapping": "hyphenate",
   },
@@ -3869,7 +4114,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "fontSize": 18,
     "fontStyle": undefined,
     "fontWeight": "normal",
-    "spacing": 15,
     "text": "Punch Card of Github",
     "wrapping": "hyphenate",
   },
@@ -3893,6 +4137,15 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -3905,6 +4158,8 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "max": 180,
@@ -3913,7 +4168,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -3935,6 +4190,15 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -3947,6 +4211,8 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "max": 90,
@@ -3955,7 +4221,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4003,6 +4269,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -4097,7 +4364,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -4132,6 +4399,15 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -4147,11 +4423,14 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -4172,6 +4451,15 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -4184,12 +4472,14 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4237,6 +4527,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -4379,7 +4670,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -4437,6 +4728,15 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -4452,11 +4752,14 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -4477,6 +4780,15 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -4489,12 +4801,14 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4542,6 +4856,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -4688,7 +5003,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -4748,6 +5063,15 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -4763,11 +5087,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -4788,6 +5115,15 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -4800,12 +5136,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -4853,6 +5191,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -5266,7 +5605,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -5319,6 +5658,15 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -5334,11 +5682,14 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -5359,6 +5710,15 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -5371,6 +5731,8 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "max": 1,
@@ -5379,7 +5741,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -5427,6 +5789,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 15,
@@ -5487,7 +5850,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#0b1791",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -5534,7 +5897,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#f6d24a",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -5581,7 +5944,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#f6d24a",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -5628,7 +5991,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#ce1126",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -5675,7 +6038,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#ce1126",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -5722,7 +6085,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#fade4b",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -5769,7 +6132,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#be2a2c",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -5816,7 +6179,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#0073cf",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -5863,7 +6226,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#469c65",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -5910,7 +6273,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#fed100",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -5957,7 +6320,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#ce1126",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -6004,7 +6367,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#1e5190",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -6051,7 +6414,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#bf2b30",
         "strokeOpacity": 1,
         "strokeWidth": 2,
@@ -6098,7 +6461,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#4997d0",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6145,7 +6508,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#2868c1",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6192,7 +6555,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#459945",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6221,7 +6584,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -6311,6 +6674,15 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -6324,12 +6696,14 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -6351,6 +6725,15 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -6363,12 +6746,14 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -6416,6 +6801,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -6482,7 +6868,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#132baf",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6511,7 +6897,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "log scale",
     "wrapping": "hyphenate",
   },
@@ -6522,7 +6908,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "fontSize": 16,
     "fontStyle": undefined,
     "fontWeight": "normal",
-    "spacing": 15,
     "text": "World Population Over Time",
     "wrapping": "hyphenate",
   },
@@ -6546,6 +6931,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -6561,11 +6955,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -6586,6 +6983,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -6599,12 +7005,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -6652,6 +7060,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -6714,7 +7123,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#132baf",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6777,7 +7186,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#623bba",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6840,7 +7249,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#8f2291",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6903,7 +7312,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#a90352",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -6966,7 +7375,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#ae3200",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -7029,7 +7438,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#a55f00",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -7092,7 +7501,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#8f8500",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -7135,7 +7544,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -7184,6 +7593,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -7199,11 +7617,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -7224,6 +7645,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -7237,12 +7667,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -7290,6 +7722,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -7491,7 +7924,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -7553,6 +7986,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -7568,11 +8010,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -7593,6 +8038,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -7606,12 +8060,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -7659,6 +8115,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -8007,7 +8464,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -8074,6 +8531,15 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -8087,16 +8553,19 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
-        "width": 0,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -8117,6 +8586,15 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -8129,12 +8607,14 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -8182,6 +8662,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -8250,7 +8731,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#132baf",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -8314,7 +8795,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#623bba",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -8378,7 +8859,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#8f2291",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -8442,7 +8923,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#a90352",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -8480,7 +8961,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -8527,6 +9008,15 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -8542,11 +9032,14 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -8567,6 +9060,15 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -8579,12 +9081,14 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -8632,6 +9136,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -8730,7 +9235,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -8788,6 +9293,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -8965,7 +9471,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -9000,6 +9506,15 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9014,16 +9529,19 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
-        "width": 0,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -9044,6 +9562,15 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9057,12 +9584,14 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -9110,6 +9639,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -9170,7 +9700,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#01c185",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -9217,7 +9747,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#000000",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -9246,7 +9776,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -9318,6 +9848,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -9473,7 +10004,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -9508,6 +10039,15 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -9520,12 +10060,14 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "bottom",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -9547,6 +10089,15 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -9559,12 +10110,14 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -9612,6 +10165,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -9698,7 +10252,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -9733,6 +10287,15 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9748,16 +10311,19 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "interval": CountableTimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": undefined,
         },
-        "width": 0,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -9778,6 +10344,15 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -9790,12 +10365,14 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -9843,6 +10420,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -9904,7 +10482,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#4086a4",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -9966,7 +10544,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#b1a235",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -10028,7 +10606,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#6c8a2b",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -10090,7 +10668,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#a03e24",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -10152,7 +10730,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#af5517",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -10214,7 +10792,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
-        "size": 6,
+        "size": 7,
         "stroke": "#af225a",
         "strokeOpacity": 1,
         "strokeWidth": 0,
@@ -10257,7 +10835,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -10329,6 +10907,15 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -10344,11 +10931,14 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -10369,6 +10959,15 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -10381,13 +10980,15 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "nice": false,
       "position": "top",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -10435,6 +11036,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -10685,7 +11287,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Subtitle",
     "wrapping": "hyphenate",
   },
@@ -10710,7 +11312,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "fontSize": 16,
     "fontStyle": undefined,
     "fontWeight": "normal",
-    "spacing": 15,
     "text": "UK Housing Stock",
     "wrapping": "hyphenate",
   },
@@ -10734,6 +11335,15 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -10749,11 +11359,14 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       },
       "line": {
         "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "width": 0,
+        "color": "rgb(195, 195, 195)",
+        "enabled": false,
+        "width": 1,
       },
       "title": {
         "color": "rgb(70, 70, 70)",
@@ -10774,6 +11387,15 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
           "stroke": "rgb(224,234,241)",
         },
       ],
+      "gridline": {
+        "enabled": true,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -10786,12 +11408,14 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "rotation": undefined,
       },
       "line": {
+        "color": "rgb(195, 195, 195)",
+        "enabled": true,
         "width": 0,
       },
       "position": "left",
       "tick": {
         "color": "rgb(195, 195, 195)",
-        "size": 0,
+        "enabled": false,
         "width": 1,
       },
       "title": {
@@ -10839,6 +11463,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "padding": 8,
         "shape": undefined,
         "size": 15,
+        "strokeWidth": 2,
       },
       "paddingX": 16,
       "paddingY": 8,
@@ -11136,7 +11761,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "fontSize": 12,
     "fontStyle": undefined,
     "fontWeight": undefined,
-    "spacing": 15,
+    "spacing": 20,
     "text": "Victoria Line (2010)",
     "wrapping": "hyphenate",
   },
@@ -11178,7 +11803,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "fontSize": 18,
     "fontStyle": undefined,
     "fontWeight": "normal",
-    "spacing": 15,
     "text": "Average Station Entries",
     "wrapping": "hyphenate",
   },

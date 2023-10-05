@@ -171,7 +171,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
             titleNode.rotation = Math.PI / 2;
             titleNode.x = Math.floor((requestedRange[0] + requestedRange[1]) / 2);
-            titleNode.y = -Caption.PADDING;
+            titleNode.y = -Caption.SMALL_PADDING;
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 

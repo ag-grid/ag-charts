@@ -43,6 +43,8 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     keys?: string[];
     /** Configuration for the axis line. */
     line?: AgAxisLineOptions;
+    /** Configuration for the axis gridlines. */
+    gridline?: AgAxisGridlineOptions;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: LabelType;
     /** Configuration of the lines used to form the grid in the chart area. */
@@ -58,10 +60,19 @@ export interface AgAxisLineOptions {
     color?: CssColor;
 }
 
+export interface AgAxisGridlineOptions {
+    /** Set to false to hide the axis gridlines. */
+    enabled?: boolean;
+    /** The width in pixels of the axis gridlines. */
+    width?: PixelSize;
+    /** Configuration of the lines used to form the grid in the chart series area. */
+    style?: AgAxisGridStyle[];
+}
+
 export interface AgAxisBaseTickOptions {
     /** Set to false to hide the axis tick lines. */
     enabled?: boolean;
-    /** The width in pixels of the axis ticks (and corresponding grid line). */
+    /** The width in pixels of the axis ticks. */
     width?: PixelSize;
     /** The length in pixels of the axis ticks. */
     size?: PixelSize;

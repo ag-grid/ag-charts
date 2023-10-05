@@ -91,6 +91,15 @@ export class ChartTheme {
 
     readonly config: any;
 
+    private static getAxisGridlineStyleDefaults() {
+        return [
+            {
+                stroke: DEFAULT_AXIS_GRID_COLOUR,
+                lineDash: [],
+            },
+        ];
+    }
+
     private static getAxisDefaults() {
         return {
             top: {},
@@ -119,20 +128,20 @@ export class ChartTheme {
                 avoidCollisions: true,
             },
             line: {
+                enabled: true,
                 width: 1,
                 color: 'rgb(195, 195, 195)',
             },
             tick: {
+                enabled: false,
                 width: 1,
-                size: 0,
                 color: 'rgb(195, 195, 195)',
             },
-            gridStyle: [
-                {
-                    stroke: DEFAULT_AXIS_GRID_COLOUR,
-                    lineDash: [],
-                },
-            ],
+            gridStyle: ChartTheme.getAxisGridlineStyleDefaults(),
+            gridline: {
+                enabled: true,
+                style: ChartTheme.getAxisGridlineStyleDefaults(),
+            },
             crossLines: {
                 enabled: false,
                 fill: 'rgb(187,221,232)',
@@ -179,7 +188,7 @@ export class ChartTheme {
         return {
             enabled: true,
             shape: 'circle',
-            size: 6,
+            size: 7,
             strokeWidth: 1,
             formatter: undefined,
         };
@@ -190,6 +199,7 @@ export class ChartTheme {
             shape: undefined,
             size: 15,
             padding: 8,
+            strokeWidth: 2,
         };
     }
 
@@ -212,7 +222,6 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
-                spacing: 15,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 16,
@@ -223,7 +232,7 @@ export class ChartTheme {
             subtitle: {
                 enabled: false,
                 text: 'Subtitle',
-                spacing: 15,
+                spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
@@ -291,6 +300,8 @@ export class ChartTheme {
         number: {
             ...ChartTheme.getAxisDefaults(),
             line: {
+                ...ChartTheme.getAxisDefaults().line,
+                // enabled: false, TODO: fix breaking tests when this is set, use width: 0 for now
                 width: 0,
             },
         },
@@ -298,6 +309,8 @@ export class ChartTheme {
             ...ChartTheme.getAxisDefaults(),
             base: 10,
             line: {
+                ...ChartTheme.getAxisDefaults().line,
+                // enabled: false, TODO: fix breaking tests when this is set, use width: 0 for now
                 width: 0,
             },
         },
@@ -308,8 +321,9 @@ export class ChartTheme {
                 ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
             },
-            tick: {
-                width: 0,
+            gridline: {
+                ...ChartTheme.getAxisDefaults().gridline,
+                enabled: false,
             },
         },
         groupedCategory: {
@@ -317,8 +331,9 @@ export class ChartTheme {
         },
         time: {
             ...ChartTheme.getAxisDefaults(),
-            tick: {
-                width: 0,
+            gridline: {
+                ...ChartTheme.getAxisDefaults().gridline,
+                enabled: false,
             },
         },
     };
