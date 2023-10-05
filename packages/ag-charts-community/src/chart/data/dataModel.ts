@@ -180,6 +180,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     valueType: DatumPropertyType;
     property: K;
     invalidValue?: any;
+    missing?: number;
     missingValue?: any;
     separateNegative?: boolean;
     validation?: (value: any, datum: any) => boolean;

@@ -121,12 +121,29 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             ],
         });
 
-        if (colorKey) {
+        if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
             colorScale.domain = processedData.domain.values[colorKeyIdx];
             colorScale.range = colorRange;
             colorScale.update();
         }
+    }
+
+    private isColorScaleValid() {
+        const { colorKey } = this;
+        if (!colorKey) {
+            return false;
+        }
+
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) {
+            return false;
+        }
+
+        const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
+        const dataCount = processedData.data.length;
+        const colorDataMissing = dataCount === 0 || dataCount === processedData.defs.values[colorDataIdx].missing;
+        return !colorDataMissing;
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -181,6 +198,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const { colorScale, label, xKey = '', yKey = '', colorKey = '', colorName = '' } = this;
+        const colorScaleValid = this.isColorScaleValid();
         const nodeData: HeatmapNodeDatum[] = [];
 
         const width = xScale.bandwidth ?? 10;
@@ -194,7 +212,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const y = yScale.convert(yDatum) + yOffset;
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
-            const fill = colorKey ? colorScale.convert(colorValue) : this.colorRange[0];
+            const fill = colorScaleValid ? colorScale.convert(colorValue) : this.colorRange[0];
 
             const text = this.getLabelText({ datum, defaultValue: colorValue, colorKey, colorName });
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
@@ -206,7 +224,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 xKey,
                 xValue: xDatum,
                 yValue: yDatum,
-                colorValue: colorValue,
+                colorValue,
                 datum,
                 point: { x, y, size: 0 },
                 width,
@@ -368,7 +386,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             colorValue,
             label: { text: labelText },
         } = nodeDatum;
-        const fill = colorScale.convert(colorValue);
+        const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : this.colorRange[0];
 
         let format: AgHeatmapSeriesFormat | undefined;
 
@@ -396,7 +414,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             `<b>${sanitizeHtml(yName || yKey)}</b>: ${yString}`;
 
         if (colorKey) {
-            content = `<b>${sanitizeHtml(colorName || colorKey)}</b>: ${sanitizeHtml(labelText || colorValue)}<br>` + content;
+            content =
+                `<b>${sanitizeHtml(colorName || colorKey)}</b>: ${sanitizeHtml(labelText || colorValue)}<br>` + content;
         }
 
         return tooltip.toTooltipHtml(
@@ -423,9 +442,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
-        const { data, dataModel, xKey, yKey, colorKey } = this;
+        const { data, dataModel, xKey, yKey } = this;
 
-        if (!(data?.length && xKey && yKey && colorKey && dataModel && legendType === 'gradient')) {
+        if (!(data?.length && xKey && yKey && dataModel && legendType === 'gradient' && this.isColorScaleValid())) {
             return [];
         }
 
