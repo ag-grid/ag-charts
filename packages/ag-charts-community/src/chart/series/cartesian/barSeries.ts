@@ -276,12 +276,12 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
-    private getCategoryAxis(): ChartAxis | undefined {
+    public getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
     }
 
-    private getValueAxis(): ChartAxis | undefined {
+    public getValueAxis(): ChartAxis | undefined {
         const direction = this.getBarDirection();
         return this.axes[direction];
     }

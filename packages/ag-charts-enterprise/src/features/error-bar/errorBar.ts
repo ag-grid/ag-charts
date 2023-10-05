@@ -167,19 +167,22 @@ class BarInterface extends CartesianInterface<_Scene.Rect, _ModuleSupport.BarNod
     }
 
     override convert<X, Y>(x: X, y: Y) {
-        // Same as the base class, but use the group band scale for the X offset.
         const { series } = this;
         const { index } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(series);
         const band = this.series.getGroupScale();
-        const barWidth = this.series.getBarWidth();
 
-        const xScale = this.getAxis(ChartAxisDirection.X)?.scale;
-        const yScale = this.getAxis(ChartAxisDirection.Y)?.scale;
-        const xConvert = xScale?.convert(x) ?? 0;
-        const yConvert = yScale?.convert(y) ?? 0;
-        const xOffset = band.convert(String(index)) + barWidth / 2;
-        const yOffset = (yScale?.bandwidth ?? 0) / 2;
-        return { x: xConvert + xOffset, y: yConvert + yOffset };
+        const catScale = this.series.getCategoryAxis()?.scale;
+        const valScale = this.series.getValueAxis()?.scale;
+        const catConvert = catScale?.convert(x) ?? 0;
+        const valConvert = valScale?.convert(y) ?? 0;
+        const catOffset = band.convert(String(index)) + this.series.getBarWidth() / 2;
+        const valOffset = (valScale?.bandwidth ?? 0) / 2;
+
+        if (series.direction !== 'horizontal') {
+            return { x: catConvert + catOffset, y: valConvert + valOffset };
+        } else {
+            return { x: valConvert + valOffset, y: catConvert + catOffset };
+        }
     }
 
     protected override updateDatumIndices() {
