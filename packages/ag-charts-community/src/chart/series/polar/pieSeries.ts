@@ -879,7 +879,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             sector.lineDashOffset = this.lineDashOffset;
             sector.fillShadow = this.shadow;
             sector.lineJoin = 'round';
-            // sector.visible = this.seriesItemEnabled[index];
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
@@ -1575,12 +1574,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         if (!diff?.changed) {
             return;
-        }
-        if (diff?.removed?.length > 0 && itemSelection.hasGarbage()) {
-            // Short-circuit in-progress animation, as stacked removals
-            // don't animate very well.
-            // itemSelection.cleanup();
-            // super.resetAllAnimation();
         }
 
         const { fromFn, toFn } = preparePieSeriesAnimationFunctions(this.rotation);
