@@ -23,8 +23,8 @@ const {
     updateMarker,
     updateLabel,
     fixNumericExtent,
-    areaAnimateEmptyUpdateReady,
-    areaAnimateReadyUpdate,
+    animateAreaInitialLoad,
+    animateAreaUpdates,
     AreaSeriesTag,
 } = _ModuleSupport;
 const { getMarker, PointerEvents, SceneChangeDetection } = _Scene;
@@ -48,7 +48,7 @@ type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 };
 
-interface RangeAreaMarkerDatum extends Required<Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>> {
+interface RangeAreaMarkerDatum extends Omit<Required<_ModuleSupport.CartesianSeriesNodeDatum>, 'yKey' | 'yValue'> {
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
@@ -56,10 +56,10 @@ interface RangeAreaMarkerDatum extends Required<Omit<_ModuleSupport.CartesianSer
     readonly yHighValue: number;
 }
 
-interface RangeAreaContext extends _ModuleSupport.SeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
-    fillData: _ModuleSupport.AreaPathDatum;
-    strokeData: _ModuleSupport.AreaPathDatum;
-}
+type RangeAreaContext = _ModuleSupport.SeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> & {
+    fillData: _ModuleSupport.AreaPathData;
+    strokeData: _ModuleSupport.AreaPathData;
+};
 
 class RangeAreaSeriesNodeClickEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -276,8 +276,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
-        const strokeData: _ModuleSupport.AreaPathDatum = { itemId, points: [] };
-        const fillData: _ModuleSupport.AreaPathDatum = { itemId, points: [] };
+        const strokeData: _ModuleSupport.AreaPathData = { itemId, points: [] };
+        const fillData: _ModuleSupport.AreaPathData = { itemId, points: [] };
         const context: RangeAreaContext = {
             itemId,
             labelData,
@@ -691,48 +691,40 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             };
         };
 
-        areaAnimateEmptyUpdateReady<
-            RangeAreaMarkerDatum,
-            RangeAreaLabelDatum,
-            _ModuleSupport.AreaPathDatum,
-            _ModuleSupport.AreaPathDatum,
-            RangeAreaContext,
-            AgRangeAreaSeriesMarkerFormatterParams<RangeAreaMarkerDatum>,
-            (typeof this.marker)['formatter']
-        >({
-            markerSelections,
+        animateAreaInitialLoad({
+            markerSelections: markerSelections as any,
             labelSelections,
-            contextData,
+            contextData: contextData as any,
             paths,
             seriesRect,
             styles,
-            formatter,
-            getFormatterParams,
+            formatter: formatter as any,
+            getFormatterParams: getFormatterParams as any,
             seriesId,
             ctx,
         });
     }
 
-    override animateReadyUpdate({
-        contextData,
-        paths,
-    }: {
-        contextData: Array<RangeAreaContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        const styles = {
-            stroke: this.stroke,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
-            strokeOpacity: this.strokeOpacity,
-            shadow: this.shadow,
-            strokeWidth: this.getStrokeWidth(this.strokeWidth),
-        };
+    // animateReadyUpdate({
+    //     contextData,
+    //     paths,
+    // }: {
+    //     contextData: Array<RangeAreaContext>;
+    //     paths: Array<Array<_Scene.Path>>;
+    // }) {
+    //     const styles = {
+    //         stroke: this.stroke,
+    //         fill: this.fill,
+    //         fillOpacity: this.fillOpacity,
+    //         lineDash: this.lineDash,
+    //         lineDashOffset: this.lineDashOffset,
+    //         strokeOpacity: this.strokeOpacity,
+    //         shadow: this.shadow,
+    //         strokeWidth: this.getStrokeWidth(this.strokeWidth),
+    //     };
 
-        areaAnimateReadyUpdate({ contextData, paths, styles });
-    }
+    //     areaAnimateUpdates({ contextData, paths, styles });
+    // }
 
     protected isLabelEnabled() {
         return this.label.enabled;

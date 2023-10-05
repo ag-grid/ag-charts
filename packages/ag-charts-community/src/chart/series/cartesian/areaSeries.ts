@@ -22,7 +22,7 @@ import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { normaliseGroupTo } from '../../data/processors';
+import { createDatumId, diff, normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -31,12 +31,12 @@ import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
 import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import {
-    type AreaPathDatum,
+    type AreaPathData,
     type AreaPathPoint,
     AreaSeriesTag,
-    areaAnimateEmptyUpdateReady,
-    areaAnimateReadyUpdate,
-    areaResetMarkersAndPaths,
+    animateAreaInitialLoad,
+    animateAreaUpdates,
+    resetArea,
 } from './areaUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
@@ -65,10 +65,10 @@ interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     };
 }
 
-interface AreaSeriesNodeDataContext extends SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
-    fillData: AreaPathDatum;
-    strokeData: AreaPathDatum;
-}
+type AreaSeriesNodeDataContext = SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> & {
+    fillData: AreaPathData;
+    strokeData: AreaPathData;
+};
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -160,7 +160,11 @@ export class AreaSeries extends CartesianSeries<
             extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normaliseTo, 'range'));
         }
 
-        await this.requestDataModel<any, any, true>(dataController, data, {
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
@@ -194,6 +198,14 @@ export class AreaSeries extends CartesianSeries<
             groupByKeys: true,
             dataVisible: visible,
         });
+
+        // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
+        const { diff: diffResult } = processedData.reduced ?? {};
+        // if (diffResult && diffResult.added.length > 1 && diffResult.removed.length > 1) {
+        //     this.animationTransitionClear();
+        // } else {
+        this.animationState.transition('updateData');
+        // }
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
@@ -288,8 +300,8 @@ export class AreaSeries extends CartesianSeries<
         const itemId = yKey;
         const labelData: LabelSelectionDatum[] = [];
         const markerData: MarkerSelectionDatum[] = [];
-        const fillData: AreaPathDatum = { itemId, points: [] };
-        const strokeData: AreaPathDatum = { itemId, points: [] };
+        const fillData: AreaPathData = { itemId, points: [] };
+        const strokeData: AreaPathData = { itemId, points: [] };
         const context: AreaSeriesNodeDataContext = {
             itemId,
             fillData,
@@ -669,37 +681,86 @@ export class AreaSeries extends CartesianSeries<
         seriesRect,
     }: AreaAnimationData) {
         const { seriesId, styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
-        areaAnimateEmptyUpdateReady({
-            markerSelections,
+        animateAreaInitialLoad({
+            markerSelections: markerSelections as any,
             labelSelections,
-            contextData,
+            contextData: contextData as any,
             paths,
             seriesRect,
             styles,
             seriesId,
             ctx,
             formatter,
-            getFormatterParams,
+            getFormatterParams: getFormatterParams as any,
         });
     }
 
-    override animateReadyUpdate({ contextData, paths }: AreaAnimationData) {
-        const { styles } = this.getAnimationOptions();
-        areaAnimateReadyUpdate({ contextData, paths, styles });
+    override animateReadyUpdate({
+        markerSelections,
+        labelSelections,
+        contextData,
+        paths,
+        seriesRect,
+    }: AreaAnimationData) {
+        const { seriesId, styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
+        const diff = this.processedData?.reduced?.diff;
+        // animateAreaUpdates({
+        //     markerSelections,
+        //     labelSelections,
+        //     contextData,
+        //     paths,
+        //     seriesRect,
+        //     styles,
+        //     seriesId,
+        //     ctx,
+        //     formatter,
+        //     getFormatterParams,
+        //     diff,
+        // });
+        resetArea({
+            markerSelections: markerSelections as any,
+            labelSelections,
+            contextData: contextData as any,
+            paths,
+            styles,
+            ctx,
+            formatter,
+            getFormatterParams: getFormatterParams as any,
+        });
     }
 
     override animateReadyResize({ contextData, markerSelections, labelSelections, paths }: AreaAnimationData) {
         const { styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
-
-        areaResetMarkersAndPaths({
-            contextData,
-            markerSelections,
+        resetArea({
+            contextData: contextData as any,
+            markerSelections: markerSelections as any,
             labelSelections,
             paths,
             styles,
             ctx,
             formatter,
-            getFormatterParams,
+            getFormatterParams: getFormatterParams as any,
+        });
+    }
+
+    override animateWaitingUpdateReady(animationData: AreaAnimationData) {
+        const animationOptions = this.getAnimationOptions();
+        const diff = this.processedData?.reduced?.diff;
+
+        // TODO: sort this out
+        // Treat undefined values as removed data points
+        // this.processedData?.data.forEach((datum, index) => {
+        //     if (datum.values.includes(undefined)) {
+        //         diff.removed.push(createDatumId(datum.keys));
+        //         diff.removedIndices.push(index);
+        //     }
+        // });
+
+        animateAreaUpdates({
+            ...(animationData as any),
+            ...animationOptions,
+            diff,
+            getDatumId: (datum) => this.getDatumId(datum as any),
         });
     }
 
@@ -735,6 +796,11 @@ export class AreaSeries extends CartesianSeries<
         };
 
         return { seriesId, styles, ctx, formatter, getFormatterParams };
+    }
+
+    private getDatumId(datum: MarkerSelectionDatum) {
+        if (this.ctx.animationManager.isSkipped()) return '';
+        return createDatumId([`${datum.xValue}`]);
     }
 
     protected isLabelEnabled() {

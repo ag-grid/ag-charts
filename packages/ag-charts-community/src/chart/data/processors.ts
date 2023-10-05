@@ -4,6 +4,7 @@ import { isNegative } from '../../util/number';
 import type {
     GroupValueProcessorDefinition,
     ProcessedData,
+    ProcessedOutputDiff,
     ProcessorOutputPropertyDefinition,
     PropertyId,
     PropertyValueProcessorDefinition,
@@ -248,15 +249,15 @@ export function diff(
         type: 'processor',
         property: 'diff',
         calculate: (processedData) => {
-            const diff = {
+            const diff: ProcessedOutputDiff = {
                 changed: false,
-                moved: [] as any[],
-                added: [] as any[],
-                updated: [] as any[],
-                removed: [] as any[],
-                addedIndices: [] as number[],
-                updatedIndices: [] as number[],
-                removedIndices: [] as number[],
+                moved: [],
+                added: [],
+                updated: [],
+                removed: [],
+                addedIndices: [],
+                updatedIndices: [],
+                removedIndices: [],
             };
 
             const moved = new Map<string, any>();
@@ -271,8 +272,8 @@ export function diff(
                 const prev = previousData.data[i];
                 const datum = processedData.data[i];
 
-                const prevId = prev ? createDatumId(prev.keys) : '';
-                const datumId = datum ? createDatumId(datum.keys) : '';
+                const prevId = prev ? createDatumId(prev.keys) : `${i}`;
+                const datumId = datum ? createDatumId(datum.keys) : `${i}`;
 
                 if (prevId === datumId) {
                     if (!arraysEqual(prev.values, datum.values)) {

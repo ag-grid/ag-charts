@@ -8,7 +8,7 @@ type StateDefinition<State extends string, Event extends string> = {
 };
 
 export class StateMachine<State extends string, Event extends string> {
-    private readonly debug = Debug.create(true, 'animation');
+    private readonly debug = Debug.create(true, 'animation', 'animation-states');
     private readonly states: Record<State, StateDefinition<State, Event>>;
     private state: State;
 

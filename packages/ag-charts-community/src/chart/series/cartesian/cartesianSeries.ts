@@ -35,6 +35,15 @@ import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesMarker } from '../seriesMarker';
 
+export type NodeDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
+    N,
+    ContextType['nodeData'][number]
+>;
+export type LabelDataSelection<N extends Node, ContextType extends SeriesNodeDataContext> = Selection<
+    N,
+    ContextType['labelData'][number]
+>;
+
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly xKey: string;
     readonly yKey?: string;

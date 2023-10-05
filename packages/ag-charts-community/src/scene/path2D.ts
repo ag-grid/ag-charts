@@ -258,24 +258,26 @@ export class Path2D {
         return intersectionCount % 2 === 1;
     }
 
-    getPoints(): Array<{ x: number; y: number }> {
+    getPoints(): Array<{ x: number; y: number; moveTo: boolean }> {
         const { commands, params } = this;
 
-        const coords: Array<{ x: number; y: number }> = [];
+        const coords: Array<{ x: number; y: number; moveTo: boolean }> = [];
         let pi = 0;
 
         for (let ci = 0; ci < commands.length; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
+                    coords.push({ x: params[pi++], y: params[pi++], moveTo: true });
+                    break;
                 case Command.Line:
-                    coords.push({ x: params[pi++], y: params[pi++] });
+                    coords.push({ x: params[pi++], y: params[pi++], moveTo: false });
                     break;
                 case Command.Curve:
                     pi += 4;
-                    coords.push({ x: params[pi++], y: params[pi++] });
+                    coords.push({ x: params[pi++], y: params[pi++], moveTo: false });
                     break;
                 case Command.Arc:
-                    coords.push({ x: params[pi++], y: params[pi++] });
+                    coords.push({ x: params[pi++], y: params[pi++], moveTo: false });
                     pi += 4;
                     break;
                 case Command.ClosePath:
