@@ -78,6 +78,7 @@ class CartesianInterface<
     TDatum extends _ModuleSupport.CartesianSeriesNodeDatum,
     TSeries extends _ModuleSupport.CartesianSeries<TNode, TDatum>,
 > {
+    public ctx: _ModuleSupport.SeriesContext;
     protected series: TSeries;
 
     protected dataModel?: AnyDataModel;
@@ -85,7 +86,8 @@ class CartesianInterface<
     protected xIndex?: number;
     protected yIndex?: number;
 
-    constructor(series: TSeries) {
+    constructor(ctx: _ModuleSupport.SeriesContext, series: TSeries) {
+        this.ctx = ctx;
         this.series = series;
     }
 
@@ -166,16 +168,16 @@ class BarInterface extends CartesianInterface<_Scene.Rect, _ModuleSupport.BarNod
 
     override convert<X, Y>(x: X, y: Y) {
         // Same as the base class, but use the group band scale for the X offset.
-        // TODO PoC DO NOT MERGE (needs public methods/props).
         const { series } = this;
-        const band = (this.series as any)['groupScale'] as _Scale.BandScale<string>;
-        const { index } = (series as any)['ctx'].seriesStateManager.getVisiblePeerGroupIndex(series);
+        const { index } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(series);
+        const band = this.series.getGroupScale();
+        const barWidth = this.series.getBarWidth();
 
         const xScale = this.getAxis(ChartAxisDirection.X)?.scale;
         const yScale = this.getAxis(ChartAxisDirection.Y)?.scale;
         const xConvert = xScale?.convert(x) ?? 0;
         const yConvert = yScale?.convert(y) ?? 0;
-        const xOffset = band.convert(String(index));
+        const xOffset = band.convert(String(index)) + barWidth / 2;
         const yOffset = (yScale?.bandwidth ?? 0) / 2;
         return { x: xConvert + xOffset, y: yConvert + yOffset };
     }
@@ -206,9 +208,9 @@ function makeCartesianInterface(ctx: _ModuleSupport.SeriesContext): SomeCartesia
 
     if (ctx.series.type == 'bar') {
         // TODO `as unknown as SomeCartesianInterface` shouldn't be necessary.
-        return new BarInterface(ctx.series as _ModuleSupport.BarSeries) as unknown as SomeCartesianInterface;
+        return new BarInterface(ctx, ctx.series as _ModuleSupport.BarSeries) as unknown as SomeCartesianInterface;
     } else {
-        return new CartesianInterface(ctx.series as SomeCartesianSeries);
+        return new CartesianInterface(ctx, ctx.series as SomeCartesianSeries);
     }
 }
 

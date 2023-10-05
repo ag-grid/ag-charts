@@ -286,6 +286,19 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return this.axes[direction];
     }
 
+    public getGroupScale() {
+        return this.groupScale;
+    }
+
+    public getBarWidth() {
+        const { groupScale } = this;
+        return groupScale.bandwidth >= 1
+            ? // Pixel-rounded value for low-volume bar charts.
+              groupScale.bandwidth
+            : // Handle high-volume bar charts gracefully.
+              groupScale.rawBandwidth;
+    }
+
     async createNodeData() {
         const { visible, dataModel } = this;
         const xAxis = this.getCategoryAxis();
@@ -334,13 +347,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         // To get exactly `0` padding we need to turn off rounding
         groupScale.round = groupScale.padding !== 0;
 
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume bar charts.
-                  groupScale.bandwidth
-                : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
-
+        const barWidth = this.getBarWidth();
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
