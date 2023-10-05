@@ -128,6 +128,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            animationResetFns: {
+                item: resetBarSelectionsFn,
+            },
         });
     }
 
@@ -416,10 +419,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     }
 
     protected override animateEmptyUpdateReady() {
-        if (!this.visible) {
-            return;
-        }
-
         const { labelSelection } = this;
 
         const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
@@ -431,14 +430,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             toFn
         );
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
-    }
-
-    protected override animateReadyUpdate() {
-        motion.resetMotion([this.itemSelection], resetBarSelectionsFn);
-    }
-
-    protected override animateReadyResize() {
-        motion.resetMotion([this.itemSelection], resetBarSelectionsFn);
     }
 
     protected override getNodeClickEvent(
@@ -572,28 +563,5 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
-    }
-
-    protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
-        node.centerX = 0;
-        node.centerY = 0;
-        node.innerRadius = datum.innerRadius;
-        node.outerRadius = datum.outerRadius;
-        node.startAngle = datum.startAngle;
-        node.endAngle = datum.endAngle;
-    }
-
-    protected animateItemsShapes() {
-        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
-        this.itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${node.id}`,
-                from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
-                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
-                onUpdate(props) {
-                    node.setProperties(props);
-                },
-            });
-        });
     }
 }
