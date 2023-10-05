@@ -5,10 +5,10 @@ export const HEATMAP_SERIES_THEME = {
     title: undefined,
     xKey: '',
     yKey: '',
-    labelKey: undefined,
     xName: '',
     yName: '',
-    labelName: 'Label',
+    colorKey: '',
+    colorName: '',
     label: {
         enabled: false,
         fontStyle: undefined,

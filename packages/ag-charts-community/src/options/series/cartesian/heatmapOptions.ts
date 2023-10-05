@@ -20,7 +20,7 @@ export interface AgHeatmapSeriesFormatterParams<TDatum> {
 export interface AgHeatmapSeriesFormat {
     fill?: CssColor;
     stroke?: CssColor;
-    strokeWidth?: PixelSize; 
+    strokeWidth?: PixelSize;
 }
 
 export interface AgHeatmapSeriesLabelFormatterParams<TDatum> extends AgChartLabelFormatterParams<TDatum> {
