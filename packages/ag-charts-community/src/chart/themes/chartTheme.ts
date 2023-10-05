@@ -12,7 +12,7 @@ import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
-import { BOTTOM, NORMAL } from './constants';
+import { BOTTOM, FONT_SIZE, NORMAL } from './constants';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
@@ -112,14 +112,14 @@ export class ChartTheme {
                 spacing: 15,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
-                fontSize: 12,
+                fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
             label: {
                 fontStyle: undefined,
                 fontWeight: undefined,
-                fontSize: 12,
+                fontSize: FONT_SIZE.SMALL,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 padding: 5,
                 rotation: undefined,
@@ -151,7 +151,7 @@ export class ChartTheme {
                     enabled: false,
                     fontStyle: undefined,
                     fontWeight: undefined,
-                    fontSize: 12,
+                    fontSize: FONT_SIZE.SMALL,
                     fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 5,
                     color: DEFAULT_LABEL_COLOUR,
@@ -224,7 +224,7 @@ export class ChartTheme {
                 text: 'Title',
                 fontStyle: undefined,
                 fontWeight: NORMAL,
-                fontSize: 16,
+                fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -235,7 +235,7 @@ export class ChartTheme {
                 spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
-                fontSize: 12,
+                fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -246,7 +246,7 @@ export class ChartTheme {
                 spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
-                fontSize: 12,
+                fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -263,7 +263,7 @@ export class ChartTheme {
                         color: DEFAULT_LABEL_COLOUR,
                         fontStyle: undefined,
                         fontWeight: undefined,
-                        fontSize: 12,
+                        fontSize: FONT_SIZE.SMALL,
                         fontFamily: DEFAULT_FONT_FAMILY,
                         formatter: undefined,
                     },
