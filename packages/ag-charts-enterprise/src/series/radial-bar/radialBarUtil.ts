@@ -16,7 +16,7 @@ export function prepareRadialBarSeriesAnimationFunctions(
 ) {
     const angleScale = axes[ChartAxisDirection.X]?.scale;
     let axisStartAngle = 0;
-    if (angleScale && angleScale.range[0] <= 0 && angleScale.range[1] >= 0) {
+    if (angleScale && angleScale.domain[0] <= 0 && angleScale.domain[1] >= 0) {
         axisStartAngle = angleScale.convert(0);
     }
     const fromFn = (_sect: _Scene.Sector, _datum: AnimatableSectorDatum, _status: _Scene.NodeUpdateState) => {

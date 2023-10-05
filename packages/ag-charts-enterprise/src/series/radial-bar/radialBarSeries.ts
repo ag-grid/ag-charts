@@ -296,7 +296,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
             let startAngle = Math.max(angleScale.convert(angleStartDatum), angleScale.range[0]);
             let endAngle = Math.min(angleScale.convert(angleEndDatum), angleScale.range[1]);
-            const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
             if (angleDatum < 0) {
                 const tempAngle = startAngle;
                 startAngle = endAngle;
@@ -308,6 +307,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const outerRadius = innerRadius + barWidth;
             const midRadius = (innerRadius + outerRadius) / 2;
 
+            const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
             const cos = Math.cos(midAngle);
             const sin = Math.sin(midAngle);
 
