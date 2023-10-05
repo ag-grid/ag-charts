@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnShape } from './radialColumnShape';
-import { prepareRadialColumnAnimationFunctions } from './radialColumnUtil';
+import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
 const { motion } = _Scene;
 const { Validate, OPT_NUMBER, ChartAxisDirection, PolarAxis, seriesLabelFadeInAnimation } = _ModuleSupport;
@@ -19,7 +19,11 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape
     maxColumnWidthRatio?: number;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx, {});
+        super(moduleCtx, {
+            animationResetFns: {
+                item: resetRadialColumnSelectionFn,
+            },
+        });
     }
 
     protected getStackId() {

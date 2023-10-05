@@ -17,7 +17,7 @@ export function prepareRadialColumnAnimationFunctions(axisInnerRadius: number) {
 }
 
 export function resetRadialColumnSelectionFn(
-    _sect: _Scene.Sector,
+    _sect: SectorLike,
     { innerRadius, outerRadius }: AnimatableRadialColumnDatum
 ) {
     return { innerRadius, outerRadius };
