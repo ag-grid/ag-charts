@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 
-const { Sector, Selection } = _Scene;
+const { Sector } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static className = 'NightingaleSeries';
@@ -13,8 +13,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         return `nightingale-stack-${groupIndex}-yValues`;
     }
 
-    protected createPathSelection(parent: _Scene.Group): _Scene.Selection<_Scene.Sector, RadialColumnNodeDatum> {
-        return Selection.select(parent, Sector);
+    protected override nodeFactory(): _Scene.Sector {
+        return new Sector();
     }
 
     protected updateItemPath(node: _Scene.Sector, datum: RadialColumnNodeDatum) {

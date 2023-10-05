@@ -31,7 +31,7 @@ const {
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Sector, Selection, Text, motion } = _Scene;
+const { Sector, motion } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
 class RadialBarSeriesNodeClickEvent<
@@ -65,14 +65,10 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
+export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum, _Scene.Sector> {
     static className = 'RadialBarSeries';
 
     readonly label = new _Scene.Label();
-
-    protected itemSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
-    protected highlightSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
 
     protected nodeData: RadialBarNodeDatum[] = [];
 
@@ -133,15 +129,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             useLabelLayer: true,
             canHaveAxes: true,
         });
+    }
 
-        const sectorGroup = new Group();
-        this.contentGroup.append(sectorGroup);
-        sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
-        this.itemSelection = Selection.select(sectorGroup, Sector);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = Selection.select(this.highlightGroup, Sector);
+    protected override nodeFactory(): _Scene.Sector {
+        return new Sector();
     }
 
     override addChartEventListeners(): void {

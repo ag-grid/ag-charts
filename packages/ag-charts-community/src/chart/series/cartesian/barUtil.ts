@@ -144,7 +144,7 @@ export function prepareBarAnimationFunctions(startPositionFn: StartingPositionFn
     const fromFn = (rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
         if (status === 'removed') {
             return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
-        } else if (status === 'added') {
+        } else if (status === 'added' || status === 'unknown') {
             return startPositionFn(datum);
         }
         return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };

@@ -7,7 +7,6 @@ import { ChartAxisDirection } from './chartAxisDirection';
 import { Layers } from './layers';
 import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
-import type { SeriesNodeDatum } from './series/series';
 
 export class PolarChart extends Chart {
     static className = 'PolarChart';
@@ -80,7 +79,7 @@ export class PolarChart extends Chart {
     }
 
     private async computeCircle(seriesBox: BBox) {
-        const polarSeries = this.series.filter((series): series is PolarSeries<SeriesNodeDatum> => {
+        const polarSeries = this.series.filter((series): series is PolarSeries<any, any> => {
             return series instanceof PolarSeries;
         });
         const polarAxes = this.axes.filter((axis): axis is PolarAxis => {
@@ -95,7 +94,7 @@ export class PolarChart extends Chart {
                 series.radius = r;
             });
 
-            const pieSeries = polarSeries.filter((series): series is PieSeries => series instanceof PieSeries);
+            const pieSeries = polarSeries.filter<PieSeries>((s): s is PieSeries => s instanceof PieSeries);
             if (pieSeries.length > 1) {
                 const innerRadii = pieSeries
                     .map((series) => {

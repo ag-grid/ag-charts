@@ -167,11 +167,11 @@ describe('PolarSeries', () => {
                 chart = AgChart.create(options);
                 await waitForChartStability(chart);
 
+                spyOnAnimationManager(1200, ratio);
                 AgChart.update(chart, {
                     ...options,
                     data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
                 });
-                spyOnAnimationManager(1200, ratio);
                 await compare();
             });
         }
@@ -189,17 +189,14 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options);
-                await waitForChartStability(chart);
-
-                AgChart.update(chart, {
+                chart = AgChart.create({
                     ...options,
                     data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
                 });
                 await waitForChartStability(chart);
 
-                AgChart.update(chart, { ...options, data: options.data });
                 spyOnAnimationManager(1200, ratio);
+                AgChart.update(chart, { ...options });
 
                 await compare();
             });
@@ -221,11 +218,11 @@ describe('PolarSeries', () => {
                 chart = AgChart.create(options);
                 await waitForChartStability(chart);
 
+                spyOnAnimationManager(1200, ratio);
                 AgChart.update(chart, {
                     ...options,
                     data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),
                 });
-                spyOnAnimationManager(1200, ratio);
                 await compare();
             });
         }

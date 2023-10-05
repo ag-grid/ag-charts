@@ -64,16 +64,13 @@ export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     formatter?: (params: AgRadarSeriesMarkerFormatterParams<any>) => AgRadarSeriesMarkerFormat = undefined;
 }
 
-export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
+export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {
     static className = 'RadarSeries';
 
     readonly marker = new RadarSeriesMarker();
     readonly label = new _Scene.Label();
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
-    protected markerSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadarNodeDatum>;
-    protected highlightSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
 
     protected nodeData: RadarNodeDatum[] = [];
 
@@ -138,20 +135,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.contentGroup.append(lineGroup);
         this.lineSelection = Selection.select(lineGroup, Path);
         lineGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
+    }
 
-        const markerFactory = () => {
-            const { shape } = this.marker;
-            const MarkerShape = getMarker(shape);
-            return new MarkerShape();
-        };
-        const markerGroup = new Group();
-        markerGroup.zIndexSubOrder = [() => this._declarationOrder, 2];
-        this.contentGroup.append(markerGroup);
-        this.markerSelection = Selection.select(markerGroup, markerFactory);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = Selection.select(this.highlightGroup, markerFactory);
+    protected override nodeFactory(): _Scene.Marker {
+        const { shape } = this.marker;
+        const MarkerShape = getMarker(shape);
+        return new MarkerShape();
     }
 
     override addChartEventListeners(): void {
@@ -301,7 +290,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
 
         this.updatePathSelections();
-        this.updateMarkers(this.markerSelection, false);
+        this.updateMarkers(this.itemSelection, false);
         this.updateMarkers(this.highlightSelection, true);
         this.updateLabels();
 
@@ -658,7 +647,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             return;
         }
 
-        const { markerSelection, labelSelection } = this;
+        const { itemSelection, labelSelection } = this;
 
         const duration = this.ctx.animationManager.defaultDuration;
         const markerDuration = 200;
@@ -678,7 +667,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
-        markerSelection.each((marker, datum) => {
+        itemSelection.each((marker, datum) => {
             const format = this.animateFormatter(datum);
             const size = datum.point?.size ?? 0;
 
@@ -706,7 +695,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     protected resetMarkersAndPaths() {
-        const { markerSelection } = this;
+        const { itemSelection } = this;
         const lineNode = this.getLineNode();
 
         if (lineNode) {
@@ -734,7 +723,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             lineNode.checkPathDirty();
         }
 
-        markerSelection.each((marker, datum) => {
+        itemSelection.each((marker, datum) => {
             const format = this.animateFormatter(datum);
             const size = datum.point?.size ?? 0;
             marker.size = format?.size ?? size;
