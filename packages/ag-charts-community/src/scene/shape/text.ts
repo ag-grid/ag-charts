@@ -251,7 +251,11 @@ export class Text extends Shape {
         const initialSize = measurer.size(text);
         if (initialSize.width <= maxWidth) {
             // Text fits into a single line
-            return { result: text, truncated: false, cumulativeHeight: cumulativeHeight + initialSize.height };
+            return {
+                result: text,
+                truncated: false,
+                cumulativeHeight: cumulativeHeight + initialSize.height,
+            };
         }
         if (initialSize.height > maxHeight || measurer.width('W') > maxWidth) {
             // Not enough space for a single line or character

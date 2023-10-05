@@ -5,48 +5,38 @@ export interface TypedEvent {
 export type TypedEventListener = (event: TypedEvent) => any;
 
 export class Observable {
-    private allEventListeners = new Map<string, Set<TypedEventListener>>();
+    private eventListeners: Map<string, Set<TypedEventListener>> = new Map();
 
-    addEventListener(type: string, listener: TypedEventListener): void {
+    addEventListener(eventType: string, listener: TypedEventListener): void {
         if (typeof listener !== 'function') {
             throw new Error('AG Charts - listener must be a Function');
         }
 
-        const { allEventListeners } = this;
-        let eventListeners = allEventListeners.get(type);
+        const eventTypeListeners = this.eventListeners.get(eventType);
 
-        if (!eventListeners) {
-            eventListeners = new Set<TypedEventListener>();
-            allEventListeners.set(type, eventListeners);
-        }
-
-        if (!eventListeners.has(listener)) {
-            eventListeners.add(listener);
+        if (eventTypeListeners) {
+            eventTypeListeners.add(listener);
+        } else {
+            this.eventListeners.set(eventType, new Set([listener]));
         }
     }
 
     removeEventListener(type: string, listener: TypedEventListener): void {
-        const { allEventListeners } = this;
-        const eventListeners = allEventListeners.get(type);
-        if (!eventListeners) {
-            return;
-        }
-        eventListeners.delete(listener);
-        if (eventListeners.size === 0) {
-            allEventListeners.delete(type);
+        this.eventListeners.get(type)?.delete(listener);
+        if (this.eventListeners.size === 0) {
+            this.eventListeners.delete(type);
         }
     }
 
     hasEventListener(type: string): boolean {
-        return this.allEventListeners.has(type);
+        return this.eventListeners.has(type);
     }
 
     clearEventListeners() {
-        this.allEventListeners.clear();
+        this.eventListeners.clear();
     }
 
-    protected fireEvent<E extends TypedEvent>(event: E): void {
-        const listeners = this.allEventListeners.get(event.type);
-        listeners?.forEach((listener) => listener(event));
+    protected fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
+        this.eventListeners.get(event.type)?.forEach((listener) => listener(event));
     }
 }

@@ -326,7 +326,10 @@ export class Scene {
 
         if (root) {
             const { dirtyTree, paths } = this.buildDirtyTree(root);
-            Debug.create(DebugSelectors.SCENE_DIRTY_TREE)('Scene.render() - dirtyTree', { dirtyTree, paths });
+            Debug.create(DebugSelectors.SCENE_DIRTY_TREE)('Scene.render() - dirtyTree', {
+                dirtyTree,
+                paths,
+            });
         }
 
         if (root && canvasCleared) {

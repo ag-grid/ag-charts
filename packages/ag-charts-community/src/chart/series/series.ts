@@ -6,7 +6,7 @@ import type { InteractionRange } from '../../options/chart/types';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
-import type { Point, SizedPoint } from '../../scene/point';
+import type { Point } from '../../scene/point';
 import { createId } from '../../util/id';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Listeners } from '../../util/listeners';
@@ -36,23 +36,9 @@ import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
+import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 
-/**
- * Processed series datum used in node selections,
- * contains information used to render pie sectors, bars, markers, etc.
- */
-export interface SeriesNodeDatum {
-    // For example, in `sectorNode.datum.seriesDatum`:
-    // `sectorNode` - represents a pie sector
-    // `datum` - contains metadata derived from the immutable series datum and used
-    //           to set the properties of the node, such as start/end angles
-    // `datum` - raw series datum, an element from the `series.data` array
-    readonly series: Series<any>;
-    readonly itemId?: any;
-    readonly datum: any;
-    readonly point?: Readonly<SizedPoint>;
-    nodeMidPoint?: Readonly<Point>;
-}
+export type { SeriesNodeDatum } from './seriesTypes';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -83,7 +69,7 @@ export function keyProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         scopes: [scope.id],
@@ -100,7 +86,7 @@ export function valueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         scopes: [scope.id],
@@ -116,7 +102,7 @@ export function valueProperty<K>(
 export function rangedValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
-    opts = {} as Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number }
+    opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
 ): DatumPropertyDefinition<K> {
     const { min = -Infinity, max = Infinity, ...defOpts } = opts;
     return {
@@ -139,7 +125,7 @@ export function trailingValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         ...valueProperty(scope, propName, continuous, opts),
@@ -164,7 +150,7 @@ export function accumulativeValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         ...valueProperty(scope, propName, continuous, opts),
@@ -177,7 +163,7 @@ export function trailingAccumulatedValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         ...valueProperty(scope, propName, continuous, opts),
@@ -270,8 +256,11 @@ export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     labelData: L[];
 };
 
-const NO_HIGHLIGHT = 'no-highlight';
-const OTHER_HIGHLIGHTED = 'other-highlighted';
+enum SeriesHighlight {
+    None,
+    This,
+    Other,
+}
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext>;
 
@@ -281,7 +270,7 @@ export abstract class Series<
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ModuleContextInitialiser<SeriesContext>
+    implements ISeries<TDatum>, ModuleContextInitialiser<SeriesContext>
 {
     protected static readonly highlightedZIndex = 1000000000000;
 
@@ -331,8 +320,8 @@ export abstract class Series<
 
     abstract tooltip: SeriesTooltip<any>;
 
-    protected _data?: any[] = undefined;
-    protected _chartData?: any[] = undefined;
+    protected _data?: any[];
+    protected _chartData?: any[];
 
     set data(input: any[] | undefined) {
         this._data = input;
@@ -598,64 +587,54 @@ export abstract class Series<
     abstract update(opts: { seriesRect?: BBox }): Promise<void>;
 
     protected getOpacity(): number {
-        const {
-            highlightStyle: {
-                series: { dimOpacity = 1, enabled = true },
-            },
-        } = this;
-
         const defaultOpacity = 1;
-        if (enabled === false || dimOpacity === defaultOpacity) {
+        const { dimOpacity = 1, enabled = true } = this.highlightStyle.series;
+
+        if (!enabled || dimOpacity === defaultOpacity) {
             return defaultOpacity;
         }
 
         switch (this.isItemIdHighlighted()) {
-            case NO_HIGHLIGHT:
-            case 'highlighted':
+            case SeriesHighlight.None:
+            case SeriesHighlight.This:
                 return defaultOpacity;
-            case OTHER_HIGHLIGHTED:
+            case SeriesHighlight.Other:
             default:
                 return dimOpacity;
         }
     }
 
     protected getStrokeWidth(defaultStrokeWidth: number): number {
-        const {
-            highlightStyle: {
-                series: { strokeWidth, enabled = true },
-            },
-        } = this;
+        const { strokeWidth, enabled = true } = this.highlightStyle.series;
 
-        if (enabled === false || strokeWidth === undefined) {
+        if (!enabled || strokeWidth === undefined) {
             // No change in styling for highlight cases.
             return defaultStrokeWidth;
         }
 
         switch (this.isItemIdHighlighted()) {
-            case 'highlighted':
+            case SeriesHighlight.This:
                 return strokeWidth;
-            case NO_HIGHLIGHT:
-            case OTHER_HIGHLIGHTED:
+            case SeriesHighlight.None:
+            case SeriesHighlight.Other:
                 return defaultStrokeWidth;
         }
     }
 
-    protected isItemIdHighlighted(): 'highlighted' | 'other-highlighted' | 'no-highlight' {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const { series } = highlightedDatum ?? {};
-        const highlighting = series != null;
+    protected isItemIdHighlighted(): SeriesHighlight {
+        const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
 
-        if (!highlighting) {
-            // Highlighting not active.
-            return NO_HIGHLIGHT;
+        // Highlighting not active.
+        if (series == null) {
+            return SeriesHighlight.None;
         }
 
+        // Highlighting active, this series not highlighted.
         if (series !== this) {
-            // Highlighting active, this series not highlighted.
-            return OTHER_HIGHLIGHTED;
+            return SeriesHighlight.Other;
         }
 
-        return 'highlighted';
+        return SeriesHighlight.This;
     }
 
     abstract getTooltipHtml(seriesDatum: any): string;
@@ -675,7 +654,7 @@ export abstract class Series<
                 continue;
             }
 
-            let match: SeriesNodePickMatch | undefined = undefined;
+            let match: SeriesNodePickMatch | undefined;
 
             switch (pickMode) {
                 case SeriesNodePickMode.EXACT_SHAPE_MATCH:
@@ -703,13 +682,7 @@ export abstract class Series<
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
         const match = this.contentGroup.pickNode(point.x, point.y);
-
-        if (match) {
-            return {
-                datum: match.datum,
-                distance: 0,
-            };
-        }
+        return match && { datum: match.datum, distance: 0 };
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
@@ -726,13 +699,13 @@ export abstract class Series<
 
     abstract getLabelData(): PointLabelDatum[];
 
-    fireNodeClickEvent(event: Event, _datum: TDatum): void {
-        const eventObject = this.getNodeClickEvent(event, _datum);
+    fireNodeClickEvent(event: Event, datum: TDatum): void {
+        const eventObject = this.getNodeClickEvent(event, datum);
         this.fireEvent(eventObject);
     }
 
-    fireNodeDoubleClickEvent(event: Event, _datum: TDatum): void {
-        const eventObject = this.getNodeDoubleClickEvent(event, _datum);
+    fireNodeDoubleClickEvent(event: Event, datum: TDatum): void {
+        const eventObject = this.getNodeDoubleClickEvent(event, datum);
         this.fireEvent(eventObject);
     }
 
@@ -744,6 +717,7 @@ export abstract class Series<
         return new SeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
+    abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
     protected toggleSeriesItem(itemId: any, enabled: boolean): void {
@@ -758,7 +732,7 @@ export abstract class Series<
 
     readonly highlightStyle = new HighlightStyle();
 
-    private readonly moduleMap: SeriesModuleMap = new ModuleMap<SeriesOptionModule, SeriesContext>(this);
+    private readonly moduleMap: SeriesModuleMap = new ModuleMap(this);
 
     getModuleMap(): SeriesModuleMap {
         return this.moduleMap;

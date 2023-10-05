@@ -152,7 +152,7 @@ export type PropertyDefinition<K> =
     | ReducerOutputPropertyDefinition<any>
     | ProcessorOutputPropertyDefinition<any>;
 
-type ProcessorFn = (datum: any, previousDatum?: any) => any;
+export type ProcessorFn = (datum: any, previousDatum?: any) => any;
 export type PropertyId<K extends string> = K | { id: string };
 
 type PropertyIdentifiers = {
@@ -664,7 +664,12 @@ export class DataModel<
                     }
                 }
             } else {
-                processedData.set(groupStr, { keys: group, values: [values], datum: [datum], validScopes });
+                processedData.set(groupStr, {
+                    keys: group,
+                    values: [values],
+                    datum: [datum],
+                    validScopes,
+                });
             }
         }
 

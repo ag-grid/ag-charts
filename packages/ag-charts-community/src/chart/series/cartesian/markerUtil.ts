@@ -67,7 +67,7 @@ export function getMarkerConfig<ExtraParams extends {}>({
             : markerStyle.strokeWidth ?? 1;
     const strokeOpacity = markerStyle.strokeOpacity ?? seriesStyle.strokeOpacity;
 
-    let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+    let format: AgCartesianSeriesMarkerFormat | undefined;
     if (formatter) {
         format = callbackCache.call(formatter as any, {
             datum: datum.datum,

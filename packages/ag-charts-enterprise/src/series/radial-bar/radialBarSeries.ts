@@ -1,7 +1,6 @@
 import type {
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -66,15 +65,10 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-class RadialBarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
-}
-
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
     static className = 'RadialBarSeries';
 
-    readonly label = new RadialBarSeriesLabel();
+    readonly label = new _Scene.Label();
 
     protected itemSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
@@ -273,10 +267,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const axisOuterRadius = this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const getLabelNodeDatum = (angleDatum: number, x: number, y: number): RadialBarLabelNodeDatum | undefined => {
+        const getLabelNodeDatum = (
+            datum: RadialColumnNodeDatum,
+            angleDatum: number,
+            x: number,
+            y: number
+        ): RadialBarLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ value: angleDatum, seriesId });
+                labelText = label.formatter({ defaultValue: angleDatum, datum, seriesId });
             } else if (typeof angleDatum === 'number' && isFinite(angleDatum)) {
                 labelText = angleDatum.toFixed(2);
             } else if (angleDatum) {
@@ -301,8 +300,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const angleStartDatum = values[angleStartIndex];
             const angleEndDatum = values[angleEndIndex];
 
-            const startAngle = angleScale.convert(angleStartDatum);
-            const endAngle = angleScale.convert(angleEndDatum);
+            const startAngle = Math.max(angleScale.convert(angleStartDatum), angleScale.range[0]);
+            const endAngle = Math.min(angleScale.convert(angleEndDatum), angleScale.range[1]);
             const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
 
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
@@ -316,13 +315,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const x = cos * midRadius;
             const y = sin * midRadius;
 
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(angleDatum, x, y) : undefined;
+            const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, angleDatum, x, y) : undefined;
 
             return {
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
@@ -582,5 +581,28 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
+    }
+
+    protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
+        node.centerX = 0;
+        node.centerY = 0;
+        node.innerRadius = datum.innerRadius;
+        node.outerRadius = datum.outerRadius;
+        node.startAngle = datum.startAngle;
+        node.endAngle = datum.endAngle;
+    }
+
+    protected animateItemsShapes() {
+        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
+        this.itemSelection.each((node, datum) => {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${node.id}`,
+                from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
+                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
+                onUpdate(props) {
+                    node.setProperties(props);
+                },
+            });
+        });
     }
 }

@@ -327,10 +327,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         if (format && scale && scale.tickFormat) {
             try {
-                this.labelFormatter = scale.tickFormat({
-                    ticks,
-                    specifier: format,
-                });
+                this.labelFormatter = scale.tickFormat({ ticks, specifier: format });
             } catch (e) {
                 this.labelFormatter = defaultLabelFormatter;
                 Logger.warnOnce(`the axis label format string ${format} is invalid. No formatting will be applied`);
@@ -340,7 +337,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
-    public title: AxisTitle | undefined = undefined;
+    public title?: AxisTitle = undefined;
     protected _titleCaption = new Caption();
 
     private setDomain() {
@@ -888,7 +885,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return this.scale.ticks?.() ?? [];
     }
 
-    private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
+    protected estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
         minTickCount: number;
         maxTickCount: number;
         defaultTickCount: number;
@@ -990,7 +987,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    private calculateAvailableRange(): number {
+    protected calculateAvailableRange(): number {
         const { range: requestedRange } = this;
 
         const min = Math.min(...requestedRange);

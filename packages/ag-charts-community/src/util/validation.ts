@@ -215,21 +215,7 @@ export const OPT_BOOLEAN_ARRAY = predicateWithMessage(
     'expecting an optional Array of boolean values'
 );
 
-const FONT_WEIGHTS = [
-    'normal',
-    'bold',
-    'bolder',
-    'lighter',
-    '100',
-    '200',
-    '300',
-    '400',
-    '500',
-    '600',
-    '700',
-    '800',
-    '900',
-];
+const FONT_WEIGHTS = ['normal', 'bold', 'bolder', 'lighter'];
 
 export const FONT_STYLE = predicateWithMessage(
     (v: any) => v === 'normal' || v === 'italic' || v === 'oblique',
@@ -241,7 +227,7 @@ export const OPT_FONT_STYLE = predicateWithMessage(
 );
 
 export const FONT_WEIGHT = predicateWithMessage(
-    (v: any) => FONT_WEIGHTS.includes(v),
+    (v: any) => FONT_WEIGHTS.includes(v) || (typeof v === 'number' && isFinite(v)),
     `expecting a font weight keyword such as 'normal', 'bold' or 'bolder' or a numeric value such as 100, 300 or 600`
 );
 export const OPT_FONT_WEIGHT = predicateWithMessage(

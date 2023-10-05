@@ -1,5 +1,5 @@
+import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
@@ -9,12 +9,11 @@ import type {
     AgSeriesHighlightStyle,
     AgSeriesMarker,
 } from '../seriesOptions';
-import type { AgCartesianSeriesLabelFormatterParams } from './cartesianLabelOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeAreaSeriesMarkerFormatterParams<DatumType> {
-    readonly datum: DatumType;
+export interface AgRangeAreaSeriesMarkerFormatterParams<TDatum> extends AgChartCallbackParams<TDatum> {
+    readonly itemId: string;
     readonly lowValue: number;
     readonly highValue: number;
     readonly size: number;
@@ -25,8 +24,6 @@ export interface AgRangeAreaSeriesMarkerFormatterParams<DatumType> {
     readonly xKey: string;
     readonly yLowKey: string;
     readonly yHighKey: string;
-    readonly seriesId: string;
-    readonly itemId: string;
 }
 
 export interface AgRangeAreaSeriesFormat {
@@ -56,30 +53,19 @@ export interface AgRangeAreaSeriesTooltipRendererParams
 }
 
 export interface AgRangeAreaSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string;
     /** Padding in pixels between the label and the edge of the marker. */
     padding?: PixelSize;
 }
 
-export interface AgRangeAreaSeriesLabelFormatterParams extends AgCartesianSeriesLabelFormatterParams {
-    /** The Id to distinguish the type of datum. This can be `low` or `high`. */
-    readonly itemId: string;
-    /** yLowValue as read from series data via the yLowKey property. */
-    readonly yLowValue?: any;
-    /** yHighValue as read from series data via the yHighKey property. */
-    readonly yHighValue?: any;
-}
-
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgRangeAreaSeriesThemeableOptions<DatumType = any>
+export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
     /** Configuration for the markers used in the series.  */
-    marker?: AgRangeAreaSeriesMarker<DatumType>;
+    marker?: AgRangeAreaSeriesMarker<TDatum>;
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
@@ -91,9 +77,9 @@ export interface AgRangeAreaSeriesThemeableOptions<DatumType = any>
 }
 
 /** Configuration for RangeArea series. */
-export interface AgRangeAreaSeriesOptions<DatumType = any>
-    extends AgRangeAreaSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgRangeAreaSeriesOptions<TDatum = any>
+    extends AgRangeAreaSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     /** Configuration for the RangeArea series. */
     type: 'range-area';
     /** The key to use to retrieve x-values from the data. */
@@ -110,12 +96,10 @@ export interface AgRangeAreaSeriesOptions<DatumType = any>
     yHighName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
 }
-export interface AgRangeAreaSeriesMarker<DatumType> extends AgSeriesMarker {
+export interface AgRangeAreaSeriesMarker<TDatum> extends AgSeriesMarker {
     /** Function used to return formatting for individual RangeArea series markers, based on the given parameters. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgRangeAreaSeriesMarkerFormatterParams<DatumType>) => AgRangeAreaSeriesFormat;
+    formatter?: (params: AgRangeAreaSeriesMarkerFormatterParams<TDatum>) => AgRangeAreaSeriesFormat;
 }
 
 /**

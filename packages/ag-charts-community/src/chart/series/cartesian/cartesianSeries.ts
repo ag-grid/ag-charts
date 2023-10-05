@@ -286,7 +286,11 @@ export abstract class CartesianSeries<
         subGroup.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection, seriesIdx });
         subGroup.labelSelection = await this.updateLabelSelection({ labelData, labelSelection, seriesIdx });
         if (markerSelection) {
-            subGroup.markerSelection = await this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx });
+            subGroup.markerSelection = await this.updateMarkerSelection({
+                nodeData,
+                markerSelection,
+                seriesIdx,
+            });
         }
     }
 
@@ -422,7 +426,11 @@ export abstract class CartesianSeries<
             });
             this.animationState.transition('highlightMarkers', highlightSelection);
         } else {
-            await this.updateDatumNodes({ datumSelection: highlightSelection, isHighlight: true, seriesIdx: -1 });
+            await this.updateDatumNodes({
+                datumSelection: highlightSelection,
+                isHighlight: true,
+                seriesIdx: -1,
+            });
             this.animationState.transition('highlight', highlightSelection);
         }
 
@@ -471,10 +479,19 @@ export abstract class CartesianSeries<
                     return;
                 }
 
-                await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false, seriesIdx });
+                await this.updateDatumNodes({
+                    datumSelection,
+                    highlightedItems,
+                    isHighlight: false,
+                    seriesIdx,
+                });
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
-                    await this.updateMarkerNodes({ markerSelection, isHighlight: false, seriesIdx });
+                    await this.updateMarkerNodes({
+                        markerSelection,
+                        isHighlight: false,
+                        seriesIdx,
+                    });
                 }
             })
         );
@@ -710,7 +727,11 @@ export abstract class CartesianSeries<
             const markerSelection = highlightSelection as any;
             return this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx: -1 }) as any;
         } else {
-            return this.updateDatumSelection({ nodeData, datumSelection: highlightSelection, seriesIdx: -1 });
+            return this.updateDatumSelection({
+                nodeData,
+                datumSelection: highlightSelection,
+                seriesIdx: -1,
+            });
         }
     }
 

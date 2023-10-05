@@ -110,11 +110,15 @@ describe('AgChartV2', () => {
 
                     const exampleSnapshot = await snapshot();
                     if (snapshots[index] != null) {
-                        expect(exampleSnapshot).toMatchImage(snapshots[index], { writeDiff: false });
+                        expect(exampleSnapshot).toMatchImage(snapshots[index], {
+                            writeDiff: false,
+                        });
                     }
 
                     if (previousSnapshot != null) {
-                        (expect(exampleSnapshot) as any).not.toMatchImage(previousSnapshot, { writeDiff: false });
+                        (expect(exampleSnapshot) as any).not.toMatchImage(previousSnapshot, {
+                            writeDiff: false,
+                        });
                     }
 
                     snapshots[index] = exampleSnapshot;

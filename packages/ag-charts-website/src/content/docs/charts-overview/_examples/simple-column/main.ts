@@ -30,11 +30,11 @@ const options: AgChartOptions = {
       label: {
         enabled: true,
         color: "#eeeeee",
-        formatter: ({ value }) => formatNumber(value),
+        formatter: ({ defaultValue }) => formatNumber(defaultValue),
       },
       tooltip: {
-        renderer: ({ yValue, xValue }) => {
-          return { title: xValue, content: formatNumber(yValue) }
+        renderer: ({ datum, xKey, yKey }) => {
+          return { title: datum[xKey], content: formatNumber(datum[yKey]) }
         },
       },
     },

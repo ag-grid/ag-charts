@@ -1,15 +1,15 @@
 import { Logger } from './logger';
 
 export class CallbackCache {
-    private cache: Map<Function, Map<string, any>> = new Map();
+    private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
-    call<F extends (...args: any) => any>(f: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    call<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         let serialisedParams: string;
-        let paramCache = this.cache.get(f);
+        let paramCache = this.cache.get(fn);
 
         const invoke = () => {
             try {
-                const result = f(...(params as any[]));
+                const result = fn(...params);
                 if (paramCache && serialisedParams != null) {
                     paramCache.set(serialisedParams, result);
                 }
@@ -31,7 +31,7 @@ export class CallbackCache {
 
         if (paramCache == null) {
             paramCache = new Map();
-            this.cache.set(f, paramCache);
+            this.cache.set(fn, paramCache);
         }
 
         if (!paramCache.has(serialisedParams)) {
@@ -42,6 +42,6 @@ export class CallbackCache {
     }
 
     invalidateCache() {
-        this.cache = new Map();
+        this.cache = new WeakMap();
     }
 }

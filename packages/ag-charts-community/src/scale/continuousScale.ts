@@ -11,7 +11,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     tickCount = ContinuousScale.defaultTickCount;
     minTickCount = 0;
     maxTickCount = Infinity;
-    niceDomain: any[] = null as any;
+    niceDomain: any[] = [];
 
     smallestBandwidthInterval?: number;
 
@@ -47,7 +47,6 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         } else if (d instanceof Date) {
             return d.getTime();
         }
-
         return NaN;
     }
 
@@ -56,7 +55,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     getDomain() {
         if (this.nice) {
             this.refresh();
-            if (this.niceDomain) {
+            if (this.niceDomain.length) {
                 return this.niceDomain;
             }
         }

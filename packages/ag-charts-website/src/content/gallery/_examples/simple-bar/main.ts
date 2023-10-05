@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 function formatNumber(value: number) {
@@ -21,11 +22,11 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'visitors',
             label: {
-                formatter: ({ value }) => formatNumber(value),
+                formatter: ({ defaultValue }) => formatNumber(defaultValue),
             },
             tooltip: {
-                renderer: ({ yValue, xValue }) => {
-                    return { title: xValue, content: formatNumber(yValue) };
+                renderer: ({ datum, xKey, yKey }) => {
+                    return { title: datum[xKey], content: formatNumber(datum[yKey]) };
                 },
             },
         },

@@ -43,7 +43,10 @@ export function setupModules() {
         if (m.type === 'axis-option' && m.themeTemplate) {
             for (const axisType of m.axisTypes) {
                 const axisTypeTheme = (m.themeTemplate as any)[axisType];
-                const theme = { ...m.themeTemplate, ...(typeof axisTypeTheme === 'object' ? axisTypeTheme : {}) };
+                const theme = {
+                    ...m.themeTemplate,
+                    ...(typeof axisTypeTheme === 'object' ? axisTypeTheme : {}),
+                };
                 for (const axisType of m.axisTypes) {
                     delete theme[axisType];
                 }

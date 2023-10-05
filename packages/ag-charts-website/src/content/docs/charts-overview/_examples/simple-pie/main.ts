@@ -32,9 +32,7 @@ const options: AgChartOptions = {
       sectorLabel: {
         color: "white",
         fontWeight: "bold",
-        formatter: ({ datum, sectorLabelKey }) => {
-          return numFormatter.format(datum[sectorLabelKey!])
-        },
+        formatter: ({ datum, sectorLabelKey }) => numFormatter.format(datum[sectorLabelKey!]),
       },
       calloutLine: {
         strokeWidth: 2,

@@ -1,6 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesTooltipRendererParams,
     AgCartesianSeriesMarkerFormat,
     AgTooltipRendererResult,
@@ -15,14 +14,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { sanitizeHtml } from '../../../util/sanitize';
-import {
-    COLOR_STRING_ARRAY,
-    NUMBER,
-    OPT_FUNCTION,
-    OPT_NUMBER_ARRAY,
-    OPT_STRING,
-    Validate,
-} from '../../../util/validation';
+import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -46,11 +38,6 @@ interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
 }
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
-
-class BubbleSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgBubbleSeriesLabelFormatterParams<any>) => string = undefined;
-}
 
 class BubbleSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeClickEvent<
     BubbleNodeDatum,
@@ -89,7 +76,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
     readonly marker = new BubbleSeriesMarker();
 
-    readonly label = new BubbleSeriesLabel();
+    readonly label = new Label();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -125,7 +112,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     colorName?: string = 'Color';
 
     @Validate(OPT_NUMBER_ARRAY)
-    colorDomain: number[] | undefined = undefined;
+    colorDomain?: number[];
 
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#ffff00', '#00ff00', '#0000ff'];
@@ -256,12 +243,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const { sizeScale, marker } = this;
-        const nodeData: BubbleNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
+        const nodeData: BubbleNodeDatum[] = [];
 
         sizeScale.range = [marker.size, marker.maxSize];
 
         const font = label.getFont();
-        let actualLength = 0;
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -270,14 +256,14 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
             let text = String(labelKey ? values[labelDataIdx] : yDatum);
             if (label.formatter) {
-                text = callbackCache.call(label.formatter, { value: text, seriesId, datum }) ?? '';
+                text = callbackCache.call(label.formatter, { defaultValue: text, seriesId, datum }) ?? '';
             }
 
             const size = HdpiCanvas.getTextSize(text, font);
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
-            nodeData[actualLength++] = {
+            nodeData.push({
                 series: this,
                 itemId: yKey,
                 yKey,
@@ -287,16 +273,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 yValue: yDatum,
                 sizeValue: values[sizeDataIdx],
                 point: { x, y, size: markerSize },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 fill,
-                label: {
-                    text,
-                    ...size,
-                },
-            };
+                label: { text, ...size },
+            });
         }
-
-        nodeData.length = actualLength;
 
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
@@ -446,7 +427,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const strokeWidth = this.getStrokeWidth(marker.strokeWidth ?? 1);
 
         const { formatter } = this.marker;
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -495,10 +476,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yKey,
-            yValue,
             yName,
             sizeKey,
             sizeName,
@@ -560,7 +539,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const strokeWidth = markerStrokeWidth ?? 1;
         const size = datum.point?.size ?? 0;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum: datum.datum,

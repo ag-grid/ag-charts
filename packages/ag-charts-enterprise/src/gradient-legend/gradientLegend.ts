@@ -22,7 +22,7 @@ const {
     STRING,
 } = _ModuleSupport;
 const { BBox, Group, Rect, Selection, Text, Triangle } = _Scene;
-const { createId, tickFormat } = _Util;
+const { createId } = _Util;
 
 class GradientLegendLabel {
     @Validate(OPT_NUMBER(0))
@@ -176,19 +176,18 @@ export class GradientLegend {
             return { colorDomain, colorRange };
         }
 
-        if (colorDomain.length === 2) {
-            const count = colorRange.length;
-            colorDomain = colorRange.map((_, i) => {
-                const [d0, d1] = colorDomain;
-                if (i === 0) return d0;
-                if (i === count - 1) return d1;
-                return d0 + ((d1 - d0) * i) / (count - 1);
-            });
-        } else if (colorDomain.length > colorRange.length) {
-            colorDomain.splice(colorRange.length);
-        } else {
+        if (colorDomain.length > colorRange.length) {
             colorRange.splice(colorDomain.length);
         }
+
+        const count = colorRange.length;
+        colorDomain = colorRange.map((_, i) => {
+            const [d0, d1] = colorDomain;
+            if (i === 0) return d0;
+            if (i === count - 1) return d1;
+            return d0 + ((d1 - d0) * i) / (count - 1);
+        });
+
         return { colorDomain, colorRange };
     }
 
@@ -275,7 +274,7 @@ export class GradientLegend {
             colorDomain = colorDomain.slice().reverse();
         }
 
-        const format = this.formatDomain(colorDomain);
+        const format = this.getLabelFormatter(colorDomain);
 
         const setTextPosition = (node: _Scene.Text, index: number) => {
             const t = index / (colorDomain.length - 1);
@@ -375,18 +374,21 @@ export class GradientLegend {
         arrow.visible = true;
     }
 
-    private formatDomain(domain: number[]) {
+    private getLabelFormatter(colorDomain: number[]) {
         const formatter = this.stop.label.formatter;
         if (formatter) {
             return (d: number) => this.ctx.callbackCache.call(formatter, { value: d } as any);
         }
-        return tickFormat(domain, ',.2g');
+        const d = colorDomain;
+        const step = d.length > 1 ? (d[1] - d[0]) / d.length : 0;
+        const l = Math.floor(Math.log10(Math.abs(step)));
+        return (x: number) => (typeof x === 'number' ? x.toFixed(l < 0 ? -l : 0) : String(x));
     }
 
     private measureMaxText(colorDomain: number[]) {
         const { label } = this.stop;
         const tempText = new Text();
-        const format = this.formatDomain(colorDomain);
+        const format = this.getLabelFormatter(colorDomain);
         const boxes: _Scene.BBox[] = colorDomain.map((d) => {
             const text = format(d);
             tempText.text = text;

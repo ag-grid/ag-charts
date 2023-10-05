@@ -1,15 +1,34 @@
 import type { FontStyle, FontWeight } from '../options/agChartOptions';
+import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../options/chart/labelOptions';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import { getFont } from '../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import type { PointLabelDatum } from '../util/labelPlacement';
-import { BOOLEAN, COLOR_STRING, NUMBER, OPT_FONT_STYLE, OPT_FONT_WEIGHT, STRING, Validate } from '../util/validation';
+import {
+    BOOLEAN,
+    COLOR_STRING,
+    NUMBER,
+    OPT_FONT_STYLE,
+    OPT_FONT_WEIGHT,
+    OPT_FUNCTION,
+    STRING,
+    Validate,
+} from '../util/validation';
 import type { ChartAxisLabelFlipFlag } from './chartAxis';
 
-export class Label {
+export class Label<TParams = {}, TDatum = any> implements AgChartLabelOptions<TDatum, TParams> {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(COLOR_STRING)
+    color = '#464646';
+
+    @Validate(OPT_FONT_STYLE)
+    fontStyle?: FontStyle;
+
+    @Validate(OPT_FONT_WEIGHT)
+    fontWeight?: FontWeight;
 
     @Validate(NUMBER(0))
     fontSize = 12;
@@ -17,14 +36,8 @@ export class Label {
     @Validate(STRING)
     fontFamily = 'Verdana, sans-serif';
 
-    @Validate(OPT_FONT_STYLE)
-    fontStyle?: FontStyle = undefined;
-
-    @Validate(OPT_FONT_WEIGHT)
-    fontWeight?: FontWeight = undefined;
-
-    @Validate(COLOR_STRING)
-    color = 'rgba(70, 70, 70, 1)';
+    @Validate(OPT_FUNCTION)
+    formatter?: (params: AgChartLabelFormatterParams<TDatum> & TParams) => string;
 
     getFont(): string {
         return getFont(this);
@@ -73,11 +86,7 @@ export function getTextBaseline(
     parallelFlipFlag: ChartAxisLabelFlipFlag
 ): CanvasTextBaseline {
     if (parallel && !labelRotation) {
-        if (sideFlag * parallelFlipFlag === -1) {
-            return 'hanging';
-        } else {
-            return 'bottom';
-        }
+        return sideFlag * parallelFlipFlag === -1 ? 'hanging' : 'bottom';
     }
     return 'middle';
 }
@@ -130,15 +139,7 @@ export function calculateLabelBBox(
     bbox.height = height;
 
     return {
-        point: {
-            x,
-            y,
-            size: 0,
-        },
-        label: {
-            width,
-            height,
-            text,
-        },
+        point: { x, y, size: 0 },
+        label: { width, height, text },
     };
 }

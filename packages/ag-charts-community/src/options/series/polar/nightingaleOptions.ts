@@ -5,37 +5,29 @@ import type {
     AgBaseRadialColumnSeriesThemeableOptions,
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
 } from './radialColumnOptions';
 
-export interface AgNightingaleSeriesThemeableOptions<DatumType = any>
-    extends AgBaseRadialColumnSeriesThemeableOptions<DatumType> {
+export interface AgNightingaleSeriesThemeableOptions<TDatum = any>
+    extends AgBaseRadialColumnSeriesThemeableOptions<TDatum> {
     /** Configuration for the labels shown on top of data points. */
-    label?: AgNightingaleSeriesLabelOptions;
+    label?: AgChartLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgNightingaleSeriesTooltipRendererParams>;
     /** A formatter function for adjusting the styling of the nightingale sectors. */
-    formatter?: (params: AgNightingaleSeriesFormatterParams<DatumType>) => AgNightingaleSeriesFormat;
+    formatter?: (params: AgNightingaleSeriesFormatterParams<TDatum>) => AgNightingaleSeriesFormat;
 }
 
 /** Configuration for Nightingale series. */
-export interface AgNightingaleSeriesOptions<DatumType = any>
-    extends AgNightingaleSeriesThemeableOptions<DatumType>,
-        AgBaseRadialColumnSeriesOptions<DatumType> {
+export interface AgNightingaleSeriesOptions<TDatum = any>
+    extends AgNightingaleSeriesThemeableOptions<TDatum>,
+        AgBaseRadialColumnSeriesOptions<TDatum> {
     type: 'nightingale';
 }
 
 export interface AgNightingaleSeriesTooltipRendererParams extends AgRadialColumnSeriesTooltipRendererParams {}
 
-export interface AgNightingaleSeriesLabelFormatterParams extends AgRadialColumnSeriesLabelFormatterParams {}
-
-export interface AgNightingaleSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgNightingaleSeriesLabelFormatterParams) => string;
-}
-
-export interface AgNightingaleSeriesFormatterParams<DatumType> extends AgRadialColumnSeriesFormatterParams<DatumType> {}
+export interface AgNightingaleSeriesFormatterParams<TDatum> extends AgRadialColumnSeriesFormatterParams<TDatum> {}
 
 export interface AgNightingaleSeriesFormat extends AgRadialColumnSeriesFormat {}
 

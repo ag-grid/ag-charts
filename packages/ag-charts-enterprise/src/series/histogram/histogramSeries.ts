@@ -1,5 +1,4 @@
 import {
-    type AgCartesianSeriesLabelFormatterParams,
     type AgHistogramSeriesOptions,
     type AgHistogramSeriesTooltipRendererParams,
     type AgTooltipRendererResult,
@@ -13,7 +12,6 @@ import {
 const {
     predicateWithMessage,
     Validate,
-    OPT_FUNCTION,
     groupCount,
     groupSum,
     groupAverage,
@@ -57,11 +55,6 @@ enum HistogramSeriesNodeTag {
     Label,
 }
 
-class HistogramSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
-}
-
 const defaultBinCount = 10;
 
 interface HistogramNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -95,7 +88,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     static className = 'HistogramSeries';
     static type = 'histogram' as const;
 
-    readonly label = new HistogramSeriesLabel();
+    readonly label = new Label();
 
     tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 
@@ -137,7 +130,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     areaPlot: boolean = false;
 
     @Validate(OPT_ARRAY())
-    bins: [number, number][] | undefined = undefined;
+    bins?: [number, number][];
 
     @Validate(HISTOGRAM_AGGREGATION)
     aggregation: HistogramAggregation = 'sum';
@@ -334,10 +327,9 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
         const nodeData: HistogramNodeDatum[] = [];
 
-        const defaultLabelFormatter = (params: { value: number }) => String(params.value);
         const {
             label: {
-                formatter: labelFormatter = defaultLabelFormatter,
+                formatter: labelFormatter = (params) => String(params.defaultValue),
                 fontStyle: labelFontStyle,
                 fontWeight: labelFontWeight,
                 fontSize: labelFontSize,
@@ -368,7 +360,9 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             const selectionDatumLabel =
                 total !== 0
                     ? {
-                          text: callbackCache.call(labelFormatter, { value: total, seriesId }) ?? String(total),
+                          text:
+                              callbackCache.call(labelFormatter, { defaultValue: total, datum, seriesId }) ??
+                              String(total),
                           fontStyle: labelFontStyle,
                           fontWeight: labelFontWeight,
                           fontSize: labelFontSize,
@@ -399,7 +393,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 yValue: yMaxPx,
                 width: w,
                 height: h,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill: fill,
                 stroke: stroke,
                 strokeWidth: strokeWidth,
@@ -522,7 +516,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const {
             aggregatedValue,
             frequency,
-            domain,
             domain: [rangeMin, rangeMax],
         } = nodeDatum;
         const title = `${sanitizeHtml(xName ?? xKey)}: ${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`;
@@ -546,10 +539,8 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 frequency: nodeDatum.frequency,
             },
             xKey,
-            xValue: domain,
             xName,
             yKey,
-            yValue: aggregatedValue,
             yName,
             color,
             title,

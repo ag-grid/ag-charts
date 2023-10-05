@@ -52,7 +52,7 @@ export class Caption {
     spacing?: number;
 
     @Validate(OPT_NUMBER(0))
-    lineHeight: number | undefined = undefined;
+    lineHeight?: number;
 
     @Validate(OPT_NUMBER(0))
     maxWidth?: number = undefined;

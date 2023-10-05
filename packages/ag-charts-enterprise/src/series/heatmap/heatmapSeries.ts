@@ -1,9 +1,8 @@
 import type {
+    AgChartLabelFormatterParams,
     AgHeatmapSeriesFormat,
     AgHeatmapSeriesFormatterParams,
-    AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
@@ -16,7 +15,6 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     OPT_FUNCTION,
-    OPT_NUMBER_ARRAY,
     OPT_COLOR_STRING,
 } = _ModuleSupport;
 const { Rect } = _Scene;
@@ -42,16 +40,11 @@ class HeatmapSeriesNodeClickEvent<
     }
 }
 
-class HeatmapSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgHeatmapSeriesLabelFormatterParams) => string = undefined;
-}
-
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum> {
     static className = 'HeatmapSeries';
     static type = 'heatmap' as const;
 
-    readonly label = new HeatmapSeriesLabel();
+    readonly label = new _Scene.Label();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -79,9 +72,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     @Validate(OPT_STRING)
     colorName?: string = 'Color';
-
-    @Validate(OPT_NUMBER_ARRAY)
-    colorDomain: number[] | undefined = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#cb4b3f', '#6acb64'];
@@ -127,7 +117,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
-        const { colorScale, colorDomain, colorRange, colorKey } = this;
+        const { colorScale, colorRange, colorKey } = this;
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data ?? [], {
             props: [
@@ -140,7 +130,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
-            colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx];
+            colorScale.domain = processedData.domain.values[colorKeyIdx];
             colorScale.range = colorRange;
             colorScale.update();
         }
@@ -173,13 +163,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     async createNodeData() {
-        const {
-            data,
-            visible,
-            axes,
-            dataModel,
-            ctx: { callbackCache },
-        } = this;
+        const { data, visible, axes, dataModel } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -205,13 +189,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const { colorScale, label, labelKey, xKey = '', yKey = '', colorKey = '' } = this;
-        const nodeData: HeatmapNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
+        const nodeData: HeatmapNodeDatum[] = [];
 
         const width = xScale.bandwidth ?? 10;
         const height = yScale.bandwidth ?? 10;
 
         const font = label.getFont();
-        let actualLength = 0;
         for (const { values, datum } of this.processedData?.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -219,22 +202,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const y = yScale.convert(yDatum) + yOffset;
 
             const labelValue = labelKey ? values[labelDataIdx] : colorKey ? values[colorDataIdx] : '';
-            let text: string;
-            if (label.formatter) {
-                const labelFormatterParams = {
-                    seriesId: this.id,
-                    value: labelValue,
-                };
-                text = callbackCache.call(label.formatter, labelFormatterParams) ?? '';
-            } else {
-                text = String(labelValue);
-            }
+            const text = this.getLabelText({ datum, defaultValue: labelValue });
             const size = _Scene.HdpiCanvas.getTextSize(text, font);
 
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
             const fill = colorKey ? colorScale.convert(colorValue) : this.colorRange[0];
 
-            nodeData[actualLength++] = {
+            nodeData.push({
                 series: this,
                 itemId: yKey,
                 yKey,
@@ -247,15 +221,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 width,
                 height,
                 fill,
-                label: {
-                    text,
-                    ...size,
-                },
-                nodeMidPoint: { x, y },
-            };
+                label: { text, ...size },
+                midPoint: { x, y },
+            });
         }
-
-        nodeData.length = actualLength;
 
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
@@ -318,7 +287,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                     ? highlightedDatumStrokeWidth
                     : this.strokeWidth;
 
-            let format: AgHeatmapSeriesFormat | undefined = undefined;
+            let format: AgHeatmapSeriesFormat | undefined;
             if (formatter) {
                 format = callbackCache.call(formatter, {
                     datum: datum.datum,
@@ -369,8 +338,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             text.visible = true;
             text.text = datum.label.text;
             text.fill = label.color;
-            text.x = datum.nodeMidPoint.x;
-            text.y = datum.nodeMidPoint.y;
+            text.x = datum.midPoint.x;
+            text.y = datum.midPoint.y;
             text.fontStyle = label.fontStyle;
             text.fontWeight = label.fontWeight;
             text.fontSize = label.fontSize;
@@ -415,7 +384,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         } = nodeDatum;
         const fill = colorScale.convert(colorValue);
 
-        let format: AgHeatmapSeriesFormat | undefined = undefined;
+        let format: AgHeatmapSeriesFormat | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -449,26 +418,28 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             content = `<b>${sanitizeHtml(labelName || labelKey)}</b>: ${sanitizeHtml(labelValue)}<br>` + content;
         }
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                seriesId,
+                datum,
+                xKey,
+                yKey,
+                labelKey,
+                xName,
+                yName,
+                labelName,
+                title,
+                color,
+            }
+        );
+    }
 
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xValue,
-            xName,
-            yKey,
-            yValue,
-            yName,
-            labelKey,
-            labelName,
-            title,
-            color,
-            seriesId,
-        });
+    protected getLabelText(params: Omit<AgChartLabelFormatterParams<any>, 'seriesId'>) {
+        if (this.label.formatter) {
+            return this.ctx.callbackCache.call(this.label.formatter, { seriesId: this.id, ...params }) ?? '';
+        }
+        return String(params.defaultValue);
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
@@ -485,7 +456,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 seriesId: this.id,
                 colorName: this.colorName,
                 colorDomain:
-                    this.colorDomain ??
                     this.processedData!.domain.values[
                         dataModel.resolveProcessedDataIndexById(this, 'colorValue').index
                     ],

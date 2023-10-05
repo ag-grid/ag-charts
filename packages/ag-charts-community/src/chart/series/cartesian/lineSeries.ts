@@ -1,6 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -15,7 +14,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { NUMBER, OPT_COLOR_STRING, OPT_FUNCTION, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
+import { NUMBER, OPT_COLOR_STRING, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
 import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -26,7 +25,6 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDatum } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -34,7 +32,7 @@ import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent }
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
-    readonly point: SeriesNodeDatum['point'] & {
+    readonly point: CartesianSeriesNodeDatum['point'] & {
         readonly moveTo: boolean;
     };
     readonly label?: {
@@ -49,11 +47,6 @@ interface LineNodeDatum extends CartesianSeriesNodeDatum {
     };
 }
 
-class LineSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
-}
-
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
 export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
@@ -62,7 +55,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
     readonly marker = new CartesianSeriesMarker();
 
-    readonly label = new LineSeriesLabel();
+    readonly label = new Label();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -94,13 +87,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
         });
-
-        const { marker, label } = this;
-
-        marker.fill = '#c16068';
-        marker.stroke = '#874349';
-
-        label.enabled = false;
     }
 
     @Validate(OPT_STRING)
@@ -197,15 +183,14 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const nodeData: LineNodeDatum[] = new Array(processedData.data.length);
+        const nodeData: LineNodeDatum[] = [];
         const size = markerEnabled ? markerSize : 0;
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
 
         let moveTo = true;
-        let nextPoint: UngroupedDataItem<any, any> | undefined = undefined;
-        let actualLength = 0;
+        let nextPoint: UngroupedDataItem<any, any> | undefined;
         for (let i = 0; i < processedData.data.length; i++) {
             const { datum, values } = nextPoint ?? processedData.data[i];
             const xDatum = values[xIdx];
@@ -228,7 +213,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
                 let labelText;
                 if (label.formatter) {
-                    labelText = callbackCache.call(label.formatter, { value: yDatum, seriesId });
+                    labelText = callbackCache.call(label.formatter, {
+                        defaultValue: yDatum,
+                        datum,
+                        seriesId,
+                    });
                 }
 
                 if (labelText !== undefined) {
@@ -238,13 +227,14 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 } else if (yDatum) {
                     labelText = String(yDatum);
                 }
-                nodeData[actualLength++] = {
+
+                nodeData.push({
                     series: this,
                     datum,
                     yKey,
                     xKey,
                     point: { x, y, moveTo, size },
-                    nodeMidPoint: { x, y },
+                    midPoint: { x, y },
                     yValue: yDatum,
                     xValue: xDatum,
                     label: labelText
@@ -259,11 +249,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                               fill: label.color,
                           }
                         : undefined,
-                };
+                });
                 moveTo = false;
             }
         }
-        nodeData.length = actualLength;
 
         return [{ itemId: yKey, nodeData, labelData: nodeData }];
     }
@@ -416,7 +405,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { formatter: markerFormatter, fill: markerFill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
         if (markerFormatter) {
             format = markerFormatter({
                 datum,
@@ -442,10 +431,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yKey,
-            yValue,
             yName,
             title,
             color,
@@ -991,7 +978,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 },
                 onComplete: () => {
                     this.resetMarkersAndPaths(animationData);
-                    this.animationState.transition('update', { ...animationData, duration: updateDuration });
+                    this.animationState.transition('update', {
+                        ...animationData,
+                        duration: updateDuration,
+                    });
                 },
             });
         });
@@ -1049,7 +1039,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const stroke = marker.stroke ?? lineStroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum: datum.datum,

@@ -1,8 +1,8 @@
 import type {
     AgRangeBarSeriesFormat,
     AgRangeBarSeriesFormatterParams,
-    AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
+    AgRangeBarSeriesOptionsKeys,
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -14,7 +14,6 @@ const {
     valueProperty,
     keyProperty,
     ChartAxisDirection,
-    OPTIONAL,
     NUMBER,
     OPT_NUMBER,
     OPT_STRING,
@@ -38,10 +37,6 @@ const {
 } = _ModuleSupport;
 const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
-
-const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
-const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
-    OPTIONAL(v, ctx, (v: any) => RANGE_BAR_LABEL_PLACEMENTS.includes(v));
 
 const DEFAULT_DIRECTION_KEYS = {
     [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
@@ -108,11 +103,8 @@ class RangeBarSeriesNodeClickEvent<
     }
 }
 
-class RangeBarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string = undefined;
-
-    @Validate(OPT_RANGE_BAR_LABEL_PLACEMENT)
+class RangeBarSeriesLabel extends _Scene.Label<Partial<AgRangeBarSeriesOptionsKeys>> {
+    @Validate(STRING_UNION('inside', 'outside'))
     placement: AgRangeBarSeriesLabelPlacement = 'inside';
 
     @Validate(OPT_NUMBER(0))
@@ -281,7 +273,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 
@@ -426,7 +418,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill,
                 stroke,
                 strokeWidth,
@@ -464,7 +456,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText({ itemId: 'low', value: yLowValue, yLowValue, yHighValue }),
+            text: this.getLabelText({ itemId: 'low', datum, value: yLowValue }),
             itemId: 'low',
             datum,
             series,
@@ -474,7 +466,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText({ itemId: 'high', value: yHighValue, yLowValue, yHighValue }),
+            text: this.getLabelText({ itemId: 'high', datum, value: yHighValue }),
             itemId: 'high',
             datum,
             series,
@@ -490,17 +482,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return [yLowLabel, yHighLabel];
     }
 
-    private getLabelText({
-        itemId,
-        value,
-        yLowValue,
-        yHighValue,
-    }: {
-        itemId: string;
-        value: any;
-        yLowValue: any;
-        yHighValue: any;
-    }) {
+    private getLabelText({ itemId, datum, value }: { itemId: string; datum: RangeBarNodeDatum; value: any }) {
         const {
             id: seriesId,
             label: { formatter },
@@ -509,11 +491,13 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         let labelText;
         if (formatter) {
             labelText = callbackCache.call(formatter, {
-                value: isNumber(value) ? value : undefined,
+                defaultValue: isNumber(value) ? value : undefined,
                 seriesId,
                 itemId,
-                yLowValue,
-                yHighValue,
+                datum,
+                xKey: this.xKey,
+                yLowKey: this.yLowKey,
+                yHighKey: this.yHighKey,
             });
         }
         return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
@@ -644,19 +628,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             return '';
         }
 
-        const { xName, yLowName, yHighName, yName, id: seriesId } = this;
-
+        const { xName, yLowName, yHighName, yName, id: seriesId, fill, strokeWidth, formatter, tooltip } = this;
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
-        const { fill, strokeWidth, formatter, tooltip } = this;
-
-        let format: any | undefined = undefined;
+        let format;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum,
-                lowValue: yLowValue,
-                highValue: yHighValue,
                 xKey,
                 yLowKey,
                 yHighKey,
@@ -695,13 +674,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yLowKey,
-            yLowValue,
             yLowName,
             yHighKey,
-            yHighValue,
             yHighName,
             yName,
             color,

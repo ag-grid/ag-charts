@@ -454,7 +454,7 @@ function areaAnimateFormatter<
     formatter?: Formatter;
     getFormatterParams: (datum: MarkerNodeDatum) => FormatterParams;
 }) {
-    let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+    let format: AgCartesianSeriesMarkerFormat | undefined;
     if (formatter) {
         format = callbackCache.call(formatter as any, {
             ...getFormatterParams(datum),

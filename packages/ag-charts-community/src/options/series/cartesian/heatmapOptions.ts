@@ -1,4 +1,3 @@
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
@@ -6,8 +5,8 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { StrokeOptions } from './commonOptions';
 
-export interface AgHeatmapSeriesFormatterParams<DatumType> {
-    readonly datum: DatumType;
+export interface AgHeatmapSeriesFormatterParams<TDatum> {
+    readonly datum: TDatum;
     readonly fill?: CssColor;
     readonly stroke?: CssColor;
     readonly strokeWidth: PixelSize;
@@ -32,33 +31,21 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
     readonly labelName?: string;
 }
 
-export interface AgHeatmapSeriesLabelFormatterParams {
-    /** The ID of the series. */
-    readonly seriesId: string;
-    /** The value of `labelKey` or `colorKey` as specified on series options. */
-    readonly value: any;
-}
-
-export interface AgHeatmapSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgHeatmapSeriesLabelFormatterParams) => string;
-}
-
-export interface AgHeatmapSeriesThemeableOptions<DatumType = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
+export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
-    label?: AgHeatmapSeriesLabelOptions;
+    label?: AgChartLabelOptions<TDatum>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgHeatmapSeriesFormatterParams<DatumType>) => AgHeatmapSeriesFormat;
+    formatter?: (params: AgHeatmapSeriesFormatterParams<TDatum>) => AgHeatmapSeriesFormat;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams>;
 }
 
 /** Configuration for heatmap series. */
-export interface AgHeatmapSeriesOptions<DatumType = any>
-    extends AgHeatmapSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgHeatmapSeriesOptions<TDatum = any>
+    extends AgHeatmapSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     /** Configuration for the heatmap series. */
     type: 'heatmap';
     /** The key to use to retrieve x-values from the data. */
@@ -73,16 +60,12 @@ export interface AgHeatmapSeriesOptions<DatumType = any>
     labelKey?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
-    /** The name of the node key containing the color value. This value (along with `colorDomain` and `colorRange` configs) will be used to determine the tile color. */
+    /** The name of the node key containing the color value. This value (along with `colorRange` configs) will be used to determine the tile color. */
     colorKey?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
-    /** The domain the 'colorKey' values belong to. The domain can contain more than two stops, for example `[-5, 0, -5]`. In that case the 'colorRange' should also use a matching number of colors. */
-    colorDomain?: number[];
-    /** The color range to interpolate the numeric `colorDomain` into. For example, if the `colorDomain` is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' color, `5` - 'green' color and `0` a blend of 'red' and 'green'. */
+    /** The color range to interpolate the numeric color domain (min and max `colorKey` values) into. For example, if the color domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' color, `5` - 'green' color and `0` a blend of 'red' and 'green'. */
     colorRange?: string[];
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
 }
 
 /**

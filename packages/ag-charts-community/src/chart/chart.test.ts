@@ -2,21 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { fail } from 'assert';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
-import type {
-    AgCartesianChartOptions,
-    AgChartInstance,
-    AgPolarChartOptions,
-    InteractionRange,
-} from '../options/agChartOptions';
+import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from '../options/agChartOptions';
 import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
 import { AgChart } from './agChartV2';
 import type { Chart } from './chart';
+import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
 import {
     clickAction,
+    createChart,
     deproxy,
     hoverAction,
     prepareTestOptions,
@@ -87,7 +84,7 @@ describe('Chart', () => {
     }) => {
         const format = (...values: any[]) => values.join(': ');
 
-        const createChart = async (params: {
+        const createChartPreset = async (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
@@ -117,10 +114,7 @@ describe('Chart', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            prepareTestOptions(options);
-            const chart = deproxy(AgChart.create(options));
-            await waitForChartStability(chart);
-            return chart;
+            return createChart(options);
         };
 
         const hoverChartNodes = async (
@@ -162,7 +156,7 @@ describe('Chart', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = await createChartPreset({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
@@ -190,43 +184,43 @@ describe('Chart', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = await createChartPreset({ hasTooltip: true });
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = await createChartPreset({ hasTooltip: true, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = await createChartPreset({ hasTooltip: false });
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = await createChartPreset({ hasTooltip: false, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };
 
     const cartesianTestParams = {
         getNodeData: (series) => series.contextNodeData[0].nodeData,
-        getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
+        getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
         getHighlightNode: (series) => series.highlightNode.children[0],
     } as Parameters<typeof testPointerEvents>[0];
@@ -327,7 +321,7 @@ describe('Chart', () => {
                 const value = item.datum.datum[series.angleKey];
                 return [category, value];
             },
-            getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.angleValue],
+            getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.datum[params.angleKey]],
             getHighlightNode: (series) => {
                 // Returns a highlighted sector
                 const highlightedDatum = series.chart.highlightManager.getActiveHighlight();
@@ -343,7 +337,7 @@ describe('Chart', () => {
                 data: [],
                 series: [testOptions.seriesOptions],
             });
-            const chartProxy = AgChart.create(chartOptions);
+            const chartProxy = AgChart.create(chartOptions) as AgChartProxy;
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);
@@ -429,13 +423,13 @@ describe('Chart', () => {
     describe('Chart data inherited by Series', () => {
         async function createChart(options: object) {
             const chartOptions = prepareTestOptions(options);
-            const chartProxy = AgChart.create(chartOptions);
+            const chartProxy = AgChart.create(chartOptions) as AgChartProxy;
             const chart = deproxy(chartProxy);
             await waitForChartStability(chart);
             return { chart, chartProxy, chartOptions };
         }
 
-        async function updateChart(chartProxy: AgChartInstance, options: object) {
+        async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
             AgChart.update(chartProxy, chartOptions);
             const chart = deproxy(chartProxy);

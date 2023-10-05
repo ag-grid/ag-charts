@@ -26,7 +26,7 @@ class RadiusAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number>
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(OPT_BOOLEAN)
-    autoRotate: boolean | undefined = undefined;
+    autoRotate?: boolean;
 
     @Validate(NUMBER(-360, 360))
     autoRotateAngle: number = 335;
@@ -146,7 +146,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         const {
             title,
             _titleCaption,
-            lineNode,
             range: requestedRange,
             moduleCtx: { callbackCache },
         } = this;
@@ -167,7 +166,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
         let titleVisible = false;
         const titleNode = _titleCaption.node;
-        if (title.enabled && lineNode.visible) {
+        if (title.enabled) {
             titleVisible = true;
 
             titleNode.rotation = Math.PI / 2;
