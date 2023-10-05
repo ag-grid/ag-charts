@@ -15,7 +15,6 @@ const {
     OPT_NUMBER,
     OPT_STRING,
     OPT_FUNCTION,
-    OPT_NUMBER_ARRAY,
     OPT_COLOR_STRING,
 } = _ModuleSupport;
 const { Rect } = _Scene;
@@ -74,9 +73,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     @Validate(OPT_STRING)
     colorName?: string = 'Color';
 
-    @Validate(OPT_NUMBER_ARRAY)
-    colorDomain?: number[];
-
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#cb4b3f', '#6acb64'];
 
@@ -121,7 +117,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
-        const { colorScale, colorDomain, colorRange, colorKey } = this;
+        const { colorScale, colorRange, colorKey } = this;
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data ?? [], {
             props: [
@@ -134,7 +130,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
-            colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx];
+            colorScale.domain = processedData.domain.values[colorKeyIdx];
             colorScale.range = colorRange;
             colorScale.update();
         }
@@ -460,7 +456,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 seriesId: this.id,
                 colorName: this.colorName,
                 colorDomain:
-                    this.colorDomain ??
                     this.processedData!.domain.values[
                         dataModel.resolveProcessedDataIndexById(this, 'colorValue').index
                     ],

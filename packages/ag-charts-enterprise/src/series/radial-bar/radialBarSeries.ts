@@ -300,8 +300,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const angleStartDatum = values[angleStartIndex];
             const angleEndDatum = values[angleEndIndex];
 
-            const startAngle = angleScale.convert(angleStartDatum);
-            const endAngle = angleScale.convert(angleEndDatum);
+            const startAngle = Math.max(angleScale.convert(angleStartDatum), angleScale.range[0]);
+            const endAngle = Math.min(angleScale.convert(angleEndDatum), angleScale.range[1]);
             const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
 
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
@@ -581,5 +581,28 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
+    }
+
+    protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
+        node.centerX = 0;
+        node.centerY = 0;
+        node.innerRadius = datum.innerRadius;
+        node.outerRadius = datum.outerRadius;
+        node.startAngle = datum.startAngle;
+        node.endAngle = datum.endAngle;
+    }
+
+    protected animateItemsShapes() {
+        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
+        this.itemSelection.each((node, datum) => {
+            this.ctx.animationManager.animate({
+                id: `${this.id}_empty-update-ready_${node.id}`,
+                from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
+                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
+                onUpdate(props) {
+                    node.setProperties(props);
+                },
+            });
+        });
     }
 }
