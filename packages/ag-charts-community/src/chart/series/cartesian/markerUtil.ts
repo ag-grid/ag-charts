@@ -120,31 +120,34 @@ type NodeWithOpacity = Node & { opacity: number };
 export function markerFadeInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    markerSelections: Selection<NodeWithOpacity, T>[]
+    markerSelections: Selection<NodeWithOpacity, T>[],
+    delay?: true
 ) {
-    staticFromToMotion(
-        `${id}_markers`,
-        animationManager,
-        markerSelections,
-        { opacity: 0 },
-        { opacity: 1 },
-        { duration: animationManager.defaultDuration }
-    );
+    const params = delay
+        ? {
+              delay: animationManager.defaultDuration,
+              duration: 200,
+          }
+        : {
+              duration: animationManager.defaultDuration,
+          };
+    staticFromToMotion(`${id}_markers`, animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
 }
 
 export function markerFadeOutAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    markerSelections: Selection<NodeWithOpacity, T>[]
+    markerSelections: Selection<NodeWithOpacity, T>[],
+    delay?: true
 ) {
-    staticFromToMotion(
-        `${id}_markers`,
-        animationManager,
-        markerSelections,
-        { opacity: 1 },
-        { opacity: 0 },
-        { duration: animationManager.defaultDuration }
-    );
+    const params = delay
+        ? {
+              duration: animationManager.defaultDuration,
+          }
+        : {
+              duration: 200,
+          };
+    staticFromToMotion(`${id}_markers`, animationManager, markerSelections, { opacity: 1 }, { opacity: 0 }, params);
 }
 
 type NodeWithScaling = Node & { scalingX: number; scalingY: number };
