@@ -1,4 +1,3 @@
-import type { AgSeriesListeners } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
@@ -10,20 +9,20 @@ import type {
     AgSeriesMarkerFormatterParams,
 } from '../seriesOptions';
 
-export interface AgRadarSeriesThemeableOptions<DatumType = any>
+export interface AgRadarSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
-    marker?: AgRadarSeriesMarker<DatumType>;
+    marker?: AgRadarSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgRadarSeriesLabelOptions;
+    label?: AgChartLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams>;
 }
 
-export interface AgBaseRadarSeriesOptions<DatumType = any>
-    extends AgRadarSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgBaseRadarSeriesOptions<TDatum = any>
+    extends AgRadarSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     type: 'radar-line' | 'radar-area';
     /** The key to use to retrieve angle values from the data. */
     angleKey: string;
@@ -33,9 +32,6 @@ export interface AgBaseRadarSeriesOptions<DatumType = any>
     radiusKey: string;
     /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     radiusName?: string;
-
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
 }
 
 export interface AgRadarSeriesTooltipRendererParams extends AgSeriesTooltipRendererParams {
@@ -54,7 +50,7 @@ export interface AgRadarSeriesTooltipRendererParams extends AgSeriesTooltipRende
     readonly radiusName?: string;
 }
 
-export interface AgRadarSeriesMarkerFormatterParams<DatumType> extends AgSeriesMarkerFormatterParams<DatumType> {
+export interface AgRadarSeriesMarkerFormatterParams<TDatum> extends AgSeriesMarkerFormatterParams<TDatum> {
     angleKey: string;
     radiusKey: string;
 }
@@ -66,26 +62,14 @@ export interface AgRadarSeriesMarkerFormat {
     size?: PixelSize;
 }
 
-export interface AgRadarSeriesMarker<DatumType> extends AgSeriesMarker {
+export interface AgRadarSeriesMarker<TDatum> extends AgSeriesMarker {
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: AgRadarSeriesMarkerFormatter<DatumType>;
+    formatter?: AgRadarSeriesMarkerFormatter<TDatum>;
 }
 
-export type AgRadarSeriesMarkerFormatter<DatumType> = (
-    params: AgRadarSeriesMarkerFormatterParams<DatumType>
+export type AgRadarSeriesMarkerFormatter<TDatum> = (
+    params: AgRadarSeriesMarkerFormatterParams<TDatum>
 ) => AgRadarSeriesMarkerFormat | undefined;
-
-export interface AgRadarSeriesLabelFormatterParams {
-    /** The ID of the series. */
-    readonly seriesId: string;
-    /** The value of radiusKey as specified on series options. */
-    readonly value: number;
-}
-
-export interface AgRadarSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgRadarSeriesLabelFormatterParams) => string;
-}
 
 /**
  * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7

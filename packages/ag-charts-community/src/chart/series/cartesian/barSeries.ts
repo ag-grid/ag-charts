@@ -1,11 +1,12 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type {
-    AgBarSeriesFormat,
     AgBarSeriesFormatterParams,
     AgBarSeriesLabelPlacement,
+    AgBarSeriesOptionsKeys,
+    AgBarSeriesOptionsNames,
+    AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
-    AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
     FontStyle,
     FontWeight,
@@ -20,10 +21,8 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import type { ValidatePredicate } from '../../../util/validation';
 import {
     NUMBER,
-    OPTIONAL,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
     OPT_LINE_DASH,
@@ -32,6 +31,7 @@ import {
     STRING_UNION,
     Validate,
 } from '../../../util/validation';
+import { isNumber } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import { LogAxis } from '../../axis/logAxis';
@@ -57,11 +57,7 @@ import {
 } from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
-import { createLabelData, updateLabel } from './labelUtil';
-
-const BAR_LABEL_PLACEMENTS: AgBarSeriesLabelPlacement[] = ['inside', 'outside'];
-const OPT_BAR_LABEL_PLACEMENT: ValidatePredicate = (v: any, ctx) =>
-    OPTIONAL(v, ctx, (v: any) => BAR_LABEL_PLACEMENTS.includes(v));
+import { adjustLabelPlacement, updateLabel } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -94,11 +90,8 @@ enum BarSeriesNodeTag {
     Label,
 }
 
-class BarSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
-
-    @Validate(OPT_BAR_LABEL_PLACEMENT)
+class BarSeriesLabel extends Label<AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames> {
+    @Validate(STRING_UNION('inside', 'outside'))
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
 
@@ -129,7 +122,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     lineDashOffset: number = 0;
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesFormat = undefined;
+    formatter?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle = undefined;
 
     @Validate(OPT_STRING)
     xKey?: string = undefined;
@@ -313,9 +306,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             stroke,
             strokeWidth,
             label,
-            id: seriesId,
             processedData,
-            ctx,
             ctx: { seriesStateManager },
             smallestDataInterval,
         } = this;
@@ -382,10 +373,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 width: barAlongX ? Math.abs(bottomY - y) : barWidth,
                 height: barAlongX ? barWidth : Math.abs(bottomY - y),
             };
-            const nodeMidPoint = {
-                x: rect.x + rect.width / 2,
-                y: rect.y + rect.height / 2,
-            };
 
             const {
                 fontStyle: labelFontStyle,
@@ -393,17 +380,26 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 fontSize: labelFontSize,
                 fontFamily: labelFontFamily,
                 color: labelColor,
-                formatter,
                 placement,
             } = label;
 
-            const {
-                text: labelText,
-                textAlign: labelTextAlign,
-                textBaseline: labelTextBaseline,
-                x: labelX,
-                y: labelY,
-            } = createLabelData({ value: yRawValue, rect, formatter, placement, seriesId, barAlongX, ctx });
+            const labelText = this.getLabelText(seriesDatum[0], yRawValue);
+            const labelDatum = labelText
+                ? {
+                      text: labelText,
+                      fill: labelColor,
+                      fontStyle: labelFontStyle,
+                      fontWeight: labelFontWeight,
+                      fontSize: labelFontSize,
+                      fontFamily: labelFontFamily,
+                      ...adjustLabelPlacement({
+                          isPositive: yRawValue >= 0,
+                          isVertical: !barAlongX,
+                          placement,
+                          rect,
+                      }),
+                  }
+                : undefined;
 
             const nodeData: BarNodeDatum = {
                 index: dataIndex,
@@ -419,24 +415,11 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
                 fill,
                 stroke,
                 strokeWidth,
-                label: labelText
-                    ? {
-                          text: labelText,
-                          fontStyle: labelFontStyle,
-                          fontWeight: labelFontWeight,
-                          fontSize: labelFontSize,
-                          fontFamily: labelFontFamily,
-                          textAlign: labelTextAlign,
-                          textBaseline: labelTextBaseline,
-                          fill: labelColor,
-                          x: labelX,
-                          y: labelY,
-                      }
-                    : undefined,
+                label: labelDatum,
             };
             context.nodeData.push(nodeData);
             context.labelData.push(nodeData);
@@ -445,7 +428,30 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return [context];
     }
 
-    protected override nodeFactory() {
+    protected getLabelText(datum: unknown, defaultValue: any): string {
+        const { id: seriesId, ctx, label, xKey, yKey, xName, yName } = this;
+
+        if (!xKey || !yKey) {
+            return '';
+        }
+
+        let labelText;
+        if (label.formatter) {
+            labelText = ctx.callbackCache.call(label.formatter, {
+                seriesId,
+                datum,
+                defaultValue,
+                xKey,
+                yKey,
+                xName,
+                yName,
+            });
+        }
+
+        return labelText ?? (isNumber(defaultValue) ? defaultValue.toFixed(2) : '');
+    }
+
+    protected nodeFactory() {
         return new Rect();
     }
 
@@ -455,11 +461,13 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         nodeData: BarNodeDatum[];
         datumSelection: Selection<Rect, BarNodeDatum>;
     }) {
-        const { nodeData, datumSelection } = opts;
-
-        const getDatumId = (datum: BarNodeDatum) => datum.xValue;
-
-        return datumSelection.update(nodeData, (rect) => (rect.tag = BarSeriesNodeTag.Bar), getDatumId);
+        return opts.datumSelection.update(
+            opts.nodeData,
+            (rect) => {
+                rect.tag = BarSeriesNodeTag.Bar;
+            },
+            (datum) => datum.xValue
+        );
     }
 
     protected override async updateDatumNodes(opts: {
@@ -521,11 +529,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         labelData: BarNodeDatum[];
         labelSelection: Selection<Text, BarNodeDatum>;
     }) {
-        const { labelData, labelSelection } = opts;
-        const { enabled } = this.label;
-        const data = enabled ? labelData : [];
-
-        return labelSelection.update(data, (text) => {
+        const data = this.label.enabled ? opts.labelData : [];
+        return opts.labelSelection.update(data, (text) => {
             text.tag = BarSeriesNodeTag.Label;
             text.pointerEvents = PointerEvents.None;
         });
@@ -563,7 +568,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const title = sanitizeHtml(yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        let format: AgBarSeriesFormat | undefined = undefined;
+        let format: AgBarSeriesStyle | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -590,10 +595,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yKey,
-            yValue,
             yName,
             color,
             title,
@@ -619,7 +622,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             showInLegend,
         } = this;
 
-        if (!showInLegend || !data?.length || !xKey || !yKey || legendType !== 'category') {
+        if (legendType !== 'category' || !showInLegend || !data?.length || !xKey || !yKey) {
             return [];
         }
 
@@ -630,17 +633,9 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 itemId: yKey,
                 seriesId: id,
                 enabled: visible,
-                label: {
-                    text: legendItemName ?? yName ?? yKey,
-                },
+                label: { text: legendItemName ?? yName ?? yKey },
+                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
                 legendItemName,
-                marker: {
-                    fill,
-                    stroke,
-                    fillOpacity: fillOpacity,
-                    strokeOpacity: strokeOpacity,
-                    strokeWidth: strokeWidth,
-                },
             },
         ];
     }

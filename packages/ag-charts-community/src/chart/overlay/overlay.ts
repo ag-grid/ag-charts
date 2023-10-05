@@ -9,7 +9,7 @@ export class Overlay {
     }
 
     @Validate(OPT_FUNCTION)
-    renderer: (() => string) | undefined = undefined;
+    renderer?: () => string;
 
     @Validate(OPT_STRING)
     text?: string = undefined;

@@ -1,14 +1,13 @@
-import { AgEnterpriseCharts, AgChartOptions, AgCartesianSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const tooltip = {
-    renderer: ({ xValue, yValue }: AgCartesianSeriesTooltipRendererParams) => {
-        const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(
-            xValue
-        );
-        return { content: `${date}: ${Math.round(yValue / 100) / 10 + 'k'}` };
+    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
+        const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(datum[xKey]);
+        return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
     },
-}
+};
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -26,7 +25,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'National Media Museum',
             yName: 'National Media Museum',
-            tooltip
+            tooltip,
         },
         {
             type: 'area',
@@ -34,7 +33,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'National Railway Museum',
             yName: 'National Railway Museum',
-            tooltip
+            tooltip,
         },
         {
             type: 'area',
@@ -42,7 +41,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'Locomotion',
             yName: 'Locomotion',
-            tooltip
+            tooltip,
         },
         {
             type: 'area',
@@ -50,7 +49,7 @@ const options: AgChartOptions = {
             yKey: 'Museum of Science and Industry, Manchester',
             yName: 'Museum of Science and Industry, Manchester',
             stacked: true,
-            tooltip
+            tooltip,
         },
         {
             type: 'area',
@@ -58,7 +57,7 @@ const options: AgChartOptions = {
             yKey: 'National Coal Mining Museum for England',
             yName: 'National Coal Mining Museum for England',
             stacked: true,
-            tooltip
+            tooltip,
         },
     ],
     axes: [
@@ -68,7 +67,7 @@ const options: AgChartOptions = {
             label: {
                 format: '%b',
             },
-            nice: false
+            nice: false,
         },
         {
             type: 'number',

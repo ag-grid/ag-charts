@@ -1,7 +1,6 @@
 import type {
     AgRadialColumnSeriesFormat,
     AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesLabelFormatterParams,
     AgRadialColumnSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -66,15 +65,10 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-class RadialBarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
-}
-
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
     static className = 'RadialBarSeries';
 
-    readonly label = new RadialBarSeriesLabel();
+    readonly label = new _Scene.Label();
 
     protected itemSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
     protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
@@ -273,10 +267,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const axisOuterRadius = this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const getLabelNodeDatum = (angleDatum: number, x: number, y: number): RadialBarLabelNodeDatum | undefined => {
+        const getLabelNodeDatum = (
+            datum: RadialColumnNodeDatum,
+            angleDatum: number,
+            x: number,
+            y: number
+        ): RadialBarLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ value: angleDatum, seriesId });
+                labelText = label.formatter({ defaultValue: angleDatum, datum, seriesId });
             } else if (typeof angleDatum === 'number' && isFinite(angleDatum)) {
                 labelText = angleDatum.toFixed(2);
             } else if (angleDatum) {
@@ -316,13 +315,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const x = cos * midRadius;
             const y = sin * midRadius;
 
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(angleDatum, x, y) : undefined;
+            const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, angleDatum, x, y) : undefined;
 
             return {
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,

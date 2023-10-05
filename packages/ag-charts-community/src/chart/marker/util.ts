@@ -7,32 +7,35 @@ import { Plus } from './plus';
 import { Square } from './square';
 import { Triangle } from './triangle';
 
+type MarkerConstructor = new () => Marker;
+type MarkerSupportedShapes = 'circle' | 'cross' | 'diamond' | 'heart' | 'plus' | 'square' | 'triangle';
+export type MarkerShape = MarkerConstructor | MarkerSupportedShapes;
+
+const MARKER_SHAPES: { [K in MarkerSupportedShapes]: MarkerConstructor } = {
+    circle: Circle,
+    cross: Cross,
+    diamond: Diamond,
+    heart: Heart,
+    plus: Plus,
+    square: Square,
+    triangle: Triangle,
+};
+
+const MARKER_SUPPORTED_SHAPES = Object.keys(MARKER_SHAPES);
+
+export function isMarkerShape(shape: any): shape is MarkerSupportedShapes {
+    return MARKER_SUPPORTED_SHAPES.includes(shape);
+}
+
 // This function is in its own file because putting it into SeriesMarker makes the Legend
 // suddenly aware of the series (it's an agnostic component), and putting it into Marker
 // introduces circular dependencies.
-export function getMarker(shape: any = Square): new () => Marker {
-    if (typeof shape === 'string') {
-        switch (shape) {
-            case 'circle':
-                return Circle;
-            case 'cross':
-                return Cross;
-            case 'diamond':
-                return Diamond;
-            case 'heart':
-                return Heart;
-            case 'plus':
-                return Plus;
-            case 'triangle':
-                return Triangle;
-            default:
-                return Square;
-        }
+export function getMarker(shape: MarkerShape = Square): MarkerConstructor {
+    if (isMarkerShape(shape)) {
+        return MARKER_SHAPES[shape];
     }
-
     if (typeof shape === 'function') {
         return shape;
     }
-
     return Square;
 }

@@ -1,10 +1,8 @@
 import type {
     AgCartesianSeriesMarkerFormat,
-    AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
     AgRangeAreaSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -14,8 +12,8 @@ const {
     trailingValueProperty,
     keyProperty,
     ChartAxisDirection,
-    OPTIONAL,
     NUMBER,
+    STRING_UNION,
     OPT_NUMBER,
     OPT_STRING,
     OPT_FUNCTION,
@@ -31,10 +29,6 @@ const {
 } = _ModuleSupport;
 const { getMarker, PointerEvents, SceneChangeDetection } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
-
-const RANGE_AREA_LABEL_PLACEMENTS: AgRangeAreaSeriesLabelPlacement[] = ['inside', 'outside'];
-const OPT_RANGE_AREA_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
-    OPTIONAL(v, ctx, (v: any) => RANGE_AREA_LABEL_PLACEMENTS.includes(v));
 
 const DEFAULT_DIRECTION_KEYS = {
     [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
@@ -82,11 +76,10 @@ class RangeAreaSeriesNodeClickEvent<
     }
 }
 
-class RangeAreaSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRangeAreaSeriesLabelFormatterParams) => string = undefined;
+type RangeAreaKeys = 'xKey' | 'yLowKey' | 'yHighKey';
 
-    @Validate(OPT_RANGE_AREA_LABEL_PLACEMENT)
+class RangeAreaSeriesLabel extends _Scene.Label<{ [K in RangeAreaKeys]?: string }> {
+    @Validate(STRING_UNION('inside', 'outside'))
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
     @Validate(OPT_NUMBER(0))
@@ -108,7 +101,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     RangeAreaContext
 > {
     static className = 'RangeAreaSeries';
-    static type: 'range-area' = 'range-area' as const;
+    static type = 'range-area' as const;
 
     readonly marker = new RangeAreaSeriesMarker();
     readonly label = new RangeAreaSeriesLabel();
@@ -320,7 +313,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     series: this,
                     itemId,
                     datum,
-                    nodeMidPoint: { x, y },
+                    midPoint: { x, y },
                     yHighValue,
                     yLowValue,
                     xValue,
@@ -400,8 +393,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     private createLabelData({
         point,
         value,
-        yLowValue,
-        yHighValue,
         itemId,
         inverted,
         datum,
@@ -424,45 +415,29 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 ? -1
                 : 1;
 
-        const labelPadding = padding * direction;
-        const labelDatum: RangeAreaLabelDatum = {
+        return {
             x: point.x,
-            y: point.y + labelPadding,
-            textAlign: 'center',
-            textBaseline: direction === -1 ? 'bottom' : 'top',
-            text: this.getLabelText({ itemId, value, yLowValue, yHighValue }),
+            y: point.y + padding * direction,
+            series,
             itemId,
             datum,
-            series,
+            text: this.getLabelText({ itemId, datum, value }),
+            textAlign: 'center',
+            textBaseline: direction === -1 ? 'bottom' : 'top',
         };
-
-        return labelDatum;
     }
 
-    private getLabelText({
-        itemId,
-        value,
-        yLowValue,
-        yHighValue,
-    }: {
-        itemId: string;
-        value: any;
-        yLowValue: any;
-        yHighValue: any;
-    }) {
-        const {
-            id: seriesId,
-            label: { formatter },
-            ctx: { callbackCache },
-        } = this;
+    private getLabelText({ itemId, datum, value }: { itemId: string; datum: RangeAreaMarkerDatum; value: any }) {
         let labelText;
-        if (formatter) {
-            labelText = callbackCache.call(formatter, {
-                value: isNumber(value) ? value : undefined,
-                seriesId,
+        if (this.label.formatter) {
+            labelText = this.ctx.callbackCache.call(this.label.formatter, {
+                seriesId: this.id,
                 itemId,
-                yLowValue,
-                yHighValue,
+                datum,
+                defaultValue: value,
+                xKey: this.xKey,
+                yLowKey: this.yLowKey,
+                yHighKey: this.yHighKey,
             });
         }
         return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));
@@ -617,28 +592,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
               `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`
             : `${xString}: ${yLowString} - ${yHighString}`;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xValue,
-            xName,
-            yLowKey,
-            yLowValue,
-            yLowName,
-            yHighKey,
-            yHighValue,
-            yHighName,
-            yName,
-            color,
-            seriesId,
-            itemId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                seriesId,
+                itemId,
+                datum,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+                color,
+            }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

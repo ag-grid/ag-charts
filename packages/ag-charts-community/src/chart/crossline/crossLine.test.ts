@@ -75,7 +75,12 @@ const mixinFlippedRangeCases = (
             options: {
                 ...example.options,
                 axes: example.options.axes?.map((axis) =>
-                    axis.crossLines ? { ...axis, crossLines: axis.crossLines.map((c) => flipCrossLinesRange(c)) } : axis
+                    axis.crossLines
+                        ? {
+                              ...axis,
+                              crossLines: axis.crossLines.map((c) => flipCrossLinesRange(c)),
+                          }
+                        : axis
                 ),
             },
         };
@@ -148,19 +153,31 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
     },
     LINE_CROSSLINES: {
         options: examples.LINE_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('line', 16) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('line', 16),
+        }),
     },
     AREA_CROSSLINES: {
         options: examples.AREA_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 5) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('area', 5),
+        }),
     },
     COLUMN_CROSSLINES: {
         options: examples.COLUMN_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 7) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('bar', 7),
+        }),
     },
     BAR_CROSSLINES: {
         options: examples.BAR_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('bar', 2),
+        }),
     },
 };
 

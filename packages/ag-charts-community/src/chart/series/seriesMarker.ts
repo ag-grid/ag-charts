@@ -2,10 +2,11 @@ import { ChangeDetectable, RedrawType, SceneChangeDetection } from '../../scene/
 import { BOOLEAN, NUMBER, OPT_COLOR_STRING, OPT_NUMBER, Validate, predicateWithMessage } from '../../util/validation';
 import { Circle } from '../marker/circle';
 import { Marker } from '../marker/marker';
+import type { MarkerShape } from '../marker/util';
+import { isMarkerShape } from '../marker/util';
 
-const MARKER_SHAPES = ['circle', 'cross', 'diamond', 'heart', 'plus', 'square', 'triangle'];
 const MARKER_SHAPE = predicateWithMessage(
-    (v: any) => MARKER_SHAPES.includes(v) || Object.getPrototypeOf(v) === Marker,
+    (v: any) => isMarkerShape(v) || Object.getPrototypeOf(v) === Marker,
     `expecting a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
 );
 
@@ -20,29 +21,29 @@ export class SeriesMarker extends ChangeDetectable {
      */
     @Validate(MARKER_SHAPE)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    shape: string | (new () => Marker) = Circle;
+    shape: MarkerShape = Circle;
 
     @Validate(NUMBER(0))
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    size = 6;
+    size: number = 6;
 
     @Validate(OPT_COLOR_STRING)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    fill?: string = undefined;
+    fill?: string;
+
+    @Validate(OPT_NUMBER(0, 1))
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    fillOpacity: number = 1;
 
     @Validate(OPT_COLOR_STRING)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    stroke?: string = undefined;
+    stroke?: string;
 
     @Validate(OPT_NUMBER(0))
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    strokeWidth?: number = 1;
+    strokeWidth: number = 1;
 
     @Validate(OPT_NUMBER(0, 1))
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    fillOpacity?: number = undefined;
-
-    @Validate(OPT_NUMBER(0, 1))
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    strokeOpacity?: number = undefined;
+    strokeOpacity: number = 1;
 }

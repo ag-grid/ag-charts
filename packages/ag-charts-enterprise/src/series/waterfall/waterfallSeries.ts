@@ -1,5 +1,4 @@
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
     AgWaterfallSeriesFormat,
     AgWaterfallSeriesFormatterParams,
@@ -81,13 +80,10 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 
 class WaterfallSeriesItemTooltip {
     @Validate(OPT_FUNCTION)
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
-class WaterfallSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams & { itemId: SeriesItemType }) => string = undefined;
-
+class WaterfallSeriesLabel extends _Scene.Label<{ itemId: SeriesItemType }> {
     @Validate(OPT_WATERFALL_LABEL_PLACEMENT)
     placement: AgWaterfallSeriesLabelPlacement = 'end';
 
@@ -101,7 +97,7 @@ class WaterfallSeriesItem {
     tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat = undefined;
+    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat;
 
     shadow?: _Scene.DropShadow = undefined;
 
@@ -172,11 +168,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     static className = 'WaterfallSeries';
     static type = 'waterfall' as const;
 
-    readonly item: WaterfallSeriesItems = new WaterfallSeriesItems();
-
-    readonly totals: TotalMeta[] = [];
-
+    readonly item = new WaterfallSeriesItems();
     readonly line = new WaterfallSeriesConnectorLine();
+    readonly totals: TotalMeta[] = [];
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 
@@ -511,7 +505,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill,
                 stroke,
                 strokeWidth,
@@ -717,12 +711,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { xName, yName, id: seriesId } = this;
-
         const { datum, itemId, xValue, yValue } = nodeDatum;
+        const { fill, strokeWidth, name, formatter } = this.getItemConfig(itemId);
 
-        const { fill, strokeWidth, name, formatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
-
-        let format: any | undefined = undefined;
+        let format;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -749,41 +741,23 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
         const title = sanitizeHtml(yName);
         const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` + `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
+            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
+            `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
 
         return this.tooltip.toTooltipHtml(
-            defaults,
-            {
-                datum,
-                xKey,
-                xValue,
-                xName,
-                yKey,
-                yValue,
-                yName,
-                color,
-                seriesId,
-                itemId,
-            },
-            itemTooltip
+            { title, content, backgroundColor: color },
+            { seriesId, itemId, datum, xKey, yKey, xName, yName, color }
         );
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType) {
         if (legendType !== 'category') {
             return [];
         }
 
         const { id, seriesItemTypes } = this;
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
-        const getLegendItemText = (item: SeriesItemType, name?: string) =>
-            name !== undefined ? name : `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
+        const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
@@ -793,16 +767,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 itemId: item,
                 seriesId: id,
                 enabled: true,
-                label: {
-                    text: getLegendItemText(item, name),
-                },
-                marker: {
-                    fill,
-                    stroke,
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                },
+                label: { text: name ?? capitalise(item) },
+                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
             });
         });
 

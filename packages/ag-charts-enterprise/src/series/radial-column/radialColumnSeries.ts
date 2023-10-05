@@ -11,10 +11,10 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
     static className = 'RadialColumnSeries';
 
     @Validate(OPT_NUMBER(0, 1))
-    columnWidthRatio: number | undefined = undefined;
+    columnWidthRatio?: number;
 
     @Validate(OPT_NUMBER(0, 1))
-    maxColumnWidthRatio: number | undefined = undefined;
+    maxColumnWidthRatio?: number;
 
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;

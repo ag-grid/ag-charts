@@ -1,29 +1,28 @@
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
-import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesLabelOptions } from './cartesianLabelOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgLineSeriesThemeableOptions<DatumType = any>
+export interface AgLineSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
-    marker?: AgCartesianSeriesMarker<DatumType>;
+    marker?: AgCartesianSeriesMarker<TDatum>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgCartesianSeriesLabelOptions;
+    label?: AgChartLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
 }
 
 /** Configuration for line series. */
-export interface AgLineSeriesOptions<DatumType = any>
-    extends AgLineSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType> {
+export interface AgLineSeriesOptions<TDatum = any>
+    extends AgLineSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum> {
     type?: 'line';
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
@@ -33,8 +32,6 @@ export interface AgLineSeriesOptions<DatumType = any>
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
     /** Configuration for the series error bars. */
     errorBar?: AgErrorBarOptions;
 }

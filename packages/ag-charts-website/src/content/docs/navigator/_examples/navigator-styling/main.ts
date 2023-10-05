@@ -1,13 +1,19 @@
-import { AgCartesianSeriesTooltipRendererParams, AgEnterpriseCharts, AgChartOptions, AgSeriesTooltip } from 'ag-charts-enterprise';
+import {
+    AgCartesianSeriesTooltipRendererParams,
+    AgChartOptions,
+    AgEnterpriseCharts,
+    AgSeriesTooltip,
+} from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const tooltip: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams> = {
-    renderer: ({ xValue, yValue }) => ({
-        content: `${xValue.toLocaleString('en-GB', {
+    renderer: ({ datum, xKey, yKey }) => ({
+        content: `${datum[xKey].toLocaleString('en-GB', {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
-        })}: ${yValue}`,
+        })}: ${datum[yKey]}`,
     }),
 };
 

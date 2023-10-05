@@ -1,4 +1,5 @@
-import { AgChartOptions, AgEnterpriseCharts, AgRangeAreaSeriesLabelFormatterParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -18,10 +19,10 @@ const options: AgChartOptions = {
                 size: 5,
             },
             label: {
-                formatter: ({ itemId, value }: AgRangeAreaSeriesLabelFormatterParams) => {
-                    return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
-                }
-            }
+                formatter: ({ itemId, defaultValue }) => {
+                    return `${itemId === 'low' ? 'L' : 'H'}: ${defaultValue.toFixed(0)}`;
+                },
+            },
         },
     ],
 };

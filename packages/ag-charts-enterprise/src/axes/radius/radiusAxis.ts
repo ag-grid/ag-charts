@@ -26,7 +26,7 @@ class RadiusAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number>
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(OPT_BOOLEAN)
-    autoRotate: boolean | undefined = undefined;
+    autoRotate?: boolean;
 
     @Validate(NUMBER(-360, 360))
     autoRotateAngle: number = 335;

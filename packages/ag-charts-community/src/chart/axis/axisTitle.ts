@@ -43,7 +43,7 @@ export class AxisTitle implements AgAxisCaptionOptions {
     fontFamily: string = 'sans-serif';
 
     @Validate(OPT_COLOR_STRING)
-    color: string | undefined = undefined;
+    color?: string;
 
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'always';

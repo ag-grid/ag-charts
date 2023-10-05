@@ -9,6 +9,7 @@ import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
 import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
+import type { ISeries } from '../chart/series/seriesTypes';
 import type { UpdateService } from '../chart/updateService';
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { Scene } from '../scene/scene';
@@ -26,7 +27,7 @@ export interface ModuleContext {
     interactionManager: InteractionManager;
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
-    dataService: DataService;
+    dataService: DataService<ISeries<any>>;
     layoutService: Pick<LayoutService, 'addListener'>;
     updateService: UpdateService;
     callbackCache: CallbackCache;

@@ -179,9 +179,15 @@ describe('json module', () => {
             });
 
             it('should merge array properties correctly', () => {
-                const base: any = { a: [[{ x: 1 }, { y: 1 }], [{ m: 2, n: 2 }]], b: [1, 2, 3, 4, 5, 6] };
+                const base: any = {
+                    a: [[{ x: 1 }, { y: 1 }], [{ m: 2, n: 2 }]],
+                    b: [1, 2, 3, 4, 5, 6],
+                };
                 const mergee1: any = { a: [], b: [] };
-                const mergee2: any = { a: [[{ x2: 1 }, { y2: 1 }], [{ m2: 2, n2: 2 }]], c: [10, 9, 8, 7, 6] };
+                const mergee2: any = {
+                    a: [[{ x2: 1 }, { y2: 1 }], [{ m2: 2, n2: 2 }]],
+                    c: [10, 9, 8, 7, 6],
+                };
 
                 const merge = jsonMerge([base, mergee1, mergee2]);
                 expect(merge).toMatchSnapshot();
@@ -501,7 +507,9 @@ describe('json module', () => {
             const testString1 = 'hello!';
             const testString2 = 'world!';
             const target = new TestApply({});
-            const json = { recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }] };
+            const json = {
+                recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }],
+            };
 
             const opts = {
                 path: 'series[0]',
@@ -525,7 +533,9 @@ describe('json module', () => {
             const testString1 = 'hello!';
             const testString2 = 'world!';
             const target = new TestApply({});
-            const json = { recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }] };
+            const json = {
+                recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }],
+            };
 
             const opts = {
                 path: 'series[0]',

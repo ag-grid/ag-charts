@@ -71,7 +71,10 @@ const EXAMPLES: Record<string, TestCase> = {
         },
         GROUPED_CATEGORY_AXIS: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['groupedCategory', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: ['groupedCategory', 'number'],
+                seriesTypes: ['bar'],
+            }),
         },
         BASIC_TIME_AXIS: {
             options: axesExamples.TIME_AXIS_BASIC_EXAMPLE,
@@ -89,7 +92,10 @@ const EXAMPLES: Record<string, TestCase> = {
         },
         NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE: {
             options: axesExamples.NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: ['line'],
+            }),
         },
     }),
     NUMBER_AXIS_LOG2_EXAMPLE: {
@@ -172,7 +178,10 @@ const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
     },
     CATEGORY_AXIS_TICK_VALUES: {
         options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 7) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('bar', 7),
+        }),
     },
 };
 
@@ -187,7 +196,10 @@ const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
     },
     AXIS_TICK_MIN_MAX_SPACING: {
         options: axesExamples.AXIS_TICK_MIN_MAX_SPACING,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 7) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('bar', 7),
+        }),
     },
 };
 

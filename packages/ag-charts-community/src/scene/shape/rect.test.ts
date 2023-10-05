@@ -56,8 +56,18 @@ describe('Rect', () => {
             ],
             [
                 // Gradient cases.
-                { width: 40, height: 40, crisp: true, fill: 'linear-gradient(180deg, #000000, #ff0000, #ffff00)' },
-                { width: 40, height: 40, crisp: true, fill: 'linear-gradient(90deg, #00FF00, white, rgb(255, 0, 0))' },
+                {
+                    width: 40,
+                    height: 40,
+                    crisp: true,
+                    fill: 'linear-gradient(180deg, #000000, #ff0000, #ffff00)',
+                },
+                {
+                    width: 40,
+                    height: 40,
+                    crisp: true,
+                    fill: 'linear-gradient(90deg, #00FF00, white, rgb(255, 0, 0))',
+                },
             ],
             [
                 // Gradient rotation
