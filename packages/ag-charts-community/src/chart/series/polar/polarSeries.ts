@@ -146,6 +146,9 @@ export abstract class PolarSeries<S extends SeriesNodeDatum, TNode extends Node>
         if (label) {
             resetMotion([this.labelSelection], label);
         }
+        this.itemSelection.cleanup();
+        this.labelSelection.cleanup();
+        this.highlightSelection.cleanup();
     }
 
     protected animateEmptyUpdateReady(_data: PolarAnimationData) {
