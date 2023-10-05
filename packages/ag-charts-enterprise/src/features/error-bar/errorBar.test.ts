@@ -136,6 +136,17 @@ describe('ErrorBars', () => {
         await compare();
     });
 
+    it('should render horizontal bar series as expected', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                { type: 'bar', direction: 'horizontal', ...SERIES_CANADA },
+                { type: 'bar', direction: 'horizontal', ...SERIES_AUSTRALIA },
+            ],
+        });
+        await compare();
+    });
+
     it('should render both scatter axes as expected', async () => {
         chart = AgEnterpriseCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
         await compare();
