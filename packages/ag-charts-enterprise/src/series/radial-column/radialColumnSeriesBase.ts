@@ -29,7 +29,6 @@ const {
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Selection, Text } = _Scene;
 const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeClickEvent<
@@ -68,14 +67,11 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _Scene.Path,
-> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
+export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> extends _ModuleSupport.PolarSeries<
+    RadialColumnNodeDatum,
+    ItemPathType
+> {
     readonly label = new _Scene.Label();
-
-    protected itemSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadialColumnNodeDatum>;
-    protected highlightSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 
@@ -136,18 +132,7 @@ export abstract class RadialColumnSeriesBase<
             useLabelLayer: true,
             canHaveAxes: true,
         });
-
-        const sectorGroup = new Group();
-        this.contentGroup.append(sectorGroup);
-        sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
-        this.itemSelection = this.createPathSelection(sectorGroup);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = this.createPathSelection(this.highlightGroup);
     }
-
-    protected abstract createPathSelection(parent: _Scene.Group): _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
     override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));

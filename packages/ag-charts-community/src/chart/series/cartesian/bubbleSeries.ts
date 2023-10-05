@@ -524,39 +524,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
-    animateFormatter(marker: Marker, datum: BubbleNodeDatum) {
-        const {
-            xKey = '',
-            yKey = '',
-            marker: { strokeWidth: markerStrokeWidth },
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
-        const { formatter } = this.marker;
-
-        const fill = datum.fill ?? marker.fill;
-        const stroke = marker.stroke;
-        const strokeWidth = markerStrokeWidth ?? 1;
-        const size = datum.point?.size ?? 0;
-
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-        if (formatter) {
-            format = callbackCache.call(formatter, {
-                datum: datum.datum,
-                xKey,
-                yKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
-                seriesId,
-            });
-        }
-
-        return format;
-    }
-
     getDatumId(datum: BubbleNodeDatum) {
         return createDatumId([`${datum.xValue}`, `${datum.yValue}`, datum.label.text]);
     }

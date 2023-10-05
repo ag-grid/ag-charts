@@ -157,6 +157,38 @@ describe('selection', () => {
             expectSelectionToMatchData(selection, data);
         });
 
+        it('should maintain order', () => {
+            const selection = new Selection(new TestNode(), TestNode, false);
+            const a = { key: 'a', value: 0 };
+            const b = { key: 'b', value: 1 };
+            const c = { key: 'c', value: 2 };
+            const d = { key: 'd', value: 3 };
+
+            selection.update([a, b, c], undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, [a, b, c]);
+
+            selection.update([a, c], undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, [a, b, c]);
+
+            selection.update([d, a, c], undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, [d, a, b, c]);
+
+            selection.update([b, d, a, c], undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, [d, a, b, c]);
+
+            selection.update([a, b, c, d], undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, [d, a, b, c]);
+
+            selection.update([], undefined, (datum) => datum.key);
+            selection.cleanup();
+
+            selection.update([a, b, c], undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, [a, b, c]);
+
+            selection.update([a, b, c, d], undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, [a, b, c, d]);
+        });
+
         it('when garbage collected it should remove data', () => {
             const selection = new Selection(new TestNode(), TestNode, false);
             const data = [

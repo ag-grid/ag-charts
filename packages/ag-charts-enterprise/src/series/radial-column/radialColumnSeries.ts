@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 
-const { Path, Selection } = _Scene;
+const { Path } = _Scene;
 const { Validate, OPT_NUMBER, ChartAxisDirection, PolarAxis } = _ModuleSupport;
 const { isNumberEqual, normalizeAngle360, angleBetween } = _Util;
 
@@ -21,8 +21,8 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.Path> {
         return `radarColumn-stack-${groupIndex}-yValues`;
     }
 
-    protected createPathSelection(parent: _Scene.Group): _Scene.Selection<_Scene.Path, RadialColumnNodeDatum> {
-        return Selection.select(parent, Path);
+    protected override nodeFactory(): _Scene.Path {
+        return new Path();
     }
 
     private drawBasicColumnRect(node: _Scene.Path, columnWidth: number, innerRadius: number, outerRadius: number) {
