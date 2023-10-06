@@ -2,12 +2,12 @@ import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../.
 import { jsonMerge } from '../../util/json';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
-import { Excel } from '../themes/excel';
 import { ExcelDark } from '../themes/excelDark';
+import { ExcelLight } from '../themes/excelLight';
 import { MaterialDark } from '../themes/materialDark';
 import { MaterialLight } from '../themes/materialLight';
-import { Polychroma } from '../themes/polychroma';
 import { PolychromaDark } from '../themes/polychromaDark';
+import { PolychromaLight } from '../themes/polychromaLight';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
@@ -20,8 +20,8 @@ const lightThemes: ThemeMap = {
     undefined: lightTheme,
     null: lightTheme,
     'ag-default': lightTheme,
-    'ag-excel': () => new Excel(),
-    'ag-polychroma': () => new Polychroma(),
+    'ag-excel': () => new ExcelLight(),
+    'ag-polychroma': () => new PolychromaLight(),
     'ag-vivid': () => new VividLight(),
     'ag-material': () => new MaterialLight(),
 };

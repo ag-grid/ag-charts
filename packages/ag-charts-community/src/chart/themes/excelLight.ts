@@ -38,7 +38,7 @@ const palette: AgChartThemePalette = {
     strokes: Array.from(Object.values(EXCEL_LIGHT_STROKES)),
 };
 
-export class Excel extends ChartTheme {
+export class ExcelLight extends ChartTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
             fill: EXCEL_LIGHT_FILLS.BLUE,
@@ -65,13 +65,16 @@ export class Excel extends ChartTheme {
 
         result.extensions.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            Excel.getWaterfallSeriesDefaultPositiveColors()
+            ExcelLight.getWaterfallSeriesDefaultPositiveColors()
         );
         result.extensions.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            Excel.getWaterfallSeriesDefaultNegativeColors()
+            ExcelLight.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, Excel.getWaterfallSeriesDefaultTotalColors());
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+            ExcelLight.getWaterfallSeriesDefaultTotalColors()
+        );
 
         result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [EXCEL_LIGHT_FILLS.BLUE, EXCEL_LIGHT_FILLS.ORANGE]);
 
