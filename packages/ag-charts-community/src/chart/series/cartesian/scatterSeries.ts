@@ -25,11 +25,11 @@ import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, markerScaleInAnimation, resetMarkerFn, updateMarker } from './markerUtil';
 
-interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum> {
+interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
     readonly label: MeasuredLabel;
     readonly fill: string | undefined;
 }
@@ -213,6 +213,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,
+                capDefaults: { lengthRatio: 1, lengthRatioMultiplier: marker.size },
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
                 fill,

@@ -1,12 +1,18 @@
+import type { _ModuleSupport } from 'ag-charts-community';
 import type { _Scale } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
 
-export type ErrorBarNodeProperties = {
+export interface ErrorBarWhiskerTheme {
     visible?: boolean;
     stroke?: string;
     strokeWidth?: number;
     strokeOpacity?: number;
-};
+}
+
+export interface ErrorBarCapTheme extends ErrorBarWhiskerTheme {
+    length?: number;
+    lengthRatio?: number;
+}
 
 interface ErrorBarPoint {
     readonly lowerPoint: _Scene.Point;
@@ -17,6 +23,8 @@ export interface ErrorBarPoints {
     readonly xBar?: ErrorBarPoint;
     readonly yBar?: ErrorBarPoint;
 }
+
+type CapDefaults = _ModuleSupport.ErrorBoundSeriesNodeDatum['capDefaults'];
 
 export class ErrorBarNode extends _Scene.Group {
     private points: ErrorBarPoints = {
@@ -39,7 +47,26 @@ export class ErrorBarNode extends _Scene.Group {
         this.append([this.whiskerPath, this.capsPath]);
     }
 
-    update(points: ErrorBarPoints, whiskerTheme: ErrorBarNodeProperties, capsTheme: ErrorBarNodeProperties) {
+    private calculateCapLength(capsTheme: ErrorBarCapTheme, capDefaults: CapDefaults): number {
+        // Order of priorities for determining the length of the cap:
+        // 1.  User-defined length (pixels).
+        // 2.  User-defined lengthRatio.
+        // 3.  Library default (defined by underlying series).
+        if (capsTheme.length !== undefined) {
+            return capsTheme.length;
+        } else if (capsTheme.lengthRatio !== undefined) {
+            return capsTheme.lengthRatio * capDefaults.lengthRatioMultiplier;
+        } else {
+            return capDefaults.lengthRatio * capDefaults.lengthRatioMultiplier;
+        }
+    }
+
+    update(
+        points: ErrorBarPoints,
+        whiskerTheme: ErrorBarWhiskerTheme,
+        capsTheme: ErrorBarCapTheme,
+        capDefaults: CapDefaults
+    ) {
         this.points = points;
         Object.assign(this.whiskerPath, whiskerTheme);
         Object.assign(this.capsPath, capsTheme);
@@ -59,20 +86,23 @@ export class ErrorBarNode extends _Scene.Group {
         whisker.path.closePath();
         whisker.updatePath();
 
-        const capLength = 5;
+        // Errorbar caps stretch out pendicular to the whisker equally on both
+        // sides, so we want the offset to be half of the total length.
+        const capLength = this.calculateCapLength(capsTheme, capDefaults);
+        const capOffset = capLength / 2;
         const caps = this.capsPath;
         caps.path.clear();
         if (yBar !== undefined) {
-            caps.path.moveTo(yBar.lowerPoint.x - capLength, yBar.lowerPoint.y);
-            caps.path.lineTo(yBar.lowerPoint.x + capLength, yBar.lowerPoint.y);
-            caps.path.moveTo(yBar.upperPoint.x - capLength, yBar.upperPoint.y);
-            caps.path.lineTo(yBar.upperPoint.x + capLength, yBar.upperPoint.y);
+            caps.path.moveTo(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y);
+            caps.path.lineTo(yBar.lowerPoint.x + capOffset, yBar.lowerPoint.y);
+            caps.path.moveTo(yBar.upperPoint.x - capOffset, yBar.upperPoint.y);
+            caps.path.lineTo(yBar.upperPoint.x + capOffset, yBar.upperPoint.y);
         }
         if (xBar !== undefined) {
-            caps.path.moveTo(xBar.lowerPoint.x, xBar.lowerPoint.y - capLength);
-            caps.path.lineTo(xBar.lowerPoint.x, xBar.lowerPoint.y + capLength);
-            caps.path.moveTo(xBar.upperPoint.x, xBar.upperPoint.y - capLength);
-            caps.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y + capLength);
+            caps.path.moveTo(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset);
+            caps.path.lineTo(xBar.lowerPoint.x, xBar.lowerPoint.y + capOffset);
+            caps.path.moveTo(xBar.upperPoint.x, xBar.upperPoint.y - capOffset);
+            caps.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y + capOffset);
         }
         caps.path.closePath();
         caps.updatePath();
