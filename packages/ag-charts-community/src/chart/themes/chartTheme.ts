@@ -170,8 +170,10 @@ export class ChartTheme {
             showInLegend: true,
             highlightStyle: {
                 item: {
-                    fill: 'yellow',
-                    fillOpacity: 1,
+                    fill: 'white',
+                    fillOpacity: 0.33,
+                    stroke: `rgba(0, 0, 0, 0.4)`,
+                    strokeWidth: 2,
                 },
                 series: {
                     dimOpacity: 1,
