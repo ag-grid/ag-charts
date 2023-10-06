@@ -41,22 +41,15 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
     const galleryExamples = getGalleryExamples({ galleryData });
     const themes = [
         'ag-default',
-        'ag-material',
-        'ag-pastel',
-        'ag-solar',
-        'ag-vivid',
         'ag-default-dark',
-        'ag-material-dark',
-        'ag-pastel-dark',
-        'ag-solar-dark',
+        'ag-excel',
+        'ag-excel-dark',
+        'ag-polychroma',
+        'ag-polychroma-dark',
+        'ag-vivid',
         'ag-vivid-dark',
-        'deordered',
-        'mini-hue',
-        'enter',
-        'enterprise-001',
-        'enterprise-002',
-        'enterprise-003',
-        'excel',
+        'ag-material',
+        'ag-material-dark',
     ];
     const galleryExamplePages = galleryExamples.flatMap(({ exampleName }) => {
         return themes.map((theme) => {
