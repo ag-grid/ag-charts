@@ -17,6 +17,7 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
@@ -536,6 +537,7 @@ export class ChartTheme {
         properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
+        properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#4F81BD', '#F79646']);
 
         return {
             extensions,

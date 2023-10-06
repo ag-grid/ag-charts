@@ -3,6 +3,7 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
@@ -79,6 +80,7 @@ export class DarkTheme extends ChartTheme {
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#4F81BD', '#F79646']);
 
         return result;
     }
