@@ -156,6 +156,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             hasHighlightedLabels: true,
             directionKeys: DEFAULT_DIRECTION_KEYS,
             directionNames: DEFAULT_DIRECTION_NAMES,
+            datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -506,8 +507,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     protected override nodeFactory() {
         return new Rect();
     }
-
-    override datumSelectionGarbageCollection = false;
 
     protected override async updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];

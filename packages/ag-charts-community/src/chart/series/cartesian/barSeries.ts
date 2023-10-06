@@ -156,6 +156,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
+            datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -182,6 +183,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     override async processData(dataController: DataController) {
         const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
         const isContinuousX = this.getCategoryAxis()?.scale instanceof ContinuousScale;
@@ -195,31 +197,34 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
         }
 
-        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
+        if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
 
+        const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
+                valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
                     invalidValue: null,
                     groupId: stackGroupName,
                     separateNegative: true,
+                    ...visibleProps,
                 }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
                     id: `yValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingName,
                     separateNegative: true,
+                    ...visibleProps,
                 }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
             groupByKeys: true,
-            dataVisible: this.visible,
+            dataVisible: this.visible || animationEnabled,
         });
 
         this.smallestDataInterval = {
@@ -287,11 +292,11 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     }
 
     async createNodeData() {
-        const { visible, dataModel } = this;
+        const { dataModel } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && visible && xAxis && yAxis)) {
+        if (!(dataModel && xAxis && yAxis)) {
             return [];
         }
 
@@ -454,8 +459,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     protected nodeFactory() {
         return new Rect();
     }
-
-    override datumSelectionGarbageCollection = false;
 
     protected override async updateDatumSelection(opts: {
         nodeData: BarNodeDatum[];

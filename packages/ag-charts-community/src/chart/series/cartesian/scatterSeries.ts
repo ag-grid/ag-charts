@@ -90,6 +90,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             ],
             pathsPerSeries: 0,
             hasMarkers: true,
+            markerSelectionGarbageCollection: false,
             animationResetFns: {
                 marker: resetMarkerFn,
                 label: resetLabelFn,
@@ -227,8 +228,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
-
-    override markerSelectionGarbageCollection = false;
 
     protected override async updateMarkerSelection(opts: {
         nodeData: ScatterNodeDatum[];
