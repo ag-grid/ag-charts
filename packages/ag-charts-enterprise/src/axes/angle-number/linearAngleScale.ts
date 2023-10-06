@@ -4,6 +4,10 @@ const { LinearScale } = _Scale;
 const { isNumberEqual, range } = _Util;
 
 export class LinearAngleScale extends LinearScale {
+    arcLength: number = 0;
+
+    private niceTickStep = 0;
+
     override ticks() {
         if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d))) {
             return [];
@@ -67,5 +71,7 @@ export class LinearAngleScale extends LinearScale {
         this.niceTickStep = step;
     }
 
-    private niceTickStep = 0;
+    protected override getPixelRange() {
+        return this.arcLength;
+    }
 }
