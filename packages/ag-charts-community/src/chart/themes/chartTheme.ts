@@ -23,6 +23,7 @@ import {
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+    DEFAULT_WATERFALL_NEGATIVE,
     EXTENDS_AXES_DEFAULTS,
     EXTENDS_AXES_LABEL_DEFAULTS,
     EXTENDS_AXES_LINE_DEFAULTS,
@@ -509,6 +510,7 @@ export class ChartTheme {
         properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
+        properties.set(DEFAULT_WATERFALL_NEGATIVE, 'blue');
 
         return {
             extensions,

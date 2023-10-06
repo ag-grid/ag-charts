@@ -1,4 +1,4 @@
-import type { AgWaterfallSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { AgWaterfallSeriesOptions, _ModuleSupport, _Theme } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
 
 import { WATERFALL_DEFAULTS } from './waterfallDefaults';
@@ -29,7 +29,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                     stroke: strokes[1],
                 },
                 total: {
-                    fill: '#6f6f6f',
+                    fill: _Theme.DEFAULT_WATERFALL_NEGATIVE,
                     stroke: '#6f6f6f',
                 },
             },

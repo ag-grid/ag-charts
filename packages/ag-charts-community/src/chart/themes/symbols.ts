@@ -18,3 +18,4 @@ export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour') as un
 export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour') as unknown as string;
+export const DEFAULT_WATERFALL_NEGATIVE = Symbol('default-waterfall-negative') as unknown as string;
