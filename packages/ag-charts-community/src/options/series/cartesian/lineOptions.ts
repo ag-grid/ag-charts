@@ -3,8 +3,14 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type {
+    AgCartesianSeriesTooltipRendererParams,
+    AgErrorBoundSeriesTooltipRendererParams,
+} from './cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
+
+export type AgLineSeriesTooltipRendererParams = AgCartesianSeriesTooltipRendererParams &
+    AgErrorBoundSeriesTooltipRendererParams;
 
 export interface AgLineSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
@@ -16,7 +22,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams>;
 }
 
 /** Configuration for line series. */

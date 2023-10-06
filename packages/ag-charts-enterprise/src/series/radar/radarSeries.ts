@@ -23,6 +23,8 @@ const {
     valueProperty,
     fixNumericExtent,
     seriesLabelFadeInAnimation,
+    markerFadeInAnimation,
+    resetMarkerFn,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -64,16 +66,13 @@ export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     formatter?: (params: AgRadarSeriesMarkerFormatterParams<any>) => AgRadarSeriesMarkerFormat = undefined;
 }
 
-export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
+export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {
     static className = 'RadarSeries';
 
     readonly marker = new RadarSeriesMarker();
     readonly label = new _Scene.Label();
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
-    protected markerSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadarNodeDatum>;
-    protected highlightSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
 
     protected nodeData: RadarNodeDatum[] = [];
 
@@ -132,26 +131,21 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,
+            animationResetFns: {
+                item: resetMarkerFn,
+            },
         });
 
         const lineGroup = new Group();
         this.contentGroup.append(lineGroup);
         this.lineSelection = Selection.select(lineGroup, Path);
         lineGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
+    }
 
-        const markerFactory = () => {
-            const { shape } = this.marker;
-            const MarkerShape = getMarker(shape);
-            return new MarkerShape();
-        };
-        const markerGroup = new Group();
-        markerGroup.zIndexSubOrder = [() => this._declarationOrder, 2];
-        this.contentGroup.append(markerGroup);
-        this.markerSelection = Selection.select(markerGroup, markerFactory);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = Selection.select(this.highlightGroup, markerFactory);
+    protected override nodeFactory(): _Scene.Marker {
+        const { shape } = this.marker;
+        const MarkerShape = getMarker(shape);
+        return new MarkerShape();
     }
 
     override addChartEventListeners(): void {
@@ -301,7 +295,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
 
         this.updatePathSelections();
-        this.updateMarkers(this.markerSelection, false);
+        this.updateMarkers(this.itemSelection, false);
         this.updateMarkers(this.highlightSelection, true);
         this.updateLabels();
 
@@ -360,7 +354,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const { x, y } = datum.point!;
             node.translationX = x;
             node.translationY = y;
-            node.visible = node.size > 0 && !isNaN(x) && !isNaN(y);
+            node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
         });
     }
 
@@ -654,16 +648,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override animateEmptyUpdateReady() {
-        if (!this.visible) {
-            return;
-        }
-
-        const { markerSelection, labelSelection } = this;
+        const { itemSelection, labelSelection } = this;
+        const { animationManager } = this.ctx;
 
         const duration = this.ctx.animationManager.defaultDuration;
-        const markerDuration = 200;
-        const markerDelay = duration;
-
         const animationOptions = {
             from: 0,
             to: duration,
@@ -671,42 +659,26 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         this.beforePathAnimation();
 
-        this.ctx.animationManager.animate({
+        animationManager.animate({
             id: `${this.id}_empty-update-ready`,
             ...animationOptions,
             duration,
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
-        markerSelection.each((marker, datum) => {
-            const format = this.animateFormatter(datum);
-            const size = datum.point?.size ?? 0;
-
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${marker.id}`,
-                ...animationOptions,
-                to: format?.size ?? size,
-                delay: markerDelay,
-                duration: markerDuration,
-                onUpdate(size) {
-                    marker.size = size;
-                },
-            });
-        });
-
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
+        markerFadeInAnimation(this, animationManager, [itemSelection], true);
+        seriesLabelFadeInAnimation(this, animationManager, [labelSelection]);
     }
 
     override animateReadyUpdate() {
-        this.resetMarkersAndPaths();
+        this.resetPaths();
     }
 
     override animateReadyResize() {
-        this.resetMarkersAndPaths();
+        this.resetPaths();
     }
 
-    protected resetMarkersAndPaths() {
-        const { markerSelection } = this;
+    protected resetPaths() {
         const lineNode = this.getLineNode();
 
         if (lineNode) {
@@ -733,12 +705,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
             lineNode.checkPathDirty();
         }
-
-        markerSelection.each((marker, datum) => {
-            const format = this.animateFormatter(datum);
-            const size = datum.point?.size ?? 0;
-            marker.size = format?.size ?? size;
-        });
     }
 
     protected animateFormatter(datum: RadarNodeDatum) {

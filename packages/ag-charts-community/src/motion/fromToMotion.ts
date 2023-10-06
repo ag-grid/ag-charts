@@ -6,7 +6,23 @@ import { zipObject } from '../util/zip';
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue } from './animation';
 import * as easing from './easing';
 
-export type NodeUpdateState = 'added' | 'removed' | 'updated' | 'moved';
+export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'moved';
+
+export type FromToMotionPropFnContext<T> = {
+    last: boolean;
+    lastLive: boolean;
+    prev?: T;
+    prevFromProps?: Partial<T>;
+    next?: T;
+    prevLive?: T;
+    nextLive?: T;
+};
+type PropFn<N extends Node, T extends AnimationValue & Partial<N>, D> = (
+    node: N,
+    datum: D,
+    state: NodeUpdateState,
+    ctx: FromToMotionPropFnContext<N>
+) => T;
 
 /**
  * Implements a per-node "to/from" animation, with support for detection of added/moved/removed
@@ -26,8 +42,8 @@ export function fromToMotion<N extends Node, T extends AnimationValue & Partial<
     id: string,
     animationManager: AnimationManager,
     selections: Selection<N, D>[],
-    fromFn: (node: N, datum: D, state: NodeUpdateState) => T,
-    toFn: (node: N, datum: D, state: NodeUpdateState) => T,
+    fromFn: PropFn<N, T, D>,
+    toFn: PropFn<N, T, D>,
     extraOpts: Partial<AnimationOptions<T> & AdditionalAnimationOptions> = {},
     getDatumId?: (node: N, datum: D) => string,
     diff?: ProcessedOutputDiff
@@ -42,17 +58,35 @@ export function fromToMotion<N extends Node, T extends AnimationValue & Partial<
     let selectionIndex = 0;
     for (const selection of selections) {
         let cleanup = false;
+        let prevFromProps;
 
-        for (const node of selection.nodes()) {
-            let status: NodeUpdateState = 'added';
-            if (getDatumId && diff) {
+        let nodeIndex = 0;
+        const nodes = selection.nodes();
+        let liveNodeIndex = 0;
+        const liveNodes = nodes.filter((n) => !selection.isGarbage(n));
+        for (const node of nodes) {
+            const isLive = liveNodes[liveNodeIndex] === node;
+            const ctx: FromToMotionPropFnContext<N> = {
+                last: nodeIndex >= nodes.length - 1,
+                lastLive: liveNodeIndex >= liveNodes.length - 1,
+                prev: nodes[nodeIndex - 1],
+                prevFromProps,
+                prevLive: liveNodes[liveNodeIndex - 1],
+                next: nodes[nodeIndex + 1],
+                nextLive: liveNodes[liveNodeIndex + (isLive ? 1 : 0)],
+            };
+
+            let status: NodeUpdateState = 'unknown';
+            if (!isLive) {
+                status = 'removed';
+            } else if (getDatumId && diff) {
                 status = calculateStatus(node, node.datum, getDatumId, ids);
             }
 
             cleanup ||= status === 'removed';
 
-            const from = fromFn(node, node.datum, status);
-            const to = toFn(node, node.datum, status);
+            const from = fromFn(node, node.datum, status, ctx);
+            const to = toFn(node, node.datum, status, ctx);
 
             animationManager.animate({
                 id: `${id}_${node.id}`,
@@ -67,6 +101,12 @@ export function fromToMotion<N extends Node, T extends AnimationValue & Partial<
                 },
                 ...extraOpts,
             });
+
+            if (isLive) {
+                liveNodeIndex++;
+            }
+            nodeIndex++;
+            prevFromProps = from;
         }
 
         // Only perform selection cleanup once.

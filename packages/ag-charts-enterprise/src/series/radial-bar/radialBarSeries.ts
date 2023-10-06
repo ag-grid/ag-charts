@@ -31,7 +31,7 @@ const {
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Sector, Selection, Text, motion } = _Scene;
+const { Sector, motion } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
 class RadialBarSeriesNodeClickEvent<
@@ -65,14 +65,10 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
+export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum, _Scene.Sector> {
     static className = 'RadialBarSeries';
 
     readonly label = new _Scene.Label();
-
-    protected itemSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
-    protected highlightSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
 
     protected nodeData: RadialBarNodeDatum[] = [];
 
@@ -132,16 +128,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            animationResetFns: {
+                item: resetBarSelectionsFn,
+            },
         });
+    }
 
-        const sectorGroup = new Group();
-        this.contentGroup.append(sectorGroup);
-        sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
-        this.itemSelection = Selection.select(sectorGroup, Sector);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = Selection.select(this.highlightGroup, Sector);
+    protected override nodeFactory(): _Scene.Sector {
+        return new Sector();
     }
 
     override addChartEventListeners(): void {
@@ -425,10 +419,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     }
 
     protected override animateEmptyUpdateReady() {
-        if (!this.visible) {
-            return;
-        }
-
         const { labelSelection } = this;
 
         const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
@@ -440,14 +430,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             toFn
         );
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
-    }
-
-    protected override animateReadyUpdate() {
-        motion.resetMotion([this.itemSelection], resetBarSelectionsFn);
-    }
-
-    protected override animateReadyResize() {
-        motion.resetMotion([this.itemSelection], resetBarSelectionsFn);
     }
 
     protected override getNodeClickEvent(
@@ -581,28 +563,5 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
-    }
-
-    protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
-        node.centerX = 0;
-        node.centerY = 0;
-        node.innerRadius = datum.innerRadius;
-        node.outerRadius = datum.outerRadius;
-        node.startAngle = datum.startAngle;
-        node.endAngle = datum.endAngle;
-    }
-
-    protected animateItemsShapes() {
-        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
-        this.itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${node.id}`,
-                from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
-                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
-                onUpdate(props) {
-                    node.setProperties(props);
-                },
-            });
-        });
     }
 }

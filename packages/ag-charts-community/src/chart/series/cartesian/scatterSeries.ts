@@ -409,6 +409,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             title,
             color,
             seriesId,
+            ...this.getModuleTooltipParams(datum),
         });
     }
 
@@ -446,45 +447,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
-
-    animateFormatter(marker: Marker, datum: ScatterNodeDatum) {
-        const {
-            xKey = '',
-            yKey = '',
-            marker: { strokeWidth: markerStrokeWidth },
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
-        const { formatter } = this.marker;
-
-        const fill = datum.fill ?? marker.fill;
-        const stroke = marker.stroke;
-        const strokeWidth = markerStrokeWidth ?? 1;
-        const size = datum.point?.size ?? marker.size;
-
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-        if (formatter) {
-            format = callbackCache.call(formatter, {
-                datum: datum.datum,
-                xKey,
-                yKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
-                seriesId,
-            });
-        }
-
-        return format;
-    }
-
-    // getDatumId(datum: ScatterNodeDatum) {
-    //     const keys = [`${datum.xValue}`, `${datum.yValue}`];
-    //     if (this.labelKey) keys.push(datum.label.text);
-    //     return createDatumId(keys);
-    // }
 
     protected isLabelEnabled() {
         return this.label.enabled;

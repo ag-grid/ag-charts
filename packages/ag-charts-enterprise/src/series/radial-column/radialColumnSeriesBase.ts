@@ -25,11 +25,10 @@ const {
     normaliseGroupTo,
     valueProperty,
     fixNumericExtent,
-    seriesLabelFadeInAnimation,
+    resetLabelFn,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Selection, Text } = _Scene;
 const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeClickEvent<
@@ -68,14 +67,11 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _Scene.Path,
-> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
+export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> extends _ModuleSupport.PolarSeries<
+    RadialColumnNodeDatum,
+    ItemPathType
+> {
     readonly label = new _Scene.Label();
-
-    protected itemSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadialColumnNodeDatum>;
-    protected highlightSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 
@@ -130,24 +126,29 @@ export abstract class RadialColumnSeriesBase<
 
     private groupScale = new BandScale<string>();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(
+        moduleCtx: _ModuleSupport.ModuleContext,
+        {
+            animationResetFns,
+        }: {
+            animationResetFns?: {
+                item?: (
+                    node: ItemPathType,
+                    datum: RadialColumnNodeDatum
+                ) => _ModuleSupport.AnimationValue & Partial<ItemPathType>;
+            };
+        }
+    ) {
         super({
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            animationResetFns: {
+                ...animationResetFns,
+                label: resetLabelFn,
+            },
         });
-
-        const sectorGroup = new Group();
-        this.contentGroup.append(sectorGroup);
-        sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
-        this.itemSelection = this.createPathSelection(sectorGroup);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = this.createPathSelection(this.highlightGroup);
     }
-
-    protected abstract createPathSelection(parent: _Scene.Group): _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
     override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
@@ -435,72 +436,6 @@ export abstract class RadialColumnSeriesBase<
             } else {
                 node.visible = false;
             }
-        });
-    }
-
-    protected beforeSectorAnimation() {
-        const {
-            formatter,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            id: seriesId,
-            angleKey,
-            radiusKey,
-        } = this;
-        const { callbackCache } = this.ctx;
-
-        this.itemSelection.each((node, datum) => {
-            const format = formatter
-                ? callbackCache.call(formatter, {
-                      datum,
-                      fill,
-                      stroke,
-                      strokeWidth,
-                      highlighted: false,
-                      angleKey,
-                      radiusKey,
-                      seriesId,
-                  })
-                : undefined;
-
-            this.updateItemPath(node, datum);
-            node.fill = format?.fill ?? fill;
-            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeOpacity = strokeOpacity;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.lineDash = this.lineDash;
-            node.lineJoin = 'round';
-        });
-    }
-
-    protected abstract animateItemsShapes(): void;
-
-    protected override animateEmptyUpdateReady() {
-        if (!this.visible) {
-            return;
-        }
-
-        this.beforeSectorAnimation();
-        this.animateItemsShapes();
-
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.labelSelection]);
-    }
-
-    protected override animateReadyUpdate() {
-        this.resetSectors();
-    }
-
-    protected override animateReadyResize() {
-        this.resetSectors();
-    }
-
-    protected resetSectors() {
-        this.itemSelection.each((node, datum) => {
-            this.updateItemPath(node, datum);
         });
     }
 

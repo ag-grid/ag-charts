@@ -2,19 +2,25 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
+import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from '../radial-column/radialColumnUtil';
 
-const { Sector, Selection } = _Scene;
+const { seriesLabelFadeInAnimation } = _ModuleSupport;
+const { Sector, motion } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static className = 'NightingaleSeries';
+
+    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+        super(moduleCtx, { animationResetFns: { item: resetRadialColumnSelectionFn } });
+    }
 
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `nightingale-stack-${groupIndex}-yValues`;
     }
 
-    protected createPathSelection(parent: _Scene.Group): _Scene.Selection<_Scene.Sector, RadialColumnNodeDatum> {
-        return Selection.select(parent, Sector);
+    protected override nodeFactory(): _Scene.Sector {
+        return new Sector();
     }
 
     protected updateItemPath(node: _Scene.Sector, datum: RadialColumnNodeDatum) {
@@ -26,22 +32,12 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         node.endAngle = datum.endAngle;
     }
 
-    protected animateItemsShapes() {
-        const { itemSelection } = this;
-        const duration = this.ctx.animationManager.defaultDuration;
+    protected override animateEmptyUpdateReady(): void {
+        const { animationManager } = this.ctx;
 
-        const axisInnerRadius = this.getAxisInnerRadius();
+        const { fromFn, toFn } = prepareRadialColumnAnimationFunctions(this.getAxisInnerRadius());
+        motion.fromToMotion(`${this.id}_empty-update-ready`, animationManager, [this.itemSelection], fromFn, toFn);
 
-        itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${node.id}`,
-                from: { innerRadius: axisInnerRadius, outerRadius: axisInnerRadius },
-                to: { innerRadius: datum.innerRadius, outerRadius: datum.outerRadius },
-                duration,
-                onUpdate: (props) => {
-                    node.setProperties(props);
-                },
-            });
-        });
+        seriesLabelFadeInAnimation(this, animationManager, [this.labelSelection]);
     }
 }

@@ -297,7 +297,7 @@ export abstract class Series<
     readonly highlightLabel: Group;
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup?: Group;
+    readonly labelGroup: Group;
 
     // Package-level visibility, not meant to be set by the user.
     chart?: {
@@ -461,15 +461,13 @@ export abstract class Series<
 
         this.pickModes = pickModes;
 
-        if (useLabelLayer) {
-            this.labelGroup = rootGroup.appendChild(
-                new Group({
-                    name: `${this.id}-series-labels`,
-                    layer: true,
-                    zIndex: Layers.SERIES_LABEL_ZINDEX,
-                })
-            );
-        }
+        this.labelGroup = rootGroup.appendChild(
+            new Group({
+                name: `${this.id}-series-labels`,
+                layer: useLabelLayer,
+                zIndex: Layers.SERIES_LABEL_ZINDEX,
+            })
+        );
     }
 
     getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
@@ -635,6 +633,13 @@ export abstract class Series<
         }
 
         return SeriesHighlight.This;
+    }
+
+    protected getModuleTooltipParams(datum: object): object {
+        const params: object[] = this.dispatch('tooltip-getParams', { datum }) ?? [];
+        return params.reduce((total, current) => {
+            return { ...current, ...total };
+        }, {});
     }
 
     abstract getTooltipHtml(seriesDatum: any): string;

@@ -74,3 +74,81 @@ export function getData() {
         },
     ] ;
 }
+
+
+export function getData2() {
+    return [
+        {
+            month: 'Jan',
+            temperature: 8.0,
+            temperatureLower: 6.5,
+            temperatureUpper: 10.0
+        },
+        {
+            month: 'Feb',
+            temperature: 8.5,
+            temperatureLower: 7.0,
+            temperatureUpper: 10.5
+        },
+        {
+            month: 'Mar',
+            temperature: 10.0,
+            temperatureLower: 8.5,
+            temperatureUpper: 12.0
+        },
+        {
+            month: 'Apr',
+            temperature: 12.0,
+            temperatureLower: 10.5,
+            temperatureUpper: 13.5
+        },
+        {
+            month: 'May',
+            temperature: 14.5,
+            temperatureLower: 13.0,
+            temperatureUpper: 16.0
+        },
+        {
+            month: 'Jun',
+            temperature: 16.5,
+            temperatureLower: 15.0,
+            temperatureUpper: 18.0
+        },
+        {
+            month: 'Jul',
+            temperature: 18.0,
+            temperatureLower: 16.5,
+            temperatureUpper: 19.5
+        },
+        {
+            month: 'Aug',
+            temperature: 17.0,
+            temperatureLower: 15.5,
+            temperatureUpper: 18.5
+        },
+        {
+            month: 'Sep',
+            temperature: 15.5,
+            temperatureLower: 14.0,
+            temperatureUpper: 17.0
+        },
+        {
+            month: 'Oct',
+            temperature: 12.5,
+            temperatureLower: 11.0,
+            temperatureUpper: 14.0
+        },
+        {
+            month: 'Nov',
+            temperature: 10.0,
+            temperatureLower: 8.5,
+            temperatureUpper: 11.5
+        },
+        {
+            month: 'Dec',
+            temperature: 8.5,
+            temperatureLower: 7.0,
+            temperatureUpper: 10.0
+        },
+    ];
+}
