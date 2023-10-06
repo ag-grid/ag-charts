@@ -40,11 +40,10 @@ export class DarkTheme extends ChartTheme {
     protected override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_LABEL_COLOUR, 'rgb(200, 200, 200)');
-        result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(150, 150, 150)');
-        result.properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(88, 88, 88)');
-        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, 'rgb(34, 38, 41)');
-        result.properties.set(DEFAULT_BACKGROUND_COLOUR, 'rgb(34, 38, 41)');
+        result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
+        result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
+        result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
+        result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
 
         return result;
