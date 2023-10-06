@@ -23,10 +23,10 @@ const defaultTooltipCss = `
     white-space: nowrap;
     z-index: 99999;
     font: 12px Verdana, sans-serif;
-    color: black;
-    background: rgb(244, 244, 244);
-    border-radius: 5px;
-    box-shadow: 0 0 1px rgba(3, 3, 3, 0.7), 0.5vh 0.5vh 1vh rgba(3, 3, 3, 0.25);
+    color: rgb(70, 70, 70);
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-no-interaction {
@@ -43,21 +43,19 @@ const defaultTooltipCss = `
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-title {
-    font-weight: bold;
-    padding: 7px;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+    padding: 8px 14px;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
     color: white;
     background-color: #888888;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-content {
-    padding: 7px;
+    padding: 6px 14px;
     line-height: 1.7em;
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
 
