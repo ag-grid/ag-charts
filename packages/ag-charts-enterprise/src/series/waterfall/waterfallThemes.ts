@@ -11,6 +11,7 @@ export const WATERFALL_SERIES_THEME = {
         },
         negative: {
             strokeWidth: 0,
+            fill: _Theme.DEFAULT_WATERFALL_NEGATIVE,
             label: {
                 enabled: false,
             },

@@ -7,6 +7,7 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+    DEFAULT_WATERFALL_NEGATIVE,
 } from './symbols';
 
 const palette: AgChartThemePalette = {
@@ -42,6 +43,7 @@ export class DarkTheme extends ChartTheme {
 
         result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
         result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
+        result.properties.set(DEFAULT_WATERFALL_NEGATIVE, 'red');
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
         result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, '#15181c');
