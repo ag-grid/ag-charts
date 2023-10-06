@@ -14,7 +14,11 @@ type AnimatableSectorDatum = {
 export function prepareRadialBarSeriesAnimationFunctions(
     axes: Record<_ModuleSupport.ChartAxisDirection, _ModuleSupport.ChartAxis | undefined>
 ) {
-    const axisStartAngle = axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
+    const angleScale = axes[ChartAxisDirection.X]?.scale;
+    let axisStartAngle = 0;
+    if (angleScale && angleScale.domain[0] <= 0 && angleScale.domain[1] >= 0) {
+        axisStartAngle = angleScale.convert(0);
+    }
     const fromFn = (_sect: _Scene.Sector, _datum: AnimatableSectorDatum, _status: _Scene.NodeUpdateState) => {
         return { startAngle: axisStartAngle, endAngle: axisStartAngle };
     };

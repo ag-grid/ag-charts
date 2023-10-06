@@ -4,6 +4,20 @@ const { LinearScale } = _Scale;
 const { isNumberEqual, range } = _Util;
 
 export class LinearAngleScale extends LinearScale {
+    arcLength: number = 0;
+
+    private niceTickStep = 0;
+
+    protected override cacheProps: Array<keyof this> = [
+        'domain',
+        'range',
+        'nice',
+        'tickCount',
+        'minTickCount',
+        'maxTickCount',
+        'arcLength',
+    ];
+
     override ticks() {
         if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d))) {
             return [];
@@ -20,12 +34,7 @@ export class LinearAngleScale extends LinearScale {
             }
         }
 
-        if (this.nice) {
-            const { step } = this.getNiceStepAndTickCount();
-            return range(d0, d1, step);
-        }
-
-        const step = this.getTickStep(d0, d1);
+        const step = this.nice ? this.niceTickStep : this.getTickStep(d0, d1);
         return range(d0, d1, step);
     }
 
@@ -36,7 +45,7 @@ export class LinearAngleScale extends LinearScale {
     }
 
     private getNiceStepAndTickCount() {
-        const [start, stop] = this.getDomain();
+        const [start, stop] = this.niceDomain;
         let step = this.getTickStep(start, stop);
         const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount;
         const expectedTickCount = (stop - start) / step;
@@ -64,5 +73,10 @@ export class LinearAngleScale extends LinearScale {
         const stop = step >= 1 ? Math.ceil(start / step + count) * step : Math.ceil((start + count * step) * s) / s;
 
         this.niceDomain = [start, stop];
+        this.niceTickStep = step;
+    }
+
+    protected override getPixelRange() {
+        return this.arcLength;
     }
 }
