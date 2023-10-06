@@ -50,10 +50,6 @@ export class SeriesLayerManager {
         this.expectedSeriesCount = count;
     }
 
-    public getGroupZIndexSubOrder(id: string, type: SeriesGroupZIndexSubOrderType, subIndex?: number) {
-        return this.series[id]?.seriesConfig.getGroupZIndexSubOrder(type, subIndex);
-    }
-
     public requestGroup(seriesConfig: SeriesConfig) {
         const {
             id,

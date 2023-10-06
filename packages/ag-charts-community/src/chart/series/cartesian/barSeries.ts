@@ -70,7 +70,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly fill: string;
 }
 
-export interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
+interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: string | number;
     readonly yValue: string | number;
@@ -276,27 +276,14 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
-    public getCategoryAxis(): ChartAxis | undefined {
+    private getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
     }
 
-    public getValueAxis(): ChartAxis | undefined {
+    private getValueAxis(): ChartAxis | undefined {
         const direction = this.getBarDirection();
         return this.axes[direction];
-    }
-
-    public getGroupScale() {
-        return this.groupScale;
-    }
-
-    public getBarWidth() {
-        const { groupScale } = this;
-        return groupScale.bandwidth >= 1
-            ? // Pixel-rounded value for low-volume bar charts.
-              groupScale.bandwidth
-            : // Handle high-volume bar charts gracefully.
-              groupScale.rawBandwidth;
     }
 
     async createNodeData() {
@@ -347,7 +334,13 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         // To get exactly `0` padding we need to turn off rounding
         groupScale.round = groupScale.padding !== 0;
 
-        const barWidth = this.getBarWidth();
+        const barWidth =
+            groupScale.bandwidth >= 1
+                ? // Pixel-rounded value for low-volume bar charts.
+                  groupScale.bandwidth
+                : // Handle high-volume bar charts gracefully.
+                  groupScale.rawBandwidth;
+
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;

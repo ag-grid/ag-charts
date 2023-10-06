@@ -52,5 +52,5 @@ export interface AxisContext {
 }
 
 export interface SeriesContext extends ModuleContext {
-    series: { id: string; type: string };
+    series: { type: string };
 }
