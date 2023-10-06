@@ -15,7 +15,7 @@ interface ErrorBarPoint {
 
 export interface ErrorBarPoints {
     readonly xBar?: ErrorBarPoint;
-    readonly yBar: ErrorBarPoint;
+    readonly yBar?: ErrorBarPoint;
 }
 
 export class ErrorBarNode extends _Scene.Group {
@@ -48,8 +48,10 @@ export class ErrorBarNode extends _Scene.Group {
 
         const whisker = this.whiskerPath;
         whisker.path.clear();
-        whisker.path.moveTo(yBar.lowerPoint.x, yBar.lowerPoint.y);
-        whisker.path.lineTo(yBar.upperPoint.x, yBar.upperPoint.y);
+        if (yBar !== undefined) {
+            whisker.path.moveTo(yBar.lowerPoint.x, yBar.lowerPoint.y);
+            whisker.path.lineTo(yBar.upperPoint.x, yBar.upperPoint.y);
+        }
         if (xBar !== undefined) {
             whisker.path.moveTo(xBar.lowerPoint.x, xBar.lowerPoint.y);
             whisker.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y);
@@ -60,10 +62,12 @@ export class ErrorBarNode extends _Scene.Group {
         const capLength = 5;
         const caps = this.capsPath;
         caps.path.clear();
-        caps.path.moveTo(yBar.lowerPoint.x - capLength, yBar.lowerPoint.y);
-        caps.path.lineTo(yBar.lowerPoint.x + capLength, yBar.lowerPoint.y);
-        caps.path.moveTo(yBar.upperPoint.x - capLength, yBar.upperPoint.y);
-        caps.path.lineTo(yBar.upperPoint.x + capLength, yBar.upperPoint.y);
+        if (yBar !== undefined) {
+            caps.path.moveTo(yBar.lowerPoint.x - capLength, yBar.lowerPoint.y);
+            caps.path.lineTo(yBar.lowerPoint.x + capLength, yBar.lowerPoint.y);
+            caps.path.moveTo(yBar.upperPoint.x - capLength, yBar.upperPoint.y);
+            caps.path.lineTo(yBar.upperPoint.x + capLength, yBar.upperPoint.y);
+        }
         if (xBar !== undefined) {
             caps.path.moveTo(xBar.lowerPoint.x, xBar.lowerPoint.y - capLength);
             caps.path.lineTo(xBar.lowerPoint.x, xBar.lowerPoint.y + capLength);
