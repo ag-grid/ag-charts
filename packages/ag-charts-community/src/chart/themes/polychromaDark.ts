@@ -1,5 +1,10 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { DarkTheme } from './darkTheme';
+import {
+    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+} from './symbols';
 
 const palette: AgChartThemePalette = {
     fills: [
@@ -29,6 +34,45 @@ const palette: AgChartThemePalette = {
 };
 
 export class PolychromaDark extends DarkTheme {
+    protected static override getWaterfallSeriesDefaultPositiveColors() {
+        return {
+            fill: '#436ff4',
+            stroke: '#2346c9',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultNegativeColors() {
+        return {
+            fill: '#f47348',
+            stroke: '#c84b1c',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultTotalColors() {
+        return {
+            fill: '#e9e201',
+            stroke: '#c1b900',
+        };
+    }
+
+    protected override getTemplateParameters() {
+        const result = super.getTemplateParameters();
+
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+            PolychromaDark.getWaterfallSeriesDefaultPositiveColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+            PolychromaDark.getWaterfallSeriesDefaultNegativeColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+            PolychromaDark.getWaterfallSeriesDefaultTotalColors()
+        );
+
+        return result;
+    }
     protected override getPalette(): AgChartThemePalette {
         return palette;
     }

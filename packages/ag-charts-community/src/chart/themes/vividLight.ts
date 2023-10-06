@@ -1,5 +1,10 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
+import {
+    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+} from './symbols';
 
 const palette: AgChartThemePalette = {
     fills: [
@@ -29,6 +34,45 @@ const palette: AgChartThemePalette = {
 };
 
 export class VividLight extends ChartTheme {
+    protected static override getWaterfallSeriesDefaultPositiveColors() {
+        return {
+            fill: '#3f8fea',
+            stroke: '#67b7ff',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultNegativeColors() {
+        return {
+            fill: '#ff9900',
+            stroke: '#ffc24d',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultTotalColors() {
+        return {
+            fill: '#888888',
+            stroke: '#aeaeae',
+        };
+    }
+
+    protected override getTemplateParameters() {
+        const result = super.getTemplateParameters();
+
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+            VividLight.getWaterfallSeriesDefaultPositiveColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+            VividLight.getWaterfallSeriesDefaultNegativeColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+            VividLight.getWaterfallSeriesDefaultTotalColors()
+        );
+
+        return result;
+    }
     protected override getPalette(): AgChartThemePalette {
         return palette;
     }
