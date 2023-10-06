@@ -1,5 +1,10 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
+import {
+    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+} from './symbols';
 
 const palette: AgChartThemePalette = {
     fills: [
@@ -29,6 +34,43 @@ const palette: AgChartThemePalette = {
 };
 
 export class Excel extends ChartTheme {
+    protected static override getWaterfallSeriesDefaultPositiveColors() {
+        return {
+            fill: '#4472C4',
+            stroke: '#214d9b',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultNegativeColors() {
+        return {
+            fill: '#ED7D31',
+            stroke: '#c25600',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultTotalColors() {
+        return {
+            fill: '#A5A5A5',
+            stroke: '#7f7f7f',
+        };
+    }
+
+    protected override getTemplateParameters() {
+        const result = super.getTemplateParameters();
+
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+            Excel.getWaterfallSeriesDefaultPositiveColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+            Excel.getWaterfallSeriesDefaultNegativeColors()
+        );
+        result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, Excel.getWaterfallSeriesDefaultTotalColors());
+
+        return result;
+    }
+
     protected override getPalette(): AgChartThemePalette {
         return palette;
     }
