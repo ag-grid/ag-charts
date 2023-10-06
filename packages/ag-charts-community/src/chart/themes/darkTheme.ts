@@ -11,28 +11,28 @@ import {
 
 const palette: AgChartThemePalette = {
     fills: [
-        '#436ff4',
-        '#9a7bff',
-        '#d165d2',
-        '#f0598b',
-        '#f47348',
-        '#f2a602',
-        '#e9e201',
-        '#21b448',
-        '#00b9a2',
-        '#00aee4',
+        '#4F81BD',
+        '#F79646',
+        '#468A51',
+        '#4BACC6',
+        '#CDBC21',
+        '#8460AF',
+        '#7B7B7B',
+        '#A55492',
+        '#73572E',
+        '#D3504D',
     ],
     strokes: [
-        '#7cb0ff',
-        '#d8bcff',
-        '#ffa5ff',
-        '#ff9bc9',
-        '#ffb488',
-        '#ffe86b',
-        '#ffff76',
-        '#73f688',
-        '#6efbe2',
-        '#6cf0ff',
+        '#74a8e6',
+        '#ffbe70',
+        '#6cb176',
+        '#75d4ef',
+        '#f6e559',
+        '#aa86d8',
+        '#a1a1a1',
+        '#ce7ab9',
+        '#997b52',
+        '#ff7872',
     ],
 };
 
@@ -40,11 +40,11 @@ export class DarkTheme extends ChartTheme {
     protected override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_LABEL_COLOUR, 'rgb(200, 200, 200)');
-        result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(150, 150, 150)');
-        result.properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(88, 88, 88)');
-        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, 'rgb(34, 38, 41)');
-        result.properties.set(DEFAULT_BACKGROUND_COLOUR, 'rgb(34, 38, 41)');
+        result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
+        result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
+        result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
+        result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
+        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, '#15181c');
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
 
         return result;

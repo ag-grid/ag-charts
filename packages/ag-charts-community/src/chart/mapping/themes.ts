@@ -2,12 +2,12 @@ import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../.
 import { jsonMerge } from '../../util/json';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
+import { Excel } from '../themes/excel';
+import { ExcelDark } from '../themes/excelDark';
 import { MaterialDark } from '../themes/materialDark';
 import { MaterialLight } from '../themes/materialLight';
-import { PastelDark } from '../themes/pastelDark';
-import { PastelLight } from '../themes/pastelLight';
-import { SolarDark } from '../themes/solarDark';
-import { SolarLight } from '../themes/solarLight';
+import { Polychroma } from '../themes/polychroma';
+import { PolychromaDark } from '../themes/polychromaDark';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
@@ -20,20 +20,20 @@ const lightThemes: ThemeMap = {
     undefined: lightTheme,
     null: lightTheme,
     'ag-default': lightTheme,
-    'ag-material': () => new MaterialLight(),
-    'ag-pastel': () => new PastelLight(),
-    'ag-solar': () => new SolarLight(),
+    'ag-excel': () => new Excel(),
+    'ag-polychroma': () => new Polychroma(),
     'ag-vivid': () => new VividLight(),
+    'ag-material': () => new MaterialLight(),
 };
 
 const darkThemes: ThemeMap = {
     undefined: darkTheme,
     null: darkTheme,
     'ag-default-dark': darkTheme,
-    'ag-material-dark': () => new MaterialDark(),
-    'ag-pastel-dark': () => new PastelDark(),
-    'ag-solar-dark': () => new SolarDark(),
+    'ag-excel-dark': () => new ExcelDark(),
+    'ag-polychroma-dark': () => new PolychromaDark(),
     'ag-vivid-dark': () => new VividDark(),
+    'ag-material-dark': () => new MaterialDark(),
 };
 
 export const themes: ThemeMap = {
