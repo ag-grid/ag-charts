@@ -18,9 +18,6 @@ const {
     OPT_STRING,
 } = _ModuleSupport;
 
-const XVALUE_ERRORS_ID = 'xValue-errors';
-const YVALUE_ERRORS_ID = 'yValue-errors';
-
 type AnyCartesianSeries = _ModuleSupport.CartesianSeries<_Scene.Node, _ModuleSupport.CartesianSeriesNodeDatum>;
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
@@ -137,16 +134,19 @@ export class ErrorBars
 
     private onPrerequestData(event: SeriesDataPrerequestEvent) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
-        const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        const { cartesianSeries } = this;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { isContinuousX, isContinuousY } = event;
-        props.push(
-            valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: YVALUE_ERRORS_ID }),
-            valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: YVALUE_ERRORS_ID })
-        );
+        if (yLowerKey !== undefined && yUpperKey !== undefined) {
+            props.push(
+                valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: yErrorsID }),
+                valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: yErrorsID })
+            );
+        }
         if (xLowerKey !== undefined && xUpperKey !== undefined) {
             props.push(
-                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: XVALUE_ERRORS_ID }),
-                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: XVALUE_ERRORS_ID })
+                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: xErrorsID }),
+                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: xErrorsID })
             );
         }
         return props;
@@ -157,18 +157,19 @@ export class ErrorBars
         this.processedData = event.processedData;
     }
 
-    private hasAxis(direction: _ModuleSupport.ChartAxisDirection): boolean {
-        if (direction == ChartAxisDirection.X) {
-            return this.xLowerKey !== undefined && this.xUpperKey != undefined;
-        }
-        return true;
-    }
-
     private onGetDomain(event: SeriesDataGetDomainEvent) {
-        if (this.hasAxis(event.direction)) {
+        const { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID } = this.getMaybeFlippedKeys();
+        let hasAxisErrors: boolean = false;
+        if (event.direction == ChartAxisDirection.X) {
+            hasAxisErrors = xLowerKey !== undefined && xUpperKey != undefined;
+        } else {
+            hasAxisErrors = yLowerKey !== undefined && yUpperKey != undefined;
+        }
+
+        if (hasAxisErrors) {
             const { dataModel, processedData, cartesianSeries } = this;
             const axis = cartesianSeries.axes[event.direction];
-            const id = { x: XVALUE_ERRORS_ID, y: YVALUE_ERRORS_ID }[event.direction];
+            const id = { x: xErrorsID, y: yErrorsID }[event.direction];
             if (dataModel !== undefined && processedData !== undefined) {
                 const domain = dataModel.getDomain(cartesianSeries, id, 'value', processedData);
                 return fixNumericExtent(domain as any, axis);
@@ -225,14 +226,21 @@ export class ErrorBars
         return false;
     }
 
+    private getMaybeFlippedKeys() {
+        let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        let [xErrorsID, yErrorsID] = ['xValue-errors', 'yValue-errors'];
+        if (this.shouldFlipXY()) {
+            [xLowerKey, yLowerKey] = [yLowerKey, xLowerKey];
+            [xUpperKey, yUpperKey] = [yUpperKey, xUpperKey];
+            [xErrorsID, yErrorsID] = [yErrorsID, xErrorsID];
+        }
+        return { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID };
+    }
+
     private getDatum(datumIndex: number) {
         const { cartesianSeries } = this;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
         const datum = cartesianSeries.contextNodeData[0].nodeData[datumIndex];
-
-        let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
-        if (this.shouldFlipXY()) {
-            [xLowerKey, xUpperKey, yLowerKey, yUpperKey] = [yLowerKey, yUpperKey, xLowerKey, xUpperKey];
-        }
 
         return {
             midPoint: datum.midPoint,
