@@ -14,7 +14,7 @@ import type {
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgPolarSeriesTooltipRendererParams } from './polarTooltipOptions';
 
-export interface AgPieSeriesLabelOptions<TParams> extends AgChartLabelOptions<TParams> {
+export interface AgPieSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
@@ -109,7 +109,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside of the sectors. */
-    calloutLabel?: AgPieSeriesLabelOptions<AgPieSeriesLabelFormatterParams<TDatum>>;
+    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the labels used inside the sectors. */
     sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the callout lines used with the labels for the sectors. */
