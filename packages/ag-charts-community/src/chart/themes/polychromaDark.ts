@@ -7,52 +7,56 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+const POLYCHROMA_DARK_FILLS = {
+    BLUE: '#436ff4',
+    PURPLE: '#9a7bff',
+    MAGENTA: '#d165d2',
+    PINK: '#f0598b',
+    RED: '#f47348',
+    ORANGE: '#f2a602',
+    YELLOW: '#e9e201',
+    GREEN: '#21b448',
+    CYAN: '#00b9a2',
+    MODERATE_BLUE: '#00aee4',
+};
+
+const POLYCHROMA_DARK_STROKES = {
+    BLUE: '#6698ff',
+    PURPLE: '#c0a3ff',
+    MAGENTA: '#fc8dfc',
+    PINK: '#ff82b1',
+    RED: '#ff9b70',
+    ORANGE: '#ffcf4e',
+    YELLOW: '#ffff58',
+    GREEN: '#58dd70',
+    CYAN: '#51e2c9',
+    MODERATE_BLUE: '#4fd7ff',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#436ff4',
-        '#9a7bff',
-        '#d165d2',
-        '#f0598b',
-        '#f47348',
-        '#f2a602',
-        '#e9e201',
-        '#21b448',
-        '#00b9a2',
-        '#00aee4',
-    ],
-    strokes: [
-        '#6698ff',
-        '#c0a3ff',
-        '#fc8dfc',
-        '#ff82b1',
-        '#ff9b70',
-        '#ffcf4e',
-        '#ffff58',
-        '#58dd70',
-        '#51e2c9',
-        '#4fd7ff',
-    ],
+    fills: Array.from(Object.values(POLYCHROMA_DARK_FILLS)),
+    strokes: Array.from(Object.values(POLYCHROMA_DARK_STROKES)),
 };
 
 export class PolychromaDark extends DarkTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: '#436ff4',
-            stroke: '#2346c9',
+            fill: POLYCHROMA_DARK_FILLS.BLUE,
+            stroke: POLYCHROMA_DARK_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: '#f47348',
-            stroke: '#c84b1c',
+            fill: POLYCHROMA_DARK_FILLS.RED,
+            stroke: POLYCHROMA_DARK_STROKES.RED,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: '#e9e201',
-            stroke: '#c1b900',
+            fill: POLYCHROMA_DARK_FILLS.YELLOW,
+            stroke: POLYCHROMA_DARK_STROKES.YELLOW,
         };
     }
 
@@ -72,7 +76,10 @@ export class PolychromaDark extends DarkTheme {
             PolychromaDark.getWaterfallSeriesDefaultTotalColors()
         );
 
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#436ff4', '#f47348']);
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [
+            POLYCHROMA_DARK_FILLS.BLUE,
+            POLYCHROMA_DARK_FILLS.RED,
+        ]);
 
         return result;
     }

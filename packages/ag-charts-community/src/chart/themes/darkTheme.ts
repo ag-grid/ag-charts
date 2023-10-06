@@ -13,52 +13,56 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+const DEFAULT_DARK_FILLS = {
+    BLUE: '#4F81BD',
+    ORANGE: '#F79646',
+    GREEN: '#468A51',
+    CYAN: '#4BACC6',
+    YELLOW: '#CDBC21',
+    VIOLET: '#8460AF',
+    GRAY: '#7B7B7B',
+    MAGENTA: '#A55492',
+    BROWN: '#73572E',
+    RED: '#D3504D',
+};
+
+const DEFAULT_DARK_STROKES = {
+    BLUE: '#74a8e6',
+    ORANGE: '#ffbe70',
+    GREEN: '#6cb176',
+    CYAN: '#75d4ef',
+    YELLOW: '#f6e559',
+    VIOLET: '#aa86d8',
+    GRAY: '#a1a1a1',
+    MAGENTA: '#ce7ab9',
+    BROWN: '#997b52',
+    RED: '#ff7872',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#4F81BD',
-        '#F79646',
-        '#468A51',
-        '#4BACC6',
-        '#CDBC21',
-        '#8460AF',
-        '#7B7B7B',
-        '#A55492',
-        '#73572E',
-        '#D3504D',
-    ],
-    strokes: [
-        '#74a8e6',
-        '#ffbe70',
-        '#6cb176',
-        '#75d4ef',
-        '#f6e559',
-        '#aa86d8',
-        '#a1a1a1',
-        '#ce7ab9',
-        '#997b52',
-        '#ff7872',
-    ],
+    fills: Array.from(Object.values(DEFAULT_DARK_FILLS)),
+    strokes: Array.from(Object.values(DEFAULT_DARK_STROKES)),
 };
 
 export class DarkTheme extends ChartTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: '#4F81BD',
-            stroke: '#74a8e6',
+            fill: DEFAULT_DARK_FILLS.BLUE,
+            stroke: DEFAULT_DARK_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: '#F79646',
-            stroke: '#ffbe70',
+            fill: DEFAULT_DARK_FILLS.ORANGE,
+            stroke: DEFAULT_DARK_STROKES.ORANGE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: '#7B7B7B',
-            stroke: '#a1a1a1',
+            fill: DEFAULT_DARK_FILLS.GRAY,
+            stroke: DEFAULT_DARK_STROKES.GRAY,
         };
     }
 
@@ -80,7 +84,11 @@ export class DarkTheme extends ChartTheme {
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#4F81BD', '#F79646']);
+
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [
+            DEFAULT_DARK_FILLS.BLUE,
+            DEFAULT_DARK_FILLS.ORANGE,
+        ]);
 
         return result;
     }

@@ -7,52 +7,56 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+const MATERIAL_LIGHT_FILLS = {
+    BLUE: '#03a9f4',
+    CYAN: '#00bcd4',
+    DARK_CYAN: '#009688',
+    GREEN: '#4caf50',
+    RED: '#f44336',
+    PINK: '#e91e63',
+    MAGENTA: '#9c27b0',
+    VIOLET: '#673ab7',
+    DARK_BLUE: '#3f51b5',
+    VIVID_BLUE: '#2196f3',
+};
+
+const MATERIAL_LIGHT_STROKES = {
+    BLUE: '#0081ca',
+    CYAN: '#0094ac',
+    DARK_CYAN: '#007064',
+    GREEN: '#1d8828',
+    RED: '#c60000',
+    PINK: '#bb0040',
+    MAGENTA: '#740088',
+    VIOLET: '#47078e',
+    DARK_BLUE: '#222b8c',
+    VIVID_BLUE: '#006fc8',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#03a9f4',
-        '#00bcd4',
-        '#009688',
-        '#4caf50',
-        '#f44336',
-        '#e91e63',
-        '#9c27b0',
-        '#673ab7',
-        '#3f51b5',
-        '#2196f3',
-    ],
-    strokes: [
-        '#0081ca',
-        '#0094ac',
-        '#007064',
-        '#1d8828',
-        '#c60000',
-        '#bb0040',
-        '#740088',
-        '#47078e',
-        '#222b8c',
-        '#006fc8',
-    ],
+    fills: Array.from(Object.values(MATERIAL_LIGHT_FILLS)),
+    strokes: Array.from(Object.values(MATERIAL_LIGHT_STROKES)),
 };
 
 export class MaterialLight extends ChartTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: '#03a9f4',
-            stroke: '#0081ca',
+            fill: MATERIAL_LIGHT_FILLS.BLUE,
+            stroke: MATERIAL_LIGHT_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: '#f44336',
-            stroke: '#c60000',
+            fill: MATERIAL_LIGHT_FILLS.RED,
+            stroke: MATERIAL_LIGHT_STROKES.RED,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: '#009688',
-            stroke: '#47bdae',
+            fill: MATERIAL_LIGHT_FILLS.DARK_CYAN,
+            stroke: MATERIAL_LIGHT_STROKES.DARK_CYAN,
         };
     }
 
@@ -72,7 +76,10 @@ export class MaterialLight extends ChartTheme {
             MaterialLight.getWaterfallSeriesDefaultTotalColors()
         );
 
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#03a9f4', '#f44336']);
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [
+            MATERIAL_LIGHT_FILLS.BLUE,
+            MATERIAL_LIGHT_FILLS.RED,
+        ]);
 
         return result;
     }
