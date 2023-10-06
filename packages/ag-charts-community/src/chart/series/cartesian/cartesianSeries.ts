@@ -712,6 +712,10 @@ export abstract class CartesianSeries<
         return [];
     }
 
+    shouldFlipXY(): boolean {
+        return false;
+    }
+
     protected async updateHighlightSelectionItem(opts: {
         items?: TDatum[];
         highlightSelection: Selection<TNode, TDatum>;

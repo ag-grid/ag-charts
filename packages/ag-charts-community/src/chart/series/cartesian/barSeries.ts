@@ -688,6 +688,10 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return { inner: 0.2, outer: 0.1 };
     }
 
+    override shouldFlipXY(): boolean {
+        return this.direction === 'horizontal';
+    }
+
     protected getBarDirection() {
         if (this.direction === 'vertical') {
             return ChartAxisDirection.Y;

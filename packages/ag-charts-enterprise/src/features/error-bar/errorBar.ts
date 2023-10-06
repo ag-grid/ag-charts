@@ -218,18 +218,10 @@ export class ErrorBars
         }
     }
 
-    private shouldFlipXY(): boolean {
-        if (this.cartesianSeries.type === 'bar') {
-            return (this.cartesianSeries as unknown as _ModuleSupport.BarSeries).direction === 'horizontal';
-        }
-
-        return false;
-    }
-
     private getMaybeFlippedKeys() {
         let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         let [xErrorsID, yErrorsID] = ['xValue-errors', 'yValue-errors'];
-        if (this.shouldFlipXY()) {
+        if (this.cartesianSeries.shouldFlipXY()) {
             [xLowerKey, yLowerKey] = [yLowerKey, xLowerKey];
             [xUpperKey, yUpperKey] = [yUpperKey, xUpperKey];
             [xErrorsID, yErrorsID] = [yErrorsID, xErrorsID];
