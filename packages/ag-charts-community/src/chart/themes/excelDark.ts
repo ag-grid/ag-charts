@@ -1,6 +1,7 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { DarkTheme } from './darkTheme';
 import {
+    DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
@@ -67,6 +68,8 @@ export class ExcelDark extends DarkTheme {
             ExcelDark.getWaterfallSeriesDefaultNegativeColors()
         );
         result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ExcelDark.getWaterfallSeriesDefaultTotalColors());
+
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#4472C4', '#ED7D31']);
 
         return result;
     }
