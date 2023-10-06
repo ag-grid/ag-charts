@@ -8,6 +8,8 @@ export class LinearAngleScale extends LinearScale {
 
     private niceTickStep = 0;
 
+    protected override cacheProps: Array<keyof this> = ['domain', 'range', 'nice', 'tickCount', 'minTickCount', 'maxTickCount', 'arcLength'];
+
     override ticks() {
         if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d))) {
             return [];
@@ -24,12 +26,7 @@ export class LinearAngleScale extends LinearScale {
             }
         }
 
-        if (this.nice) {
-            const step = this.niceTickStep;
-            return range(d0, d1, step);
-        }
-
-        const step = this.getTickStep(d0, d1);
+        const step = this.nice ? this.niceTickStep : this.getTickStep(d0, d1);
         return range(d0, d1, step);
     }
 

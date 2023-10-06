@@ -61,7 +61,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         const maxTicksCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
         const preferredTicksCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
 
-        scale.tickCount = preferredTicksCount;
+        scale.tickCount = Math.max(minTicksCount, Math.min(maxTicksCount, preferredTicksCount));
         scale.minTickCount = minTicksCount;
         scale.maxTickCount = maxTicksCount;
         scale.arcLength = arcLength;
