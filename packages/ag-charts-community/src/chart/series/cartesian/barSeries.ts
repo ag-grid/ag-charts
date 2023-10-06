@@ -223,7 +223,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         });
 
         this.smallestDataInterval = {
-            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
             y: Infinity,
         };
 
@@ -248,7 +248,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 return keys;
             }
 
-            const scalePadding = isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             if (direction === ChartAxisDirection.Y) {
                 return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);

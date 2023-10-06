@@ -10,13 +10,13 @@ import type {
     ScopeProvider,
 } from './dataModel';
 
-export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<number> = {
+export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'> = {
     type: 'reducer',
     property: 'smallestKeyInterval',
     initialValue: Infinity,
     reducer: () => {
         let prevX = NaN;
-        return (smallestSoFar, next) => {
+        return (smallestSoFar = Infinity, next) => {
             const nextX = next.keys[0];
             const interval = Math.abs(nextX - prevX);
             prevX = nextX;
@@ -28,7 +28,7 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<number> = {
     },
 };
 
-export const AGG_VALUES_EXTENT: ProcessorOutputPropertyDefinition<[number, number]> = {
+export const AGG_VALUES_EXTENT: ProcessorOutputPropertyDefinition<'aggValuesExtent'> = {
     type: 'processor',
     property: 'aggValuesExtent',
     calculate: (processedData) => {
@@ -47,7 +47,7 @@ export const AGG_VALUES_EXTENT: ProcessorOutputPropertyDefinition<[number, numbe
     },
 };
 
-export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<any> = {
+export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
     type: 'processor',
     property: 'sortedGroupDomain',
     calculate: ({ domain: { groups } }) => {
@@ -239,21 +239,10 @@ export function accumulateGroup(
     };
 }
 
-export type ProcessedOutputDiff = {
-    changed: boolean;
-    moved: any[];
-    added: any[];
-    updated: any[];
-    removed: any[];
-    addedIndices: number[];
-    updatedIndices: number[];
-    removedIndices: number[];
-};
-
 export function diff(
     previousData: ProcessedData<any>,
     updateMovedDatums: boolean = true
-): ProcessorOutputPropertyDefinition<ProcessedOutputDiff> {
+): ProcessorOutputPropertyDefinition<'diff'> {
     return {
         type: 'processor',
         property: 'diff',

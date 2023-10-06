@@ -1,4 +1,4 @@
-import type { ProcessedOutputDiff } from '../chart/data/processors';
+import type { ProcessedOutputDiff } from '../chart/data/dataModel';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';

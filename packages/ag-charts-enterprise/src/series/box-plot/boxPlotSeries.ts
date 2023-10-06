@@ -184,7 +184,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         });
 
         this.smallestDataInterval = {
-            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
             y: Infinity,
         };
     }

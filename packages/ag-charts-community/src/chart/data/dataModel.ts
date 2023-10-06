@@ -25,7 +25,12 @@ export interface UngroupedData<D> {
         groups?: any[][];
         aggValues?: [number, number][];
     };
-    reduced?: Record<string, any>;
+    reduced?: {
+        diff?: ProcessedOutputDiff;
+        smallestKeyInterval?: number;
+        aggValuesExtent?: [number, number];
+        sortedGroupDomain?: any[][];
+    };
     defs: {
         keys: DatumPropertyDefinition<keyof D>[];
         values: DatumPropertyDefinition<keyof D>[];
@@ -34,6 +39,17 @@ export interface UngroupedData<D> {
     partialValidDataCount: number;
     time: number;
 }
+
+export type ProcessedOutputDiff = {
+    changed: boolean;
+    moved: any[];
+    added: any[];
+    updated: any[];
+    removed: any[];
+    addedIndices: number[];
+    updatedIndices: number[];
+    removedIndices: number[];
+};
 
 type GroupedDataItem<D> = UngroupedDataItem<D[], any[][]> & { area?: number };
 
@@ -224,17 +240,19 @@ export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
     adjust: () => (processedData: ProcessedData<D>, valueIndex: number) => void;
 };
 
-export type ReducerOutputPropertyDefinition<R> = PropertyIdentifiers & {
+type ReducerOutputTypes = NonNullable<UngroupedData<any>['reduced']>;
+type ReducerOutputKeys = keyof ReducerOutputTypes;
+export type ReducerOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
     type: 'reducer';
-    property: string;
-    initialValue?: R;
-    reducer: () => (acc: R, next: UngroupedDataItem<any, any>) => R;
+    property: P;
+    initialValue?: ReducerOutputTypes[P];
+    reducer: () => (acc: ReducerOutputTypes[P], next: UngroupedDataItem<any, any>) => ReducerOutputTypes[P];
 };
 
-export type ProcessorOutputPropertyDefinition<R> = PropertyIdentifiers & {
+export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
     type: 'processor';
-    property: string;
-    calculate: (data: ProcessedData<any>) => R;
+    property: P;
+    calculate: (data: ProcessedData<any>) => ReducerOutputTypes[P];
 };
 
 const INVALID_VALUE = Symbol('invalid');
@@ -250,8 +268,8 @@ export class DataModel<
     private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition)[];
     private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition)[];
     private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition)[];
-    private readonly reducers: (ReducerOutputPropertyDefinition<any> & InternalDefinition)[];
-    private readonly processors: (ProcessorOutputPropertyDefinition<any> & InternalDefinition)[];
+    private readonly reducers: (ReducerOutputPropertyDefinition & InternalDefinition)[];
+    private readonly processors: (ProcessorOutputPropertyDefinition & InternalDefinition)[];
 
     public constructor(opts: DataModelOptions<K, Grouped>) {
         const { props } = opts;
@@ -285,10 +303,10 @@ export class DataModel<
             .filter((def): def is PropertyValueProcessorDefinition<D> => def.type === 'property-value-processor')
             .map((def, index) => ({ ...def, index }));
         this.reducers = props
-            .filter((def): def is ReducerOutputPropertyDefinition<unknown> => def.type === 'reducer')
+            .filter((def): def is ReducerOutputPropertyDefinition => def.type === 'reducer')
             .map((def, index) => ({ ...def, index }));
         this.processors = props
-            .filter((def): def is ProcessorOutputPropertyDefinition<unknown> => def.type === 'processor')
+            .filter((def): def is ProcessorOutputPropertyDefinition => def.type === 'processor')
             .map((def, index) => ({ ...def, index }));
 
         for (const def of this.values) {
@@ -849,7 +867,7 @@ export class DataModel<
 
         for (let accIdx = 0; accIdx < accValues.length; accIdx++) {
             processedData.reduced ??= {};
-            processedData.reduced[reducerDefs[accIdx].property] = accValues[accIdx];
+            processedData.reduced[reducerDefs[accIdx].property] = accValues[accIdx] as any;
         }
     }
 
@@ -858,7 +876,7 @@ export class DataModel<
 
         for (const def of processorDefs) {
             processedData.reduced ??= {};
-            processedData.reduced[def.property] = def.calculate(processedData);
+            processedData.reduced[def.property] = def.calculate(processedData) as any;
         }
     }
 

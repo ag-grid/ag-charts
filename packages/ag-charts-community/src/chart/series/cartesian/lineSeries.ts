@@ -134,7 +134,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
 
         // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
-        if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {
+        const { diff: diffResult } = processedData.reduced ?? {};
+        if (diffResult && diffResult.added.length > 1 && diffResult.removed.length > 1) {
             this.animationTransitionClear();
         } else {
             this.animationState.transition('updateData');

@@ -230,7 +230,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
 
         this.smallestDataInterval = {
-            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
             y: Infinity,
         };
 
@@ -256,7 +256,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             }
 
             const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
-            const scalePadding = isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
