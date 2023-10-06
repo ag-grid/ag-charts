@@ -156,6 +156,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
+            datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -454,8 +455,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     protected nodeFactory() {
         return new Rect();
     }
-
-    override datumSelectionGarbageCollection = false;
 
     protected override async updateDatumSelection(opts: {
         nodeData: BarNodeDatum[];

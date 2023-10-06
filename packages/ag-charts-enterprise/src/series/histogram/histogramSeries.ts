@@ -114,6 +114,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -407,8 +408,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     protected override nodeFactory() {
         return new Rect();
     }
-
-    override datumSelectionGarbageCollection = false;
 
     protected override async updateDatumSelection(opts: {
         nodeData: HistogramNodeDatum[];

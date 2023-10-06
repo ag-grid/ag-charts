@@ -131,6 +131,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ],
             pathsPerSeries: 0,
             hasMarkers: true,
+            markerSelectionGarbageCollection: false,
             animationResetFns: {
                 label: resetLabelFn,
                 marker: resetMarkerFn,
@@ -295,8 +296,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
-
-    override markerSelectionGarbageCollection = false;
 
     protected override async updateMarkerSelection(opts: {
         nodeData: BubbleNodeDatum[];
