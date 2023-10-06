@@ -1,5 +1,5 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
-import { ChartTheme } from './chartTheme';
+import { DarkTheme } from './darkTheme';
 
 const palette: AgChartThemePalette = {
     fills: [
@@ -15,20 +15,20 @@ const palette: AgChartThemePalette = {
         '#997300',
     ],
     strokes: [
-        '#214d9b',
-        '#c25600',
-        '#7f7f7f',
-        '#d59800',
-        '#3575ac',
-        '#4b861a',
-        '#575757',
-        '#062253',
-        '#414141',
-        '#734f00',
+        '#6899ee',
+        '#ffa55d',
+        '#cdcdcd',
+        '#ffea53',
+        '#82c3ff',
+        '#96d56f',
+        '#a1a1a1',
+        '#47689f',
+        '#878787',
+        '#c0993d',
     ],
 };
 
-export class Excel extends ChartTheme {
+export class ExcelDark extends DarkTheme {
     protected override getPalette(): AgChartThemePalette {
         return palette;
     }

@@ -2,22 +2,15 @@ import { persistentAtom } from '@nanostores/persistent';
 
 export type ThemeName =
     | 'ag-default'
-    | 'ag-material'
-    | 'ag-pastel'
-    | 'ag-solar'
-    | 'ag-vivid'
     | 'ag-default-dark'
-    | 'ag-material-dark'
-    | 'ag-pastel-dark'
-    | 'ag-solar-dark'
+    | 'ag-excel'
+    | 'ag-excel-dark'
+    | 'ag-polychroma'
+    | 'ag-polychroma-dark'
+    | 'ag-vivid'
     | 'ag-vivid-dark'
-    | 'deordered'
-    | 'mini-hue'
-    | 'enter'
-    | 'enterprise-001'
-    | 'enterprise-002'
-    | 'enterprise-003'
-    | 'excel';
+    | 'ag-material'
+    | 'ag-material-dark';
 
 const LOCALSTORAGE_PREFIX = 'documentation';
 const DEFAULT_INTERNAL_THEME: ThemeName = 'ag-default';

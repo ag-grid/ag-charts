@@ -1,34 +1,34 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
-import { ChartTheme } from './chartTheme';
+import { DarkTheme } from './darkTheme';
 
 const palette: AgChartThemePalette = {
     fills: [
         '#436ff4',
-        '#f2a602',
         '#9a7bff',
-        '#e9e201',
         '#d165d2',
-        '#21b448',
         '#f0598b',
-        '#00b9a2',
         '#f47348',
+        '#f2a602',
+        '#e9e201',
+        '#21b448',
+        '#00b9a2',
         '#00aee4',
     ],
     strokes: [
-        '#132baf',
-        '#a55f00',
-        '#623bba',
-        '#8f8500',
-        '#8f2291',
-        '#007500',
-        '#a90352',
-        '#007762',
-        '#ae3200',
-        '#006fa3',
+        '#6698ff',
+        '#c0a3ff',
+        '#fc8dfc',
+        '#ff82b1',
+        '#ff9b70',
+        '#ffcf4e',
+        '#ffff58',
+        '#58dd70',
+        '#51e2c9',
+        '#4fd7ff',
     ],
 };
 
-export class DeOrdered extends ChartTheme {
+export class PolychromaDark extends DarkTheme {
     protected override getPalette(): AgChartThemePalette {
         return palette;
     }

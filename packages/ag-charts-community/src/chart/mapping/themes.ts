@@ -2,23 +2,14 @@ import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../.
 import { jsonMerge } from '../../util/json';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
+import { Excel } from '../themes/excel';
+import { ExcelDark } from '../themes/excelDark';
 import { MaterialDark } from '../themes/materialDark';
 import { MaterialLight } from '../themes/materialLight';
-import { PastelDark } from '../themes/pastelDark';
-import { PastelLight } from '../themes/pastelLight';
-import { SolarDark } from '../themes/solarDark';
-import { SolarLight } from '../themes/solarLight';
+import { Polychroma } from '../themes/polychroma';
+import { PolychromaDark } from '../themes/polychromaDark';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
-
-import { DeOrdered } from '../themes/deOrdered';
-import { MiniHue } from '../themes/miniHue';
-import { Enter } from '../themes/enter';
-
-import { Enterprise001 } from '../themes/enterprise001';
-import { Enterprise002 } from '../themes/enterprise002';
-import { Enterprise003 } from '../themes/enterprise003';
-import { Excel } from '../themes/excel';
 
 export type ThemeMap = { [key in AgChartThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
@@ -29,27 +20,20 @@ const lightThemes: ThemeMap = {
     undefined: lightTheme,
     null: lightTheme,
     'ag-default': lightTheme,
-    'ag-material': () => new MaterialLight(),
-    'ag-pastel': () => new PastelLight(),
-    'ag-solar': () => new SolarLight(),
+    'ag-excel': () => new Excel(),
+    'ag-polychroma': () => new Polychroma(),
     'ag-vivid': () => new VividLight(),
-    'deordered': () => new DeOrdered(),
-    'mini-hue': () => new MiniHue(),
-    'enter': () => new Enter(),
-    'enterprise-001': () => new Enterprise001(),
-    'enterprise-002': () => new Enterprise002(),
-    'enterprise-003': () => new Enterprise003(),
-    'excel': () => new Excel(),
+    'ag-material': () => new MaterialLight(),
 };
 
 const darkThemes: ThemeMap = {
     undefined: darkTheme,
     null: darkTheme,
     'ag-default-dark': darkTheme,
-    'ag-material-dark': () => new MaterialDark(),
-    'ag-pastel-dark': () => new PastelDark(),
-    'ag-solar-dark': () => new SolarDark(),
+    'ag-excel-dark': () => new ExcelDark(),
+    'ag-polychroma-dark': () => new PolychromaDark(),
     'ag-vivid-dark': () => new VividDark(),
+    'ag-material-dark': () => new MaterialDark(),
 };
 
 export const themes: ThemeMap = {

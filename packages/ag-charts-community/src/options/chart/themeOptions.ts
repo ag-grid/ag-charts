@@ -25,21 +25,14 @@ import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOpt
 export type AgChartThemeName =
     | 'ag-default'
     | 'ag-default-dark'
-    | 'ag-material'
-    | 'ag-material-dark'
-    | 'ag-pastel'
-    | 'ag-pastel-dark'
-    | 'ag-solar'
-    | 'ag-solar-dark'
+    | 'ag-excel'
+    | 'ag-excel-dark'
+    | 'ag-polychroma'
+    | 'ag-polychroma-dark'
     | 'ag-vivid'
     | 'ag-vivid-dark'
-    | 'deordered'
-    | 'mini-hue'
-    | 'enter'
-    | 'enterprise-001'
-    | 'enterprise-002'
-    | 'enterprise-003'
-    | 'excel';
+    | 'ag-material'
+    | 'ag-material-dark';
 
 export interface AgChartThemePalette {
     /** The array of fills to be used. */
