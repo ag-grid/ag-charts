@@ -7,7 +7,7 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
-const POLYCHROMA_FILLS = {
+const POLYCHROMA_LIGHT_FILLS = {
     BLUE: '#436ff4',
     PURPLE: '#9a7bff',
     MAGENTA: '#d165d2',
@@ -20,7 +20,7 @@ const POLYCHROMA_FILLS = {
     MODERATE_BLUE: '#00aee4',
 };
 
-const POLYCHROMA_STROKES = {
+const POLYCHROMA_LIGHT_STROKES = {
     BLUE: '#2346c9',
     PURPLE: '#7653d4',
     MAGENTA: '#a73da9',
@@ -34,29 +34,29 @@ const POLYCHROMA_STROKES = {
 };
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(POLYCHROMA_FILLS)),
-    strokes: Array.from(Object.values(POLYCHROMA_STROKES)),
+    fills: Array.from(Object.values(POLYCHROMA_LIGHT_FILLS)),
+    strokes: Array.from(Object.values(POLYCHROMA_LIGHT_STROKES)),
 };
 
-export class Polychroma extends ChartTheme {
+export class PolychromaLight extends ChartTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: POLYCHROMA_FILLS.BLUE,
-            stroke: POLYCHROMA_STROKES.BLUE,
+            fill: POLYCHROMA_LIGHT_FILLS.BLUE,
+            stroke: POLYCHROMA_LIGHT_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: POLYCHROMA_FILLS.RED,
-            stroke: POLYCHROMA_STROKES.RED,
+            fill: POLYCHROMA_LIGHT_FILLS.RED,
+            stroke: POLYCHROMA_LIGHT_STROKES.RED,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: POLYCHROMA_FILLS.YELLOW,
-            stroke: POLYCHROMA_STROKES.YELLOW,
+            fill: POLYCHROMA_LIGHT_FILLS.YELLOW,
+            stroke: POLYCHROMA_LIGHT_STROKES.YELLOW,
         };
     }
 
@@ -65,18 +65,21 @@ export class Polychroma extends ChartTheme {
 
         result.extensions.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            Polychroma.getWaterfallSeriesDefaultPositiveColors()
+            PolychromaLight.getWaterfallSeriesDefaultPositiveColors()
         );
         result.extensions.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            Polychroma.getWaterfallSeriesDefaultNegativeColors()
+            PolychromaLight.getWaterfallSeriesDefaultNegativeColors()
         );
         result.extensions.set(
             DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            Polychroma.getWaterfallSeriesDefaultTotalColors()
+            PolychromaLight.getWaterfallSeriesDefaultTotalColors()
         );
 
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [POLYCHROMA_FILLS.BLUE, POLYCHROMA_FILLS.RED]);
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [
+            POLYCHROMA_LIGHT_FILLS.BLUE,
+            POLYCHROMA_LIGHT_FILLS.RED,
+        ]);
 
         return result;
     }
