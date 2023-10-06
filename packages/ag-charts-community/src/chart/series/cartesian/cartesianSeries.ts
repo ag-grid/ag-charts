@@ -259,7 +259,7 @@ export abstract class CartesianSeries<
     }
 
     protected async updateSelections(anySeriesItemEnabled: boolean) {
-        if (!anySeriesItemEnabled) {
+        if (!anySeriesItemEnabled && this.ctx.animationManager.isSkipped()) {
             return;
         }
         if (!this.nodeDataRefresh && !this.isPathOrSelectionDirty()) {
@@ -413,6 +413,7 @@ export abstract class CartesianSeries<
             opts: { hasMarkers, hasHighlightedLabels },
         } = this;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
         this.rootGroup.visible = visible;
         this.contentGroup.visible = visible;
@@ -458,7 +459,7 @@ export abstract class CartesianSeries<
                 const subGroupOpacity = subGroupOpacities[seriesIdx];
 
                 dataNodeGroup.opacity = subGroupOpacity;
-                dataNodeGroup.visible = subGroupVisible;
+                dataNodeGroup.visible = animationEnabled || subGroupVisible;
                 labelGroup.visible = subGroupVisible;
 
                 if (markerGroup) {

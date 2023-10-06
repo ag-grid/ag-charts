@@ -1,5 +1,6 @@
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
+import { isNegative } from '../../util/number';
 import { isNumber } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
 import { DataDomain } from './dataDomain';
@@ -195,6 +196,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     type: 'key' | 'value';
     valueType: DatumPropertyType;
     property: K;
+    forceValue?: any;
     invalidValue?: any;
     missing?: number;
     missingValue?: any;
@@ -929,6 +931,14 @@ export class DataModel<
             } else {
                 valueInDatum = def.property in datum;
                 value = valueInDatum ? datum[def.property] : def.missingValue;
+            }
+
+            if (def.forceValue != null) {
+                // Maintain sign of forceValue from actual value, this maybe significant later when
+                // we account fo the value falling into positive/negative buckets.
+                const valueNegative = valueInDatum && isNegative(value);
+                value = valueNegative ? -1 * def.forceValue : def.forceValue;
+                valueInDatum = true;
             }
 
             const missingValueDef = 'missingValue' in def;

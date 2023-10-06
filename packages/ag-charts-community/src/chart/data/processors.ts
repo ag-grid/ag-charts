@@ -1,5 +1,6 @@
 import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
+import { isNegative } from '../../util/number';
 import type {
     GroupValueProcessorDefinition,
     ProcessedData,
@@ -170,7 +171,7 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
         const acc = [0, 0];
         for (const valueIdx of valueIndexes) {
             const currentVal = values[valueIdx];
-            const accIndex = currentVal < 0 && separateNegative ? 0 : 1;
+            const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
             if (typeof currentVal !== 'number' || isNaN(currentVal)) continue;
 
             if (mode === 'normal') acc[accIndex] += currentVal;
