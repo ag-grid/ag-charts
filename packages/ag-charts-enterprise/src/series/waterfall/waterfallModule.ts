@@ -29,8 +29,8 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                     stroke: strokes[1],
                 },
                 total: {
-                    fill: fills[2],
-                    stroke: strokes[2],
+                    fill: '#6f6f6f',
+                    stroke: '#6f6f6f',
                 },
             },
         };
