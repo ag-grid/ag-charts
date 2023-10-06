@@ -23,7 +23,9 @@ import {
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
-    DEFAULT_WATERFALL_NEGATIVE,
+    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
     EXTENDS_AXES_DEFAULTS,
     EXTENDS_AXES_LABEL_DEFAULTS,
     EXTENDS_AXES_LINE_DEFAULTS,
@@ -486,6 +488,27 @@ export class ChartTheme {
         return themeInstance;
     }
 
+    protected static getWaterfallSeriesDefaultPositiveColors() {
+        return {
+            fill: '#4F81BD',
+            stroke: '#2b5c95',
+        };
+    }
+
+    protected static getWaterfallSeriesDefaultNegativeColors() {
+        return {
+            fill: '#F79646',
+            stroke: '#cc6f10',
+        };
+    }
+
+    protected static getWaterfallSeriesDefaultTotalColors() {
+        return {
+            fill: '#7B7B7B',
+            stroke: '#575757',
+        };
+    }
+
     protected getTemplateParameters() {
         const extensions = new Map();
         extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
@@ -499,6 +522,9 @@ export class ChartTheme {
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
         extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
+        extensions.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
+        extensions.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
+        extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());
 
         const properties = new Map();
         properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
@@ -510,7 +536,6 @@ export class ChartTheme {
         properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
-        properties.set(DEFAULT_WATERFALL_NEGATIVE, 'blue');
 
         return {
             extensions,

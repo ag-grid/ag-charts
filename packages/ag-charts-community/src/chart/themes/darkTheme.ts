@@ -7,7 +7,9 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
-    DEFAULT_WATERFALL_NEGATIVE,
+    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
 const palette: AgChartThemePalette = {
@@ -38,12 +40,42 @@ const palette: AgChartThemePalette = {
 };
 
 export class DarkTheme extends ChartTheme {
+    protected static override getWaterfallSeriesDefaultPositiveColors() {
+        return {
+            fill: '#4F81BD',
+            stroke: '#74a8e6',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultNegativeColors() {
+        return {
+            fill: '#F79646',
+            stroke: '#ffbe70',
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultTotalColors() {
+        return {
+            fill: '#7B7B7B',
+            stroke: '#a1a1a1',
+        };
+    }
+
     protected override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+            DarkTheme.getWaterfallSeriesDefaultPositiveColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+            DarkTheme.getWaterfallSeriesDefaultNegativeColors()
+        );
+        result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, DarkTheme.getWaterfallSeriesDefaultTotalColors());
+
         result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
         result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
-        result.properties.set(DEFAULT_WATERFALL_NEGATIVE, 'red');
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');

@@ -1,4 +1,4 @@
-import { AgWaterfallSeriesOptions, _ModuleSupport, _Theme } from 'ag-charts-community';
+import type { AgWaterfallSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import { _Scale } from 'ag-charts-community';
 
 import { WATERFALL_DEFAULTS } from './waterfallDefaults';
@@ -16,23 +16,4 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     seriesDefaults: WATERFALL_DEFAULTS,
     themeTemplate: WATERFALL_SERIES_THEME,
     swapDefaultAxesCondition: (opts) => (opts.series?.[0] as AgWaterfallSeriesOptions)?.direction !== 'horizontal',
-    paletteFactory: ({ takeColors, colorsCount }) => {
-        const { fills, strokes } = takeColors(colorsCount);
-        return {
-            item: {
-                positive: {
-                    fill: fills[0],
-                    stroke: strokes[0],
-                },
-                negative: {
-                    fill: fills[1],
-                    stroke: strokes[1],
-                },
-                total: {
-                    fill: _Theme.DEFAULT_WATERFALL_NEGATIVE,
-                    stroke: '#6f6f6f',
-                },
-            },
-        };
-    },
 };
