@@ -7,52 +7,56 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+const POLYCHROMA_FILLS = {
+    BLUE: '#436ff4',
+    PURPLE: '#9a7bff',
+    MAGENTA: '#d165d2',
+    PINK: '#f0598b',
+    RED: '#f47348',
+    ORANGE: '#f2a602',
+    YELLOW: '#e9e201',
+    GREEN: '#21b448',
+    CYAN: '#00b9a2',
+    MODERATE_BLUE: '#00aee4',
+};
+
+const POLYCHROMA_STROKES = {
+    BLUE: '#2346c9',
+    PURPLE: '#7653d4',
+    MAGENTA: '#a73da9',
+    PINK: '#c32d66',
+    RED: '#c84b1c',
+    ORANGE: '#c87f00',
+    YELLOW: '#c1b900',
+    GREEN: '#008c1c',
+    CYAN: '#00927c',
+    MODERATE_BLUE: '#0087bb',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#436ff4',
-        '#9a7bff',
-        '#d165d2',
-        '#f0598b',
-        '#f47348',
-        '#f2a602',
-        '#e9e201',
-        '#21b448',
-        '#00b9a2',
-        '#00aee4',
-    ],
-    strokes: [
-        '#2346c9',
-        '#7653d4',
-        '#a73da9',
-        '#c32d66',
-        '#c84b1c',
-        '#c87f00',
-        '#c1b900',
-        '#008c1c',
-        '#00927c',
-        '#0087bb',
-    ],
+    fills: Array.from(Object.values(POLYCHROMA_FILLS)),
+    strokes: Array.from(Object.values(POLYCHROMA_STROKES)),
 };
 
 export class Polychroma extends ChartTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: '#436ff4',
-            stroke: '#2346c9',
+            fill: POLYCHROMA_FILLS.BLUE,
+            stroke: POLYCHROMA_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: '#f47348',
-            stroke: '#c84b1c',
+            fill: POLYCHROMA_FILLS.RED,
+            stroke: POLYCHROMA_STROKES.RED,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: '#e9e201',
-            stroke: '#c1b900',
+            fill: POLYCHROMA_FILLS.YELLOW,
+            stroke: POLYCHROMA_STROKES.YELLOW,
         };
     }
 
@@ -72,7 +76,7 @@ export class Polychroma extends ChartTheme {
             Polychroma.getWaterfallSeriesDefaultTotalColors()
         );
 
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#436ff4', '#f47348']);
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [POLYCHROMA_FILLS.BLUE, POLYCHROMA_FILLS.RED]);
 
         return result;
     }

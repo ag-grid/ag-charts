@@ -7,52 +7,56 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+const EXCEL_LIGHT_FILLS = {
+    BLUE: '#4472C4',
+    ORANGE: '#ED7D31',
+    GRAY: '#A5A5A5',
+    YELLOW: '#FFC000',
+    MODERATE_BLUE: '#5B9BD5',
+    GREEN: '#70AD47',
+    DARK_GRAY: '#7B7B7B',
+    DARK_BLUE: '#264478',
+    VERY_DARK_GRAY: '#636363',
+    DARK_YELLOW: '#997300',
+};
+
+const EXCEL_LIGHT_STROKES = {
+    BLUE: '#214d9b',
+    ORANGE: '#c25600',
+    GRAY: '#7f7f7f',
+    YELLOW: '#d59800',
+    MODERATE_BLUE: '#3575ac',
+    GREEN: '#4b861a',
+    DARK_GRAY: '#575757',
+    DARK_BLUE: '#062253',
+    VERY_DARK_GRAY: '#414141',
+    DARK_YELLOW: '#734f00',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#4472C4',
-        '#ED7D31',
-        '#A5A5A5',
-        '#FFC000',
-        '#5B9BD5',
-        '#70AD47',
-        '#7B7B7B',
-        '#264478',
-        '#636363',
-        '#997300',
-    ],
-    strokes: [
-        '#214d9b',
-        '#c25600',
-        '#7f7f7f',
-        '#d59800',
-        '#3575ac',
-        '#4b861a',
-        '#575757',
-        '#062253',
-        '#414141',
-        '#734f00',
-    ],
+    fills: Array.from(Object.values(EXCEL_LIGHT_FILLS)),
+    strokes: Array.from(Object.values(EXCEL_LIGHT_STROKES)),
 };
 
 export class Excel extends ChartTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: '#4472C4',
-            stroke: '#214d9b',
+            fill: EXCEL_LIGHT_FILLS.BLUE,
+            stroke: EXCEL_LIGHT_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: '#ED7D31',
-            stroke: '#c25600',
+            fill: EXCEL_LIGHT_FILLS.ORANGE,
+            stroke: EXCEL_LIGHT_STROKES.ORANGE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: '#A5A5A5',
-            stroke: '#7f7f7f',
+            fill: EXCEL_LIGHT_FILLS.GRAY,
+            stroke: EXCEL_LIGHT_STROKES.GRAY,
         };
     }
 
@@ -69,7 +73,7 @@ export class Excel extends ChartTheme {
         );
         result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, Excel.getWaterfallSeriesDefaultTotalColors());
 
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#4472C4', '#ED7D31']);
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [EXCEL_LIGHT_FILLS.BLUE, EXCEL_LIGHT_FILLS.ORANGE]);
 
         return result;
     }

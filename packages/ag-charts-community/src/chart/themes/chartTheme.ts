@@ -40,31 +40,35 @@ import {
     OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
 
+const DEFAULT_FILLS = {
+    BLUE: '#4F81BD',
+    ORANGE: '#F79646',
+    GREEN: '#468A51',
+    CYAN: '#4BACC6',
+    YELLOW: '#CDBC21',
+    VIOLET: '#8460AF',
+    GRAY: '#7B7B7B',
+    MAGENTA: '#A55492',
+    BROWN: '#73572E',
+    RED: '#D3504D',
+};
+
+const DEFAULT_STROKES = {
+    BLUE: '#2b5c95',
+    ORANGE: '#cc6f10',
+    GREEN: '#1e652e',
+    CYAN: '#18859e',
+    YELLOW: '#a69400',
+    VIOLET: '#603c88',
+    GRAY: '#575757',
+    MAGENTA: '#7d2f6d',
+    BROWN: '#4f3508',
+    RED: '#a82529',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#4F81BD',
-        '#F79646',
-        '#468A51',
-        '#4BACC6',
-        '#CDBC21',
-        '#8460AF',
-        '#7B7B7B',
-        '#A55492',
-        '#73572E',
-        '#D3504D',
-    ],
-    strokes: [
-        '#2b5c95',
-        '#cc6f10',
-        '#1e652e',
-        '#18859e',
-        '#a69400',
-        '#603c88',
-        '#575757',
-        '#7d2f6d',
-        '#4f3508',
-        '#a82529',
-    ],
+    fills: Array.from(Object.values(DEFAULT_FILLS)),
+    strokes: Array.from(Object.values(DEFAULT_STROKES)),
 };
 
 type ChartTypeConfig = {
@@ -491,22 +495,22 @@ export class ChartTheme {
 
     protected static getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: '#4F81BD',
-            stroke: '#2b5c95',
+            fill: DEFAULT_FILLS.BLUE,
+            stroke: DEFAULT_STROKES.BLUE,
         };
     }
 
     protected static getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: '#F79646',
-            stroke: '#cc6f10',
+            fill: DEFAULT_FILLS.ORANGE,
+            stroke: DEFAULT_STROKES.ORANGE,
         };
     }
 
     protected static getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: '#7B7B7B',
-            stroke: '#575757',
+            fill: DEFAULT_FILLS.GRAY,
+            stroke: DEFAULT_STROKES.GRAY,
         };
     }
 
@@ -537,7 +541,7 @@ export class ChartTheme {
         properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
-        properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#4F81BD', '#F79646']);
+        properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [DEFAULT_FILLS.BLUE, DEFAULT_FILLS.ORANGE]);
 
         return {
             extensions,

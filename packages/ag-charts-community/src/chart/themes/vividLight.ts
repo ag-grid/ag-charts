@@ -7,52 +7,56 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+const VIVID_FILLS = {
+    BLUE: '#3f8fea',
+    ORANGE: '#ff9900',
+    GREEN: '#2ea049',
+    CYAN: '#00c2eb',
+    VIOLET: '#9a63d6',
+    YELLOW: '#e4cc00',
+    GRAY: '#888888',
+    MAGENTA: '#c550ac',
+    BROWN: '#925f00',
+    RED: '#f94548',
+};
+
+const VIVID_STROKES = {
+    BLUE: '#0f68c0',
+    ORANGE: '#d47100',
+    GREEN: '#007922',
+    CYAN: '#009ac2',
+    VIOLET: '#bca400',
+    YELLOW: '#753cac',
+    GRAY: '#646464',
+    MAGENTA: '#9b2685',
+    BROWN: '#6c3b00',
+    RED: '#cb0021',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#3f8fea',
-        '#ff9900',
-        '#2ea049',
-        '#00c2eb',
-        '#e4cc00',
-        '#9a63d6',
-        '#888888',
-        '#c550ac',
-        '#925f00',
-        '#f94548',
-    ],
-    strokes: [
-        '#0f68c0',
-        '#d47100',
-        '#007922',
-        '#009ac2',
-        '#bca400',
-        '#753cac',
-        '#646464',
-        '#9b2685',
-        '#6c3b00',
-        '#cb0021',
-    ],
+    fills: Array.from(Object.values(VIVID_FILLS)),
+    strokes: Array.from(Object.values(VIVID_STROKES)),
 };
 
 export class VividLight extends ChartTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: '#3f8fea',
-            stroke: '#67b7ff',
+            fill: VIVID_FILLS.BLUE,
+            stroke: VIVID_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: '#ff9900',
-            stroke: '#ffc24d',
+            fill: VIVID_FILLS.ORANGE,
+            stroke: VIVID_STROKES.ORANGE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: '#888888',
-            stroke: '#aeaeae',
+            fill: VIVID_FILLS.GRAY,
+            stroke: VIVID_STROKES.GRAY,
         };
     }
 
@@ -72,7 +76,7 @@ export class VividLight extends ChartTheme {
             VividLight.getWaterfallSeriesDefaultTotalColors()
         );
 
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, ['#3f8fea', '#ff9900']);
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [VIVID_FILLS.BLUE, VIVID_FILLS.ORANGE]);
 
         return result;
     }
