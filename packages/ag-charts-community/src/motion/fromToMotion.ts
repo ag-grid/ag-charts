@@ -17,12 +17,12 @@ export type FromToMotionPropFnContext<T> = {
     prevLive?: T;
     nextLive?: T;
 };
-type PropFn<N extends Node, T extends AnimationValue & Partial<N>, D> = (
+type PropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
     node: N,
     datum: D,
     state: NodeUpdateState,
     ctx: FromToMotionPropFnContext<N>
-) => T;
+) => T & { animationDelay?: number; animationDuration?: number };
 
 /**
  * Implements a per-node "to/from" animation, with support for detection of added/moved/removed
@@ -38,16 +38,18 @@ type PropFn<N extends Node, T extends AnimationValue & Partial<N>, D> = (
  *                   specified iff diff is specified
  * @param diff optional diff from a DataModel to use to detect added/moved/removed cases
  */
-export function fromToMotion<N extends Node, T extends AnimationValue & Partial<N>, D>(
+export function fromToMotion<N extends Node, T extends Record<string, string | number> & Partial<N>, D>(
     id: string,
     animationManager: AnimationManager,
     selections: Selection<N, D>[],
     fromFn: PropFn<N, T, D>,
     toFn: PropFn<N, T, D>,
-    extraOpts: Partial<AnimationOptions<T> & AdditionalAnimationOptions> = {},
+    extraOpts: Partial<AdditionalAnimationOptions> = {},
     getDatumId?: (node: N, datum: D) => string,
     diff?: ProcessedOutputDiff
 ) {
+    const { defaultDuration } = animationManager;
+
     // Dynamic case with varying add/update/remove behavior.
     const ids = { added: {}, removed: {} };
     if (getDatumId && diff) {
@@ -58,7 +60,7 @@ export function fromToMotion<N extends Node, T extends AnimationValue & Partial<
     let selectionIndex = 0;
     for (const selection of selections) {
         let cleanup = false;
-        let prevFromProps;
+        let prevFromProps: T | undefined;
 
         let nodeIndex = 0;
         const nodes = selection.nodes();
@@ -85,20 +87,30 @@ export function fromToMotion<N extends Node, T extends AnimationValue & Partial<
 
             cleanup ||= status === 'removed';
 
-            const from = fromFn(node, node.datum, status, ctx);
-            const to = toFn(node, node.datum, status, ctx);
+            const {
+                animationDelay: delay,
+                animationDuration: duration,
+                ...from
+            } = fromFn(node, node.datum, status, ctx);
+            const {
+                animationDelay: toDelay,
+                animationDuration: toDuration,
+                ...to
+            } = toFn(node, node.datum, status, ctx);
 
             animationManager.animate({
                 id: `${id}_${node.id}`,
-                from: from,
-                to: to,
+                from: from as T,
+                to: to as T,
                 ease: easing.easeOut,
                 onUpdate(props) {
                     node.setProperties(props);
                 },
                 onStop() {
-                    node.setProperties(to);
+                    node.setProperties(to as T);
                 },
+                duration: (duration ?? toDuration ?? 1) * defaultDuration,
+                delay: (delay ?? toDelay ?? 0) * defaultDuration,
                 ...extraOpts,
             });
 
@@ -106,15 +118,15 @@ export function fromToMotion<N extends Node, T extends AnimationValue & Partial<
                 liveNodeIndex++;
             }
             nodeIndex++;
-            prevFromProps = from;
+            prevFromProps = from as T;
         }
 
         // Only perform selection cleanup once.
         if (cleanup) {
             animationManager.animate({
                 id: `${id}_selection_${selectionIndex}`,
-                from: 0 as T,
-                to: 1 as T,
+                from: 0,
+                to: 1,
                 ease: easing.easeOut,
                 onComplete() {
                     selection.cleanup();
