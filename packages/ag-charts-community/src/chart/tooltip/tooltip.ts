@@ -12,6 +12,7 @@ import {
 import type { InteractionEvent } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
+const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
 
 const defaultTooltipCss = `
 .${DEFAULT_TOOLTIP_CLASS} {
@@ -104,6 +105,15 @@ const defaultTooltipCss = `
     height: 0;
 
     margin: 0 auto;
+}
+
+.${DEFAULT_TOOLTIP_CLASS}.${DEFAULT_TOOLTIP_DARK_CLASS} {
+    color: white;
+    background: #15181c;
+}
+
+.${DEFAULT_TOOLTIP_CLASS}.${DEFAULT_TOOLTIP_DARK_CLASS} .${DEFAULT_TOOLTIP_CLASS}-content {
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .ag-chart-wrapper {
