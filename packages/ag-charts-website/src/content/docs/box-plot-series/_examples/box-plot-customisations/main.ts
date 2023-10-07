@@ -26,16 +26,16 @@ const options: AgChartOptions = {
             q3Name: 'Q3',
             maxKey: 'max',
             maxName: 'Max',
-            fill: 'green',
-            stroke: 'purple',
-            strokeWidth: 1,
-            cap: {
-                lengthRatio: 0.8,
-            },
+            fill: '#7fc3c3',
+            stroke: '#098a89',
+            strokeWidth: 2,
             whisker: {
-                stroke: 'red',
+                stroke: '#098a89',
                 strokeWidth: 3,
                 lineDash: [2, 1],
+            },
+            cap: {
+                lengthRatio: 0.8,
             },
         },
     ],
