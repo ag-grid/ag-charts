@@ -24,6 +24,7 @@ import {
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
@@ -542,6 +543,10 @@ export class ChartTheme {
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
         properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [DEFAULT_FILLS.BLUE, DEFAULT_FILLS.ORANGE]);
+        properties.set(
+            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
+            ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke
+        );
 
         return {
             extensions,

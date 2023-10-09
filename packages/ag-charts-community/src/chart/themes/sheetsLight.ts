@@ -2,6 +2,7 @@ import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
+    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
@@ -76,6 +77,10 @@ export class SheetsLight extends ChartTheme {
             SheetsLight.getWaterfallSeriesDefaultTotalColors()
         );
 
+        result.properties.set(
+            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
+            SheetsLight.getWaterfallSeriesDefaultTotalColors().stroke
+        );
         result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [
             SHEETS_LIGHT_FILLS.BLUE,
             SHEETS_LIGHT_FILLS.ORANGE,

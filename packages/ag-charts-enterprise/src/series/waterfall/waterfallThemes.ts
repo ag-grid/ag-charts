@@ -26,7 +26,7 @@ export const WATERFALL_SERIES_THEME = {
         },
     },
     line: {
-        __extends__: _Theme.DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+        stroke: _Theme.DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
         strokeOpacity: 1,
         lineDash: [0],
         lineDashOffset: 0,
