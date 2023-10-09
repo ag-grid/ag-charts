@@ -3,7 +3,16 @@ import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { zipObject } from '../util/zip';
-import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue } from './animation';
+import {
+    ADD_PHASE,
+    type AdditionalAnimationOptions,
+    type AnimationOptions,
+    type AnimationTiming,
+    type AnimationValue,
+    INITIAL_LOAD,
+    REMOVE_PHASE,
+    UPDATE_PHASE,
+} from './animation';
 import * as easing from './easing';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'moved';
@@ -23,6 +32,14 @@ type PropFn<N extends Node, T extends Record<string, string | number> & Partial<
     state: NodeUpdateState,
     ctx: FromToMotionPropFnContext<N>
 ) => T & { animationDelay?: number; animationDuration?: number };
+
+export const FROM_TO_MIXINS: Record<NodeUpdateState, AnimationTiming> = {
+    added: ADD_PHASE,
+    updated: UPDATE_PHASE,
+    removed: REMOVE_PHASE,
+    moved: UPDATE_PHASE,
+    unknown: INITIAL_LOAD,
+};
 
 /**
  * Implements a per-node "to/from" animation, with support for detection of added/moved/removed
