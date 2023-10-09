@@ -1,34 +1,90 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
+import {
+    DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
+    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
+    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+} from './symbols';
+
+const VIVID_FILLS = {
+    BLUE: '#3f8fea',
+    ORANGE: '#ff9900',
+    GREEN: '#2ea049',
+    CYAN: '#00c2eb',
+    VIOLET: '#9a63d6',
+    YELLOW: '#e4cc00',
+    GRAY: '#888888',
+    MAGENTA: '#c550ac',
+    BROWN: '#925f00',
+    RED: '#f94548',
+};
+
+const VIVID_STROKES = {
+    BLUE: '#0f68c0',
+    ORANGE: '#d47100',
+    GREEN: '#007922',
+    CYAN: '#009ac2',
+    VIOLET: '#bca400',
+    YELLOW: '#753cac',
+    GRAY: '#646464',
+    MAGENTA: '#9b2685',
+    BROWN: '#6c3b00',
+    RED: '#cb0021',
+};
 
 const palette: AgChartThemePalette = {
-    fills: [
-        '#1fa9ff',
-        '#7a80ff',
-        '#c364f2',
-        '#ef4eab',
-        '#ff4d4d',
-        '#ef6b00',
-        '#e9b301',
-        '#5caf00',
-        '#00bd7f',
-        '#05d5f5',
-    ],
-    strokes: [
-        '#005eae',
-        '#4640ba',
-        '#841caf',
-        '#a8006e',
-        '#b60008',
-        '#a92700',
-        '#9b6900',
-        '#1b7000',
-        '#007e45',
-        '#008aa8',
-    ],
+    fills: Array.from(Object.values(VIVID_FILLS)),
+    strokes: Array.from(Object.values(VIVID_STROKES)),
 };
 
 export class VividLight extends ChartTheme {
+    protected static override getWaterfallSeriesDefaultPositiveColors() {
+        return {
+            fill: VIVID_FILLS.BLUE,
+            stroke: VIVID_STROKES.BLUE,
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultNegativeColors() {
+        return {
+            fill: VIVID_FILLS.ORANGE,
+            stroke: VIVID_STROKES.ORANGE,
+        };
+    }
+
+    protected static override getWaterfallSeriesDefaultTotalColors() {
+        return {
+            fill: VIVID_FILLS.GRAY,
+            stroke: VIVID_STROKES.GRAY,
+        };
+    }
+
+    protected override getTemplateParameters() {
+        const result = super.getTemplateParameters();
+
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+            VividLight.getWaterfallSeriesDefaultPositiveColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+            VividLight.getWaterfallSeriesDefaultNegativeColors()
+        );
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+            VividLight.getWaterfallSeriesDefaultTotalColors()
+        );
+
+        result.properties.set(
+            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
+            VividLight.getWaterfallSeriesDefaultTotalColors().stroke
+        );
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [VIVID_FILLS.BLUE, VIVID_FILLS.ORANGE]);
+
+        return result;
+    }
     protected override getPalette(): AgChartThemePalette {
         return palette;
     }
