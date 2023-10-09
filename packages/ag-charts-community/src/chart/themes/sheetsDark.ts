@@ -7,7 +7,7 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
-const EXCEL_DARK_FILLS = {
+const SHEETS_DARK_FILLS = {
     BLUE: '#4472C4',
     ORANGE: '#ED7D31',
     GRAY: '#A5A5A5',
@@ -20,7 +20,7 @@ const EXCEL_DARK_FILLS = {
     DARK_YELLOW: '#997300',
 };
 
-const EXCEL_DARK_STROKES = {
+const SHEETS_DARK_STROKES = {
     BLUE: '#6899ee',
     ORANGE: '#ffa55d',
     GRAY: '#cdcdcd',
@@ -34,29 +34,29 @@ const EXCEL_DARK_STROKES = {
 };
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(EXCEL_DARK_FILLS)),
-    strokes: Array.from(Object.values(EXCEL_DARK_STROKES)),
+    fills: Array.from(Object.values(SHEETS_DARK_FILLS)),
+    strokes: Array.from(Object.values(SHEETS_DARK_STROKES)),
 };
 
-export class ExcelDark extends DarkTheme {
+export class SheetsDark extends DarkTheme {
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
-            fill: EXCEL_DARK_FILLS.BLUE,
-            stroke: EXCEL_DARK_STROKES.BLUE,
+            fill: SHEETS_DARK_FILLS.BLUE,
+            stroke: SHEETS_DARK_STROKES.BLUE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultNegativeColors() {
         return {
-            fill: EXCEL_DARK_FILLS.ORANGE,
-            stroke: EXCEL_DARK_STROKES.ORANGE,
+            fill: SHEETS_DARK_FILLS.ORANGE,
+            stroke: SHEETS_DARK_STROKES.ORANGE,
         };
     }
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: EXCEL_DARK_FILLS.GRAY,
-            stroke: EXCEL_DARK_STROKES.GRAY,
+            fill: SHEETS_DARK_FILLS.GRAY,
+            stroke: SHEETS_DARK_STROKES.GRAY,
         };
     }
 
@@ -65,15 +65,18 @@ export class ExcelDark extends DarkTheme {
 
         result.extensions.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            ExcelDark.getWaterfallSeriesDefaultPositiveColors()
+            SheetsDark.getWaterfallSeriesDefaultPositiveColors()
         );
         result.extensions.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            ExcelDark.getWaterfallSeriesDefaultNegativeColors()
+            SheetsDark.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ExcelDark.getWaterfallSeriesDefaultTotalColors());
+        result.extensions.set(
+            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+            SheetsDark.getWaterfallSeriesDefaultTotalColors()
+        );
 
-        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [EXCEL_DARK_FILLS.BLUE, EXCEL_DARK_FILLS.ORANGE]);
+        result.properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [SHEETS_DARK_FILLS.BLUE, SHEETS_DARK_FILLS.ORANGE]);
 
         return result;
     }

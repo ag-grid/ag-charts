@@ -2,12 +2,12 @@ import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../.
 import { jsonMerge } from '../../util/json';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
-import { ExcelDark } from '../themes/excelDark';
-import { ExcelLight } from '../themes/excelLight';
 import { MaterialDark } from '../themes/materialDark';
 import { MaterialLight } from '../themes/materialLight';
 import { PolychromaDark } from '../themes/polychromaDark';
 import { PolychromaLight } from '../themes/polychromaLight';
+import { SheetsDark } from '../themes/sheetsDark';
+import { SheetsLight } from '../themes/sheetsLight';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
@@ -20,7 +20,7 @@ const lightThemes: ThemeMap = {
     undefined: lightTheme,
     null: lightTheme,
     'ag-default': lightTheme,
-    'ag-excel': () => new ExcelLight(),
+    'ag-sheets': () => new SheetsLight(),
     'ag-polychroma': () => new PolychromaLight(),
     'ag-vivid': () => new VividLight(),
     'ag-material': () => new MaterialLight(),
@@ -30,7 +30,7 @@ const darkThemes: ThemeMap = {
     undefined: darkTheme,
     null: darkTheme,
     'ag-default-dark': darkTheme,
-    'ag-excel-dark': () => new ExcelDark(),
+    'ag-sheets-dark': () => new SheetsDark(),
     'ag-polychroma-dark': () => new PolychromaDark(),
     'ag-vivid-dark': () => new VividDark(),
     'ag-material-dark': () => new MaterialDark(),
