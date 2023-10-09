@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE } from '../../../motion/animation';
-import { FROM_TO_MIXINS, type NodeUpdateState } from '../../../motion/fromToMotion';
+import { FROM_TO_MIXINS } from '../../../motion/fromToMotion';
+import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';

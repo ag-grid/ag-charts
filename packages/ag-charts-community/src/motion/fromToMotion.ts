@@ -3,16 +3,8 @@ import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { zipObject } from '../util/zip';
-import {
-    ADD_PHASE,
-    type AdditionalAnimationOptions,
-    type AnimationOptions,
-    type AnimationTiming,
-    type AnimationValue,
-    INITIAL_LOAD,
-    REMOVE_PHASE,
-    UPDATE_PHASE,
-} from './animation';
+import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE } from './animation';
+import type { AdditionalAnimationOptions, AnimationOptions, AnimationTiming, AnimationValue } from './animation';
 import * as easing from './easing';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'moved';
