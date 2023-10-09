@@ -7,7 +7,7 @@ import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE } from './animation
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationTiming, AnimationValue } from './animation';
 import * as easing from './easing';
 
-export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'moved';
+export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated';
 
 export type FromToMotionPropFnContext<T> = {
     last: boolean;
@@ -29,7 +29,6 @@ export const FROM_TO_MIXINS: Record<NodeUpdateState, AnimationTiming> = {
     added: ADD_PHASE,
     updated: UPDATE_PHASE,
     removed: REMOVE_PHASE,
-    moved: UPDATE_PHASE,
     unknown: INITIAL_LOAD,
 };
 
