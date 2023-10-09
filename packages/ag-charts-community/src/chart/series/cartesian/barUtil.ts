@@ -118,8 +118,8 @@ export function collapsedStartingBarPosition(
     const isVertical = barDirection === ChartAxisDirection.Y;
     const { startingX, startingY } = getBarDirectionStartingValues(barDirection, axes);
 
-    const isDatumPositive = (datum: AnimatableBarDatum) => {
-        return !isNegative((datum as any)['xValue'] ?? 0);
+    const isDatumNegative = (datum: AnimatableBarDatum) => {
+        return isNegative((datum as any)['yValue'] ?? 0);
     };
 
     const calculate = (datum: AnimatableBarDatum, prevDatum?: AnimatableBarDatum) => {
@@ -133,9 +133,10 @@ export function collapsedStartingBarPosition(
             ({ x, y } = prevDatum);
             width = isVertical ? prevDatum.width : 0;
             height = isVertical ? 0 : prevDatum.height;
-            if (isDatumPositive(prevDatum) === isVertical) {
-                x += isVertical ? 0 : prevDatum.width;
-                y += isVertical ? prevDatum.height : 0;
+            if (isVertical && !isDatumNegative(prevDatum)) {
+                y += prevDatum.height;
+            } else if (!isVertical && isDatumNegative(prevDatum)) {
+                x += prevDatum.width;
             }
         }
         return { x, y, width, height };
