@@ -18,8 +18,8 @@ export const GalleryExampleThemeDropdown: FunctionComponent = () => {
                     ag-default
                 </option>
                 <option value="ag-default-dark">ag-default-dark</option>
-                <option value="ag-excel">ag-excel</option>
-                <option value="ag-excel-dark">ag-excel-dark</option>
+                <option value="ag-sheets">ag-sheets</option>
+                <option value="ag-sheets-dark">ag-sheets-dark</option>
                 <option value="ag-polychroma">ag-polychroma</option>
                 <option value="ag-polychroma-dark">ag-polychroma-dark</option>
                 <option value="ag-vivid">ag-vivid</option>

@@ -31,17 +31,9 @@ export class ColorScale implements Scale<number, string, number> {
             }
         }
 
-        const isSmallRange = range.length < domain.length;
-        if (isSmallRange || (domain.length > 2 && range.length > domain.length)) {
-            Logger.warnOnce(
-                'Number of elements in `colorRange` needs to match the number of elements in `colorDomain`.'
-            );
-            if (isSmallRange) {
-                for (let i = range.length; i < domain.length; i++) {
-                    range.push('black');
-                }
-            } else {
-                range.splice(domain.length);
+        if (range.length < domain.length) {
+            for (let i = range.length; i < domain.length; i++) {
+                range.push(range.length > 0 ? range[0] : 'black');
             }
         }
 

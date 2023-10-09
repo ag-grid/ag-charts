@@ -1,4 +1,4 @@
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -14,7 +14,6 @@ export interface AgHeatmapSeriesFormatterParams<TDatum> {
     readonly xKey: string;
     readonly yKey: string;
     readonly colorKey?: string;
-    readonly labelKey?: string;
     readonly seriesId: string;
 }
 
@@ -24,16 +23,23 @@ export interface AgHeatmapSeriesFormat {
     strokeWidth?: PixelSize;
 }
 
+export interface AgHeatmapSeriesLabelFormatterParams<TDatum> extends AgChartLabelFormatterParams<TDatum> {
+    /** colorKey as specified on series options. */
+    readonly colorKey?: string;
+    /** colorName as specified on series options. */
+    readonly colorName?: string;
+}
+
 export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
-    /** labelKey as specified on series options. */
-    readonly labelKey?: string;
-    /** labelName as specified on series options. */
-    readonly labelName?: string;
+    /** colorKey as specified on series options. */
+    readonly colorKey?: string;
+    /** colorName as specified on series options. */
+    readonly colorName?: string;
 }
 
 export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum>;
+    label?: AgChartLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
@@ -56,11 +62,7 @@ export interface AgHeatmapSeriesOptions<TDatum = any>
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
-    /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: string;
-    /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    labelName?: string;
-    /** The name of the node key containing the color value. This value (along with `colorRange` configs) will be used to determine the tile color. */
+    /** The name of the node key containing the colour value. This value (along with `colorRange` configs) will be used to determine the tile colour. */
     colorKey?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;

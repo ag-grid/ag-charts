@@ -87,17 +87,10 @@ series: [
 
 ## Labels
 
-There are multiple ways to display labels for the Heatmap items:
-
--   `labelKey` can be used to supply numerical values for the labels.
+There is a way to display labels for the Heatmap items. If `label.enabled` is set to `true`, the labels will show a numeric value from `colorKey`.
 
 ```js
-labelKey: 'temperature',
-```
-
--   If `label.enabled` is set to `true` and `labelKey` is not specified, the labels will show a value from `colorKey`.
-
-```js
+colorKey: 'temperature',
 label: {
     enabled: true,
 },
@@ -106,10 +99,11 @@ label: {
 A label formatter can be used to customise the labels.
 
 ```js
-labelKey: 'temperature',
+colorKey: 'temperature',
 label: {
     enabled: true,
-    formatter: ({ value }) => {
+    formatter: ({ datum, colorKey }) => {
+        const value = datum[colorKey];
         return `${value.toFixed(0)}°C`;
     },
 },

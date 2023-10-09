@@ -58,6 +58,8 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
     hasHighlightedLabels: boolean;
     directionKeys: { [key in ChartAxisDirection]?: string[] };
     directionNames: { [key in ChartAxisDirection]?: string[] };
+    datumSelectionGarbageCollection: boolean;
+    markerSelectionGarbageCollection: boolean;
     animationResetFns?: {
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
@@ -136,8 +138,6 @@ export abstract class CartesianSeries<
     private readonly debug = Debug.create();
 
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
-    protected datumSelectionGarbageCollection = true;
-    protected markerSelectionGarbageCollection = true;
 
     protected constructor({
         pathsPerSeries = 1,
@@ -146,6 +146,8 @@ export abstract class CartesianSeries<
         pathsZIndexSubOrderOffset = [],
         directionKeys = DEFAULT_DIRECTION_KEYS,
         directionNames = DEFAULT_DIRECTION_NAMES,
+        datumSelectionGarbageCollection = true,
+        markerSelectionGarbageCollection = true,
         animationResetFns,
         ...otherOpts
     }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof Series>[0]) {
@@ -165,6 +167,8 @@ export abstract class CartesianSeries<
             directionKeys,
             directionNames,
             animationResetFns,
+            datumSelectionGarbageCollection,
+            markerSelectionGarbageCollection,
         };
 
         this.animationState = new StateMachine('empty', {
@@ -255,7 +259,7 @@ export abstract class CartesianSeries<
     }
 
     protected async updateSelections(anySeriesItemEnabled: boolean) {
-        if (!anySeriesItemEnabled) {
+        if (!anySeriesItemEnabled && this.ctx.animationManager.isSkipped()) {
             return;
         }
         if (!this.nodeDataRefresh && !this.isPathOrSelectionDirty()) {
@@ -306,7 +310,7 @@ export abstract class CartesianSeries<
             _contextNodeData: contextNodeData,
             contentGroup,
             subGroups,
-            opts: { pathsPerSeries, hasMarkers },
+            opts: { pathsPerSeries, hasMarkers, datumSelectionGarbageCollection, markerSelectionGarbageCollection },
         } = this;
         if (contextNodeData.length === subGroups.length) {
             return;
@@ -375,10 +379,10 @@ export abstract class CartesianSeries<
                 datumSelection: Selection.select(
                     dataNodeGroup,
                     () => this.nodeFactory(),
-                    this.datumSelectionGarbageCollection
+                    datumSelectionGarbageCollection
                 ),
                 markerSelection: markerGroup
-                    ? Selection.select(markerGroup, () => this.markerFactory(), this.markerSelectionGarbageCollection)
+                    ? Selection.select(markerGroup, () => this.markerFactory(), markerSelectionGarbageCollection)
                     : undefined,
             });
         }
@@ -409,6 +413,7 @@ export abstract class CartesianSeries<
             opts: { hasMarkers, hasHighlightedLabels },
         } = this;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
         this.rootGroup.visible = visible;
         this.contentGroup.visible = visible;
@@ -454,7 +459,7 @@ export abstract class CartesianSeries<
                 const subGroupOpacity = subGroupOpacities[seriesIdx];
 
                 dataNodeGroup.opacity = subGroupOpacity;
-                dataNodeGroup.visible = subGroupVisible;
+                dataNodeGroup.visible = animationEnabled || subGroupVisible;
                 labelGroup.visible = subGroupVisible;
 
                 if (markerGroup) {
@@ -710,6 +715,10 @@ export abstract class CartesianSeries<
 
     getLabelData(): PointLabelDatum[] {
         return [];
+    }
+
+    shouldFlipXY(): boolean {
+        return false;
     }
 
     protected async updateHighlightSelectionItem(opts: {

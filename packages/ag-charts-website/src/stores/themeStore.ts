@@ -3,8 +3,8 @@ import { persistentAtom } from '@nanostores/persistent';
 export type ThemeName =
     | 'ag-default'
     | 'ag-default-dark'
-    | 'ag-excel'
-    | 'ag-excel-dark'
+    | 'ag-sheets'
+    | 'ag-sheets-dark'
     | 'ag-polychroma'
     | 'ag-polychroma-dark'
     | 'ag-vivid'

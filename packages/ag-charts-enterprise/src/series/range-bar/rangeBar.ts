@@ -156,6 +156,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             hasHighlightedLabels: true,
             directionKeys: DEFAULT_DIRECTION_KEYS,
             directionNames: DEFAULT_DIRECTION_NAMES,
+            datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -230,7 +231,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         });
 
         this.smallestDataInterval = {
-            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
             y: Infinity,
         };
 
@@ -256,7 +257,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             }
 
             const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
-            const scalePadding = isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
@@ -506,8 +507,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     protected override nodeFactory() {
         return new Rect();
     }
-
-    override datumSelectionGarbageCollection = false;
 
     protected override async updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];

@@ -86,6 +86,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
+            markerSelectionGarbageCollection: false,
         });
     }
 
@@ -113,9 +114,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datums and
         // automatically garbage collect the marker selection.
-        if (this.ctx.animationManager.isSkipped()) {
-            this.markerSelectionGarbageCollection = true;
-        } else {
+        if (!this.ctx.animationManager.isSkipped()) {
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
         }
 
@@ -134,7 +133,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
 
         // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
-        if (processedData.reduced?.diff?.added.length > 1 && processedData.reduced?.diff?.removed.length > 1) {
+        const { diff: diffResult } = processedData.reduced ?? {};
+        if (diffResult && diffResult.added.length > 1 && diffResult.removed.length > 1) {
             this.animationTransitionClear();
         } else {
             this.animationState.transition('updateData');
@@ -267,8 +267,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return new MarkerShape();
     }
 
-    override markerSelectionGarbageCollection = false;
-
     protected override async updateMarkerSelection(opts: {
         nodeData: LineNodeDatum[];
         markerSelection: Selection<Marker, LineNodeDatum>;
@@ -282,11 +280,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             markerSelection.clear();
         }
 
-        return markerSelection.update(
-            nodeData,
-            undefined,
-            this.markerSelectionGarbageCollection ? undefined : (datum) => this.getDatumId(datum)
-        );
+        const idFn = this.ctx.animationManager.isSkipped()
+            ? undefined
+            : (datum: LineNodeDatum) => this.getDatumId(datum);
+        return markerSelection.update(nodeData, undefined, idFn);
     }
 
     protected override async updateMarkerNodes(opts: {

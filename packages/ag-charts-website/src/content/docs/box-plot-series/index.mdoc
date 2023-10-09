@@ -61,49 +61,22 @@ Note that the `xKey` specifies the category values, regardless of series orienta
 
 {% chartExampleRunner title="Box Plot Customisations" name="box-plot-customisations" type="generated" options="{ \"enterprise\": true }" /%}
 
-Default styling applies to all elements of a Box Plot, such as boxes, whiskers, and caps.
+Box Plot whiskers and caps typically inherit series styles but can be individually customised. Here, the `whisker` and
+`cap` properties are used to customise whisker line styles and cap length.
 
 ```js
 series: [
     {
         type: 'box-plot',
-        ...
-        // styling props
-        fill: 'green',
-        stroke: 'purple',
-        strokeWidth: 1,
-        cap: { lengthRatio: 0.8 },
-        whisker: { stroke: 'red', strokeWidth: 3, lineDash: [2, 1] },
-    },
-],
-```
-
-### Whiskers
-
-Box Plot whiskers and caps typically inherit styling options from the series by default, but they can also be styled
-individually. You can customize their appearance by using the `whisker` property to override series styles.
-
-```js
-series: [
-    {
-        type: 'box-plot',
-        ...
-        whisker: { stroke: 'red', strokeWidth: 3, lineDash: [2, 1] },
-    },
-],
-```
-
-### Caps
-
-To change the length of Box Plot caps, use the `cap.lengthRatio` property. This property adjusts the cap length as a
-percentile relative to the bar's width, with the default set at 0.5.
-
-```js
-series: [
-    {
-        type: 'box-plot',
-        ...
-        cap: { lengthRatio: 0.8 }, // 80% of bar's width
+        // Other series options...
+        whisker: {
+            stroke: '#098a89',
+            strokeWidth: 3,
+            lineDash: [2, 1]
+        },
+        cap: {
+            lengthRatio: 0.8  // 80% of bar's width (default is 0.5)
+        },
     },
 ],
 ```
@@ -112,8 +85,8 @@ series: [
 
 {% chartExampleRunner title="Box Plot Outliers" name="box-plot-outliers" type="generated" options="{ \"enterprise\": true }" /%}
 
-Box plots are frequently accompanied by outliers to provide a comprehensive view of data. To include outliers in a
-Box Plot, combine a Box Plot Series with a [Scatter Series](./scatter-series/), as demonstrated in this example.
+Box plots are commonly paired with outliers to offer a more comprehensive view of the data. This is easily achieved by
+combining a Box Plot Series with a [Scatter Series](./scatter-series/), as shown below:
 
 ```js
 series: [

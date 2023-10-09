@@ -20,10 +20,10 @@ const options: AgChartOptions = {
             colorKey: 'temperature',
             colorName: 'Temperature',
 
-            labelKey: 'temperature',
             label: {
                 enabled: true,
-                formatter: ({ value }) => {
+                formatter: ({ datum, colorKey = '' }) => {
+                    const value = datum[colorKey];
                     return `${value.toFixed(0)}°C`;
                 },
             },

@@ -125,7 +125,7 @@ describe('DataModel', () => {
                 it('should calculate smallest X interval', () => {
                     const result = dataModel.processData(data);
 
-                    expect(result?.reduced?.[SMALLEST_KEY_INTERVAL.property]).toEqual(1);
+                    expect(result?.reduced?.smallestKeyInterval).toEqual(1);
                 });
             });
 
