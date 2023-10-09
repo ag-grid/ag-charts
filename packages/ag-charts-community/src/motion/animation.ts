@@ -2,6 +2,23 @@ import { interpolateColor, interpolateNumber } from '../interpolate';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
+export const REMOVE_PHASE = {
+    animationDuration: 0.25,
+    animationDelay: 0,
+};
+export const UPDATE_PHASE = {
+    animationDuration: 0.5,
+    animationDelay: 0.25,
+};
+export const ADD_PHASE = {
+    animationDuration: 0.25,
+    animationDelay: 0.75,
+};
+export const LABEL_PHASE = {
+    animationDuration: 0.2,
+    animationDelay: 1,
+};
+
 export type AnimationValue = number | string | Record<string, number | string>;
 
 export enum RepeatType {
