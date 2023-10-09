@@ -1,4 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { ADD_PHASE, REMOVE_PHASE, UPDATE_PHASE } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -147,21 +148,19 @@ export function midpointStartingBarPosition(barDirection: ChartAxisDirection): I
 
 type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
 export function prepareBarAnimationFunctions(initPos: InitialPosition<AnimatableBarDatum>) {
-    const addRemoveDelay = 0.25;
     const fromFn = (rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
         let mixin = {};
         if (status === 'removed') {
-            mixin = { animationDuration: addRemoveDelay };
+            mixin = { ...REMOVE_PHASE };
         } else if (status === 'updated') {
-            mixin = { animationDelay: addRemoveDelay, animationDuration: 1 - addRemoveDelay * 2 };
+            mixin = { ...UPDATE_PHASE };
         } else if (status === 'unknown') {
             // Initial load case.
             return initPos.calculate(datum);
         } else if (status === 'added') {
             return {
                 ...initPos.calculate(datum),
-                animationDelay: 1 - addRemoveDelay,
-                animationDuration: addRemoveDelay,
+                ...ADD_PHASE,
             };
         }
         // Continue from current rendering location.
