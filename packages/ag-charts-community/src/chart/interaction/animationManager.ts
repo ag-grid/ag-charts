@@ -73,7 +73,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 this.controllers.set(id, controller);
                 this.requestAnimation();
                 if (disableInteractions) {
-                    this.interactionManager.pause(`animation_${id}`);
+                    this.interactionManager.pause('animation');
                 }
                 opts.onPlay?.(controller);
             },
@@ -83,7 +83,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                     this.cancelAnimation();
                 }
                 if (disableInteractions) {
-                    this.interactionManager.resume(`animation_${id}`);
+                    this.interactionManager.resume('animation');
                 }
                 opts.onStop?.(controller);
             },

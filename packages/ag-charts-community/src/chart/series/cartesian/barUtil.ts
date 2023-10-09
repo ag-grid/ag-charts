@@ -108,50 +108,68 @@ export function checkCrisp(visibleRange: number[] = []): boolean {
     return !isZoomed;
 }
 
-type StartingPositionFn<T> = (datum: T) => Partial<T>;
+type InitialPosition<T> = { isVertical: boolean; calculate: (datum: T) => Partial<T> };
 export function collapsedStartingBarPosition(
     barDirection: ChartAxisDirection,
     axes: Record<ChartAxisDirection, ChartAxis | undefined>
-): StartingPositionFn<AnimatableBarDatum> {
+): InitialPosition<AnimatableBarDatum> {
     const isVertical = barDirection === ChartAxisDirection.Y;
     const { startingX, startingY } = getBarDirectionStartingValues(barDirection, axes);
 
-    return (datum) => {
-        return {
-            x: isVertical ? datum.x : startingX,
-            y: isVertical ? startingY : datum.y,
-            width: isVertical ? datum.width : 0,
-            height: isVertical ? 0 : datum.height,
-        };
+    return {
+        isVertical,
+        calculate: (datum) => {
+            return {
+                x: isVertical ? datum.x : startingX,
+                y: isVertical ? startingY : datum.y,
+                width: isVertical ? datum.width : 0,
+                height: isVertical ? 0 : datum.height,
+            };
+        },
     };
 }
 
-export function midpointStartingBarPosition(barDirection: ChartAxisDirection): StartingPositionFn<AnimatableBarDatum> {
+export function midpointStartingBarPosition(barDirection: ChartAxisDirection): InitialPosition<AnimatableBarDatum> {
     const isVertical = barDirection === ChartAxisDirection.Y;
 
-    return (datum) => {
-        return {
-            x: isVertical ? datum.x : datum.x + datum.width / 2,
-            y: isVertical ? datum.y + datum.height / 2 : datum.y,
-            width: isVertical ? datum.width : 0,
-            height: isVertical ? 0 : datum.height,
-        };
+    return {
+        isVertical,
+        calculate: (datum) => {
+            return {
+                x: isVertical ? datum.x : datum.x + datum.width / 2,
+                y: isVertical ? datum.y + datum.height / 2 : datum.y,
+                width: isVertical ? datum.width : 0,
+                height: isVertical ? 0 : datum.height,
+            };
+        },
     };
 }
 
 type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
-export function prepareBarAnimationFunctions(startPositionFn: StartingPositionFn<AnimatableBarDatum>) {
+export function prepareBarAnimationFunctions(initPos: InitialPosition<AnimatableBarDatum>) {
+    const addRemoveDelay = 0.25;
     const fromFn = (rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
+        let mixin = {};
         if (status === 'removed') {
-            return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
-        } else if (status === 'added' || status === 'unknown') {
-            return startPositionFn(datum);
+            mixin = { animationDuration: addRemoveDelay };
+        } else if (status === 'updated') {
+            mixin = { animationDelay: addRemoveDelay, animationDuration: 1 - addRemoveDelay * 2 };
+        } else if (status === 'unknown') {
+            // Initial load case.
+            return initPos.calculate(datum);
+        } else if (status === 'added') {
+            return {
+                ...initPos.calculate(datum),
+                animationDelay: 1 - addRemoveDelay,
+                animationDuration: addRemoveDelay,
+            };
         }
-        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+        // Continue from current rendering location.
+        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...mixin };
     };
     const toFn = (_rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
         if (status === 'removed') {
-            return startPositionFn(datum);
+            return initPos.calculate(datum);
         }
         return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
     };

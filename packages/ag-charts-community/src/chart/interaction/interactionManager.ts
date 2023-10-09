@@ -51,6 +51,7 @@ export type InteractionEvent<T extends InteractionTypes> = {
     pageX: number;
     pageY: number;
     sourceEvent: Event;
+    pauses: PauseTypes[];
     /** Consume the event, don't notify other listeners! */
     consume(): void;
     consumed?: boolean;
@@ -72,12 +73,18 @@ const CSS = `
 `;
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
+type PauseTypes = 'animation' | 'context-menu';
+type ListenerMeta = { bypassPause?: PauseTypes[] };
 
 /**
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
  */
-export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent<InteractionTypes>> {
+export class InteractionManager extends BaseManager<
+    InteractionTypes,
+    InteractionEvent<InteractionTypes>,
+    ListenerMeta
+> {
     private static interactionDocuments: Document[] = [];
 
     private readonly rootElement: HTMLElement;
@@ -90,8 +97,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private touchDown = false;
     private dragStartElement?: HTMLElement;
 
-    private enabled = true;
-    private pausers: string[] = [];
+    private pausers: Record<PauseTypes, number> = { animation: 0, 'context-menu': 0 };
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -132,22 +138,18 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
     }
 
-    resume(callerId: string) {
-        this.pausers = this.pausers.filter((id) => id !== callerId);
-        this.enabled = this.pausers.length <= 0;
-
-        return this.enabled;
+    resume(pauseType: PauseTypes) {
+        this.pausers[pauseType]--;
     }
 
-    pause(callerId: string) {
-        this.enabled = false;
-        this.pausers.push(callerId);
+    pause(pauseType: PauseTypes) {
+        this.pausers[pauseType]++;
     }
 
     private processEvent(event: SupportedEvent) {
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
-        if (types.length > 0 && this.enabled) {
+        if (types.length > 0) {
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(event, types).catch((e) => Logger.errorOnce(e));
         }
@@ -160,15 +162,21 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             return;
         }
 
+        const pauses = Object.entries(this.pausers)
+            .filter(([, count]) => count > 0)
+            .map(([pause]) => pause as PauseTypes);
         for (const type of types) {
             this.listeners.dispatchWrapHandlers(
                 type,
-                (handler, interactionEvent) => {
+                (handler, meta, interactionEvent) => {
+                    if (pauses.length > 0 && !meta?.bypassPause?.some((p) => pauses.includes(p))) {
+                        return;
+                    }
                     if (!interactionEvent.consumed) {
                         handler(interactionEvent);
                     }
                 },
-                this.buildEvent({ type, event, ...coords })
+                this.buildEvent({ type, event, pauses, ...coords })
             );
         }
     }
@@ -312,8 +320,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         offsetY?: number;
         pageX?: number;
         pageY?: number;
+        pauses: PauseTypes[];
     }): InteractionEvent<(typeof opts)['type']> {
-        const { type, event, clientX, clientY } = opts;
+        const { type, event, clientX, clientY, pauses } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 
         if (!isNumber(offsetX) || !isNumber(offsetY)) {
@@ -335,6 +344,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY: pageY!,
             sourceEvent: event,
             consumed: false,
+            pauses,
             consume() {
                 builtEvent.consumed = true;
             },

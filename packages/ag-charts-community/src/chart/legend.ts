@@ -219,9 +219,10 @@ export class Legend {
 
         this.item.marker.parent = this;
 
+        const bypass = { bypassPause: ['animation' as const] };
         this.destroyFns.push(
-            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e)),
-            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e)),
+            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e), bypass),
+            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), bypass),
             ctx.interactionManager.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
