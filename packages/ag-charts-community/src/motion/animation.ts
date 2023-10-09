@@ -2,19 +2,27 @@ import { interpolateColor, interpolateNumber } from '../interpolate';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
-export const REMOVE_PHASE = {
+export type AnimationTiming = {
+    animationDuration: number;
+    animationDelay: number;
+};
+export const INITIAL_LOAD: AnimationTiming = {
+    animationDuration: 1,
+    animationDelay: 0,
+};
+export const REMOVE_PHASE: AnimationTiming = {
     animationDuration: 0.25,
     animationDelay: 0,
 };
-export const UPDATE_PHASE = {
+export const UPDATE_PHASE: AnimationTiming = {
     animationDuration: 0.5,
     animationDelay: 0.25,
 };
-export const ADD_PHASE = {
+export const ADD_PHASE: AnimationTiming = {
     animationDuration: 0.25,
     animationDelay: 0.75,
 };
-export const LABEL_PHASE = {
+export const LABEL_PHASE: AnimationTiming = {
     animationDuration: 0.2,
     animationDelay: 1,
 };
