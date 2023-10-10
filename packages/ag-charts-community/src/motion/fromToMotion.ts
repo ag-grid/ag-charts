@@ -18,7 +18,7 @@ export type FromToMotionPropFnContext<T> = {
     prevLive?: T;
     nextLive?: T;
 };
-type PropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
+export type FromToMotionPropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
     node: N,
     datum: D,
     state: NodeUpdateState,
@@ -59,8 +59,8 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
     animationManager: AnimationManager,
     selections: Selection<N, D>[],
     fns: {
-        fromFn: PropFn<N, T, D>;
-        toFn: PropFn<N, T, D>;
+        fromFn: FromToMotionPropFn<N, T, D>;
+        toFn: FromToMotionPropFn<N, T, D>;
         intermediateFn?: IntermediateFn<N, D>;
     },
     getDatumId?: (node: N, datum: D) => string,
