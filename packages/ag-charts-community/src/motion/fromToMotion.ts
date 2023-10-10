@@ -24,6 +24,12 @@ type PropFn<N extends Node, T extends Record<string, string | number> & Partial<
     state: NodeUpdateState,
     ctx: FromToMotionPropFnContext<N>
 ) => T & { animationDelay?: number; animationDuration?: number };
+type IntermediateFn<N extends Node, D> = (
+    node: N,
+    datum: D,
+    state: NodeUpdateState,
+    ctx: FromToMotionPropFnContext<N>
+) => Partial<N>;
 
 export const FROM_TO_MIXINS: Record<NodeUpdateState, AnimationTiming> = {
     added: ADD_PHASE,
@@ -52,13 +58,16 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
     id: string,
     animationManager: AnimationManager,
     selections: Selection<N, D>[],
-    fromFn: PropFn<N, T, D>,
-    toFn: PropFn<N, T, D>,
-    extraOpts: Partial<AdditionalAnimationOptions> = {},
+    fns: {
+        fromFn: PropFn<N, T, D>;
+        toFn: PropFn<N, T, D>;
+        intermediateFn?: IntermediateFn<N, D>;
+    },
     getDatumId?: (node: N, datum: D) => string,
     diff?: FromToDiff
 ) {
     const { defaultDuration } = animationManager;
+    const { fromFn, toFn, intermediateFn } = fns;
 
     // Dynamic case with varying add/update/remove behavior.
     const ids = { added: {}, removed: {} };
@@ -115,13 +124,15 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 ease: easing.easeOut,
                 onUpdate(props) {
                     node.setProperties(props);
+                    if (intermediateFn) {
+                        node.setProperties(intermediateFn(node, node.datum, status, ctx));
+                    }
                 },
                 onStop() {
                     node.setProperties(to as T);
                 },
                 duration: (duration ?? toDuration ?? 1) * defaultDuration,
                 delay: (delay ?? toDelay ?? 0) * defaultDuration,
-                ...extraOpts,
             });
 
             if (isLive) {
@@ -141,7 +152,6 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 onComplete() {
                     selection.cleanup();
                 },
-                ...extraOpts,
             });
         }
         selectionIndex++;

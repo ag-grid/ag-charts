@@ -1557,8 +1557,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     override animateEmptyUpdateReady(_data?: PolarAnimationData) {
-        const { fromFn, toFn } = preparePieSeriesAnimationFunctions(this.rotation);
-        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fromFn, toFn);
+        const fns = preparePieSeriesAnimationFunctions(this.rotation);
+        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
 
         seriesLabelFadeInAnimation({ id: `${this.id}_callout` }, this.ctx.animationManager, [
             this.calloutLabelSelection,
@@ -1576,14 +1576,12 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             return;
         }
 
-        const { fromFn, toFn } = preparePieSeriesAnimationFunctions(this.rotation);
+        const fns = preparePieSeriesAnimationFunctions(this.rotation);
         fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
             [itemSelection],
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => this.getDatumId(datum),
             diff
         );
@@ -1597,8 +1595,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { itemSelection } = this;
         const { animationManager } = this.ctx;
 
-        const { fromFn, toFn } = preparePieSeriesAnimationFunctions(this.rotation);
-        fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], toFn, fromFn, {});
+        const fns = preparePieSeriesAnimationFunctions(this.rotation);
+        fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
 
         seriesLabelFadeOutAnimation({ id: `${this.id}_callout` }, animationManager, [this.calloutLabelSelection]);
         seriesLabelFadeOutAnimation({ id: `${this.id}_sector` }, animationManager, [this.sectorLabelSelection]);
