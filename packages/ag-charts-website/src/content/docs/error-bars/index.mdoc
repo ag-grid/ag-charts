@@ -10,10 +10,12 @@ on Line, Bar and Scatter Series.
 
 {% chartExampleRunner title="Line Series Error Bars" name="single" type="generated" options="{ \"enterprise\": true }" /%}
 
-Error Bars can be enabled on Line and Bar Series using the `errorBars` key.
+Error Bars can be enabled on supported series types using the `errorBars` key.
 
-The required `yLowerKey` and `yUpperKey` defines the keys used to retrieve the
-error values from the data.
+Line and Bar only support Error Bars on the Y axis.
+
+The required `yLowerKey` and `yUpperKey` properties defines the keys used to
+retrieve the error values from the data.
 
 ```js
 data: [
@@ -40,10 +42,10 @@ series: [
 
 {% chartExampleRunner title="Scatter Series Error Bars" name="double" type="generated" options="{ \"enterprise\": true }" /%}
 
-Error Bars can be enabled on Scatter Series using the `errorBars` key.
+Scatter plots support error bars on the X axis, the Y axis, or both axes.
 
-The required properties `xLowerKey`, `xUpperKey`, `yLowerKey` and `yUpperKey`
-define the keys used to retrieve the X and Y error values from the data.
+The properties `xLowerKey`, `xUpperKey`, `yLowerKey` and `yUpperKey` define the
+keys used to retrieve the X and Y error values from the data.
 
 ```js
 data: [
@@ -75,27 +77,25 @@ series: [
 
 {% chartExampleRunner title="Error Bars Tooltips" name="tooltips-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
 
-[Tooltips](./tooltips) are not shown by default, but error bar parameters are
-provided the `renderer` for customization.
+[Tooltips](./tooltips) are not shown by default, but Error Bar parameters are
+provided to the `renderer` for customisation.
 
 ```js
 function verbose_renderer(params) {
     const datum = params.datum;
     return {
-        title: `${datum[params.xKey]}m³ / ${datum[params.yKey]}kPa`,
         content:
             '<ul>' +
-            `<li>${params.xUpperName}: ${params.xUpperKey ? datum[params.xUpperKey] : undefined}m³</li>` +
-            `<li>${params.xLowerName}: ${params.xLowerKey ? datum[params.xLowerKey] : undefined}m³</li>` +
-            `<li>${params.yUpperName}: ${params.yUpperKey ? datum[params.yUpperKey] : undefined}kPa</li>` +
-            `<li>${params.yLowerName}: ${params.yLowerKey ? datum[params.yLowerKey] : undefined}kPa</li>` +
+            `<li>${params.xUpperName}: ${datum[params.xUpperKey]}m³</li>` +
+            `<li>${params.xLowerName}: ${datum[params.xLowerKey]}m³</li>` +
+            `<li>${params.yUpperName}: ${datum[params.yUpperKey]}kPa</li>` +
+            `<li>${params.yLowerName}: ${datum[params.yLowerKey]}kPa</li>` +
             '</ul>',
     };
 }
 ```
 
-The `renderer` has access to the keys, names, and values for the error data for
-both axes:
+The `renderer` has access to all the key and names for the error data:
 
 -   `xLowerKey`
 -   `xLowerName`
@@ -106,4 +106,18 @@ both axes:
 -   `yUpperKey`
 -   `yUpperName`
 
-The optional names will default to keys if unset.
+The names can be specified as part of the `errorBar` property, but they are
+optional and will default to keys if unset.
+
+```js
+errorBar: {
+    xLowerKey: 'volumeLower',
+    xUpperKey: 'volumeUpper',
+    yLowerKey: 'pressureLower',
+    yUpperKey: 'pressureUpper',
+    xLowerName: 'Volume (lower bound)',
+    xUpperName: 'Volume (upper bound)',
+    /* yLowerName implicitly set to 'pressureLower' */
+    /* yUpperName implicitly set to 'pressureUpper' */
+},
+```

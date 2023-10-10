@@ -4,7 +4,6 @@ import { getData } from './data';
 function verbose_renderer(params: AgScatterSeriesTooltipRendererParams) {
     const datum = params.datum;
     return {
-        title: `${datum[params.xKey]}m³ / ${datum[params.yKey]}kPa`,
         content:
             '<ul>' +
             `<li>${params.xUpperName}: ${params.xUpperKey ? datum[params.xUpperKey] : undefined}m³</li>` +
