@@ -292,7 +292,7 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             expect((chart.series[0] as PieSeries).fills).toEqual(['red', 'green', 'blue']);
-            expect((chart.series[0] as PieSeries).strokes).toEqual(['cyan']);
+            expect((chart.series[0] as PieSeries).strokes).toEqual(['cyan', 'cyan', 'cyan']);
             expect((chart.series[0] as PieSeries).calloutLabel.enabled).toBe(true);
             expect((chart.series[0] as PieSeries).calloutLabel.color).toBe('yellow');
             expect((chart.series[0] as PieSeries).calloutLabel.fontSize).toBe(18);
@@ -467,7 +467,7 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             expect((chart.series[0] as PieSeries).fills).toEqual(['red', 'green', 'blue']);
-            expect((chart.series[0] as PieSeries).strokes).toEqual(['cyan']);
+            expect((chart.series[0] as PieSeries).strokes).toEqual(['cyan', 'cyan', 'cyan']);
             expect((chart.series[0] as PieSeries).calloutLabel.enabled).toBe(true);
             expect((chart.series[0] as PieSeries).calloutLabel.color).toBe('yellow');
             expect((chart.series[0] as PieSeries).calloutLabel.fontSize).toBe(18);

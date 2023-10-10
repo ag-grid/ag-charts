@@ -58,7 +58,6 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: 1,
-        strokes: [DEFAULT_POLAR_SERIES_STROKES],
         lineDash: [0],
         lineDashOffset: 0,
         rotation: 0,
@@ -80,11 +79,11 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
             margin: 2,
         },
     },
-    paletteFactory: ({ takeColors, colorsCount }) => {
+    paletteFactory: ({ takeColors, colorsCount, userPalette }) => {
         const { fills, strokes } = takeColors(colorsCount);
         return {
             fills,
-            strokes,
+            strokes: userPalette ? strokes : [DEFAULT_POLAR_SERIES_STROKES],
             calloutLine: {
                 colors: strokes,
             },

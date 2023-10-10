@@ -356,7 +356,7 @@ export class ChartTheme {
         options = deepMerge({}, options ?? {}) as AgChartThemeOptions;
         const { overrides = null, palette = null } = options;
 
-        const defaults = this.createChartConfigPerChartType(this.getDefaults(palette));
+        const defaults = this.createChartConfigPerChartType(this.getDefaults());
 
         if (overrides) {
             const { common } = overrides;
@@ -409,7 +409,7 @@ export class ChartTheme {
         return config;
     }
 
-    private getDefaults(palette: AgChartThemePalette | null): AgChartThemeOverrides {
+    private getDefaults(): AgChartThemeOverrides {
         let defaults = {};
 
         const getChartTypeDefaults = (chartType: ChartType) => {
@@ -430,10 +430,6 @@ export class ChartTheme {
                 const template = getSeriesThemeTemplate(seriesType);
                 if (template) {
                     result[seriesType].series = deepMerge(result[seriesType].series, template);
-                }
-
-                if (palette && seriesType === 'pie') {
-                    result[seriesType].series = deepMerge(result[seriesType].series, palette);
                 }
 
                 for (const axisType of AXIS_TYPES.axesTypes) {
