@@ -30,9 +30,7 @@ export interface SeriesDataGetDomainEvent extends BaseSeriesEvent<'data-getDomai
     readonly direction: ChartAxisDirection;
 }
 
-export interface SeriesTooltipGetParamsEvent extends BaseSeriesEvent<'tooltip-getParams'> {
-    readonly datum: object;
-}
+export interface SeriesTooltipGetParamsEvent extends BaseSeriesEvent<'tooltip-getParams'> {}
 
 export interface SeriesVisibilityEvent extends BaseSeriesEvent<'visibility-changed'> {
     readonly itemId: any;
