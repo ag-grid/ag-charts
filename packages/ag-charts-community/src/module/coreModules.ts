@@ -1,7 +1,7 @@
 import type { ChartAxis } from '../chart/chartAxis';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgBaseChartThemeOverrides, AgChartOptions } from '../options/agChartOptions';
+import type { AgBaseChartThemeOverrides, AgChartOptions, AgChartThemePalette } from '../options/agChartOptions';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { ModuleContext } from './moduleContext';
 
@@ -25,6 +25,7 @@ export type SeriesPaletteOptions<
 export interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
     colorsCount: number;
+    userPalette: AgChartThemePalette | null;
 }
 
 export type SeriesPaletteFactory<SeriesType extends RequiredSeriesType = RequiredSeriesType> = (

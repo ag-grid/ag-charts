@@ -7,12 +7,15 @@ import {
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_POLAR_SERIES_STROKES,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
+
+const DEFAULT_DARK_BACKGROUND_FILL = '#15181c';
 
 const DEFAULT_DARK_FILLS = {
     BLUE: '#5090dc',
@@ -88,13 +91,14 @@ export class DarkTheme extends ChartTheme {
             DEFAULT_DARK_FILLS.BLUE,
             DEFAULT_DARK_FILLS.ORANGE,
         ]);
+        result.properties.set(DEFAULT_POLAR_SERIES_STROKES, DEFAULT_DARK_BACKGROUND_FILL);
 
         result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
         result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
-        result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
+        result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
-        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, '#15181c');
+        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 
         return result;
     }

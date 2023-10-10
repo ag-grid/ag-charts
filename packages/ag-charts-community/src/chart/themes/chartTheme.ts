@@ -22,6 +22,7 @@ import {
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_POLAR_SERIES_STROKES,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
@@ -40,6 +41,8 @@ import {
     EXTENDS_SERIES_DEFAULTS,
     OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
+
+const DEFAULT_BACKGROUND_FILL = 'white';
 
 const DEFAULT_FILLS = {
     BLUE: '#5090dc',
@@ -457,39 +460,45 @@ export class ChartTheme {
         const themeInstance = jsonMerge([themeTemplate]);
         const { extensions, properties } = this.getTemplateParameters();
 
-        jsonWalk(
-            themeInstance,
-            (_, node) => {
-                if (node['__extends__']) {
-                    const key = node['__extends__'];
-                    const source = extensions.get(key);
-                    if (source == null) {
-                        throw new Error('AG Charts - no template variable provided for: ' + key);
-                    }
-                    Object.keys(source).forEach((key) => {
-                        if (!(key in node)) {
-                            node[key] = source[key];
-                        }
-                    });
-                    delete node['__extends__'];
+        jsonWalk(themeInstance, (_, node) => {
+            if (node['__extends__']) {
+                const key = node['__extends__'];
+                const source = extensions.get(key);
+                if (source == null) {
+                    throw new Error('AG Charts - no template variable provided for: ' + key);
                 }
-                if (node['__overrides__']) {
-                    const key = node['__overrides__'];
-                    const source = extensions.get(key);
-                    if (source == null) {
-                        throw new Error('AG Charts - no template variable provided for: ' + key);
+                Object.keys(source).forEach((key) => {
+                    if (!(key in node)) {
+                        node[key] = source[key];
                     }
-                    Object.assign(node, source);
-                    delete node['__overrides__'];
+                });
+                delete node['__extends__'];
+            }
+            if (node['__overrides__']) {
+                const key = node['__overrides__'];
+                const source = extensions.get(key);
+                if (source == null) {
+                    throw new Error('AG Charts - no template variable provided for: ' + key);
                 }
+                Object.assign(node, source);
+                delete node['__overrides__'];
+            }
+
+            if (Array.isArray(node)) {
+                for (let i = 0; i < node.length; i++) {
+                    const symbol = node[i];
+                    if (properties.has(symbol)) {
+                        node[i] = properties.get(symbol);
+                    }
+                }
+            } else {
                 for (const [name, value] of Object.entries(node)) {
                     if (properties.has(value)) {
                         node[name] = properties.get(value);
                     }
                 }
-            },
-            {}
-        );
+            }
+        });
 
         return themeInstance;
     }
@@ -538,11 +547,12 @@ export class ChartTheme {
         properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
         properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
-        properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, 'white');
-        properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
+        properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
+        properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
         properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [DEFAULT_FILLS.BLUE, DEFAULT_FILLS.ORANGE]);
+        properties.set(DEFAULT_POLAR_SERIES_STROKES, DEFAULT_BACKGROUND_FILL);
         properties.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke

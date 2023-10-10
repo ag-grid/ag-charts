@@ -381,14 +381,15 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
  */
 export function jsonWalk(
     json: any,
-    visit: (classification: Classification, node: any, ...otherNodes: any[]) => void,
-    opts: { skip?: string[] },
+    visit: (classification: RestrictedClassification, node: any, ...otherNodes: any[]) => void,
+    opts?: { skip?: string[] },
     ...jsons: any[]
 ) {
     const jsonType = classify(json);
-    const skip = opts.skip ?? [];
+    const { skip = [] } = opts ?? {};
 
     if (jsonType === 'array') {
+        visit(jsonType, json, ...jsons);
         json.forEach((element: any, index: number) => {
             jsonWalk(element, visit, opts, ...(jsons ?? []).map((o) => o?.[index]));
         });
@@ -415,11 +416,12 @@ export function jsonWalk(
 
 const isBrowser = typeof window !== 'undefined';
 
-type Classification = 'array' | 'object' | 'primitive';
+type Classification = RestrictedClassification | 'function' | 'class-instance';
+type RestrictedClassification = 'array' | 'object' | 'primitive';
 /**
  * Classify the type of value to assist with handling for merge purposes.
  */
-function classify(value: any): 'array' | 'object' | 'function' | 'primitive' | 'class-instance' | null {
+function classify(value: any): Classification | null {
     if (value == null) {
         return null;
     } else if (isBrowser && value instanceof HTMLElement) {
