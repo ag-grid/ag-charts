@@ -100,7 +100,7 @@ export class ChartTheme {
 
     readonly config: any;
 
-    private static getAxisGridlineStyleDefaults() {
+    private static getAxisGridLineStyleDefaults() {
         return [
             {
                 stroke: DEFAULT_AXIS_GRID_COLOUR,
@@ -146,10 +146,10 @@ export class ChartTheme {
                 width: 1,
                 color: 'rgb(195, 195, 195)',
             },
-            gridStyle: ChartTheme.getAxisGridlineStyleDefaults(),
-            gridline: {
+            gridStyle: ChartTheme.getAxisGridLineStyleDefaults(),
+            gridLine: {
                 enabled: true,
-                style: ChartTheme.getAxisGridlineStyleDefaults(),
+                style: ChartTheme.getAxisGridLineStyleDefaults(),
             },
             crossLines: {
                 enabled: false,
@@ -332,8 +332,8 @@ export class ChartTheme {
                 ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
             },
-            gridline: {
-                ...ChartTheme.getAxisDefaults().gridline,
+            gridLine: {
+                ...ChartTheme.getAxisDefaults().gridLine,
                 enabled: false,
             },
         },
@@ -342,8 +342,8 @@ export class ChartTheme {
         },
         time: {
             ...ChartTheme.getAxisDefaults(),
-            gridline: {
-                ...ChartTheme.getAxisDefaults().gridline,
+            gridLine: {
+                ...ChartTheme.getAxisDefaults().gridLine,
                 enabled: false,
             },
         },

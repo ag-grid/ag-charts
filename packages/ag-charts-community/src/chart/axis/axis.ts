@@ -37,7 +37,7 @@ import type { InteractionEvent } from '../interaction/interactionManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
-import { AxisGridline, GRID_STYLE } from './axisGridline';
+import { AxisGridLine, GRID_STYLE } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
@@ -177,7 +177,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     readonly line = new AxisLine();
     readonly tick: AxisTick<S> = this.createTick();
-    readonly gridline = new AxisGridline();
+    readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
     protected defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
@@ -947,7 +947,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         tickLabelGroupSelection.each((n) => this.updateNodeVisibility(n));
 
         this.tickLineGroup.visible = this.tick.enabled;
-        this.gridLineGroup.visible = this.gridline.enabled;
+        this.gridLineGroup.visible = this.gridLine.enabled;
         this.tickLabelGroup.visible = this.label.enabled;
     }
 
@@ -1071,10 +1071,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
-        const { gridStyle, gridline, gridPadding, gridLength } = this;
+        const { gridStyle, gridLine, gridPadding, gridLength } = this;
 
-        const style = gridline.style ?? gridStyle;
-        const width = gridline.width;
+        const style = gridLine.style ?? gridStyle;
+        const width = gridLine.width;
 
         if (gridLength === 0 || style.length === 0) {
             return;

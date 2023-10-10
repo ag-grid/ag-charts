@@ -5,6 +5,15 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
   "autoSize": true,
   "axes": [
     {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "gridStyle": [
         {
           "lineDash": [
@@ -21,15 +30,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
           "stroke": "#162c53",
         },
       ],
-      "gridline": {
-        "enabled": false,
-        "style": [
-          {
-            "lineDash": [],
-            "stroke": "rgb(224,234,241)",
-          },
-        ],
-      },
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -71,13 +71,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "type": "time",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -86,6 +80,12 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -416,13 +416,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -431,6 +425,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -468,13 +468,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -483,6 +477,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "keys": [
         "male",
         "female",
@@ -522,13 +522,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "type": "number",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -537,6 +531,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "keys": [
         "exportedTonnes",
       ],
@@ -881,13 +881,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -896,6 +890,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -933,13 +933,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -948,6 +942,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -1452,13 +1452,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -1467,6 +1461,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -1504,13 +1504,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -1519,6 +1513,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2135,13 +2135,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -2150,6 +2144,12 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2185,13 +2185,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       "type": "number",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -2200,6 +2194,12 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2396,13 +2396,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -2411,6 +2405,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2447,13 +2447,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "type": "time",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -2462,6 +2456,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -2850,13 +2850,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -2865,6 +2859,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -2902,13 +2902,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -2917,6 +2911,12 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -3372,13 +3372,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -3387,6 +3381,12 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -3424,13 +3424,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -3439,6 +3433,12 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -3647,13 +3647,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -3662,6 +3656,12 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -3699,13 +3699,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -3714,6 +3708,12 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -3913,6 +3913,15 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
   "autoSize": true,
   "axes": [
     {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "lineDash": [],
+            "stroke": "rgb(224,234,241)",
+          },
+        ],
+      },
       "gridStyle": [
         {
           "lineDash": [
@@ -3923,15 +3932,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
           "stroke": "rgba(0,0,0,0.2)",
         },
       ],
-      "gridline": {
-        "enabled": false,
-        "style": [
-          {
-            "lineDash": [],
-            "stroke": "rgb(224,234,241)",
-          },
-        ],
-      },
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -3971,8 +3971,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "type": "category",
     },
     {
-      "gridStyle": [],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -3981,6 +3980,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
           },
         ],
       },
+      "gridStyle": [],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -4175,13 +4175,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -4190,6 +4184,12 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -4228,13 +4228,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "type": "number",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -4243,6 +4237,12 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -4439,13 +4439,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -4454,6 +4448,12 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -4491,13 +4491,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -4506,6 +4500,12 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -4768,13 +4768,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -4783,6 +4777,12 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -4820,13 +4820,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -4835,6 +4829,12 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -5103,13 +5103,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -5118,6 +5112,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -5155,13 +5155,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -5170,6 +5164,12 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -5698,13 +5698,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -5713,6 +5707,12 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -5750,13 +5750,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -5765,6 +5759,12 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -6714,13 +6714,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
   "axes": [
     {
       "base": 10,
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -6729,6 +6723,12 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -6765,13 +6765,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "type": "log",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -6780,6 +6774,12 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -6973,13 +6973,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -6988,6 +6982,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -7025,13 +7025,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -7040,6 +7034,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -7635,13 +7635,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -7650,6 +7644,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -7687,13 +7687,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -7702,6 +7696,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -8028,13 +8028,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -8043,6 +8037,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -8080,13 +8080,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -8095,6 +8089,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -8573,13 +8573,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -8588,6 +8582,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -8628,13 +8628,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "type": "time",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -8643,6 +8637,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -9058,13 +9058,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -9073,6 +9067,12 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -9110,13 +9110,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -9125,6 +9119,12 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -9558,13 +9558,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -9573,6 +9567,12 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -9614,13 +9614,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "type": "time",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -9629,6 +9623,12 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -10091,13 +10091,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -10106,6 +10100,12 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -10141,13 +10141,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       "type": "number",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -10156,6 +10150,12 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -10341,13 +10341,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -10356,6 +10350,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -10398,13 +10398,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "type": "time",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -10413,6 +10407,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -10961,13 +10961,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -10976,6 +10970,12 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -11013,13 +11013,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -11028,6 +11022,12 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -11389,13 +11389,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
   "autoSize": true,
   "axes": [
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": false,
         "style": [
           {
@@ -11404,6 +11398,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "groupPaddingInner": 0.1,
       "label": {
         "autoRotate": true,
@@ -11441,13 +11441,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "type": "category",
     },
     {
-      "gridStyle": [
-        {
-          "lineDash": [],
-          "stroke": "rgb(224,234,241)",
-        },
-      ],
-      "gridline": {
+      "gridLine": {
         "enabled": true,
         "style": [
           {
@@ -11456,6 +11450,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
           },
         ],
       },
+      "gridStyle": [
+        {
+          "lineDash": [],
+          "stroke": "rgb(224,234,241)",
+        },
+      ],
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
