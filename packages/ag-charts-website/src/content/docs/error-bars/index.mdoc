@@ -121,3 +121,25 @@ errorBar: {
     /* yUpperName implicitly set to 'pressureUpper' */
 },
 ```
+
+## Customisation
+
+### Styling
+
+{% chartExampleRunner title="Styling Example" name="styling" type="generated" options="{ \"enterprise\": true }" /%}
+
+The Error Bar's can be customised by setting styling options in the `errorBar`
+properties. Styling options in `errorBar` property will apply to both the
+Whiskers and Cap.
+
+Styling options for the Caps can be overriden using the `errorBar.cap` property.
+
+```js
+errorBar: {
+    stroke: 'orange',
+    cap: {
+        /* stroke implicitly set to 'orange' */
+        strokeWidth: 4,
+    },
+},
+```
