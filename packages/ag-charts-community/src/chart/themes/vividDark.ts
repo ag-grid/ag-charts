@@ -9,16 +9,16 @@ import {
 } from './symbols';
 
 const VIVID_DARK_FILLS = {
-    BLUE: '#3f8fea',
-    ORANGE: '#ff9900',
-    GREEN: '#2ea049',
-    CYAN: '#00c2eb',
-    VIOLET: '#9a63d6',
-    YELLOW: '#e4cc00',
-    GRAY: '#888888',
-    MAGENTA: '#c550ac',
-    BROWN: '#925f00',
-    RED: '#f94548',
+    BLUE: '#0083ff',
+    ORANGE: '#ff6600',
+    GREEN: '#00af00',
+    CYAN: '#00ccff',
+    YELLOW: '#f7c700',
+    VIOLET: '#ac26ff',
+    GRAY: '#a7a7b7',
+    MAGENTA: '#e800c5',
+    BROWN: '#b54300',
+    RED: '#ff0000',
 };
 
 const VIVID_DARK_STROKES = {

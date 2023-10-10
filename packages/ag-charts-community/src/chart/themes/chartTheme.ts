@@ -42,16 +42,16 @@ import {
 } from './symbols';
 
 const DEFAULT_FILLS = {
-    BLUE: '#4F81BD',
-    ORANGE: '#F79646',
-    GREEN: '#468A51',
-    CYAN: '#4BACC6',
-    YELLOW: '#CDBC21',
-    VIOLET: '#8460AF',
-    GRAY: '#7B7B7B',
-    MAGENTA: '#A55492',
-    BROWN: '#73572E',
-    RED: '#D3504D',
+    BLUE: '#5090dc',
+    ORANGE: '#ffa03a',
+    GREEN: '#459d55',
+    CYAN: '#34bfe1',
+    YELLOW: '#e1cc00',
+    VIOLET: '#9669cb',
+    GRAY: '#b5b5b5',
+    MAGENTA: '#bd5aa7',
+    BROWN: '#8a6224',
+    RED: '#ef5452',
 };
 
 const DEFAULT_STROKES = {
