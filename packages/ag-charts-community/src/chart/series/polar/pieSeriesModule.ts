@@ -5,6 +5,7 @@ import {
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_POLAR_SERIES_STROKES,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
@@ -56,7 +57,8 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         },
         fillOpacity: 1,
         strokeOpacity: 1,
-        strokeWidth: 0,
+        strokeWidth: 1,
+        strokes: [DEFAULT_POLAR_SERIES_STROKES],
         lineDash: [0],
         lineDashOffset: 0,
         rotation: 0,
