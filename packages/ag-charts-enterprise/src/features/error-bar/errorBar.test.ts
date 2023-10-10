@@ -121,6 +121,12 @@ describe('ErrorBars', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    const getScatterItemCoords = (itemIndex: number): { x: number; y: number } => {
+        const series = chart['series'][0];
+        const item = series['contextNodeData'][0].nodeData[itemIndex];
+        return series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
+    };
+
     const opts = prepareEnterpriseTestOptions({});
 
     it('should render 1 line series as expected', async () => {
@@ -220,10 +226,7 @@ describe('ErrorBars', () => {
         );
         await waitForChartStability(chart);
 
-        const series = chart['series'][0];
-        const item = series['contextNodeData'][0].nodeData[4];
-        const { x, y } = series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
-
+        const { x, y } = getScatterItemCoords(4);
         await hoverAction(x, y)(chart);
         await waitForChartStability(chart);
 
@@ -235,5 +238,36 @@ describe('ErrorBars', () => {
         expect(actualParams['yUpperName']).toBe(expectedParams.yUpperName);
         expect(actualParams['yLowerKey']).toBe(expectedParams.yLowerKey);
         expect(actualParams['yUpperKey']).toBe(expectedParams.yUpperKey);
+    });
+
+    it('should provide keys as default names in tooltip params', async () => {
+        const expectedParams = {
+            xLowerKey: 'volumeLower',
+            xUpperKey: 'volumeUpper',
+            yLowerKey: 'pressureLower',
+            yUpperKey: 'pressureUpper',
+        };
+        let actualParams: any = undefined;
+        function renderer(params: AgScatterSeriesTooltipRendererParams) {
+            actualParams = params;
+            return { content: '' };
+        }
+
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
+            })
+        );
+        await waitForChartStability(chart);
+
+        const { x, y } = getScatterItemCoords(4);
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+
+        expect(actualParams['xLowerName']).toBe(expectedParams.xLowerKey);
+        expect(actualParams['xUpperName']).toBe(expectedParams.xUpperKey);
+        expect(actualParams['yLowerName']).toBe(expectedParams.yLowerKey);
+        expect(actualParams['yUpperName']).toBe(expectedParams.yUpperKey);
     });
 });
