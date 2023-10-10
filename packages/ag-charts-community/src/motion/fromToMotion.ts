@@ -32,6 +32,8 @@ export const FROM_TO_MIXINS: Record<NodeUpdateState, AnimationTiming> = {
     unknown: INITIAL_LOAD,
 };
 
+export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
+
 /**
  * Implements a per-node "to/from" animation, with support for detection of added/moved/removed
  * nodes.
@@ -54,7 +56,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
     toFn: PropFn<N, T, D>,
     extraOpts: Partial<AdditionalAnimationOptions> = {},
     getDatumId?: (node: N, datum: D) => string,
-    diff?: ProcessedOutputDiff
+    diff?: FromToDiff
 ) {
     const { defaultDuration } = animationManager;
 
