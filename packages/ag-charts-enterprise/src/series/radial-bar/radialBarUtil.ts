@@ -1,4 +1,6 @@
-import { _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
+
+const { motion } = _Scene;
 
 const { ChartAxisDirection } = _ModuleSupport;
 
@@ -19,17 +21,59 @@ export function prepareRadialBarSeriesAnimationFunctions(
     if (angleScale && angleScale.domain[0] <= 0 && angleScale.domain[1] >= 0) {
         axisStartAngle = angleScale.convert(0);
     }
-    const fromFn = (_sect: _Scene.Sector, _datum: AnimatableSectorDatum, _status: _Scene.NodeUpdateState) => {
-        return { startAngle: axisStartAngle, endAngle: axisStartAngle };
+
+    const isRemoved = (datum: AnimatableSectorDatum) => !datum;
+
+    const fromFn = (sect: _Scene.Sector, datum: AnimatableSectorDatum, status: _Scene.NodeUpdateState) => {
+        if (status === 'updated' && isRemoved(sect.previousDatum)) {
+            status = 'added';
+        }
+
+        if (status === 'added' && !isRemoved(sect.previousDatum)) {
+            status = 'updated';
+        }
+
+        let startAngle: number;
+        let endAngle: number;
+        let innerRadius: number;
+        let outerRadius: number;
+        if (status === 'removed' || status === 'updated') {
+            startAngle = sect.startAngle;
+            endAngle = sect.endAngle;
+            innerRadius = sect.innerRadius;
+            outerRadius = sect.outerRadius;
+        } else {
+            startAngle = axisStartAngle;
+            endAngle = axisStartAngle;
+            innerRadius = datum.innerRadius;
+            outerRadius = datum.outerRadius;
+        }
+        const mixin = motion.FROM_TO_MIXINS[status];
+        return { startAngle, endAngle, innerRadius, outerRadius, ...mixin };
     };
-    const toFn = (_sect: _Scene.Sector, datum: AnimatableSectorDatum, _status: _Scene.NodeUpdateState) => {
-        return { startAngle: datum.startAngle, endAngle: datum.endAngle };
+    const toFn = (_sect: _Scene.Sector, datum: AnimatableSectorDatum, status: _Scene.NodeUpdateState) => {
+        let startAngle: number;
+        let endAngle: number;
+        let innerRadius: number;
+        let outerRadius: number;
+        if (status === 'removed') {
+            startAngle = axisStartAngle;
+            endAngle = axisStartAngle;
+            innerRadius = datum.innerRadius;
+            outerRadius = datum.outerRadius;
+        } else {
+            startAngle = datum.startAngle;
+            endAngle = datum.endAngle;
+            innerRadius = datum.innerRadius;
+            outerRadius = datum.outerRadius;
+        }
+        return { startAngle, endAngle, innerRadius, outerRadius };
     };
 
     return { toFn, fromFn };
 }
 
-export function resetBarSelectionsFn(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
+export function resetRadialBarSelectionsFn(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
     return {
         centerX: 0,
         centerY: 0,

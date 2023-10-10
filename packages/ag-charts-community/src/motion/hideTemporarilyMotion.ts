@@ -2,8 +2,6 @@ import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 
-export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'moved';
-
 /**
  * Makes a node invisible during the animation cycle.
  *
