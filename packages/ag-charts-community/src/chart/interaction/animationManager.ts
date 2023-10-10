@@ -1,6 +1,7 @@
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
+import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
 import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
@@ -43,11 +44,16 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         immutable = true,
         ...opts
     }: AnimationOptions<T> & AdditionalAnimationOptions) {
-        if (opts.id != null && this.controllers.has(opts.id)) {
-            if (!immutable) {
-                return this.controllers.get(opts.id)!.reset(opts);
+        try {
+            if (opts.id != null && this.controllers.has(opts.id)) {
+                if (!immutable) {
+                    return this.controllers.get(opts.id)!.reset(opts);
+                }
+                this.controllers.get(opts.id)!.stop();
             }
-            this.controllers.get(opts.id)!.stop();
+        } catch (error: unknown) {
+            this.failsafeOnError(error);
+            return;
         }
 
         const id = opts.id ?? Math.random().toString();
@@ -100,7 +106,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.debug('AnimationManager.play()');
 
         for (const controller of this.controllers.values()) {
-            controller.play();
+            try {
+                controller.play();
+            } catch (error: unknown) {
+                this.failsafeOnError(error);
+            }
         }
 
         this.requestAnimation();
@@ -116,7 +126,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.debug('AnimationManager.pause()');
 
         for (const controller of this.controllers.values()) {
-            controller.pause();
+            try {
+                controller.pause();
+            } catch (error: unknown) {
+                this.failsafeOnError(error);
+            }
         }
     }
 
@@ -126,7 +140,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.debug('AnimationManager.stop()');
 
         for (const controller of this.controllers.values()) {
-            controller.stop();
+            try {
+                controller.stop();
+            } catch (error: unknown) {
+                this.failsafeOnError(error, false);
+            }
         }
     }
 
@@ -164,7 +182,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 });
 
                 for (const controller of this.controllers.values()) {
-                    controller.update(deltaTime);
+                    try {
+                        controller.update(deltaTime);
+                    } catch (error: unknown) {
+                        this.failsafeOnError(error);
+                    }
                 }
 
                 this.listeners.dispatch('animation-frame', {
@@ -184,5 +206,12 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.requestId === null) return;
         cancelAnimationFrame(this.requestId);
         this.requestId = null;
+    }
+
+    private failsafeOnError(error: unknown, cancelAnimation = true) {
+        Logger.error('Error during animation, skipping animations', error);
+        if (cancelAnimation) {
+            this.cancelAnimation();
+        }
     }
 }

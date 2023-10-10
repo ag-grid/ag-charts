@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
-import type { AgChartInstance } from 'ag-charts-community';
+import type { AgChartInstance, AgScatterSeriesTooltipRendererParams } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -119,6 +121,12 @@ describe('ErrorBars', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    const getScatterItemCoords = (itemIndex: number): { x: number; y: number } => {
+        const series = chart['series'][0];
+        const item = series['contextNodeData'][0].nodeData[itemIndex];
+        return series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
+    };
+
     const opts = prepareEnterpriseTestOptions({});
 
     it('should render 1 line series as expected', async () => {
@@ -191,5 +199,75 @@ describe('ErrorBars', () => {
     it('should render both scatter axes as expected', async () => {
         chart = AgEnterpriseCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
         await compare();
+    });
+
+    it('should provide tooltip params', async () => {
+        const expectedParams = {
+            xLowerKey: 'volumeLower',
+            xUpperKey: 'volumeUpper',
+            xLowerName: 'volume lower name',
+            xUpperName: 'volume upper name',
+            yLowerKey: 'pressureLower',
+            yUpperKey: 'pressureUpper',
+            yLowerName: 'pressure lower name',
+            yUpperName: 'PRESSURE UPPER NAME',
+        };
+        let actualParams: any = undefined;
+        function renderer(params: AgScatterSeriesTooltipRendererParams) {
+            actualParams = params;
+            return { content: '' };
+        }
+
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
+            })
+        );
+        await waitForChartStability(chart);
+
+        const { x, y } = getScatterItemCoords(4);
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+
+        expect(actualParams['xLowerName']).toBe(expectedParams.xLowerName);
+        expect(actualParams['xUpperName']).toBe(expectedParams.xUpperName);
+        expect(actualParams['xLowerKey']).toBe(expectedParams.xLowerKey);
+        expect(actualParams['xUpperKey']).toBe(expectedParams.xUpperKey);
+        expect(actualParams['yLowerName']).toBe(expectedParams.yLowerName);
+        expect(actualParams['yUpperName']).toBe(expectedParams.yUpperName);
+        expect(actualParams['yLowerKey']).toBe(expectedParams.yLowerKey);
+        expect(actualParams['yUpperKey']).toBe(expectedParams.yUpperKey);
+    });
+
+    it('should provide keys as default names in tooltip params', async () => {
+        const expectedParams = {
+            xLowerKey: 'volumeLower',
+            xUpperKey: 'volumeUpper',
+            yLowerKey: 'pressureLower',
+            yUpperKey: 'pressureUpper',
+        };
+        let actualParams: any = undefined;
+        function renderer(params: AgScatterSeriesTooltipRendererParams) {
+            actualParams = params;
+            return { content: '' };
+        }
+
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
+            })
+        );
+        await waitForChartStability(chart);
+
+        const { x, y } = getScatterItemCoords(4);
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+
+        expect(actualParams['xLowerName']).toBe(expectedParams.xLowerKey);
+        expect(actualParams['xUpperName']).toBe(expectedParams.xUpperKey);
+        expect(actualParams['yLowerName']).toBe(expectedParams.yLowerKey);
+        expect(actualParams['yUpperName']).toBe(expectedParams.yUpperKey);
     });
 });

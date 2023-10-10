@@ -2,22 +2,29 @@ import { AgChartOptions, AgEnterpriseCharts, AgScatterSeriesTooltipRendererParam
 import { getData } from './data';
 
 function verbose_renderer(params: AgScatterSeriesTooltipRendererParams) {
+    const datum = params.datum;
     return {
-        title: `${params.xValue}m³ / ${params.yValue}kPa`,
-        content: '<ul>'+
-            `<li>${params.xUpperName}: ${params.xUpperValue}m³</li>`+
-            `<li>${params.xLowerName}: ${params.xLowerValue}m³</li>`+
-            `<li>${params.yUpperName}: ${params.yUpperValue}kPa</li>`+
-            `<li>${params.yLowerName}: ${params.yLowerValue}kPa</li>`+
+        title: `${datum[params.xKey]}m³ / ${datum[params.yKey]}kPa`,
+        content:
+            '<ul>' +
+            `<li>${params.xUpperName}: ${params.xUpperKey ? datum[params.xUpperKey] : undefined}m³</li>` +
+            `<li>${params.xLowerName}: ${params.xLowerKey ? datum[params.xLowerKey] : undefined}m³</li>` +
+            `<li>${params.yUpperName}: ${params.yUpperKey ? datum[params.yUpperKey] : undefined}kPa</li>` +
+            `<li>${params.yLowerName}: ${params.yLowerKey ? datum[params.yLowerKey] : undefined}kPa</li>` +
             '</ul>',
-    }
+    };
 }
 
 function brief_renderer(params: AgScatterSeriesTooltipRendererParams) {
+    const datum = params.datum;
     return {
         content:
-            `<strong>${params.xKey}:</strong> ${params.xValue} [${params.xLowerValue}, ${params.xUpperValue}] m³<br/>`+
-            `<strong>${params.yKey}:</strong> ${params.yValue} [${params.yLowerValue}, ${params.yUpperValue}] kPa`,
+          `<strong>${params.xKey}:</strong> ${datum[params.xKey]} `+
+            `[${params.xLowerKey ? datum[params.xLowerKey] : undefined},`+
+            ` ${params.xUpperKey ? datum[params.xUpperKey] : undefined}] m³<br/>`+
+            `<strong>${params.yKey}:</strong> ${datum[params.yKey]} `+
+              `[${params.yLowerKey ? datum[params.yLowerKey] : undefined},`+
+              ` ${params.yUpperKey ? datum[params.yUpperKey] : undefined}] kPa`
     }
 }
 

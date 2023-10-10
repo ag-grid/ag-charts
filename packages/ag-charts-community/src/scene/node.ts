@@ -75,7 +75,8 @@ export abstract class Node extends ChangeDetectable {
      */
     readonly id = createId(this);
 
-    protected _datum: any;
+    protected _datum?: any;
+    protected _previousDatum?: any;
 
     /**
      * Some arbitrary data bound to the node.
@@ -83,7 +84,11 @@ export abstract class Node extends ChangeDetectable {
     get datum() {
         return this._datum ?? this._parent?.datum;
     }
+    get previousDatum() {
+        return this._previousDatum;
+    }
     set datum(datum: any) {
+        if (this._datum !== datum) this._previousDatum = this._datum;
         this._datum = datum;
     }
 
