@@ -1,6 +1,6 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
@@ -70,9 +70,9 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside the sectors. */
-    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
+    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
+    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
@@ -146,10 +146,9 @@ export interface AgPieSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export type AgPieSeriesTooltipRendererParams = AgSeriesTooltipRendererParams &
-    AgPieSeriesOptionsKeys &
-    AgPieSeriesOptionsNames;
+export interface AgPieSeriesTooltipRendererParams
+    extends AgSeriesTooltipRendererParams,
+        AgPieSeriesOptionsKeys,
+        AgPieSeriesOptionsNames {}
 
-export type AgPieSeriesLabelFormatterParams<TDatum = any> = AgChartLabelFormatterParams<TDatum> &
-    AgPieSeriesOptionsKeys &
-    AgPieSeriesOptionsNames;
+export type AgPieSeriesLabelFormatterParams = AgPieSeriesOptionsKeys & AgPieSeriesOptionsNames;

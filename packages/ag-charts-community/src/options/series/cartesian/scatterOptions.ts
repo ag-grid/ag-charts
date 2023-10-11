@@ -5,10 +5,16 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
-export type AgScatterSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
-    AgScatterSeriesOptionsKeys &
-    AgScatterSeriesOptionsNames &
-    AgErrorBoundSeriesTooltipRendererParams;
+// export type AgScatterSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
+//     AgScatterSeriesOptionsKeys &
+//     AgScatterSeriesOptionsNames &
+//     AgErrorBoundSeriesTooltipRendererParams;
+
+export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        AgScatterSeriesOptionsKeys,
+        AgScatterSeriesOptionsNames,
+        AgErrorBoundSeriesTooltipRendererParams {}
 
 export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
 

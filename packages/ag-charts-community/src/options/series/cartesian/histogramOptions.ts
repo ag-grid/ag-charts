@@ -5,9 +5,8 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgHistogramSeriesTooltipRendererParams<TDatum> = AgCartesianSeriesTooltipRendererParams<
-    AgHistogramBinDatum<TDatum>
->;
+export interface AgHistogramSeriesTooltipRendererParams<TDatum>
+    extends AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>> {}
 
 export type AgHistogramSeriesLabelFormatterParams = AgHistogramSeriesOptionsKeys & AgHistogramSeriesOptionsNames;
 
