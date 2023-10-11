@@ -1,7 +1,8 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, DataValue, Opacity, PixelSize, TextWrap } from '../../chart/types';
+import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 export interface AgTreemapSeriesLabelOptions extends AgChartLabelOptions {
@@ -30,10 +31,6 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum> {
     seriesId: string;
 }
 
-export interface AgTreemapSeriesLabelFormatterParams<TDatum> {
-    datum: TDatum;
-}
-
 export interface AgTreemapSeriesTileLabelOptions extends AgChartLabelOptions {
     /**
      * Text wrapping strategy for treemap labels.
@@ -52,7 +49,7 @@ export interface AgTreemapSeriesValueLabelOptions<TDatum> {
     /** A name of a datum value. */
     name?: string;
     /** A function to generate a value label from datum. */
-    formatter?: (params: AgTreemapSeriesLabelFormatterParams<TDatum>) => string;
+    formatter?: (params: AgChartLabelFormatterParams<TDatum>) => string;
     /** The label's font and color style. */
     style?: AgChartLabelOptions;
 }
@@ -65,7 +62,7 @@ export interface AgTreemapSeriesLabelsOptions<TDatum> {
     /** The label configuration for the small leaf tiles. */
     small?: AgTreemapSeriesTileLabelOptions;
     /** A function to generate a label/title for the cell. */
-    formatter?: (params: AgTreemapSeriesLabelFormatterParams<TDatum>) => string;
+    formatter?: (params: AgChartLabelFormatterParams<TDatum>) => string;
     /** The configuration for the cell value label. */
     value?: AgTreemapSeriesValueLabelOptions<TDatum>;
 }
@@ -113,7 +110,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any> extends AgBaseSer
      * Default: `0`
      */
     nodeGap?: PixelSize;
-    /** Whether or not to use gradients for treemap tiles. */
+    /** Whether to use gradients for treemap tiles. */
     gradient?: boolean;
     /** Configuration for the shadow used behind the treemap tiles. */
     tileShadow?: AgDropShadowOptions;
@@ -164,7 +161,7 @@ export interface AgTreemapSeriesFormatterParams<DataValue = any> {
     readonly strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the treemap tile. */
     readonly strokeWidth?: PixelSize;
-    /** Whether or not the gradients are used for treemap tiles. */
+    /** Whether the gradients are used for treemap tiles. */
     readonly gradient?: boolean;
     /** `true` if the tile is highlighted by hovering */
     readonly highlighted: boolean;
@@ -173,17 +170,7 @@ export interface AgTreemapSeriesFormatterParams<DataValue = any> {
 }
 
 /** The formatted style of a treemap tile */
-export interface AgTreemapSeriesFormat {
-    /** The colour of the fill for the treemap tile. */
-    readonly fill?: CssColor;
-    /** The opacity of the fill for the treemap tile. */
-    readonly fillOpacity?: Opacity;
-    /** The colour of the stroke for the treemap tile. */
-    readonly stroke?: CssColor;
-    /** The opacity of the stroke for the treemap tile. */
-    readonly strokeOpacity?: Opacity;
-    /** The width in pixels of the stroke for the treemap tile. */
-    readonly strokeWidth?: PixelSize;
-    /** Whether or not the gradient is used for the treemap tile. */
+export interface AgTreemapSeriesFormat extends FillOptions, StrokeOptions {
+    /** Whether the gradient is used for the treemap tile. */
     readonly gradient?: boolean;
 }

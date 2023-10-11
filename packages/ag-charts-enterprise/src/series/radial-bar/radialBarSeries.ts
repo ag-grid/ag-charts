@@ -1,8 +1,8 @@
 import type {
-    AgRadialColumnSeriesFormat,
-    AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
+    AgRadialSeriesFormat,
+    AgRadialSeriesFormatterParams,
+    AgRadialSeriesLabelFormatterParams,
+    AgRadialSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
@@ -71,11 +71,13 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum, _Scene.Sector> {
     static className = 'RadialBarSeries';
 
-    readonly label = new _Scene.Label();
+    protected override readonly NodeClickEvent = RadialBarSeriesNodeClickEvent;
+
+    readonly label = new _Scene.Label<AgRadialSeriesLabelFormatterParams>();
 
     protected nodeData: RadialBarNodeDatum[] = [];
 
-    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialSeriesTooltipRendererParams>();
 
     @Validate(STRING)
     angleKey = '';
@@ -108,7 +110,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     lineDashOffset: number = 0;
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesFormatterParams<any>) => AgRadialColumnSeriesFormat = undefined;
+    formatter?: (params: AgRadialSeriesFormatterParams<any>) => AgRadialSeriesFormat = undefined;
 
     @Validate(NUMBER(-360, 360))
     rotation = 0;
@@ -280,7 +282,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         ): RadialBarLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ defaultValue: angleDatum, datum, seriesId });
+                labelText = label.formatter({
+                    value: angleDatum,
+                    datum,
+                    seriesId,
+                    angleKey,
+                    radiusKey,
+                    angleName: this.angleName,
+                    radiusName: this.radiusName,
+                });
             } else if (typeof angleDatum === 'number' && isFinite(angleDatum)) {
                 labelText = angleDatum.toFixed(2);
             } else if (angleDatum) {
@@ -317,14 +327,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const innerRadius = dataRadius + groupScale.convert(String(groupIndex));
             const outerRadius = innerRadius + barWidth;
             const midRadius = (innerRadius + outerRadius) / 2;
-
             const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
-            const cos = Math.cos(midAngle);
-            const sin = Math.sin(midAngle);
-
-            const x = cos * midRadius;
-            const y = sin * midRadius;
-
+            const x = Math.cos(midAngle) * midRadius;
+            const y = Math.sin(midAngle) * midRadius;
             const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, angleDatum, x, y) : undefined;
 
             return {
@@ -436,14 +441,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected override animateEmptyUpdateReady() {
         const { labelSelection } = this;
 
-        const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(
-            `${this.id}_empty-update-ready`,
-            this.ctx.animationManager,
-            [this.itemSelection],
-            fromFn,
-            toFn
-        );
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
@@ -460,14 +459,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             return;
         }
 
-        const { toFn, fromFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
             [itemSelection],
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => String(datum.radiusValue),
             diff
         );
@@ -479,24 +476,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const { itemSelection } = this;
         const { animationManager } = this.ctx;
 
-        const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], toFn, fromFn, {});
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
 
         seriesLabelFadeOutAnimation(this, animationManager, [this.labelSelection]);
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialBarSeriesNodeClickEvent<'nodeClick'> {
-        return new RadialBarSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialBarSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RadialBarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {
@@ -528,38 +511,22 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const title = sanitizeHtml(angleName);
         const content = sanitizeHtml(`${radiusString}: ${angleString}`);
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: fill,
-            content,
-        };
-        const { callbackCache } = this.ctx;
+        const { fill: color } = (formatter &&
+            this.ctx.callbackCache.call(formatter, {
+                datum,
+                fill,
+                stroke,
+                strokeWidth,
+                highlighted: false,
+                angleKey,
+                radiusKey,
+                seriesId,
+            })) ?? { fill };
 
-        const format = formatter
-            ? callbackCache.call(formatter, {
-                  datum,
-                  fill,
-                  stroke,
-                  strokeWidth,
-                  highlighted: false,
-                  angleKey,
-                  radiusKey,
-                  seriesId,
-              })
-            : undefined;
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            angleKey,
-            angleName,
-            angleValue,
-            radiusKey,
-            radiusName,
-            radiusValue,
-            color: format?.fill ?? fill,
-            title,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, backgroundColor: fill, content },
+            { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

@@ -35,8 +35,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     protected override animateEmptyUpdateReady(): void {
         const { animationManager } = this.ctx;
 
-        const { fromFn, toFn } = prepareRadialColumnAnimationFunctions(this.getAxisInnerRadius());
-        motion.fromToMotion(`${this.id}_empty-update-ready`, animationManager, [this.itemSelection], fromFn, toFn);
+        const fns = prepareRadialColumnAnimationFunctions(this.getAxisInnerRadius());
+        motion.fromToMotion(`${this.id}_empty-update-ready`, animationManager, [this.itemSelection], fns);
 
         seriesLabelFadeInAnimation(this, animationManager, [this.labelSelection]);
     }

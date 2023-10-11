@@ -365,11 +365,12 @@ describe('json module', () => {
 
             const cb = jest.fn();
             jsonWalk(walked1, cb, {}, walked2);
+            expect(cb).toHaveBeenCalledWith('array', walked1, walked2);
             expect(cb).toHaveBeenCalledWith('object', walked1[0], walked2[0]);
             expect(cb).toHaveBeenCalledWith('object', walked1[1], walked2[1]);
             expect(cb).toHaveBeenCalledWith('object', walked1[2], walked2[2]);
             expect(cb).toHaveBeenCalledWith('object', walked1[3], undefined);
-            expect(cb).toHaveBeenCalledTimes(4);
+            expect(cb).toHaveBeenCalledTimes(5);
         });
 
         it('should visit every node of an array property', () => {
@@ -379,11 +380,12 @@ describe('json module', () => {
             const cb = jest.fn();
             jsonWalk(walked1, cb, {}, walked2);
             expect(cb).toHaveBeenCalledWith('object', walked1, walked2);
+            expect(cb).toHaveBeenCalledWith('array', walked1.prop1, walked2.prop1);
             expect(cb).toHaveBeenCalledWith('object', walked1.prop1[0], walked2.prop1[0]);
             expect(cb).toHaveBeenCalledWith('object', walked1.prop1[1], walked2.prop1[1]);
             expect(cb).toHaveBeenCalledWith('object', walked1.prop1[2], walked2.prop1[2]);
             expect(cb).toHaveBeenCalledWith('object', walked1.prop1[3], undefined);
-            expect(cb).toHaveBeenCalledTimes(5);
+            expect(cb).toHaveBeenCalledTimes(6);
         });
 
         it('should skip specified properties', () => {

@@ -1,5 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
+    AgAreaSeriesLabelFormatterParams,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
@@ -39,7 +40,7 @@ import {
     areaResetMarkersAndPaths,
 } from './areaUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
@@ -90,7 +91,7 @@ export class AreaSeries extends CartesianSeries<
 
     readonly marker = new CartesianSeriesMarker();
 
-    readonly label = new Label();
+    readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
 
     @Validate(COLOR_STRING)
     fill: string = '#c16068';
@@ -349,16 +350,18 @@ export class AreaSeries extends CartesianSeries<
 
                 // label data
                 if (validPoint && label) {
-                    let labelText;
+                    let labelText = isNumber(yRawDatum) ? yRawDatum.toFixed(2) : String(yRawDatum);
                     if (label.formatter) {
                         labelText =
                             callbackCache.call(label.formatter, {
-                                defaultValue: yRawDatum,
+                                value: yRawDatum,
                                 datum: seriesDatum,
                                 seriesId,
-                            }) ?? '';
-                    } else {
-                        labelText = isNumber(yRawDatum) ? Number(yRawDatum).toFixed(2) : String(yRawDatum);
+                                xKey,
+                                yKey,
+                                xName: this.xName,
+                                yName: this.yName,
+                            }) ?? labelText;
                     }
 
                     labelData.push({
@@ -541,20 +544,6 @@ export class AreaSeries extends CartesianSeries<
                 text.visible = false;
             }
         });
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: MarkerSelectionDatum
-    ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: MarkerSelectionDatum
-    ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: MarkerSelectionDatum): string {

@@ -2,9 +2,9 @@ import type {
     AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
     AgPieSeriesTooltipRendererParams,
+    AgRadarSeriesLabelFormatterParams,
     AgRadarSeriesMarkerFormat,
     AgRadarSeriesMarkerFormatterParams,
-    AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -69,8 +69,10 @@ export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {
     static className = 'RadarSeries';
 
+    protected override readonly NodeClickEvent = RadarSeriesNodeClickEvent;
+
     readonly marker = new RadarSeriesMarker();
-    readonly label = new _Scene.Label();
+    readonly label = new _Scene.Label<AgRadarSeriesLabelFormatterParams>();
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
 
@@ -227,9 +229,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index;
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        const { label, marker, id: seriesId } = this;
-        const { size: markerSize } = this.marker;
-
         const nodeData = processedData.data.map((group): RadarNodeDatum => {
             const { datum, values } = group;
 
@@ -246,22 +245,28 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const y = sin * radius;
 
             let labelNodeDatum: RadarNodeDatum['label'];
-            if (label.enabled) {
+            if (this.label.enabled) {
                 let labelText = '';
-                if (label.formatter) {
-                    labelText = label.formatter({ defaultValue: radiusDatum, datum, seriesId });
+                if (this.label.formatter) {
+                    labelText = this.label.formatter({
+                        seriesId: this.id,
+                        value: radiusDatum,
+                        datum,
+                        angleKey,
+                        radiusKey,
+                        angleName: this.angleName,
+                        radiusName: this.radiusName,
+                    });
                 } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
                     labelText = radiusDatum.toFixed(2);
                 } else if (radiusDatum) {
                     labelText = String(radiusDatum);
                 }
                 if (labelText) {
-                    const labelX = x + cos * marker.size;
-                    const labelY = y + sin * marker.size;
                     labelNodeDatum = {
+                        x: x + cos * this.marker.size,
+                        y: y + sin * this.marker.size,
                         text: labelText,
-                        x: labelX,
-                        y: labelY,
                         textAlign: isNumberEqual(cos, 0) ? 'center' : cos > 0 ? 'left' : 'right',
                         textBaseline: isNumberEqual(sin, 0) ? 'middle' : sin > 0 ? 'top' : 'bottom',
                     };
@@ -271,7 +276,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             return {
                 series: this,
                 datum,
-                point: { x, y, size: markerSize },
+                point: { x, y, size: this.marker.size },
                 midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
@@ -382,20 +387,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RadarNodeDatum
-    ): RadarSeriesNodeClickEvent<'nodeClick'> {
-        return new RadarSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RadarNodeDatum
-    ): RadarSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RadarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     getTooltipHtml(nodeDatum: RadarNodeDatum): string {
         const { angleKey, radiusKey } = this;
 
@@ -413,9 +404,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
 
-        let format: AgRadarSeriesMarkerFormat | undefined;
-        if (markerFormatter) {
-            format = markerFormatter({
+        const { fill: color } = (markerFormatter &&
+            this.ctx.callbackCache.call(markerFormatter, {
                 datum,
                 angleKey,
                 radiusKey,
@@ -425,29 +415,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 size,
                 highlighted: false,
                 seriesId,
-            });
-        }
+            })) ?? { fill };
 
-        const color = format?.fill ?? fill;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            angleKey,
-            angleValue,
-            angleName,
-            radiusKey,
-            radiusValue,
-            radiusName,
-            title,
-            color,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            { datum, angleKey, angleName, radiusKey, radiusName, title, color, seriesId }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

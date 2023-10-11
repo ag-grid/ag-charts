@@ -31,4 +31,5 @@ export const DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE = Symbol(
     'default-waterfall-series-connector-line-stroke'
 ) as unknown as string;
 
+export const DEFAULT_POLAR_SERIES_STROKE = Symbol('default-polar-series-stroke') as unknown as string;
 export const DEFAULT_HEATMAP_SERIES_COLOUR_RANGE = Symbol('default-heatmap-series-colour-range') as unknown as string;

@@ -17,16 +17,22 @@ export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type PolarAnimationEvent = 'update' | 'updateData' | 'clear';
 export type PolarAnimationData = { duration?: number };
 
-export abstract class PolarSeries<S extends SeriesNodeDatum, TNode extends Node> extends DataModelSeries<S> {
+export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends Node> extends DataModelSeries<TDatum> {
     protected sectorGroup = this.contentGroup.appendChild(new Group());
 
-    protected itemSelection: Selection<TNode, S> = Selection.select(this.sectorGroup, () => this.nodeFactory(), false);
-    protected labelSelection: Selection<Text, S> = Selection.select(this.labelGroup, Text, false);
-    protected highlightSelection: Selection<TNode, S> = Selection.select(this.highlightGroup, () => this.nodeFactory());
+    protected itemSelection: Selection<TNode, TDatum> = Selection.select(
+        this.sectorGroup,
+        () => this.nodeFactory(),
+        false
+    );
+    protected labelSelection: Selection<Text, TDatum> = Selection.select(this.labelGroup, Text, false);
+    protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightGroup, () =>
+        this.nodeFactory()
+    );
 
     animationResetFns?: {
-        item?: (node: TNode, datum: S) => AnimationValue & Partial<TNode>;
-        label?: (node: Text, datum: S) => AnimationValue & Partial<Text>;
+        item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
+        label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
     };
 
     /**
@@ -59,8 +65,8 @@ export abstract class PolarSeries<S extends SeriesNodeDatum, TNode extends Node>
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;
         animationResetFns?: {
-            item?: (node: TNode, datum: S) => AnimationValue & Partial<TNode>;
-            label?: (node: Text, datum: S) => AnimationValue & Partial<Text>;
+            item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
+            label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
         };
     }) {
         super({

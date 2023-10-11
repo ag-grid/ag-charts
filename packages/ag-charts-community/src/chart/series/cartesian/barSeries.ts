@@ -2,9 +2,8 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type {
     AgBarSeriesFormatterParams,
+    AgBarSeriesLabelFormatterParams,
     AgBarSeriesLabelPlacement,
-    AgBarSeriesOptionsKeys,
-    AgBarSeriesOptionsNames,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -56,7 +55,7 @@ import {
     updateRect,
 } from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
+import { CartesianSeries } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabel } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
@@ -90,7 +89,7 @@ enum BarSeriesNodeTag {
     Label,
 }
 
-class BarSeriesLabel extends Label<AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames> {
+class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
     @Validate(STRING_UNION('inside', 'outside'))
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
@@ -267,20 +266,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         }
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: BarNodeDatum
-    ): CartesianSeriesNodeClickEvent<BarNodeDatum, BarSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: BarNodeDatum
-    ): CartesianSeriesNodeClickEvent<BarNodeDatum, BarSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     private getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
@@ -433,7 +418,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return [context];
     }
 
-    protected getLabelText(datum: unknown, defaultValue: any): string {
+    protected getLabelText(datum: unknown, value: any): string {
         const { id: seriesId, ctx, label, xKey, yKey, xName, yName } = this;
 
         if (!xKey || !yKey) {
@@ -445,7 +430,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             labelText = ctx.callbackCache.call(label.formatter, {
                 seriesId,
                 datum,
-                defaultValue,
+                value,
                 xKey,
                 yKey,
                 xName,
@@ -453,7 +438,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             });
         }
 
-        return labelText ?? (isNumber(defaultValue) ? defaultValue.toFixed(2) : '');
+        return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
     }
 
     protected nodeFactory() {
@@ -645,11 +630,9 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
 
-        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
+        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
@@ -666,16 +649,12 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             return;
         }
 
-        const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
         fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
             datumSelections,
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => String(datum.xValue),
             diff
         );

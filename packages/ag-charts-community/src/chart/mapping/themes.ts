@@ -74,10 +74,7 @@ export function getChartTheme(value?: string | ChartTheme | AgChartTheme): Chart
         ...(palette ? { palette } : {}),
     };
 
-    if (flattenedTheme.baseTheme || flattenedTheme.overrides) {
-        const baseTheme: any = getChartTheme(flattenedTheme.baseTheme);
-        return new baseTheme.constructor(flattenedTheme);
-    }
+    const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();
 
-    return lightTheme();
+    return new baseTheme.constructor(flattenedTheme);
 }

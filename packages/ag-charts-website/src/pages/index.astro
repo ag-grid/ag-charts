@@ -2,10 +2,11 @@
 import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
-import { Icon, IconName } from '@components/icon/Icon';
+import { Icon } from '@components/icon/Icon';
+import type { GalleryData } from '@ag-grid-types';
 import Code from '@components/Code';
-import type { GalleryData, GalleryExampleChartType } from '@ag-grid-types';
 import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
+import { HomepageSeriesSelector } from '@features/homepage/components/HomepageSeriesSelector';
 import { pathJoin } from '@utils/pathJoin';
 import { SITE_BASE_URL } from '@constants';
 import { getCacheBustingUrl, getChartScriptPath, getChartEnterpriseScriptPath } from '@utils/pages';
@@ -52,7 +53,7 @@ agCharts.AgChart.create(options);`;
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
-const { series } = galleryData;
+const defaultExampleName = galleryData.homepage[0].seriesExampleName;
 
 const heroInternalFramework = 'vanilla';
 const heroDocsPageName = 'homepage';
@@ -98,32 +99,7 @@ const isEnterprise = true;
     <div class="homepageSeries">
         <div class="seriesInner page-margin">
             <h2 class="font-size-gargantuan text-secondary">More series than you can shake a stick at...</h2>
-
-            <div class="seriesChart">
-                <div class="dummy">
-                    <!-- <span>Series example chart</span> -->
-                    <HomepageExampleRunner
-                        internalFramework={heroInternalFramework}
-                        pageName={'homepage'}
-                        exampleName={'simple-bar'}
-                    />
-                </div>
-            </div>
-
-            <div class="seriesList">
-                <ul class="list-style-none">
-                    {
-                        series.map((series: GalleryExampleChartType) => (
-                            <li>
-                                <button class="button-secondary">
-                                    <Icon client:only name={series.icon as IconName} />
-                                    <span>{series.title}</span>
-                                </button>
-                            </li>
-                        ))
-                    }
-                </ul>
-            </div>
+            <HomepageSeriesSelector client:load defaultExampleName={defaultExampleName} galleryData={galleryData} />
         </div>
     </div>
 
@@ -357,30 +333,6 @@ const isEnterprise = true;
             margin-bottom: $size-6 !important;
             text-align: center;
             opacity: 0.6;
-        }
-    }
-
-    .seriesChart {
-        width: 50%;
-        padding-right: $size-7;
-    }
-
-    .dummy {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        aspect-ratio: 4 / 3;
-        border-radius: var(--border-radius);
-        background-color: var(--border-color);
-    }
-
-    .seriesList {
-        width: 50%;
-
-        ul {
-            display: flex;
-            flex-wrap: wrap;
-            gap: $size-2;
         }
     }
 

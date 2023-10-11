@@ -159,7 +159,7 @@ describe('Chart', () => {
                 yHighKey: 'high',
                 label: {
                     enabled: true,
-                    formatter: ({ defaultValue }: AgCartesianSeriesLabelFormatterParams) => `${defaultValue}°C`,
+                    formatter: ({ value }: AgCartesianSeriesLabelFormatterParams) => `${value}°C`,
                 },
             },
         ],

@@ -7,6 +7,7 @@ import {
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
@@ -14,17 +15,19 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+const DEFAULT_DARK_BACKGROUND_FILL = '#15181c';
+
 const DEFAULT_DARK_FILLS = {
-    BLUE: '#4F81BD',
-    ORANGE: '#F79646',
-    GREEN: '#468A51',
-    CYAN: '#4BACC6',
-    YELLOW: '#CDBC21',
-    VIOLET: '#8460AF',
-    GRAY: '#7B7B7B',
-    MAGENTA: '#A55492',
-    BROWN: '#73572E',
-    RED: '#D3504D',
+    BLUE: '#5090dc',
+    ORANGE: '#ffa03a',
+    GREEN: '#459d55',
+    CYAN: '#34bfe1',
+    YELLOW: '#e1cc00',
+    VIOLET: '#9669cb',
+    GRAY: '#b5b5b5',
+    MAGENTA: '#bd5aa7',
+    BROWN: '#8a6224',
+    RED: '#ef5452',
 };
 
 const DEFAULT_DARK_STROKES = {
@@ -67,7 +70,7 @@ export class DarkTheme extends ChartTheme {
         };
     }
 
-    protected override getTemplateParameters() {
+    override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
         result.extensions.set(
@@ -88,13 +91,14 @@ export class DarkTheme extends ChartTheme {
             DEFAULT_DARK_FILLS.BLUE,
             DEFAULT_DARK_FILLS.ORANGE,
         ]);
+        result.properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
         result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
         result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
-        result.properties.set(DEFAULT_BACKGROUND_COLOUR, '#15181c');
+        result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         result.properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'white');
-        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, '#15181c');
+        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 
         return result;
     }

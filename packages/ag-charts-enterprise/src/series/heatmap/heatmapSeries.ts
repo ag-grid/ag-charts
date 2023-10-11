@@ -31,7 +31,7 @@ interface HeatmapNodeDatum extends Required<_ModuleSupport.CartesianSeriesNodeDa
 
 class HeatmapSeriesNodeClickEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.CartesianSeriesNodeClickEvent<HeatmapNodeDatum, HeatmapSeries, TEvent> {
+> extends _ModuleSupport.CartesianSeriesNodeClickEvent<TEvent> {
     readonly colorKey?: string;
 
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: HeatmapNodeDatum, series: HeatmapSeries) {
@@ -44,7 +44,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     static className = 'HeatmapSeries';
     static type = 'heatmap' as const;
 
-    readonly label = new _Scene.Label();
+    protected override readonly NodeClickEvent = HeatmapSeriesNodeClickEvent;
+
+    readonly label = new _Scene.Label<AgHeatmapSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -70,8 +72,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#cb4b3f', '#6acb64'];
 
-    colorScale: _Scale.ColorScale;
-
     @Validate(OPT_COLOR_STRING)
     stroke: string = 'black';
 
@@ -80,6 +80,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat = undefined;
+
+    readonly colorScale = new ColorScale();
 
     readonly tooltip = new _ModuleSupport.SeriesTooltip<AgHeatmapSeriesTooltipRendererParams>();
 
@@ -91,10 +93,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             hasMarkers: false,
             hasHighlightedLabels: true,
         });
-
-        this.label.enabled = false;
-
-        this.colorScale = new ColorScale();
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
@@ -158,20 +156,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         }
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: HeatmapNodeDatum
-    ): HeatmapSeriesNodeClickEvent<'nodeClick'> {
-        return new HeatmapSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: HeatmapNodeDatum
-    ): HeatmapSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new HeatmapSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     async createNodeData() {
         const { data, visible, axes, dataModel } = this;
 
@@ -214,8 +198,23 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
             const fill = colorScaleValid ? colorScale.convert(colorValue) : this.colorRange[0];
 
-            const text = this.getLabelText({ datum, defaultValue: colorValue, colorKey, colorName });
-            const size = _Scene.HdpiCanvas.getTextSize(text, font);
+            let labelText = String(colorValue);
+            if (this.label.formatter) {
+                labelText =
+                    this.ctx.callbackCache.call(this.label.formatter, {
+                        seriesId: this.id,
+                        value: colorValue,
+                        datum,
+                        colorKey,
+                        colorName,
+                        xKey,
+                        yKey,
+                        xName: this.xName,
+                        yName: this.yName,
+                    }) ?? labelText;
+            }
+
+            const size = _Scene.HdpiCanvas.getTextSize(labelText, font);
 
             nodeData.push({
                 series: this,
@@ -230,7 +229,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 width,
                 height,
                 fill,
-                label: { text, ...size },
+                label: { text: labelText, ...size },
                 midPoint: { x, y },
             });
         }
@@ -432,13 +431,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 colorKey,
             }
         );
-    }
-
-    protected getLabelText(params: Omit<AgHeatmapSeriesLabelFormatterParams<any>, 'seriesId'>) {
-        if (this.label.formatter) {
-            return this.ctx.callbackCache.call(this.label.formatter, { seriesId: this.id, ...params }) ?? '';
-        }
-        return String(params.defaultValue);
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {

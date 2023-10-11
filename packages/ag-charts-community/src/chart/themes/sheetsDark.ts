@@ -61,7 +61,7 @@ export class SheetsDark extends DarkTheme {
         };
     }
 
-    protected override getTemplateParameters() {
+    override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
         result.extensions.set(

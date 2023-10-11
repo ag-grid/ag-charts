@@ -142,6 +142,8 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles = undefined;
 
+    protected override readonly NodeClickEvent = BoxPlotSeriesNodeClickEvent;
+
     readonly cap = new BoxPlotSeriesCap();
 
     readonly whisker = new BoxPlotSeriesWhisker();
@@ -359,20 +361,6 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
                 marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth },
             },
         ];
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: BoxPlotNodeDatum
-    ): BoxPlotSeriesNodeClickEvent<'nodeClick'> {
-        return new BoxPlotSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: BoxPlotNodeDatum
-    ): BoxPlotSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new BoxPlotSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: BoxPlotNodeDatum): string {
