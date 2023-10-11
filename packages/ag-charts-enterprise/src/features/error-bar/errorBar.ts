@@ -264,7 +264,7 @@ export class ErrorBars
         }
     }
 
-    private onTooltipGetParams(event: SeriesTooltipGetParamsEvent) {
+    private onTooltipGetParams(_event: SeriesTooltipGetParamsEvent) {
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         let { xLowerName, xUpperName, yLowerName, yUpperName } = this;
         xLowerName ??= xLowerKey;
@@ -272,29 +272,14 @@ export class ErrorBars
         yLowerName ??= yLowerKey;
         yUpperName ??= yUpperKey;
 
-        const datum: { [key: string]: any } = event.datum;
-        const getValue = (key?: string) => {
-            if (key !== undefined && key in datum) {
-                return datum[key];
-            }
-        };
-        const xLowerValue = getValue(xLowerKey);
-        const xUpperValue = getValue(xUpperKey);
-        const yLowerValue = getValue(yLowerKey);
-        const yUpperValue = getValue(yUpperKey);
-
         return {
             xLowerKey,
-            xLowerValue,
             xLowerName,
             xUpperKey,
-            xUpperValue,
             xUpperName,
             yLowerKey,
-            yLowerValue,
             yLowerName,
             yUpperKey,
-            yUpperValue,
             yUpperName,
         };
     }

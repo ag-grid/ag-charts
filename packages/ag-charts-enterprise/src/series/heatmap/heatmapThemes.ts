@@ -2,13 +2,7 @@ import { _Theme } from 'ag-charts-community';
 
 export const HEATMAP_SERIES_THEME = {
     __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
-    title: undefined,
-    xKey: '',
-    yKey: '',
-    xName: '',
-    yName: '',
-    colorKey: '',
-    colorName: '',
+    colorRange: _Theme.DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
     label: {
         enabled: false,
         fontStyle: undefined,

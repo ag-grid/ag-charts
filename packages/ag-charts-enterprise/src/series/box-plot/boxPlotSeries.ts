@@ -456,11 +456,11 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
 
     protected override async updateDatumNodes({
         datumSelection,
-        highlightedItems,
+        // highlightedItems,
         isHighlight: highlighted,
     }: {
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
-        highlightedItems?: BoxPlotNodeDatum[];
+        // highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
         const invertAxes = this.isVertical();
@@ -482,8 +482,8 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             });
 
             // hide duplicates of highlighted nodes
-            boxPlotGroup.opacity =
-                highlighted || !highlightedItems?.some((datum) => datum.itemId === nodeDatum.itemId) ? 1 : 0;
+            // boxPlotGroup.opacity =
+            //     highlighted || !highlightedItems?.some((datum) => datum.itemId === nodeDatum.itemId) ? 1 : 0;
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,

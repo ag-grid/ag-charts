@@ -18,3 +18,18 @@ export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour') as un
 export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour') as unknown as string;
+export const DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS = Symbol(
+    'default-waterfall-series-positive-colors'
+) as unknown as string;
+export const DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS = Symbol(
+    'default-waterfall-series-negative-colors'
+) as unknown as string;
+export const DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS = Symbol(
+    'default-waterfall-series-total-colors'
+) as unknown as string;
+export const DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE = Symbol(
+    'default-waterfall-series-connector-line-stroke'
+) as unknown as string;
+
+export const DEFAULT_POLAR_SERIES_STROKES = Symbol('default-polar-series-strokes') as unknown as string;
+export const DEFAULT_HEATMAP_SERIES_COLOUR_RANGE = Symbol('default-heatmap-series-colour-range') as unknown as string;

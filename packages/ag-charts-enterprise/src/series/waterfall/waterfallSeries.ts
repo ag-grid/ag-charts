@@ -776,10 +776,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
-        );
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
 

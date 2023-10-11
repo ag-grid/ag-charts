@@ -8,7 +8,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
-import { prepareRadialBarSeriesAnimationFunctions, resetBarSelectionsFn } from './radialBarUtil';
+import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 
 const {
     ChartAxisDirection,
@@ -22,12 +22,15 @@ const {
     PolarAxis,
     STRING,
     Validate,
+    diff,
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
     valueProperty,
     fixNumericExtent,
+    resetLabelFn,
     seriesLabelFadeInAnimation,
+    seriesLabelFadeOutAnimation,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -131,7 +134,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             useLabelLayer: true,
             canHaveAxes: true,
             animationResetFns: {
-                item: resetBarSelectionsFn,
+                item: resetRadialBarSelectionsFn,
+                label: resetLabelFn,
             },
         });
     }
@@ -177,6 +181,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
         }
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        if (animationEnabled && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, radiusKey, false, { id: 'radiusValue' }),
@@ -195,6 +204,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             ],
             dataVisible: visible,
         });
+
+        this.animationState.transition('updateData');
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -393,7 +404,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
                   })
                 : undefined;
 
-            node.setProperties(resetBarSelectionsFn(node, node.datum));
             node.fill = format?.fill ?? fill;
             node.fillOpacity = format?.fillOpacity ?? fillOpacity;
             node.stroke = format?.stroke ?? stroke;
@@ -431,15 +441,45 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected override animateEmptyUpdateReady() {
         const { labelSelection } = this;
 
-        const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(
-            `${this.id}_empty-update-ready`,
-            this.ctx.animationManager,
-            [this.itemSelection],
-            fromFn,
-            toFn
-        );
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
+    }
+
+    override animateWaitingUpdateReady() {
+        const { itemSelection, labelSelection } = this;
+        const {
+            processedData,
+            ctx: { animationManager },
+        } = this;
+        const diff = processedData?.reduced?.diff;
+
+        if (!diff?.changed) {
+            this.resetAllAnimation();
+            return;
+        }
+
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(
+            `${this.id}_waiting-update-ready`,
+            animationManager,
+            [itemSelection],
+            fns,
+            (_, datum) => String(datum.radiusValue),
+            diff
+        );
+
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
+    }
+
+    override animateClearingUpdateEmpty() {
+        const { itemSelection } = this;
+        const { animationManager } = this.ctx;
+
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
+
+        seriesLabelFadeOutAnimation(this, animationManager, [this.labelSelection]);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {

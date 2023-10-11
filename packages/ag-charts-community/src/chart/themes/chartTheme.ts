@@ -12,17 +12,23 @@ import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
-import { BOTTOM, NORMAL } from './constants';
+import { BOTTOM, FONT_SIZE, NORMAL } from './constants';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_POLAR_SERIES_STROKES,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
+    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
+    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
     EXTENDS_AXES_DEFAULTS,
     EXTENDS_AXES_LABEL_DEFAULTS,
     EXTENDS_AXES_LINE_DEFAULTS,
@@ -36,31 +42,37 @@ import {
     OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
 
+const DEFAULT_BACKGROUND_FILL = 'white';
+
+const DEFAULT_FILLS = {
+    BLUE: '#5090dc',
+    ORANGE: '#ffa03a',
+    GREEN: '#459d55',
+    CYAN: '#34bfe1',
+    YELLOW: '#e1cc00',
+    VIOLET: '#9669cb',
+    GRAY: '#b5b5b5',
+    MAGENTA: '#bd5aa7',
+    BROWN: '#8a6224',
+    RED: '#ef5452',
+};
+
+const DEFAULT_STROKES = {
+    BLUE: '#2b5c95',
+    ORANGE: '#cc6f10',
+    GREEN: '#1e652e',
+    CYAN: '#18859e',
+    YELLOW: '#a69400',
+    VIOLET: '#603c88',
+    GRAY: '#575757',
+    MAGENTA: '#7d2f6d',
+    BROWN: '#4f3508',
+    RED: '#a82529',
+};
+
 const palette: AgChartThemePalette = {
-    fills: [
-        '#436ff4',
-        '#9a7bff',
-        '#d165d2',
-        '#f0598b',
-        '#f47348',
-        '#f2a602',
-        '#e9e201',
-        '#21b448',
-        '#00b9a2',
-        '#00aee4',
-    ],
-    strokes: [
-        '#132baf',
-        '#623bba',
-        '#8f2291',
-        '#a90352',
-        '#ae3200',
-        '#a55f00',
-        '#8f8500',
-        '#007500',
-        '#007762',
-        '#006fa3',
-    ],
+    fills: Array.from(Object.values(DEFAULT_FILLS)),
+    strokes: Array.from(Object.values(DEFAULT_STROKES)),
 };
 
 type ChartTypeConfig = {
@@ -112,14 +124,14 @@ export class ChartTheme {
                 spacing: 15,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
-                fontSize: 12,
+                fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
             label: {
                 fontStyle: undefined,
                 fontWeight: undefined,
-                fontSize: 12,
+                fontSize: FONT_SIZE.SMALL,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 padding: 5,
                 rotation: undefined,
@@ -151,7 +163,7 @@ export class ChartTheme {
                     enabled: false,
                     fontStyle: undefined,
                     fontWeight: undefined,
-                    fontSize: 12,
+                    fontSize: FONT_SIZE.SMALL,
                     fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 5,
                     color: DEFAULT_LABEL_COLOUR,
@@ -170,8 +182,10 @@ export class ChartTheme {
             showInLegend: true,
             highlightStyle: {
                 item: {
-                    fill: 'yellow',
-                    fillOpacity: 1,
+                    fill: 'white',
+                    fillOpacity: 0.33,
+                    stroke: `rgba(0, 0, 0, 0.4)`,
+                    strokeWidth: 2,
                 },
                 series: {
                     dimOpacity: 1,
@@ -224,7 +238,7 @@ export class ChartTheme {
                 text: 'Title',
                 fontStyle: undefined,
                 fontWeight: NORMAL,
-                fontSize: 16,
+                fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -235,7 +249,7 @@ export class ChartTheme {
                 spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
-                fontSize: 12,
+                fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -246,7 +260,7 @@ export class ChartTheme {
                 spacing: 20,
                 fontStyle: undefined,
                 fontWeight: undefined,
-                fontSize: 12,
+                fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
@@ -263,7 +277,7 @@ export class ChartTheme {
                         color: DEFAULT_LABEL_COLOUR,
                         fontStyle: undefined,
                         fontWeight: undefined,
-                        fontSize: 12,
+                        fontSize: FONT_SIZE.SMALL,
                         fontFamily: DEFAULT_FONT_FAMILY,
                         formatter: undefined,
                     },
@@ -446,41 +460,68 @@ export class ChartTheme {
         const themeInstance = jsonMerge([themeTemplate]);
         const { extensions, properties } = this.getTemplateParameters();
 
-        jsonWalk(
-            themeInstance,
-            (_, node) => {
-                if (node['__extends__']) {
-                    const key = node['__extends__'];
-                    const source = extensions.get(key);
-                    if (source == null) {
-                        throw new Error('AG Charts - no template variable provided for: ' + key);
-                    }
-                    Object.keys(source).forEach((key) => {
-                        if (!(key in node)) {
-                            node[key] = source[key];
-                        }
-                    });
-                    delete node['__extends__'];
+        jsonWalk(themeInstance, (_, node) => {
+            if (node['__extends__']) {
+                const key = node['__extends__'];
+                const source = extensions.get(key);
+                if (source == null) {
+                    throw new Error('AG Charts - no template variable provided for: ' + key);
                 }
-                if (node['__overrides__']) {
-                    const key = node['__overrides__'];
-                    const source = extensions.get(key);
-                    if (source == null) {
-                        throw new Error('AG Charts - no template variable provided for: ' + key);
+                Object.keys(source).forEach((key) => {
+                    if (!(key in node)) {
+                        node[key] = source[key];
                     }
-                    Object.assign(node, source);
-                    delete node['__overrides__'];
+                });
+                delete node['__extends__'];
+            }
+            if (node['__overrides__']) {
+                const key = node['__overrides__'];
+                const source = extensions.get(key);
+                if (source == null) {
+                    throw new Error('AG Charts - no template variable provided for: ' + key);
                 }
+                Object.assign(node, source);
+                delete node['__overrides__'];
+            }
+
+            if (Array.isArray(node)) {
+                for (let i = 0; i < node.length; i++) {
+                    const symbol = node[i];
+                    if (properties.has(symbol)) {
+                        node[i] = properties.get(symbol);
+                    }
+                }
+            } else {
                 for (const [name, value] of Object.entries(node)) {
                     if (properties.has(value)) {
                         node[name] = properties.get(value);
                     }
                 }
-            },
-            {}
-        );
+            }
+        });
 
         return themeInstance;
+    }
+
+    protected static getWaterfallSeriesDefaultPositiveColors() {
+        return {
+            fill: DEFAULT_FILLS.BLUE,
+            stroke: DEFAULT_STROKES.BLUE,
+        };
+    }
+
+    protected static getWaterfallSeriesDefaultNegativeColors() {
+        return {
+            fill: DEFAULT_FILLS.ORANGE,
+            stroke: DEFAULT_STROKES.ORANGE,
+        };
+    }
+
+    protected static getWaterfallSeriesDefaultTotalColors() {
+        return {
+            fill: DEFAULT_FILLS.GRAY,
+            stroke: DEFAULT_STROKES.GRAY,
+        };
     }
 
     protected getTemplateParameters() {
@@ -496,6 +537,9 @@ export class ChartTheme {
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
         extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
+        extensions.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
+        extensions.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
+        extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());
 
         const properties = new Map();
         properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
@@ -503,10 +547,16 @@ export class ChartTheme {
         properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
         properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
-        properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, 'white');
-        properties.set(DEFAULT_BACKGROUND_COLOUR, 'white');
+        properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
+        properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
+        properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [DEFAULT_FILLS.BLUE, DEFAULT_FILLS.ORANGE]);
+        properties.set(DEFAULT_POLAR_SERIES_STROKES, DEFAULT_BACKGROUND_FILL);
+        properties.set(
+            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
+            ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke
+        );
 
         return {
             extensions,

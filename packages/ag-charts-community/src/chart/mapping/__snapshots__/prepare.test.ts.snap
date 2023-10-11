@@ -62,7 +62,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -193,8 +193,10 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -246,8 +248,10 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -299,8 +303,10 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -354,7 +360,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -453,7 +459,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -507,7 +513,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -560,7 +566,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -579,7 +585,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -641,8 +647,10 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -698,8 +706,10 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -753,8 +763,10 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -808,7 +820,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -912,7 +924,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -962,7 +974,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -981,7 +993,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -1071,7 +1083,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#aa4520",
+      "stroke": "#f3622d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Still wine",
@@ -1118,7 +1130,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#b07513",
+      "stroke": "#fba71b",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Sparkling wine",
@@ -1165,7 +1177,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#3d803d",
+      "stroke": "#57b757",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Made-wine",
@@ -1212,7 +1224,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#2d768d",
+      "stroke": "#41a9c9",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Whisky",
@@ -1259,7 +1271,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#2e3e8d",
+      "stroke": "#4258c9",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Potable spirits",
@@ -1306,7 +1318,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#6c2e8c",
+      "stroke": "#9a42c8",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Beer",
@@ -1353,7 +1365,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#8c2d46",
+      "stroke": "#c84164",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Cider",
@@ -1372,7 +1384,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -1483,7 +1495,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -1533,7 +1545,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -1552,7 +1564,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -1610,12 +1622,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
   },
   "series": [
     {
-      "fill": "#436ff4",
+      "fill": "#5090dc",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -1653,7 +1667,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#132baf",
+      "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1666,12 +1680,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Large household appliances",
     },
     {
-      "fill": "#9a7bff",
+      "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -1709,7 +1725,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#623bba",
+      "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1722,12 +1738,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Small household appliances",
     },
     {
-      "fill": "#d165d2",
+      "fill": "#459d55",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -1765,7 +1783,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8f2291",
+      "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1778,12 +1796,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "IT and telecomms equipment",
     },
     {
-      "fill": "#f0598b",
+      "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -1821,7 +1841,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#a90352",
+      "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1834,12 +1854,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Consumer equipment",
     },
     {
-      "fill": "#f47348",
+      "fill": "#e1cc00",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -1877,7 +1899,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#ae3200",
+      "stroke": "#a69400",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1890,12 +1912,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Electrical and electronic tools",
     },
     {
-      "fill": "#f2a602",
+      "fill": "#9669cb",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -1933,7 +1957,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#a55f00",
+      "stroke": "#603c88",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -1946,12 +1970,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Display equipment",
     },
     {
-      "fill": "#e9e201",
+      "fill": "#b5b5b5",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -1989,7 +2015,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8f8500",
+      "stroke": "#575757",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -2002,12 +2028,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "yName": "Cooling appliances containing refrigerants",
     },
     {
-      "fill": "#21b448",
+      "fill": "#bd5aa7",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -2045,7 +2073,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#007500",
+      "stroke": "#7d2f6d",
       "strokeWidth": 0,
       "tooltip": {
         "position": {},
@@ -2062,7 +2090,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -2148,7 +2176,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -2198,7 +2226,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -2217,7 +2245,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -2277,8 +2305,10 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -2297,13 +2327,13 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       },
       "marker": {
         "enabled": true,
-        "fill": "#436ff4",
+        "fill": "#5090dc",
         "fillOpacity": 0.7,
         "formatter": [Function],
         "maxSize": 100,
         "shape": "circle",
         "size": 5,
-        "stroke": "#132baf",
+        "stroke": "#2b5c95",
         "strokeOpacity": 0.7,
         "strokeWidth": 0,
       },
@@ -2334,7 +2364,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -2408,7 +2438,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -2458,7 +2488,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -2476,7 +2506,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -2536,8 +2566,10 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -2589,8 +2621,10 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -2642,8 +2676,10 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -2695,8 +2731,10 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -2750,7 +2788,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -2855,7 +2893,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -2905,7 +2943,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -2924,7 +2962,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -3026,7 +3064,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "showInLegend": true,
       "stroke": "#af5517",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -3083,7 +3121,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "showInLegend": true,
       "stroke": "#4086a4",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -3140,7 +3178,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -3197,7 +3235,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "showInLegend": true,
       "stroke": "#a03e24",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -3254,7 +3292,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "showInLegend": true,
       "stroke": "#b1a235",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -3271,7 +3309,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -3377,7 +3415,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -3427,7 +3465,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -3446,7 +3484,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -3505,12 +3543,14 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
   "series": [
     {
       "direction": "horizontal",
-      "fill": "#436ff4",
+      "fill": "#5090dc",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -3548,7 +3588,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#132baf",
+      "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -3565,7 +3605,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -3650,7 +3690,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -3700,7 +3740,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -3719,7 +3759,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -3783,7 +3823,9 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "highlightStyle": {
         "item": {
           "fill": "#0ab9ff",
-          "fillOpacity": 1,
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -3838,7 +3880,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -3920,7 +3962,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -3969,7 +4011,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -3988,7 +4030,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -4048,8 +4090,10 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -4074,7 +4118,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "maxSize": 30,
         "shape": "circle",
         "size": 0,
-        "stroke": "#132baf",
+        "stroke": "#2b5c95",
         "strokeOpacity": 0.85,
         "strokeWidth": 1,
       },
@@ -4100,7 +4144,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -4175,7 +4219,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -4228,7 +4272,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -4247,7 +4291,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -4307,8 +4351,10 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -4329,13 +4375,13 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "labelName": "City",
       "marker": {
         "enabled": true,
-        "fill": "#436ff4",
+        "fill": "#5090dc",
         "fillOpacity": 0.5,
         "formatter": undefined,
         "maxSize": 100,
         "shape": "circle",
         "size": 5,
-        "stroke": "#132baf",
+        "stroke": "#2b5c95",
         "strokeOpacity": 0.5,
         "strokeWidth": 1,
       },
@@ -4361,7 +4407,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -4436,7 +4482,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -4486,7 +4532,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -4505,7 +4551,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -4667,7 +4713,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -4765,7 +4811,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -4815,7 +4861,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -4834,7 +4880,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -5000,7 +5046,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -5100,7 +5146,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -5150,7 +5196,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -5169,7 +5215,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -5227,7 +5273,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
   },
   "series": [
     {
-      "fill": "#436ff4",
+      "fill": "#5090dc",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5267,7 +5313,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#132baf",
+      "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5280,7 +5326,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "16-24",
     },
     {
-      "fill": "#9a7bff",
+      "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5320,7 +5366,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#623bba",
+      "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5333,7 +5379,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "25-34",
     },
     {
-      "fill": "#d165d2",
+      "fill": "#459d55",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5373,7 +5419,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8f2291",
+      "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5386,7 +5432,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "35-44",
     },
     {
-      "fill": "#f0598b",
+      "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5426,7 +5472,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#a90352",
+      "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5439,7 +5485,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "45-54",
     },
     {
-      "fill": "#f47348",
+      "fill": "#e1cc00",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5479,7 +5525,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#ae3200",
+      "stroke": "#a69400",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5492,7 +5538,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "55-64",
     },
     {
-      "fill": "#f2a602",
+      "fill": "#9669cb",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5532,7 +5578,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#a55f00",
+      "stroke": "#603c88",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5545,7 +5591,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "yKey": "65-74",
     },
     {
-      "fill": "#e9e201",
+      "fill": "#b5b5b5",
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
@@ -5585,7 +5631,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8f8500",
+      "stroke": "#575757",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -5602,7 +5648,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -5695,7 +5741,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -5748,7 +5794,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -5767,7 +5813,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -5904,7 +5950,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#f6d24a",
+      "stroke": "#be2a2c",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6045,7 +6091,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#ce1126",
+      "stroke": "#002d62",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6092,7 +6138,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#fade4b",
+      "stroke": "#1b4e9e",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6139,7 +6185,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#be2a2c",
+      "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6233,7 +6279,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#469c65",
+      "stroke": "#e88532",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6280,7 +6326,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#fed100",
+      "stroke": "#000000",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6327,7 +6373,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#ce1126",
+      "stroke": "#006847",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6374,7 +6420,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#1e5190",
+      "stroke": "#c22b38",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6421,7 +6467,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#bf2b30",
+      "stroke": "#042279",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6581,7 +6627,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -6710,7 +6756,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -6760,7 +6806,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -6779,7 +6825,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -6839,8 +6885,10 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -6864,18 +6912,18 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
-        "fill": "#436ff4",
+        "fill": "#5090dc",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#132baf",
+        "stroke": "#2b5c95",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "exact",
       "showInLegend": true,
-      "stroke": "#132baf",
+      "stroke": "#5090dc",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
@@ -6894,7 +6942,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -6905,7 +6953,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "color": "rgb(70, 70, 70)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 16,
+    "fontSize": 17,
     "fontStyle": undefined,
     "fontWeight": "normal",
     "text": "World Population Over Time",
@@ -6968,7 +7016,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -7019,7 +7067,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -7038,7 +7086,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -7096,7 +7144,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
   },
   "series": [
     {
-      "fill": "#436ff4",
+      "fill": "#5090dc",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7119,12 +7167,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#436ff4",
+        "fill": "#5090dc",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#132baf",
+        "stroke": "#2b5c95",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -7144,9 +7192,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#132baf",
+      "stroke": "#2b5c95",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -7159,7 +7207,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Coal",
     },
     {
-      "fill": "#9a7bff",
+      "fill": "#ffa03a",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7182,12 +7230,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#9a7bff",
+        "fill": "#ffa03a",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#623bba",
+        "stroke": "#cc6f10",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -7207,9 +7255,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#623bba",
+      "stroke": "#cc6f10",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -7222,7 +7270,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Petroleum",
     },
     {
-      "fill": "#d165d2",
+      "fill": "#459d55",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7245,12 +7293,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#d165d2",
+        "fill": "#459d55",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#8f2291",
+        "stroke": "#1e652e",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -7270,9 +7318,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8f2291",
+      "stroke": "#1e652e",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -7285,7 +7333,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Natural gas",
     },
     {
-      "fill": "#f0598b",
+      "fill": "#34bfe1",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7308,12 +7356,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#f0598b",
+        "fill": "#34bfe1",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#a90352",
+        "stroke": "#18859e",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -7333,9 +7381,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#a90352",
+      "stroke": "#18859e",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -7348,7 +7396,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Bioenergy & waste",
     },
     {
-      "fill": "#f47348",
+      "fill": "#e1cc00",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7371,12 +7419,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#f47348",
+        "fill": "#e1cc00",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#ae3200",
+        "stroke": "#a69400",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -7396,9 +7444,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#ae3200",
+      "stroke": "#a69400",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -7411,7 +7459,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Nuclear",
     },
     {
-      "fill": "#f2a602",
+      "fill": "#9669cb",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7434,12 +7482,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#f2a602",
+        "fill": "#9669cb",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#a55f00",
+        "stroke": "#603c88",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -7459,9 +7507,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#a55f00",
+      "stroke": "#603c88",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -7474,7 +7522,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "yName": "Wind, solar & hydro",
     },
     {
-      "fill": "#e9e201",
+      "fill": "#b5b5b5",
       "fillOpacity": 0.8,
       "highlightStyle": {
         "series": {
@@ -7497,12 +7545,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#e9e201",
+        "fill": "#b5b5b5",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#8f8500",
+        "stroke": "#575757",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -7522,9 +7570,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8f8500",
+      "stroke": "#575757",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -7541,7 +7589,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -7630,7 +7678,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -7681,7 +7729,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -7700,7 +7748,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -7921,7 +7969,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -8023,7 +8071,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -8074,7 +8122,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -8093,7 +8141,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -8461,7 +8509,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -8571,7 +8619,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -8621,7 +8669,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -8640,7 +8688,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -8702,8 +8750,10 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -8727,12 +8777,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#436ff4",
+        "fill": "#5090dc",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#132baf",
+        "stroke": "#2b5c95",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -8748,7 +8798,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "showInLegend": true,
       "stroke": "#874349",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -8766,8 +8816,10 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -8791,12 +8843,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#9a7bff",
+        "fill": "#ffa03a",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#623bba",
+        "stroke": "#cc6f10",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -8812,7 +8864,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "showInLegend": true,
       "stroke": "#718661",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -8830,8 +8882,10 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -8855,12 +8909,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#d165d2",
+        "fill": "#459d55",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#8f2291",
+        "stroke": "#1e652e",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -8876,7 +8930,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "showInLegend": true,
       "stroke": "#a48f5f",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -8894,8 +8948,10 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -8919,12 +8975,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
-        "fill": "#f0598b",
+        "fill": "#34bfe1",
         "fillOpacity": 1,
         "formatter": undefined,
         "shape": "circle",
         "size": 7,
-        "stroke": "#a90352",
+        "stroke": "#18859e",
         "strokeOpacity": 1,
         "strokeWidth": 0,
       },
@@ -8940,7 +8996,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "showInLegend": true,
       "stroke": "#5a7088",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -8958,7 +9014,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9045,7 +9101,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -9095,7 +9151,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -9114,7 +9170,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9176,8 +9232,10 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -9215,7 +9273,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#132baf",
+      "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -9232,7 +9290,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9272,7 +9330,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9343,16 +9401,16 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       "calloutLabelKey": "type",
       "calloutLine": {
         "colors": [
-          "#132baf",
-          "#623bba",
-          "#8f2291",
-          "#a90352",
-          "#ae3200",
-          "#a55f00",
-          "#8f8500",
-          "#007500",
-          "#007762",
-          "#006fa3",
+          "#2b5c95",
+          "#cc6f10",
+          "#1e652e",
+          "#18859e",
+          "#a69400",
+          "#603c88",
+          "#575757",
+          "#7d2f6d",
+          "#4f3508",
+          "#a82529",
         ],
         "length": 10,
         "strokeWidth": 2,
@@ -9370,7 +9428,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       ],
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
+          "fill": "white",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
@@ -9434,16 +9492,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
-        "#132baf",
-        "#623bba",
-        "#8f2291",
-        "#a90352",
-        "#ae3200",
-        "#a55f00",
-        "#8f8500",
-        "#007500",
-        "#007762",
-        "#006fa3",
+        "white",
       ],
       "title": {
         "color": "rgb(140, 140, 140)",
@@ -9468,7 +9517,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9547,7 +9596,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -9598,7 +9647,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -9617,7 +9666,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9773,7 +9822,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9826,7 +9875,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -9898,16 +9947,16 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       "calloutLabelKey": "religion",
       "calloutLine": {
         "colors": [
-          "#132baf",
-          "#623bba",
-          "#8f2291",
-          "#a90352",
-          "#ae3200",
-          "#a55f00",
-          "#8f8500",
-          "#007500",
-          "#007762",
-          "#006fa3",
+          "#2b5c95",
+          "#cc6f10",
+          "#1e652e",
+          "#18859e",
+          "#a69400",
+          "#603c88",
+          "#575757",
+          "#7d2f6d",
+          "#4f3508",
+          "#a82529",
         ],
         "length": 10,
         "strokeWidth": 2,
@@ -9925,7 +9974,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       ],
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
+          "fill": "white",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
@@ -9968,16 +10017,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
-        "#132baf",
-        "#623bba",
-        "#8f2291",
-        "#a90352",
-        "#ae3200",
-        "#a55f00",
-        "#8f8500",
-        "#007500",
-        "#007762",
-        "#006fa3",
+        "white",
       ],
       "title": {
         "color": "rgb(140, 140, 140)",
@@ -10001,7 +10041,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -10074,7 +10114,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -10124,7 +10164,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -10143,7 +10183,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -10203,8 +10243,10 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "yellow",
-          "fillOpacity": 1,
+          "fill": "white",
+          "fillOpacity": 0.33,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
@@ -10228,7 +10270,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "formatter": undefined,
         "shape": "circle",
         "size": 12,
-        "stroke": "#132baf",
+        "stroke": "#2b5c95",
         "strokeOpacity": 0,
         "strokeWidth": 1,
       },
@@ -10249,7 +10291,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -10329,7 +10371,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -10379,7 +10421,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "color": "rgb(70, 70, 70)",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -10398,7 +10440,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -10504,7 +10546,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "showInLegend": true,
       "stroke": "#4086a4",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -10566,7 +10608,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "showInLegend": true,
       "stroke": "#b1a235",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -10628,7 +10670,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -10690,7 +10732,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "showInLegend": true,
       "stroke": "#a03e24",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -10752,7 +10794,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "showInLegend": true,
       "stroke": "#af5517",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -10814,7 +10856,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "showInLegend": true,
       "stroke": "#af225a",
       "strokeOpacity": 1,
-      "strokeWidth": 2,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -10832,7 +10874,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -10944,7 +10986,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -10995,7 +11037,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -11014,7 +11056,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -11073,7 +11115,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
   "series": [
     {
       "direction": "horizontal",
-      "fill": "#436ff4",
+      "fill": "#5090dc",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11110,7 +11152,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#132baf",
+      "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -11125,7 +11167,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     },
     {
       "direction": "horizontal",
-      "fill": "#9a7bff",
+      "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11162,7 +11204,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#623bba",
+      "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -11177,7 +11219,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     },
     {
       "direction": "horizontal",
-      "fill": "#d165d2",
+      "fill": "#459d55",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11214,7 +11256,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#8f2291",
+      "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -11229,7 +11271,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     },
     {
       "direction": "horizontal",
-      "fill": "#f0598b",
+      "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlightStyle": {
         "series": {
@@ -11266,7 +11308,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "yOffset": 3,
       },
       "showInLegend": true,
-      "stroke": "#a90352",
+      "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
@@ -11284,7 +11326,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "color": "rgb(140, 140, 140)",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -11309,7 +11351,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "color": "rgb(70, 70, 70)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 16,
+    "fontSize": 17,
     "fontStyle": undefined,
     "fontWeight": "normal",
     "text": "UK Housing Stock",
@@ -11372,7 +11414,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -11422,7 +11464,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
-        "fontSize": 12,
+        "fontSize": 13,
         "fontStyle": undefined,
         "fontWeight": "normal",
         "spacing": 15,
@@ -11441,7 +11483,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
@@ -11758,7 +11800,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "color": "rgb(140, 140, 140)",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
-    "fontSize": 12,
+    "fontSize": 13,
     "fontStyle": undefined,
     "fontWeight": undefined,
     "spacing": 20,
