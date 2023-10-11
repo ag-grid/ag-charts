@@ -13,7 +13,7 @@ interface ErrorBarCapLengthOptions {
     lengthRatio?: Ratio;
 }
 
-interface ErrorBarDataOptions {
+export interface AgErrorBarDataOptions {
     /** The key to use to retrieve lower bound error values from the x axis data. */
     xLowerKey?: string;
     /** Human-readable description of the lower bound error value for the x axis. This is the value to use in tooltips or labels. */
@@ -35,7 +35,7 @@ interface ErrorBarDataOptions {
 
 export interface AgErrorBarCapOptions extends ErrorBarCapLengthOptions, ErrorBarStylingOptions {}
 
-export interface AgErrorBarOptions extends ErrorBarDataOptions, ErrorBarStylingOptions {
+export interface AgErrorBarOptions extends AgErrorBarDataOptions, ErrorBarStylingOptions {
     /** Options to style error bars' caps */
     cap?: AgErrorBarCapOptions;
 }

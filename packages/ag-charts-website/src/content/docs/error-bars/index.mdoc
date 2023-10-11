@@ -101,34 +101,34 @@ function verbose_renderer(params) {
             '</ul>',
     };
 }
+
+const options = {
+    series: [
+        {
+            errorBar:  {
+                xLowerKey: 'volumeLower',
+                xUpperKey: 'volumeUpper',
+                yLowerKey: 'pressureLower',
+                yUpperKey: 'pressureUpper',
+                xLowerName: 'Volume (lower bound)',
+                xUpperName: 'Volume (upper bound)',
+                /* yLowerName implicitly defaults to 'pressureLower' */
+                /* yUpperName implicitly defaults to 'pressureUpper' */
+            },
+            tooltip: { renderer: verbose_renderer },
+        },
+        ...
+    ],
+    ...
+};
 ```
 
 The `renderer` has access to all the key and names for the error data:
 
--   `xLowerKey`
--   `xLowerName`
--   `xUpperKey`
--   `xUpperName`
--   `yLowerKey`
--   `yLowerName`
--   `yUpperKey`
--   `yUpperName`
+{% interfaceDocumentation interfaceName="AgErrorBarDataOptions" config="{\"description\":\"\", \"showSnippets\": false }" /%}
 
-The names can be specified as part of the `errorBar` property, but they are
-optional and will default to keys if unset.
+{% note %}All names are optional and will default to keys if unset.{% /note %}
 
-```js
-errorBar: {
-    xLowerKey: 'volumeLower',
-    xUpperKey: 'volumeUpper',
-    yLowerKey: 'pressureLower',
-    yUpperKey: 'pressureUpper',
-    xLowerName: 'Volume (lower bound)',
-    xUpperName: 'Volume (upper bound)',
-    /* yLowerName implicitly set to 'pressureLower' */
-    /* yUpperName implicitly set to 'pressureUpper' */
-},
-```
 
 ## Customisation
 
