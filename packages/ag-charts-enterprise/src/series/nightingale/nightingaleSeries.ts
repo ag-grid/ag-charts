@@ -2,16 +2,15 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
-import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from '../radial-column/radialColumnUtil';
+import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { seriesLabelFadeInAnimation } = _ModuleSupport;
-const { Sector, motion } = _Scene;
+const { Sector } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static className = 'NightingaleSeries';
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx, { animationResetFns: { item: resetRadialColumnSelectionFn } });
+        super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
     }
 
     protected getStackId() {
@@ -23,21 +22,13 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         return new Sector();
     }
 
-    protected updateItemPath(node: _Scene.Sector, datum: RadialColumnNodeDatum) {
+    protected updateItemPath(node: _Scene.Sector, _datum: RadialColumnNodeDatum) {
         node.centerX = 0;
         node.centerY = 0;
-        node.innerRadius = datum.innerRadius;
-        node.outerRadius = datum.outerRadius;
-        node.startAngle = datum.startAngle;
-        node.endAngle = datum.endAngle;
     }
 
-    protected override animateEmptyUpdateReady(): void {
-        const { animationManager } = this.ctx;
-
-        const fns = prepareRadialColumnAnimationFunctions(this.getAxisInnerRadius());
-        motion.fromToMotion(`${this.id}_empty-update-ready`, animationManager, [this.itemSelection], fns);
-
-        seriesLabelFadeInAnimation(this, animationManager, [this.labelSelection]);
+    protected override getColumnTransitionFunctions() {
+        const axisInnerRadius = this.getAxisInnerRadius();
+        return prepareNightingaleAnimationFunctions(axisInnerRadius);
     }
 }

@@ -3,7 +3,6 @@ import type { RadialColumnShape } from './radialColumnShape';
 
 const { motion } = _Scene;
 
-type SectorLike = _Scene.Sector | RadialColumnShape;
 export type AnimatableRadialColumnDatum = {
     innerRadius: number;
     outerRadius: number;
@@ -13,15 +12,16 @@ export type AnimatableRadialColumnDatum = {
     startAngle: number;
     endAngle: number;
 }
+
 export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
     const isRemoved = (datum: AnimatableRadialColumnDatum) => !datum;
 
-    const fromFn = (sect: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
-        if (status === 'updated' && isRemoved(sect.previousDatum)) {
+    const fromFn = (node: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
+        if (status === 'updated' && isRemoved(node.previousDatum)) {
             status = 'added';
         }
 
-        if (status === 'added' && !isRemoved(sect.previousDatum)) {
+        if (status === 'added' && !isRemoved(node.previousDatum)) {
             status = 'updated';
         }
 
@@ -33,13 +33,13 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
         let startAngle: number;
         let endAngle: number;
         if (status === 'removed' || status === 'updated') {
-            innerRadius = sect.innerRadius;
-            outerRadius = sect.outerRadius;
-            columnWidth = sect.columnWidth;
-            axisInnerRadius = sect.axisInnerRadius;
-            axisOuterRadius = sect.axisOuterRadius;
-            startAngle = sect.startAngle;
-            endAngle = sect.endAngle;
+            innerRadius = node.innerRadius;
+            outerRadius = node.outerRadius;
+            columnWidth = node.columnWidth;
+            axisInnerRadius = node.axisInnerRadius;
+            axisOuterRadius = node.axisOuterRadius;
+            startAngle = node.startAngle;
+            endAngle = node.endAngle;
         } else {
             innerRadius = axisZeroRadius;
             outerRadius = axisZeroRadius;
@@ -53,7 +53,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
         return { innerRadius, outerRadius, columnWidth, axisInnerRadius, axisOuterRadius, startAngle, endAngle, ...mixin };
     };
 
-    const toFn = (sect: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
+    const toFn = (node: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
         let innerRadius: number;
         let outerRadius: number;
         let columnWidth: number;
@@ -64,11 +64,11 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
         if (status === 'removed') {
             innerRadius = axisZeroRadius;
             outerRadius = axisZeroRadius;
-            columnWidth = sect.columnWidth;
-            axisInnerRadius = sect.axisInnerRadius;
-            axisOuterRadius = sect.axisOuterRadius;
-            startAngle = sect.startAngle;
-            endAngle = sect.endAngle;
+            columnWidth = node.columnWidth;
+            axisInnerRadius = node.axisInnerRadius;
+            axisOuterRadius = node.axisOuterRadius;
+            startAngle = node.startAngle;
+            endAngle = node.endAngle;
         } else {
             innerRadius = datum.innerRadius;
             outerRadius = datum.outerRadius;
@@ -85,8 +85,8 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
 }
 
 export function resetRadialColumnSelectionFn(
-    _sect: SectorLike,
-    { innerRadius, outerRadius }: AnimatableRadialColumnDatum
+    _node: RadialColumnShape,
+    { innerRadius, outerRadius, columnWidth, axisInnerRadius, axisOuterRadius, startAngle, endAngle }: AnimatableRadialColumnDatum
 ) {
-    return { innerRadius, outerRadius };
+    return { innerRadius, outerRadius, columnWidth, axisInnerRadius, axisOuterRadius, startAngle, endAngle };
 }
