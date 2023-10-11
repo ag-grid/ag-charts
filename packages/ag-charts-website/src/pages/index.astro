@@ -6,7 +6,7 @@ import { Icon } from '@components/icon/Icon';
 import type { GalleryData } from '@ag-grid-types';
 import Code from '@components/Code';
 import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
-import HomepageSeriesSelector from '@features/homepage/components/HomepageSeriesSelector.astro';
+import { HomepageSeriesSelector } from '@features/homepage/components/HomepageSeriesSelector';
 import { pathJoin } from '@utils/pathJoin';
 import { SITE_BASE_URL } from '@constants';
 import { getCacheBustingUrl, getChartScriptPath, getChartEnterpriseScriptPath } from '@utils/pages';
@@ -53,7 +53,7 @@ agCharts.AgChart.create(options);`;
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
-const { series } = galleryData;
+const defaultExampleName = galleryData.homepage[0].seriesExampleName;
 
 const heroInternalFramework = 'vanilla';
 const heroDocsPageName = 'homepage';
@@ -99,7 +99,7 @@ const isEnterprise = true;
     <div class="homepageSeries">
         <div class="seriesInner page-margin">
             <h2 class="font-size-gargantuan text-secondary">More series than you can shake a stick at...</h2>
-            <HomepageSeriesSelector seriesData={series} />
+            <HomepageSeriesSelector client:load defaultExampleName={defaultExampleName} galleryData={galleryData} />
         </div>
     </div>
 
