@@ -11,6 +11,7 @@ import { Logger } from '../../util/logger';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
+import type { ChartTheme } from '../themes/chartTheme';
 import { swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
@@ -40,6 +41,7 @@ interface PreparationContext {
     colourIndex: number;
     palette: AgChartThemePalette;
     userPalette: AgChartThemePalette | null;
+    theme: ChartTheme;
 }
 
 export const noDataCloneMergeOptions: JsonMergeOptions = {
@@ -188,7 +190,7 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
 function prepareMainOptions<T extends AgChartOptions>(defaultOverrides: T, options: T) {
     const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette } = prepareTheme(options);
 
-    const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette };
+    const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
 
     defaultOverrides = theme.templateTheme(defaultOverrides);
     const mergedOptions: T = jsonMerge([defaultOverrides, cleanedTheme, options], noDataCloneMergeOptions);
@@ -234,11 +236,13 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
     const {
         palette: { fills, strokes },
         userPalette,
+        theme,
     } = context;
 
     const colorsCount = Math.max(fills.length, strokes.length);
     return paletteFactory({
         userPalette,
+        themeTemplateParameters: theme.getTemplateParameters(),
         colorsCount,
         takeColors: (count) => {
             const colors = {
