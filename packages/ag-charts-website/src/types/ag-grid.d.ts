@@ -33,6 +33,9 @@ export interface GalleryExampleChartType {
     enterprise: boolean;
     examples: GalleryExample[];
 }
+export interface GalleryHomepageExample {
+    seriesExampleName: string;
+}
 
 /**
  * Menu types
