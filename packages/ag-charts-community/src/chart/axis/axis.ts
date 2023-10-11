@@ -79,7 +79,7 @@ enum TickGenerationType {
     VALUES,
 }
 
-type TickDatum = {
+export type TickDatum = {
     tickLabel: string;
     tick: any;
     tickId: string;

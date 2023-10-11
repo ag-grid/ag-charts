@@ -32,13 +32,6 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     autoRotateAngle: number = 335;
 }
 
-export type RadiusTickDatum = {
-    tickLabel: string;
-    tick: any;
-    tickId: string;
-    translationY: number;
-};
-
 export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     @Validate(NUMBER(-360, 360))
     @Default(0)
@@ -86,10 +79,10 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         };
     }
 
-    protected abstract prepareTickData(tickData: RadiusTickDatum[]): RadiusTickDatum[];
-    protected abstract getTickRadius(tickDatum: RadiusTickDatum): number;
+    protected abstract prepareTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];
+    protected abstract getTickRadius(tickDatum: _ModuleSupport.TickDatum): number;
 
-    protected override updateSelections(data: RadiusTickDatum[]) {
+    protected override updateSelections(data: _ModuleSupport.TickDatum[]) {
         super.updateSelections(data);
 
         const { gridStyle, tick, shape } = this;

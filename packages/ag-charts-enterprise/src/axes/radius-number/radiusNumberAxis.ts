@@ -1,7 +1,6 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
-import type { RadiusTickDatum } from '../radius/radiusAxis';
 
 const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } = _ModuleSupport;
 const { LinearScale } = _Scale;
@@ -32,7 +31,7 @@ export class RadiusNumberAxis extends RadiusAxis {
         super(moduleCtx, new LinearScale());
     }
 
-    protected prepareTickData(data: RadiusTickDatum[]): RadiusTickDatum[] {
+    protected prepareTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
         const { scale } = this;
         const domainTop = scale.getDomain?.()[1];
         return data
