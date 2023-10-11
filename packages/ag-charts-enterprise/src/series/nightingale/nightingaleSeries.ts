@@ -1,4 +1,4 @@
-import type { _ModuleSupport} from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';

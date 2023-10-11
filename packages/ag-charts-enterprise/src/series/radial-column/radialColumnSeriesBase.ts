@@ -76,11 +76,8 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 }
 
 export abstract class RadialColumnSeriesBase<
-ItemPathType extends _Scene.Sector | RadialColumnShape,
-> extends _ModuleSupport.PolarSeries<
-    RadialColumnNodeDatum,
-    ItemPathType
-> {
+    ItemPathType extends _Scene.Sector | RadialColumnShape,
+> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, ItemPathType> {
     protected override readonly NodeClickEvent = RadialColumnSeriesNodeClickEvent;
 
     readonly label = new _Scene.Label<AgRadialSeriesLabelFormatterParams>();
@@ -484,12 +481,7 @@ ItemPathType extends _Scene.Sector | RadialColumnShape,
         const { labelSelection } = this;
 
         const fns = this.getColumnTransitionFunctions();
-        motion.fromToMotion(
-            `${this.id}_empty-update-ready`,
-            this.ctx.animationManager,
-            [this.itemSelection],
-            fns
-        );
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
