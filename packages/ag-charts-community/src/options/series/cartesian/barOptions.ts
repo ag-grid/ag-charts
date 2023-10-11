@@ -1,6 +1,6 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
+import type { AgErrorBarSeriesOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -68,7 +68,8 @@ export interface AgBarSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
-        AgBarSeriesThemeableOptions<TDatum> {
+        AgBarSeriesThemeableOptions<TDatum>,
+        AgErrorBarSeriesOptions {
     type: 'bar';
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
@@ -80,6 +81,4 @@ export interface AgBarSeriesOptions<TDatum = any>
     normalizedTo?: number;
     /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
     legendItemName?: string;
-    /** Configuration for the series error bars. */
-    errorBar?: AgErrorBarOptions;
 }
