@@ -645,11 +645,9 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
 
-        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
+        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
@@ -666,16 +664,12 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             return;
         }
 
-        const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.getBarDirection(), this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
         fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
             datumSelections,
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => String(datum.xValue),
             diff
         );

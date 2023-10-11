@@ -436,14 +436,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected override animateEmptyUpdateReady() {
         const { labelSelection } = this;
 
-        const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(
-            `${this.id}_empty-update-ready`,
-            this.ctx.animationManager,
-            [this.itemSelection],
-            fromFn,
-            toFn
-        );
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
@@ -460,14 +454,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             return;
         }
 
-        const { toFn, fromFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
             [itemSelection],
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => String(datum.radiusValue),
             diff
         );
@@ -479,8 +471,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const { itemSelection } = this;
         const { animationManager } = this.ctx;
 
-        const { fromFn, toFn } = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], toFn, fromFn, {});
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
 
         seriesLabelFadeOutAnimation(this, animationManager, [this.labelSelection]);
     }

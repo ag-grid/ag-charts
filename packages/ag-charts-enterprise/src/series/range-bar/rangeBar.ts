@@ -718,8 +718,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
-        const { toFn, fromFn } = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
@@ -734,14 +734,12 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             return;
         }
 
-        const { toFn, fromFn } = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
         motion.fromToMotion(
             `${this.id}_empty-update-ready`,
             this.ctx.animationManager,
             datumSelections,
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => String(datum.xValue),
             diff
         );
