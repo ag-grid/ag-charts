@@ -1,7 +1,7 @@
 import { AgChartOptions, AgEnterpriseCharts, AgScatterSeriesTooltipRendererParams } from 'ag-charts-enterprise';
 import { getData } from './data';
 
-function verbose_renderer(params: AgScatterSeriesTooltipRendererParams) {
+function myRenderer(params: AgScatterSeriesTooltipRendererParams) {
     const datum = params.datum;
     return {
         content:
@@ -14,24 +14,11 @@ function verbose_renderer(params: AgScatterSeriesTooltipRendererParams) {
     };
 }
 
-function brief_renderer(params: AgScatterSeriesTooltipRendererParams) {
-    const datum = params.datum;
-    return {
-        content:
-          `<strong>${params.xKey}:</strong> ${datum[params.xKey]} `+
-            `[${params.xLowerKey ? datum[params.xLowerKey] : undefined},`+
-            ` ${params.xUpperKey ? datum[params.xUpperKey] : undefined}] m³<br/>`+
-            `<strong>${params.yKey}:</strong> ${datum[params.yKey]} `+
-              `[${params.yLowerKey ? datum[params.yLowerKey] : undefined},`+
-              ` ${params.yUpperKey ? datum[params.yUpperKey] : undefined}] kPa`
-    }
-}
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Volume-Pressure Relationship with Confidence Intervals',
+        text: 'Hover over markers to view tooltip example',
     },
     series: [
         {
@@ -45,32 +32,12 @@ const options: AgChartOptions = {
                 yUpperKey: 'pressureUpper',
                 xLowerName: 'Volume (lower bound)',
                 xUpperName: 'Volume (upper bound)',
+                /* yLowerName implicitly defaults to 'pressureLower' */
+                /* yUpperName implicitly defaults to 'pressureUpper' */
             },
-            tooltip: { renderer: verbose_renderer },
+            tooltip: { renderer: myRenderer },
         },
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
-
-function defaults() {
-  if (options.series) {
-    options.series[0].tooltip = undefined;
-    AgEnterpriseCharts.update(chart, options);
-  }
-}
-
-
-function verbose() {
-  if (options.series) {
-    options.series[0].tooltip = { renderer: verbose_renderer };
-    AgEnterpriseCharts.update(chart, options);
-  }
-}
-
-function brief() {
-  if (options.series) {
-    options.series[0].tooltip = { renderer: brief_renderer };
-    AgEnterpriseCharts.update(chart, options);
-  }
-}
+AgEnterpriseCharts.create(options);

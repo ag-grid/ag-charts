@@ -80,7 +80,6 @@ Data](./line-series#continuous-data) for more information on how to configure
 this series.
 {% /note %}
 
-
 ## Tooltip Parameters
 
 {% chartExampleRunner title="Error Bars Tooltips" name="tooltips-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
@@ -89,7 +88,7 @@ this series.
 provided to the `renderer` for customisation.
 
 ```js
-function verbose_renderer(params) {
+function myRenderer(params) {
     const datum = params.datum;
     return {
         content:
@@ -115,7 +114,7 @@ const options = {
                 /* yLowerName implicitly defaults to 'pressureLower' */
                 /* yUpperName implicitly defaults to 'pressureUpper' */
             },
-            tooltip: { renderer: verbose_renderer },
+            tooltip: { renderer: myRenderer },
         },
         ...
     ],
@@ -128,7 +127,6 @@ The `renderer` has access to all the key and names for the error data:
 {% interfaceDocumentation interfaceName="AgErrorBarDataOptions" config="{\"description\":\"\", \"showSnippets\": false }" /%}
 
 {% note %}All names are optional and will default to keys if unset.{% /note %}
-
 
 ## Customisation
 
