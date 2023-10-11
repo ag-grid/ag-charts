@@ -61,7 +61,7 @@ export class PolychromaLight extends ChartTheme {
         };
     }
 
-    protected override getTemplateParameters() {
+    override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
         result.extensions.set(

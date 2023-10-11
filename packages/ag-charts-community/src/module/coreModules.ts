@@ -26,6 +26,10 @@ export interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
     colorsCount: number;
     userPalette: AgChartThemePalette | null;
+    themeTemplateParameters: {
+        extensions: Map<string, any>;
+        properties: Map<string, string | string[]>;
+    };
 }
 
 export type SeriesPaletteFactory<SeriesType extends RequiredSeriesType = RequiredSeriesType> = (

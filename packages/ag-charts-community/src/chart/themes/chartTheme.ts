@@ -524,7 +524,7 @@ export class ChartTheme {
         };
     }
 
-    protected getTemplateParameters() {
+    getTemplateParameters() {
         const extensions = new Map();
         extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
         extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
