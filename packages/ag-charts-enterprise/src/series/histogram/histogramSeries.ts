@@ -1,3 +1,4 @@
+import type { AgHistogramSeriesLabelFormatterParams } from 'ag-charts-community';
 import {
     type AgHistogramSeriesOptions,
     type AgHistogramSeriesTooltipRendererParams,
@@ -18,7 +19,6 @@ const {
     area,
     BOOLEAN,
     CartesianSeries,
-    CartesianSeriesNodeClickEvent,
     ChartAxisDirection,
     NUMBER,
     OPT_ARRAY,
@@ -88,7 +88,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     static className = 'HistogramSeries';
     static type = 'histogram' as const;
 
-    readonly label = new Label();
+    readonly label = new Label<AgHistogramSeriesLabelFormatterParams>();
 
     tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 
@@ -294,20 +294,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         return fixNumericExtent(yDomain);
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: HistogramNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: HistogramNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     async createNodeData() {
         const {
             axes,
@@ -362,8 +348,15 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 total !== 0
                     ? {
                           text:
-                              callbackCache.call(labelFormatter, { defaultValue: total, datum, seriesId }) ??
-                              String(total),
+                              callbackCache.call(labelFormatter, {
+                                  defaultValue: total,
+                                  datum,
+                                  seriesId,
+                                  xKey,
+                                  yKey,
+                                  xName: this.xName,
+                                  yName: this.yName,
+                              }) ?? String(total),
                           fontStyle: labelFontStyle,
                           fontWeight: labelFontWeight,
                           fontSize: labelFontSize,

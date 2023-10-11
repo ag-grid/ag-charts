@@ -2,9 +2,8 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type {
     AgBarSeriesFormatterParams,
+    AgBarSeriesLabelFormatterParams,
     AgBarSeriesLabelPlacement,
-    AgBarSeriesOptionsKeys,
-    AgBarSeriesOptionsNames,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
@@ -56,7 +55,7 @@ import {
     updateRect,
 } from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
+import { CartesianSeries } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabel } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
@@ -90,7 +89,7 @@ enum BarSeriesNodeTag {
     Label,
 }
 
-class BarSeriesLabel extends Label<AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames> {
+class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
     @Validate(STRING_UNION('inside', 'outside'))
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
@@ -265,20 +264,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
             return fixNumericExtent(fixedYExtent as any, valueAxis);
         }
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: BarNodeDatum
-    ): CartesianSeriesNodeClickEvent<BarNodeDatum, BarSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: BarNodeDatum
-    ): CartesianSeriesNodeClickEvent<BarNodeDatum, BarSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     private getCategoryAxis(): ChartAxis | undefined {

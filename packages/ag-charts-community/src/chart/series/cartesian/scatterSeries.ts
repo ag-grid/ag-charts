@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgCartesianSeriesMarkerFormat,
+    AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
@@ -41,7 +42,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
     readonly marker = new CartesianSeriesMarker();
 
-    readonly label = new Label();
+    readonly label = new Label<AgScatterSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -189,12 +190,23 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            let text = String(labelKey ? values[labelDataIdx] : yDatum);
+            let labelText = String(labelKey ? values[labelDataIdx] : yDatum);
             if (label.formatter) {
-                text = callbackCache.call(label.formatter, { defaultValue: text, seriesId, datum }) ?? '';
+                labelText =
+                    callbackCache.call(label.formatter, {
+                        defaultValue: labelText,
+                        seriesId,
+                        datum,
+                        xKey,
+                        yKey,
+                        labelKey,
+                        xName: this.xName,
+                        yName: this.yName,
+                        labelName: this.labelName,
+                    }) ?? labelText;
             }
 
-            const size = HdpiCanvas.getTextSize(text, font);
+            const size = HdpiCanvas.getTextSize(labelText, font);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
             nodeData.push({
@@ -208,7 +220,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
                 fill,
-                label: { text, ...size },
+                label: { text: labelText, ...size },
             });
         }
 

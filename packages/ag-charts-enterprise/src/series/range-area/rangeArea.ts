@@ -1,5 +1,6 @@
 import type {
     AgCartesianSeriesMarkerFormat,
+    AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesMarkerFormatterParams,
     AgRangeAreaSeriesTooltipRendererParams,
@@ -76,9 +77,7 @@ class RangeAreaSeriesNodeClickEvent<
     }
 }
 
-type RangeAreaKeys = 'xKey' | 'yLowKey' | 'yHighKey';
-
-class RangeAreaSeriesLabel extends _Scene.Label<{ [K in RangeAreaKeys]?: string }> {
+class RangeAreaSeriesLabel extends _Scene.Label<AgRangeAreaSeriesLabelFormatterParams> {
     @Validate(STRING_UNION('inside', 'outside'))
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
@@ -102,6 +101,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 > {
     static className = 'RangeAreaSeries';
     static type = 'range-area' as const;
+
+    protected override readonly NodeClickEvent = RangeAreaSeriesNodeClickEvent;
 
     readonly marker = new RangeAreaSeriesMarker();
     readonly label = new RangeAreaSeriesLabel();
@@ -219,20 +220,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             ];
             return fixNumericExtent(fixedYExtent as any);
         }
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RangeAreaMarkerDatum
-    ): RangeAreaSeriesNodeClickEvent<'nodeClick'> {
-        return new RangeAreaSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RangeAreaMarkerDatum
-    ): RangeAreaSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RangeAreaSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     async createNodeData() {
@@ -431,13 +418,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         let labelText;
         if (this.label.formatter) {
             labelText = this.ctx.callbackCache.call(this.label.formatter, {
-                seriesId: this.id,
-                itemId,
                 datum,
+                itemId,
+                seriesId: this.id,
                 defaultValue: value,
-                xKey: this.xKey,
-                yLowKey: this.yLowKey,
-                yHighKey: this.yHighKey,
+                xKey: this.xKey ?? '',
+                yLowKey: this.yLowKey ?? '',
+                yHighKey: this.yHighKey ?? '',
+                xName: this.xName,
+                yLowName: this.yLowName,
+                yHighName: this.yHighName,
+                yName: this.yName,
             });
         }
         return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));

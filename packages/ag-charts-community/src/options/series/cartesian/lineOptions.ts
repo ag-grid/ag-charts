@@ -9,8 +9,10 @@ import type {
 } from './cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgLineSeriesTooltipRendererParams = AgCartesianSeriesTooltipRendererParams &
+export type AgLineSeriesTooltipRendererParams<TDatum = any> = AgCartesianSeriesTooltipRendererParams<TDatum> &
     AgErrorBoundSeriesTooltipRendererParams;
+
+export type AgLineSeriesLabelFormatterParams = AgLineSeriesOptionsKeys & AgLineSeriesOptionsNames;
 
 export interface AgLineSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
@@ -20,24 +22,32 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions;
+    label?: AgChartLabelOptions<TDatum, AgLineSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams<TDatum>>;
 }
 
-/** Configuration for line series. */
-export interface AgLineSeriesOptions<TDatum = any>
-    extends AgLineSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum> {
-    type?: 'line';
+export interface AgLineSeriesOptionsKeys {
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-values from the data. */
     yKey: string;
+}
+
+export interface AgLineSeriesOptionsNames {
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
+}
+
+/** Configuration for line series. */
+export interface AgLineSeriesOptions<TDatum = any>
+    extends AgBaseSeriesOptions<TDatum>,
+        AgLineSeriesOptionsKeys,
+        AgLineSeriesOptionsNames,
+        AgLineSeriesThemeableOptions<TDatum> {
+    type?: 'line';
     /** Configuration for the series error bars. */
     errorBar?: AgErrorBarOptions;
 }

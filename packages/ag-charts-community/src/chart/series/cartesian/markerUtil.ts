@@ -4,35 +4,28 @@ import type {
     AgCartesianSeriesMarkerFormat,
     AgSeriesHighlightMarkerStyle,
     AgSeriesMarkerFormatterParams,
+    FillOptions,
+    StrokeOptions,
 } from '../../../options/agChartOptions';
 import type { Node } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
+import { mergeDefaults } from '../../../util/object';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { SeriesNodeDatum } from '../seriesTypes';
 
-interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
-    readonly point: SizedPoint;
+interface NodeDatum extends SeriesNodeDatum {
+    readonly xKey: string;
+    readonly xValue?: any;
+    readonly point?: SizedPoint;
 }
 
-export type Style = {
-    fill?: string;
-    stroke?: string;
-    strokeWidth?: number;
-    fillOpacity?: number;
-    strokeOpacity?: number;
-    size?: number;
-    visible?: boolean;
-};
-
-export type MarkerConfig = Style & {
-    point: SizedPoint;
-    customMarker: boolean;
-};
+type MarkerStyle = FillOptions & StrokeOptions & { visible?: boolean; size?: number };
+type MarkerConfig = MarkerStyle & { point?: SizedPoint; customMarker: boolean };
 
 export function getMarkerConfig<ExtraParams extends {}>({
-    datum,
+    datum: { datum, point },
     highlighted,
     markerStyle,
     seriesStyle,
@@ -44,37 +37,31 @@ export function getMarkerConfig<ExtraParams extends {}>({
 }: {
     datum: NodeDatum;
     highlighted: boolean;
-    markerStyle: Style;
-    seriesStyle: Style;
+    markerStyle: MarkerStyle;
+    seriesStyle: MarkerStyle;
     highlightStyle: AgSeriesHighlightMarkerStyle;
     formatter?: (params: AgSeriesMarkerFormatterParams<NodeDatum> & ExtraParams) => AgCartesianSeriesMarkerFormat;
     seriesId: string;
     ctx: ModuleContext;
-} & ExtraParams): Style {
-    const fill =
-        highlighted && highlightStyle.fill !== undefined ? highlightStyle.fill : markerStyle.fill ?? seriesStyle.fill;
-    const fillOpacity =
-        highlighted && highlightStyle.fillOpacity !== undefined
-            ? highlightStyle.fillOpacity
-            : markerStyle.fillOpacity ?? seriesStyle.fillOpacity;
-    const stroke =
-        highlighted && highlightStyle.stroke !== undefined
-            ? highlightStyle.stroke
-            : markerStyle.stroke ?? seriesStyle.stroke;
-    const strokeWidth =
-        highlighted && highlightStyle.strokeWidth !== undefined
-            ? highlightStyle.strokeWidth
-            : markerStyle.strokeWidth ?? 1;
-    const strokeOpacity = markerStyle.strokeOpacity ?? seriesStyle.strokeOpacity;
+} & ExtraParams): MarkerStyle {
+    const {
+        fill,
+        fillOpacity,
+        stroke,
+        strokeWidth = 1,
+        strokeOpacity,
+    } = mergeDefaults(highlighted && highlightStyle, markerStyle, seriesStyle);
 
     let format: AgCartesianSeriesMarkerFormat | undefined;
     if (formatter) {
         format = callbackCache.call(formatter as any, {
-            datum: datum.datum,
+            datum,
             fill,
+            fillOpacity,
             stroke,
             strokeWidth,
-            size: datum.point?.size ?? 0,
+            strokeOpacity,
+            size: point?.size ?? 0,
             highlighted,
             seriesId,
             ...opts,
@@ -85,35 +72,43 @@ export function getMarkerConfig<ExtraParams extends {}>({
         fill: format?.fill ?? fill,
         stroke: format?.stroke ?? stroke,
         strokeWidth: format?.strokeWidth ?? strokeWidth,
-        size: format?.size ?? datum.point?.size ?? markerStyle.size,
+        size: format?.size ?? point?.size ?? markerStyle.size,
         fillOpacity,
         strokeOpacity,
     };
 }
 
 export function updateMarker({ node, config }: { node: Marker; config: MarkerConfig }) {
-    const { point, size, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, visible = true, customMarker } = config;
+    const {
+        visible = true,
+        point,
+        fill,
+        fillOpacity = 1,
+        stroke,
+        strokeWidth = 1,
+        strokeOpacity = 1,
+        size = point?.size ?? 0,
+        customMarker,
+    } = config;
 
-    node.fill = fill;
-    node.stroke = stroke;
-    node.strokeWidth = strokeWidth ?? 1;
-    node.fillOpacity = fillOpacity ?? 1;
-    node.strokeOpacity = strokeOpacity ?? 1;
-
-    node.size = size ?? point.size;
-    node.translationX = point.x;
-    node.translationY = point.y;
-
-    node.visible = node.size > 0 && visible && !isNaN(point.x) && !isNaN(point.y);
-
-    if (!customMarker || node.dirtyPath) {
-        return;
-    }
+    node.setProperties({
+        visible: visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y),
+        fill,
+        fillOpacity,
+        stroke,
+        strokeWidth,
+        strokeOpacity,
+        size,
+        translationX: point?.x,
+        translationY: point?.y,
+    });
 
     // Only for custom marker shapes
-    node.path.clear({ trackChanges: true });
-    node.updatePath();
-    node.checkPathDirty();
+    if (customMarker && node.dirtyPath) {
+        node.path.clear({ trackChanges: true });
+        node.updatePath();
+        node.checkPathDirty();
+    }
 }
 
 type NodeWithOpacity = Node & { opacity: number };
@@ -124,37 +119,15 @@ export function markerFadeInAnimation<T>(
     delay?: true
 ) {
     const params = delay
-        ? {
-              delay: animationManager.defaultDuration,
-              duration: 200,
-          }
-        : {
-              duration: animationManager.defaultDuration,
-          };
+        ? { delay: animationManager.defaultDuration, duration: 200 }
+        : { duration: animationManager.defaultDuration };
     staticFromToMotion(`${id}_markers`, animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
 }
 
-export function markerFadeOutAnimation<T>(
-    { id }: { id: string },
-    animationManager: AnimationManager,
-    markerSelections: Selection<NodeWithOpacity, T>[],
-    delay?: true
-) {
-    const params = delay
-        ? {
-              duration: animationManager.defaultDuration,
-          }
-        : {
-              duration: 200,
-          };
-    staticFromToMotion(`${id}_markers`, animationManager, markerSelections, { opacity: 1 }, { opacity: 0 }, params);
-}
-
-type NodeWithScaling = Node & { scalingX: number; scalingY: number };
 export function markerScaleInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    markerSelections: Selection<NodeWithScaling, T>[]
+    markerSelections: Selection<Node, T>[]
 ) {
     staticFromToMotion(
         `${id}_markers`,
@@ -166,21 +139,6 @@ export function markerScaleInAnimation<T>(
     );
 }
 
-export function markerScaleOutAnimation<T>(
-    { id }: { id: string },
-    animationManager: AnimationManager,
-    markerSelections: Selection<NodeWithScaling, T>[]
-) {
-    staticFromToMotion(
-        `${id}_markers`,
-        animationManager,
-        markerSelections,
-        { scalingX: 1, scalingY: 1 },
-        { scalingX: 0, scalingY: 0 },
-        { duration: animationManager.defaultDuration }
-    );
-}
-
-export function resetMarkerFn(_node: NodeWithOpacity & NodeWithScaling) {
+export function resetMarkerFn(_node: NodeWithOpacity & Node) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }

@@ -52,12 +52,14 @@ export interface AgRangeAreaSeriesTooltipRendererParams
     readonly yHighName?: string;
 }
 
-export interface AgRangeAreaSeriesLabelOptions extends AgChartLabelOptions {
+export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Padding in pixels between the label and the edge of the marker. */
     padding?: PixelSize;
 }
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
+
+export type AgRangeAreaSeriesLabelFormatterParams = AgRangeAreaSeriesOptionsKeys & AgRangeAreaSeriesOptionsNames;
 
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
@@ -69,25 +71,23 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgRangeAreaSeriesLabelOptions;
+    label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>;
 }
 
-/** Configuration for RangeArea series. */
-export interface AgRangeAreaSeriesOptions<TDatum = any>
-    extends AgRangeAreaSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum> {
-    /** Configuration for the RangeArea series. */
-    type: 'range-area';
+export interface AgRangeAreaSeriesOptionsKeys {
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-low-values from the data. */
     yLowKey: string;
     /** The key to use to retrieve y-high-values from the data. */
     yHighKey: string;
+}
+
+export interface AgRangeAreaSeriesOptionsNames {
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
     /** A human-readable description of the y-low-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -96,6 +96,16 @@ export interface AgRangeAreaSeriesOptions<TDatum = any>
     yHighName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
+}
+
+/** Configuration for RangeArea series. */
+export interface AgRangeAreaSeriesOptions<TDatum = any>
+    extends AgBaseSeriesOptions<TDatum>,
+        AgRangeAreaSeriesOptionsKeys,
+        AgRangeAreaSeriesOptionsNames,
+        AgRangeAreaSeriesThemeableOptions<TDatum> {
+    /** Configuration for the RangeArea series. */
+    type: 'range-area';
 }
 export interface AgRangeAreaSeriesMarker<TDatum> extends AgSeriesMarker {
     /** Function used to return formatting for individual RangeArea series markers, based on the given parameters. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */

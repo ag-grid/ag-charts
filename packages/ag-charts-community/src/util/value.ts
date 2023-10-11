@@ -27,4 +27,4 @@ export function checkDatum<T>(value: T, isContinuousScale: boolean): T | string 
     return undefined;
 }
 
-export const isNumber = (v: any) => typeof v === 'number' && Number.isFinite(v);
+export const isNumber = (v: any): v is number => typeof v === 'number' && Number.isFinite(v);
