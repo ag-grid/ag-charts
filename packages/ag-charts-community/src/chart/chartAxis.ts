@@ -1,10 +1,5 @@
 import type { ModuleMap } from '../module/moduleMap';
-import type {
-    AgAxisLabelFormatterParams,
-    AgCartesianAxisPosition,
-    FontStyle,
-    FontWeight,
-} from '../options/agChartOptions';
+import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
@@ -62,17 +57,12 @@ export interface ChartAxis {
     visibleRange: number[];
 }
 
-export interface ChartAxisLabel {
+export interface ChartAxisLabel extends FontOptions {
     autoRotate?: boolean;
     autoRotateAngle?: number;
     autoWrap?: boolean;
     avoidCollisions: boolean;
-    color?: string;
     enabled: boolean;
-    fontFamily: string;
-    fontSize: number;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
     format?: string;
     formatter?: (params: AgAxisLabelFormatterParams) => string;
     getFont(): string;

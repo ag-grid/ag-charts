@@ -17,7 +17,7 @@ export interface AgAxisCaptionFormatterParams {
 }
 
 export interface AgAxisCaptionOptions {
-    /** Whether or not the title should be shown. */
+    /** Whether the title should be shown. */
     enabled?: boolean;
     /** The text to show in the title. */
     text?: string;

@@ -22,7 +22,7 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'visitors',
             label: {
-                formatter: ({ defaultValue }) => formatNumber(defaultValue),
+                formatter: ({ value }) => formatNumber(value),
             },
             tooltip: {
                 renderer: ({ datum, xKey, yKey }) => {

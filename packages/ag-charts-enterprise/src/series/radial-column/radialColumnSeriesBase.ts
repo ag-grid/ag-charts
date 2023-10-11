@@ -1,8 +1,8 @@
 import type {
-    AgRadialColumnSeriesFormat,
-    AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
+    AgRadialSeriesFormat,
+    AgRadialSeriesFormatterParams,
+    AgRadialSeriesLabelFormatterParams,
+    AgRadialSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
@@ -71,11 +71,13 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
     RadialColumnNodeDatum,
     ItemPathType
 > {
-    readonly label = new _Scene.Label();
+    protected override readonly NodeClickEvent = RadialColumnSeriesNodeClickEvent;
+
+    readonly label = new _Scene.Label<AgRadialSeriesLabelFormatterParams>();
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 
-    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialSeriesTooltipRendererParams>();
 
     @Validate(STRING)
     angleKey = '';
@@ -108,7 +110,7 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
     lineDashOffset: number = 0;
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesFormatterParams<any>) => AgRadialColumnSeriesFormat = undefined;
+    formatter?: (params: AgRadialSeriesFormatterParams<any>) => AgRadialSeriesFormat = undefined;
 
     @Validate(NUMBER(-360, 360))
     rotation = 0;
@@ -286,7 +288,15 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
         ): RadialColumnLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ defaultValue: radiusDatum, datum, seriesId });
+                labelText = label.formatter({
+                    value: radiusDatum,
+                    datum,
+                    seriesId,
+                    angleKey,
+                    radiusKey,
+                    angleName: this.angleName,
+                    radiusName: this.radiusName,
+                });
             } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
                 labelText = radiusDatum.toFixed(2);
             } else if (radiusDatum) {
@@ -439,20 +449,6 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
         });
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialColumnSeriesNodeClickEvent<'nodeClick'> {
-        return new RadialColumnSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialColumnSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RadialColumnSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): string {
         const {
             id: seriesId,
@@ -482,38 +478,22 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${angleString}: ${radiusString}`);
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: fill,
-            content,
-        };
-        const { callbackCache } = this.ctx;
+        const { fill: color } = (formatter &&
+            this.ctx.callbackCache.call(formatter, {
+                seriesId,
+                datum,
+                fill,
+                stroke,
+                strokeWidth,
+                highlighted: false,
+                angleKey,
+                radiusKey,
+            })) ?? { fill };
 
-        const format = formatter
-            ? callbackCache.call(formatter, {
-                  datum,
-                  fill,
-                  stroke,
-                  strokeWidth,
-                  highlighted: false,
-                  angleKey,
-                  radiusKey,
-                  seriesId,
-              })
-            : undefined;
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            angleKey,
-            angleName,
-            angleValue,
-            radiusKey,
-            radiusName,
-            radiusValue,
-            color: format?.fill ?? fill,
-            title,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, backgroundColor: fill, content },
+            { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

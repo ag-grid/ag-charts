@@ -42,12 +42,12 @@ export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly yValue?: any;
 }
 
-interface SubGroup<SceneNodeType extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
+interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
     paths: Path[];
     dataNodeGroup: Group;
     labelGroup: Group;
     markerGroup?: Group;
-    datumSelection: Selection<SceneNodeType, TDatum>;
+    datumSelection: Selection<TNode, TDatum>;
     labelSelection: Selection<Text, TLabel>;
     markerSelection?: Selection<Marker, TDatum>;
 }
@@ -77,15 +77,18 @@ const DEFAULT_DIRECTION_NAMES: { [key in ChartAxisDirection]?: string[] } = {
     [ChartAxisDirection.Y]: ['yName'],
 };
 
-export class CartesianSeriesNodeClickEvent<
-    TDatum extends CartesianSeriesNodeDatum,
-    TSeries extends CartesianSeries<any, any, any, any> & { xKey?: string; yKey?: string },
-    TEvent extends string = SeriesNodeEventTypes,
-> extends SeriesNodeClickEvent<TDatum, TEvent> {
+export class CartesianSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
+    SeriesNodeDatum,
+    TEvent
+> {
     readonly xKey?: string;
     readonly yKey?: string;
-
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: TDatum, series: TSeries) {
+    constructor(
+        type: TEvent,
+        nativeEvent: MouseEvent,
+        datum: SeriesNodeDatum,
+        series: Series<any, any> & { xKey?: string; yKey?: string }
+    ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.xKey;
         this.yKey = series.yKey;
@@ -123,6 +126,8 @@ export abstract class CartesianSeries<
     get contextNodeData() {
         return this._contextNodeData.slice();
     }
+
+    protected override readonly NodeClickEvent = CartesianSeriesNodeClickEvent;
 
     private nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
 

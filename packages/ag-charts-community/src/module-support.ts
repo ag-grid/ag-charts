@@ -8,6 +8,7 @@ export * from './util/proxy';
 export * from './util/shapes';
 export * from './util/types';
 export * from './util/theme';
+export * from './util/value';
 export * from './module/baseModule';
 export * from './module/coreModules';
 export * from './module/optionModules';

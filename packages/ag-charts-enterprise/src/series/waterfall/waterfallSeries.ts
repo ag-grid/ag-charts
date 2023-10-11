@@ -2,12 +2,16 @@ import type {
     AgTooltipRendererResult,
     AgWaterfallSeriesFormat,
     AgWaterfallSeriesFormatterParams,
+    AgWaterfallSeriesItemType,
+    AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
+    isNumber,
+    adjustLabelPlacement,
     Validate,
     SeriesNodePickMode,
     fixNumericExtent,
@@ -16,7 +20,6 @@ const {
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
     ChartAxisDirection,
-    CartesianSeriesNodeClickEvent,
     OPTIONAL,
     NUMBER,
     OPT_NUMBER,
@@ -26,7 +29,6 @@ const {
     OPT_COLOR_STRING,
     OPT_LINE_DASH,
     STRING_UNION,
-    createLabelData,
     getRectConfig,
     updateRect,
     checkCrisp,
@@ -57,7 +59,7 @@ type WaterfallNodePointDatum = _ModuleSupport.SeriesNodeDatum['point'] & {
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_Scene.Point> {
     readonly index: number;
-    readonly itemId: SeriesItemType;
+    readonly itemId: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -83,7 +85,7 @@ class WaterfallSeriesItemTooltip {
     renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
-class WaterfallSeriesLabel extends _Scene.Label<{ itemId: SeriesItemType }> {
+class WaterfallSeriesLabel extends _Scene.Label<AgWaterfallSeriesLabelFormatterParams> {
     @Validate(OPT_WATERFALL_LABEL_PLACEMENT)
     placement: AgWaterfallSeriesLabelPlacement = 'end';
 
@@ -152,7 +154,6 @@ class WaterfallSeriesItems {
     readonly total: WaterfallSeriesItem = new WaterfallSeriesItem();
 }
 
-type SeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 interface TotalMeta {
     totalType: 'subtotal' | 'total';
     index: number;
@@ -212,7 +213,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     @Validate(STRING_UNION('vertical', 'horizontal'))
     direction: 'vertical' | 'horizontal' = 'vertical';
 
-    private seriesItemTypes: Set<SeriesItemType> = new Set(['positive', 'negative', 'total']);
+    private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey = '', yKey } = this;
@@ -326,20 +327,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: WaterfallNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: WaterfallNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
         return this.axes[this.getCategoryDirection()];
     }
@@ -349,7 +336,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, visible, ctx, line } = this;
+        const { data, dataModel, visible, line } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -375,7 +362,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`).index;
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
-        const contextIndexMap = new Map<SeriesItemType, number>();
+        const contextIndexMap = new Map<AgWaterfallSeriesItemType, number>();
 
         const pointData: WaterfallNodePointDatum[] = [];
 
@@ -489,7 +476,19 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
             pointData.push(pathPoint);
 
-            const { formatter, placement, padding } = label;
+            let labelText;
+            if (label.formatter) {
+                labelText = this.ctx.callbackCache.call(label.formatter, {
+                    value: isNumber(value) ? value : undefined,
+                    seriesId: this.id,
+                    datum,
+                    itemId,
+                    xKey,
+                    yKey,
+                    xName: this.xName,
+                    yName: this.yName,
+                });
+            }
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,
@@ -509,17 +508,16 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 fill,
                 stroke,
                 strokeWidth,
-                label: createLabelData({
-                    value,
-                    rect,
-                    placement,
-                    seriesId: this.id,
-                    padding,
-                    formatter,
-                    barAlongX,
-                    ctx,
-                    itemId,
-                }),
+                label: {
+                    text: labelText ?? (isNumber(value) ? value.toFixed(2) : ''),
+                    ...adjustLabelPlacement({
+                        isPositive: (value ?? -1) >= 0,
+                        isVertical: !barAlongX,
+                        placement: label.placement,
+                        padding: label.padding,
+                        rect,
+                    }),
+                },
             };
 
             contexts[contextIndex].nodeData.push(nodeDatum);
@@ -570,11 +568,11 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    private isSubtotal(datumType: SeriesItemType) {
+    private isSubtotal(datumType: AgWaterfallSeriesItemType) {
         return datumType === 'subtotal';
     }
 
-    private isTotal(datumType: SeriesItemType) {
+    private isTotal(datumType: AgWaterfallSeriesItemType) {
         return datumType === 'total';
     }
 
@@ -582,11 +580,11 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         return new Rect();
     }
 
-    private getSeriesItemType(isPositive: boolean, datumType?: SeriesItemType): SeriesItemType {
+    private getSeriesItemType(isPositive: boolean, datumType?: AgWaterfallSeriesItemType): AgWaterfallSeriesItemType {
         return datumType ?? (isPositive ? 'positive' : 'negative');
     }
 
-    private getItemConfig(seriesItemType: SeriesItemType): WaterfallSeriesItem {
+    private getItemConfig(seriesItemType: AgWaterfallSeriesItemType): WaterfallSeriesItem {
         switch (seriesItemType) {
             case 'positive': {
                 return this.item.positive;
@@ -921,16 +919,16 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
     protected updateLineNode(lineNode: _Scene.Path) {
         const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.line;
-
-        lineNode.stroke = stroke;
-        lineNode.strokeWidth = this.getStrokeWidth(strokeWidth);
-        lineNode.strokeOpacity = strokeOpacity;
-        lineNode.lineDash = lineDash;
-        lineNode.lineDashOffset = lineDashOffset;
-
-        lineNode.fill = undefined;
-        lineNode.lineJoin = 'round';
-        lineNode.pointerEvents = _Scene.PointerEvents.None;
+        lineNode.setProperties({
+            fill: undefined,
+            stroke,
+            strokeWidth: this.getStrokeWidth(strokeWidth),
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            lineJoin: 'round',
+            pointerEvents: _Scene.PointerEvents.None,
+        });
     }
 
     protected isLabelEnabled() {

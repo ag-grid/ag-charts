@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgCartesianSeriesMarkerFormat,
+    AgLineSeriesLabelFormatterParams,
     AgLineSeriesTooltipRendererParams,
     AgTooltipRendererResult,
     FontStyle,
@@ -28,7 +29,7 @@ import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum {
@@ -53,9 +54,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     static className = 'LineSeries';
     static type = 'line' as const;
 
+    readonly label = new Label<AgLineSeriesLabelFormatterParams>();
     readonly marker = new CartesianSeriesMarker();
-
-    readonly label = new Label();
+    readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -74,8 +75,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
     @Validate(NUMBER(0, 1))
     strokeOpacity: number = 1;
-
-    tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -214,9 +213,13 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 let labelText;
                 if (label.formatter) {
                     labelText = callbackCache.call(label.formatter, {
-                        defaultValue: yDatum,
+                        value: yDatum,
                         datum,
                         seriesId,
+                        xKey,
+                        yKey,
+                        xName: this.xName,
+                        yName: this.yName,
                     });
                 }
 
@@ -366,20 +369,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 text.visible = false;
             }
         });
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: LineNodeDatum
-    ): CartesianSeriesNodeClickEvent<LineNodeDatum, LineSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: LineNodeDatum
-    ): CartesianSeriesNodeClickEvent<LineNodeDatum, LineSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: LineNodeDatum): string {

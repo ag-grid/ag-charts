@@ -188,15 +188,30 @@ export function groupAccumulativeValueProperty<K>(
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
 
-export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, Type extends string = SeriesNodeEventTypes>
-    implements TypedEvent
+interface INodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
+    readonly type: TEvent;
+    readonly event: MouseEvent;
+    readonly datum: unknown;
+    readonly seriesId: string;
+}
+
+export interface INodeClickEventConstructor<
+    TDatum extends SeriesNodeDatum,
+    TSeries extends Series<TDatum, any>,
+    TEvent extends string = SeriesNodeEventTypes,
+> {
+    new (type: TEvent, event: MouseEvent, { datum }: TDatum, series: TSeries): INodeClickEvent<TEvent>;
+}
+
+export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
+    implements INodeClickEvent<TEvent>
 {
     readonly datum: unknown;
     readonly seriesId: string;
 
     constructor(
-        readonly type: Type,
-        readonly event: Event,
+        readonly type: TEvent,
+        readonly event: MouseEvent,
         { datum }: TDatum,
         series: Series<TDatum, any>
     ) {
@@ -274,6 +289,8 @@ export abstract class Series<
 {
     protected static readonly highlightedZIndex = 1000000000000;
 
+    protected readonly NodeClickEvent: INodeClickEventConstructor<TDatum, any> = SeriesNodeClickEvent;
+
     @Validate(STRING)
     readonly id = createId(this);
 
@@ -286,7 +303,7 @@ export abstract class Series<
     // The group node that contains all the nodes used to render this series.
     readonly rootGroup: Group = new Group({ name: 'seriesRoot', isVirtual: true });
 
-    // The group node that contains the series rendering in it's default (non-highlighted) state.
+    // The group node that contains the series rendering in its default (non-highlighted) state.
     readonly contentGroup: Group;
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -312,8 +329,8 @@ export abstract class Series<
     };
 
     directions: ChartAxisDirection[] = [ChartAxisDirection.X, ChartAxisDirection.Y];
-    private directionKeys: { [key in ChartAxisDirection]?: string[] };
-    private directionNames: { [key in ChartAxisDirection]?: string[] };
+    private readonly directionKeys: { [key in ChartAxisDirection]?: string[] };
+    private readonly directionNames: { [key in ChartAxisDirection]?: string[] };
 
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
@@ -431,13 +448,11 @@ export abstract class Series<
             canHaveAxes = false,
         } = seriesOpts;
 
-        const { rootGroup } = this;
-
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
 
-        this.contentGroup = rootGroup.appendChild(
+        this.contentGroup = this.rootGroup.appendChild(
             new Group({
                 name: `${this.id}-content`,
                 layer: !contentGroupVirtual,
@@ -454,14 +469,12 @@ export abstract class Series<
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
         });
-        this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode' }));
-        this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel' }));
-        this.highlightNode.zIndex = 0;
-        this.highlightLabel.zIndex = 10;
+        this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
+        this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
 
         this.pickModes = pickModes;
 
-        this.labelGroup = rootGroup.appendChild(
+        this.labelGroup = this.rootGroup.appendChild(
             new Group({
                 name: `${this.id}-series-labels`,
                 layer: useLabelLayer,
@@ -691,35 +704,25 @@ export abstract class Series<
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
-        // Override point for sub-classes - but if this is invoked, the sub-class specified it wants
+        // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeClosestDatum() not implemented');
     }
 
     protected pickNodeMainAxisFirst(_point: Point, _requireCategoryAxis: boolean): SeriesNodePickMatch | undefined {
-        // Override point for sub-classes - but if this is invoked, the sub-class specified it wants
+        // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
 
     abstract getLabelData(): PointLabelDatum[];
 
-    fireNodeClickEvent(event: Event, datum: TDatum): void {
-        const eventObject = this.getNodeClickEvent(event, datum);
-        this.fireEvent(eventObject);
+    fireNodeClickEvent(event: MouseEvent, datum: TDatum): void {
+        this.fireEvent(new this.NodeClickEvent('nodeClick', event, datum, this));
     }
 
-    fireNodeDoubleClickEvent(event: Event, datum: TDatum): void {
-        const eventObject = this.getNodeDoubleClickEvent(event, datum);
-        this.fireEvent(eventObject);
-    }
-
-    protected getNodeClickEvent(event: Event, datum: TDatum): SeriesNodeClickEvent<TDatum, 'nodeClick'> {
-        return new SeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected getNodeDoubleClickEvent(event: Event, datum: TDatum): SeriesNodeClickEvent<TDatum, 'nodeDoubleClick'> {
-        return new SeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
+    fireNodeDoubleClickEvent(event: MouseEvent, datum: TDatum): void {
+        this.fireEvent(new this.NodeClickEvent('nodeDoubleClick', event, datum, this));
     }
 
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];

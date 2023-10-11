@@ -1,8 +1,6 @@
-import type { ModuleContext } from '../../../module/moduleContext';
 import type { FontFamily, FontStyle, FontWeight } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
-import { isNumber } from '../../../util/value';
 
 type Bounds = {
     x: number;
@@ -58,47 +56,6 @@ export function updateLabel<LabelDatumType extends LabelDatum>({
     } else {
         labelNode.visible = false;
     }
-}
-
-export function createLabelData<E>({
-    value,
-    rect,
-    placement,
-    seriesId,
-    padding = 0,
-    formatter,
-    barAlongX,
-    ctx: { callbackCache },
-    ...opts
-}: {
-    value: any;
-    rect: Bounds;
-    placement: LabelPlacement;
-    seriesId: string;
-    padding?: number;
-    formatter?: any;
-    ctx: ModuleContext;
-    barAlongX: boolean;
-} & E): LabelDatum {
-    let labelText;
-    if (formatter) {
-        labelText = callbackCache.call(formatter, {
-            defaultValue: isNumber(value) ? value : undefined,
-            seriesId,
-            ...opts,
-        });
-    }
-
-    return {
-        text: labelText ?? (isNumber(value) ? value.toFixed(2) : ''),
-        ...adjustLabelPlacement({
-            isPositive: value >= 0,
-            isVertical: !barAlongX,
-            placement,
-            padding,
-            rect,
-        }),
-    };
 }
 
 export function adjustLabelPlacement({

@@ -1,5 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
+    AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesTooltipRendererParams,
     AgCartesianSeriesMarkerFormat,
     AgTooltipRendererResult,
@@ -39,11 +40,9 @@ interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 
-class BubbleSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeClickEvent<
-    BubbleNodeDatum,
-    BubbleSeries,
-    TEvent
-> {
+class BubbleSeriesNodeClickEvent<
+    TEvent extends string = SeriesNodeEventTypes,
+> extends CartesianSeriesNodeClickEvent<TEvent> {
     readonly sizeKey?: string;
 
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: BubbleNodeDatum, series: BubbleSeries) {
@@ -72,11 +71,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     static className = 'BubbleSeries';
     static type = 'bubble' as const;
 
+    protected override readonly NodeClickEvent = BubbleSeriesNodeClickEvent;
+
     private sizeScale = new LinearScale();
 
     readonly marker = new BubbleSeriesMarker();
 
-    readonly label = new Label();
+    readonly label = new Label<AgBubbleSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -137,10 +138,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 marker: resetMarkerFn,
             },
         });
-
-        const { label } = this;
-
-        label.enabled = false;
     }
 
     override async processData(dataController: DataController) {
@@ -149,14 +146,16 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             yKey = '',
             sizeKey = '',
             labelKey,
+            colorScale,
+            colorDomain,
+            colorRange,
+            colorKey,
             marker,
             data,
             ctx: { animationManager },
         } = this;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
-
-        const { colorScale, colorDomain, colorRange, colorKey } = this;
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -199,20 +198,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return fixNumericExtent(extent(domain), axis);
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: BubbleNodeDatum
-    ): BubbleSeriesNodeClickEvent<'nodeClick'> {
-        return new BubbleSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: BubbleNodeDatum
-    ): BubbleSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new BubbleSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     async createNodeData() {
         const {
             visible,
@@ -224,6 +209,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ctx: { callbackCache },
             dataModel,
             processedData,
+            colorScale,
+            sizeKey,
+            colorKey,
+            id: seriesId,
         } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -233,11 +222,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const sizeDataIdx = this.sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : -1;
-        const colorDataIdx = this.colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
-        const labelDataIdx = this.labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
-
-        const { colorScale, sizeKey, colorKey, id: seriesId } = this;
+        const sizeDataIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : -1;
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
+        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -255,12 +242,25 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            let text = String(labelKey ? values[labelDataIdx] : yDatum);
+            let labelText = labelKey ? values[labelDataIdx] : yDatum;
             if (label.formatter) {
-                text = callbackCache.call(label.formatter, { defaultValue: text, seriesId, datum }) ?? '';
+                labelText =
+                    callbackCache.call(label.formatter, {
+                        value: labelText,
+                        seriesId,
+                        datum,
+                        xKey,
+                        yKey,
+                        sizeKey,
+                        labelKey,
+                        xName: this.xName,
+                        yName: this.yName,
+                        sizeName: this.sizeName,
+                        labelName: this.labelName,
+                    }) ?? labelText;
             }
 
-            const size = HdpiCanvas.getTextSize(text, font);
+            const size = HdpiCanvas.getTextSize(String(labelText), font);
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
@@ -276,7 +276,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 point: { x, y, size: markerSize },
                 midPoint: { x, y },
                 fill,
-                label: { text, ...size },
+                label: { text: labelText, ...size },
             });
         }
 

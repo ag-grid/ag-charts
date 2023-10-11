@@ -119,6 +119,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     static className = 'RangeBarSeries';
     static type = 'range-bar' as const;
 
+    protected override readonly NodeClickEvent = RangeBarSeriesNodeClickEvent;
+
     readonly label = new RangeBarSeriesLabel();
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgRangeBarSeriesTooltipRendererParams>();
@@ -276,20 +278,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             ];
             return fixNumericExtent(fixedYExtent);
         }
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RangeBarNodeDatum
-    ): RangeBarSeriesNodeClickEvent<'nodeClick'> {
-        return new RangeBarSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RangeBarNodeDatum
-    ): RangeBarSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RangeBarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
@@ -492,7 +480,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         let labelText;
         if (formatter) {
             labelText = callbackCache.call(formatter, {
-                defaultValue: isNumber(value) ? value : undefined,
+                value: isNumber(value) ? value : undefined,
                 seriesId,
                 itemId,
                 datum,
