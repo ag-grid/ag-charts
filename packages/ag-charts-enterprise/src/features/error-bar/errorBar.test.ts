@@ -180,8 +180,20 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should render both scatter axes as expected', async () => {
+    it('should render both errorbars on scatter series as expected', async () => {
         chart = AgEnterpriseCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
+        await compare();
+    });
+
+    it('should render both errorbars on continuous line series as expected', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
+            axes: [
+                { type: 'number', position: 'left' },
+                { type: 'number', position: 'bottom' },
+            ],
+        });
         await compare();
     });
 
