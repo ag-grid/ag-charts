@@ -12,7 +12,7 @@ on Line, Bar and Scatter Series.
 
 Error Bars can be enabled on supported series types using the `errorBars` key.
 
-Line and Bar only support Error Bars on the Y axis.
+Categoric Line Series and Bar Series only support Error Bars on the Y axis.
 
 The required `yLowerKey` and `yUpperKey` properties defines the keys used to
 retrieve the error values from the data.
@@ -24,7 +24,7 @@ data: [
         temperature: 35,
         temperatureLower: 32,
         temperatureUpper: 37,
-    },
+    }, ...
 ],
 series: [
     {
@@ -38,11 +38,12 @@ series: [
 ],
 ```
 
-## Scatter Series Error Bars
+## Double Error Bars
 
-{% chartExampleRunner title="Scatter Series Error Bars" name="double" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Double Error Bars" name="double" type="generated" options="{ \"enterprise\": true }" /%}
 
-Scatter plots support error bars on the X axis, the Y axis, or both axes.
+Scatter Plots and Continuous Line Series support error bars on the X axis, the Y
+axis, or both axes.
 
 The properties `xLowerKey`, `xUpperKey`, `yLowerKey` and `yUpperKey` define the
 keys used to retrieve the X and Y error values from the data.
@@ -56,7 +57,7 @@ data: [
         pressure: 1.2,
         pressureLower: 1.1,
         pressureUpper: 1.4
-    },
+    }, ...
 ],
 series: [
     {
@@ -72,6 +73,13 @@ series: [
     },
 ],
 ```
+
+{% note %}
+The X axis of Line Series is categoric by default. See the [Continuous
+Data](./line-series#continuous-data) for more information on how to configure
+this series.
+{% /note %}
+
 
 ## Tooltip Parameters
 
