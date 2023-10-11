@@ -17,7 +17,10 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     groupable: true,
 
     paletteFactory: ({ takeColors, userPalette, themeTemplateParameters }) => {
-        const backgroundFill = themeTemplateParameters.properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR) ?? 'white';
+        const themeBackgroundColor = themeTemplateParameters.properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const backgroundFill =
+            (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
+
         const {
             fills: [fill],
             strokes: [stroke],

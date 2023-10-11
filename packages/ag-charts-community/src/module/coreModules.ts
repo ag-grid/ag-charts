@@ -27,8 +27,8 @@ export interface SeriesPaletteFactoryParams {
     colorsCount: number;
     userPalette: AgChartThemePalette | null;
     themeTemplateParameters: {
-        extensions: Map<any, any>;
-        properties: Map<any, any>;
+        extensions: Map<string, any>;
+        properties: Map<string, string | string[]>;
     };
 }
 
