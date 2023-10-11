@@ -1,5 +1,7 @@
 import { _Scene, _Util } from 'ag-charts-community';
 
+import { createAngleMotionCalculator } from '../radial-column/radialColumnUtil';
+
 const { motion } = _Scene;
 
 export type AnimatableNightingaleDatum = {
@@ -11,6 +13,7 @@ export type AnimatableNightingaleDatum = {
 
 export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
     const isRemoved = (datum: AnimatableNightingaleDatum) => !datum;
+    const angles = createAngleMotionCalculator();
 
     const fromFn = (sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
         if (status === 'updated' && isRemoved(sect.previousDatum)) {
@@ -21,40 +24,32 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
             status = 'updated';
         }
 
+        angles.calculate(sect, datum, status);
+        const { startAngle, endAngle } = angles.from(datum);
+
         let innerRadius: number;
         let outerRadius: number;
-        let startAngle: number;
-        let endAngle: number;
         if (status === 'removed' || status === 'updated') {
             innerRadius = sect.innerRadius;
             outerRadius = sect.outerRadius;
-            startAngle = sect.startAngle;
-            endAngle = sect.endAngle;
         } else {
             innerRadius = axisZeroRadius;
             outerRadius = axisZeroRadius;
-            startAngle = datum.startAngle;
-            endAngle = datum.endAngle;
         }
         const mixin = motion.FROM_TO_MIXINS[status];
         return { innerRadius, outerRadius, startAngle, endAngle, ...mixin };
     };
 
-    const toFn = (sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
+    const toFn = (_sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
+        const { startAngle, endAngle } = angles.to(datum);
         let innerRadius: number;
         let outerRadius: number;
-        let startAngle: number;
-        let endAngle: number;
         if (status === 'removed') {
             innerRadius = axisZeroRadius;
             outerRadius = axisZeroRadius;
-            startAngle = sect.startAngle;
-            endAngle = sect.endAngle;
         } else {
             innerRadius = datum.innerRadius;
             outerRadius = datum.outerRadius;
-            startAngle = datum.startAngle;
-            endAngle = datum.endAngle;
         }
         return { innerRadius, outerRadius, startAngle, endAngle };
     };
