@@ -72,8 +72,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#cb4b3f', '#6acb64'];
 
-    colorScale: _Scale.ColorScale;
-
     @Validate(OPT_COLOR_STRING)
     stroke: string = 'black';
 
@@ -82,6 +80,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat = undefined;
+
+    readonly colorScale = new ColorScale();
 
     readonly tooltip = new _ModuleSupport.SeriesTooltip<AgHeatmapSeriesTooltipRendererParams>();
 
@@ -93,10 +93,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             hasMarkers: false,
             hasHighlightedLabels: true,
         });
-
-        this.label.enabled = false;
-
-        this.colorScale = new ColorScale();
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
@@ -207,7 +203,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 labelText =
                     this.ctx.callbackCache.call(this.label.formatter, {
                         seriesId: this.id,
-                        defaultValue: colorValue,
+                        value: colorValue,
                         datum,
                         colorKey,
                         colorName,

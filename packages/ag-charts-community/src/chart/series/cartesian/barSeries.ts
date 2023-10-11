@@ -418,7 +418,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         return [context];
     }
 
-    protected getLabelText(datum: unknown, defaultValue: any): string {
+    protected getLabelText(datum: unknown, value: any): string {
         const { id: seriesId, ctx, label, xKey, yKey, xName, yName } = this;
 
         if (!xKey || !yKey) {
@@ -430,7 +430,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             labelText = ctx.callbackCache.call(label.formatter, {
                 seriesId,
                 datum,
-                defaultValue,
+                value,
                 xKey,
                 yKey,
                 xName,
@@ -438,7 +438,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             });
         }
 
-        return labelText ?? (isNumber(defaultValue) ? defaultValue.toFixed(2) : '');
+        return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
     }
 
     protected nodeFactory() {

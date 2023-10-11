@@ -1209,14 +1209,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         } = this;
 
         if (label.formatter) {
-            const defaultValue = fractionDigits > 0 ? datum : String(datum);
+            const value = fractionDigits > 0 ? datum : String(datum);
             return (
                 callbackCache.call(label.formatter, {
-                    value: defaultValue,
+                    value,
                     index,
                     fractionDigits,
                     formatter: labelFormatter,
-                }) ?? defaultValue
+                }) ?? value
             );
         } else if (labelFormatter) {
             return callbackCache.call(labelFormatter, datum) ?? String(datum);

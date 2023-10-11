@@ -250,7 +250,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 if (this.label.formatter) {
                     labelText = this.label.formatter({
                         seriesId: this.id,
-                        defaultValue: radiusDatum,
+                        value: radiusDatum,
                         datum,
                         angleKey,
                         radiusKey,

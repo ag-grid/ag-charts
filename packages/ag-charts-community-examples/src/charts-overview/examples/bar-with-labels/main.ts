@@ -31,7 +31,7 @@ const options: AgChartOptions = {
         fontWeight: "bold",
         color: "white",
         formatter: params => {
-          return (params.defaultValue > 0 ? "+" : "") + params.defaultValue
+          return (params.value > 0 ? "+" : "") + params.value
         },
       },
     },

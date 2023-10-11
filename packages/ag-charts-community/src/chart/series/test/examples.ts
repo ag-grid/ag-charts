@@ -25,8 +25,8 @@ const BUBBLE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('bubble-with-
 const PIE_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-pie');
 const DOUGHNUT_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-doughnut');
 
-const columnSeriesLabelFormatter: AgChartLabelOptions['formatter'] = ({ defaultValue }) =>
-    defaultValue == null ? '' : defaultValue.toFixed(0);
+const columnSeriesLabelFormatter: AgChartLabelOptions['formatter'] = ({ value }) =>
+    value == null ? '' : value.toFixed(0);
 
 export const COLUMN_SERIES_LABELS: AgCartesianChartOptions = {
     title: {
@@ -766,7 +766,7 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
                 color: '#dcdbe5',
                 fontWeight: 'bold',
                 fontSize: 20,
-                formatter: (params) => params.defaultValue.toFixed(0),
+                formatter: (params) => params.value.toFixed(0),
             },
         },
         {

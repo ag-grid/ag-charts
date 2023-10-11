@@ -246,7 +246,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             if (label.formatter) {
                 labelText =
                     callbackCache.call(label.formatter, {
-                        defaultValue: labelText,
+                        value: labelText,
                         seriesId,
                         datum,
                         xKey,

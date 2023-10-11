@@ -426,7 +426,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
                 label = this.ctx.callbackCache.call(labelFormatter, {
                     datum,
                     seriesId: this.id,
-                    defaultValue: null,
+                    value: null,
                 });
             }
             label ??= labelKey ? datum[labelKey] ?? '' : '';

@@ -213,7 +213,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 let labelText;
                 if (label.formatter) {
                     labelText = callbackCache.call(label.formatter, {
-                        defaultValue: yDatum,
+                        value: yDatum,
                         datum,
                         seriesId,
                         xKey,

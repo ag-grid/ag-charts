@@ -289,7 +289,7 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
             let labelText = '';
             if (label.formatter) {
                 labelText = label.formatter({
-                    defaultValue: radiusDatum,
+                    value: radiusDatum,
                     datum,
                     seriesId,
                     angleKey,

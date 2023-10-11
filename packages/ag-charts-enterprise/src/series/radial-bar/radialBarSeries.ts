@@ -283,7 +283,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             let labelText = '';
             if (label.formatter) {
                 labelText = label.formatter({
-                    defaultValue: angleDatum,
+                    value: angleDatum,
                     datum,
                     seriesId,
                     angleKey,

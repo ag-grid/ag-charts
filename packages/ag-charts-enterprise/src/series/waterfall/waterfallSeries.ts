@@ -479,7 +479,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             let labelText;
             if (label.formatter) {
                 labelText = this.ctx.callbackCache.call(label.formatter, {
-                    defaultValue: isNumber(value) ? value : undefined,
+                    value: isNumber(value) ? value : undefined,
                     seriesId: this.id,
                     datum,
                     itemId,

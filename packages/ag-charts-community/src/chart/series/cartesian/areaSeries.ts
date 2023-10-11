@@ -354,7 +354,7 @@ export class AreaSeries extends CartesianSeries<
                     if (label.formatter) {
                         labelText =
                             callbackCache.call(label.formatter, {
-                                defaultValue: yRawDatum,
+                                value: yRawDatum,
                                 datum: seriesDatum,
                                 seriesId,
                                 xKey,

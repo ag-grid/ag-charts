@@ -120,8 +120,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 label: resetLabelFn,
             },
         });
-
-        this.label.enabled = false;
     }
 
     @Validate(OPT_STRING)
@@ -316,7 +314,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
         const {
             label: {
-                formatter: labelFormatter = (params) => String(params.defaultValue),
+                formatter: labelFormatter = (params) => String(params.value),
                 fontStyle: labelFontStyle,
                 fontWeight: labelFontWeight,
                 fontSize: labelFontSize,
@@ -349,7 +347,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                     ? {
                           text:
                               callbackCache.call(labelFormatter, {
-                                  defaultValue: total,
+                                  value: total,
                                   datum,
                                   seriesId,
                                   xKey,

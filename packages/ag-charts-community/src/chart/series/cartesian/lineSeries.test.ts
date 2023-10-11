@@ -184,7 +184,7 @@ describe('LineSeries', () => {
                     xKey: 'quarter',
                     yKey: 'iphone',
                     label: {
-                        formatter: ({ defaultValue }) => String(defaultValue),
+                        formatter: ({ value }) => String(value),
                     },
                 },
             ],

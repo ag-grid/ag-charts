@@ -480,7 +480,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         let labelText;
         if (formatter) {
             labelText = callbackCache.call(formatter, {
-                defaultValue: isNumber(value) ? value : undefined,
+                value: isNumber(value) ? value : undefined,
                 seriesId,
                 itemId,
                 datum,

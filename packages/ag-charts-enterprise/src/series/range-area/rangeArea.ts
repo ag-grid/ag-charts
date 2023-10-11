@@ -421,7 +421,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 datum,
                 itemId,
                 seriesId: this.id,
-                defaultValue: value,
+                value: value,
                 xKey: this.xKey ?? '',
                 yLowKey: this.yLowKey ?? '',
                 yHighKey: this.yHighKey ?? '',

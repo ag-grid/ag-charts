@@ -97,10 +97,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 label: resetLabelFn,
             },
         });
-
-        const { label } = this;
-
-        label.enabled = false;
     }
 
     override async processData(dataController: DataController) {
@@ -194,7 +190,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             if (label.formatter) {
                 labelText =
                     callbackCache.call(label.formatter, {
-                        defaultValue: labelText,
+                        value: labelText,
                         seriesId,
                         datum,
                         xKey,

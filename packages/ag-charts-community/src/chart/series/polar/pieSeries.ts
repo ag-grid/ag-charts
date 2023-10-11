@@ -536,7 +536,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         const labelFormatterParams = {
             seriesId: this.id,
-            defaultValue: null,
+            value: null,
             itemId: undefined,
             datum,
             angleKey: this.angleKey,
