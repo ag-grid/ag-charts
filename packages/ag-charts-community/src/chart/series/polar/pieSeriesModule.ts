@@ -5,7 +5,7 @@ import {
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
-    DEFAULT_POLAR_SERIES_STROKES,
+    DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
@@ -83,7 +83,7 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         const { fills, strokes } = takeColors(colorsCount);
         return {
             fills,
-            strokes: userPalette ? strokes : [DEFAULT_POLAR_SERIES_STROKES],
+            strokes: userPalette ? strokes : [DEFAULT_POLAR_SERIES_STROKE],
             calloutLine: {
                 colors: strokes,
             },
