@@ -3,8 +3,8 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnShape } from './radialColumnShape';
-import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 import { getRadialColumnWidth } from './radialColumnShape';
+import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
 const { ChartAxisDirection, OPT_NUMBER, PolarAxis, Validate } = _ModuleSupport;
 

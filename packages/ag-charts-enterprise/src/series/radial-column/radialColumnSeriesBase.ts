@@ -75,7 +75,9 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Sector | RadialColumnShape> extends _ModuleSupport.PolarSeries<
+export abstract class RadialColumnSeriesBase<
+ItemPathType extends _Scene.Sector | RadialColumnShape,
+> extends _ModuleSupport.PolarSeries<
     RadialColumnNodeDatum,
     ItemPathType
 > {

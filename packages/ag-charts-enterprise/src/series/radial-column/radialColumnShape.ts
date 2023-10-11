@@ -178,7 +178,13 @@ export class RadialColumnShape extends Path {
     }
 }
 
-export function getRadialColumnWidth(startAngle: number, endAngle: number, axisOuterRadius: number, columnWidthRatio: number, maxColumnWidthRatio: number) {
+export function getRadialColumnWidth(
+    startAngle: number,
+    endAngle: number,
+    axisOuterRadius: number,
+    columnWidthRatio: number,
+    maxColumnWidthRatio: number
+) {
     const rotation = angleBetween(startAngle, endAngle);
 
     const pad = (rotation * (1 - columnWidthRatio)) / 2;

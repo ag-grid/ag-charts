@@ -1,4 +1,5 @@
 import { _Scene, _Util } from 'ag-charts-community';
+
 import type { RadialColumnShape } from './radialColumnShape';
 
 const { motion } = _Scene;
@@ -11,7 +12,7 @@ export type AnimatableRadialColumnDatum = {
     axisOuterRadius: number;
     startAngle: number;
     endAngle: number;
-}
+};
 
 export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
     const isRemoved = (datum: AnimatableRadialColumnDatum) => !datum;
@@ -50,7 +51,16 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
             endAngle = datum.endAngle;
         }
         const mixin = motion.FROM_TO_MIXINS[status];
-        return { innerRadius, outerRadius, columnWidth, axisInnerRadius, axisOuterRadius, startAngle, endAngle, ...mixin };
+        return {
+            innerRadius,
+            outerRadius,
+            columnWidth,
+            axisInnerRadius,
+            axisOuterRadius,
+            startAngle,
+            endAngle,
+            ...mixin,
+        };
     };
 
     const toFn = (node: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
@@ -86,7 +96,15 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
 
 export function resetRadialColumnSelectionFn(
     _node: RadialColumnShape,
-    { innerRadius, outerRadius, columnWidth, axisInnerRadius, axisOuterRadius, startAngle, endAngle }: AnimatableRadialColumnDatum
+    {
+        innerRadius,
+        outerRadius,
+        columnWidth,
+        axisInnerRadius,
+        axisOuterRadius,
+        startAngle,
+        endAngle,
+    }: AnimatableRadialColumnDatum
 ) {
     return { innerRadius, outerRadius, columnWidth, axisInnerRadius, axisOuterRadius, startAngle, endAngle };
 }

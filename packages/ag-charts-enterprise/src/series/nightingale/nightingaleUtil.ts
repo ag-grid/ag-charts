@@ -7,7 +7,7 @@ export type AnimatableNightingaleDatum = {
     outerRadius: number;
     startAngle: number;
     endAngle: number;
-}
+};
 
 export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
     const isRemoved = (datum: AnimatableNightingaleDatum) => !datum;
