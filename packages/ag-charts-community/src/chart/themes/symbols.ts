@@ -15,6 +15,7 @@ export const DEFAULT_INVERTED_LABEL_COLOUR = Symbol('default-inverted-label-colo
 export const DEFAULT_INSIDE_SERIES_LABEL_COLOUR = Symbol('default-inside-series-label-colour') as unknown as string;
 export const DEFAULT_MUTED_LABEL_COLOUR = Symbol('default-muted-label-colour') as unknown as string;
 export const DEFAULT_AXIS_GRID_COLOUR = Symbol('default-axis-grid-colour') as unknown as string;
+export const DEFAULT_AXIS_LINE_COLOUR = Symbol('default-axis-line-colour') as unknown as string;
 export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_TREEMAP_TILE_BORDER_COLOUR = Symbol('default-treemap-tile-border-colour') as unknown as string;
