@@ -14,7 +14,7 @@ export const GRID_STYLE = predicateWithMessage(
     `expecting an Array of objects with gridline style properties such as 'stroke' and 'lineDash'`
 );
 
-export class AxisGridline {
+export class AxisGridLine {
     @Validate(BOOLEAN)
     enabled = true;
 

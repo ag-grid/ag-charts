@@ -36,12 +36,14 @@ const options: AgChartOptions = {
     {
       position: 'bottom',
       type: 'category',
-      gridStyle: [
-        {
-          stroke: 'rgba(0,0,0,0.2)',
-          lineDash: [0, 5, 0],
-        },
-      ],
+      gridLine: {
+        style: [
+          {
+            stroke: 'rgba(0,0,0,0.2)',
+            lineDash: [0, 5, 0],
+          },
+        ]
+      },
       paddingInner: 0.2,
       paddingOuter: 0.3,
       tick: {
@@ -54,7 +56,9 @@ const options: AgChartOptions = {
     {
       position: 'left',
       type: 'category',
-      gridStyle: [],
+      gridLine: {
+        style: []
+      },
       paddingInner: 0.2,
       paddingOuter: 0.3,
       tick: {

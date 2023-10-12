@@ -15,6 +15,7 @@ import { getSeriesThemeTemplate } from '../factory/seriesTypes';
 import { BOTTOM, FONT_SIZE, NORMAL } from './constants';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
+    DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
     DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
@@ -103,7 +104,7 @@ export class ChartTheme {
 
     readonly config: any;
 
-    private static getAxisGridlineStyleDefaults() {
+    private static getAxisGridLineStyleDefaults() {
         return [
             {
                 stroke: DEFAULT_AXIS_GRID_COLOUR,
@@ -142,17 +143,16 @@ export class ChartTheme {
             line: {
                 enabled: true,
                 width: 1,
-                color: 'rgb(195, 195, 195)',
+                color: DEFAULT_AXIS_LINE_COLOUR,
             },
             tick: {
                 enabled: false,
                 width: 1,
-                color: 'rgb(195, 195, 195)',
+                color: DEFAULT_AXIS_LINE_COLOUR,
             },
-            gridStyle: ChartTheme.getAxisGridlineStyleDefaults(),
-            gridline: {
+            gridLine: {
                 enabled: true,
-                style: ChartTheme.getAxisGridlineStyleDefaults(),
+                style: ChartTheme.getAxisGridLineStyleDefaults(),
             },
             crossLines: {
                 enabled: false,
@@ -335,8 +335,8 @@ export class ChartTheme {
                 ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
             },
-            gridline: {
-                ...ChartTheme.getAxisDefaults().gridline,
+            gridLine: {
+                ...ChartTheme.getAxisDefaults().gridLine,
                 enabled: false,
             },
         },
@@ -345,8 +345,8 @@ export class ChartTheme {
         },
         time: {
             ...ChartTheme.getAxisDefaults(),
-            gridline: {
-                ...ChartTheme.getAxisDefaults().gridline,
+            gridLine: {
+                ...ChartTheme.getAxisDefaults().gridLine,
                 enabled: false,
             },
         },
@@ -547,6 +547,7 @@ export class ChartTheme {
         properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
         properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
+        properties.set(DEFAULT_AXIS_LINE_COLOUR, 'rgb(195, 195, 195)');
         properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');

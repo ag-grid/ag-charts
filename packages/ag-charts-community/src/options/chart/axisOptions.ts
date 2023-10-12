@@ -43,12 +43,10 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     keys?: string[];
     /** Configuration for the axis line. */
     line?: AgAxisLineOptions;
-    /** Configuration for the axis gridlines. */
-    gridline?: AgAxisGridlineOptions;
+    /** Configuration for the axis grid lines. */
+    gridLine?: AgAxisGridLineOptions;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: LabelType;
-    /** Configuration of the lines used to form the grid in the chart area. */
-    gridStyle?: AgAxisGridStyle[];
 }
 
 export interface AgAxisLineOptions {
@@ -60,10 +58,10 @@ export interface AgAxisLineOptions {
     color?: CssColor;
 }
 
-export interface AgAxisGridlineOptions {
-    /** Set to false to hide the axis gridlines. */
+export interface AgAxisGridLineOptions {
+    /** Set to false to hide the axis grid lines. */
     enabled?: boolean;
-    /** The width in pixels of the axis gridlines. */
+    /** The width in pixels of the axis grid lines. */
     width?: PixelSize;
     /** Configuration of the lines used to form the grid in the chart series area. */
     style?: AgAxisGridStyle[];
@@ -125,6 +123,6 @@ export interface AgBaseAxisLabelOptions {
 export interface AgAxisGridStyle {
     /** The colour of the grid line. */
     stroke?: CssColor;
-    /** Defines how the gridlines are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
+    /** Defines how the grid lines are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
     lineDash?: PixelSize[];
 }

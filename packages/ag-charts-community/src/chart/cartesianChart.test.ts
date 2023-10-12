@@ -155,7 +155,9 @@ const OPTIONS: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            gridStyle: [{ lineDash: [0] }],
+            gridLine: {
+                style: [{ lineDash: [0] }],
+            },
         },
         {
             // primary y axis

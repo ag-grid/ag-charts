@@ -144,24 +144,31 @@ export abstract class AngleAxis<
     }
 
     protected override updateGridLines() {
-        const { scale, gridLength: radius, gridStyle, tick, innerRadiusRatio } = this;
-        if (!(gridStyle && radius > 0)) {
+        const {
+            scale,
+            gridLength: radius,
+            gridLine: { style, width },
+            tick,
+            innerRadiusRatio,
+        } = this;
+        if (!(style && radius > 0)) {
             return;
         }
 
         const ticks = this.tickData;
         const innerRadius = radius * innerRadiusRatio;
+        const styleCount = style.length;
         this.gridLineGroupSelection.update(tick.enabled ? ticks : []).each((line, datum, index) => {
             const { value } = datum;
-            const style = gridStyle[index % gridStyle.length];
+            const { stroke, lineDash } = style[index % styleCount];
             const angle = scale.convert(value);
             line.x1 = innerRadius * Math.cos(angle);
             line.y1 = innerRadius * Math.sin(angle);
             line.x2 = radius * Math.cos(angle);
             line.y2 = radius * Math.sin(angle);
-            line.stroke = style.stroke;
-            line.strokeWidth = tick.width;
-            line.lineDash = style.lineDash;
+            line.stroke = stroke;
+            line.strokeWidth = width;
+            line.lineDash = lineDash;
             line.fill = undefined;
         });
     }

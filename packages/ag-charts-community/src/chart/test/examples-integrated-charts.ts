@@ -1086,7 +1086,9 @@ const COMBO_LINE: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            gridStyle: [{}],
+            gridLine: {
+                style: [{}],
+            },
         },
         {
             type: 'number',
@@ -1127,7 +1129,9 @@ const COMBO_AREA: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            gridStyle: [{}],
+            gridLine: {
+                style: [{}],
+            },
         },
         {
             type: 'number',

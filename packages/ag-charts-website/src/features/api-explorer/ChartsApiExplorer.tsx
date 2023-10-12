@@ -31,11 +31,14 @@ const createOptionsJson = (chartType, options) => {
     };
 
     for (const axis of json.axes ?? []) {
-        const { gridStyle, crossLines } = axis;
+        const {
+            gridLine: { style },
+            crossLines,
+        } = axis;
 
-        if (gridStyle && !Array.isArray(gridStyle)) {
-            // special handling for gridStyle which requires an array
-            axis.gridStyle = [gridStyle];
+        if (style && !Array.isArray(style)) {
+            // special handling for grid style which requires an array
+            axis.gridLine.style = [style];
         }
 
         if (crossLines && !Array.isArray(crossLines)) {

@@ -5,7 +5,7 @@ import type { FromToDiff } from '../../motion/fromToMotion';
 import { fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { StateMachine } from '../../motion/states';
-import type { AgAxisCaptionFormatterParams, AgAxisGridStyle } from '../../options/agChartOptions';
+import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import type { Scale } from '../../scale/scale';
@@ -38,7 +38,7 @@ import type { InteractionEvent } from '../interaction/interactionManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
-import { AxisGridline, GRID_STYLE } from './axisGridline';
+import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
@@ -173,7 +173,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     readonly line = new AxisLine();
     readonly tick: AxisTick<S> = this.createTick();
-    readonly gridline = new AxisGridline();
+    readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
     protected defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
@@ -389,20 +389,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     get gridLength(): number {
         return this._gridLength;
     }
-
-    /**
-     * The array of styles to cycle through when rendering grid lines.
-     * For example, use two {@link GridStyle} objects for alternating styles.
-     * Contains only one {@link GridStyle} object by default, meaning all grid lines
-     * have the same style.
-     */
-    @Validate(GRID_STYLE)
-    gridStyle: AgAxisGridStyle[] = [
-        {
-            stroke: 'rgba(219, 219, 219, 1)',
-            lineDash: [4, 2],
-        },
-    ];
 
     private fractionDigits = 0;
 
@@ -915,7 +901,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         this.tickLineGroup.visible = this.tick.enabled;
-        this.gridLineGroup.visible = this.gridline.enabled;
+        this.gridLineGroup.visible = this.gridLine.enabled;
         this.tickLabelGroup.visible = this.label.enabled;
     }
 
@@ -1039,10 +1025,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
-        const { gridStyle, gridline, gridPadding, gridLength } = this;
-
-        const style = gridline.style ?? gridStyle;
-        const width = gridline.width;
+        const {
+            gridLine: { style, width },
+            gridPadding,
+            gridLength,
+        } = this;
 
         if (gridLength === 0 || style.length === 0) {
             return;
@@ -1054,9 +1041,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 x2: -sideFlag * gridLength + gridPadding,
                 y: 0,
                 fill: undefined,
-                stroke: stroke,
+                stroke,
                 strokeWidth: width,
-                lineDash: lineDash,
+                lineDash,
             });
         });
     }

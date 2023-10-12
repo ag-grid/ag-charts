@@ -75,10 +75,12 @@ const options: AgChartOptions = {
       line: {
         color: "#3f7cbf",
       },
-      gridStyle: [
-        { stroke: "#c1d832", lineDash: [6, 3] },
-        { stroke: "#162c53", lineDash: [10, 5] },
-      ],
+      gridLine: {
+        style: [
+          { stroke: "#c1d832", lineDash: [6, 3] },
+          { stroke: "#162c53", lineDash: [10, 5] },
+        ]
+      },
     },
     {
       position: "right",

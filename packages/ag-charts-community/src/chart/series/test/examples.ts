@@ -416,13 +416,15 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             line: {
                 color: undefined,
             },
-            gridStyle: [
-                {},
-                {
-                    stroke: 'rgb(219, 219, 219)',
-                    lineDash: [4, 2],
-                },
-            ],
+            gridLine: {
+                style: [
+                    {},
+                    {
+                        stroke: 'rgb(219, 219, 219)',
+                        lineDash: [4, 2],
+                    },
+                ],
+            },
         },
         {
             position: 'left',
@@ -436,13 +438,15 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             line: {
                 color: undefined,
             },
-            gridStyle: [
-                {},
-                {
-                    stroke: 'rgb(219, 219, 219)',
-                    lineDash: [4, 2],
-                },
-            ],
+            gridLine: {
+                style: [
+                    {},
+                    {
+                        stroke: 'rgb(219, 219, 219)',
+                        lineDash: [4, 2],
+                    },
+                ],
+            },
         },
     ],
 };
@@ -505,7 +509,9 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             title: {
                 text: 'Height',
             },
-            gridStyle: [{}],
+            gridLine: {
+                style: [{}],
+            },
         },
         {
             type: 'number',
@@ -647,7 +653,9 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            gridStyle: [{}],
+            gridLine: {
+                style: [{}],
+            },
         },
         {
             type: 'number',
@@ -721,7 +729,9 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            gridStyle: [{}],
+            gridLine: {
+                style: [{}],
+            },
         },
         {
             type: 'number',
@@ -793,7 +803,9 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
                 enabled: true,
                 text: 'Weight (kg)',
             },
-            gridStyle: [{}],
+            gridLine: {
+                style: [{}],
+            },
         },
         {
             position: 'left',

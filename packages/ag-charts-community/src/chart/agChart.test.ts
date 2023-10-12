@@ -427,7 +427,7 @@ describe('update', () => {
         expect(leftAxis).toBeDefined();
         expect(leftAxis?.title?.text).toBe('Hello');
 
-        expect(leftAxis?.gridStyle).toEqual([
+        expect(leftAxis?.gridLine.style).toEqual([
             {
                 stroke: 'rgb(224,234,241)',
                 lineDash: [],
@@ -448,16 +448,18 @@ describe('update', () => {
                     title: {
                         text: 'Hello',
                     },
-                    gridStyle: [
-                        {
-                            stroke: 'red',
-                            lineDash: [5, 5],
-                        },
-                        {
-                            stroke: 'blue',
-                            lineDash: [2, 6, 2],
-                        },
-                    ],
+                    gridLine: {
+                        style: [
+                            {
+                                stroke: 'red',
+                                lineDash: [5, 5],
+                            },
+                            {
+                                stroke: 'blue',
+                                lineDash: [2, 6, 2],
+                            },
+                        ],
+                    },
                 },
                 {
                     type: 'number',
@@ -468,7 +470,7 @@ describe('update', () => {
         await waitForChartStability(chartProxy);
 
         leftAxis = chart.axes.find((axis) => axis.position === 'left');
-        expect(leftAxis?.gridStyle).toEqual([
+        expect(leftAxis?.gridLine?.style).toEqual([
             {
                 stroke: 'red',
                 lineDash: [5, 5],

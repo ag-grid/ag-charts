@@ -381,22 +381,23 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             line.visible = labels.length > 0 && (index === 0 || (labelGrid && isLabelTree));
         });
 
-        if (this.gridLength) {
-            const styles = this.gridStyle;
-            const styleCount = styles.length;
+        const { gridLength, gridLine } = this;
+        if (gridLength) {
+            const { width, style } = gridLine;
+            const styleCount = style.length;
 
             gridLineSelection.each((line, datum, index) => {
                 const y = Math.round(tickScale.convert(datum));
                 line.x1 = 0;
-                line.x2 = -sideFlag * this.gridLength;
+                line.x2 = -sideFlag * gridLength;
                 line.y1 = y;
                 line.y2 = y;
                 line.visible = y >= requestedRange[0] && y <= requestedRange[1];
 
-                const style = styles[index % styleCount];
-                line.stroke = style.stroke;
-                line.strokeWidth = this.tick.width;
-                line.lineDash = style.lineDash;
+                const { stroke, lineDash } = style[index % styleCount];
+                line.stroke = stroke;
+                line.strokeWidth = width;
+                line.lineDash = lineDash;
                 line.fill = undefined;
             });
         }
