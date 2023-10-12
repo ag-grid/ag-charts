@@ -391,6 +391,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                   }
                 : undefined;
 
+            const lengthRatioMultiplier = this.shouldFlipXY() ? rect.height : rect.width;
             const nodeData: BarNodeDatum = {
                 index: dataIndex,
                 series: this,
@@ -403,7 +404,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 xKey,
                 capDefaults: {
                     lengthRatio: 0.5,
-                    lengthRatioMultiplier: this.shouldFlipXY() ? rect.height : rect.width,
+                    lengthRatioMultiplier: lengthRatioMultiplier,
+                    lengthMax: lengthRatioMultiplier,
                 },
                 x: rect.x,
                 y: rect.y,

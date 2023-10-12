@@ -213,7 +213,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,
-                capDefaults: { lengthRatio: 1, lengthRatioMultiplier: marker.size },
+                capDefaults: { lengthRatio: 1, lengthRatioMultiplier: marker.size, lengthMax: Infinity },
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
                 fill,
