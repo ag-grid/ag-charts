@@ -47,8 +47,6 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     gridLine?: AgAxisGridLineOptions;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: LabelType;
-    /** Configuration of the lines used to form the grid in the chart area. */
-    gridStyle?: AgAxisGridStyle[];
 }
 
 export interface AgAxisLineOptions {

@@ -149,7 +149,6 @@ export class ChartTheme {
                 width: 1,
                 color: 'rgb(195, 195, 195)',
             },
-            gridStyle: ChartTheme.getAxisGridLineStyleDefaults(),
             gridLine: {
                 enabled: true,
                 style: ChartTheme.getAxisGridLineStyleDefaults(),

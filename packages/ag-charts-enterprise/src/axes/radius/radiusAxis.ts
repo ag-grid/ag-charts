@@ -92,18 +92,21 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     protected override updateSelections(data: RadiusTickDatum[]) {
         super.updateSelections(data);
 
-        const { gridStyle, tick, shape } = this;
-        if (!gridStyle) {
+        const {
+            gridLine: { style, width },
+            shape,
+        } = this;
+        if (!style) {
             return;
         }
 
         const ticks = this.prepareTickData(data);
-
+        const styleCount = style.length;
         const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
-            const style = gridStyle[index % gridStyle.length];
-            node.stroke = style.stroke;
-            node.strokeWidth = tick.width;
-            node.lineDash = style.lineDash;
+            const { stroke, lineDash } = style[index % styleCount];
+            node.stroke = stroke;
+            node.strokeWidth = width;
+            node.lineDash = lineDash;
             node.fill = undefined;
         };
 

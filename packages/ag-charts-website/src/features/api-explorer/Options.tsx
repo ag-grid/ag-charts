@@ -267,8 +267,7 @@ export const Options = ({ chartType, updateOption, interfaceLookup, codeLookup }
         );
     };
     const isRequiresWholeObject = (prop: string) => ['highlightStyle', 'item', 'series'].includes(prop);
-    const isArraySkipped = (prop: string) =>
-        ['series', 'axes', 'gridStyle', 'crossLines', 'innerLabels'].includes(prop);
+    const isArraySkipped = (prop: string) => ['series', 'axes', 'style', 'crossLines', 'innerLabels'].includes(prop);
     const isEditable = (key: string) => !['data', 'type', 'series.data'].includes(key);
 
     const isSearching = getTrimmedSearchText() !== '';
