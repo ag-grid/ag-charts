@@ -82,7 +82,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // State
     private isDragging: boolean = false;
-    private draggedAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
+    private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -160,8 +160,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
-        if (this.enableAxisDragging && this.seriesRect && this.draggedAxis) {
-            const { id: axisId, direction } = this.draggedAxis;
+        if (this.enableAxisDragging && this.seriesRect && this.hoveredAxis) {
+            const { id: axisId, direction } = this.hoveredAxis;
             const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { min: 0, max: 1 };
             const newZoom = this.axisDragger.update(event, direction, this.seriesRect, zoom, axisZoom);
             this.updateAxisZoom(axisId, direction, newZoom);
@@ -212,7 +212,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (this.enableAxisDragging && this.axisDragger.isAxisDragging) {
             this.axisDragger.stop();
-            this.draggedAxis = undefined;
         } else if (this.enablePanning && this.panner.isPanning) {
             this.panner.stop();
         } else if (this.enableSelecting && !this.isMinZoom(zoom)) {
@@ -227,40 +226,58 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onWheel(event: _ModuleSupport.InteractionEvent<'wheel'>) {
         if (!this.enabled || !this.enableScrolling || !this.seriesRect) return;
 
-        event.consume();
-        event.sourceEvent.preventDefault();
-
         const currentZoom = this.zoomManager.getZoom();
-        const newZoom = this.scroller.update(
-            event,
-            this.scrollingStep,
-            this.anchorPoints,
-            this.isScalingX(),
-            this.isScalingY(),
-            this.seriesRect,
-            currentZoom
-        );
 
-        this.updateZoom(newZoom);
+        const isSeriesScrolling = this.seriesRect.containsPoint(event.offsetX, event.offsetY);
+        const isAxisScrolling = this.enableAxisDragging && this.hoveredAxis != null;
+
+        let isScalingX = this.isScalingX();
+        let isScalingY = this.isScalingY();
+
+        if (isAxisScrolling) {
+            isScalingX = this.hoveredAxis!.direction === _ModuleSupport.ChartAxisDirection.X;
+            isScalingY = !isScalingX;
+        }
+
+        if (isSeriesScrolling || isAxisScrolling) {
+            event.consume();
+            event.sourceEvent.preventDefault();
+
+            const newZoom = this.scroller.update(
+                event,
+                this.scrollingStep,
+                this.anchorPoints,
+                isScalingX,
+                isScalingY,
+                this.seriesRect,
+                currentZoom
+            );
+
+            this.updateZoom(newZoom);
+        }
     }
 
     private onHover() {
-        this.draggedAxis = undefined;
+        if (!this.enabled) return;
+
+        this.hoveredAxis = undefined;
         this.cursorManager.updateCursor(CURSOR_ID);
     }
 
     private onAxisHover(event: _ModuleSupport.AxisHoverChartEvent) {
-        if (!this.enabled || !this.enableAxisDragging) return;
+        if (!this.enabled) return;
 
-        this.draggedAxis = {
+        this.hoveredAxis = {
             id: event.axisId,
             direction: event.direction,
         };
 
-        this.cursorManager.updateCursor(
-            CURSOR_ID,
-            event.direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize'
-        );
+        if (this.enableAxisDragging) {
+            this.cursorManager.updateCursor(
+                CURSOR_ID,
+                event.direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize'
+            );
+        }
     }
 
     private onLayoutComplete({ series: { paddedRect } }: _ModuleSupport.LayoutCompleteEvent) {
