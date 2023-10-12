@@ -49,7 +49,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public scrollingStep = 0.1;
 
     @Validate(STRING_UNION('pointer', 'start', 'end'))
-    public scrollingPivot: 'pointer' | 'start' | 'end' = 'end';
+    public anchorPoint: 'pointer' | 'start' | 'end' = 'end';
 
     @Validate(NUMBER(0, 1))
     public minXRatio: number = 0.2;
@@ -225,7 +225,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const newZoom = this.scroller.update(
             event,
             this.scrollingStep,
-            this.scrollingPivot,
+            this.anchorPoint,
             this.isScalingX(),
             this.isScalingY(),
             this.seriesRect,

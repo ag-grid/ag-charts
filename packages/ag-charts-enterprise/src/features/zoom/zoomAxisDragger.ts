@@ -57,7 +57,7 @@ export class ZoomAxisDragger {
             return newZoom.y;
         }
 
-        // Scale the zoom along the given axis, pivoting on the end of the axis
+        // Scale the zoom along the given axis, anchoring on the end of the axis
         const origin = pointToRatio(bbox, coords.x1, coords.y1);
         const target = pointToRatio(bbox, coords.x2, coords.y2);
 
