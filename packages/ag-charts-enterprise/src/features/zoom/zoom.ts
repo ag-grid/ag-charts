@@ -86,17 +86,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
 
+        const interactionOpts = { bypassPause: ['animation' as const] };
         this.destroyFns.push(
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event)),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd()),
-            ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event)),
-            ctx.interactionManager.addListener('hover', () => this.onHover()),
+            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), interactionOpts),
+            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), interactionOpts),
+            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), interactionOpts),
+            ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), interactionOpts),
+            ctx.interactionManager.addListener('hover', () => this.onHover(), interactionOpts),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event))
         );
 
-        // Add layout listener
         // Add dragging axis zoom method
         this.axisDragger = new ZoomAxisDragger();
 
