@@ -1,6 +1,11 @@
 /**
  * These templates are used to generate the code to render the charts in the Standalone Charts API Explorer.
  */
+import type { GeneratedContents } from '@features/examples-generator/types';
+import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
+
+import type { AgChartOptions } from 'ag-charts-community';
+
 import { deepClone, formatJson } from './utils';
 
 export const data = [
@@ -43,7 +48,7 @@ export const series = ['revenue', 'profit'].map((yKey) => ({
     stacked: true,
 }));
 
-export const getTemplates = (framework, boilerplate, options) => {
+export const getJavascriptContent = ({ options }: { options: AgChartOptions }): GeneratedContents => {
     const formattedOptions = deepClone(options);
     formattedOptions.data = data;
 
@@ -52,102 +57,72 @@ export const getTemplates = (framework, boilerplate, options) => {
     }
 
     const optionsJson = formatJson(formattedOptions);
-    const boilerplateFiles = boilerplate[framework];
 
-    switch (framework) {
-        case 'vanilla':
-            return {
-                ...boilerplateFiles,
-                'main.js': `var options = ${optionsJson};
-
-document.addEventListener('DOMContentLoaded', function () {
-    options.container = document.querySelector('#myChart');
-
-    agCharts.AgChart.create(options);
-});`,
-            };
-        case 'react':
-            return {
-                ...boilerplateFiles,
-                'index.jsx': `import React, { Component } from "react";
-import { createRoot } from "react-dom/client";
-import { AgChartsReact } from "ag-charts-react";
-
-class ChartExample extends Component {
-    render() {
-        const options = ${optionsJson};
-
-        return <AgChartsReact options={options} />;
-    }
-}
-
-const root = createRoot(document.getElementById('root')!);
-root.render(<ChartExample />);`,
-            };
-        case 'angular':
-            return {
-                ...boilerplateFiles,
-                'app/app.component.ts': `import { Component } from '@angular/core';
-
-@Component({
-    selector: 'my-app',
-    templateUrl: './app.component.html'
-})
-export class AppComponent {
-    options: any;
-
-    constructor() {
-        this.options = ${optionsJson};
-    }
-}`,
-                'app/app.component.html': `<ag-charts-angular [options]="options"></ag-charts-angular>`,
-                'app/app.module.ts': `import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { AppComponent } from './app.component';
-import { AgChartsAngularModule } from 'ag-charts-angular';
-
-@NgModule({
-    declarations: [
-        AppComponent
-    ],
-    imports: [
-        BrowserModule,
-        AgChartsAngularModule
-    ],
-    providers: [],
-    bootstrap: [AppComponent]
-})
-export class AppModule {}`,
-            };
-        case 'vue':
-            return {
-                ...boilerplateFiles,
-                'main.js': `import Vue from "vue";
-import { AgChartsVue } from "ag-charts-vue";
-
-const VueExample = {
-    template: '<ag-charts-vue :options="options"></ag-charts-vue>',
-    components: {
-        "ag-charts-vue": AgChartsVue
-    },
-    data: function () {
-        return {
-            options: {}
-        };
-    },
-    beforeMount() {
-        this.options = ${optionsJson};
-    },
+    return {
+        isEnterprise: true,
+        scriptFiles: ['data.js', 'main.js'],
+        styleFiles: [],
+        sourceFileList: [],
+        files: {
+            'main.js': `const options = ${optionsJson};
+            
+options.container = document.querySelector('#myChart');
+agCharts.AgChart.create(options);`,
+            'index.html': '<div id="myChart" style="height: 100%"></div>',
+        },
+        entryFileName: 'main.js',
+        boilerPlateFiles: {},
+    };
 };
 
-new Vue({
-    el: "#app",
-    components: {
-        "my-component": VueExample
-    }
-});`,
-            };
-        default:
-            return {};
-    }
+export const getPlunkrHtml = ({
+    contents,
+    siteUrl,
+    modifiedTimeMs,
+}: {
+    contents: GeneratedContents;
+    siteUrl: string;
+    modifiedTimeMs: number;
+}) => {
+    const { isEnterprise, files } = contents;
+    const htmlFragment = files['index.html'];
+    const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
+    const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
+
+    return `<!DOCTYPE html><html lang="en">
+	<head>
+		<title>JavaScript example</title>
+		<meta charSet="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<style media="only screen">
+            html, body {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                box-sizing: border-box;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            html {
+                position: absolute;
+                top: 0;
+                left: 0;
+                padding: 0;
+                overflow: auto;
+            }
+
+            body {
+                padding: 1rem;
+                overflow: auto;
+            }
+        </style>
+	</head>
+	<body>
+		${htmlFragment}
+
+		<script src="${chartScriptPath}"></script>
+        ${isEnterprise ? `<script src="${chartScriptEnterprisePath}"></script>` : ''}
+		<script src="main.js"></script>
+	</body>
+</html>`;
 };
