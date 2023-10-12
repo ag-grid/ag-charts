@@ -45,7 +45,7 @@ export class RadialColumnShape extends Path {
     private getRotation() {
         const { startAngle, endAngle } = this;
         const midAngle = angleBetween(startAngle, endAngle);
-        return normalizeAngle360(startAngle + midAngle / 2);
+        return normalizeAngle360(startAngle + midAngle / 2 + Math.PI / 2);
     }
 
     override updatePath() {
