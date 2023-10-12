@@ -151,9 +151,6 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
                 plunkrHtmlUrl={plunkrHtmlUrl}
                 boilerPlateFiles={exampleBoilerPlateFiles}
                 fileToOpen={initialSelectedFile!}
-                internalFramework={internalFramework}
-                pageName={pageName}
-                exampleName={exampleName}
             />
         ) : undefined;
 
