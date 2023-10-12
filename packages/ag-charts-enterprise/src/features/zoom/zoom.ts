@@ -23,14 +23,6 @@ const round = (value: number, decimals: number) => {
     return Math.round(value * pow) / pow;
 };
 
-class ZoomAnchorPoints {
-    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
-    public x: AnchorPoint = 'end';
-
-    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
-    public y: AnchorPoint = 'middle';
-}
-
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
     public enabled = true;
@@ -62,7 +54,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(NUMBER(0, 1))
     public minYRatio: number = 0.2;
 
-    public anchorPoints = new ZoomAnchorPoints();
+    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
+    public anchorPointX: AnchorPoint = 'end';
+
+    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
+    public anchorPointY: AnchorPoint = 'middle';
 
     // Scenes
     private readonly scene: _Scene.Scene;
@@ -151,15 +147,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (this.enableAxisDragging && this.seriesRect && this.hoveredAxis) {
             const { id: axisId, direction } = this.hoveredAxis;
+            const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
             const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { min: 0, max: 1 };
-            const newZoom = this.axisDragger.update(
-                event,
-                direction,
-                this.anchorPoints[direction],
-                this.seriesRect,
-                zoom,
-                axisZoom
-            );
+            const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
             this.updateAxisZoom(axisId, direction, newZoom);
             return;
         }
@@ -242,7 +232,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const newZoom = this.scroller.update(
                 event,
                 this.scrollingStep,
-                this.anchorPoints,
+                this.anchorPointX,
+                this.anchorPointY,
                 isScalingX,
                 isScalingY,
                 this.seriesRect,

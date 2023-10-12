@@ -95,25 +95,25 @@ describe('Zoom', () => {
 
     describe('anchor', () => {
         it('should zoom at the start', async () => {
-            await prepareChart({ anchorPoints: { x: 'start', y: 'start' } });
+            await prepareChart({ anchorPointX: 'start', anchorPointY: 'start' });
             await scrollAction(cx, cy, -1)(chart);
             await compare();
         });
 
         it('should zoom in the middle', async () => {
-            await prepareChart({ anchorPoints: { x: 'middle', y: 'middle' } });
+            await prepareChart({ anchorPointX: 'middle', anchorPointY: 'middle' });
             await scrollAction(cx, cy, -1)(chart);
             await compare();
         });
 
         it('should zoom at the end', async () => {
-            await prepareChart({ anchorPoints: { x: 'end', y: 'end' } });
+            await prepareChart({ anchorPointX: 'end', anchorPointY: 'end' });
             await scrollAction(cx, cy, -1)(chart);
             await compare();
         });
 
         it('should zoom on the pointer', async () => {
-            await prepareChart({ anchorPoints: { x: 'pointer', y: 'pointer' } });
+            await prepareChart({ anchorPointX: 'pointer', anchorPointY: 'pointer' });
             await scrollAction(cx, cy, -1)(chart);
             await compare();
         });

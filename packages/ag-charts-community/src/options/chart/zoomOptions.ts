@@ -3,11 +3,10 @@ export type AgZoomAxes = 'x' | 'y' | 'xy';
 export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 
 export interface AgZoomOptions {
-    /** The anchor point about which to zoom into when scrolling, defaults to `end`. */
-    anchorPoints?: {
-        x: AgZoomAnchorPoint;
-        y: AgZoomAnchorPoint;
-    };
+    /** The anchor point for the x-axis about which to zoom into when scrolling, defaults to `end`. */
+    anchorPointX?: AgZoomAnchorPoint;
+    /** The anchor point for the y-axis about which to zoom into when scrolling, defaults to `middle`. */
+    anchorPointY?: AgZoomAnchorPoint;
     /** The axes on which to zoom, one of 'xy', 'x', or 'y'. */
     axes?: AgZoomAxes;
     /** Set to true to enable the zoom module. */

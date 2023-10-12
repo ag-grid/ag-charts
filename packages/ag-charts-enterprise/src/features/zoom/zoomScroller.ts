@@ -13,7 +13,8 @@ export class ZoomScroller {
     update(
         event: _ModuleSupport.InteractionEvent<'wheel'>,
         step: number,
-        anchor: { x: AnchorPoint; y: AnchorPoint },
+        anchorPointX: AnchorPoint,
+        anchorPointY: AnchorPoint,
         isScalingX: boolean,
         isScalingY: boolean,
         bbox: _Scene.BBox,
@@ -36,7 +37,7 @@ export class ZoomScroller {
         newZoom.x.max += isScalingX ? step * dir : 0;
         newZoom.y.max += isScalingY ? step * dir : 0;
 
-        if ((anchor.x === 'pointer' && isScalingX) || (anchor.y === 'pointer' && isScalingY)) {
+        if ((anchorPointX === 'pointer' && isScalingX) || (anchorPointY === 'pointer' && isScalingY)) {
             // Translate the zoom bounding box such that the cursor remains over the same position as before
             const scaledOriginX = origin.x * (1 - (oldZoom.x.max - oldZoom.x.min - (newZoom.x.max - newZoom.x.min)));
             const scaledOriginY = origin.y * (1 - (oldZoom.y.max - oldZoom.y.min - (newZoom.y.max - newZoom.y.min)));
@@ -47,10 +48,10 @@ export class ZoomScroller {
             newZoom = translateZoom(newZoom, translateX, translateY);
         } else {
             if (isScalingX) {
-                newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchor.x);
+                newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchorPointX);
             }
             if (isScalingY) {
-                newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchor.y);
+                newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchorPointY);
             }
         }
 

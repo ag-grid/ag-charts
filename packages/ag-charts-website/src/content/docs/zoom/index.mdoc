@@ -64,17 +64,19 @@ In the example below, we have series attached to different y-axes.
 
 ## Anchor Point
 
-By default, the chart will zoom while keeping the right side of the x-axis pinned. You can change this anchor point with the `anchorPoint` property, setting it one of:
+By default, the chart will zoom while keeping the right side of the x-axis pinned. You can change this anchor point with the `anchorPointX` and `anchorPointY` properties, setting them each to one of:
 
--   `end` (default), the right or top of the chart when scrolling on the x or y axis respectively,
 -   `start`, the left or bottom of the chart when scrolling on the x or y axis respectively,
+-   `middle` (default for y-axis), the middle of the chart,
+-   `end` (default for x-axis), the right or top of the chart when scrolling on the x or y axis respectively,
 -   `pointer`, keep the mouse pointer above the same position on the chart when zooming.
 
-In the example below, we set the anchor point to the mouse pointer.
+In the example below, we set the anchor point for both axes to the mouse pointer.
 
 ```ts
 zoom: {
-    anchorPoint: 'pointer',
+    anchorPointX: 'pointer',
+    anchorPointY: 'pointer',
 }
 ```
 
