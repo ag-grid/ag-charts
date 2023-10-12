@@ -18,7 +18,9 @@ const options: AgChartOptions = {
         },
         axes: {
           category: {
-            gridStyle: [],
+            gridLine: {
+              style:  []
+            },
           },
           number: {
             tick: {},

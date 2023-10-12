@@ -134,7 +134,9 @@ const options: AgChartOptions = {
     {
       position: "bottom",
       type: "time",
-      gridStyle: [],
+      gridLine: {
+        style: []
+      },
       label: {
         padding: 15,
       },

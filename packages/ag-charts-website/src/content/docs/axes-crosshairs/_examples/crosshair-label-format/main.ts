@@ -43,7 +43,9 @@ const options: AgCartesianChartOptions = {
     {
       position: "bottom",
       type: "time",
-      gridStyle: [],
+      gridLine: {
+        style: []
+      },
       nice: false,
       crosshair: {
         enabled: true,

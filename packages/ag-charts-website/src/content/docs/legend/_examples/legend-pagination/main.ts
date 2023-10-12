@@ -113,7 +113,9 @@ const options: AgChartOptions = {
     {
       position: "bottom",
       type: "time",
-      gridStyle: [],
+      gridLine: {
+        style: []
+      },
       nice: false,
     },
     {

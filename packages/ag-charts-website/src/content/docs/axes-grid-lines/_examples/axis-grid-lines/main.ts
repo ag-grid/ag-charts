@@ -26,10 +26,22 @@ const options: AgCartesianChartOptions = {
     {
       type: 'category',
       position: 'bottom',
+      gridLine: {
+        style: [{
+          stroke: 'rgba(219, 219, 219, 1)',
+          lineDash: [4, 2],
+        }]
+      }
     },
     {
       type: 'number',
       position: 'left',
+      gridLine: {
+        style: [{
+          stroke: 'rgba(219, 219, 219, 1)',
+          lineDash: [4, 2],
+        }]
+      }
     },
   ],
 }
@@ -47,8 +59,8 @@ function useGridStyle1() {
       lineDash: [5, 5],
     },
   ]
-  options.axes![0].gridStyle = gridStyle
-  options.axes![1].gridStyle = gridStyle
+  options.axes![0].gridLine!.style = gridStyle
+  options.axes![1].gridLine!.style = gridStyle
   AgChart.update(chart, options)
 }
 
@@ -65,8 +77,8 @@ function useGridStyle2() {
       lineDash: [8, 3, 3, 3],
     },
   ]
-  options.axes![0].gridStyle = xGridStyle
-  options.axes![1].gridStyle = yGridStyle
+  options.axes![0].gridLine!.style = xGridStyle
+  options.axes![1].gridLine!.style = yGridStyle
   AgChart.update(chart, options)
 }
 
@@ -77,7 +89,7 @@ function useDefaultGridStyle() {
       lineDash: [4, 2],
     },
   ]
-  options.axes![0].gridStyle = gridStyle
-  options.axes![1].gridStyle = gridStyle
+  options.axes![0].gridLine!.style = gridStyle
+  options.axes![1].gridLine!.style = gridStyle
   AgChart.update(chart, options)
 }

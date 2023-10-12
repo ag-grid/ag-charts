@@ -19,14 +19,6 @@ const baseChartOptions: AgCartesianChartOptions = {
     theme: {
         overrides: {
             line: {
-                axes: {
-                    number: {
-                        gridStyle: [],
-                    },
-                    time: {
-                        gridStyle: [],
-                    },
-                },
                 series: {
                     highlightStyle: {
                         series: {
