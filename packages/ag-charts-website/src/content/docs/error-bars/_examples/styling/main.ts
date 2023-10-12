@@ -26,15 +26,19 @@ const options: AgChartOptions = {
 const chart = AgEnterpriseCharts.create(options);
 
 function line() {
-    for (const opt of options.series ?? []) {
-        opt.type = 'line';
+    if (options.series !== undefined) {
+        for (const opt of options.series) {
+            opt.type = 'line';
+        }
     }
     AgEnterpriseCharts.update(chart, options);
 }
 
 function bar() {
-    for (const opt of options.series ?? []) {
-        opt.type = 'bar';
+    if (options.series !== undefined) {
+        for (const opt of options.series) {
+            opt.type = 'bar';
+        }
     }
     AgEnterpriseCharts.update(chart, options);
 }
