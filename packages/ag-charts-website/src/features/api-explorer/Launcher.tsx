@@ -28,7 +28,6 @@ export const Launcher = ({
     //     () => buildExampleInfo(nodes, framework, options, useFunctionalReact, useVue3, useTypescript),
     //     [nodes, framework, options, useFunctionalReact, useVue3, useTypescript]
     // );
-    const isGenerated = isGeneratedExample(exampleInfo.type);
 
     return (
         <div className={styles.launcher}>
@@ -58,12 +57,6 @@ export const Launcher = ({
                     // openPlunker(exampleInfo);
                     console.log('TODO: Open plunkr');
                 }}
-                onKeyDown={(e) =>
-                    doOnEnter(e, () => {
-                        // openPlunker(exampleInfo);
-                        console.log('TODO: Open plunkr');
-                    })
-                }
                 role="button"
                 tabIndex={0}
                 title="Edit on Plunker"
@@ -73,5 +66,3 @@ export const Launcher = ({
         </div>
     );
 };
-
-const isGeneratedExample = (type) => ['generated', 'mixed', 'typescript'].includes(type);
