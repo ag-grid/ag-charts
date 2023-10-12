@@ -59,7 +59,7 @@ export const Launcher = ({
                     openPlunker({
                         title: 'API Explorer Example',
                         files: plunkrExampleFiles,
-                        fileToOpen: 'main.js',
+                        fileToOpen: contents.entryFileName,
                     });
                 }}
                 role="button"
