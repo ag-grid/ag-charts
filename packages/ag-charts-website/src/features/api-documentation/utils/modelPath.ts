@@ -177,6 +177,8 @@ export function getTopLevelSelection({
         if (selection.type === 'property') {
             if (topLevelModel.desc.type === 'array') {
                 const { path } = selection;
+                // Top level array should only take the first 2 items from path
+                const topLevelPath = selection.path.slice(0, 2);
                 const topLevelArray = (topLevelModel.desc as JsonArray).elements as JsonUnionType;
                 const pathDiscriminator = path[1];
 
@@ -193,7 +195,7 @@ export function getTopLevelSelection({
 
                 topLevelSelection = {
                     type: 'model',
-                    path,
+                    path: topLevelPath,
                     model: innerOption.model,
                 };
             } else if (topLevelModel.desc.type === 'nested-object') {
