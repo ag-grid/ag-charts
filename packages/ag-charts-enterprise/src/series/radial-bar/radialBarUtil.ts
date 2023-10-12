@@ -17,9 +17,9 @@ export function prepareRadialBarSeriesAnimationFunctions(
     axes: Record<_ModuleSupport.ChartAxisDirection, _ModuleSupport.ChartAxis | undefined>
 ) {
     const angleScale = axes[ChartAxisDirection.X]?.scale;
-    let axisStartAngle = 0;
+    let axisZeroAngle = 0;
     if (angleScale && angleScale.domain[0] <= 0 && angleScale.domain[1] >= 0) {
-        axisStartAngle = angleScale.convert(0);
+        axisZeroAngle = angleScale.convert(0);
     }
 
     const isRemoved = (datum: AnimatableSectorDatum) => !datum;
@@ -43,29 +43,29 @@ export function prepareRadialBarSeriesAnimationFunctions(
             innerRadius = sect.innerRadius;
             outerRadius = sect.outerRadius;
         } else {
-            startAngle = axisStartAngle;
-            endAngle = axisStartAngle;
+            startAngle = axisZeroAngle;
+            endAngle = axisZeroAngle;
             innerRadius = datum.innerRadius;
             outerRadius = datum.outerRadius;
         }
         const mixin = motion.FROM_TO_MIXINS[status];
         return { startAngle, endAngle, innerRadius, outerRadius, ...mixin };
     };
-    const toFn = (_sect: _Scene.Sector, datum: AnimatableSectorDatum, status: _Scene.NodeUpdateState) => {
+    const toFn = (sect: _Scene.Sector, datum: AnimatableSectorDatum, status: _Scene.NodeUpdateState) => {
         let startAngle: number;
         let endAngle: number;
         let innerRadius: number;
         let outerRadius: number;
         if (status === 'removed') {
-            startAngle = axisStartAngle;
-            endAngle = axisStartAngle;
+            startAngle = axisZeroAngle;
+            endAngle = axisZeroAngle;
             innerRadius = datum.innerRadius;
             outerRadius = datum.outerRadius;
         } else {
             startAngle = datum.startAngle;
             endAngle = datum.endAngle;
-            innerRadius = datum.innerRadius;
-            outerRadius = datum.outerRadius;
+            innerRadius = isNaN(datum.innerRadius) ? sect.innerRadius : datum.innerRadius;
+            outerRadius = isNaN(datum.outerRadius) ? sect.outerRadius : datum.outerRadius;
         }
         return { startAngle, endAngle, innerRadius, outerRadius };
     };

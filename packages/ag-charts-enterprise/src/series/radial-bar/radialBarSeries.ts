@@ -186,23 +186,31 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             extraProps.push(diff(this.processedData));
         }
 
+        const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
+
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, radiusKey, false, { id: 'radiusValue' }),
-                valueProperty(this, angleKey, true, { id: 'angleValue-raw', invalidValue: undefined }),
-                ...groupAccumulativeValueProperty(this, angleKey, true, 'window', 'current', {
+                valueProperty(this, angleKey, true, {
+                    id: 'angleValue-raw',
+                    invalidValue: null,
+                    ...visibleProps,
+                }),
+                ...groupAccumulativeValueProperty(this, angleKey, true, 'normal', 'current', {
                     id: `angleValue-end`,
                     invalidValue: null,
                     groupId: stackGroupId,
+                    ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, angleKey, true, 'window-trailing', 'current', {
+                ...groupAccumulativeValueProperty(this, angleKey, true, 'trailing', 'current', {
                     id: `angleValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
+                    ...visibleProps,
                 }),
                 ...extraProps,
             ],
-            dataVisible: visible,
+            dataVisible: visible || animationEnabled,
         });
 
         this.animationState.transition('updateData');
@@ -390,7 +398,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const stroke = highlightedStyle?.stroke ?? this.stroke;
         const strokeOpacity = this.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
-        selection.update(selectionData).each((node, datum) => {
+
+        const idFn = (datum: RadialBarNodeDatum) => datum.radiusValue;
+        selection.update(selectionData, undefined, idFn).each((node, datum) => {
             const format = this.formatter
                 ? this.ctx.callbackCache.call(this.formatter, {
                       datum,
@@ -412,10 +422,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             node.lineDash = this.lineDash;
             node.lineJoin = 'round';
 
-            node.startAngle = datum.startAngle;
-            node.endAngle = datum.endAngle;
-            node.innerRadius = datum.innerRadius;
-            node.outerRadius = datum.outerRadius;
+            if (highlight) {
+                node.startAngle = datum.startAngle;
+                node.endAngle = datum.endAngle;
+                node.innerRadius = datum.innerRadius;
+                node.outerRadius = datum.outerRadius;
+            }
         });
     }
 
