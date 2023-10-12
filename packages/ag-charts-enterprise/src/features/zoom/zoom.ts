@@ -18,9 +18,9 @@ const CURSOR_ID = 'zoom-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';
 const ZOOM_ID = 'zoom';
 
-const round = (n: number, sf: number) => {
-    const pow = Math.pow(10, sf);
-    return Math.round(n * pow) / pow;
+const round = (value: number, decimals: number) => {
+    const pow = Math.pow(10, decimals);
+    return Math.round(value * pow) / pow;
 };
 
 class ZoomAnchorPoints {
@@ -364,11 +364,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private isMinZoom(zoom: DefinedZoomState): boolean {
         const minXCheckValue = this.enableScrolling
             ? (zoom.x.max - zoom.x.min) * (1 - this.scrollingStep)
-            : Math.round((zoom.x.max - zoom.x.min) * 100) / 100;
+            : round(zoom.x.max - zoom.x.min, 2);
 
         const minYCheckValue = this.enableScrolling
             ? (zoom.y.max - zoom.y.min) * (1 - this.scrollingStep)
-            : Math.round((zoom.y.max - zoom.y.min) * 100) / 100;
+            : round(zoom.y.max - zoom.y.min, 2);
 
         const isMinXZoom = !this.isScalingX() || minXCheckValue <= this.minXRatio;
         const isMinYZoom = !this.isScalingY() || minYCheckValue <= this.minXRatio;
