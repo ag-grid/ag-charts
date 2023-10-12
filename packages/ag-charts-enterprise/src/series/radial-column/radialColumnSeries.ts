@@ -44,9 +44,19 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape
         return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
     }
 
-    protected override updateItemPath(node: RadialColumnShape, _datum: RadialColumnNodeDatum) {
+    protected override updateItemPath(node: RadialColumnShape, datum: RadialColumnNodeDatum, highlight: boolean) {
         const axisIsCircle = this.isRadiusAxisCircle();
         node.isBeveled = axisIsCircle;
+
+        if (highlight) {
+            node.innerRadius = datum.innerRadius;
+            node.outerRadius = datum.outerRadius;
+            node.startAngle = datum.startAngle;
+            node.endAngle = datum.endAngle;
+            node.columnWidth = datum.columnWidth;
+            node.axisInnerRadius = datum.axisInnerRadius;
+            node.axisOuterRadius = datum.axisOuterRadius;
+        }
     }
 
     protected override getColumnWidth(startAngle: number, endAngle: number) {

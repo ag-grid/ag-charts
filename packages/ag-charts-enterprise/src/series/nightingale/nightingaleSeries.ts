@@ -23,9 +23,15 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         return new Sector();
     }
 
-    protected updateItemPath(node: _Scene.Sector, _datum: RadialColumnNodeDatum) {
+    protected updateItemPath(node: _Scene.Sector, datum: RadialColumnNodeDatum, highlight: boolean) {
         node.centerX = 0;
         node.centerY = 0;
+        if (highlight) {
+            node.innerRadius = datum.innerRadius;
+            node.outerRadius = datum.outerRadius;
+            node.startAngle = datum.startAngle;
+            node.endAngle = datum.endAngle;
+        }
     }
 
     protected override getColumnTransitionFunctions() {
