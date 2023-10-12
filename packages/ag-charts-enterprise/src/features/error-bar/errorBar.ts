@@ -146,14 +146,14 @@ export class ErrorBars
         super();
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
-        const { contentGroup } = this.cartesianSeries;
+        const { highlightGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
-            name: `${contentGroup.id}-series-errorBars`,
+            name: `${highlightGroup.id}-series-errorBars`,
             zIndex: _ModuleSupport.Layers.SERIES_ERRORBAR_ZINDEX,
             zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('error-bars'),
         });
-        contentGroup.appendChild(this.groupNode);
+        highlightGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
         const series = this.cartesianSeries;
@@ -163,7 +163,8 @@ export class ErrorBars
             series.addListener('data-getDomain', (e: SeriesDataGetDomainEvent) => this.onGetDomain(e)),
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
-            series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e))
+            series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
+            () => highlightGroup.removeChild(this.groupNode)
         );
     }
 
