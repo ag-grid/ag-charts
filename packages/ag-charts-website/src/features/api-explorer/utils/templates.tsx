@@ -6,7 +6,7 @@ import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } 
 
 import type { AgChartOptions } from 'ag-charts-community';
 
-import { deepClone, formatJson } from './utils';
+import { deepClone, formatJson } from '../utils/utils';
 
 export const data = [
     {

@@ -14,9 +14,9 @@ import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { type ReactNode, useState } from 'react';
 
+import { deepClone, formatJson, isXAxisNumeric } from '../utils/utils';
 import { PresetEditor, getPrimitiveEditor, getPrimitivePropertyEditor } from './Editors';
 import styles from './Options.module.scss';
-import { deepClone, formatJson, isXAxisNumeric } from './utils';
 
 const FunctionDefinition = ({ definition }: { definition: JsonFunction }) => {
     const lines = [`function ${definition.tsType};`];

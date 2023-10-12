@@ -2,8 +2,8 @@ import { Icon } from '@components/icon/Icon';
 import { openPlunker } from '@features/plunkr/utils/plunkr';
 import { doOnEnter } from '@utils/doOnEnter';
 
+import { getJavascriptContent, getPlunkrHtml } from '../utils/templates';
 import styles from './Launcher.module.scss';
-import { getJavascriptContent, getPlunkrHtml } from './templates';
 
 interface Props {
     options: {};

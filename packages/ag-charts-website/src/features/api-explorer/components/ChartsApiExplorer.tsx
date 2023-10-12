@@ -1,13 +1,13 @@
 import classnames from 'classnames';
 import { useState } from 'react';
 
+import { isXAxisNumeric } from '../utils/utils';
 import { Chart } from './Chart';
 import { ChartTypeSelector } from './ChartTypeSelector';
 import styles from './ChartsApiExplorer.module.scss';
 import { CodeView } from './CodeView';
 import { Launcher } from './Launcher';
 import { Options } from './Options';
-import { isXAxisNumeric } from './utils';
 
 const createOptionsJson = (chartType, options) => {
     const optionsHasAxes = Array.isArray(options.axes) && options.axes.length > 0;

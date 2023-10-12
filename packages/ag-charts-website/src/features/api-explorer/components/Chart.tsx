@@ -3,9 +3,9 @@ import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import React from 'react';
 
+import { data, series } from '../utils/templates';
+import { deepClone } from '../utils/utils';
 import styles from './Chart.module.scss';
-import { data, series } from './templates';
-import { deepClone } from './utils';
 
 /**
  * This renders the chart inside the Standalone Charts API Explorer.
