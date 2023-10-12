@@ -129,10 +129,10 @@ describe('ErrorBars', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    const getScatterItemCoords = (itemIndex: number): { x: number; y: number } => {
+    const getItemCoords = (itemIndex: number): { x: number; y: number } => {
         const series = chart['series'][0];
         const item = series['contextNodeData'][0].nodeData[itemIndex];
-        return series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
+        return series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
     };
 
     const opts = prepareEnterpriseTestOptions({});
@@ -390,6 +390,27 @@ describe('ErrorBars', () => {
         await compare();
     });
 
+    it('should render caps over highlight', async () => {
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        data: FEWER_MONTHS,
+                        errorBar: { ...SERIES_CANADA.errorBar, strokeWidth: 10, cap: { lengthRatio: 1 } },
+                    },
+                ],
+            })
+        );
+        await waitForChartStability(chart);
+
+        const { x, y } = getItemCoords(2);
+        await hoverAction(x, y)(chart);
+        await compare();
+    });
+
     it('should provide tooltip params', async () => {
         const expectedParams = {
             xLowerKey: 'volumeLower',
@@ -415,7 +436,7 @@ describe('ErrorBars', () => {
         );
         await waitForChartStability(chart);
 
-        const { x, y } = getScatterItemCoords(4);
+        const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
         await waitForChartStability(chart);
 
@@ -450,7 +471,7 @@ describe('ErrorBars', () => {
         );
         await waitForChartStability(chart);
 
-        const { x, y } = getScatterItemCoords(4);
+        const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
         await waitForChartStability(chart);
 
