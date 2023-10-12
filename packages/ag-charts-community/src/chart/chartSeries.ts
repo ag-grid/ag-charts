@@ -27,7 +27,7 @@ export interface SeriesNodeDatum {
     readonly itemId?: any;
     readonly datum: any;
     readonly point?: Readonly<SizedPoint>;
-    nodeMidPoint?: Readonly<Point>;
+    midPoint?: Readonly<Point>;
 }
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
@@ -88,10 +88,12 @@ export interface ChartSeries {
     type: string;
     id: string;
     data?: any[];
+    cursor: string;
     seriesGrouping?: SeriesGrouping;
     getModuleMap(): ModuleMap<any, any, any>;
     update(opts: { seriesRect?: BBox }): Promise<void>;
     hasData(): boolean | undefined;
+    getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     markNodeDataDirty(): void;
     removeEventListener(key: string, cb: TypedEventListener): void;

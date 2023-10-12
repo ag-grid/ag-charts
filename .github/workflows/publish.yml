@@ -17,6 +17,11 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: '18'
+                  cache: 'yarn'
+
+            - name: yarn install
+              id: yarn_install
+              run: yarn install --ci --prefer-offline
 
             - name: Calculate Next Beta Version
               id: next_version

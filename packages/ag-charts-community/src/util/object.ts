@@ -35,7 +35,7 @@ function isPlainObject(x: any): x is Object {
     return isObject(x) && x.constructor === Object;
 }
 
-export function mergeDefaults<T extends Record<string, any>>(...sources: (T | undefined)[]) {
+export function mergeDefaults<T extends Record<string, any>>(...sources: (T | false | null | undefined)[]) {
     const target: Record<string, any> = {};
     for (const source of sources) {
         if (!source) continue;

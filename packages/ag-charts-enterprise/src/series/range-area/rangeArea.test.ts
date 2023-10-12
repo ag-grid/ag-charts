@@ -143,7 +143,7 @@ describe('Chart', () => {
 
     it(`should render a range-area chart as expected`, async () => {
         const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -158,7 +158,7 @@ describe('Chart', () => {
                 high: datum.low,
             })),
         };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -175,7 +175,7 @@ describe('Chart', () => {
                 high: invertedDataIndices.includes(index) ? datum.low : datum.high,
             })),
         };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -191,7 +191,7 @@ describe('Chart', () => {
                 high: invalidDataIndices.includes(index) ? `invalid` : datum.high,
             })),
         };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();
@@ -212,7 +212,7 @@ describe('Chart', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
 
         chart = AgEnterpriseCharts.create(options);
         await compare();

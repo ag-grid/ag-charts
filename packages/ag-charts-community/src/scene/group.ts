@@ -69,7 +69,13 @@ export class Group extends Node {
             const { zIndex, zIndexSubOrder, name } = this.opts ?? {};
             const getComputedOpacity = () => this.getComputedOpacity();
             const getVisibility = () => this.getVisibility();
-            this.layer = scene.addLayer({ zIndex, zIndexSubOrder, name, getComputedOpacity, getVisibility });
+            this.layer = scene.addLayer({
+                zIndex,
+                zIndexSubOrder,
+                name,
+                getComputedOpacity,
+                getVisibility,
+            });
         }
     }
 
@@ -201,7 +207,13 @@ export class Group extends Node {
                 // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
                 const { width, height, x, y } = clipBBox;
 
-                debug(() => ({ name, clipBBox, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
+                debug(() => ({
+                    name,
+                    clipBBox,
+                    ctxTransform: ctx.getTransform(),
+                    renderCtx,
+                    group: this,
+                }));
 
                 this.clipCtx(ctx, x, y, width, height);
             }

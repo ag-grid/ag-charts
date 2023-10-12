@@ -9,12 +9,16 @@ const data = [
   { label: "Windows", value: 1.9 },
 ];
 
+const filter = (...labels: string[]) => {
+  return (d: typeof data[number]) => labels.includes(d.label);
+};
+
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
   animation: {
     enabled: true,
   },
-  data,
+  data: data.filter(filter('Android', 'BlackBerry', 'Bada')),
   series: [
     {
       type: "pie",
@@ -24,7 +28,7 @@ const options: AgChartOptions = {
       sectorLabel: {
         color: "white",
         fontWeight: "bold",
-        formatter: ({ sectorLabelValue }) => sectorLabelValue ? `${Math.round(parseFloat(sectorLabelValue) * 100) / 100}` : '',
+        formatter: ({ datum }) => datum['value'] ? `${Math.round(parseFloat(datum['value']) * 100) / 100}` : '',
       },
     },
   ],
@@ -33,26 +37,35 @@ const options: AgChartOptions = {
 const chart = AgEnterpriseCharts.create(options)
 
 function reset() {
-  options.data = [...data];
+  options.data = data.filter(filter('Android', 'BlackBerry', 'Bada'));
   AgChart.update(chart, options as any)
+}
+
+function randomIndex(array: unknown[]) {
+  const index = Math.floor(Math.random() * array.length);
+  return index;
 }
 
 function randomise() {
-  options.data = [...data.map(d => ({
+  options.data = [...options.data.map((d: any) => ({
     ...d,
-    value: d.value * (Math.random() * 0.2 + 0.5)
+    originalValue: d.originalValue ?? d.value,
+    value: (d.originalValue ?? d.value) * (Math.random() * 5 + 0.5)
   }))]
-  AgChart.update(chart, options as any)
+  AgChart.update(chart, options )
+}
+
+function add() {
+  const newData = [...data];
+  options.data = newData;
+  AgChart.update(chart, options )
 }
 
 function remove() {
-  options.data = [
-    ...data.filter(
-      (d: any) =>
-        d.label !== 'Android' &&
-        d.label !== 'BlackBerry' &&
-        d.label !== 'Windows'
-    ),
-  ]
-  AgChart.update(chart, options as any)
+  const newData = [...options.data];
+  const indexToRemove = randomIndex(newData);
+
+  newData.splice(indexToRemove, 1);
+  options.data = newData;
+  AgChart.update(chart, options )
 }

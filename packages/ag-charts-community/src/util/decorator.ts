@@ -7,6 +7,7 @@ type TransformFn = (
     oldValue?: any
 ) => any | typeof BREAK_TRANSFORM_CHAIN;
 type TransformConfig = { setters: TransformFn[]; getters: TransformFn[] };
+type DecoratedObject = { __decorator_config: object };
 const CONFIG_KEY = '__decorator_config';
 
 function initialiseConfig(
@@ -93,12 +94,17 @@ export function addTransformToInstanceProperty(
     };
 }
 
-export function isDecoratedObject(target: any) {
-    return CONFIG_KEY in target;
+export function isDecoratedObject(target: any): target is DecoratedObject {
+    return typeof target !== 'undefined' && CONFIG_KEY in target;
 }
 
-export function listDecoratedProperties(target: any) {
-    return Object.keys(target?.[CONFIG_KEY] ?? {});
+export function listDecoratedProperties(target: any): string[] {
+    const targets = new Set<object>();
+    while (isDecoratedObject(target)) {
+        targets.add(target?.[CONFIG_KEY]);
+        target = Object.getPrototypeOf(target);
+    }
+    return Array.from(targets).flatMap((configMap) => Object.keys(configMap));
 }
 
 export function extractDecoratedProperties(target: any) {

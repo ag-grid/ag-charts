@@ -26,18 +26,11 @@ class RadiusAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number>
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(OPT_BOOLEAN)
-    autoRotate: boolean | undefined = undefined;
+    autoRotate?: boolean;
 
     @Validate(NUMBER(-360, 360))
     autoRotateAngle: number = 335;
 }
-
-export type RadiusTickDatum = {
-    tickLabel: string;
-    tick: any;
-    tickId: string;
-    translationY: number;
-};
 
 export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     @Validate(NUMBER(-360, 360))
@@ -86,10 +79,10 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         };
     }
 
-    protected abstract prepareTickData(tickData: RadiusTickDatum[]): RadiusTickDatum[];
-    protected abstract getTickRadius(tickDatum: RadiusTickDatum): number;
+    protected abstract prepareTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];
+    protected abstract getTickRadius(tickDatum: _ModuleSupport.TickDatum): number;
 
-    protected override updateSelections(data: RadiusTickDatum[]) {
+    protected override updateSelections(data: _ModuleSupport.TickDatum[]) {
         super.updateSelections(data);
 
         const { gridStyle, tick, shape } = this;
@@ -146,7 +139,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         const {
             title,
             _titleCaption,
-            lineNode,
             range: requestedRange,
             moduleCtx: { callbackCache },
         } = this;
@@ -167,12 +159,12 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
         let titleVisible = false;
         const titleNode = _titleCaption.node;
-        if (title.enabled && lineNode.visible) {
+        if (title.enabled) {
             titleVisible = true;
 
             titleNode.rotation = Math.PI / 2;
             titleNode.x = Math.floor((requestedRange[0] + requestedRange[1]) / 2);
-            titleNode.y = -Caption.PADDING;
+            titleNode.y = -Caption.SMALL_PADDING;
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 

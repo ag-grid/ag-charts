@@ -1,3 +1,4 @@
+import type { AgChartCallbackParams } from './callbackOptions';
 import type { CssColor, InteractionRange, PixelSize } from './types';
 
 export interface AgChartTooltipOptions {
@@ -38,15 +39,11 @@ export interface AgTooltipRendererResult {
     backgroundColor?: string;
 }
 
-export interface AgSeriesTooltipRendererParams {
-    /** Datum from the series data array that the tooltip is being rendered for. */
-    readonly datum: any;
+export interface AgSeriesTooltipRendererParams<TDatum = any> extends AgChartCallbackParams<TDatum> {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
     /** Series primary colour, as selected from the active theme, series options or formatter. */
     readonly color?: CssColor;
-    /** The ID of the series. */
-    readonly seriesId: string;
 }
 
 export interface AgSeriesTooltip<P extends AgSeriesTooltipRendererParams> {

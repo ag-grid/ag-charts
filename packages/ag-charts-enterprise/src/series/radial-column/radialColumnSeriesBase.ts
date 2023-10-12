@@ -1,9 +1,8 @@
 import type {
-    AgRadialColumnSeriesFormat,
-    AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesLabelFormatterParams,
-    AgRadialColumnSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
+    AgRadialSeriesFormat,
+    AgRadialSeriesFormatterParams,
+    AgRadialSeriesLabelFormatterParams,
+    AgRadialSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
@@ -25,10 +24,11 @@ const {
     keyProperty,
     normaliseGroupTo,
     valueProperty,
+    fixNumericExtent,
+    resetLabelFn,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Selection, Text } = _Scene;
 const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeClickEvent<
@@ -67,23 +67,17 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-class RadialColumnSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
-}
+export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> extends _ModuleSupport.PolarSeries<
+    RadialColumnNodeDatum,
+    ItemPathType
+> {
+    protected override readonly NodeClickEvent = RadialColumnSeriesNodeClickEvent;
 
-export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _Scene.Path,
-> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum> {
-    readonly label = new RadialColumnSeriesLabel();
-
-    protected itemSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadialColumnNodeDatum>;
-    protected highlightSelection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
+    readonly label = new _Scene.Label<AgRadialSeriesLabelFormatterParams>();
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 
-    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialSeriesTooltipRendererParams>();
 
     @Validate(STRING)
     angleKey = '';
@@ -116,7 +110,7 @@ export abstract class RadialColumnSeriesBase<
     lineDashOffset: number = 0;
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesFormatterParams<any>) => AgRadialColumnSeriesFormat = undefined;
+    formatter?: (params: AgRadialSeriesFormatterParams<any>) => AgRadialSeriesFormat = undefined;
 
     @Validate(NUMBER(-360, 360))
     rotation = 0;
@@ -134,24 +128,29 @@ export abstract class RadialColumnSeriesBase<
 
     private groupScale = new BandScale<string>();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(
+        moduleCtx: _ModuleSupport.ModuleContext,
+        {
+            animationResetFns,
+        }: {
+            animationResetFns?: {
+                item?: (
+                    node: ItemPathType,
+                    datum: RadialColumnNodeDatum
+                ) => _ModuleSupport.AnimationValue & Partial<ItemPathType>;
+            };
+        }
+    ) {
         super({
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            animationResetFns: {
+                ...animationResetFns,
+                label: resetLabelFn,
+            },
         });
-
-        const sectorGroup = new Group();
-        this.contentGroup.append(sectorGroup);
-        sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
-        this.itemSelection = this.createPathSelection(sectorGroup);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = this.createPathSelection(this.highlightGroup);
     }
-
-    protected abstract createPathSelection(parent: _Scene.Group): _Scene.Selection<ItemPathType, RadialColumnNodeDatum>;
 
     override addChartEventListeners(): void {
         this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
@@ -160,7 +159,7 @@ export abstract class RadialColumnSeriesBase<
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -170,13 +169,13 @@ export abstract class RadialColumnSeriesBase<
             const radiusAxis = axes[ChartAxisDirection.Y];
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, radiusAxis);
+            return fixNumericExtent(fixedYExtent as any, radiusAxis);
         }
     }
 
     protected abstract getStackId(): string;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [], visible } = this;
         const { angleKey, radiusKey } = this;
 
@@ -192,7 +191,7 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, angleKey, false, { id: 'angleValue' }),
                 valueProperty(this, radiusKey, true, { id: 'radiusValue-raw', invalidValue: undefined }),
@@ -210,9 +209,6 @@ export abstract class RadialColumnSeriesBase<
             ],
             dataVisible: visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -285,13 +281,22 @@ export abstract class RadialColumnSeriesBase<
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
         const getLabelNodeDatum = (
+            datum: RadialColumnNodeDatum,
             radiusDatum: number,
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ value: radiusDatum, seriesId });
+                labelText = label.formatter({
+                    value: radiusDatum,
+                    datum,
+                    seriesId,
+                    angleKey,
+                    radiusKey,
+                    angleName: this.angleName,
+                    radiusName: this.radiusName,
+                });
             } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
                 labelText = radiusDatum.toFixed(2);
             } else if (radiusDatum) {
@@ -333,13 +338,13 @@ export abstract class RadialColumnSeriesBase<
             const x = cos * midRadius;
             const y = sin * midRadius;
 
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(radiusDatum, x, y) : undefined;
+            const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, radiusDatum, x, y) : undefined;
 
             return {
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
@@ -444,97 +449,6 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    protected beforeSectorAnimation() {
-        const {
-            formatter,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            id: seriesId,
-            angleKey,
-            radiusKey,
-        } = this;
-        const { callbackCache } = this.ctx;
-
-        this.itemSelection.each((node, datum) => {
-            const format = formatter
-                ? callbackCache.call(formatter, {
-                      datum,
-                      fill,
-                      stroke,
-                      strokeWidth,
-                      highlighted: false,
-                      angleKey,
-                      radiusKey,
-                      seriesId,
-                  })
-                : undefined;
-
-            this.updateItemPath(node, datum);
-            node.fill = format?.fill ?? fill;
-            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeOpacity = strokeOpacity;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.lineDash = this.lineDash;
-            node.lineJoin = 'round';
-        });
-    }
-
-    protected abstract animateItemsShapes(): void;
-
-    protected override animateEmptyUpdateReady() {
-        if (!this.visible) {
-            return;
-        }
-
-        this.beforeSectorAnimation();
-        this.animateItemsShapes();
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: this.ctx.animationManager.defaultDuration,
-            duration: 200,
-            onUpdate: (opacity) => {
-                this.labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
-    }
-
-    protected override animateReadyUpdate() {
-        this.resetSectors();
-    }
-
-    protected override animateReadyResize() {
-        this.resetSectors();
-    }
-
-    protected resetSectors() {
-        this.itemSelection.each((node, datum) => {
-            this.updateItemPath(node, datum);
-        });
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialColumnSeriesNodeClickEvent<'nodeClick'> {
-        return new RadialColumnSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialColumnSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RadialColumnSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): string {
         const {
             id: seriesId,
@@ -564,38 +478,22 @@ export abstract class RadialColumnSeriesBase<
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${angleString}: ${radiusString}`);
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: fill,
-            content,
-        };
-        const { callbackCache } = this.ctx;
+        const { fill: color } = (formatter &&
+            this.ctx.callbackCache.call(formatter, {
+                seriesId,
+                datum,
+                fill,
+                stroke,
+                strokeWidth,
+                highlighted: false,
+                angleKey,
+                radiusKey,
+            })) ?? { fill };
 
-        const format = formatter
-            ? callbackCache.call(formatter, {
-                  datum,
-                  fill,
-                  stroke,
-                  strokeWidth,
-                  highlighted: false,
-                  angleKey,
-                  radiusKey,
-                  seriesId,
-              })
-            : undefined;
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            angleKey,
-            angleName,
-            angleValue,
-            radiusKey,
-            radiusName,
-            radiusValue,
-            color: format?.fill ?? fill,
-            title,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, backgroundColor: fill, content },
+            { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

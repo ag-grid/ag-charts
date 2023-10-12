@@ -15,7 +15,7 @@ function exists(value: any, allowEmptyString = false): boolean {
 export class LicenseManager {
     private static RELEASE_INFORMATION: string = 'MTY4OTUzMzE0MDAzNw==';
     private static licenseKey: string;
-    private watermarkMessage: string | undefined = undefined;
+    private watermarkMessage?: string;
 
     private md5: MD5;
     private document?: Document;

@@ -6,20 +6,30 @@ import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
 const {
+    fixNumericExtent,
     mergeDefaults,
     valueProperty,
     ChartAxisDirection,
     Validate,
     NUMBER,
-    STRING,
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
     OPT_NUMBER,
     OPT_STRING,
 } = _ModuleSupport;
-const { Logger } = _Util;
 
+type AnyCartesianSeries = _ModuleSupport.CartesianSeries<_Scene.Node, _ModuleSupport.CartesianSeriesNodeDatum>;
+type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
+type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
+
+type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
+type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
+type SeriesDataGetDomainEvent = _ModuleSupport.SeriesDataGetDomainEvent;
+type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
+type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
+type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
+
 type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
 
 class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
@@ -43,14 +53,14 @@ export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, OptionalErrorBarNodeProperties
 {
-    @Validate(STRING)
-    yLowerKey: string = '';
+    @Validate(OPT_STRING)
+    yLowerKey?: string = undefined;
 
     @Validate(OPT_STRING)
     yLowerName?: string = undefined;
 
-    @Validate(STRING)
-    yUpperKey: string = '';
+    @Validate(OPT_STRING)
+    yUpperKey?: string = undefined;
 
     @Validate(OPT_STRING)
     yUpperName?: string = undefined;
@@ -81,10 +91,13 @@ export class ErrorBars
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
 
-    private readonly cartesianSeries: _ModuleSupport.CartesianSeries<any, any>;
+    private readonly cartesianSeries: AnyCartesianSeries;
     private readonly groupNode: _Scene.Group;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
     private nodeData: (ErrorBarPoints | undefined)[] = [];
+
+    private dataModel?: AnyDataModel;
+    private processedData?: AnyProcessedData;
 
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
@@ -97,7 +110,7 @@ export class ErrorBars
                 }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
             );
         }
-        this.cartesianSeries = ctx.series as _ModuleSupport.CartesianSeries<any, any>;
+        this.cartesianSeries = ctx.series as AnyCartesianSeries;
         const { contentGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
@@ -108,151 +121,134 @@ export class ErrorBars
         contentGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
+        const series = this.cartesianSeries;
         this.destroyFns.push(
-            this.cartesianSeries.addListener(
-                'processData-prerequest',
-                (event: _ModuleSupport.SeriesPrerequestDataEvent) => this.onPrerequestData(event)
-            ),
-            this.cartesianSeries.addListener('data-update', (event: _ModuleSupport.SeriesDataUpdateEvent) =>
-                this.onDataUpdate(event)
-            ),
-            this.cartesianSeries.addListener('visibility-changed', (event: _ModuleSupport.SeriesVisibilityEvent) =>
-                this.onToggleSeriesItem(event)
-            )
+            series.addListener('data-prerequest', (e: SeriesDataPrerequestEvent) => this.onPrerequestData(e)),
+            series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
+            series.addListener('data-getDomain', (e: SeriesDataGetDomainEvent) => this.onGetDomain(e)),
+            series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
+            series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
+            series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e))
         );
     }
 
-    onPrerequestData(event: { isContinuousX: boolean; isContinuousY: boolean }) {
+    private onPrerequestData(event: SeriesDataPrerequestEvent) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
-        const { cartesianSeries, xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        const { cartesianSeries } = this;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { isContinuousX, isContinuousY } = event;
-        props.push(
-            valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: 'yValue' }),
-            valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: 'yValue' })
-        );
+        if (yLowerKey !== undefined && yUpperKey !== undefined) {
+            props.push(
+                valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: yErrorsID }),
+                valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: yErrorsID })
+            );
+        }
         if (xLowerKey !== undefined && xUpperKey !== undefined) {
             props.push(
-                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: 'xValue' })
+                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: xErrorsID }),
+                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: xErrorsID })
             );
         }
         return props;
     }
 
-    onDataUpdate(event: {
-        dataModel: _ModuleSupport.DataModel<any, any, any>;
-        processedData: _ModuleSupport.ProcessedData<any>;
-    }) {
+    private onDataProcessed(event: SeriesDataProcessedEvent) {
+        this.dataModel = event.dataModel;
+        this.processedData = event.processedData;
+    }
+
+    private onGetDomain(event: SeriesDataGetDomainEvent) {
+        const { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID } = this.getMaybeFlippedKeys();
+        let hasAxisErrors: boolean = false;
+        if (event.direction == ChartAxisDirection.X) {
+            hasAxisErrors = xLowerKey !== undefined && xUpperKey != undefined;
+        } else {
+            hasAxisErrors = yLowerKey !== undefined && yUpperKey != undefined;
+        }
+
+        if (hasAxisErrors) {
+            const { dataModel, processedData, cartesianSeries } = this;
+            const axis = cartesianSeries.axes[event.direction];
+            const id = { x: xErrorsID, y: yErrorsID }[event.direction];
+            if (dataModel !== undefined && processedData !== undefined) {
+                const domain = dataModel.getDomain(cartesianSeries, id, 'value', processedData);
+                return fixNumericExtent(domain as any, axis);
+            }
+        }
+    }
+
+    private onDataUpdate(event: SeriesDataUpdateEvent) {
+        this.dataModel = event.dataModel;
+        this.processedData = event.processedData;
         if (event.dataModel !== undefined && event.processedData !== undefined) {
-            this.createNodeData(event.dataModel, event.processedData);
+            this.createNodeData();
             this.update();
         }
     }
 
-    createNodeData(
-        dataModel: _ModuleSupport.DataModel<any, any, any>,
-        processedData: _ModuleSupport.ProcessedData<any>
-    ) {
+    private createNodeData() {
         const { nodeData } = this;
-        const { xIndex, yIndex } = this.getDatumIndices(dataModel);
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
-        // xIndex is required because all series must have a y-axis error bar.
-        // yIndex is optional because only the scatter series has a x-axis error bar.
-        if (!xScale || !yScale || xIndex === undefined) {
+        if (!xScale || !yScale) {
             return;
         }
 
-        nodeData.length = processedData.data.length;
+        nodeData.length = this.cartesianSeries.contextNodeData[0].nodeData.length;
 
-        for (let i = 0; i < processedData.data.length; i++) {
-            const { xDatum, xLower, xUpper, yDatum, yLower, yUpper } = this.getDatum(processedData, i, xIndex, yIndex);
-            const xBar = this.calculatePoints(xScale, xLower, xUpper, yScale, yDatum, yDatum);
-            const yBar = this.calculatePoints(xScale, xDatum, xDatum, yScale, yLower, yUpper);
-            if (yBar !== undefined) {
+        for (let i = 0; i < nodeData.length; i++) {
+            const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(i);
+            if (midPoint !== undefined) {
+                let xBar = undefined;
+                let yBar = undefined;
+                if (xLower !== undefined && xUpper !== undefined) {
+                    xBar = {
+                        lowerPoint: { x: this.convert(xScale, xLower), y: midPoint.y },
+                        upperPoint: { x: this.convert(xScale, xUpper), y: midPoint.y },
+                    };
+                }
+                if (yLower !== undefined && yUpper !== undefined) {
+                    yBar = {
+                        lowerPoint: { x: midPoint.x, y: this.convert(yScale, yLower) },
+                        upperPoint: { x: midPoint.x, y: this.convert(yScale, yUpper) },
+                    };
+                }
                 nodeData[i] = { xBar, yBar };
-            } else {
-                nodeData[i] = undefined;
             }
         }
     }
 
-    private getDatumIndices(dataModel: _ModuleSupport.DataModel<any, any, any>) {
-        const xIndex = 'xValue';
-        const yIndex = this.cartesianSeries.type == 'bar' ? 'yValue-end' : 'yValue';
+    private getMaybeFlippedKeys() {
+        let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        let [xErrorsID, yErrorsID] = ['xValue-errors', 'yValue-errors'];
+        if (this.cartesianSeries.shouldFlipXY()) {
+            [xLowerKey, yLowerKey] = [yLowerKey, xLowerKey];
+            [xUpperKey, yUpperKey] = [yUpperKey, xUpperKey];
+            [xErrorsID, yErrorsID] = [yErrorsID, xErrorsID];
+        }
+        return { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID };
+    }
+
+    private getDatum(datumIndex: number) {
+        const { cartesianSeries } = this;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
+        const datum = cartesianSeries.contextNodeData[0].nodeData[datumIndex];
+
         return {
-            xIndex: dataModel.resolveProcessedDataIndexById(this.cartesianSeries, xIndex).index,
-            yIndex: dataModel.resolveProcessedDataIndexById(this.cartesianSeries, yIndex).index,
+            midPoint: datum.midPoint,
+            xLower: datum.datum[xLowerKey ?? ''] ?? undefined,
+            xUpper: datum.datum[xUpperKey ?? ''] ?? undefined,
+            yLower: datum.datum[yLowerKey ?? ''] ?? undefined,
+            yUpper: datum.datum[yUpperKey ?? ''] ?? undefined,
         };
     }
 
-    private getDatum(
-        processedData: _ModuleSupport.ProcessedData<any>,
-        datumIndex: number,
-        xIndex: number,
-        yIndex: number
-    ) {
-        const { type } = this.cartesianSeries;
-        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
-        const { datum, keys, values } = processedData.data[datumIndex];
-
-        if (type === 'bar') {
-            return {
-                xDatum: keys[xIndex],
-                xLower: undefined,
-                xUpper: undefined,
-                yDatum: values[0][yIndex],
-                yLower: datum[0][yLowerKey] ?? undefined,
-                yUpper: datum[0][yUpperKey] ?? undefined,
-            };
-        } else if (type === 'line') {
-            return {
-                xDatum: values[xIndex],
-                xLower: undefined,
-                xUpper: undefined,
-                yDatum: values[yIndex],
-                yLower: datum[yLowerKey] ?? undefined,
-                yUpper: datum[yUpperKey] ?? undefined,
-            };
-        } else if (type === 'scatter') {
-            const xLower = xLowerKey === undefined ? undefined : datum[xLowerKey] ?? undefined;
-            const xUpper = xUpperKey === undefined ? undefined : datum[xUpperKey] ?? undefined;
-            if (xLower === undefined || xUpper == undefined) {
-                Logger.warnOnce(
-                    `AG Charts - series type 'scatter' requires xLowerKey (= ${xLowerKey}) and xUpperKey (= ${xUpperKey}) to exist in all data points`
-                );
-            }
-
-            return {
-                xDatum: values[xIndex],
-                xLower: xLower,
-                xUpper: xUpper,
-                yDatum: values[yIndex],
-                yLower: datum[yLowerKey] ?? undefined,
-                yUpper: datum[yUpperKey] ?? undefined,
-            };
-        } else {
-            throw new Error(`Expected series type '${type}`);
-        }
+    private convert(scale: AnyScale, value: any) {
+        const offset = (scale.bandwidth ?? 0) / 2;
+        return scale.convert(value) + offset;
     }
 
-    private calculatePoints(xScale: AnyScale, xLower: any, xUpper: any, yScale: AnyScale, yLower: any, yUpper: any) {
-        if ([xLower, xUpper, yLower, yUpper].includes(undefined)) {
-            return undefined;
-        }
-        return {
-            lowerPoint: this.calculatePoint(xScale, xLower, yScale, yLower),
-            upperPoint: this.calculatePoint(xScale, xUpper, yScale, yUpper),
-        };
-    }
-
-    private calculatePoint(xScale: AnyScale, x: any, yScale: AnyScale, y: any) {
-        const xOffset = (xScale.bandwidth ?? 0) / 2;
-        const yOffset = (yScale.bandwidth ?? 0) / 2;
-        return { x: xScale.convert(x) + xOffset, y: yScale.convert(y) + yOffset };
-    }
-
-    update() {
+    private update() {
         this.selection.update(this.nodeData, undefined, undefined);
         this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
     }
@@ -268,7 +264,26 @@ export class ErrorBars
         }
     }
 
-    private onToggleSeriesItem(event: { enabled: boolean }): void {
+    private onTooltipGetParams(_event: SeriesTooltipGetParamsEvent) {
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        let { xLowerName, xUpperName, yLowerName, yUpperName } = this;
+        xLowerName ??= xLowerKey;
+        xUpperName ??= xUpperKey;
+        yLowerName ??= yLowerKey;
+        yUpperName ??= yUpperKey;
+
+        return {
+            xLowerKey,
+            xLowerName,
+            xUpperKey,
+            xUpperName,
+            yLowerKey,
+            yLowerName,
+            yUpperKey,
+            yUpperName,
+        };
+    }
+    private onToggleSeriesItem(event: SeriesVisibilityEvent): void {
         this.groupNode.visible = event.enabled;
     }
 

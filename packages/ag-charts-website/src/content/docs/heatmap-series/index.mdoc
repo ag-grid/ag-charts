@@ -85,59 +85,33 @@ series: [
 
 {% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" options="{ \"enterprise\": true }" /%}
 
-### Colour Domain
+## Labels
 
-The `colorDomain` property can help with a better mapping of colours and numeric values. By default the Colour Domain is automatically calculated based on minimal and maximal values from the data. Supplying values for Colour Domain will define the miminum and maximum numeric values that will map to the first and the last colours from the `colorRange`.
-
-```js
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-        colorRange: [
-            '#4A90E2',
-            '#FF6B6B',
-        ],
-        colorDomain: [
-            0,
-            20,
-        ],
-    },
-],
-```
-
-{% chartExampleRunner title="Customising Colour Domain" name="customising-color-domain" type="generated" options="{ \"enterprise\": true }" /%}
-
-Supplying 3 and more values to `colorDomain` will create a non-linear gradient.
+There is a way to display labels for the Heatmap items. If `label.enabled` is set to `true`, the labels will show a numeric value from `colorKey`.
 
 ```js
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-        colorRange: [
-            '#4A90E2',
-            '#777777',
-            '#FF6B6B',
-        ],
-        colorDomain: [
-            -10,
-            0,
-            20,
-        ],
-    },
-],
+colorKey: 'temperature',
+label: {
+    enabled: true,
+},
 ```
 
-{% chartExampleRunner title="Colour Domain With Many Values" name="color-domain-with-many-values" type="generated" options="{ \"enterprise\": true }" /%}
+A label formatter can be used to customise the labels.
 
-{% note %}
-When 3 or more values are supplied for the Colour Domain, the number of colours in the Colour Range should be exactly the same.
-{% /note %}
+```js
+colorKey: 'temperature',
+label: {
+    enabled: true,
+    formatter: ({ datum, colorKey }) => {
+        const value = datum[colorKey];
+        return `${value.toFixed(0)}°C`;
+    },
+},
+```
+
+This configuration generates labels as shown in the example below.
+
+{% chartExampleRunner title="Heatmap Label" name="customising-labels" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Gradient Legend
 

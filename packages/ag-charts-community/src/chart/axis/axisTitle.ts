@@ -28,7 +28,7 @@ export class AxisTitle implements AgAxisCaptionOptions {
     text?: string = undefined;
 
     @Validate(OPT_NUMBER(0))
-    spacing?: number = Caption.PADDING;
+    spacing?: number = Caption.SMALL_PADDING;
 
     @Validate(OPT_FONT_STYLE)
     fontStyle?: FontStyle = undefined;
@@ -43,7 +43,7 @@ export class AxisTitle implements AgAxisCaptionOptions {
     fontFamily: string = 'sans-serif';
 
     @Validate(OPT_COLOR_STRING)
-    color: string | undefined = undefined;
+    color?: string;
 
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'always';

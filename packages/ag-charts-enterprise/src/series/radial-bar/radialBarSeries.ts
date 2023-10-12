@@ -1,14 +1,14 @@
 import type {
-    AgRadialColumnSeriesFormat,
-    AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesLabelFormatterParams,
-    AgRadialColumnSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
+    AgRadialSeriesFormat,
+    AgRadialSeriesFormatterParams,
+    AgRadialSeriesLabelFormatterParams,
+    AgRadialSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
+import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 
 const {
     ChartAxisDirection,
@@ -22,14 +22,19 @@ const {
     PolarAxis,
     STRING,
     Validate,
+    diff,
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
     valueProperty,
+    fixNumericExtent,
+    resetLabelFn,
+    seriesLabelFadeInAnimation,
+    seriesLabelFadeOutAnimation,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Group, Sector, Selection, Text } = _Scene;
+const { Sector, motion } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
 class RadialBarSeriesNodeClickEvent<
@@ -63,23 +68,16 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-class RadialBarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesLabelFormatterParams) => string = undefined;
-}
-
-export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum> {
+export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum, _Scene.Sector> {
     static className = 'RadialBarSeries';
 
-    readonly label = new RadialBarSeriesLabel();
+    protected override readonly NodeClickEvent = RadialBarSeriesNodeClickEvent;
 
-    protected itemSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadialBarNodeDatum>;
-    protected highlightSelection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>;
+    readonly label = new _Scene.Label<AgRadialSeriesLabelFormatterParams>();
 
     protected nodeData: RadialBarNodeDatum[] = [];
 
-    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialColumnSeriesTooltipRendererParams>();
+    tooltip = new _ModuleSupport.SeriesTooltip<AgRadialSeriesTooltipRendererParams>();
 
     @Validate(STRING)
     angleKey = '';
@@ -112,7 +110,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     lineDashOffset: number = 0;
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadialColumnSeriesFormatterParams<any>) => AgRadialColumnSeriesFormat = undefined;
+    formatter?: (params: AgRadialSeriesFormatterParams<any>) => AgRadialSeriesFormat = undefined;
 
     @Validate(NUMBER(-360, 360))
     rotation = 0;
@@ -135,16 +133,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            animationResetFns: {
+                item: resetRadialBarSelectionsFn,
+                label: resetLabelFn,
+            },
         });
+    }
 
-        const sectorGroup = new Group();
-        this.contentGroup.append(sectorGroup);
-        sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
-        this.itemSelection = Selection.select(sectorGroup, Sector);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = Selection.select(this.highlightGroup, Sector);
+    protected override nodeFactory(): _Scene.Sector {
+        return new Sector();
     }
 
     override addChartEventListeners(): void {
@@ -154,7 +151,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { axes, dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -162,13 +159,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const angleAxis = axes[ChartAxisDirection.X];
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData);
             const fixedXExtent = [xExtent[0] > 0 ? 0 : xExtent[0], xExtent[1] < 0 ? 0 : xExtent[1]];
-            return this.fixNumericExtent(fixedXExtent as any, angleAxis);
+            return fixNumericExtent(fixedXExtent as any, angleAxis);
         } else {
             return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [], visible } = this;
         const { angleKey, radiusKey } = this;
 
@@ -184,7 +181,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        if (animationEnabled && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, radiusKey, false, { id: 'radiusValue' }),
                 valueProperty(this, angleKey, true, { id: 'angleValue-raw', invalidValue: undefined }),
@@ -203,8 +205,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             dataVisible: visible,
         });
 
-        this.dataModel = dataModel;
-        this.processedData = processedData;
+        this.animationState.transition('updateData');
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -273,10 +274,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const axisOuterRadius = this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const getLabelNodeDatum = (angleDatum: number, x: number, y: number): RadialBarLabelNodeDatum | undefined => {
+        const getLabelNodeDatum = (
+            datum: RadialColumnNodeDatum,
+            angleDatum: number,
+            x: number,
+            y: number
+        ): RadialBarLabelNodeDatum | undefined => {
             let labelText = '';
             if (label.formatter) {
-                labelText = label.formatter({ value: angleDatum, seriesId });
+                labelText = label.formatter({
+                    value: angleDatum,
+                    datum,
+                    seriesId,
+                    angleKey,
+                    radiusKey,
+                    angleName: this.angleName,
+                    radiusName: this.radiusName,
+                });
             } else if (typeof angleDatum === 'number' && isFinite(angleDatum)) {
                 labelText = angleDatum.toFixed(2);
             } else if (angleDatum) {
@@ -301,28 +315,28 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const angleStartDatum = values[angleStartIndex];
             const angleEndDatum = values[angleEndIndex];
 
-            const startAngle = angleScale.convert(angleStartDatum);
-            const endAngle = angleScale.convert(angleEndDatum);
-            const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
+            let startAngle = Math.max(angleScale.convert(angleStartDatum), angleScale.range[0]);
+            let endAngle = Math.min(angleScale.convert(angleEndDatum), angleScale.range[1]);
+            if (angleDatum < 0) {
+                const tempAngle = startAngle;
+                startAngle = endAngle;
+                endAngle = tempAngle;
+            }
 
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
             const innerRadius = dataRadius + groupScale.convert(String(groupIndex));
             const outerRadius = innerRadius + barWidth;
             const midRadius = (innerRadius + outerRadius) / 2;
-
-            const cos = Math.cos(midAngle);
-            const sin = Math.sin(midAngle);
-
-            const x = cos * midRadius;
-            const y = sin * midRadius;
-
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(angleDatum, x, y) : undefined;
+            const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
+            const x = Math.cos(midAngle) * midRadius;
+            const y = Math.sin(midAngle) * midRadius;
+            const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, angleDatum, x, y) : undefined;
 
             return {
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
@@ -390,7 +404,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
                   })
                 : undefined;
 
-            this.updateItemPath(node, datum);
             node.fill = format?.fill ?? fill;
             node.fillOpacity = format?.fillOpacity ?? fillOpacity;
             node.stroke = format?.stroke ?? stroke;
@@ -425,95 +438,48 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
-    protected beforeSectorAnimation() {
-        const {
-            formatter,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            id: seriesId,
-            angleKey,
-            radiusKey,
-        } = this;
-        const { callbackCache } = this.ctx;
+    protected override animateEmptyUpdateReady() {
+        const { labelSelection } = this;
 
-        this.itemSelection.each((node, datum) => {
-            const format = formatter
-                ? callbackCache.call(formatter, {
-                      datum,
-                      fill,
-                      stroke,
-                      strokeWidth,
-                      highlighted: false,
-                      angleKey,
-                      radiusKey,
-                      seriesId,
-                  })
-                : undefined;
-
-            this.updateItemPath(node, datum);
-            node.fill = format?.fill ?? fill;
-            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeOpacity = strokeOpacity;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.lineDash = this.lineDash;
-            node.lineJoin = 'round';
-        });
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
-    protected override animateEmptyUpdateReady() {
-        if (!this.visible) {
+    override animateWaitingUpdateReady() {
+        const { itemSelection, labelSelection } = this;
+        const {
+            processedData,
+            ctx: { animationManager },
+        } = this;
+        const diff = processedData?.reduced?.diff;
+
+        if (!diff?.changed) {
+            this.resetAllAnimation();
             return;
         }
 
-        const { labelSelection } = this;
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(
+            `${this.id}_waiting-update-ready`,
+            animationManager,
+            [itemSelection],
+            fns,
+            (_, datum) => String(datum.radiusValue),
+            diff
+        );
 
-        this.beforeSectorAnimation();
-        this.animateItemsShapes();
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: this.ctx.animationManager.defaultDuration,
-            duration: 200,
-            onUpdate: (opacity) => {
-                labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
     }
 
-    protected override animateReadyUpdate() {
-        this.resetSectors();
-    }
+    override animateClearingUpdateEmpty() {
+        const { itemSelection } = this;
+        const { animationManager } = this.ctx;
 
-    protected override animateReadyResize() {
-        this.resetSectors();
-    }
+        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
 
-    protected resetSectors() {
-        this.itemSelection.each((node, datum) => {
-            this.updateItemPath(node, datum);
-        });
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialBarSeriesNodeClickEvent<'nodeClick'> {
-        return new RadialBarSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RadialColumnNodeDatum
-    ): RadialBarSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RadialBarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
+        seriesLabelFadeOutAnimation(this, animationManager, [this.labelSelection]);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {
@@ -545,38 +511,22 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const title = sanitizeHtml(angleName);
         const content = sanitizeHtml(`${radiusString}: ${angleString}`);
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: fill,
-            content,
-        };
-        const { callbackCache } = this.ctx;
+        const { fill: color } = (formatter &&
+            this.ctx.callbackCache.call(formatter, {
+                datum,
+                fill,
+                stroke,
+                strokeWidth,
+                highlighted: false,
+                angleKey,
+                radiusKey,
+                seriesId,
+            })) ?? { fill };
 
-        const format = formatter
-            ? callbackCache.call(formatter, {
-                  datum,
-                  fill,
-                  stroke,
-                  strokeWidth,
-                  highlighted: false,
-                  angleKey,
-                  radiusKey,
-                  seriesId,
-              })
-            : undefined;
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            angleKey,
-            angleName,
-            angleValue,
-            radiusKey,
-            radiusName,
-            radiusValue,
-            color: format?.fill ?? fill,
-            title,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, backgroundColor: fill, content },
+            { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
@@ -633,28 +583,5 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
-    }
-
-    protected updateItemPath(node: _Scene.Sector, datum: RadialBarNodeDatum) {
-        node.centerX = 0;
-        node.centerY = 0;
-        node.innerRadius = datum.innerRadius;
-        node.outerRadius = datum.outerRadius;
-        node.startAngle = datum.startAngle;
-        node.endAngle = datum.endAngle;
-    }
-
-    protected animateItemsShapes() {
-        const axisStartAngle = this.axes[ChartAxisDirection.X]?.scale.range[0] ?? 0;
-        this.itemSelection.each((node, datum) => {
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${node.id}`,
-                from: { startAngle: axisStartAngle, endAngle: axisStartAngle },
-                to: { startAngle: datum.startAngle, endAngle: datum.endAngle },
-                onUpdate(props) {
-                    node.setProperties(props);
-                },
-            });
-        });
     }
 }

@@ -1,43 +1,14 @@
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type {
-    AgBaseRadialColumnSeriesOptions,
-    AgBaseRadialColumnSeriesThemeableOptions,
-    AgRadialColumnSeriesFormat,
-    AgRadialColumnSeriesFormatterParams,
-    AgRadialColumnSeriesLabelFormatterParams,
-    AgRadialColumnSeriesTooltipRendererParams,
-} from './radialColumnOptions';
+import type { AgBaseRadialColumnSeriesOptions } from './radialColumnOptions';
+import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 
-export interface AgNightingaleSeriesThemeableOptions<DatumType = any>
-    extends AgBaseRadialColumnSeriesThemeableOptions<DatumType> {
-    /** Configuration for the labels shown on top of data points. */
-    label?: AgNightingaleSeriesLabelOptions;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgNightingaleSeriesTooltipRendererParams>;
-    /** A formatter function for adjusting the styling of the nightingale sectors. */
-    formatter?: (params: AgNightingaleSeriesFormatterParams<DatumType>) => AgNightingaleSeriesFormat;
-}
+export type AgNightingaleSeriesThemeableOptions<TDatum = any> = AgBaseRadialSeriesThemeableOptions<TDatum>;
 
 /** Configuration for Nightingale series. */
-export interface AgNightingaleSeriesOptions<DatumType = any>
-    extends AgNightingaleSeriesThemeableOptions<DatumType>,
-        AgBaseRadialColumnSeriesOptions<DatumType> {
+export interface AgNightingaleSeriesOptions<TDatum = any>
+    extends AgNightingaleSeriesThemeableOptions<TDatum>,
+        AgBaseRadialColumnSeriesOptions<TDatum> {
     type: 'nightingale';
 }
-
-export interface AgNightingaleSeriesTooltipRendererParams extends AgRadialColumnSeriesTooltipRendererParams {}
-
-export interface AgNightingaleSeriesLabelFormatterParams extends AgRadialColumnSeriesLabelFormatterParams {}
-
-export interface AgNightingaleSeriesLabelOptions extends AgChartLabelOptions {
-    /** Function used to turn 'yKey' values into text to be displayed by a label. By default the values are simply stringified. */
-    formatter?: (params: AgNightingaleSeriesLabelFormatterParams) => string;
-}
-
-export interface AgNightingaleSeriesFormatterParams<DatumType> extends AgRadialColumnSeriesFormatterParams<DatumType> {}
-
-export interface AgNightingaleSeriesFormat extends AgRadialColumnSeriesFormat {}
 
 /**
  * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7

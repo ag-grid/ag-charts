@@ -25,3 +25,7 @@ export type DeepPartial<T> = T extends Array<unknown>
     : T;
 
 export type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
+export type RequireOptional<T> = {
+    [K in keyof Required<T>]: T[K] extends Required<T[K]> ? T[K] : T[K] | undefined;
+};

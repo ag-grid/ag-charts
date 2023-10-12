@@ -55,7 +55,10 @@ const EXAMPLES: Record<string, TestCase & { skip?: boolean }> = {
     },
     STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
         options: examples.STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('area', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['number', 'number'],
+            seriesTypes: repeat('area', 2),
+        }),
     },
     STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
         options: examples.STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -72,11 +75,17 @@ const EXAMPLES: Record<string, TestCase & { skip?: boolean }> = {
     },
     AREA_NUMBER_AXES_0_X_DOMAIN: {
         options: examples.AREA_NUMBER_AXES_0_X_DOMAIN,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('area', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['number', 'number'],
+            seriesTypes: repeat('area', 2),
+        }),
     },
     AREA_NUMBER_AXES_0_Y_DOMAIN: {
         options: examples.AREA_NUMBER_AXES_0_Y_DOMAIN,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('area', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['number', 'number'],
+            seriesTypes: repeat('area', 2),
+        }),
     },
     STACKED_AREA_STROKE_MARKER_LABEL_RENDERING: {
         options: {
@@ -95,7 +104,10 @@ const EXAMPLES: Record<string, TestCase & { skip?: boolean }> = {
     },
     STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: {
         options: examples.STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('area', 2),
+        }),
     },
     AREA_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
     AREA_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),

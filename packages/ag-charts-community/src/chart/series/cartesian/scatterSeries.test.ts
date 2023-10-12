@@ -110,7 +110,9 @@ describe('ScatterSeries', () => {
                 await waitForChartStability(chart);
 
                 spyOnAnimationManager(900, ratio);
-                AgChart.updateDelta(chart, { data: options.data!.slice(Math.floor(options.data!.length / 2)) });
+                AgChart.updateDelta(chart, {
+                    data: options.data!.slice(Math.floor(options.data!.length / 2)),
+                });
 
                 await compare();
             });
@@ -132,7 +134,9 @@ describe('ScatterSeries', () => {
                 chart = AgChart.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, { data: options.data!.slice(Math.floor(options.data!.length / 2)) });
+                AgChart.updateDelta(chart, {
+                    data: options.data!.slice(Math.floor(options.data!.length / 2)),
+                });
                 spyOnAnimationManager(1200, 1);
 
                 await waitForChartStability(chart);

@@ -119,9 +119,8 @@ function validateColor(color?: string): string | undefined {
         Logger.warnOnce(
             `invalid Treemap tile colour string "${color}". Affected treemap tiles will be coloured ${fallbackColor}.`
         );
-        return 'black';
+        return fallbackColor;
     }
-
     return color;
 }
 
@@ -137,6 +136,8 @@ class TreemapHighlightStyle extends HighlightStyle {
 export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDatum> {
     static className = 'TreemapSeries';
     static type = 'treemap' as const;
+
+    protected override readonly NodeClickEvent = TreemapSeriesNodeClickEvent;
 
     private groupSelection: _Scene.Selection<_Scene.Group, TreemapNodeDatum> = Selection.select(
         this.contentGroup,
@@ -406,7 +407,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         });
     }
 
-    async processData() {
+    override async processData() {
         if (!this.data) {
             return;
         }
@@ -422,15 +423,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         const createTreeNodeDatum = (datum: TreeDatum, depth = 0, parent?: TreemapNodeDatum) => {
             let label;
             if (labelFormatter) {
-                label = this.ctx.callbackCache.call(labelFormatter, { datum });
+                label = this.ctx.callbackCache.call(labelFormatter, {
+                    datum,
+                    seriesId: this.id,
+                    value: null,
+                });
             }
-            if (label !== undefined) {
-                // Label retrieved from formatter successfully.
-            } else if (labelKey) {
-                label = datum[labelKey] ?? '';
-            } else {
-                label = '';
-            }
+            label ??= labelKey ? datum[labelKey] ?? '' : '';
             let colorScaleValue = colorKey ? datum[colorKey] ?? depth : depth;
             colorScaleValue = validateColor(colorScaleValue);
             const isLeaf = !datum.children;
@@ -687,7 +686,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
     private updateNodeMidPoint(boxes: Map<TreemapNodeDatum, _Scene.BBox>) {
         boxes.forEach((box, treeNodeDatum) => {
-            treeNodeDatum.nodeMidPoint = {
+            treeNodeDatum.midPoint = {
                 x: box.x + box.width / 2,
                 y: box.y,
             };
@@ -861,22 +860,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         return labelMeta;
     }
 
-    getDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [0, 1];
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: TreemapNodeDatum
-    ): TreemapSeriesNodeClickEvent<'nodeClick'> {
-        return new TreemapSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: TreemapNodeDatum
-    ): TreemapSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new TreemapSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     getTooltipHtml(nodeDatum: TreemapNodeDatum): string {

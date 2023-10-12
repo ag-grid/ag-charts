@@ -1,4 +1,66 @@
 {
+    "homepage": [
+        {
+            "seriesExampleName": "stacked-bar"
+        },
+        {
+            "seriesExampleName": "line-with-gaps"
+        },
+        {
+            "seriesExampleName": "stacked-area"
+        },
+        {
+            "seriesExampleName": "simple-scatter"
+        },
+        {
+            "seriesExampleName": "simple-bubble"
+        },
+        {
+            "seriesExampleName": "simple-pie"
+        },
+        {
+            "seriesExampleName": "simple-doughnut"
+        },
+        {
+            "seriesExampleName": "combination-of-different-series-types"
+        },
+        {
+            "seriesExampleName": "simple-histogram"
+        },
+        {
+            "seriesExampleName": "simple-heatmap"
+        },
+        {
+            "seriesExampleName": "simple-range-bar"
+        },
+        {
+            "seriesExampleName": "simple-range-area"
+        },
+        {
+            "seriesExampleName": "simple-box-plot"
+        },
+        {
+            "seriesExampleName": "line-series-error-bars"
+        },
+        {
+            "seriesExampleName": "simple-waterfall"
+        },
+        {
+            "seriesExampleName": "simple-radar-line"
+        },
+        {
+            "seriesExampleName": "simple-nightingale"
+        },
+        {
+            "seriesExampleName": "simple-radial-column"
+        },
+        {
+            "seriesExampleName": "stacked-radial-bar"
+        },
+        {
+            "seriesExampleName": "market-index-treemap"
+        }
+    ],
     "series": [
         {
             "title": "Bar",

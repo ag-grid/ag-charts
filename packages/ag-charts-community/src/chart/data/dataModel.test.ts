@@ -125,7 +125,7 @@ describe('DataModel', () => {
                 it('should calculate smallest X interval', () => {
                     const result = dataModel.processData(data);
 
-                    expect(result?.reduced?.[SMALLEST_KEY_INTERVAL.property]).toEqual(1);
+                    expect(result?.reduced?.smallestKeyInterval).toEqual(1);
                 });
             });
 
@@ -1079,7 +1079,11 @@ describe('DataModel', () => {
             const dataModel = new DataModel<any, any>({
                 props: [
                     accumulatedPropertyValue('share', 'angleGroup', 'angle'),
-                    rangedValueProperty({ id: 'test' }, 'share', { id: 'radius', min: 0.05, max: 0.7 }),
+                    rangedValueProperty({ id: 'test' }, 'share', {
+                        id: 'radius',
+                        min: 0.05,
+                        max: 0.7,
+                    }),
                     normalisePropertyTo({ id: 'angle' }, [0, 1]),
                 ],
             });

@@ -69,11 +69,17 @@ const EXAMPLES: Record<string, TestCase> = {
     },
     GROUPED_AREA_SERIES_LABELS: {
         options: examples.GROUPED_AREA_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 3) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number'],
+            seriesTypes: repeat('area', 3),
+        }),
     },
     LINE_SERIES_LABELS: {
         options: examples.LINE_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('line', 3) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['number', 'category'],
+            seriesTypes: repeat('line', 3),
+        }),
     },
     SCATTER_SERIES_LABELS: {
         options: examples.SCATTER_SERIES_LABELS,
@@ -81,7 +87,10 @@ const EXAMPLES: Record<string, TestCase> = {
     },
     GROUPED_SCATTER_SERIES_LABELS: {
         options: examples.GROUPED_SCATTER_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('scatter', 4) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['time', 'number'],
+            seriesTypes: repeat('scatter', 4),
+        }),
     },
     BUBBLE_SERIES_LABELS: {
         options: examples.BUBBLE_SERIES_LABELS,
@@ -89,7 +98,10 @@ const EXAMPLES: Record<string, TestCase> = {
     },
     GROUPED_BUBBLE_SERIES_LABELS: {
         options: examples.GROUPED_BUBBLE_SERIES_LABELS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: repeat('bubble', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['number', 'number'],
+            seriesTypes: repeat('bubble', 2),
+        }),
     },
     PIE_SERIES_LABELS: {
         options: examples.PIE_SERIES_LABELS,

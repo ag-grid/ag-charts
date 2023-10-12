@@ -7,7 +7,7 @@ export class CartesianAxisLabel extends AxisLabel {
      * `rotation` property is specified, it takes precedence.
      */
     @Validate(OPT_BOOLEAN)
-    autoRotate: boolean | undefined = undefined;
+    autoRotate?: boolean;
 
     /**
      * Rotation angle to use when autoRotate is applied.

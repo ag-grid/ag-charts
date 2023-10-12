@@ -80,8 +80,8 @@ export class TooltipManager {
 
     private applyStates() {
         const ids = this.appliedExclusiveArea ? [this.appliedExclusiveArea] : Object.keys(this.states);
-        let contentToApply: string | undefined = undefined;
-        let metaToApply: TooltipMeta | undefined = undefined;
+        let contentToApply: string | undefined;
+        let metaToApply: TooltipMeta | undefined;
 
         // Last added entry wins.
         ids.reverse();

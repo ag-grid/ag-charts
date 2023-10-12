@@ -271,7 +271,13 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             const yDirection = direction === ChartAxisDirection.Y;
 
             const { c = POSITION_TOP_COORDINATES } = labeldDirectionHandling[position] ?? {};
-            const { x: labelX, y: labelY } = c({ yDirection, xStart, xEnd, yStart: clampedYStart, yEnd: clampedYEnd });
+            const { x: labelX, y: labelY } = c({
+                yDirection,
+                xStart,
+                xEnd,
+                yStart: clampedYStart,
+                yEnd: clampedYEnd,
+            });
 
             this.labelPoint = {
                 x: labelX,
@@ -363,7 +369,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         }
 
         const yDirection = direction === ChartAxisDirection.Y;
-        const { xTranslation, yTranslation } = calculateLabelTranslation({ yDirection, padding, position, bbox });
+        const { xTranslation, yTranslation } = calculateLabelTranslation({
+            yDirection,
+            padding,
+            position,
+            bbox,
+        });
 
         crossLineLabel.translationX = x + xTranslation;
         crossLineLabel.translationY = y + yTranslation;

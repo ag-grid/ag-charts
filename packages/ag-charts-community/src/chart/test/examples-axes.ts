@@ -191,7 +191,11 @@ export const LOG_AXIS_TICK_VALUES: AgChartOptions = {
 export const CATEGORY_AXIS_TICK_VALUES: AgChartOptions = {
     ...examples.GROUPED_COLUMN_EXAMPLE,
     axes: [
-        { type: 'category', position: 'bottom', tick: { values: ['2016', '2018'] } as AgAxisCategoryTickOptions },
+        {
+            type: 'category',
+            position: 'bottom',
+            tick: { values: ['2016', '2018'] } as AgAxisCategoryTickOptions,
+        },
         { type: 'number', position: 'left' },
     ],
 };
@@ -252,7 +256,11 @@ export const TIME_AXIS_NO_SERIES_FIXED_DOMAIN: AgChartOptions = {
         if (a.position === 'left' && a.type === 'number') {
             return { ...a, min: 2.4, max: 4.7 };
         } else if (a.position === 'bottom' && a.type === 'time') {
-            return { ...a, min: new Date('2020-01-01T00:25:35.920Z'), max: new Date('2020-01-31T14:15:33.950Z') };
+            return {
+                ...a,
+                min: new Date('2020-01-01T00:25:35.920Z'),
+                max: new Date('2020-01-31T14:15:33.950Z'),
+            };
         }
         return a;
     }),

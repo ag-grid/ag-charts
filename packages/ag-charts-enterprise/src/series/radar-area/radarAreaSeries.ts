@@ -56,8 +56,8 @@ export class RadarAreaSeries extends RadarSeries {
         this.animateSinglePath(this.getAreaNode(), areaPoints, totalDuration, timePassed);
     }
 
-    protected override resetMarkersAndPaths() {
-        super.resetMarkersAndPaths();
+    protected override resetPaths() {
+        super.resetPaths();
         const areaNode = this.getAreaNode();
 
         if (areaNode) {

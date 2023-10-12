@@ -1,9 +1,11 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { FROM_TO_MIXINS } from '../../../motion/fromToMotion';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { AgBarSeriesFormat, AgBarSeriesOptions } from '../../../options/agChartOptions';
+import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
+import { isNegative } from '../../../util/number';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { SeriesItemHighlightStyle } from '../series';
@@ -50,7 +52,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
 
 export function getRectConfig<
-    Params extends Omit<Parameters<NonNullable<AgBarSeriesOptions['formatter']>>[0], 'yKey' | 'value'>,
+    Params extends Omit<AgBarSeriesFormatterParams<any>, 'yKey' | 'value'>,
     ExtraParams extends {},
 >({
     datum,
@@ -66,7 +68,7 @@ export function getRectConfig<
     isHighlighted: boolean;
     style: RectConfig;
     highlightStyle: SeriesItemHighlightStyle;
-    formatter?: (params: Params & ExtraParams) => AgBarSeriesFormat;
+    formatter?: (params: Params & ExtraParams) => AgBarSeriesStyle;
     seriesId: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
@@ -76,7 +78,7 @@ export function getRectConfig<
     const fillOpacity = isHighlighted ? highlightStyle.fillOpacity ?? style.fillOpacity : style.fillOpacity;
     const { strokeOpacity, fillShadow, lineDash, lineDashOffset } = style;
 
-    let format: AgBarSeriesFormat | undefined = undefined;
+    let format: AgBarSeriesStyle | undefined;
     if (formatter) {
         format = callbackCache.call(formatter as any, {
             datum: datum.datum,
@@ -108,46 +110,83 @@ export function checkCrisp(visibleRange: number[] = []): boolean {
     return !isZoomed;
 }
 
-type StartingPositionFn<T> = (datum: T) => Partial<T>;
+type InitialPosition<T> = { isVertical: boolean; calculate: (datum: T, prevDatum?: T) => T };
 export function collapsedStartingBarPosition(
-    isVertical: boolean,
-    startingX: number,
-    startingY: number
-): StartingPositionFn<AnimatableBarDatum> {
-    return (datum) => {
-        return {
-            x: isVertical ? datum.x : startingX,
-            y: isVertical ? startingY : datum.y,
-            width: isVertical ? datum.width : 0,
-            height: isVertical ? 0 : datum.height,
-        };
+    barDirection: ChartAxisDirection,
+    axes: Record<ChartAxisDirection, ChartAxis | undefined>
+): InitialPosition<AnimatableBarDatum> {
+    const isVertical = barDirection === ChartAxisDirection.Y;
+    const { startingX, startingY } = getBarDirectionStartingValues(barDirection, axes);
+
+    const isDatumNegative = (datum: AnimatableBarDatum) => {
+        return isNegative((datum as any)['yValue'] ?? 0);
+    };
+
+    const calculate = (datum: AnimatableBarDatum, prevDatum?: AnimatableBarDatum) => {
+        let x = isVertical ? datum.x : startingX;
+        let y = isVertical ? startingY : datum.y;
+        let width = isVertical ? datum.width : 0;
+        let height = isVertical ? 0 : datum.height;
+
+        if (prevDatum && (isNaN(x) || isNaN(y))) {
+            // Fallback
+            ({ x, y } = prevDatum);
+            width = isVertical ? prevDatum.width : 0;
+            height = isVertical ? 0 : prevDatum.height;
+            if (isVertical && !isDatumNegative(prevDatum)) {
+                y += prevDatum.height;
+            } else if (!isVertical && isDatumNegative(prevDatum)) {
+                x += prevDatum.width;
+            }
+        }
+        return { x, y, width, height };
+    };
+
+    return {
+        isVertical,
+        calculate,
     };
 }
 
-export function midpointStartingBarPosition(isVertical: boolean): StartingPositionFn<AnimatableBarDatum> {
-    return (datum) => {
-        return {
-            x: isVertical ? datum.x : datum.x + datum.width / 2,
-            y: isVertical ? datum.y + datum.height / 2 : datum.y,
-            width: isVertical ? datum.width : 0,
-            height: isVertical ? 0 : datum.height,
-        };
+export function midpointStartingBarPosition(barDirection: ChartAxisDirection): InitialPosition<AnimatableBarDatum> {
+    const isVertical = barDirection === ChartAxisDirection.Y;
+
+    return {
+        isVertical,
+        calculate: (datum) => {
+            return {
+                x: isVertical ? datum.x : datum.x + datum.width / 2,
+                y: isVertical ? datum.y + datum.height / 2 : datum.y,
+                width: isVertical ? datum.width : 0,
+                height: isVertical ? 0 : datum.height,
+            };
+        },
     };
 }
 
 type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
-export function prepareBarAnimationFunctions(startPositionFn: StartingPositionFn<AnimatableBarDatum>) {
-    const fromFn = (rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
-        if (status === 'removed') {
-            return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
-        } else if (status === 'added') {
-            return startPositionFn(datum);
-        }
-        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
+    const isRemoved = (datum: T) => {
+        return isNaN(datum.x) || isNaN(datum.y);
     };
-    const toFn = (_rect: Rect, datum: AnimatableBarDatum, status: NodeUpdateState) => {
-        if (status === 'removed') {
-            return startPositionFn(datum);
+
+    const fromFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
+        if (status === 'updated' && isRemoved(datum)) {
+            status = 'removed';
+        } else if (status === 'updated' && isRemoved(rect.previousDatum)) {
+            status = 'added';
+        }
+
+        // Continue from current rendering location.
+        let source = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+        if (status === 'unknown' || status === 'added') {
+            source = initPos.calculate(datum, rect.previousDatum);
+        }
+        return { ...source, ...FROM_TO_MIXINS[status] };
+    };
+    const toFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
+        if (status === 'removed' || isRemoved(datum)) {
+            return initPos.calculate(datum, rect.previousDatum);
         }
         return { x: datum.x, y: datum.y, width: datum.width, height: datum.height };
     };
@@ -155,7 +194,7 @@ export function prepareBarAnimationFunctions(startPositionFn: StartingPositionFn
     return { toFn, fromFn };
 }
 
-export function getBarDirectionStartingValues(
+function getBarDirectionStartingValues(
     barDirection: ChartAxisDirection,
     axes: Record<ChartAxisDirection, ChartAxis | undefined>
 ) {

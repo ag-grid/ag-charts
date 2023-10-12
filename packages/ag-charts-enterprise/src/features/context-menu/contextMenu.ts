@@ -13,8 +13,8 @@ type ContextMenuAction = { id?: string; label: string; action: (params: ContextM
 export type ContextMenuActionParams = { datum?: any; event: MouseEvent };
 
 const { BOOLEAN, Validate } = _ModuleSupport;
-const INTERACTION_ID = 'context-menu';
 const TOOLTIP_ID = 'context-menu';
+const PAUSE_TYPE = 'context-menu';
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -199,7 +199,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.menuElement = newMenuElement;
 
-        this.interactionManager.pause(INTERACTION_ID);
+        this.interactionManager.pause(PAUSE_TYPE);
         this.tooltipManager.updateTooltip(TOOLTIP_ID);
 
         this.element.style.display = 'block';
@@ -217,7 +217,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.menuElement = undefined;
         }
 
-        this.interactionManager.resume(INTERACTION_ID);
+        this.interactionManager.resume(PAUSE_TYPE);
         this.tooltipManager.removeTooltip(TOOLTIP_ID);
 
         this.element.style.display = 'none';

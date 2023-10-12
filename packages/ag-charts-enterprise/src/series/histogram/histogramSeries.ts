@@ -1,5 +1,5 @@
+import type { AgHistogramSeriesLabelFormatterParams } from 'ag-charts-community';
 import {
-    type AgCartesianSeriesLabelFormatterParams,
     type AgHistogramSeriesOptions,
     type AgHistogramSeriesTooltipRendererParams,
     type AgTooltipRendererResult,
@@ -13,14 +13,12 @@ import {
 const {
     predicateWithMessage,
     Validate,
-    OPT_FUNCTION,
     groupCount,
     groupSum,
     groupAverage,
     area,
     BOOLEAN,
     CartesianSeries,
-    CartesianSeriesNodeClickEvent,
     ChartAxisDirection,
     NUMBER,
     OPT_ARRAY,
@@ -37,10 +35,11 @@ const {
     fixNumericExtent,
     keyProperty,
     valueProperty,
-    getBarDirectionStartingValues,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
+    resetLabelFn,
+    seriesLabelFadeInAnimation,
 } = _ModuleSupport;
 const { Rect, Label, PointerEvents, motion } = _Scene;
 const { ticks, sanitizeHtml, tickStep } = _Util;
@@ -54,11 +53,6 @@ const HISTOGRAM_AGGREGATION = predicateWithMessage(
 enum HistogramSeriesNodeTag {
     Bin,
     Label,
-}
-
-class HistogramSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
 }
 
 const defaultBinCount = 10;
@@ -94,7 +88,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     static className = 'HistogramSeries';
     static type = 'histogram' as const;
 
-    readonly label = new HistogramSeriesLabel();
+    readonly label = new Label<AgHistogramSeriesLabelFormatterParams>();
 
     tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 
@@ -117,9 +111,15 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     lineDashOffset: number = 0;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({ moduleCtx, pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH] });
-
-        this.label.enabled = false;
+        super({
+            moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            datumSelectionGarbageCollection: false,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
+        });
     }
 
     @Validate(OPT_STRING)
@@ -129,7 +129,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     areaPlot: boolean = false;
 
     @Validate(OPT_ARRAY())
-    bins: [number, number][] | undefined = undefined;
+    bins?: [number, number][];
 
     @Validate(HISTOGRAM_AGGREGATION)
     aggregation: HistogramAggregation = 'sum';
@@ -207,7 +207,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         };
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yKey, data, areaPlot, aggregation } = this;
 
         const props: _ModuleSupport.PropertyDefinition<any>[] = [keyProperty(this, xKey, true), SORT_DOMAIN_GROUPS];
@@ -268,18 +268,16 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             props.push(diff(this.processedData, false));
         }
 
-        const { dataModel, processedData } = await dataController.request<any>(this.id, data ?? [], {
+        await this.requestDataModel<any>(dataController, data ?? [], {
             props,
             dataVisible: this.visible,
             groupByFn,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.animationState.transition('updateData');
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 
         if (!processedData || !dataModel) return [];
@@ -292,20 +290,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         }
 
         return fixNumericExtent(yDomain);
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: HistogramNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: HistogramNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<HistogramNodeDatum, HistogramSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     async createNodeData() {
@@ -328,10 +312,9 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
         const nodeData: HistogramNodeDatum[] = [];
 
-        const defaultLabelFormatter = (params: { value: number }) => String(params.value);
         const {
             label: {
-                formatter: labelFormatter = defaultLabelFormatter,
+                formatter: labelFormatter = (params) => String(params.value),
                 fontStyle: labelFontStyle,
                 fontWeight: labelFontWeight,
                 fontSize: labelFontSize,
@@ -362,7 +345,16 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             const selectionDatumLabel =
                 total !== 0
                     ? {
-                          text: callbackCache.call(labelFormatter, { value: total, seriesId }) ?? String(total),
+                          text:
+                              callbackCache.call(labelFormatter, {
+                                  value: total,
+                                  datum,
+                                  seriesId,
+                                  xKey,
+                                  yKey,
+                                  xName: this.xName,
+                                  yName: this.yName,
+                              }) ?? String(total),
                           fontStyle: labelFontStyle,
                           fontWeight: labelFontWeight,
                           fontSize: labelFontSize,
@@ -393,7 +385,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 yValue: yMaxPx,
                 width: w,
                 height: h,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill: fill,
                 stroke: stroke,
                 strokeWidth: strokeWidth,
@@ -407,8 +399,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     protected override nodeFactory() {
         return new Rect();
     }
-
-    override datumSelectionGarbageCollection = false;
 
     protected override async updateDatumSelection(opts: {
         nodeData: HistogramNodeDatum[];
@@ -516,7 +506,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const {
             aggregatedValue,
             frequency,
-            domain,
             domain: [rangeMin, rangeMax],
         } = nodeDatum;
         const title = `${sanitizeHtml(xName ?? xKey)}: ${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`;
@@ -540,10 +529,8 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 frequency: nodeDatum.frequency,
             },
             xKey,
-            xValue: domain,
             xName,
             yKey,
-            yValue: aggregatedValue,
             yName,
             color,
             title,
@@ -580,43 +567,14 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(ChartAxisDirection.Y, this.axes));
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
 
-        const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, startingX, startingY));
-
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
-
-        motion.staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
-    override animateReadyUpdate({ datumSelections }: HistogramAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
-    }
-
-    override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>) {
-        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
-    }
-
-    override animateReadyResize({ datumSelections }: HistogramAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
-    }
-
-    override animateWaitingUpdateReady({
-        datumSelections,
-        labelSelections,
-    }: {
-        datumSelections: Array<_Scene.Selection<_Scene.Rect, HistogramNodeDatum>>;
-        labelSelections: Array<_Scene.Selection<_Scene.Text, HistogramNodeDatum>>;
-    }) {
+    override animateWaitingUpdateReady(data: HistogramAnimationData) {
+        const { datumSelections, labelSelections } = data;
         const {
             processedData,
             getDatumId,
@@ -625,33 +583,21 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            motion.resetMotion(datumSelections, resetBarSelectionsFn);
+            super.resetAllAnimation(data);
             return;
         }
 
-        const { startingX, startingY } = getBarDirectionStartingValues(ChartAxisDirection.Y, this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, startingX, startingY));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(ChartAxisDirection.Y, this.axes));
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,
             animationManager,
             datumSelections,
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => getDatumId(datum),
             diff
         );
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-        motion.staticFromToMotion(
-            `${this.id}_waiting-update-ready_labels`,
-            animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     getDatumId(datum: HistogramNodeDatum) {

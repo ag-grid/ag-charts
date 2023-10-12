@@ -61,6 +61,9 @@ export class SeriesStateManager {
 
         visibleGroups.sort((a, b) => a - b);
 
-        return { visibleGroupCount: visibleGroups.length, index: visibleGroups.indexOf(seriesGrouping.groupIndex) };
+        return {
+            visibleGroupCount: visibleGroups.length,
+            index: visibleGroups.indexOf(seriesGrouping.groupIndex),
+        };
     }
 }

@@ -122,7 +122,7 @@ export class AxisLabel implements ChartAxisLabel {
     formatter?: (params: AgAxisLabelFormatterParams) => string = undefined;
 
     @Validate(OPT_STRING)
-    format: string | undefined = undefined;
+    format?: string;
 
     getFont(): string {
         return getFont(this);

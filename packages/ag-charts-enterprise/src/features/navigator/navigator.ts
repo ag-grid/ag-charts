@@ -94,11 +94,12 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         ctx.scene.root?.appendChild(this.rs);
 
+        const interactionOpts = { bypassPause: ['animation' as const] };
         this.destroyFns.push(
-            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event)),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event)),
-            ctx.interactionManager.addListener('hover', (event) => this.onDrag(event)),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragStop()),
+            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), interactionOpts),
+            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), interactionOpts),
+            ctx.interactionManager.addListener('hover', (event) => this.onDrag(event), interactionOpts),
+            ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), interactionOpts),
             ctx.layoutService.addListener('before-series', (event) => this.layout(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
             () => ctx.scene.root?.removeChild(this.rs),

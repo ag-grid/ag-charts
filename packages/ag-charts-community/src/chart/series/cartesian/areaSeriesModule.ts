@@ -30,7 +30,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
         },
         fillOpacity: 0.8,
         strokeOpacity: 1,
-        strokeWidth: 2,
+        strokeWidth: 0,
         lineDash: [0],
         lineDashOffset: 0,
         shadow: {

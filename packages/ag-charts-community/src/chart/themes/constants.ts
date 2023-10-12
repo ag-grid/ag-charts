@@ -7,6 +7,12 @@ import type {
     FontWeight,
 } from '../../options/agChartOptions';
 
+export const FONT_SIZE = {
+    SMALL: 12,
+    MEDIUM: 13,
+    LARGE: 17,
+};
+
 export const BOLD: FontWeight = 'bold';
 export const NORMAL: FontWeight = 'normal';
 

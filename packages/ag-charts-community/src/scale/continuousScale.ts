@@ -11,7 +11,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     tickCount = ContinuousScale.defaultTickCount;
     minTickCount = 0;
     maxTickCount = Infinity;
-    niceDomain: any[] = null as any;
+    niceDomain: any[] = [];
 
     smallestBandwidthInterval?: number;
 
@@ -47,7 +47,6 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         } else if (d instanceof Date) {
             return d.getTime();
         }
-
         return NaN;
     }
 
@@ -56,7 +55,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     getDomain() {
         if (this.nice) {
             this.refresh();
-            if (this.niceDomain) {
+            if (this.niceDomain.length) {
                 return this.niceDomain;
             }
         }
@@ -152,6 +151,11 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         }
     }
 
+    protected getPixelRange() {
+        const range = this.range.slice().sort((a, b) => a - b);
+        return range[1] - range[0];
+    }
+
     protected isDenseInterval({
         start,
         stop,
@@ -163,13 +167,9 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         interval: number | TimeInterval;
         count?: number;
     }): boolean {
-        const { range } = this;
         const domain = stop - start;
 
-        const min = Math.min(range[0], range[1]);
-        const max = Math.max(range[0], range[1]);
-
-        const availableRange = max - min;
+        const availableRange = this.getPixelRange();
         const step = typeof interval === 'number' ? interval : 1;
         count ??= domain / step;
         if (count >= availableRange) {

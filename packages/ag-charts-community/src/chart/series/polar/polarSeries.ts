@@ -1,17 +1,39 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AnimationValue } from '../../../motion/animation';
+import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
 import type { BBox } from '../../../scene/bbox';
+import { Group } from '../../../scene/group';
+import type { Node } from '../../../scene/node';
+import { Selection } from '../../../scene/selection';
+import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
-import type { DataModel, ProcessedData } from '../../data/dataModel';
-import { Series } from '../series';
+import { DataModelSeries } from '../dataModelSeries';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type PolarAnimationEvent = 'update' | 'updateData' | 'clear';
 export type PolarAnimationData = { duration?: number };
 
-export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
+export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends Node> extends DataModelSeries<TDatum> {
+    protected sectorGroup = this.contentGroup.appendChild(new Group());
+
+    protected itemSelection: Selection<TNode, TDatum> = Selection.select(
+        this.sectorGroup,
+        () => this.nodeFactory(),
+        false
+    );
+    protected labelSelection: Selection<Text, TDatum> = Selection.select(this.labelGroup, Text, false);
+    protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightGroup, () =>
+        this.nodeFactory()
+    );
+
+    animationResetFns?: {
+        item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
+        label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
+    };
+
     /**
      * The center of the polar series (for example, the center of a pie).
      * If the polar chart has multiple series, all of them will have their
@@ -28,23 +50,26 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
      */
     radius: number = 0;
 
-    protected dataModel?: DataModel<any, any, any>;
-    protected processedData?: ProcessedData<any>;
     protected animationState: StateMachine<PolarAnimationState, PolarAnimationEvent>;
 
     constructor({
-        moduleCtx,
         useLabelLayer = false,
         pickModes = [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
+        animationResetFns,
+        ...opts
     }: {
         moduleCtx: ModuleContext;
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;
+        animationResetFns?: {
+            item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
+            label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
+        };
     }) {
         super({
-            moduleCtx,
+            ...opts,
             useLabelLayer,
             pickModes,
             contentGroupVirtual: false,
@@ -58,6 +83,9 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
             },
             canHaveAxes,
         });
+
+        this.sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
+        this.animationResetFns = animationResetFns;
 
         this.animationState = new StateMachine('empty', {
             empty: {
@@ -105,6 +133,8 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
         });
     }
 
+    protected abstract nodeFactory(): TNode;
+
     getLabelData(): PointLabelDatum[] {
         return [];
     }
@@ -113,20 +143,36 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
         return null;
     }
 
+    protected resetAllAnimation() {
+        const { item, label } = this.animationResetFns ?? {};
+        if (item) {
+            resetMotion([this.itemSelection], item);
+        }
+        if (label) {
+            resetMotion([this.labelSelection], label);
+        }
+        this.itemSelection.cleanup();
+        this.labelSelection.cleanup();
+        this.highlightSelection.cleanup();
+    }
+
     protected animateEmptyUpdateReady(_data: PolarAnimationData) {
-        // Override point for sub-classes.
+        this.resetAllAnimation();
     }
 
     protected animateReadyUpdate(_data: PolarAnimationData) {
-        // Override point for sub-classes.
+        this.resetAllAnimation();
     }
 
     protected animateWaitingUpdateReady(_data: PolarAnimationData) {
-        // Override point for sub-classes.
+        this.resetAllAnimation();
     }
 
     protected animateReadyHighlight(_data: unknown) {
-        // Override point for sub-classes.
+        const { item } = this.animationResetFns ?? {};
+        if (item) {
+            resetMotion([this.highlightSelection], item);
+        }
     }
 
     protected animateReadyHighlightMarkers(_data: unknown) {
@@ -134,11 +180,11 @@ export abstract class PolarSeries<S extends SeriesNodeDatum> extends Series<S> {
     }
 
     protected animateReadyResize(_data: PolarAnimationData) {
-        // Override point for sub-classes.
+        this.resetAllAnimation();
     }
 
     protected animateClearingUpdateEmpty(_data: PolarAnimationData) {
-        // Override point for sub-classes.
+        this.resetAllAnimation();
     }
 
     protected animationTransitionClear() {

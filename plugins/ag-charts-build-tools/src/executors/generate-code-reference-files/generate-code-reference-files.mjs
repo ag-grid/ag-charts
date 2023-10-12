@@ -119,8 +119,13 @@ function isBuiltinUtilityType(type) {
 }
 
 function mergeAncestorProps(isDocStyle, parent, child, getProps) {
-    const props = { ...getProps(child) };
-    let mergedProps = props;
+    const props = getProps(child);
+    // child.type can be a string in case of a type alias
+    if (typeof props === 'string') {
+        console.warn(`Unable to merge props. Should be object, not string.`, props);
+        return {};
+    }
+    let mergedProps = { ...props };
     // If the parent has a generic params lets apply the child's specific types
     if (parent.params && parent.params.length > 0) {
         if (child.meta && child.meta.typeParams) {
@@ -166,14 +171,12 @@ function mergeAncestorProps(isDocStyle, parent, child, getProps) {
 }
 
 function mergeRespectingChildOverrides(parent, child) {
-    let merged = { ...child };
+    const merged = { ...child };
     // We want the child properties to be list first for better doc reading experience
     // Normal spread merge to get the correct order wipes out child overrides
     // Hence the manual approach to the merge here.
     Object.entries(parent).forEach(([k, v]) => {
-        if (!merged[k]) {
-            merged[k] = v;
-        }
+        merged[k] ||= v;
     });
     return merged;
 }

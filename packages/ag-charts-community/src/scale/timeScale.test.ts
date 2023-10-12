@@ -98,7 +98,7 @@ describe('TimeScale', () => {
             ];
 
             it.each(MILLISECONDS_INTERVALS.map((c) => c.name))(`for %s case`, (caseName) => {
-                const { interval, domain } = MILLISECONDS_INTERVALS.find((c) => c.name === caseName);
+                const { interval, domain } = MILLISECONDS_INTERVALS.find((c) => c.name === caseName)!;
                 const scale = new TimeScale();
 
                 scale.range = [0, 600];
@@ -157,7 +157,7 @@ describe('TimeScale', () => {
             ];
 
             it.each(TIME_INTERVALS.map((c) => c.name))(`for %s case`, (caseName) => {
-                const { interval, domain } = TIME_INTERVALS.find((c) => c.name === caseName);
+                const { interval, domain } = TIME_INTERVALS.find((c) => c.name === caseName)!;
                 const scale = new TimeScale();
 
                 scale.range = [0, 600];

@@ -1,4 +1,5 @@
 import { AgCartesianChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const formatter = new Intl.NumberFormat();
@@ -18,13 +19,9 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'population',
             tooltip: {
-                renderer: (params) => {
-                    let yValue = params.yValue;
-                    if (yValue == null) yValue = 0;
-                    return {
-                        content: `${params.xValue} CE: ${formatter.format(yValue)}`,
-                    };
-                },
+                renderer: ({ datum, xKey, yKey }) => ({
+                    content: `${datum[xKey]} CE: ${formatter.format(datum[yKey] ?? 0)}`,
+                }),
             },
         },
     ],

@@ -28,9 +28,9 @@ const options: AgChartOptions = {
             }
           },
           tooltip: {
-            renderer: ({ xValue, yValue }) => {
-              const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(xValue);
-              return { content: `${date}: ${(Math.round(yValue / 100) / 10) + 'k'}` };
+            renderer: ({ datum, xKey, yKey }) => {
+              const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(datum[xKey]);
+              return { content: `${date}: ${(Math.round(datum[yKey] / 100) / 10) + 'k'}` };
             },
           },
         }

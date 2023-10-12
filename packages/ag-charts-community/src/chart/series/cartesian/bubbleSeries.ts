@@ -6,7 +6,6 @@ import type {
     AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
@@ -16,17 +15,11 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { sanitizeHtml } from '../../../util/sanitize';
-import {
-    COLOR_STRING_ARRAY,
-    NUMBER,
-    OPT_FUNCTION,
-    OPT_NUMBER_ARRAY,
-    OPT_STRING,
-    Validate,
-} from '../../../util/validation';
+import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { SeriesNodePickMode } from '../../chartSeries';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum } from '../../legendDatum';
@@ -34,10 +27,11 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import type { SeriesNodeEventTypes } from '../series';
 import { keyProperty, valueProperty } from '../series';
+import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
-import { getMarkerConfig, updateMarker } from './markerUtil';
+import { getMarkerConfig, markerScaleInAnimation, resetMarkerFn, updateMarker } from './markerUtil';
 
 interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
@@ -47,16 +41,9 @@ interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 
-class BubbleSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgBubbleSeriesLabelFormatterParams<any>) => string = undefined;
-}
-
-class BubbleSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeClickEvent<
-    BubbleNodeDatum,
-    BubbleSeries,
-    TEvent
-> {
+class BubbleSeriesNodeClickEvent<
+    TEvent extends string = SeriesNodeEventTypes,
+> extends CartesianSeriesNodeClickEvent<TEvent> {
     readonly sizeKey?: string;
 
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: BubbleNodeDatum, series: BubbleSeries) {
@@ -85,11 +72,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     static className = 'BubbleSeries';
     static type = 'bubble' as const;
 
+    protected override readonly NodeClickEvent = BubbleSeriesNodeClickEvent;
+
     private sizeScale = new LinearScale();
 
     readonly marker = new BubbleSeriesMarker();
 
-    readonly label = new BubbleSeriesLabel();
+    readonly label = new Label<AgBubbleSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -125,7 +114,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     colorName?: string = 'Color';
 
     @Validate(OPT_NUMBER_ARRAY)
-    colorDomain: number[] | undefined = undefined;
+    colorDomain?: number[];
 
     @Validate(COLOR_STRING_ARRAY)
     colorRange: string[] = ['#ffff00', '#00ff00', '#0000ff'];
@@ -144,33 +133,32 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ],
             pathsPerSeries: 0,
             hasMarkers: true,
+            markerSelectionGarbageCollection: false,
+            animationResetFns: {
+                label: resetLabelFn,
+                marker: resetMarkerFn,
+            },
         });
-
-        const { label } = this;
-
-        label.enabled = false;
     }
 
-    async processData(dataController: DataController) {
+    override async processData(dataController: DataController) {
         const {
             xKey = '',
             yKey = '',
             sizeKey = '',
             labelKey,
-            axes,
+            colorScale,
+            colorDomain,
+            colorRange,
+            colorKey,
             marker,
             data,
             ctx: { animationManager },
         } = this;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
 
-        const { colorScale, colorDomain, colorRange, colorKey } = this;
-
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data ?? [], {
+        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
                 keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
@@ -184,8 +172,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
         const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];
@@ -197,11 +183,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             colorScale.range = colorRange;
             colorScale.update();
         }
-
-        this.animationTransitionClear();
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -212,21 +196,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             return domain;
         }
         const axis = this.axes[direction];
-        return this.fixNumericExtent(extent(domain), axis);
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: BubbleNodeDatum
-    ): BubbleSeriesNodeClickEvent<'nodeClick'> {
-        return new BubbleSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: BubbleNodeDatum
-    ): BubbleSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new BubbleSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
+        return fixNumericExtent(extent(domain), axis);
     }
 
     async createNodeData() {
@@ -240,6 +210,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ctx: { callbackCache },
             dataModel,
             processedData,
+            colorScale,
+            sizeKey,
+            colorKey,
+            id: seriesId,
         } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -249,39 +223,49 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const sizeDataIdx = this.sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : -1;
-        const colorDataIdx = this.colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
-        const labelDataIdx = this.labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
-
-        const { colorScale, sizeKey, colorKey, id: seriesId } = this;
+        const sizeDataIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : -1;
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
+        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const { sizeScale, marker } = this;
-        const nodeData: BubbleNodeDatum[] = new Array(this.processedData?.data.length ?? 0);
+        const nodeData: BubbleNodeDatum[] = [];
 
         sizeScale.range = [marker.size, marker.maxSize];
 
         const font = label.getFont();
-        let actualLength = 0;
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            let text = String(labelKey ? values[labelDataIdx] : yDatum);
+            let labelText = labelKey ? values[labelDataIdx] : yDatum;
             if (label.formatter) {
-                text = callbackCache.call(label.formatter, { value: text, seriesId, datum }) ?? '';
+                labelText =
+                    callbackCache.call(label.formatter, {
+                        value: labelText,
+                        seriesId,
+                        datum,
+                        xKey,
+                        yKey,
+                        sizeKey,
+                        labelKey,
+                        xName: this.xName,
+                        yName: this.yName,
+                        sizeName: this.sizeName,
+                        labelName: this.labelName,
+                    }) ?? labelText;
             }
 
-            const size = HdpiCanvas.getTextSize(text, font);
+            const size = HdpiCanvas.getTextSize(String(labelText), font);
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
-            nodeData[actualLength++] = {
+            nodeData.push({
                 series: this,
                 itemId: yKey,
                 yKey,
@@ -291,16 +275,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 yValue: yDatum,
                 sizeValue: values[sizeDataIdx],
                 point: { x, y, size: markerSize },
-                nodeMidPoint: { x, y },
+                midPoint: { x, y },
                 fill,
-                label: {
-                    text,
-                    ...size,
-                },
-            };
+                label: { text: labelText, ...size },
+            });
         }
-
-        nodeData.length = actualLength;
 
         return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
     }
@@ -318,8 +297,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
-
-    override markerSelectionGarbageCollection = false;
 
     protected override async updateMarkerSelection(opts: {
         nodeData: BubbleNodeDatum[];
@@ -372,7 +349,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 strokeWidth: marker.strokeWidth ?? 1,
             });
 
-            const config = { ...styles, point: datum.point, visible, customMarker, animatedMarker: !highlighted };
+            const config = { ...styles, point: datum.point, visible, customMarker };
             updateMarker({ node, config });
         });
 
@@ -450,7 +427,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const strokeWidth = this.getStrokeWidth(marker.strokeWidth ?? 1);
 
         const { formatter } = this.marker;
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -499,10 +476,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yKey,
-            yValue,
             yName,
             sizeKey,
             sizeName,
@@ -544,215 +519,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         ];
     }
 
-    override animateEmptyUpdateReady(animationData: BubbleAnimationData) {
-        const { markerSelections, labelSelections } = animationData;
-        const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_markers`,
-            from: 0,
-            to: 1,
-            duration,
-            onUpdate: (ratio) => {
-                markerSelections.forEach((markerSelection) => {
-                    markerSelection.each((marker, datum) => {
-                        const format = this.animateFormatter(marker, datum);
-                        const to = format?.size ?? datum.point.size;
-
-                        marker.translationX = datum.point.x;
-                        marker.translationY = datum.point.y;
-
-                        marker.size = ratio * to;
-                    });
-                });
-            },
-        });
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: duration,
-            duration: labelDuration,
-            onUpdate: (opacity) => {
-                labelSelections.forEach((labelSelection) => {
-                    labelSelection.each((label) => {
-                        label.opacity = opacity;
-                    });
-                });
-            },
-        });
-    }
-
-    override animateReadyResize({ markerSelections }: BubbleAnimationData) {
-        this.ctx.animationManager.reset();
-        markerSelections.forEach((markerSelection) => {
-            this.resetMarkers(markerSelection);
-        });
-    }
-
-    /*
-    // This animation can not be used until we can provide a guaranteed unique datum id.
-    animateWaitingUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
-        const { processedData } = this;
-        const diff = processedData?.reduced?.diff;
-
-        if (!diff?.changed) {
-            markerSelections.forEach((markerSelection) => {
-                this.resetMarkers(markerSelection);
-            });
-            return;
-        }
-
-        const addedIds = zipObject(diff.added, true);
-        const removedIds = zipObject(diff.removed, true);
-
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-
-        markerSelections.forEach((markerSelection) => {
-            markerSelection.each((marker, datum, index) => {
-                const datumId = this.getDatumId(datum);
-                const cleanup = index === markerSelection.nodes().length - 1;
-
-                const markerFormat = this.animateFormatter(marker, datum);
-                const size = markerFormat?.size ?? datum.point.size ?? marker.size;
-
-                let props = [
-                    { from: marker.size, to: size },
-                    { from: marker.translationX, to: datum.point.x },
-                    { from: marker.translationY, to: datum.point.y },
-                ];
-
-                if (removedIds[datumId]) {
-                    props = [
-                        { from: marker.size, to: 0 },
-                        { from: marker.translationX, to: marker.translationX },
-                        { from: marker.translationY, to: marker.translationY },
-                    ];
-                } else if (addedIds[datumId]) {
-                    props = [
-                        { from: 0, to: size },
-                        { from: datum.point.x, to: datum.point.x },
-                        { from: datum.point.y, to: datum.point.y },
-                    ];
-                }
-
-                this.ctx.animationManager.animateMany(`${this.id}_waiting-update-ready_${marker.id}`, props, {
-                    duration,
-                    ease: easing.easeOut,
-                    onUpdate([size, x, y]) {
-                        marker.size = size;
-                        marker.translationX = x;
-                        marker.translationY = y;
-                    },
-                    onStop: () => {
-                        if (cleanup) this.resetMarkers(markerSelection);
-                    },
-                    onComplete: () => {
-                        if (cleanup) this.resetMarkers(markerSelection);
-                    },
-                });
-            });
-        });
-
-        labelSelections.forEach((labelSelection) => {
-            labelSelection.each((label, datum) => {
-                const datumId = this.getDatumId(datum);
-
-                if (addedIds[datumId]) {
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
-                        from: 0,
-                        to: 1,
-                        delay: duration,
-                        duration: labelDuration,
-                        onUpdate: (opacity) => {
-                            label.opacity = opacity;
-                        },
-                    });
-                } else if (removedIds[datumId]) {
-                    this.ctx.animationManager.animate(`${this.id}_waiting-update-ready_${label.id}`, {
-                        from: 1,
-                        to: 0,
-                        duration: labelDuration,
-                        onUpdate: (opacity) => {
-                            label.opacity = opacity;
-                        },
-                    });
-                }
-            });
-        });
-    }
-    */
-
-    override animateClearingUpdateEmpty(animationData: BubbleAnimationData) {
-        const { markerSelections } = animationData;
-
-        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_clearing-update-empty`,
-            from: 1,
-            to: 0,
-            duration: 200,
-            onUpdate(opacity) {
-                markerSelections.forEach((markerSelection) => {
-                    markerSelection.each((marker) => {
-                        marker.opacity = opacity;
-                    });
-                });
-            },
-            onComplete: () => {
-                markerSelections.forEach((markerSelection) => {
-                    this.resetMarkers(markerSelection);
-                });
-                this.animationState.transition('update', { ...animationData, duration: updateDuration });
-            },
-        });
-    }
-
-    resetMarkers(markerSelection: Selection<Marker, BubbleNodeDatum>) {
-        markerSelection.cleanup().each((marker, datum) => {
-            const format = this.animateFormatter(marker, datum);
-            marker.size = format?.size ?? datum.point?.size ?? marker.size;
-            marker.translationX = datum.point.x;
-            marker.translationY = datum.point.y;
-            marker.opacity = 1;
-        });
-    }
-
-    animateFormatter(marker: Marker, datum: BubbleNodeDatum) {
-        const {
-            xKey = '',
-            yKey = '',
-            marker: { strokeWidth: markerStrokeWidth },
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
-        const { formatter } = this.marker;
-
-        const fill = datum.fill ?? marker.fill;
-        const stroke = marker.stroke;
-        const strokeWidth = markerStrokeWidth ?? 1;
-        const size = datum.point?.size ?? 0;
-
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
-        if (formatter) {
-            format = callbackCache.call(formatter, {
-                datum: datum.datum,
-                xKey,
-                yKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
-                seriesId,
-            });
-        }
-
-        return format;
+    override animateEmptyUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
+        markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     getDatumId(datum: BubbleNodeDatum) {

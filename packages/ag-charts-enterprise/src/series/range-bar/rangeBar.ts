@@ -1,8 +1,8 @@
 import type {
     AgRangeBarSeriesFormat,
     AgRangeBarSeriesFormatterParams,
-    AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
+    AgRangeBarSeriesOptionsKeys,
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -14,7 +14,6 @@ const {
     valueProperty,
     keyProperty,
     ChartAxisDirection,
-    OPTIONAL,
     NUMBER,
     OPT_NUMBER,
     OPT_STRING,
@@ -32,13 +31,12 @@ const {
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
     resetBarSelectionsFn,
+    fixNumericExtent,
+    seriesLabelFadeInAnimation,
+    resetLabelFn,
 } = _ModuleSupport;
 const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
-
-const RANGE_BAR_LABEL_PLACEMENTS: AgRangeBarSeriesLabelPlacement[] = ['inside', 'outside'];
-const OPT_RANGE_BAR_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
-    OPTIONAL(v, ctx, (v: any) => RANGE_BAR_LABEL_PLACEMENTS.includes(v));
 
 const DEFAULT_DIRECTION_KEYS = {
     [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
@@ -105,11 +103,8 @@ class RangeBarSeriesNodeClickEvent<
     }
 }
 
-class RangeBarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRangeBarSeriesLabelFormatterParams) => string = undefined;
-
-    @Validate(OPT_RANGE_BAR_LABEL_PLACEMENT)
+class RangeBarSeriesLabel extends _Scene.Label<Partial<AgRangeBarSeriesOptionsKeys>> {
+    @Validate(STRING_UNION('inside', 'outside'))
     placement: AgRangeBarSeriesLabelPlacement = 'inside';
 
     @Validate(OPT_NUMBER(0))
@@ -123,6 +118,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 > {
     static className = 'RangeBarSeries';
     static type = 'range-bar' as const;
+
+    protected override readonly NodeClickEvent = RangeBarSeriesNodeClickEvent;
 
     readonly label = new RangeBarSeriesLabel();
 
@@ -161,6 +158,11 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             hasHighlightedLabels: true,
             directionKeys: DEFAULT_DIRECTION_KEYS,
             directionNames: DEFAULT_DIRECTION_NAMES,
+            datumSelectionGarbageCollection: false,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
         });
     }
 
@@ -205,7 +207,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey, data = [] } = this;
 
         if (!yLowKey || !yHighKey) return;
@@ -218,7 +220,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             animationProp.push(diff(this.processedData));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
@@ -229,18 +231,16 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             groupByKeys: true,
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.smallestDataInterval = {
-            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
             y: Infinity,
         };
 
         this.animationState.transition('updateData');
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -259,14 +259,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             }
 
             const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
-            const scalePadding = isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
             if (direction === ChartAxisDirection.Y) {
-                return this.fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
             }
-            return this.fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
+            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
             const yLowExtent = values[yLowIndex];
@@ -276,22 +276,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return this.fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent);
         }
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RangeBarNodeDatum
-    ): RangeBarSeriesNodeClickEvent<'nodeClick'> {
-        return new RangeBarSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RangeBarNodeDatum
-    ): RangeBarSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RangeBarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
@@ -421,7 +407,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill,
                 stroke,
                 strokeWidth,
@@ -459,7 +445,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText({ itemId: 'low', value: yLowValue, yLowValue, yHighValue }),
+            text: this.getLabelText({ itemId: 'low', datum, value: yLowValue }),
             itemId: 'low',
             datum,
             series,
@@ -469,7 +455,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText({ itemId: 'high', value: yHighValue, yLowValue, yHighValue }),
+            text: this.getLabelText({ itemId: 'high', datum, value: yHighValue }),
             itemId: 'high',
             datum,
             series,
@@ -485,17 +471,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return [yLowLabel, yHighLabel];
     }
 
-    private getLabelText({
-        itemId,
-        value,
-        yLowValue,
-        yHighValue,
-    }: {
-        itemId: string;
-        value: any;
-        yLowValue: any;
-        yHighValue: any;
-    }) {
+    private getLabelText({ itemId, datum, value }: { itemId: string; datum: RangeBarNodeDatum; value: any }) {
         const {
             id: seriesId,
             label: { formatter },
@@ -507,8 +483,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 value: isNumber(value) ? value : undefined,
                 seriesId,
                 itemId,
-                yLowValue,
-                yHighValue,
+                datum,
+                xKey: this.xKey,
+                yLowKey: this.yLowKey,
+                yHighKey: this.yHighKey,
             });
         }
         return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
@@ -517,8 +495,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     protected override nodeFactory() {
         return new Rect();
     }
-
-    override datumSelectionGarbageCollection = false;
 
     protected override async updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
@@ -639,19 +615,14 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             return '';
         }
 
-        const { xName, yLowName, yHighName, yName, id: seriesId } = this;
-
+        const { xName, yLowName, yHighName, yName, id: seriesId, fill, strokeWidth, formatter, tooltip } = this;
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
-        const { fill, strokeWidth, formatter, tooltip } = this;
-
-        let format: any | undefined = undefined;
+        let format;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum,
-                lowValue: yLowValue,
-                highValue: yHighValue,
                 xKey,
                 yLowKey,
                 yHighKey,
@@ -690,13 +661,10 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         return tooltip.toTooltipHtml(defaults, {
             datum,
             xKey,
-            xValue,
             xName,
             yLowKey,
-            yLowValue,
             yLowName,
             yHighKey,
-            yHighValue,
             yHighName,
             yName,
             color,
@@ -738,66 +706,33 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
-        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
 
-        const { toFn, fromFn } = prepareBarAnimationFunctions(midpointStartingBarPosition(isVertical));
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
-
-        const duration = this.ctx.animationManager.defaultDuration;
-        motion.staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: 200 }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
-    override animateWaitingUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
+    override animateWaitingUpdateReady(data: RangeBarAnimationData) {
+        const { datumSelections, labelSelections } = data;
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
         if (!diff?.changed) {
-            motion.resetMotion(datumSelections, resetBarSelectionsFn);
+            super.resetAllAnimation(data);
             return;
         }
 
-        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
-
-        const { toFn, fromFn } = prepareBarAnimationFunctions(midpointStartingBarPosition(isVertical));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
         motion.fromToMotion(
             `${this.id}_empty-update-ready`,
             this.ctx.animationManager,
             datumSelections,
-            fromFn,
-            toFn,
-            {},
+            fns,
             (_, datum) => String(datum.xValue),
             diff
         );
 
-        const duration = this.ctx.animationManager.defaultDuration;
-        motion.staticFromToMotion(
-            `${this.id}_empty-update-ready_labels`,
-            this.ctx.animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: 200 }
-        );
-    }
-
-    override animateReadyUpdate({ datumSelections }: RangeBarAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
-    }
-
-    override animateReadyHighlight(highlightSelection: RangeBarAnimationData['datumSelections'][number]) {
-        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
-    }
-
-    override animateReadyResize({ datumSelections }: RangeBarAnimationData) {
-        motion.resetMotion(datumSelections, resetBarSelectionsFn);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {

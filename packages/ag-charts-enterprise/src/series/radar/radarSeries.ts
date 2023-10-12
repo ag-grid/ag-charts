@@ -5,7 +5,6 @@ import type {
     AgRadarSeriesLabelFormatterParams,
     AgRadarSeriesMarkerFormat,
     AgRadarSeriesMarkerFormatterParams,
-    AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -22,6 +21,10 @@ const {
     STRING,
     Validate,
     valueProperty,
+    fixNumericExtent,
+    seriesLabelFadeInAnimation,
+    markerFadeInAnimation,
+    resetMarkerFn,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -57,28 +60,21 @@ interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly radiusValue: any;
 }
 
-class RadarSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgRadarSeriesLabelFormatterParams) => string = undefined;
-}
-
 export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
     @Validate(OPT_FUNCTION)
     @_Scene.SceneChangeDetection({ redraw: _Scene.RedrawType.MAJOR })
     formatter?: (params: AgRadarSeriesMarkerFormatterParams<any>) => AgRadarSeriesMarkerFormat = undefined;
 }
 
-export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum> {
+export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {
     static className = 'RadarSeries';
 
-    readonly marker = new RadarSeriesMarker();
+    protected override readonly NodeClickEvent = RadarSeriesNodeClickEvent;
 
-    readonly label = new RadarSeriesLabel();
+    readonly marker = new RadarSeriesMarker();
+    readonly label = new _Scene.Label<AgRadarSeriesLabelFormatterParams>();
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
-    protected markerSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
-    protected labelSelection: _Scene.Selection<_Scene.Text, RadarNodeDatum>;
-    protected highlightSelection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>;
 
     protected nodeData: RadarNodeDatum[] = [];
 
@@ -137,26 +133,21 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,
+            animationResetFns: {
+                item: resetMarkerFn,
+            },
         });
 
         const lineGroup = new Group();
         this.contentGroup.append(lineGroup);
         this.lineSelection = Selection.select(lineGroup, Path);
         lineGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
+    }
 
-        const markerFactory = () => {
-            const { shape } = this.marker;
-            const MarkerShape = getMarker(shape);
-            return new MarkerShape();
-        };
-        const markerGroup = new Group();
-        markerGroup.zIndexSubOrder = [() => this._declarationOrder, 2];
-        this.contentGroup.append(markerGroup);
-        this.markerSelection = Selection.select(markerGroup, markerFactory);
-
-        this.labelSelection = Selection.select(this.labelGroup!, Text);
-
-        this.highlightSelection = Selection.select(this.highlightGroup, markerFactory);
+    protected override nodeFactory(): _Scene.Marker {
+        const { shape } = this.marker;
+        const MarkerShape = getMarker(shape);
+        return new MarkerShape();
     }
 
     override addChartEventListeners(): void {
@@ -166,7 +157,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         );
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
@@ -175,24 +166,22 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         } else {
             const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
             const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
-            return this.fixNumericExtent(ext);
+            return fixNumericExtent(ext);
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { data = [] } = this;
         const { angleKey, radiusKey } = this;
 
         if (!angleKey || !radiusKey) return;
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 valueProperty(this, angleKey, false, { id: 'angleValue' }),
                 valueProperty(this, radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
             ],
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -240,9 +229,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index;
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        const { label, marker, id: seriesId } = this;
-        const { size: markerSize } = this.marker;
-
         const nodeData = processedData.data.map((group): RadarNodeDatum => {
             const { datum, values } = group;
 
@@ -259,22 +245,28 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const y = sin * radius;
 
             let labelNodeDatum: RadarNodeDatum['label'];
-            if (label.enabled) {
+            if (this.label.enabled) {
                 let labelText = '';
-                if (label.formatter) {
-                    labelText = label.formatter({ value: radiusDatum, seriesId });
+                if (this.label.formatter) {
+                    labelText = this.label.formatter({
+                        seriesId: this.id,
+                        value: radiusDatum,
+                        datum,
+                        angleKey,
+                        radiusKey,
+                        angleName: this.angleName,
+                        radiusName: this.radiusName,
+                    });
                 } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
                     labelText = radiusDatum.toFixed(2);
                 } else if (radiusDatum) {
                     labelText = String(radiusDatum);
                 }
                 if (labelText) {
-                    const labelX = x + cos * marker.size;
-                    const labelY = y + sin * marker.size;
                     labelNodeDatum = {
+                        x: x + cos * this.marker.size,
+                        y: y + sin * this.marker.size,
                         text: labelText,
-                        x: labelX,
-                        y: labelY,
                         textAlign: isNumberEqual(cos, 0) ? 'center' : cos > 0 ? 'left' : 'right',
                         textBaseline: isNumberEqual(sin, 0) ? 'middle' : sin > 0 ? 'top' : 'bottom',
                     };
@@ -284,8 +276,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             return {
                 series: this,
                 datum,
-                point: { x, y, size: markerSize },
-                nodeMidPoint: { x, y },
+                point: { x, y, size: this.marker.size },
+                midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
@@ -308,7 +300,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
 
         this.updatePathSelections();
-        this.updateMarkers(this.markerSelection, false);
+        this.updateMarkers(this.itemSelection, false);
         this.updateMarkers(this.highlightSelection, true);
         this.updateLabels();
 
@@ -367,7 +359,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const { x, y } = datum.point!;
             node.translationX = x;
             node.translationY = y;
-            node.visible = node.size > 0 && !isNaN(x) && !isNaN(y);
+            node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
         });
     }
 
@@ -395,20 +387,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         });
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: RadarNodeDatum
-    ): RadarSeriesNodeClickEvent<'nodeClick'> {
-        return new RadarSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: RadarNodeDatum
-    ): RadarSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new RadarSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     getTooltipHtml(nodeDatum: RadarNodeDatum): string {
         const { angleKey, radiusKey } = this;
 
@@ -426,9 +404,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
 
-        let format: AgRadarSeriesMarkerFormat | undefined = undefined;
-        if (markerFormatter) {
-            format = markerFormatter({
+        const { fill: color } = (markerFormatter &&
+            this.ctx.callbackCache.call(markerFormatter, {
                 datum,
                 angleKey,
                 radiusKey,
@@ -438,29 +415,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 size,
                 highlighted: false,
                 seriesId,
-            });
-        }
+            })) ?? { fill };
 
-        const color = format?.fill ?? fill;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            angleKey,
-            angleValue,
-            angleName,
-            radiusKey,
-            radiusValue,
-            radiusName,
-            title,
-            color,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            { datum, angleKey, angleName, radiusKey, radiusName, title, color, seriesId }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
@@ -661,16 +621,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override animateEmptyUpdateReady() {
-        if (!this.visible) {
-            return;
-        }
-
-        const { markerSelection, labelSelection } = this;
+        const { itemSelection, labelSelection } = this;
+        const { animationManager } = this.ctx;
 
         const duration = this.ctx.animationManager.defaultDuration;
-        const markerDuration = 200;
-        const markerDelay = duration;
-
         const animationOptions = {
             from: 0,
             to: duration,
@@ -678,53 +632,26 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         this.beforePathAnimation();
 
-        this.ctx.animationManager.animate({
+        animationManager.animate({
             id: `${this.id}_empty-update-ready`,
             ...animationOptions,
             duration,
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
-        markerSelection.each((marker, datum) => {
-            const format = this.animateFormatter(datum);
-            const size = datum.point?.size ?? 0;
-
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready_${marker.id}`,
-                ...animationOptions,
-                to: format?.size ?? size,
-                delay: markerDelay,
-                duration: markerDuration,
-                onUpdate(size) {
-                    marker.size = size;
-                },
-            });
-        });
-
-        this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready_labels`,
-            from: 0,
-            to: 1,
-            delay: markerDelay,
-            duration: markerDuration,
-            onUpdate: (opacity) => {
-                labelSelection.each((label) => {
-                    label.opacity = opacity;
-                });
-            },
-        });
+        markerFadeInAnimation(this, animationManager, [itemSelection], true);
+        seriesLabelFadeInAnimation(this, animationManager, [labelSelection]);
     }
 
     override animateReadyUpdate() {
-        this.resetMarkersAndPaths();
+        this.resetPaths();
     }
 
     override animateReadyResize() {
-        this.resetMarkersAndPaths();
+        this.resetPaths();
     }
 
-    protected resetMarkersAndPaths() {
-        const { markerSelection } = this;
+    protected resetPaths() {
         const lineNode = this.getLineNode();
 
         if (lineNode) {
@@ -751,12 +678,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
             lineNode.checkPathDirty();
         }
-
-        markerSelection.each((marker, datum) => {
-            const format = this.animateFormatter(datum);
-            const size = datum.point?.size ?? 0;
-            marker.size = format?.size ?? size;
-        });
     }
 
     protected animateFormatter(datum: RadarNodeDatum) {
@@ -774,7 +695,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const stroke = marker.stroke ?? lineStroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
-        let format: AgRadarSeriesMarkerFormat | undefined = undefined;
+        let format: AgRadarSeriesMarkerFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum: datum.datum,

@@ -1,6 +1,5 @@
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
-import type { AnimationValue } from './animation';
 
 /**
  * Implements a per-node reset.
@@ -8,7 +7,7 @@ import type { AnimationValue } from './animation';
  * @param selections contains nodes to be reset
  * @param propsFn callback to determine per-node properties
  */
-export function resetMotion<N extends Node, T extends AnimationValue & Partial<N>, D>(
+export function resetMotion<N extends Node, T extends Partial<N>, D>(
     selections: Selection<N, D>[],
     propsFn: (node: N, datum: D) => T
 ) {

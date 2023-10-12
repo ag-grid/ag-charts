@@ -1,8 +1,6 @@
-import type { ModuleContext } from '../../../module/moduleContext';
 import type { FontFamily, FontStyle, FontWeight } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
-import { isNumber } from '../../../util/value';
 
 type Bounds = {
     x: number;
@@ -42,95 +40,65 @@ export function updateLabel<LabelDatumType extends LabelDatum>({
     if (labelDatum && config && config.enabled) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
         const { fontStyle, fontWeight, fontSize, fontFamily, color } = config;
-        labelNode.fontStyle = fontStyle;
-        labelNode.fontWeight = fontWeight;
-        labelNode.fontSize = fontSize;
-        labelNode.fontFamily = fontFamily;
-        labelNode.textAlign = textAlign;
-        labelNode.textBaseline = textBaseline;
-        labelNode.text = text;
-        labelNode.x = x;
-        labelNode.y = y;
-        labelNode.fill = color;
-        labelNode.visible = visible;
+        labelNode.setProperties({
+            visible,
+            x,
+            y,
+            text,
+            fill: color,
+            fontStyle,
+            fontWeight,
+            fontSize,
+            fontFamily,
+            textAlign,
+            textBaseline,
+        });
     } else {
         labelNode.visible = false;
     }
 }
 
-export function createLabelData<FormatterParams, ExtraParams extends {}>({
-    value,
-    rect,
+export function adjustLabelPlacement({
+    isPositive,
+    isVertical,
     placement,
-    seriesId,
     padding = 0,
-    formatter,
-    barAlongX,
-    ctx: { callbackCache },
-    ...opts
+    rect,
 }: {
-    value: any;
-    rect: Bounds;
     placement: LabelPlacement;
-    seriesId: string;
+    isPositive: boolean;
+    isVertical: boolean;
     padding?: number;
-    formatter?: (params: FormatterParams) => string;
-    ctx: ModuleContext;
-    barAlongX: boolean;
-} & ExtraParams): LabelDatum {
-    let labelText;
-    if (formatter) {
-        labelText = callbackCache.call(formatter as any, {
-            value: isNumber(value) ? value : undefined,
-            seriesId,
-            ...opts,
-        });
-    }
-    if (labelText === undefined) {
-        labelText = isNumber(value) ? value.toFixed(2) : '';
-    }
+    rect: Bounds;
+}): Omit<LabelDatum, 'text'> {
+    let x = rect.x + rect.width / 2;
+    let y = rect.y + rect.height / 2;
+    let textAlign: CanvasTextAlign = 'center';
+    let textBaseline: CanvasTextBaseline = 'middle';
 
-    let labelX = rect.x + rect.width / 2;
-    let labelY = rect.y + rect.height / 2;
-
-    let labelTextAlign: CanvasTextAlign = 'center';
-    let labelTextBaseline: CanvasTextBaseline = 'middle';
-
-    const isPositive = value >= 0;
     switch (placement) {
         case 'start': {
-            if (barAlongX) {
-                labelX = isPositive ? rect.x - padding : rect.x + rect.width + padding;
-                labelTextAlign = isPositive ? 'start' : 'end';
+            if (isVertical) {
+                y = isPositive ? rect.y + rect.height + padding : rect.y - padding;
+                textBaseline = isPositive ? 'top' : 'bottom';
             } else {
-                labelY = isPositive ? rect.y + rect.height + padding : rect.y - padding;
-                labelTextBaseline = isPositive ? 'top' : 'bottom';
+                x = isPositive ? rect.x - padding : rect.x + rect.width + padding;
+                textAlign = isPositive ? 'start' : 'end';
             }
             break;
         }
         case 'outside':
         case 'end': {
-            if (barAlongX) {
-                labelX = isPositive ? rect.x + rect.width + padding : rect.x - padding;
-                labelTextAlign = isPositive ? 'start' : 'end';
+            if (isVertical) {
+                y = isPositive ? rect.y - padding : rect.y + rect.height + padding;
+                textBaseline = isPositive ? 'bottom' : 'top';
             } else {
-                labelY = isPositive ? rect.y - padding : rect.y + rect.height + padding;
-                labelTextBaseline = isPositive ? 'bottom' : 'top';
+                x = isPositive ? rect.x + rect.width + padding : rect.x - padding;
+                textAlign = isPositive ? 'start' : 'end';
             }
-            break;
-        }
-        case 'inside':
-        default: {
-            labelTextBaseline = 'middle';
             break;
         }
     }
 
-    return {
-        text: labelText,
-        textAlign: labelTextAlign,
-        textBaseline: labelTextBaseline,
-        x: labelX,
-        y: labelY,
-    };
+    return { x, y, textAlign, textBaseline };
 }

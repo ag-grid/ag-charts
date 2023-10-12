@@ -4,7 +4,9 @@ import type { ThemeName } from '@stores/themeStore';
 import { getEntry } from 'astro:content';
 import { JSDOM } from 'jsdom';
 
-import { AgEnterpriseCharts } from 'ag-charts-enterprise';
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { AgChart } from 'ag-charts-community';
+import 'ag-charts-enterprise';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import * as mockCanvas from '../../../../../../ag-charts-community/src/chart/test/mock-canvas';
@@ -38,6 +40,8 @@ export async function get({ params }: { params: Params }) {
     });
 
     try {
+        // eslint-disable-next-line no-console
+        console.log(`Generating [${exampleName}] with theme [${theme}]`);
         const { entryFileName, files = {} } =
             (await getGeneratedGalleryContents({
                 exampleName,
@@ -54,7 +58,7 @@ export async function get({ params }: { params: Params }) {
             height: DEFAULT_THUMBNAIL_HEIGHT,
         };
 
-        const chartProxy = AgEnterpriseCharts.create(options);
+        const chartProxy = AgChart.create(options);
         const chart = (chartProxy as any).chart;
         await chart.waitForUpdate(5_000);
 
@@ -66,6 +70,8 @@ export async function get({ params }: { params: Params }) {
             body: result,
             encoding: 'binary',
         };
+    } catch (e) {
+        throw new Error(`Unable to render example [${exampleName}] with theme [${theme}]: ${e}`);
     } finally {
         mockCanvas.teardown(mockCtx);
     }

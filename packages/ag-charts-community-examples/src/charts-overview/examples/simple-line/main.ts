@@ -10,13 +10,9 @@ import { getData } from "./data"
 
 const dateFormatter = new Intl.DateTimeFormat("en-US")
 const tooltip = {
-  renderer: ({
+  renderer: ({ title, datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
     title,
-    xValue,
-    yValue,
-  }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-    title,
-    content: `${dateFormatter.format(xValue)}: ${yValue}`,
+    content: `${dateFormatter.format(datum[xKey])}: ${datum[yKey]}`,
   }),
 }
 

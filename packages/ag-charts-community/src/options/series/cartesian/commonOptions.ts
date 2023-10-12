@@ -1,41 +1,83 @@
-import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from '../../chart/types';
 
+/**
+ * Represents configuration options for X and Y axes in a chart.
+ */
 export interface AxisOptions {
-    /** The key to use to retrieve x-values (categories) from the data. */
+    /** The key used to retrieve x-values (categories) from the data. */
     xKey: string;
-    /** The key to use to retrieve y-values from the data. */
+    /** The key used to retrieve y-values from the data. */
     yKey: string;
-    /** Human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A descriptive label for x-values. */
     xName?: string;
-    /** Human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A descriptive label for y-values. */
     yName?: string;
 }
 
+/**
+ * Represents options for filling shapes in a chart.
+ */
 export interface FillOptions {
-    /** The colour to use for the fill. */
+    /** The color for filling shapes. */
     fill?: CssColor;
-    /** The opacity of the fill. */
+    /** The opacity of the fill color. */
     fillOpacity?: Opacity;
 }
 
+/**
+ * Represents options for stroking shapes in a chart.
+ */
 export interface StrokeOptions {
-    /** The colours to use for the stroke. */
+    /** The color for stroking shapes. */
     stroke?: CssColor;
-    /** The width in pixels of the stroke. */
+    /** The width of the stroke in pixels. */
     strokeWidth?: PixelSize;
-    /** The opacity of the stroke. */
+    /** The opacity of the stroke color. */
     strokeOpacity?: Opacity;
 }
 
+/**
+ * Represents options for defining dashed strokes in a chart.
+ */
 export interface LineDashOptions {
-    /** Defines how strokes are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
+    /** An array specifying the length in pixels of alternating dashes and gaps. */
     lineDash?: PixelSize[];
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
 }
 
+/**
+ * Represents font styling options for text elements in a chart.
+ */
+export interface FontOptions {
+    /** The color for text elements. */
+    color?: CssColor;
+    /** The style for text elements (e.g., 'normal', 'italic', 'oblique'). */
+    fontStyle?: FontStyle;
+    /** The weight for text elements (e.g., 'normal', 'bold', 'lighter', 'bolder'). */
+    fontWeight?: FontWeight;
+    /** The size of the font in pixels for text elements. */
+    fontSize?: FontSize;
+    /** The font family for text elements. */
+    fontFamily?: FontFamily;
+}
+
+/**
+ * Represents toggleable options for chart elements.
+ */
+export interface Toggleable {
+    /** Determines whether the associated elements should be displayed on the chart. */
+    enabled?: boolean;
+}
+
+/**
+ * Represents parameters for formatting data in a chart series.
+ */
 export interface AgSeriesFormatterParams<DatumType> {
+    /** The data point associated with the series. */
     readonly datum: DatumType;
+    /** The unique identifier of the series. */
     readonly seriesId: string;
+    /** Indicates whether the element is highlighted. */
     readonly highlighted: boolean;
 }

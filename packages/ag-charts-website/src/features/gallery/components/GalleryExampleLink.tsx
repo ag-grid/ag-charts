@@ -21,7 +21,7 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
 
     const isDarkTheme = theme.indexOf('dark') > -1;
     const darkLinkStyle = {
-        backgroundColor: 'rgb(34, 38, 41)',
+        backgroundColor: '#15181c',
         'border-top': '1px solid rgb(88, 88, 88)',
     };
     const darkSpanStyle = {

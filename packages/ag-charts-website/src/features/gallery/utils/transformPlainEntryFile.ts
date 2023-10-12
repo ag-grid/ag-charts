@@ -59,14 +59,14 @@ function transformer(sourceFile: string, dataFile?: string) {
                     removePropertyKeys: ['title'],
                     properties: propertiesNode.properties,
                 });
+                propertiesNode.properties.push(
+                    j.property(
+                        'init',
+                        j.identifier('title'),
+                        j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
+                    )
+                );
             }
-            propertiesNode.properties.push(
-                j.property(
-                    'init',
-                    j.identifier('title'),
-                    j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
-                )
-            );
         });
 
     // Padding

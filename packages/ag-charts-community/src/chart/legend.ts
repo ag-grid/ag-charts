@@ -219,9 +219,10 @@ export class Legend {
 
         this.item.marker.parent = this;
 
+        const bypass = { bypassPause: ['animation' as const] };
         this.destroyFns.push(
-            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e)),
-            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e)),
+            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e), bypass),
+            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), bypass),
             ctx.interactionManager.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
@@ -649,7 +650,7 @@ export class Legend {
             const marker = datum.marker;
             markerLabel.markerFill = marker.fill;
             markerLabel.markerStroke = marker.stroke;
-            markerLabel.markerStrokeWidth = marker.strokeWidth ?? strokeWidth;
+            markerLabel.markerStrokeWidth = strokeWidth;
             markerLabel.markerFillOpacity = marker.fillOpacity;
             markerLabel.markerStrokeOpacity = marker.strokeOpacity;
             markerLabel.opacity = datum.enabled ? 1 : 0.5;
@@ -847,11 +848,10 @@ export class Legend {
 
         const series = datum ? this.ctx.dataService.getSeries().find((series) => series.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
-            const labelText = this.getItemLabel(datum);
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
                 { pageX, pageY, offsetX, offsetY, event, showArrow: false },
-                toTooltipHtml({ content: labelText })
+                toTooltipHtml({ content: this.getItemLabel(datum) })
             );
         } else {
             this.ctx.tooltipManager.removeTooltip(this.id);
@@ -889,11 +889,10 @@ export class Legend {
         const calculateTranslationPerpendicularDimension = () => {
             switch (this.position) {
                 case 'top':
+                case 'left':
                     return 0;
                 case 'bottom':
                     return shrinkRect.height - legendBBox.height;
-                case 'left':
-                    return 0;
                 case 'right':
                 default:
                     return shrinkRect.width - legendBBox.width;
@@ -947,8 +946,7 @@ export class Legend {
         const minHeightCoefficient = 0.2;
         const minWidthCoefficient = 0.25;
 
-        let legendWidth = 0;
-        let legendHeight = 0;
+        let legendWidth, legendHeight;
 
         switch (this.position) {
             case 'top':

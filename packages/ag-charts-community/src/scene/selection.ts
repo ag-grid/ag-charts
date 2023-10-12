@@ -50,11 +50,15 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             : (classOrFactory as NodeFactory<TChild, TDatum>);
     }
 
-    private createNode(datum: TDatum, initializer?: (node: TChild) => void) {
+    private createNode(datum: TDatum, initializer?: (node: TChild) => void, idx?: number) {
         const node = this.nodeFactory(datum);
         node.datum = datum;
         initializer?.(node);
-        this._nodes.push(node);
+        if (idx != null) {
+            this._nodes.splice(idx, 0, node);
+        } else {
+            this._nodes.push(node);
+        }
         this.parentNode.appendChild(node);
         return node;
     }
@@ -66,18 +70,21 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
      */
     update(data: TDatum[], initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => string | number) {
         if (getDatumId) {
-            const dataMap = new Map<string | number, TDatum>(data.map((datum) => [getDatumId(datum), datum]));
+            const dataMap = new Map<string | number, [TDatum, number]>(
+                data.map((datum, idx) => [getDatumId(datum), [datum, idx]])
+            );
             for (const [node, datumId] of this._nodesMap.entries()) {
                 if (dataMap.has(datumId)) {
-                    node.datum = dataMap.get(datumId);
+                    const [newDatum] = dataMap.get(datumId)!;
+                    node.datum = newDatum;
                     this.garbageBin.delete(node);
                     dataMap.delete(datumId);
                 } else {
                     this.garbageBin.add(node);
                 }
             }
-            for (const [datumId, datum] of dataMap.entries()) {
-                this._nodesMap.set(this.createNode(datum, initializer), datumId);
+            for (const [datumId, [datum, idx]] of dataMap.entries()) {
+                this._nodesMap.set(this.createNode(datum, initializer, idx), datumId);
             }
         } else {
             const maxLength = Math.max(data.length, this.data.length);
@@ -123,6 +130,14 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     clear() {
         this.update([]);
         return this;
+    }
+
+    isGarbage(node: TChild) {
+        return this.garbageBin.has(node);
+    }
+
+    hasGarbage() {
+        return this.garbageBin.size > 0;
     }
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {

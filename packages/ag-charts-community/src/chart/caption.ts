@@ -16,7 +16,8 @@ import {
 } from '../util/validation';
 
 export class Caption {
-    static readonly PADDING = 10;
+    static readonly SMALL_PADDING = 10;
+    static readonly LARGE_PADDING = 20;
 
     readonly node: Text = new Text();
 
@@ -48,10 +49,10 @@ export class Caption {
     color: string | undefined;
 
     @Validate(OPT_NUMBER(0))
-    spacing?: number = Caption.PADDING;
+    spacing?: number;
 
     @Validate(OPT_NUMBER(0))
-    lineHeight: number | undefined = undefined;
+    lineHeight?: number;
 
     @Validate(OPT_NUMBER(0))
     maxWidth?: number = undefined;

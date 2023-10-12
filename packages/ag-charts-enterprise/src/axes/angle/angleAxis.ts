@@ -3,12 +3,21 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { assignJsonApplyConstructedArray, ChartAxisDirection, NUMBER, ProxyOnWrite, Validate, predicateWithMessage } =
-    _ModuleSupport;
+const {
+    AND,
+    assignJsonApplyConstructedArray,
+    ChartAxisDirection,
+    GREATER_THAN,
+    NUMBER,
+    OPT_NUMBER,
+    predicateWithMessage,
+    ProxyOnWrite,
+    Validate,
+} = _ModuleSupport;
 const { Path, Text } = _Scene;
 const { isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
-interface AngleAxisLabelDatum {
+export interface AngleAxisLabelDatum {
     text: string;
     x: number;
     y: number;
@@ -19,25 +28,9 @@ interface AngleAxisLabelDatum {
     box: _Scene.BBox | undefined;
 }
 
-interface AngleAxisTickDatum {
-    value: string | number;
+interface AngleAxisTickDatum<TDatum> {
+    value: TDatum;
     visible: boolean;
-}
-
-function loopSymmetrically<T>(items: T[], step: number, iterator: (prev: T, next: T) => any) {
-    const loop = (start: number, end: number, step: number, iterator: (prev: T, next: T) => any) => {
-        let prev = items[0];
-        for (let i = start; step > 0 ? i <= end : i > end; i += step) {
-            const curr = items[i];
-            if (iterator(prev, curr)) return true;
-            prev = curr;
-        }
-    };
-
-    const midIndex = Math.floor(items.length / 2);
-
-    if (loop(step, midIndex, step, iterator)) return true;
-    return loop(items.length - step, midIndex, -step, iterator);
 }
 
 const ANGLE_LABEL_ORIENTATIONS: AgAngleAxisLabelOrientation[] = ['fixed', 'parallel', 'perpendicular'];
@@ -52,16 +45,22 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
-export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<any, any>> {
+export abstract class AngleAxis<
+    TDomain,
+    TScale extends _Scale.Scale<TDomain, any>,
+> extends _ModuleSupport.PolarAxis<TScale> {
     @ProxyOnWrite('rotation')
-    @Validate(NUMBER())
+    @Validate(NUMBER(0, 360))
     startAngle: number = 0;
 
+    @Validate(AND(OPT_NUMBER(0, 720), GREATER_THAN('startAngle')))
+    endAngle: number | undefined = undefined;
+
     protected labelData: AngleAxisLabelDatum[] = [];
-    protected tickData: AngleAxisTickDatum[] = [];
+    protected tickData: AngleAxisTickDatum<TDomain>[] = [];
     protected radiusLine: _Scene.Path = this.axisGroup.appendChild(new Path());
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: _Scale.Scale<any, any>) {
+    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {
         super(moduleCtx, scale);
         this.includeInvisibleDomains = true;
     }
@@ -86,8 +85,17 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         this.updateLabels();
         this.updateRadiusLine();
         this.updateCrossLines();
-        return this.scale.ticks?.().length ?? 0;
+        return this.tickData.length;
     }
+
+    override computeRange = () => {
+        const startAngle = -Math.PI / 2 + toRadians(this.startAngle);
+        const endAngle =
+            this.endAngle == undefined ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
+        this.range = [startAngle, endAngle];
+    };
+
+    protected abstract generateAngleTicks(): AngleAxisTickDatum<TDomain>[];
 
     override updatePosition() {
         const { translation, axisGroup, gridGroup, crossLineGroup } = this;
@@ -135,60 +143,16 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         node.fill = undefined;
     }
 
-    protected createTickVisibilityData() {
-        const { scale, tick, gridLength: radius } = this;
-        const ticks = tick.values ?? scale.ticks?.() ?? [];
-        if (ticks.length < 2 || isNaN(tick.minSpacing)) {
-            return ticks.map((value) => {
-                return { value, visible: true };
-            });
-        }
-
-        const startTick = ticks[0];
-        const startAngle = scale.convert(startTick);
-        const startX = radius * Math.cos(startAngle);
-        const startY = radius * Math.sin(startAngle);
-
-        for (let step = 1; step < ticks.length - 1; step++) {
-            const nextTick = ticks[step];
-            const nextAngle = scale.convert(nextTick);
-            if (nextAngle - startAngle > Math.PI) {
-                // The tick spacing will not grow on the next step
-                break;
-            }
-            const nextX = radius * Math.cos(nextAngle);
-            const nextY = radius * Math.sin(nextAngle);
-            const spacing = Math.sqrt((nextX - startX) ** 2 + (nextY - startY) ** 2);
-            if (spacing > tick.minSpacing) {
-                // Filter ticks by step
-                const visibleTicks = new Set([startTick]);
-                loopSymmetrically(ticks, step, (_, next) => {
-                    visibleTicks.add(next);
-                });
-                return ticks.map((value) => {
-                    const visible = visibleTicks.has(value);
-                    return { value, visible };
-                });
-            }
-        }
-
-        // If there is no matching step, return a single tick
-        return [{ value: startTick, visible: true }];
-    }
-
-    protected getVisibleTicks() {
-        return this.tickData.filter((tick) => tick.visible).map(({ value }) => value);
-    }
-
     protected override updateGridLines() {
         const { scale, gridLength: radius, gridStyle, tick, innerRadiusRatio } = this;
         if (!(gridStyle && radius > 0)) {
             return;
         }
 
-        const ticks = this.getVisibleTicks();
+        const ticks = this.tickData;
         const innerRadius = radius * innerRadiusRatio;
-        this.gridLineGroupSelection.update(tick.enabled ? ticks : []).each((line, value, index) => {
+        this.gridLineGroupSelection.update(tick.enabled ? ticks : []).each((line, datum, index) => {
+            const { value } = datum;
             const style = gridStyle[index % gridStyle.length];
             const angle = scale.convert(value);
             line.x1 = innerRadius * Math.cos(angle);
@@ -205,10 +169,10 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     protected override updateLabels() {
         const { label, tickLabelGroupSelection } = this;
 
-        const ticks = this.getVisibleTicks();
+        const ticks = this.tickData;
         tickLabelGroupSelection.update(label.enabled ? ticks : []).each((node, _, index) => {
             const labelDatum = this.labelData[index];
-            if (labelDatum.hidden) {
+            if (!labelDatum || labelDatum.hidden) {
                 node.visible = false;
                 return;
             }
@@ -234,8 +198,9 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     protected override updateTickLines() {
         const { scale, gridLength: radius, tick, tickLineGroupSelection } = this;
 
-        const ticks = this.getVisibleTicks();
-        tickLineGroupSelection.update(tick.enabled ? ticks : []).each((line, value) => {
+        const ticks = this.tickData;
+        tickLineGroupSelection.update(tick.enabled ? ticks : []).each((line, datum) => {
+            const { value } = datum;
             const angle = scale.convert(value);
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
@@ -249,6 +214,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
     }
 
     protected createLabelNodeData(
+        ticks: any[],
         options: { hideWhenNecessary: boolean },
         seriesRect: _Scene.BBox
     ): AngleAxisLabelDatum[] {
@@ -257,14 +223,13 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
             return [];
         }
 
-        const ticks = this.getVisibleTicks();
-
         const tempText = new Text();
 
         const seriesLeft = seriesRect.x - this.translation.x;
         const seriesRight = seriesRect.x + seriesRect.width - this.translation.x;
 
-        const labelData: AngleAxisLabelDatum[] = ticks.map((value, index) => {
+        const labelData: AngleAxisLabelDatum[] = ticks.map((datum, index) => {
+            const { value } = datum;
             const distance = radius + label.padding + tick.size;
             const angle = scale.convert(value);
             const cos = Math.cos(angle);
@@ -322,7 +287,7 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
                 y,
                 textAlign,
                 textBaseline,
-                hidden: text === '' || isLastTickOverFirst,
+                hidden: text === '' || datum.hidden || isLastTickOverFirst,
                 rotation,
                 box,
             };
@@ -335,47 +300,11 @@ export abstract class AngleAxis extends _ModuleSupport.PolarAxis<_Scale.Scale<an
         return labelData;
     }
 
-    private avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        let { minSpacing } = this.label;
-        if (!Number.isFinite(minSpacing)) {
-            minSpacing = 0;
-        }
-
-        if (labelData.length < 3) {
-            return;
-        }
-
-        const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
-            if (prev.hidden || next.hidden) {
-                return false;
-            }
-            const prevBox = prev.box!.clone().grow(minSpacing / 2);
-            const nextBox = next.box!.clone().grow(minSpacing / 2);
-            return prevBox.collidesBBox(nextBox);
-        };
-
-        const visibleLabels = new Set<AngleAxisLabelDatum>(labelData.slice(0, 1));
-        const maxStep = Math.floor(labelData.length / 2);
-        for (let step = 1; step <= maxStep; step++) {
-            const collisionDetected = loopSymmetrically(labelData, step, labelsCollide);
-            if (!collisionDetected) {
-                loopSymmetrically(labelData, step, (_, next) => {
-                    visibleLabels.add(next);
-                });
-                break;
-            }
-        }
-        labelData.forEach((datum) => {
-            if (!visibleLabels.has(datum)) {
-                datum.hidden = true;
-                datum.box = undefined;
-            }
-        });
-    }
+    protected abstract avoidLabelCollisions(labelData: AngleAxisLabelDatum[]): void;
 
     override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _Scene.BBox) {
-        this.tickData = this.createTickVisibilityData();
-        this.labelData = this.createLabelNodeData(options, seriesRect);
+        this.tickData = this.generateAngleTicks();
+        this.labelData = this.createLabelNodeData(this.tickData, options, seriesRect);
 
         const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _Scene.BBox => box != null);
 

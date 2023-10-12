@@ -1,22 +1,25 @@
 import type {
-    AgCartesianSeriesLabelFormatterParams,
     AgTooltipRendererResult,
     AgWaterfallSeriesFormat,
     AgWaterfallSeriesFormatterParams,
+    AgWaterfallSeriesItemType,
+    AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
+    isNumber,
+    adjustLabelPlacement,
     Validate,
     SeriesNodePickMode,
+    fixNumericExtent,
     valueProperty,
     keyProperty,
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
     ChartAxisDirection,
-    CartesianSeriesNodeClickEvent,
     OPTIONAL,
     NUMBER,
     OPT_NUMBER,
@@ -26,15 +29,15 @@ const {
     OPT_COLOR_STRING,
     OPT_LINE_DASH,
     STRING_UNION,
-    createLabelData,
     getRectConfig,
     updateRect,
     checkCrisp,
     updateLabel,
-    getBarDirectionStartingValues,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
+    seriesLabelFadeInAnimation,
+    resetLabelFn,
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
@@ -56,7 +59,7 @@ type WaterfallNodePointDatum = _ModuleSupport.SeriesNodeDatum['point'] & {
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_Scene.Point> {
     readonly index: number;
-    readonly itemId: SeriesItemType;
+    readonly itemId: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -79,13 +82,10 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 
 class WaterfallSeriesItemTooltip {
     @Validate(OPT_FUNCTION)
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult = undefined;
+    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
-class WaterfallSeriesLabel extends _Scene.Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams & { itemId: SeriesItemType }) => string = undefined;
-
+class WaterfallSeriesLabel extends _Scene.Label<AgWaterfallSeriesLabelFormatterParams> {
     @Validate(OPT_WATERFALL_LABEL_PLACEMENT)
     placement: AgWaterfallSeriesLabelPlacement = 'end';
 
@@ -99,7 +99,7 @@ class WaterfallSeriesItem {
     tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat = undefined;
+    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat;
 
     shadow?: _Scene.DropShadow = undefined;
 
@@ -154,7 +154,6 @@ class WaterfallSeriesItems {
     readonly total: WaterfallSeriesItem = new WaterfallSeriesItem();
 }
 
-type SeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 interface TotalMeta {
     totalType: 'subtotal' | 'total';
     index: number;
@@ -170,11 +169,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     static className = 'WaterfallSeries';
     static type = 'waterfall' as const;
 
-    readonly item: WaterfallSeriesItems = new WaterfallSeriesItems();
-
-    readonly totals: TotalMeta[] = [];
-
+    readonly item = new WaterfallSeriesItems();
     readonly line = new WaterfallSeriesConnectorLine();
+    readonly totals: TotalMeta[] = [];
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 
@@ -184,6 +181,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+                label: resetLabelFn,
+            },
         });
     }
 
@@ -212,9 +213,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     @Validate(STRING_UNION('vertical', 'horizontal'))
     direction: 'vertical' | 'horizontal' = 'vertical';
 
-    private seriesItemTypes: Set<SeriesItemType> = new Set(['positive', 'negative', 'total']);
+    private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey = '', yKey } = this;
         const { data = [] } = this;
 
@@ -266,7 +267,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             }
         });
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, dataWithTotals, {
+        await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 accumulativeValueProperty(this, yKey, true, {
@@ -301,13 +302,11 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             ],
             dataVisible: this.visible,
         });
-        this.dataModel = dataModel;
-        this.processedData = processedData;
 
         this.updateSeriesItemTypes();
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -324,22 +323,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
             const yExtent = values[yCurrIndex];
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent as any);
         }
-    }
-
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: WaterfallNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: WaterfallNodeDatum
-    ): _ModuleSupport.CartesianSeriesNodeClickEvent<WaterfallNodeDatum, WaterfallSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
     }
 
     private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
@@ -351,7 +336,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, visible, ctx, line } = this;
+        const { data, dataModel, visible, line } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -377,7 +362,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`).index;
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
-        const contextIndexMap = new Map<SeriesItemType, number>();
+        const contextIndexMap = new Map<AgWaterfallSeriesItemType, number>();
 
         const pointData: WaterfallNodePointDatum[] = [];
 
@@ -491,7 +476,19 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
             pointData.push(pathPoint);
 
-            const { formatter, placement, padding } = label;
+            let labelText;
+            if (label.formatter) {
+                labelText = this.ctx.callbackCache.call(label.formatter, {
+                    value: isNumber(value) ? value : undefined,
+                    seriesId: this.id,
+                    datum,
+                    itemId,
+                    xKey,
+                    yKey,
+                    xName: this.xName,
+                    yName: this.yName,
+                });
+            }
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,
@@ -507,21 +504,20 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                nodeMidPoint,
+                midPoint: nodeMidPoint,
                 fill,
                 stroke,
                 strokeWidth,
-                label: createLabelData({
-                    value,
-                    rect,
-                    placement,
-                    seriesId: this.id,
-                    padding,
-                    formatter,
-                    barAlongX,
-                    ctx,
-                    itemId,
-                }),
+                label: {
+                    text: labelText ?? (isNumber(value) ? value.toFixed(2) : ''),
+                    ...adjustLabelPlacement({
+                        isPositive: (value ?? -1) >= 0,
+                        isVertical: !barAlongX,
+                        placement: label.placement,
+                        padding: label.padding,
+                        rect,
+                    }),
+                },
             };
 
             contexts[contextIndex].nodeData.push(nodeDatum);
@@ -572,11 +568,11 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    private isSubtotal(datumType: SeriesItemType) {
+    private isSubtotal(datumType: AgWaterfallSeriesItemType) {
         return datumType === 'subtotal';
     }
 
-    private isTotal(datumType: SeriesItemType) {
+    private isTotal(datumType: AgWaterfallSeriesItemType) {
         return datumType === 'total';
     }
 
@@ -584,11 +580,11 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         return new Rect();
     }
 
-    private getSeriesItemType(isPositive: boolean, datumType?: SeriesItemType): SeriesItemType {
+    private getSeriesItemType(isPositive: boolean, datumType?: AgWaterfallSeriesItemType): AgWaterfallSeriesItemType {
         return datumType ?? (isPositive ? 'positive' : 'negative');
     }
 
-    private getItemConfig(seriesItemType: SeriesItemType): WaterfallSeriesItem {
+    private getItemConfig(seriesItemType: AgWaterfallSeriesItemType): WaterfallSeriesItem {
         switch (seriesItemType) {
             case 'positive': {
                 return this.item.positive;
@@ -713,12 +709,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { xName, yName, id: seriesId } = this;
-
         const { datum, itemId, xValue, yValue } = nodeDatum;
+        const { fill, strokeWidth, name, formatter } = this.getItemConfig(itemId);
 
-        const { fill, strokeWidth, name, formatter, tooltip: itemTooltip } = this.getItemConfig(itemId);
-
-        let format: any | undefined = undefined;
+        let format;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
@@ -745,41 +739,23 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
         const title = sanitizeHtml(yName);
         const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` + `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
+            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
+            `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
 
         return this.tooltip.toTooltipHtml(
-            defaults,
-            {
-                datum,
-                xKey,
-                xValue,
-                xName,
-                yKey,
-                yValue,
-                yName,
-                color,
-                seriesId,
-                itemId,
-            },
-            itemTooltip
+            { title, content, backgroundColor: color },
+            { seriesId, itemId, datum, xKey, yKey, xName, yName, color }
         );
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: _ModuleSupport.ChartLegendType) {
         if (legendType !== 'category') {
             return [];
         }
 
         const { id, seriesItemTypes } = this;
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
-        const getLegendItemText = (item: SeriesItemType, name?: string) =>
-            name !== undefined ? name : `${item.charAt(0).toUpperCase()}${item.substring(1)}`;
+        const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
@@ -789,16 +765,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 itemId: item,
                 seriesId: id,
                 enabled: true,
-                label: {
-                    text: getLegendItemText(item, name),
-                },
-                marker: {
-                    fill,
-                    stroke,
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                },
+                label: { text: name ?? capitalise(item) },
+                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
             });
         });
 
@@ -808,25 +776,10 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const { animationManager } = this.ctx;
-        const isVertical = this.getBarDirection() === ChartAxisDirection.Y;
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
 
-        const { startingX, startingY } = getBarDirectionStartingValues(this.getBarDirection(), this.axes);
-        const { toFn, fromFn } = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(isVertical, startingX, startingY)
-        );
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fromFn, toFn);
-
-        const duration = this.ctx.animationManager.defaultDuration;
-        const labelDuration = 200;
-        motion.staticFromToMotion(
-            `${this.id}empty-update-ready_labels`,
-            animationManager,
-            labelSelections,
-            { opacity: 0 },
-            { opacity: 1 },
-            { delay: duration, duration: labelDuration }
-        );
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
             if (contextDataIndex !== 0 || !pointData) {
@@ -923,21 +876,12 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override animateReadyUpdate(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        super.animateReadyUpdate(data);
         this.resetConnectorLinesPath(data);
-    }
-
-    override animateReadyHighlight(highlightSelection: _Scene.Selection<_Scene.Rect, WaterfallNodeDatum>) {
-        motion.resetMotion([highlightSelection], resetBarSelectionsFn);
     }
 
     override animateReadyResize(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
-        this.resetConnectorLinesPath(data);
-    }
-
-    resetSelectionRectsAndPaths(data: WaterfallAnimationData) {
-        motion.resetMotion(data.datumSelections, resetBarSelectionsFn);
+        super.animateReadyResize(data);
         this.resetConnectorLinesPath(data);
     }
 
@@ -975,16 +919,16 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
     protected updateLineNode(lineNode: _Scene.Path) {
         const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.line;
-
-        lineNode.stroke = stroke;
-        lineNode.strokeWidth = this.getStrokeWidth(strokeWidth);
-        lineNode.strokeOpacity = strokeOpacity;
-        lineNode.lineDash = lineDash;
-        lineNode.lineDashOffset = lineDashOffset;
-
-        lineNode.fill = undefined;
-        lineNode.lineJoin = 'round';
-        lineNode.pointerEvents = _Scene.PointerEvents.None;
+        lineNode.setProperties({
+            fill: undefined,
+            stroke,
+            strokeWidth: this.getStrokeWidth(strokeWidth),
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            lineJoin: 'round',
+            pointerEvents: _Scene.PointerEvents.None,
+        });
     }
 
     protected isLabelEnabled() {

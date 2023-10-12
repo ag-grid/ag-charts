@@ -48,7 +48,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);
         return {
-            stroke: marker.stroke,
+            stroke: marker.fill,
             marker,
         };
     },

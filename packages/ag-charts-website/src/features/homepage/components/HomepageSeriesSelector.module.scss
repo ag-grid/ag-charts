@@ -1,0 +1,30 @@
+@use '../../../design-system' as *;
+
+.seriesChart {
+    width: 50%;
+    padding-right: $size-7;
+}
+
+.chartContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--border-radius);
+    background-color: var(--border-color);
+}
+
+.seriesList {
+    width: 50%;
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $size-2;
+    }
+}
+
+.buttonActive {
+    --button-color: var(--azure-blue);
+    --button-text-color: var(--ghost-white);
+}

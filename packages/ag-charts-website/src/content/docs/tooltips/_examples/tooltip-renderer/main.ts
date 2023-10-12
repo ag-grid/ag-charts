@@ -1,59 +1,55 @@
-import {
-  AgCartesianSeriesTooltipRendererParams,
-  AgChartOptions,
-  AgChart
-} from "ag-charts-community"
+import { AgCartesianSeriesTooltipRendererParams, AgChart, AgChartOptions } from 'ag-charts-community';
 
 function renderer(params: AgCartesianSeriesTooltipRendererParams) {
-  return (
-    '<div class="ag-chart-tooltip-title" style="background-color:' +
-    params.color +
-    '">' +
-    params.xValue +
-    "</div>" +
-    '<div class="ag-chart-tooltip-content">' +
-    params.yValue.toFixed(0) +
-    "</div>"
-  )
+    return (
+        '<div class="ag-chart-tooltip-title" style="background-color:' +
+        params.color +
+        '">' +
+        params.datum[params.xKey] +
+        '</div>' +
+        '<div class="ag-chart-tooltip-content">' +
+        params.datum[params.yKey].toFixed(0) +
+        '</div>'
+    );
 }
 
 const options: AgChartOptions = {
-  container: document.getElementById("myChart"),
-  data: [
-    {
-      month: "Dec",
-      sweaters: 50,
-      hats: 40,
-    },
-    {
-      month: "Jan",
-      sweaters: 70,
-      hats: 50,
-    },
-    {
-      month: "Feb",
-      sweaters: 60,
-      hats: 30,
-    },
-  ],
-  series: [
-    {
-      type: "bar",
-      xKey: "month",
-      tooltip: { renderer: renderer },
-      yKey: "sweaters",
-      yName: "Sweaters made",
-      stacked: true,
-    },
-    {
-      type: "bar",
-      xKey: "month",
-      tooltip: { renderer: renderer },
-      yKey: "hats",
-      yName: "Hats made",
-      stacked: true,
-    },
-  ],
-}
+    container: document.getElementById('myChart'),
+    data: [
+        {
+            month: 'Dec',
+            sweaters: 50,
+            hats: 40,
+        },
+        {
+            month: 'Jan',
+            sweaters: 70,
+            hats: 50,
+        },
+        {
+            month: 'Feb',
+            sweaters: 60,
+            hats: 30,
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            tooltip: { renderer: renderer },
+            yKey: 'sweaters',
+            yName: 'Sweaters made',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'month',
+            tooltip: { renderer: renderer },
+            yKey: 'hats',
+            yName: 'Hats made',
+            stacked: true,
+        },
+    ],
+};
 
-var chart = AgChart.create(options)
+var chart = AgChart.create(options);

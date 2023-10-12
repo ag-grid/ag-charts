@@ -1,3 +1,4 @@
+import type { ChartSeries } from '../chart/chartSeries';
 import type { DataService } from '../chart/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
@@ -26,7 +27,7 @@ export interface ModuleContext {
     interactionManager: InteractionManager;
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
-    dataService: DataService;
+    dataService: DataService<ChartSeries>;
     layoutService: Pick<LayoutService, 'addListener'>;
     updateService: UpdateService;
     callbackCache: CallbackCache;

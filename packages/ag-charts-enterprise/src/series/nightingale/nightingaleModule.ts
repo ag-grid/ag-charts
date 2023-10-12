@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scale } from 'ag-charts-community';
+import { _Scale, _Theme } from 'ag-charts-community';
 
 import { NIGHTINGALE_DEFAULTS } from './nightingaleDefaults';
 import { NightingaleSeries } from './nightingaleSeries';
@@ -15,14 +15,14 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     instanceConstructor: NightingaleSeries,
     seriesDefaults: NIGHTINGALE_DEFAULTS,
     themeTemplate: NIGHTINGALE_SERIES_THEME,
-    paletteFactory: ({ takeColors }) => {
+    paletteFactory: ({ takeColors, userPalette }) => {
         const {
             fills: [fill],
             strokes: [stroke],
         } = takeColors(1);
         return {
             fill,
-            stroke,
+            stroke: userPalette ? stroke : _Theme.DEFAULT_POLAR_SERIES_STROKE,
         };
     },
     stackable: true,

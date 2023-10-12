@@ -15,6 +15,7 @@ const {
     ChartAxisDirection,
     extent,
     extractDecoratedProperties,
+    fixNumericExtent,
     keyProperty,
     mergeDefaults,
     NUMBER,
@@ -141,6 +142,8 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles = undefined;
 
+    protected override readonly NodeClickEvent = BoxPlotSeriesNodeClickEvent;
+
     readonly cap = new BoxPlotSeriesCap();
 
     readonly whisker = new BoxPlotSeriesWhisker();
@@ -162,14 +165,14 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         });
     }
 
-    async processData(dataController: _ModuleSupport.DataController): Promise<void> {
+    override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, data = [] } = this;
 
         if (!xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
 
         const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
 
-        const { dataModel, processedData } = await dataController.request(this.id, data, {
+        const { processedData } = await this.requestDataModel(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, minKey, true, { id: `minValue` }),
@@ -182,16 +185,13 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             dataVisible: this.visible,
         });
 
-        this.dataModel = dataModel;
-        this.processedData = processedData;
-
         this.smallestDataInterval = {
-            x: processedData.reduced?.[SMALLEST_KEY_INTERVAL.property] ?? Infinity,
+            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
             y: Infinity,
         };
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -199,7 +199,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return this.fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
+            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
         }
 
         const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -210,7 +210,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
 
         const keysExtent = extent(keys) ?? [NaN, NaN];
         const scalePadding = smallestDataInterval && isFinite(smallestDataInterval.x) ? smallestDataInterval.x : 0;
-        return this.fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
+        return fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
     }
 
     async createNodeData() {
@@ -363,20 +363,6 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         ];
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: BoxPlotNodeDatum
-    ): BoxPlotSeriesNodeClickEvent<'nodeClick'> {
-        return new BoxPlotSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: BoxPlotNodeDatum
-    ): BoxPlotSeriesNodeClickEvent<'nodeDoubleClick'> {
-        return new BoxPlotSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     getTooltipHtml(nodeDatum: BoxPlotNodeDatum): string {
         const {
             xKey,
@@ -470,11 +456,11 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
 
     protected override async updateDatumNodes({
         datumSelection,
-        highlightedItems,
+        // highlightedItems,
         isHighlight: highlighted,
     }: {
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
-        highlightedItems?: BoxPlotNodeDatum[];
+        // highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
         const invertAxes = this.isVertical();
@@ -496,8 +482,8 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             });
 
             // hide duplicates of highlighted nodes
-            boxPlotGroup.opacity =
-                highlighted || !highlightedItems?.some((datum) => datum.itemId === nodeDatum.itemId) ? 1 : 0;
+            // boxPlotGroup.opacity =
+            //     highlighted || !highlightedItems?.some((datum) => datum.itemId === nodeDatum.itemId) ? 1 : 0;
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,

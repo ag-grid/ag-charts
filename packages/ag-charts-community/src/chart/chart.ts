@@ -30,7 +30,7 @@ import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import type { PickRequired } from '../util/types';
 import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
-import type { Caption } from './caption';
+import { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
@@ -254,7 +254,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly zoomManager: ZoomManager;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
-    protected readonly dataService: DataService;
+    protected readonly dataService: DataService<ChartSeries>;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
     protected readonly callbackCache: CallbackCache;
@@ -300,7 +300,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
         this.zoomManager = new ZoomManager();
-        this.dataService = new DataService(() => this.series);
+        this.dataService = new DataService<ChartSeries>(() => this.series);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, { forceNodeDataRefresh }) =>
             this.update(type, { forceNodeDataRefresh })
@@ -441,7 +441,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const keepTransferableResources = opts?.keepTransferableResources;
-        let result: TransferableResources | undefined = undefined;
+        let result: TransferableResources | undefined;
 
         this._performUpdateType = ChartUpdateType.NONE;
 
@@ -977,7 +977,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             caption.computeTextWrap(maxWidth, maxHeight);
         };
 
-        const positionTopAndShrinkBBox = (caption: Caption) => {
+        const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
             const baseY = newShrinkRect.y;
             caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
             caption.node.y = baseY;
@@ -988,11 +988,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             // As the bbox (x,y) ends up at a different location than specified above, we need to
             // take it into consideration when calculating how much space needs to be reserved to
             // accommodate the caption.
-            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + (caption.spacing ?? 0));
+            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
             newShrinkRect.shrink(bboxHeight, 'top');
         };
-        const positionBottomAndShrinkBBox = (caption: Caption) => {
+        const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
             const baseY = newShrinkRect.y + newShrinkRect.height;
             caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
             caption.node.y = baseY;
@@ -1000,29 +1000,32 @@ export abstract class Chart extends Observable implements AgChartInstance {
             updateCaption(caption);
             const bbox = caption.node.computeBBox();
 
-            const bboxHeight = Math.ceil(baseY - bbox.y + (caption.spacing ?? 0));
+            const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
             newShrinkRect.shrink(bboxHeight, 'bottom');
         };
 
+        if (subtitle) {
+            subtitle.node.visible = (title?.enabled && subtitle.enabled) ?? false;
+        }
+
         if (title) {
             title.node.visible = title.enabled;
             if (title.node.visible) {
-                positionTopAndShrinkBBox(title);
+                const defaultTitleSpacing = subtitle?.node.visible ? Caption.SMALL_PADDING : Caption.LARGE_PADDING;
+                const spacing = title.spacing ?? defaultTitleSpacing;
+                positionTopAndShrinkBBox(title, spacing);
             }
         }
 
-        if (subtitle) {
-            subtitle.node.visible = (title?.enabled && subtitle.enabled) ?? false;
-            if (subtitle.node.visible) {
-                positionTopAndShrinkBBox(subtitle);
-            }
+        if (subtitle && subtitle.node.visible) {
+            positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
         }
 
         if (footnote) {
             footnote.node.visible = footnote.enabled;
             if (footnote.node.visible) {
-                positionBottomAndShrinkBBox(footnote);
+                positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
             }
         }
 
@@ -1169,7 +1172,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
         };
 
         const meta = this.mergePointerDatum(
-            { pageX, pageY, offsetX, offsetY, event: event, showArrow: pick.series.tooltip.showArrow, position },
+            {
+                pageX,
+                pageY,
+                offsetX,
+                offsetY,
+                event: event,
+                showArrow: pick.series.tooltip.showArrow,
+                position,
+            },
             pick.datum
         );
         meta.enableInteraction = pick.series.tooltip.interaction?.enabled ?? false;
@@ -1298,9 +1309,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private mergePointerDatum(meta: PointerMeta, datum: SeriesNodeDatum): PointerMeta {
         const { type } = datum.series.tooltip.position;
 
-        if (type === 'node' && datum.nodeMidPoint) {
+        if (type === 'node' && datum.midPoint) {
             const { window } = this.specialOverrides;
-            const { x, y } = datum.nodeMidPoint;
+            const { x, y } = datum.midPoint;
             const { canvas } = this.scene;
             const point = datum.series.contentGroup.inverseTransformPoint(x, y);
             const canvasRect = canvas.element.getBoundingClientRect();

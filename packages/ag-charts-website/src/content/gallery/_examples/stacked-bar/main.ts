@@ -1,16 +1,17 @@
 import {
     AgCartesianSeriesTooltipRendererParams,
-    AgEnterpriseCharts,
     AgChartOptions,
+    AgEnterpriseCharts,
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {
-    renderer: ({ title, xValue, yValue }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
+    renderer: ({ title, datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
         title,
-        content: `${xValue}: ${numFormatter.format(yValue)}`,
+        content: `${datum[xKey]}: ${numFormatter.format(datum[yKey])}`,
     }),
 };
 

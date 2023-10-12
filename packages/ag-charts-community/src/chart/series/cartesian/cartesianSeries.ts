@@ -1,4 +1,5 @@
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { AnimationValue } from '../../../motion/animation';
+import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
 import type {
     AgCartesianSeriesMarkerFormat,
@@ -18,14 +19,14 @@ import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { SeriesNodeDatum, SeriesNodePickMode } from '../../chartSeries';
-import type { DataModel, ProcessedData } from '../../data/dataModel';
+import type { SeriesNodeDatum } from '../../chartSeries';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
-import { Series, SeriesNodeClickEvent } from '../series';
+import { DataModelSeries } from '../dataModelSeries';
+import type { Series, SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
+import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesMarker } from '../seriesMarker';
 
@@ -36,22 +37,29 @@ export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly yValue?: any;
 }
 
-interface SubGroup<SceneNodeType extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
+interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
     paths: Path[];
     dataNodeGroup: Group;
     labelGroup: Group;
     markerGroup?: Group;
-    datumSelection: Selection<SceneNodeType, TDatum>;
+    datumSelection: Selection<TNode, TDatum>;
     labelSelection: Selection<Text, TLabel>;
     markerSelection?: Selection<Marker, TDatum>;
 }
-interface SeriesOpts {
+interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum, TLabel extends SeriesNodeDatum> {
     pathsPerSeries: number;
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
     directionKeys: { [key in ChartAxisDirection]?: string[] };
     directionNames: { [key in ChartAxisDirection]?: string[] };
+    datumSelectionGarbageCollection: boolean;
+    markerSelectionGarbageCollection: boolean;
+    animationResetFns?: {
+        datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
+        label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
+        marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
+    };
 }
 
 const DEFAULT_DIRECTION_KEYS: { [key in ChartAxisDirection]?: string[] } = {
@@ -64,15 +72,18 @@ const DEFAULT_DIRECTION_NAMES: { [key in ChartAxisDirection]?: string[] } = {
     [ChartAxisDirection.Y]: ['yName'],
 };
 
-export class CartesianSeriesNodeClickEvent<
-    TDatum extends CartesianSeriesNodeDatum,
-    TSeries extends CartesianSeries<any, any, any, any> & { xKey?: string; yKey?: string },
-    TEvent extends string = SeriesNodeEventTypes,
-> extends SeriesNodeClickEvent<TDatum, TEvent> {
+export class CartesianSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
+    SeriesNodeDatum,
+    TEvent
+> {
     readonly xKey?: string;
     readonly yKey?: string;
-
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: TDatum, series: TSeries) {
+    constructor(
+        type: TEvent,
+        nativeEvent: MouseEvent,
+        datum: SeriesNodeDatum,
+        series: Series<any, any> & { xKey?: string; yKey?: string }
+    ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.xKey;
         this.yKey = series.yKey;
@@ -102,7 +113,7 @@ export abstract class CartesianSeries<
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<TDatum, TLabel, TContext> {
+> extends DataModelSeries<TDatum, TLabel, TContext> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
 
@@ -110,6 +121,8 @@ export abstract class CartesianSeries<
     get contextNodeData() {
         return this._contextNodeData.slice();
     }
+
+    protected override readonly NodeClickEvent = CartesianSeriesNodeClickEvent;
 
     private nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
 
@@ -121,15 +134,10 @@ export abstract class CartesianSeries<
     private subGroups: SubGroup<any, TDatum, TLabel>[] = [];
     private subGroupId: number = 0;
 
-    private readonly opts: SeriesOpts;
+    private readonly opts: SeriesOpts<TNode, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
-    protected datumSelectionGarbageCollection = true;
-    protected markerSelectionGarbageCollection = true;
-
-    protected dataModel?: DataModel<any, any, any>;
-    protected processedData?: ProcessedData<any>;
 
     protected constructor({
         pathsPerSeries = 1,
@@ -138,30 +146,30 @@ export abstract class CartesianSeries<
         pathsZIndexSubOrderOffset = [],
         directionKeys = DEFAULT_DIRECTION_KEYS,
         directionNames = DEFAULT_DIRECTION_NAMES,
-        moduleCtx,
-        pickModes,
-    }: Partial<SeriesOpts> & {
-        moduleCtx: ModuleContext;
-        pickModes?: SeriesNodePickMode[];
-    }) {
-        const opts = {
+        datumSelectionGarbageCollection = true,
+        markerSelectionGarbageCollection = true,
+        animationResetFns,
+        ...otherOpts
+    }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof Series>[0]) {
+        super({
+            directionKeys,
+            directionNames,
+            useSeriesGroupLayer: true,
+            canHaveAxes: true,
+            ...otherOpts,
+        });
+
+        this.opts = {
             pathsPerSeries,
             hasMarkers,
             hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
             directionKeys,
             directionNames,
-            moduleCtx,
-            pickModes,
+            animationResetFns,
+            datumSelectionGarbageCollection,
+            markerSelectionGarbageCollection,
         };
-
-        super({
-            ...opts,
-            useSeriesGroupLayer: true,
-            canHaveAxes: true,
-        });
-
-        this.opts = opts;
 
         this.animationState = new StateMachine('empty', {
             empty: {
@@ -251,7 +259,7 @@ export abstract class CartesianSeries<
     }
 
     protected async updateSelections(anySeriesItemEnabled: boolean) {
-        if (!anySeriesItemEnabled) {
+        if (!anySeriesItemEnabled && this.ctx.animationManager.isSkipped()) {
             return;
         }
         if (!this.nodeDataRefresh && !this.isPathOrSelectionDirty()) {
@@ -282,7 +290,11 @@ export abstract class CartesianSeries<
         subGroup.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection, seriesIdx });
         subGroup.labelSelection = await this.updateLabelSelection({ labelData, labelSelection, seriesIdx });
         if (markerSelection) {
-            subGroup.markerSelection = await this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx });
+            subGroup.markerSelection = await this.updateMarkerSelection({
+                nodeData,
+                markerSelection,
+                seriesIdx,
+            });
         }
     }
 
@@ -298,7 +310,7 @@ export abstract class CartesianSeries<
             _contextNodeData: contextNodeData,
             contentGroup,
             subGroups,
-            opts: { pathsPerSeries, hasMarkers },
+            opts: { pathsPerSeries, hasMarkers, datumSelectionGarbageCollection, markerSelectionGarbageCollection },
         } = this;
         if (contextNodeData.length === subGroups.length) {
             return;
@@ -367,10 +379,10 @@ export abstract class CartesianSeries<
                 datumSelection: Selection.select(
                     dataNodeGroup,
                     () => this.nodeFactory(),
-                    this.datumSelectionGarbageCollection
+                    datumSelectionGarbageCollection
                 ),
                 markerSelection: markerGroup
-                    ? Selection.select(markerGroup, () => this.markerFactory(), this.markerSelectionGarbageCollection)
+                    ? Selection.select(markerGroup, () => this.markerFactory(), markerSelectionGarbageCollection)
                     : undefined,
             });
         }
@@ -401,6 +413,7 @@ export abstract class CartesianSeries<
             opts: { hasMarkers, hasHighlightedLabels },
         } = this;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
         this.rootGroup.visible = visible;
         this.contentGroup.visible = visible;
@@ -418,7 +431,11 @@ export abstract class CartesianSeries<
             });
             this.animationState.transition('highlightMarkers', highlightSelection);
         } else {
-            await this.updateDatumNodes({ datumSelection: highlightSelection, isHighlight: true, seriesIdx: -1 });
+            await this.updateDatumNodes({
+                datumSelection: highlightSelection,
+                isHighlight: true,
+                seriesIdx: -1,
+            });
             this.animationState.transition('highlight', highlightSelection);
         }
 
@@ -442,7 +459,7 @@ export abstract class CartesianSeries<
                 const subGroupOpacity = subGroupOpacities[seriesIdx];
 
                 dataNodeGroup.opacity = subGroupOpacity;
-                dataNodeGroup.visible = subGroupVisible;
+                dataNodeGroup.visible = animationEnabled || subGroupVisible;
                 labelGroup.visible = subGroupVisible;
 
                 if (markerGroup) {
@@ -467,10 +484,19 @@ export abstract class CartesianSeries<
                     return;
                 }
 
-                await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false, seriesIdx });
+                await this.updateDatumNodes({
+                    datumSelection,
+                    highlightedItems,
+                    isHighlight: false,
+                    seriesIdx,
+                });
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
-                    await this.updateMarkerNodes({ markerSelection, isHighlight: false, seriesIdx });
+                    await this.updateMarkerNodes({
+                        markerSelection,
+                        isHighlight: false,
+                        seriesIdx,
+                    });
                 }
             })
         );
@@ -691,6 +717,10 @@ export abstract class CartesianSeries<
         return [];
     }
 
+    shouldFlipXY(): boolean {
+        return false;
+    }
+
     protected async updateHighlightSelectionItem(opts: {
         items?: TDatum[];
         highlightSelection: Selection<TNode, TDatum>;
@@ -706,7 +736,11 @@ export abstract class CartesianSeries<
             const markerSelection = highlightSelection as any;
             return this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx: -1 }) as any;
         } else {
-            return this.updateDatumSelection({ nodeData, datumSelection: highlightSelection, seriesIdx: -1 });
+            return this.updateDatumSelection({
+                nodeData,
+                datumSelection: highlightSelection,
+                seriesIdx: -1,
+            });
         }
     }
 
@@ -753,32 +787,51 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
-    protected animateEmptyUpdateReady(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { datum, label, marker } = this.opts?.animationResetFns ?? {};
+        if (datum) {
+            resetMotion(data.datumSelections, datum);
+        }
+        if (label) {
+            resetMotion(data.labelSelections, label);
+        }
+        if (marker) {
+            resetMotion(data.markerSelections, marker);
+        }
     }
 
-    protected animateReadyUpdate(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateEmptyUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
-    protected animateWaitingUpdateReady(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateReadyUpdate(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlight(_data: Selection<TNode, TDatum>) {
-        // Override point for sub-classes.
+    protected animateWaitingUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlightMarkers(_data: Selection<Marker, TDatum>) {
-        // Override point for sub-classes.
+    protected animateReadyHighlight(data: Selection<TNode, TDatum>) {
+        const { datum } = this.opts?.animationResetFns ?? {};
+        if (datum) {
+            resetMotion([data], datum);
+        }
     }
 
-    protected animateReadyResize(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateReadyHighlightMarkers(data: Selection<Marker, TDatum>) {
+        const { marker } = this.opts?.animationResetFns ?? {};
+        if (marker) {
+            resetMotion([data], marker);
+        }
     }
 
-    protected animateClearingUpdateEmpty(_data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        // Override point for sub-classes.
+    protected animateReadyResize(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
+    }
+
+    protected animateClearingUpdateEmpty(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.resetAllAnimation(data);
     }
 
     protected animationTransitionClear() {

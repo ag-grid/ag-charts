@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgCartesianSeriesLabelFormatterParams,
+    AgAreaSeriesLabelFormatterParams,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
@@ -16,21 +16,14 @@ import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import {
-    COLOR_STRING,
-    NUMBER,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
-    Validate,
-} from '../../../util/validation';
+import { COLOR_STRING, NUMBER, OPT_LINE_DASH, OPT_NUMBER, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isNumber } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { SeriesNodeDatum } from '../../chartSeries';
 import type { DataController } from '../../data/dataController';
+import { fixNumericExtent } from '../../data/dataModel';
 import { normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -48,7 +41,7 @@ import {
     areaResetMarkersAndPaths,
 } from './areaUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
@@ -72,11 +65,6 @@ interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
         readonly textBaseline: CanvasTextBaseline;
         readonly fill: string;
     };
-}
-
-class AreaSeriesLabel extends Label {
-    @Validate(OPT_FUNCTION)
-    formatter?: (params: AgCartesianSeriesLabelFormatterParams) => string = undefined;
 }
 
 interface AreaSeriesNodeDataContext extends SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
@@ -104,7 +92,7 @@ export class AreaSeries extends CartesianSeries<
 
     readonly marker = new CartesianSeriesMarker();
 
-    readonly label = new AreaSeriesLabel();
+    readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
 
     @Validate(COLOR_STRING)
     fill: string = '#c16068';
@@ -131,12 +119,6 @@ export class AreaSeries extends CartesianSeries<
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
         });
-
-        const { marker, label } = this;
-
-        marker.enabled = false;
-
-        label.enabled = false;
     }
 
     @Validate(OPT_STRING)
@@ -159,16 +141,12 @@ export class AreaSeries extends CartesianSeries<
 
     shadow?: DropShadow = undefined;
 
-    async processData(dataController: DataController) {
-        const { xKey, yKey, axes, normalizedTo, data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
+    override async processData(dataController: DataController) {
+        const { xKey, yKey, normalizedTo, data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
 
         if (!xKey || !yKey || !data) return;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
+        const { isContinuousX, isContinuousY } = this.isContinuous();
         const ids = [
             `area-stack-${groupIndex}-yValues`,
             `area-stack-${groupIndex}-yValues-trailing`,
@@ -184,7 +162,7 @@ export class AreaSeries extends CartesianSeries<
             extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normaliseTo, 'range'));
         }
 
-        const { dataModel, processedData } = await dataController.request<any, any, true>(this.id, data, {
+        await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
@@ -218,12 +196,9 @@ export class AreaSeries extends CartesianSeries<
             groupByKeys: true,
             dataVisible: visible,
         });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
     }
 
-    getDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel) return [];
 
@@ -239,12 +214,12 @@ export class AreaSeries extends CartesianSeries<
                 return keys;
             }
 
-            return this.fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys), xAxis);
         } else if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
-            return this.fixNumericExtent(yExtent as any, yAxis);
+            return fixNumericExtent(yExtent as any, yAxis);
         } else {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return this.fixNumericExtent(fixedYExtent as any, yAxis);
+            return fixNumericExtent(fixedYExtent as any, yAxis);
         }
     }
 
@@ -361,7 +336,7 @@ export class AreaSeries extends CartesianSeries<
                         series: this,
                         itemId,
                         datum: seriesDatum,
-                        nodeMidPoint: { x: point.x, y: point.y },
+                        midPoint: { x: point.x, y: point.y },
                         cumulativeValue: yEnd,
                         yValue: yRawDatum,
                         xValue: xDatum,
@@ -376,11 +351,18 @@ export class AreaSeries extends CartesianSeries<
 
                 // label data
                 if (validPoint && label) {
-                    let labelText;
+                    let labelText = isNumber(yRawDatum) ? yRawDatum.toFixed(2) : String(yRawDatum);
                     if (label.formatter) {
-                        labelText = callbackCache.call(label.formatter, { value: yRawDatum, seriesId }) ?? '';
-                    } else {
-                        labelText = isNumber(yRawDatum) ? Number(yRawDatum).toFixed(2) : String(yRawDatum);
+                        labelText =
+                            callbackCache.call(label.formatter, {
+                                value: yRawDatum,
+                                datum: seriesDatum,
+                                seriesId,
+                                xKey,
+                                yKey,
+                                xName: this.xName,
+                                yName: this.yName,
+                            }) ?? labelText;
                     }
 
                     labelData.push({
@@ -565,20 +547,6 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    protected override getNodeClickEvent(
-        event: MouseEvent,
-        datum: MarkerSelectionDatum
-    ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected override getNodeDoubleClickEvent(
-        event: MouseEvent,
-        datum: MarkerSelectionDatum
-    ): CartesianSeriesNodeClickEvent<MarkerSelectionDatum, AreaSeries, 'nodeDoubleClick'> {
-        return new CartesianSeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
     getTooltipHtml(nodeDatum: MarkerSelectionDatum): string {
         const {
             xKey,
@@ -618,7 +586,7 @@ export class AreaSeries extends CartesianSeries<
         const fill = seriesFill ?? markerFill;
         const stroke = markerStroke ?? seriesStroke;
 
-        let format: AgCartesianSeriesMarkerFormat | undefined = undefined;
+        let format: AgCartesianSeriesMarkerFormat | undefined;
 
         if (markerFormatter) {
             format = markerFormatter({
@@ -646,9 +614,7 @@ export class AreaSeries extends CartesianSeries<
             datum,
             xKey,
             xName,
-            xValue,
             yKey,
-            yValue,
             yName,
             color,
             title,

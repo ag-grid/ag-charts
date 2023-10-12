@@ -137,7 +137,10 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     },
     GROUPED_CATEGORY_AXIS_EXAMPLE: {
         options: examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['groupedCategory', 'number'], seriesTypes: ['bar'] }),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['groupedCategory', 'number'],
+            seriesTypes: ['bar'],
+        }),
         enterprise: false,
     },
     CROSS_LINES_EXAMPLE: {

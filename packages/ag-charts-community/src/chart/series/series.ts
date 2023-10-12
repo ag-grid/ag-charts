@@ -31,7 +31,6 @@ import { SeriesNodePickMode } from '../chartSeries';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
-import { fixNumericExtent } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
@@ -57,7 +56,7 @@ export function keyProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         scopes: [scope.id],
@@ -74,7 +73,7 @@ export function valueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         scopes: [scope.id],
@@ -90,7 +89,7 @@ export function valueProperty<K>(
 export function rangedValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
-    opts = {} as Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number }
+    opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
 ): DatumPropertyDefinition<K> {
     const { min = -Infinity, max = Infinity, ...defOpts } = opts;
     return {
@@ -113,7 +112,7 @@ export function trailingValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         ...valueProperty(scope, propName, continuous, opts),
@@ -138,7 +137,7 @@ export function accumulativeValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         ...valueProperty(scope, propName, continuous, opts),
@@ -151,7 +150,7 @@ export function trailingAccumulatedValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts = {} as Partial<DatumPropertyDefinition<K>>
+    opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
         ...valueProperty(scope, propName, continuous, opts),
@@ -176,15 +175,30 @@ export function groupAccumulativeValueProperty<K>(
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
 
-export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, Type extends string = SeriesNodeEventTypes>
-    implements TypedEvent
+interface INodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
+    readonly type: TEvent;
+    readonly event: MouseEvent;
+    readonly datum: unknown;
+    readonly seriesId: string;
+}
+
+export interface INodeClickEventConstructor<
+    TDatum extends SeriesNodeDatum,
+    TSeries extends Series<TDatum, any>,
+    TEvent extends string = SeriesNodeEventTypes,
+> {
+    new (type: TEvent, event: MouseEvent, { datum }: TDatum, series: TSeries): INodeClickEvent<TEvent>;
+}
+
+export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
+    implements INodeClickEvent<TEvent>
 {
     readonly datum: unknown;
     readonly seriesId: string;
 
     constructor(
-        readonly type: Type,
-        readonly event: Event,
+        readonly type: TEvent,
+        readonly event: MouseEvent,
         { datum }: TDatum,
         series: Series<TDatum, any>
     ) {
@@ -244,8 +258,11 @@ export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     labelData: L[];
 };
 
-const NO_HIGHLIGHT = 'no-highlight';
-const OTHER_HIGHLIGHTED = 'other-highlighted';
+enum SeriesHighlight {
+    None,
+    This,
+    Other,
+}
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext>;
 
@@ -255,9 +272,11 @@ export abstract class Series<
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ModuleContextInitialiser<SeriesContext>, ChartSeries
+    implements ChartSeries, ModuleContextInitialiser<SeriesContext>
 {
     protected static readonly highlightedZIndex = 1000000000000;
+
+    protected readonly NodeClickEvent: INodeClickEventConstructor<TDatum, any> = SeriesNodeClickEvent;
 
     @Validate(STRING)
     readonly id = createId(this);
@@ -270,7 +289,7 @@ export abstract class Series<
     // The group node that contains all the nodes used to render this series.
     readonly rootGroup: Group = new Group({ name: 'seriesRoot', isVirtual: true });
 
-    // The group node that contains the series rendering in it's default (non-highlighted) state.
+    // The group node that contains the series rendering in its default (non-highlighted) state.
     readonly contentGroup: Group;
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -281,7 +300,7 @@ export abstract class Series<
     readonly highlightLabel: Group;
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup?: Group;
+    readonly labelGroup: Group;
 
     // Package-level visibility, not meant to be set by the user.
     chart?: {
@@ -296,16 +315,16 @@ export abstract class Series<
     };
 
     directions: ChartAxisDirection[] = [ChartAxisDirection.X, ChartAxisDirection.Y];
-    private directionKeys: { [key in ChartAxisDirection]?: string[] };
-    private directionNames: { [key in ChartAxisDirection]?: string[] };
+    private readonly directionKeys: { [key in ChartAxisDirection]?: string[] };
+    private readonly directionNames: { [key in ChartAxisDirection]?: string[] };
 
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
 
     abstract tooltip: SeriesTooltip<any>;
 
-    protected _data?: any[] = undefined;
-    protected _chartData?: any[] = undefined;
+    protected _data?: any[];
+    protected _chartData?: any[];
 
     set data(input: any[] | undefined) {
         this._data = input;
@@ -415,13 +434,11 @@ export abstract class Series<
             canHaveAxes = false,
         } = seriesOpts;
 
-        const { rootGroup } = this;
-
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
 
-        this.contentGroup = rootGroup.appendChild(
+        this.contentGroup = this.rootGroup.appendChild(
             new Group({
                 name: `${this.id}-content`,
                 layer: !contentGroupVirtual,
@@ -438,22 +455,18 @@ export abstract class Series<
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
         });
-        this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode' }));
-        this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel' }));
-        this.highlightNode.zIndex = 0;
-        this.highlightLabel.zIndex = 10;
+        this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
+        this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
 
         this.pickModes = pickModes;
 
-        if (useLabelLayer) {
-            this.labelGroup = rootGroup.appendChild(
-                new Group({
-                    name: `${this.id}-series-labels`,
-                    layer: true,
-                    zIndex: Layers.SERIES_LABEL_ZINDEX,
-                })
-            );
-        }
+        this.labelGroup = this.rootGroup.appendChild(
+            new Group({
+                name: `${this.id}-series-labels`,
+                layer: useLabelLayer,
+                zIndex: Layers.SERIES_LABEL_ZINDEX,
+            })
+        );
     }
 
     getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
@@ -541,7 +554,16 @@ export abstract class Series<
         return direction;
     }
 
-    abstract getDomain(direction: ChartAxisDirection): any[];
+    // The union of the series domain ('community') and series-option domains ('enterprise').
+    getDomain(direction: ChartAxisDirection): any[] {
+        const seriesDomain: any[] = this.getSeriesDomain(direction);
+        const moduleDomains: any[][] = this.dispatch('data-getDomain', { direction }) ?? [];
+        // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
+        return moduleDomains.reduce((total, current) => total.concat(current), seriesDomain);
+    }
+
+    // Get the 'community' domain (excluding any additional data from series-option modules).
+    abstract getSeriesDomain(direction: ChartAxisDirection): any[];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void>;
@@ -562,64 +584,61 @@ export abstract class Series<
     abstract update(opts: { seriesRect?: BBox }): Promise<void>;
 
     protected getOpacity(): number {
-        const {
-            highlightStyle: {
-                series: { dimOpacity = 1, enabled = true },
-            },
-        } = this;
-
         const defaultOpacity = 1;
-        if (enabled === false || dimOpacity === defaultOpacity) {
+        const { dimOpacity = 1, enabled = true } = this.highlightStyle.series;
+
+        if (!enabled || dimOpacity === defaultOpacity) {
             return defaultOpacity;
         }
 
         switch (this.isItemIdHighlighted()) {
-            case NO_HIGHLIGHT:
-            case 'highlighted':
+            case SeriesHighlight.None:
+            case SeriesHighlight.This:
                 return defaultOpacity;
-            case OTHER_HIGHLIGHTED:
+            case SeriesHighlight.Other:
             default:
                 return dimOpacity;
         }
     }
 
     protected getStrokeWidth(defaultStrokeWidth: number): number {
-        const {
-            highlightStyle: {
-                series: { strokeWidth, enabled = true },
-            },
-        } = this;
+        const { strokeWidth, enabled = true } = this.highlightStyle.series;
 
-        if (enabled === false || strokeWidth === undefined) {
+        if (!enabled || strokeWidth === undefined) {
             // No change in styling for highlight cases.
             return defaultStrokeWidth;
         }
 
         switch (this.isItemIdHighlighted()) {
-            case 'highlighted':
+            case SeriesHighlight.This:
                 return strokeWidth;
-            case NO_HIGHLIGHT:
-            case OTHER_HIGHLIGHTED:
+            case SeriesHighlight.None:
+            case SeriesHighlight.Other:
                 return defaultStrokeWidth;
         }
     }
 
-    protected isItemIdHighlighted(): 'highlighted' | 'other-highlighted' | 'no-highlight' {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const { series } = highlightedDatum ?? {};
-        const highlighting = series != null;
+    protected isItemIdHighlighted(): SeriesHighlight {
+        const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
 
-        if (!highlighting) {
-            // Highlighting not active.
-            return NO_HIGHLIGHT;
+        // Highlighting not active.
+        if (series == null) {
+            return SeriesHighlight.None;
         }
 
+        // Highlighting active, this series not highlighted.
         if (series !== this) {
-            // Highlighting active, this series not highlighted.
-            return OTHER_HIGHLIGHTED;
+            return SeriesHighlight.Other;
         }
 
-        return 'highlighted';
+        return SeriesHighlight.This;
+    }
+
+    protected getModuleTooltipParams(datum: object): object {
+        const params: object[] = this.dispatch('tooltip-getParams', { datum }) ?? [];
+        return params.reduce((total, current) => {
+            return { ...current, ...total };
+        }, {});
     }
 
     abstract getTooltipHtml(seriesDatum: any): string;
@@ -639,7 +658,7 @@ export abstract class Series<
                 continue;
             }
 
-            let match: SeriesNodePickMatch | undefined = undefined;
+            let match: SeriesNodePickMatch | undefined;
 
             switch (pickMode) {
                 case SeriesNodePickMode.EXACT_SHAPE_MATCH:
@@ -667,47 +686,32 @@ export abstract class Series<
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
         const match = this.contentGroup.pickNode(point.x, point.y);
-
-        if (match) {
-            return {
-                datum: match.datum,
-                distance: 0,
-            };
-        }
+        return match && { datum: match.datum, distance: 0 };
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
-        // Override point for sub-classes - but if this is invoked, the sub-class specified it wants
+        // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeClosestDatum() not implemented');
     }
 
     protected pickNodeMainAxisFirst(_point: Point, _requireCategoryAxis: boolean): SeriesNodePickMatch | undefined {
-        // Override point for sub-classes - but if this is invoked, the sub-class specified it wants
+        // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
 
     abstract getLabelData(): PointLabelDatum[];
 
-    fireNodeClickEvent(event: Event, _datum: TDatum): void {
-        const eventObject = this.getNodeClickEvent(event, _datum);
-        this.fireEvent(eventObject);
+    fireNodeClickEvent(event: MouseEvent, datum: TDatum): void {
+        this.fireEvent(new this.NodeClickEvent('nodeClick', event, datum, this));
     }
 
-    fireNodeDoubleClickEvent(event: Event, _datum: TDatum): void {
-        const eventObject = this.getNodeDoubleClickEvent(event, _datum);
-        this.fireEvent(eventObject);
+    fireNodeDoubleClickEvent(event: MouseEvent, datum: TDatum): void {
+        this.fireEvent(new this.NodeClickEvent('nodeDoubleClick', event, datum, this));
     }
 
-    protected getNodeClickEvent(event: Event, datum: TDatum): SeriesNodeClickEvent<TDatum, 'nodeClick'> {
-        return new SeriesNodeClickEvent('nodeClick', event, datum, this);
-    }
-
-    protected getNodeDoubleClickEvent(event: Event, datum: TDatum): SeriesNodeClickEvent<TDatum, 'nodeDoubleClick'> {
-        return new SeriesNodeClickEvent('nodeDoubleClick', event, datum, this);
-    }
-
+    abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
     protected toggleSeriesItem(itemId: any, enabled: boolean): void {
@@ -722,26 +726,7 @@ export abstract class Series<
 
     readonly highlightStyle = new HighlightStyle();
 
-    protected fixNumericExtent(extent?: [number | Date, number | Date], axis?: ChartAxis): number[] {
-        const fixedExtent = fixNumericExtent(extent);
-
-        if (fixedExtent.length === 0) {
-            return fixedExtent;
-        }
-
-        let [min, max] = fixedExtent;
-        if (min === max) {
-            // domain has zero length, there is only a single valid value in data
-
-            const [paddingMin, paddingMax] = axis?.calculatePadding(min, max) ?? [1, 1];
-            min -= paddingMin;
-            max += paddingMax;
-        }
-
-        return [min, max];
-    }
-
-    private readonly moduleMap: SeriesModuleMap = new ModuleMap<SeriesOptionModule, SeriesContext>(this);
+    private readonly moduleMap: SeriesModuleMap = new ModuleMap(this);
 
     getModuleMap(): SeriesModuleMap {
         return this.moduleMap;

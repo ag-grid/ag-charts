@@ -4,6 +4,7 @@ import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
+import { ActionOnSet } from '../../util/proxy';
 import {
     COLOR_STRING,
     NUMBER,
@@ -19,7 +20,7 @@ import type { CursorManager } from '../interaction/cursorManager';
 import type { InteractionEvent, InteractionManager } from '../interaction/interactionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
-import { getMarker } from '../marker/util';
+import { type MarkerShape, getMarker } from '../marker/util';
 
 class PaginationLabel {
     @Validate(COLOR_STRING)
@@ -59,17 +60,17 @@ class PaginationMarkerStyle {
 }
 
 class PaginationMarker {
+    @ActionOnSet<PaginationMarker>({
+        changeValue() {
+            if (this.parent.marker === this) {
+                this.parent.onMarkerShapeChange();
+            }
+        },
+    })
+    shape: MarkerShape = Triangle;
+
     @Validate(NUMBER(0))
     size = 15;
-
-    _shape: string | (new () => Marker) = Triangle;
-    set shape(value: string | (new () => Marker)) {
-        this._shape = value;
-        this.parent?.onMarkerShapeChange();
-    }
-    get shape() {
-        return this._shape;
-    }
 
     /**
      * Inner padding between a pagination button and the label.
@@ -77,7 +78,7 @@ class PaginationMarker {
     @Validate(NUMBER(0))
     padding: number = 8;
 
-    parent?: { onMarkerShapeChange(): void };
+    constructor(readonly parent: Pagination) {}
 }
 
 export class Pagination {
@@ -88,7 +89,7 @@ export class Pagination {
     private readonly group = new Group({ name: 'pagination' });
     private readonly labelNode: Text = new Text();
 
-    readonly marker = new PaginationMarker();
+    readonly marker = new PaginationMarker(this);
     readonly activeStyle = new PaginationMarkerStyle();
     readonly inactiveStyle = new PaginationMarkerStyle();
     readonly highlightStyle = new PaginationMarkerStyle();
@@ -113,8 +114,6 @@ export class Pagination {
 
         this.interactionManager.addListener('click', (event) => this.onPaginationClick(event));
         this.interactionManager.addListener('hover', (event) => this.onPaginationMouseMove(event));
-
-        this.marker.parent = this;
 
         this.update();
         this.updateMarkers();

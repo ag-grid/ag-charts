@@ -121,7 +121,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     protected override calculateDomain() {
         const { direction, boundSeries } = this;
         const domains: any[][] = [];
-        let isNumericX: boolean | undefined = undefined;
+        let isNumericX: boolean | undefined;
         boundSeries
             .filter((s) => s.visible)
             .forEach((series) => {

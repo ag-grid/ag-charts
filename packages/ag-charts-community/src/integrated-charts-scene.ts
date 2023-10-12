@@ -11,7 +11,7 @@ export { Selection } from './scene/selection';
 export type { Point, SizedPoint } from './scene/point';
 export { Arc } from './scene/shape/arc';
 export { Line } from './scene/shape/line';
-export { Path } from './scene/shape/path';
+export { Path, ScenePathChangeDetection } from './scene/shape/path';
 export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
 export { Shape } from './scene/shape/shape';
@@ -39,3 +39,4 @@ export * as easing from './motion/easing';
 
 const motion = { ...fromToMotion, ...resetMotion };
 export { motion };
+export type { NodeUpdateState } from './motion/fromToMotion';

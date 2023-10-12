@@ -6,6 +6,10 @@ export function isEqual(a: number, b: number, epsilon: number = 1e-10) {
     return Math.abs(a - b) < epsilon;
 }
 
+export function isNegative(a: number) {
+    return Math.sign(a) < 0 || Object.is(a, -0);
+}
+
 /**
  * `Number.toFixed(n)` always formats a number so that it has `n` digits after the decimal point.
  * For example, `Number(0.00003427).toFixed(2)` returns `0.00`.

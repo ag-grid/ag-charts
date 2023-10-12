@@ -15,7 +15,6 @@ export * from './chart/types';
 export * from './chart/zoomOptions';
 export * from './series/seriesOptions';
 export * from './series/cartesian/cartesianOptions';
-export * from './series/cartesian/cartesianLabelOptions';
 export * from './series/cartesian/cartesianSeriesMarkerOptions';
 export * from './series/cartesian/cartesianSeriesTooltipOptions';
 export * from './series/cartesian/cartesianSeriesTypes';
@@ -36,11 +35,11 @@ export * from './series/hierarchy/treemapOptions';
 export * from './series/polar/nightingaleOptions';
 export * from './series/polar/pieOptions';
 export * from './series/polar/polarOptions';
-export * from './series/polar/polarTooltipOptions';
 export * from './series/polar/radarOptions';
 export * from './series/polar/radarLineOptions';
 export * from './series/polar/radarAreaOptions';
 export * from './series/polar/radialColumnOptions';
+export * from './series/polar/radialOptions';
 
 /**
  * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7

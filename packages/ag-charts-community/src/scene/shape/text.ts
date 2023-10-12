@@ -1,4 +1,4 @@
-import type { FontStyle, FontWeight, TextWrap } from '../../options/agChartOptions';
+import type { FontFamily, FontSize, FontStyle, FontWeight, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../bbox';
 import { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { RenderContext } from '../node';
@@ -6,8 +6,8 @@ import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
 export interface TextSizeProperties {
-    fontFamily: string;
-    fontSize: number;
+    fontFamily?: FontFamily;
+    fontSize?: FontSize;
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     lineHeight?: number;
@@ -70,10 +70,10 @@ export class Text extends Shape {
     fontWeight?: FontWeight;
 
     @SceneFontChangeDetection()
-    fontSize: number = 10;
+    fontSize?: number = 10;
 
     @SceneFontChangeDetection()
-    fontFamily: string = 'sans-serif';
+    fontFamily?: string = 'sans-serif';
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     textAlign: CanvasTextAlign = Text.defaultStyles.textAlign;
@@ -251,7 +251,11 @@ export class Text extends Shape {
         const initialSize = measurer.size(text);
         if (initialSize.width <= maxWidth) {
             // Text fits into a single line
-            return { result: text, truncated: false, cumulativeHeight: cumulativeHeight + initialSize.height };
+            return {
+                result: text,
+                truncated: false,
+                cumulativeHeight: cumulativeHeight + initialSize.height,
+            };
         }
         if (initialSize.height > maxHeight || measurer.width('W') > maxWidth) {
             // Not enough space for a single line or character
@@ -352,7 +356,7 @@ export class Text extends Shape {
         wrapping: TextWrap,
         cumulativeHeight: number
     ) {
-        const { fontSize, lineHeight = fontSize * Text.defaultLineHeightRatio } = textProps;
+        const { fontSize, lineHeight = (fontSize ?? 0) * Text.defaultLineHeightRatio } = textProps;
         const breakWord = wrapping === 'always' || wrapping === 'hyphenate';
         const hyphenate = wrapping === 'hyphenate';
         const spaceWidth = measurer.width(' ');

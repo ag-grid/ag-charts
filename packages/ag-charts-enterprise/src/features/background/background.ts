@@ -28,7 +28,7 @@ export class Background extends _ModuleSupport.BaseModuleInstance implements _Mo
             image.onload = undefined;
         },
     })
-    image: BackgroundImage | undefined = undefined;
+    image?: BackgroundImage;
 
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super();

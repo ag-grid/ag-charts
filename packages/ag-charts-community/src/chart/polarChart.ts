@@ -1,11 +1,9 @@
 import { BBox } from '../scene/bbox';
-import { toRadians } from '../util/angle';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
 import type { SpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
-import type { SeriesNodeDatum } from './chartSeries';
 import { Layers } from './layers';
 import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
@@ -52,10 +50,9 @@ export class PolarChart extends Chart {
         const angleScale = angleAxis.scale;
         const angles = angleScale.ticks?.().map((value: string) => angleScale.convert(value));
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
-        const rotation = toRadians(angleAxis.rotation ?? 0);
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
-        angleAxis.range = [-Math.PI / 2 + rotation, (3 * Math.PI) / 2 + rotation];
+        angleAxis.computeRange?.();
         angleAxis.gridLength = radius;
 
         radiusAxis.gridAngles = angles;
@@ -82,7 +79,7 @@ export class PolarChart extends Chart {
     }
 
     private async computeCircle(seriesBox: BBox) {
-        const polarSeries = this.series.filter((series): series is PolarSeries<SeriesNodeDatum> => {
+        const polarSeries = this.series.filter((series): series is PolarSeries<any, any> => {
             return series instanceof PolarSeries;
         });
         const polarAxes = this.axes.filter((axis): axis is PolarAxis => {
@@ -97,7 +94,7 @@ export class PolarChart extends Chart {
                 series.radius = r;
             });
 
-            const pieSeries = polarSeries.filter((series): series is PieSeries => series instanceof PieSeries);
+            const pieSeries = polarSeries.filter<PieSeries>((s): s is PieSeries => s instanceof PieSeries);
             if (pieSeries.length > 1) {
                 const innerRadii = pieSeries
                     .map((series) => {

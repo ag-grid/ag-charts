@@ -41,15 +41,15 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
     const galleryExamples = getGalleryExamples({ galleryData });
     const themes = [
         'ag-default',
-        'ag-material',
-        'ag-pastel',
-        'ag-solar',
-        'ag-vivid',
         'ag-default-dark',
-        'ag-material-dark',
-        'ag-pastel-dark',
-        'ag-solar-dark',
+        'ag-sheets',
+        'ag-sheets-dark',
+        'ag-polychroma',
+        'ag-polychroma-dark',
+        'ag-vivid',
         'ag-vivid-dark',
+        'ag-material',
+        'ag-material-dark',
     ];
     const galleryExamplePages = galleryExamples.flatMap(({ exampleName }) => {
         return themes.map((theme) => {
