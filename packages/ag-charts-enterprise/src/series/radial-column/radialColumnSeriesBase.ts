@@ -431,7 +431,9 @@ export abstract class RadialColumnSeriesBase<
         const stroke = highlightedStyle?.stroke ?? this.stroke;
         const strokeOpacity = this.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
-        selection.update(selectionData).each((node, datum) => {
+
+        const idFn = (datum: RadialColumnNodeDatum) => datum.angleValue;
+        selection.update(selectionData, undefined, idFn).each((node, datum) => {
             const format = this.formatter
                 ? this.ctx.callbackCache.call(this.formatter, {
                       datum,
