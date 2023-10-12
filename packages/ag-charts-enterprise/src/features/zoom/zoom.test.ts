@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    doubleClickAction,
     extractImageData,
     scrollAction,
     setupMockCanvas,
@@ -39,8 +40,11 @@ describe('Zoom', () => {
     let cx: number = 0;
     let cy: number = 0;
 
-    beforeEach(async () => {
-        const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+    async function prepareChart(zoomOptions?: AgChartOptions.Zoom) {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            zoom: { ...EXAMPLE_OPTIONS.zoom, ...(zoomOptions ?? {}) },
+        };
         prepareEnterpriseTestOptions(options);
         cx = options.width! / 2;
         cy = options.height! / 2;
@@ -51,7 +55,9 @@ describe('Zoom', () => {
         // event is triggered.
         await waitForChartStability(chart);
         await clickAction(cx, cy)(chart);
+    }
 
+    beforeEach(async () => {
         // eslint-disable-next-line no-console
         console.warn = jest.fn();
     });
@@ -72,23 +78,52 @@ describe('Zoom', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    describe('when a user scrolls the mouse wheel', () => {
+    describe('scrolling', () => {
         it('should zoom in', async () => {
+            await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
-
             await compare();
         });
 
         it('should zoom in then out', async () => {
+            await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await scrollAction(cx, cy, 1)(chart);
+            await compare();
+        });
+    });
 
+    describe('anchor', () => {
+        it('should zoom at the start', async () => {
+            await prepareChart({ anchorPoints: { x: 'start', y: 'start' } });
+            await scrollAction(cx, cy, -1)(chart);
             await compare();
         });
 
-        it('should zoom in to the given location', async () => {
-            await scrollAction(cx * 1.5, cy * 1.5, -1)(chart);
+        it('should zoom in the middle', async () => {
+            await prepareChart({ anchorPoints: { x: 'middle', y: 'middle' } });
+            await scrollAction(cx, cy, -1)(chart);
+            await compare();
+        });
 
+        it('should zoom at the end', async () => {
+            await prepareChart({ anchorPoints: { x: 'end', y: 'end' } });
+            await scrollAction(cx, cy, -1)(chart);
+            await compare();
+        });
+
+        it('should zoom on the pointer', async () => {
+            await prepareChart({ anchorPoints: { x: 'pointer', y: 'pointer' } });
+            await scrollAction(cx, cy, -1)(chart);
+            await compare();
+        });
+    });
+
+    describe('double click', () => {
+        it('should reset the zoom', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleClickAction(cx, cy)(chart);
             await compare();
         });
     });
