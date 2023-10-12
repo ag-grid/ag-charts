@@ -105,8 +105,7 @@ export class RadialColumnShape extends Path {
         };
 
         // Avoid the connecting lines to be too long
-        const shouldConnectBottomCircle =
-            isStackBottom && !isNaN(sideRotation) && sideRotation < Math.PI / 6;
+        const shouldConnectBottomCircle = isStackBottom && !isNaN(sideRotation) && sideRotation < Math.PI / 6;
 
         let left = -columnWidth / 2;
         let right = columnWidth / 2;
