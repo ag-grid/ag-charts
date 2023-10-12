@@ -309,7 +309,7 @@ const extremeAxisConfig = {
     },
 };
 
-export const GRDILINE_TICKLINE_CLIPPING: AgChartOptions = {
+export const GRIDLINE_TICKLINE_CLIPPING: AgChartOptions = {
     ...CATEGORY_AXIS_BASIC_EXAMPLE,
     axes: [
         {
@@ -325,7 +325,7 @@ export const GRDILINE_TICKLINE_CLIPPING: AgChartOptions = {
     ],
 };
 
-export const GROUPED_CATEGORY_AXIS_GRDILINE_TICKLINE_CLIPPING: AgCartesianChartOptions = {
+export const GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: AgCartesianChartOptions = {
     ...(examples.GROUPED_CATEGORY_AXIS_EXAMPLE as AgCartesianChartOptions),
     axes: [
         {

@@ -205,15 +205,15 @@ const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
 
 const EXAMPLES_CLIPPING: Record<string, TestCase> = {
     ...mixinDerivedCases({
-        GRDILINE_TICKLINE_CLIPPING: {
-            options: axesExamples.GRDILINE_TICKLINE_CLIPPING,
+        GRIDLINE_TICKLINE_CLIPPING: {
+            options: axesExamples.GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
                 axisTypes: ['category', 'number'],
                 seriesTypes: repeat('bar', 3),
             }),
         },
-        GROUPED_CATEGORY_AXIS_GRDILINE_TICKLINE_CLIPPING: {
-            options: axesExamples.GROUPED_CATEGORY_AXIS_GRDILINE_TICKLINE_CLIPPING,
+        GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: {
+            options: axesExamples.GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
                 axisTypes: ['groupedCategory', 'number'],
                 seriesTypes: ['bar'],
