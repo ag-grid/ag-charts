@@ -101,6 +101,26 @@ axes: [
 ],
 ```
 
+### Axis Angles
+
+{% chartExampleRunner title="Axis Angles" name="axis-angles" type="generated" options="{ \"enterprise\": true }" /%}
+
+To change Angle Axis circumference, use the `startAngle` and `endAngle` properties. To change the Radius Axis start angle, use `positionAngle` property.
+
+```js
+axes: [
+    {
+        type: 'angle-number',
+        startAngle: 270,
+        endAngle: 450,
+    },
+    {
+        type: 'radius-category',
+        positionAngle: 270,
+    },
+],
+```
+
 ## API Reference
 
 {% interfaceDocumentation interfaceName="AgRadialBarSeriesOptions" config="{ \"showSnippets\": false }" /%}
