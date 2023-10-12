@@ -411,6 +411,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.lineDash = this.lineDash;
             node.lineJoin = 'round';
+
+            node.startAngle = datum.startAngle;
+            node.endAngle = datum.endAngle;
+            node.innerRadius = datum.innerRadius;
+            node.outerRadius = datum.outerRadius;
         });
     }
 
