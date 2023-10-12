@@ -76,6 +76,14 @@ const EXTENDING_BARS = [
     { month: 'Dec', temperature: 13.0, temperatureLower: 11.5, temperatureUpper: 15.5 },
 ];
 
+const FEWER_MONTHS = [
+    // Same data as Canada, but with few months for test cap lengthRatio better
+    { month: 'Jan', temperature: 12.5, temperatureLower: 10.0, temperatureUpper: 15.0 },
+    { month: 'Apr', temperature: 18.0, temperatureLower: 16.5, temperatureUpper: 19.5 },
+    { month: 'Jul', temperature: 26.5, temperatureLower: 24.0, temperatureUpper: 29.0 },
+    { month: 'Oct', temperature: 20.0, temperatureLower: 17.5, temperatureUpper: 22.5 },
+];
+
 const SERIES_BOYLESLAW = {
     type: 'scatter',
     data: [
@@ -130,12 +138,12 @@ describe('ErrorBars', () => {
     const opts = prepareEnterpriseTestOptions({});
 
     it('should render 1 line series as expected', async () => {
-        chart = AgEnterpriseCharts.create({ ...opts, series: [{ type: 'line', ...SERIES_CANADA }] });
+        chart = AgEnterpriseCharts.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'line' }] });
         await compare();
     });
 
     it('should render 1 bar series as expected', async () => {
-        chart = AgEnterpriseCharts.create({ ...opts, series: [{ type: 'bar', ...SERIES_CANADA }] });
+        chart = AgEnterpriseCharts.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'bar' }] });
         await compare();
     });
 
@@ -143,8 +151,8 @@ describe('ErrorBars', () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
             series: [
-                { type: 'line', ...SERIES_CANADA },
-                { type: 'line', ...SERIES_AUSTRALIA },
+                { ...SERIES_CANADA, type: 'line' },
+                { ...SERIES_AUSTRALIA, type: 'line' },
             ],
         });
         await compare();
@@ -154,8 +162,8 @@ describe('ErrorBars', () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
             series: [
-                { type: 'bar', ...SERIES_CANADA },
-                { type: 'bar', ...SERIES_AUSTRALIA },
+                { ...SERIES_CANADA, type: 'bar' },
+                { ...SERIES_AUSTRALIA, type: 'bar' },
             ],
         });
         await compare();
@@ -165,10 +173,15 @@ describe('ErrorBars', () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
             series: [
-                { type: 'bar', direction: 'horizontal', ...SERIES_CANADA },
-                { type: 'bar', direction: 'horizontal', ...SERIES_AUSTRALIA },
+                { ...SERIES_CANADA, type: 'bar', direction: 'horizontal' },
+                { ...SERIES_AUSTRALIA, type: 'bar', direction: 'horizontal' },
             ],
         });
+        await compare();
+    });
+
+    it('should render both scatter axes as expected', async () => {
+        chart = AgEnterpriseCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
         await compare();
     });
 
@@ -183,7 +196,7 @@ describe('ErrorBars', () => {
     it('should extend Y axis on vertical bar series as expected', async () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
-            series: [{ type: 'bar', ...SERIES_CANADA, data: EXTENDING_BARS }],
+            series: [{ ...SERIES_CANADA, type: 'bar', data: EXTENDING_BARS }],
         });
         await compare();
     });
@@ -191,13 +204,175 @@ describe('ErrorBars', () => {
     it('should extend X axis on horizontal bar series as expected', async () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
-            series: [{ type: 'bar', direction: 'horizontal', ...SERIES_CANADA, data: EXTENDING_BARS }],
+            series: [{ ...SERIES_CANADA, type: 'bar', direction: 'horizontal', data: EXTENDING_BARS }],
         });
         await compare();
     });
 
-    it('should render both scatter axes as expected', async () => {
-        chart = AgEnterpriseCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
+    it('should default to marker size for cap length on line series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'line',
+                    marker: { size: 55 },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should default to marker size for cap length on scatter series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_BOYLESLAW,
+                    marker: { size: 55 },
+                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should default to half lengthRatio for cap length on bar series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    direction: 'vertical',
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use marker size for lengthRatio on line series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'line',
+                    data: FEWER_MONTHS,
+                    marker: { size: 55 },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 0.25 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use marker size for lengthRatio on scatter series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_BOYLESLAW,
+                    marker: { size: 55 },
+                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, lengthRatio: 0.25 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use bar width for lengthRatio on vertical bar series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    direction: 'vertical',
+                    data: FEWER_MONTHS,
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1.0 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use bar height for lengthRatio on horizontal bar series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    direction: 'horizontal',
+                    data: FEWER_MONTHS,
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1.0 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use absolute cap.length on line series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use absolute cap.length on bar series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use absolute cap.length on scatter series', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_BOYLESLAW,
+                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should favour cap length over cap ratio', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_BOYLESLAW,
+                    type: 'scatter',
+                    errorBar: {
+                        ...SERIES_BOYLESLAW.errorBar,
+                        cap: {
+                            strokeWidth: 4,
+                            length: 45.0,
+                            lengthRatio: 1.0,
+                        },
+                    },
+                },
+            ],
+        });
         await compare();
     });
 

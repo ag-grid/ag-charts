@@ -28,11 +28,11 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
-interface LineNodeDatum extends CartesianSeriesNodeDatum {
+interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
         readonly moveTo: boolean;
     };
@@ -240,6 +240,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     midPoint: { x, y },
                     yValue: yDatum,
                     xValue: xDatum,
+                    capDefaults: { lengthRatio: 1, lengthRatioMultiplier: markerSize },
                     label: labelText
                         ? {
                               text: labelText,

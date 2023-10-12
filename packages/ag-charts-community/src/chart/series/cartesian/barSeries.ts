@@ -54,7 +54,7 @@ import {
     resetBarSelectionsFn,
     updateRect,
 } from './barUtil';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabel } from './labelUtil';
 
@@ -69,7 +69,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly fill: string;
 }
 
-interface BarNodeDatum extends CartesianSeriesNodeDatum, Readonly<Point> {
+interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: string | number;
     readonly yValue: string | number;
@@ -401,6 +401,10 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 yValue: yRawValue,
                 yKey,
                 xKey,
+                capDefaults: {
+                    lengthRatio: 0.5,
+                    lengthRatioMultiplier: this.shouldFlipXY() ? rect.height : rect.width,
+                },
                 x: rect.x,
                 y: rect.y,
                 width: rect.width,

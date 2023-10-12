@@ -1,7 +1,7 @@
 import type { _Scale } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { ErrorBarNodeProperties, ErrorBarPoints } from './errorBarNode';
+import type { ErrorBarCapTheme, ErrorBarPoints, ErrorBarWhiskerTheme } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 import { ERROR_BARS_THEME } from './errorBarTheme';
 
@@ -11,14 +11,56 @@ const {
     valueProperty,
     ChartAxisDirection,
     Validate,
-    NUMBER,
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
     OPT_NUMBER,
     OPT_STRING,
 } = _ModuleSupport;
 
-type AnyCartesianSeries = _ModuleSupport.CartesianSeries<_Scene.Node, _ModuleSupport.CartesianSeriesNodeDatum>;
+type ErrorBoundCartesianSeries = Omit<
+    _ModuleSupport.CartesianSeries<
+        _Scene.Node,
+        _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum
+    >,
+    'highlightSelection'
+>;
+type ModuleContext = _ModuleSupport.ModuleContext;
+type SeriesContext = _ModuleSupport.SeriesContext;
+
+function typeGuard<T extends ErrorBoundCartesianSeries>(
+    ctx: SeriesContext,
+    target: new (ctx: ModuleContext) => T
+): T | undefined {
+    if (target.prototype.type === ctx.series.type) {
+        return ctx.series as T;
+    }
+    return undefined;
+}
+
+function toErrorBoundCartesianSeries(ctx: SeriesContext): ErrorBoundCartesianSeries {
+    // This function checks that the requested ctx.series.type matches one of
+    // the static members `type` from the list of constructors below. If no
+    // match is found then an error is thrown. This ensures type safety because
+    // the compiler will ensure that the supported series types match the
+    // ErrorBoundCartesianSeries contract.
+    const supportedSeriesTypes: (new (ctx: ModuleContext) => ErrorBoundCartesianSeries)[] = [
+        _ModuleSupport.BarSeries,
+        _ModuleSupport.LineSeries,
+        _ModuleSupport.ScatterSeries,
+    ];
+    for (const ctor of supportedSeriesTypes) {
+        const series: ErrorBoundCartesianSeries | undefined = typeGuard(ctx, ctor);
+        if (series !== undefined) {
+            return series;
+        }
+    }
+    throw new Error(
+        `AG Charts - unsupported series type '${
+            ctx.series.type
+        }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
+    );
+}
+
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
@@ -30,9 +72,7 @@ type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
-type OptionalErrorBarNodeProperties = { [K in keyof ErrorBarNodeProperties]?: ErrorBarNodeProperties[K] };
-
-class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
+class ErrorBarCapConfig implements ErrorBarCapTheme {
     @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
@@ -45,13 +85,16 @@ class ErrorBarCapConfig implements OptionalErrorBarNodeProperties {
     @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = undefined;
 
-    @Validate(NUMBER(0, 1))
-    lengthRatio: number = 1;
+    @Validate(OPT_NUMBER())
+    length?: number = undefined;
+
+    @Validate(OPT_NUMBER(0, 1))
+    lengthRatio?: number = undefined;
 }
 
 export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance, OptionalErrorBarNodeProperties
+    implements _ModuleSupport.ModuleInstance, ErrorBarWhiskerTheme
 {
     @Validate(OPT_STRING)
     yLowerKey?: string = undefined;
@@ -91,7 +134,7 @@ export class ErrorBars
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
 
-    private readonly cartesianSeries: AnyCartesianSeries;
+    private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: _Scene.Group;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
     private nodeData: (ErrorBarPoints | undefined)[] = [];
@@ -99,18 +142,10 @@ export class ErrorBars
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
 
-    constructor(ctx: _ModuleSupport.SeriesContext) {
+    constructor(ctx: SeriesContext) {
         super();
 
-        const supportedSeriesTypes = ['bar', 'line', 'scatter'];
-        if (!supportedSeriesTypes.includes(ctx.series.type)) {
-            throw new Error(
-                `AG Charts - unsupported series type '${
-                    ctx.series.type
-                }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
-            );
-        }
-        this.cartesianSeries = ctx.series as AnyCartesianSeries;
+        this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
         const { contentGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
@@ -257,10 +292,12 @@ export class ErrorBars
         const { nodeData } = this;
         const points = nodeData[index];
         if (points) {
-            const defaults: ErrorBarNodeProperties = ERROR_BARS_THEME.errorBar;
+            const defaults: ErrorBarWhiskerTheme = ERROR_BARS_THEME.errorBar;
             const whiskerProps = mergeDefaults(this, defaults);
             const capProps = mergeDefaults(this.cap, whiskerProps);
-            node.update(points, whiskerProps, capProps);
+            const capDefaults = this.cartesianSeries.contextNodeData[0].nodeData[index].capDefaults;
+            this.getDatum(index);
+            node.update(points, whiskerProps, capProps, capDefaults);
         }
     }
 
