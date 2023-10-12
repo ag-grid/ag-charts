@@ -8,7 +8,7 @@ import { ZoomPanner } from './zoomPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import { constrainZoom, definedZoomState, pointToRatio, scaleZoomCenter, translateZoom } from './zoomTransformers';
-import type { DefinedZoomState } from './zoomTypes';
+import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
 
 const { BOOLEAN, NUMBER, STRING_UNION, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
 
@@ -22,6 +22,14 @@ const round = (n: number, sf: number) => {
     const pow = Math.pow(10, sf);
     return Math.round(n * pow) / pow;
 };
+
+class ZoomAnchorPoints {
+    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
+    public x: AnchorPoint = 'end';
+
+    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
+    public y: AnchorPoint = 'middle';
+}
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -48,14 +56,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(NUMBER(0, 1))
     public scrollingStep = 0.1;
 
-    @Validate(STRING_UNION('pointer', 'start', 'end'))
-    public anchorPoint: 'pointer' | 'start' | 'end' = 'end';
-
     @Validate(NUMBER(0, 1))
     public minXRatio: number = 0.2;
 
     @Validate(NUMBER(0, 1))
     public minYRatio: number = 0.2;
+
+    public anchorPoints: ZoomAnchorPoints;
 
     // Scenes
     private readonly scene: _Scene.Scene;
@@ -96,6 +103,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event))
         );
+
+        this.anchorPoints = new ZoomAnchorPoints();
 
         // Add dragging axis zoom method
         this.axisDragger = new ZoomAxisDragger();
@@ -225,7 +234,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const newZoom = this.scroller.update(
             event,
             this.scrollingStep,
-            this.anchorPoint,
+            this.anchorPoints,
             this.isScalingX(),
             this.isScalingY(),
             this.seriesRect,

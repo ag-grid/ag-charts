@@ -1,9 +1,6 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-interface DefinedZoomState extends _ModuleSupport.AxisZoomState {
-    x: { min: number; max: number };
-    y: { min: number; max: number };
-}
+import type { DefinedZoomState } from './zoomTypes';
 
 const unitZoomState: () => DefinedZoomState = () => ({
     x: { min: 0, max: 1 },

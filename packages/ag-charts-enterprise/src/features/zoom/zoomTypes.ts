@@ -11,3 +11,5 @@ export type ZoomCoords = {
     x2: number;
     y2: number;
 };
+
+export type AnchorPoint = 'start' | 'middle' | 'end' | 'pointer';
