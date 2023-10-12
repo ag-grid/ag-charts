@@ -34,9 +34,9 @@ import { MetaData } from './lib/MetaData';
 import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { Scripts } from './lib/Scripts';
-import { getCacheBustingUrl, getChartScriptPath, getChartEnterpriseScriptPath } from '@utils/pages';
 import { SITE_BASE_URL } from '@constants';
 import { pathJoin } from '@utils/pathJoin';
+import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
 
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 
