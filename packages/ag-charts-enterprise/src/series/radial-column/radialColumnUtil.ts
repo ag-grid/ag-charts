@@ -29,7 +29,10 @@ export function createAngleMotionCalculator() {
         angleKeys.forEach((key) => {
             const map = angles[key];
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
-            const to = (status === 'removed' ? node : datum)[key];
+            let to = (status === 'removed' ? node : datum)[key];
+            if (isNaN(to)) {
+                to = node.previousDatum[key];
+            }
             const diff = from - to;
             if (Math.abs(diff) > Math.PI) {
                 from -= Math.sign(diff) * 2 * Math.PI;
@@ -105,15 +108,15 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
         let axisInnerRadius: number;
         let axisOuterRadius: number;
         if (status === 'removed') {
-            innerRadius = axisZeroRadius;
-            outerRadius = axisZeroRadius;
+            innerRadius = node.innerRadius;
+            outerRadius = node.innerRadius;
             columnWidth = node.columnWidth;
             axisInnerRadius = node.axisInnerRadius;
             axisOuterRadius = node.axisOuterRadius;
         } else {
-            innerRadius = datum.innerRadius;
-            outerRadius = datum.outerRadius;
-            columnWidth = datum.columnWidth;
+            innerRadius = isNaN(datum.innerRadius) ? axisZeroRadius : datum.innerRadius;
+            outerRadius = isNaN(datum.outerRadius) ? axisZeroRadius : datum.outerRadius;
+            columnWidth = isNaN(datum.columnWidth) ? node.columnWidth : datum.columnWidth;
             axisInnerRadius = datum.axisInnerRadius;
             axisOuterRadius = datum.axisOuterRadius;
         }

@@ -40,16 +40,16 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
         return { innerRadius, outerRadius, startAngle, endAngle, ...mixin };
     };
 
-    const toFn = (_sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
+    const toFn = (sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
         const { startAngle, endAngle } = angles.to(datum);
         let innerRadius: number;
         let outerRadius: number;
         if (status === 'removed') {
-            innerRadius = axisZeroRadius;
-            outerRadius = axisZeroRadius;
+            innerRadius = sect.innerRadius;
+            outerRadius = sect.innerRadius;
         } else {
-            innerRadius = datum.innerRadius;
-            outerRadius = datum.outerRadius;
+            innerRadius = isNaN(datum.innerRadius) ? axisZeroRadius : datum.innerRadius;
+            outerRadius = isNaN(datum.outerRadius) ? axisZeroRadius : datum.outerRadius;
         }
         return { innerRadius, outerRadius, startAngle, endAngle };
     };

@@ -203,23 +203,31 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(diff(this.processedData));
         }
 
+        const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
+
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, true, { id: 'radiusValue-raw', invalidValue: undefined }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window', 'current', {
+                valueProperty(this, radiusKey, true, {
+                    id: 'radiusValue-raw',
+                    invalidValue: null,
+                    ...visibleProps,
+                }),
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'normal', 'current', {
                     id: `radiusValue-end`,
                     invalidValue: null,
                     groupId: stackGroupId,
+                    ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window-trailing', 'current', {
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
+                    ...visibleProps,
                 }),
                 ...extraProps,
             ],
-            dataVisible: visible,
+            dataVisible: visible || animationEnabled,
         });
 
         this.animationState.transition('updateData');
