@@ -320,7 +320,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             });
         });
 
-        return [{ itemId: xKey, nodeData, labelData: [] }];
+        return [{ itemId: xKey, nodeData, labelData: [], scales: super.calculateScaling() }];
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

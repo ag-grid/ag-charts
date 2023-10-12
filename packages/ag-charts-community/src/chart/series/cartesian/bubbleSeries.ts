@@ -273,7 +273,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             });
         }
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
+        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
     }
 
     protected override isPathOrSelectionDirty(): boolean {

@@ -68,7 +68,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly strokeWidth: number;
 }
 
-interface WaterfallContext extends _ModuleSupport.SeriesNodeDataContext<WaterfallNodeDatum> {
+interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
 }
 
@@ -445,6 +445,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 nodeData: [],
                 labelData: [],
                 pointData: [],
+                scales: super.calculateScaling(),
             };
 
             const rect = {

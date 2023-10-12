@@ -206,7 +206,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             });
         }
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
+        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
     }
 
     protected override isPathOrSelectionDirty(): boolean {

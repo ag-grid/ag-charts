@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import { staticFromToMotion } from '../../../motion/fromToMotion';
+import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type {
     AgCartesianSeriesMarkerFormat,
     AgSeriesHighlightMarkerStyle,
@@ -14,6 +14,8 @@ import { mergeDefaults } from '../../../util/object';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodeDatum } from '../seriesTypes';
+import * as easing from './../../../motion/easing';
+import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 interface NodeDatum extends SeriesNodeDatum {
     readonly xKey: string;
@@ -137,6 +139,25 @@ export function markerScaleInAnimation<T>(
         { scalingX: 1, scalingY: 1 },
         { duration: animationManager.defaultDuration }
     );
+}
+
+export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
+    { id }: { id: string },
+    animationManager: AnimationManager,
+    markerSelections: Selection<Node, T>[],
+    seriesWidth: number
+) {
+    const fromFn = (_: Node, datum: T) => {
+        const x = datum.midPoint?.x ?? seriesWidth;
+        const delayRatio = easing.easeInOut(x / seriesWidth) - 0.1;
+        const delay = Math.max(Math.min(delayRatio, 1), 0);
+        return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration: 0.2 };
+    };
+    const toFn = () => {
+        return { scalingX: 1, scalingY: 1 };
+    };
+
+    fromToMotion(`${id}_markers`, animationManager, markerSelections, { fromFn, toFn });
 }
 
 export function resetMarkerFn(_node: NodeWithOpacity & Node) {

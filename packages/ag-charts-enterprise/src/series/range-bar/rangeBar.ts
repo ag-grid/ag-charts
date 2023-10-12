@@ -80,7 +80,7 @@ interface RangeBarNodeDatum
     readonly strokeWidth: number;
 }
 
-type RangeBarContext = _ModuleSupport.SeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
+type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
 type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<
     _Scene.Rect,
@@ -320,6 +320,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             itemId,
             nodeData: [],
             labelData: [],
+            scales: super.calculateScaling(),
         };
 
         const domain = [];
