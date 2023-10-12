@@ -19,7 +19,7 @@ export class RadialColumnShape extends Path {
     readonly borderPath = new Path2D();
 
     @ScenePathChangeDetection()
-    axisIsCircle: boolean = true;
+    isBeveled: boolean = true;
 
     @ScenePathChangeDetection()
     columnWidth: number = 0;
@@ -49,46 +49,52 @@ export class RadialColumnShape extends Path {
     }
 
     override updatePath() {
-        const { axisIsCircle, path } = this;
+        const { isBeveled } = this;
 
-        path.clear({ trackChanges: true });
-        if (!axisIsCircle) {
-            const { columnWidth, outerRadius, innerRadius } = this;
-
-            const left = -columnWidth / 2;
-            const right = columnWidth / 2;
-            const top = -outerRadius;
-            const bottom = -innerRadius;
-
-            const rotation = this.getRotation();
-            const points = [
-                [left, bottom],
-                [left, top],
-                [right, top],
-                [right, bottom],
-                [left, bottom],
-            ].map(([x, y]) => rotatePoint(x, y, rotation));
-
-            path.moveTo(points[0].x, points[0].y);
-            path.lineTo(points[1].x, points[1].y);
-            path.lineTo(points[2].x, points[2].y);
-            path.lineTo(points[3].x, points[3].y);
-            path.lineTo(points[0].x, points[0].y);
-
-            path.closePath();
+        if (isBeveled) {
+            this.updateBeveledPath();
         } else {
-            this.updateCircularPath();
+            this.updateRectangularPath();
         }
 
         this.checkPathDirty();
     }
 
-    private updateCircularPath() {
-        const { axisIsCircle, columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius } = this;
+    private updateRectangularPath() {
+        const { columnWidth, innerRadius, outerRadius, path } = this;
+
+        const left = -columnWidth / 2;
+        const right = columnWidth / 2;
+        const top = -outerRadius;
+        const bottom = -innerRadius;
+
+        const rotation = this.getRotation();
+        const points = [
+            [left, bottom],
+            [left, top],
+            [right, top],
+            [right, bottom],
+            [left, bottom],
+        ].map(([x, y]) => rotatePoint(x, y, rotation));
+
+        path.clear({ trackChanges: true });
+
+        path.moveTo(points[0].x, points[0].y);
+        path.lineTo(points[1].x, points[1].y);
+        path.lineTo(points[2].x, points[2].y);
+        path.lineTo(points[3].x, points[3].y);
+        path.lineTo(points[0].x, points[0].y);
+
+        path.closePath();
+    }
+
+    private updateBeveledPath() {
+        const { columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius } = this;
 
         const isStackBottom = isNumberEqual(innerRadius, axisInnerRadius);
         const sideRotation = Math.asin(columnWidth / 2 / innerRadius);
         const pointRotation = this.getRotation();
+        const rotate = (x: number, y: number) => rotatePoint(x, y, pointRotation);
 
         const getTriangleHypotenuse = (leg: number, otherLeg: number) => Math.sqrt(leg ** 2 + otherLeg ** 2);
         const getTriangleLeg = (hypotenuse: number, otherLeg: number) => {
@@ -100,14 +106,12 @@ export class RadialColumnShape extends Path {
 
         // Avoid the connecting lines to be too long
         const shouldConnectBottomCircle =
-            isStackBottom && axisIsCircle && !isNaN(sideRotation) && sideRotation < Math.PI / 6;
+            isStackBottom && !isNaN(sideRotation) && sideRotation < Math.PI / 6;
 
         let left = -columnWidth / 2;
         let right = columnWidth / 2;
         const top = -outerRadius;
         const bottom = -innerRadius * (shouldConnectBottomCircle ? Math.cos(sideRotation) : 1);
-
-        path.clear({ trackChanges: true });
 
         const hasBottomIntersection = axisOuterRadius < getTriangleHypotenuse(innerRadius, columnWidth / 2);
         if (hasBottomIntersection) {
@@ -117,17 +121,32 @@ export class RadialColumnShape extends Path {
             right = bottomIntersectionX;
         }
 
-        const startPt = rotatePoint(left, bottom, pointRotation);
-        path.moveTo(startPt.x, startPt.y);
+        path.clear({ trackChanges: true });
 
+        // Bottom-left point
+        const bottomLeftPt = rotate(left, bottom);
+        path.moveTo(bottomLeftPt.x, bottomLeftPt.y);
+
+        // Top
+        const isEmpty = isNumberEqual(innerRadius, outerRadius);
         const hasSideIntersection = axisOuterRadius < getTriangleHypotenuse(outerRadius, columnWidth / 2);
-        if (hasSideIntersection) {
+        if (isEmpty && shouldConnectBottomCircle) {
+            // A single line across the axis inner radius
+            path.arc(
+                0,
+                0,
+                innerRadius,
+                normalizeAngle360(-sideRotation - Math.PI / 2) + pointRotation,
+                normalizeAngle360(sideRotation - Math.PI / 2) + pointRotation,
+                false
+            );
+        } else if (hasSideIntersection) {
             // Crop top side overflowing outer radius
             const sideIntersectionY = -getTriangleLeg(axisOuterRadius, columnWidth / 2);
             const topIntersectionX = getTriangleLeg(axisOuterRadius, outerRadius);
             if (!hasBottomIntersection) {
-                const topPt = rotatePoint(left, sideIntersectionY, pointRotation);
-                path.lineTo(topPt.x, topPt.y);
+                const topLeftPt = rotate(left, sideIntersectionY);
+                path.lineTo(topLeftPt.x, topLeftPt.y);
             }
             path.arc(
                 0,
@@ -138,8 +157,9 @@ export class RadialColumnShape extends Path {
                 false
             );
             if (!isNumberEqual(topIntersectionX, 0)) {
-                const topPt = rotatePoint(topIntersectionX, top, pointRotation);
-                path.lineTo(topPt.x, topPt.y);
+                // Connecting line between two top bevels
+                const topRightBevelPt = rotate(topIntersectionX, top);
+                path.lineTo(topRightBevelPt.x, topRightBevelPt.y);
             }
             path.arc(
                 0,
@@ -150,15 +170,16 @@ export class RadialColumnShape extends Path {
                 false
             );
         } else {
-            const topLeftPt = rotatePoint(left, top, pointRotation);
-            const topRightPt = rotatePoint(right, top, pointRotation);
+            // Basic connecting line
+            const topLeftPt = rotate(left, top);
+            const topRightPt = rotate(right, top);
             path.lineTo(topLeftPt.x, topLeftPt.y);
             path.lineTo(topRightPt.x, topRightPt.y);
         }
 
-        const bottomPt = rotatePoint(right, bottom, pointRotation);
-        path.lineTo(bottomPt.x, bottomPt.y);
-
+        // Bottom
+        const bottomRightPt = rotate(right, bottom);
+        path.lineTo(bottomRightPt.x, bottomRightPt.y);
         if (shouldConnectBottomCircle) {
             // Connect column with inner circle
             path.arc(
@@ -170,8 +191,8 @@ export class RadialColumnShape extends Path {
                 true
             );
         } else {
-            const bottomPt = rotatePoint(left, bottom, pointRotation);
-            path.lineTo(bottomPt.x, bottomPt.y);
+            const bottomLeftPt = rotate(left, bottom);
+            path.lineTo(bottomLeftPt.x, bottomLeftPt.y);
         }
 
         path.closePath();

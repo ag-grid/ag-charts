@@ -46,7 +46,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape
 
     protected override updateItemPath(node: RadialColumnShape, _datum: RadialColumnNodeDatum) {
         const axisIsCircle = this.isRadiusAxisCircle();
-        node.axisIsCircle = axisIsCircle;
+        node.isBeveled = axisIsCircle;
     }
 
     protected override getColumnWidth(startAngle: number, endAngle: number) {
