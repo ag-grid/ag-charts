@@ -1,6 +1,12 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomTransformers';
+import {
+    constrainZoom,
+    definedZoomState,
+    pointToRatio,
+    scaleZoomAxisWithAnchor,
+    translateZoom,
+} from './zoomTransformers';
 import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
 
 export class ZoomScroller {
@@ -41,10 +47,10 @@ export class ZoomScroller {
             newZoom = translateZoom(newZoom, translateX, translateY);
         } else {
             if (isScalingX) {
-                newZoom.x = this.scaleAxisWithAnchor(newZoom.x, oldZoom.x, anchor.x);
+                newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchor.x);
             }
             if (isScalingY) {
-                newZoom.y = this.scaleAxisWithAnchor(newZoom.y, oldZoom.y, anchor.y);
+                newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchor.y);
             }
         }
 
@@ -52,25 +58,5 @@ export class ZoomScroller {
         newZoom = constrainZoom(newZoom);
 
         return newZoom;
-    }
-
-    private scaleAxisWithAnchor(
-        from: { min: number; max: number },
-        to: { min: number; max: number },
-        anchor: AnchorPoint
-    ) {
-        let { min, max } = to;
-        const diff = from.max - from.min;
-
-        if (anchor === 'start') {
-            max = to.min + diff;
-        } else if (anchor === 'middle') {
-            min = 0.5 - diff / 2;
-            max = 0.5 + diff / 2;
-        } else if (anchor === 'end') {
-            min = to.max - diff;
-        }
-
-        return { min, max };
     }
 }

@@ -163,7 +163,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (this.enableAxisDragging && this.seriesRect && this.hoveredAxis) {
             const { id: axisId, direction } = this.hoveredAxis;
             const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { min: 0, max: 1 };
-            const newZoom = this.axisDragger.update(event, direction, this.seriesRect, zoom, axisZoom);
+            const newZoom = this.axisDragger.update(
+                event,
+                direction,
+                this.anchorPoints[direction],
+                this.seriesRect,
+                zoom,
+                axisZoom
+            );
             this.updateAxisZoom(axisId, direction, newZoom);
             return;
         }

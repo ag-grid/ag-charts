@@ -1,6 +1,6 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { DefinedZoomState } from './zoomTypes';
+import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
 
 const unitZoomState: () => DefinedZoomState = () => ({
     x: { min: 0, max: 1 },
@@ -70,6 +70,26 @@ export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number):
         x: { min: cx - (dx * sx) / 2, max: cx + (dx * sx) / 2 },
         y: { min: cy - (dy * sy) / 2, max: cy + (dy * sy) / 2 },
     };
+}
+
+export function scaleZoomAxisWithAnchor(
+    newState: _ModuleSupport.ZoomState,
+    oldState: _ModuleSupport.ZoomState,
+    anchor: AnchorPoint
+): _ModuleSupport.ZoomState {
+    let { min, max } = oldState;
+    const diff = newState.max - newState.min;
+
+    if (anchor === 'start') {
+        max = oldState.min + diff;
+    } else if (anchor === 'middle') {
+        min = 0.5 - diff / 2;
+        max = 0.5 + diff / 2;
+    } else if (anchor === 'end') {
+        min = oldState.max - diff;
+    }
+
+    return { min, max };
 }
 
 /**
