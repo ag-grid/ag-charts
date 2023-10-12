@@ -33,12 +33,12 @@ describe('wrapOptionsUpdateCode', () => {
 
     it('correctly interprets braces inside the function body', () => {
         const functionDefinition = `foo(bar) {
-            options.axes[0].gridStyle = [{ lineDash: [1, 3] }];
+            options.axes[0].gridLine.style = [{ lineDash: [1, 3] }];
         }`;
 
         const propertyDefinition = wrapOptionsUpdateCode(functionDefinition);
         const expected =
-            'foo(bar) { const options = {...this.options}; options.axes[0].gridStyle = [{ lineDash: [1, 3] }]; this.options = options; }';
+            'foo(bar) { const options = {...this.options}; options.axes[0].gridLine.style = [{ lineDash: [1, 3] }]; this.options = options; }';
 
         expect(standardiseWhitespace(propertyDefinition)).toBe(expected);
     });
