@@ -62,7 +62,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(NUMBER(0, 1))
     public minYRatio: number = 0.2;
 
-    public anchorPoints: ZoomAnchorPoints;
+    public anchorPoints = new ZoomAnchorPoints();
 
     // Scenes
     private readonly scene: _Scene.Scene;
@@ -75,10 +75,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly updateService: _ModuleSupport.UpdateService;
 
     // Zoom methods
-    private readonly axisDragger: ZoomAxisDragger;
-    private readonly panner: ZoomPanner;
+    private readonly axisDragger = new ZoomAxisDragger();
+    private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
-    private readonly scroller: ZoomScroller;
+    private readonly scroller = new ZoomScroller();
 
     // State
     private isDragging: boolean = false;
@@ -104,23 +104,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event))
         );
 
-        this.anchorPoints = new ZoomAnchorPoints();
-
-        // Add dragging axis zoom method
-        this.axisDragger = new ZoomAxisDragger();
-
-        // Add panning while zoomed method
-        this.panner = new ZoomPanner();
-
         // Add selection zoom method and attach selection rect to root scene
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect);
 
         this.scene.root?.appendChild(selectionRect);
         this.destroyFns.push(() => this.scene.root?.removeChild(selectionRect));
-
-        // Add scrolling zoom method
-        this.scroller = new ZoomScroller();
 
         // Add context menu zoom actions
         ContextMenu._registerDefaultAction(
