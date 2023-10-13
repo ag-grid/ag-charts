@@ -44,6 +44,7 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
+import { NodeDatumManager } from './interaction/nodeDatumManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
@@ -252,6 +253,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly cursorManager: CursorManager;
     protected readonly highlightManager: HighlightManager;
     protected readonly interactionManager: InteractionManager;
+    protected readonly nodeDatumManager: NodeDatumManager;
     protected readonly tooltipManager: TooltipManager;
     protected readonly zoomManager: ZoomManager;
     protected readonly layoutService: LayoutService;
@@ -301,6 +303,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
+        this.nodeDatumManager = new NodeDatumManager();
         this.zoomManager = new ZoomManager();
         this.dataService = new DataService<Series<any>>(() => this.series);
         this.layoutService = new LayoutService();
@@ -405,6 +408,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             cursorManager,
             highlightManager,
             interactionManager,
+            nodeDatumManager,
             tooltipManager,
             zoomManager,
             dataService,
@@ -425,6 +429,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             cursorManager,
             highlightManager,
             interactionManager,
+            nodeDatumManager,
             tooltipManager,
             zoomManager,
             dataService,
@@ -1253,32 +1258,37 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const datum = nearestNode?.datum;
         const nodeClickRange = datum?.series.nodeClickRange;
 
+        let pixelRange;
+        if (typeof nodeClickRange === 'number' && Number.isFinite(nodeClickRange)) {
+            pixelRange = nodeClickRange;
+        }
+
+        const pickedNode = this.pickSeriesNode(
+            { x: event.offsetX, y: event.offsetY },
+            nodeClickRange === 'exact',
+            pixelRange
+        );
+
+        if (pickedNode) {
+            this.nodeDatumManager.pointerEnterNode(this.id, pickedNode.datum);
+        } else {
+            this.nodeDatumManager.pointerLeaveNode(this.id);
+        }
+
         // First check if we should trigger the callback based on nearest node
         if (datum && nodeClickRange === 'nearest') {
             callback(datum.series, datum);
             return true;
         }
 
-        // Then check for an exact match or within the given range
-        let pixelRange;
-        if (typeof nodeClickRange === 'number' && Number.isFinite(nodeClickRange)) {
-            pixelRange = nodeClickRange;
-        }
-
-        const pick = this.pickSeriesNode(
-            { x: event.offsetX, y: event.offsetY },
-            nodeClickRange === 'exact',
-            pixelRange
-        );
-
-        if (!pick) return false;
+        if (!pickedNode) return false;
 
         // Then if we've picked a node within the pixel range, or exactly, trigger the callback
         const isPixelRange = pixelRange != null;
-        const exactlyMatched = nodeClickRange === 'exact' && pick.distance === 0;
+        const exactlyMatched = nodeClickRange === 'exact' && pickedNode.distance === 0;
 
         if (isPixelRange || exactlyMatched) {
-            callback(pick.series, pick.datum);
+            callback(pickedNode.series, pickedNode.datum);
             return true;
         }
 
