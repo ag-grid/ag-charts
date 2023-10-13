@@ -66,6 +66,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
+    private readonly nodeDatumManager: _ModuleSupport.NodeDatumManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly updateService: _ModuleSupport.UpdateService;
@@ -77,7 +78,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly scroller = new ZoomScroller();
 
     // State
-    private isDragging: boolean = false;
+    private isDragging = false;
     private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -85,6 +86,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.scene = ctx.scene;
         this.cursorManager = ctx.cursorManager;
+        this.nodeDatumManager = ctx.nodeDatumManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
@@ -122,7 +124,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
-        if (!this.enabled) return;
+        if (!this.enabled || this.nodeDatumManager.isPointerOverNode()) return;
 
         if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY)) {
             return;
