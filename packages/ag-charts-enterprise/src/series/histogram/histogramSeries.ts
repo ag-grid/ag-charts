@@ -582,11 +582,6 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         } = this;
         const diff = processedData?.reduced?.diff;
 
-        if (!diff?.changed) {
-            super.resetAllAnimation(data);
-            return;
-        }
-
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(ChartAxisDirection.Y, this.axes));
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,

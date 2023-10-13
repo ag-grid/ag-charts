@@ -650,11 +650,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         } = this;
         const diff = processedData?.reduced?.diff;
 
-        if (!diff?.changed) {
-            super.resetAllAnimation(data);
-            return;
-        }
-
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
         fromToMotion(
             `${this.id}_waiting-update-ready`,
