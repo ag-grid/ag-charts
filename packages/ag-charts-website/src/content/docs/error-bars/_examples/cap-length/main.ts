@@ -7,12 +7,6 @@ const options: AgChartOptions = {
     title: {
         text: 'Volume-Pressure Relationship with Confidence Intervals',
     },
-    axes: [
-        // Note: axis configuration is required only for line series.
-        // The bottom axis defaults to 'number' for scatter series.
-        { type: 'number', position: 'left' },
-        { type: 'number', position: 'bottom' },
-    ],
     series: [
         {
             type: 'scatter',
@@ -23,23 +17,10 @@ const options: AgChartOptions = {
                 xUpperKey: 'volumeUpper',
                 yLowerKey: 'pressureLower',
                 yUpperKey: 'pressureUpper',
+                cap: { length: 25 },
             },
         },
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
-
-function scatter() {
-    if (options.series !== undefined) {
-        options.series[0].type = 'scatter';
-    }
-    AgEnterpriseCharts.update(chart, options);
-}
-
-function line() {
-    if (options.series !== undefined) {
-        options.series[0].type = 'line';
-    }
-    AgEnterpriseCharts.update(chart, options);
-}
+AgEnterpriseCharts.create(options);

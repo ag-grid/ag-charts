@@ -10,10 +10,12 @@ on Line, Bar and Scatter Series.
 
 {% chartExampleRunner title="Line Series Error Bars" name="single" type="generated" options="{ \"enterprise\": true }" /%}
 
-Error Bars can be enabled on Line and Bar Series using the `errorBars` key.
+Error Bars can be enabled on supported series types using the `errorBars` key.
 
-The required `yLowerKey` and `yUpperKey` defines the keys used to retrieve the
-error values from the data.
+Categoric Line Series and Bar Series only support Error Bars on the Y axis.
+
+The required `yLowerKey` and `yUpperKey` properties defines the keys used to
+retrieve the error values from the data.
 
 ```js
 data: [
@@ -22,7 +24,7 @@ data: [
         temperature: 35,
         temperatureLower: 32,
         temperatureUpper: 37,
-    },
+    }, ...
 ],
 series: [
     {
@@ -36,14 +38,15 @@ series: [
 ],
 ```
 
-## Scatter Series Error Bars
+## Double Error Bars
 
-{% chartExampleRunner title="Scatter Series Error Bars" name="double" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Double Error Bars" name="double" type="generated" options="{ \"enterprise\": true }" /%}
 
-Error Bars can be enabled on Scatter Series using the `errorBars` key.
+Scatter Plots and Continuous Line Series support error bars on the X axis, the Y
+axis, or both axes.
 
-The required properties `xLowerKey`, `xUpperKey`, `yLowerKey` and `yUpperKey`
-define the keys used to retrieve the X and Y error values from the data.
+The properties `xLowerKey`, `xUpperKey`, `yLowerKey` and `yUpperKey` define the
+keys used to retrieve the X and Y error values from the data.
 
 ```js
 data: [
@@ -54,7 +57,7 @@ data: [
         pressure: 1.2,
         pressureLower: 1.1,
         pressureUpper: 1.4
-    },
+    }, ...
 ],
 series: [
     {
@@ -71,39 +74,129 @@ series: [
 ],
 ```
 
+{% note %}
+The X axis of Line Series is categoric by default. See the [Continuous
+Data](./line-series#continuous-data) for more information on how to configure
+this series.
+{% /note %}
+
 ## Tooltip Parameters
 
 {% chartExampleRunner title="Error Bars Tooltips" name="tooltips-error-bars" type="generated" options="{ \"enterprise\": true }" /%}
 
-[Tooltips](./tooltips) are not shown by default, but error bar parameters are
-provided the `renderer` for customization.
+[Tooltips](./tooltips) are not shown by default, but Error Bar parameters are
+provided to the `renderer` for customisation.
 
 ```js
-function verbose_renderer(params) {
+function myRenderer(params) {
     const datum = params.datum;
     return {
-        title: `${datum[params.xKey]}m³ / ${datum[params.yKey]}kPa`,
         content:
             '<ul>' +
-            `<li>${params.xUpperName}: ${params.xUpperKey ? datum[params.xUpperKey] : undefined}m³</li>` +
-            `<li>${params.xLowerName}: ${params.xLowerKey ? datum[params.xLowerKey] : undefined}m³</li>` +
-            `<li>${params.yUpperName}: ${params.yUpperKey ? datum[params.yUpperKey] : undefined}kPa</li>` +
-            `<li>${params.yLowerName}: ${params.yLowerKey ? datum[params.yLowerKey] : undefined}kPa</li>` +
+            `<li>${params.xUpperName}: ${datum[params.xUpperKey]}m³</li>` +
+            `<li>${params.xLowerName}: ${datum[params.xLowerKey]}m³</li>` +
+            `<li>${params.yUpperName}: ${datum[params.yUpperKey]}kPa</li>` +
+            `<li>${params.yLowerName}: ${datum[params.yLowerKey]}kPa</li>` +
             '</ul>',
     };
 }
+
+const options = {
+    series: [
+        {
+            errorBar:  {
+                xLowerKey: 'volumeLower',
+                xUpperKey: 'volumeUpper',
+                yLowerKey: 'pressureLower',
+                yUpperKey: 'pressureUpper',
+                xLowerName: 'Volume (lower bound)',
+                xUpperName: 'Volume (upper bound)',
+                /* yLowerName implicitly defaults to 'pressureLower' */
+                /* yUpperName implicitly defaults to 'pressureUpper' */
+            },
+            tooltip: { renderer: myRenderer },
+        },
+        ...
+    ],
+    ...
+};
 ```
 
-The `renderer` has access to the keys, names, and values for the error data for
-both axes:
+The `renderer` has access to all the key and names for the error data:
 
--   `xLowerKey`
--   `xLowerName`
--   `xUpperKey`
--   `xUpperName`
--   `yLowerKey`
--   `yLowerName`
--   `yUpperKey`
--   `yUpperName`
+{% interfaceDocumentation interfaceName="AgErrorBarDataOptions" config="{\"description\":\"\", \"showSnippets\": false }" /%}
 
-The optional names will default to keys if unset.
+{% note %}All names are optional and will default to keys if unset.{% /note %}
+
+## Customisation
+
+### Styling
+
+{% chartExampleRunner title="Styling Example" name="styling" type="generated" options="{ \"enterprise\": true }" /%}
+
+The Error Bar's can be customised by setting styling options in the `errorBar`
+properties. Styling options in `errorBar` property will apply to both the
+Whiskers and Cap.
+
+Styling options for the Caps can be overriden using the `errorBar.cap` property.
+
+```js
+errorBar: {
+    stroke: 'orange',
+    cap: {
+        /* stroke implicitly set to 'orange' */
+        strokeWidth: 4,
+    },
+},
+```
+
+### Cap Length
+
+The default length of Cap is determined relative the shape representing the data
+point. This varies depending the type of series used:
+
+-   **Line and Scatter Series:** Cap length defaults to the Marker size.
+-   **Vertical Bar Series:** Cap length defaults to half of Bar width.
+-   **Horizontal Bar Series:** Cap length defaults to half of Bar height.
+
+The Cap length can be customised as a ratio relative to series' shape or using
+an absolute value.
+
+#### Length Ratio
+
+{% chartExampleRunner title="Length Ratio Example" name="cap-lengthRatio" type="generated" options="{ \"enterprise\": true }" /%}
+
+The `cap.lengthRatio` property must be number between 0 and 1. If set, the Cap
+length will be calculated by multiplying this ratio with the length of the shape
+used by the series (Marker size, or Bar width/height).
+
+```
+errorBar: {
+    cap: { lengthRatio: 1.0 },
+},
+```
+
+In this configuration:
+
+-   `lengthRatio` sets the Cap length 100% of the Bar widths.
+
+#### Absolute Length
+
+{% chartExampleRunner title="Absolute Length Example" name="cap-length" type="generated" options="{ \"enterprise\": true }" /%}
+
+The `cap.length` property sets the absolute length of the Cap in pixels. If
+defined, this propertiy takes priority over the `cap.lengthRatio` property.
+
+```
+errorBar: {
+    cap: { length: 25 },
+},
+```
+
+In this configuration:
+
+-   `length` sets the length of all Caps to 25 pixels.
+
+## API Reference
+
+{% interfaceDocumentation interfaceName="AgErrorBarOptions" config="{ \"showSnippets\": false }" /%}

@@ -11,20 +11,13 @@ const options: AgChartOptions = {
             data: getData(),
             xKey: 'month',
             yKey: 'temperature',
-            yName: 'Canada',
             errorBar:  {
                 yLowerKey: 'temperatureLower',
                 yUpperKey: 'temperatureUpper',
-            },
-        },
-        {
-            data: getData2(),
-            xKey: 'month',
-            yKey: 'temperature',
-            yName: 'Australia',
-            errorBar:  {
-                yLowerKey: 'temperatureLower',
-                yUpperKey: 'temperatureUpper',
+                stroke: 'orange',
+                cap: {
+                     strokeWidth: 4,
+                },
             },
         },
     ],
