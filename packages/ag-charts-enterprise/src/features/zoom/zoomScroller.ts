@@ -1,13 +1,20 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomTransformers';
-import type { DefinedZoomState } from './zoomTypes';
+import {
+    constrainZoom,
+    definedZoomState,
+    pointToRatio,
+    scaleZoomAxisWithAnchor,
+    translateZoom,
+} from './zoomTransformers';
+import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
 
 export class ZoomScroller {
     update(
         event: _ModuleSupport.InteractionEvent<'wheel'>,
         step: number,
-        pivot: 'pointer' | 'start' | 'end',
+        anchorPointX: AnchorPoint,
+        anchorPointY: AnchorPoint,
         isScalingX: boolean,
         isScalingY: boolean,
         bbox: _Scene.BBox,
@@ -30,7 +37,7 @@ export class ZoomScroller {
         newZoom.x.max += isScalingX ? step * dir : 0;
         newZoom.y.max += isScalingY ? step * dir : 0;
 
-        if (pivot === 'pointer' || (isScalingX && isScalingY)) {
+        if ((anchorPointX === 'pointer' && isScalingX) || (anchorPointY === 'pointer' && isScalingY)) {
             // Translate the zoom bounding box such that the cursor remains over the same position as before
             const scaledOriginX = origin.x * (1 - (oldZoom.x.max - oldZoom.x.min - (newZoom.x.max - newZoom.x.min)));
             const scaledOriginY = origin.y * (1 - (oldZoom.y.max - oldZoom.y.min - (newZoom.y.max - newZoom.y.min)));
@@ -39,18 +46,13 @@ export class ZoomScroller {
             const translateY = isScalingY ? origin.y - scaledOriginY : 0;
 
             newZoom = translateZoom(newZoom, translateX, translateY);
-        } else if (pivot === 'start' && isScalingX) {
-            newZoom.x.min = oldZoom.x.min;
-            newZoom.x.max = oldZoom.x.min + (newZoom.x.max - newZoom.x.min);
-        } else if (pivot === 'start' && isScalingY) {
-            newZoom.y.min = oldZoom.y.min;
-            newZoom.y.max = oldZoom.y.min + (newZoom.y.max - newZoom.y.min);
-        } else if (pivot === 'end' && isScalingX) {
-            newZoom.x.min = oldZoom.x.max - (newZoom.x.max - newZoom.x.min);
-            newZoom.x.max = oldZoom.x.max;
-        } else if (pivot === 'end' && isScalingY) {
-            newZoom.y.min = oldZoom.y.max - (newZoom.y.max - newZoom.y.min);
-            newZoom.y.max = oldZoom.y.max;
+        } else {
+            if (isScalingX) {
+                newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchorPointX);
+            }
+            if (isScalingY) {
+                newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchorPointY);
+            }
         }
 
         // Constrain the zoom bounding box to remain within the ultimate bounds of 0,0 and 1,1

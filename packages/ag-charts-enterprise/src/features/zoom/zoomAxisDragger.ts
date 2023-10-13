@@ -1,8 +1,8 @@
 import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio } from './zoomTransformers';
-import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
+import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomTransformers';
+import type { AnchorPoint, DefinedZoomState, ZoomCoords } from './zoomTypes';
 
 export class ZoomAxisDragger {
     public isAxisDragging: boolean = false;
@@ -13,6 +13,7 @@ export class ZoomAxisDragger {
     update(
         event: _ModuleSupport.InteractionEvent<'drag'>,
         direction: _ModuleSupport.ChartAxisDirection,
+        anchor: AnchorPoint,
         bbox: _Scene.BBox,
         zoom?: _ModuleSupport.AxisZoomState,
         axisZoom?: _ModuleSupport.ZoomState
@@ -29,7 +30,7 @@ export class ZoomAxisDragger {
         }
 
         this.updateCoords(event.offsetX, event.offsetY);
-        return this.updateZoom(direction, bbox);
+        return this.updateZoom(direction, anchor, bbox);
     }
 
     stop() {
@@ -47,7 +48,11 @@ export class ZoomAxisDragger {
         }
     }
 
-    private updateZoom(direction: _ModuleSupport.ChartAxisDirection, bbox: _Scene.BBox): _ModuleSupport.ZoomState {
+    private updateZoom(
+        direction: _ModuleSupport.ChartAxisDirection,
+        anchor: AnchorPoint,
+        bbox: _Scene.BBox
+    ): _ModuleSupport.ZoomState {
         const { coords, oldZoom } = this;
 
         let newZoom = definedZoomState(oldZoom);
@@ -57,7 +62,7 @@ export class ZoomAxisDragger {
             return newZoom.y;
         }
 
-        // Scale the zoom along the given axis, pivoting on the end of the axis
+        // Scale the zoom along the given axis, anchoring on the end of the axis
         const origin = pointToRatio(bbox, coords.x1, coords.y1);
         const target = pointToRatio(bbox, coords.x2, coords.y2);
 
@@ -65,10 +70,7 @@ export class ZoomAxisDragger {
             const scaleX = target.x - origin.x;
 
             newZoom.x.max += scaleX;
-
-            newZoom.x.min = oldZoom.x.max - (newZoom.x.max - newZoom.x.min);
-            newZoom.x.max = oldZoom.x.max;
-
+            newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchor === 'pointer' ? 'end' : anchor);
             newZoom = constrainZoom(newZoom);
 
             return newZoom.x;
@@ -77,10 +79,7 @@ export class ZoomAxisDragger {
         const scaleY = target.y - origin.y;
 
         newZoom.y.max -= scaleY;
-
-        newZoom.y.min = oldZoom.y.max - (newZoom.y.max - newZoom.y.min);
-        newZoom.y.max = oldZoom.y.max;
-
+        newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchor === 'pointer' ? 'middle' : anchor);
         newZoom = constrainZoom(newZoom);
 
         return newZoom.y;

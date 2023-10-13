@@ -62,23 +62,25 @@ In the example below, we have series attached to different y-axes.
 
 {% chartExampleRunner title="Zoom Axis Dragging" name="zoom-axis-dragging" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Scrolling Pivot
+## Anchor Point
 
-By default, the chart will zoom while keeping the right side of the x-axis pinned. You can change this pivot point with the `scrollingPivot` property, setting it one of:
+By default, the chart will zoom while keeping the right side of the x-axis pinned. You can change this anchor point with the `anchorPointX` and `anchorPointY` properties, setting them each to one of:
 
--   `end` (default), the right or top of the chart when scrolling on the x or y axis respectively,
 -   `start`, the left or bottom of the chart when scrolling on the x or y axis respectively,
+-   `middle` (default for y-axis), the middle of the chart,
+-   `end` (default for x-axis), the right or top of the chart when scrolling on the x or y axis respectively,
 -   `pointer`, keep the mouse pointer above the same position on the chart when zooming.
 
-In the example below, we set pivoting to about the pointer.
+In the example below, we set the anchor point for both axes to the mouse pointer.
 
 ```ts
 zoom: {
-    scrollingPivot: 'pointer',
+    anchorPointX: 'pointer',
+    anchorPointY: 'pointer',
 }
 ```
 
-{% chartExampleRunner title="Zoom Scrolling Pivot" name="zoom-scrolling-pivot" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Zoom Anchor Point" name="zoom-anchor-point" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Scrolling Step
 
@@ -132,30 +134,5 @@ When both the zoom and context menu are enabled, additional zoom actions are add
 {% chartExampleRunner title="Zoom Context Menu" name="zoom-context-menu" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
-
-{/_ TODO: replace with usual api reference component _/}
-
-```ts
-interface AgCartesianChartOptions {
-    zoom?: AgZoomOptions;
-}
-
-type AgZoomAxes = 'x' | 'y' | 'xy';
-type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
-type AgZoomScrollingPivot = 'pointer' | 'start' | 'end';
-
-interface AgZoomOptions {
-    axes?: AgZoomAxes;
-    enabled?: boolean;
-    enablePanning?: boolean;
-    enableScrolling?: boolean;
-    enableSelecting?: boolean;
-    minXRatio?: number;
-    minYRatio?: number;
-    panKey?: AgZoomPanKey;
-    scrollingStep?: number;
-    scrollingPivot?: AgZoomScrollingPivot;
-}
-```
 
 {% interfaceDocumentation interfaceName="AgZoomOptions" config="{ \"showSnippets\": false }" /%}

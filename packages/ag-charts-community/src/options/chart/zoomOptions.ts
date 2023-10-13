@@ -1,8 +1,12 @@
+export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
 export type AgZoomAxes = 'x' | 'y' | 'xy';
 export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
-export type AgZoomScrollingPivot = 'pointer' | 'start' | 'end';
 
 export interface AgZoomOptions {
+    /** The anchor point for the x-axis about which to zoom into when scrolling, defaults to `end`. */
+    anchorPointX?: AgZoomAnchorPoint;
+    /** The anchor point for the y-axis about which to zoom into when scrolling, defaults to `middle`. */
+    anchorPointY?: AgZoomAnchorPoint;
     /** The axes on which to zoom, one of 'xy', 'x', or 'y'. */
     axes?: AgZoomAxes;
     /** Set to true to enable the zoom module. */
@@ -23,6 +27,4 @@ export interface AgZoomOptions {
     panKey?: AgZoomPanKey;
     /** The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart, defaults to `0.1`. */
     scrollingStep?: number;
-    /** The pivot about which to zoom into when scrolling, defaults to `end`. */
-    scrollingPivot?: AgZoomScrollingPivot;
 }
