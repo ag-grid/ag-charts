@@ -1,5 +1,6 @@
 import type { _Scale } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { AgErrorBarSupportedSeriesTypes } from 'ag-charts-community';
 
 import type { ErrorBarCapTheme, ErrorBarPoints, ErrorBarWhiskerTheme } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
@@ -24,40 +25,17 @@ type ErrorBoundCartesianSeries = Omit<
     >,
     'highlightSelection'
 >;
-type ModuleContext = _ModuleSupport.ModuleContext;
-type SeriesContext = _ModuleSupport.SeriesContext;
 
-function typeGuard<T extends ErrorBoundCartesianSeries>(
-    ctx: SeriesContext,
-    target: new (ctx: ModuleContext) => T
-): T | undefined {
-    if (target.prototype.type === ctx.series.type) {
-        return ctx.series as T;
-    }
-    return undefined;
-}
-
-function toErrorBoundCartesianSeries(ctx: SeriesContext): ErrorBoundCartesianSeries {
-    // This function checks that the requested ctx.series.type matches one of
-    // the static members `type` from the list of constructors below. If no
-    // match is found then an error is thrown. This ensures type safety because
-    // the compiler will ensure that the supported series types match the
-    // ErrorBoundCartesianSeries contract.
-    const supportedSeriesTypes: (new (ctx: ModuleContext) => ErrorBoundCartesianSeries)[] = [
-        _ModuleSupport.BarSeries,
-        _ModuleSupport.LineSeries,
-        _ModuleSupport.ScatterSeries,
-    ];
-    for (const ctor of supportedSeriesTypes) {
-        const series: ErrorBoundCartesianSeries | undefined = typeGuard(ctx, ctor);
-        if (series !== undefined) {
-            return series;
+function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBoundCartesianSeries {
+    for (const supportedType of AgErrorBarSupportedSeriesTypes) {
+        if (supportedType == ctx.series.type) {
+            return ctx.series as ErrorBoundCartesianSeries;
         }
     }
     throw new Error(
         `AG Charts - unsupported series type '${
             ctx.series.type
-        }', error bars supported series types: ${supportedSeriesTypes.join(', ')}`
+        }', error bars supported series types: ${AgErrorBarSupportedSeriesTypes.join(', ')}`
     );
 }
 
@@ -142,7 +120,7 @@ export class ErrorBars
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
 
-    constructor(ctx: SeriesContext) {
+    constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);

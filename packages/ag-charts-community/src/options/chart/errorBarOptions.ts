@@ -40,7 +40,10 @@ export interface AgErrorBarOptions extends AgErrorBarDataOptions, ErrorBarStylin
     cap?: AgErrorBarCapOptions;
 }
 
+export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
+
 export interface AgErrorBarSeriesOptions {
+    type?: (typeof AgErrorBarSupportedSeriesTypes)[number];
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions;
 }
