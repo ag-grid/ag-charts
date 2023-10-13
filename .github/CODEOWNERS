@@ -4,14 +4,22 @@
 * @ag-grid/ag-charts-team
 
 # Astro + website changes to be reviewed by website team.
-/packages/ag-charts-website/ @taktran @markdurrant
+*.scss @markdurrant
+*.astro @taktran
+/packages/ag-charts-website/astro/** @taktran
+/packages/ag-charts-website/components/** @taktran
+/packages/ag-charts-website/features/** @taktran
+/packages/ag-charts-website/layouts/** @taktran
+/packages/ag-charts-website/stores/** @taktran
+/packages/ag-charts-website/utils/** @taktran
 
 # Docs updates to be reviewed by Eng VP.
+/packages/ag-charts-website/content/** @alantreadway @rmc-software
 *.mdoc @rmc-software
 
 # Charts library code to be reviewed by Chart TL.
-/packages/ag-charts-community/ @alantreadway
-/packages/ag-charts-enterprise/ @alantreadway
+/packages/ag-charts-community/** @alantreadway
+/packages/ag-charts-enterprise/** @alantreadway
 
 # Sensitive build/repo files to be reviewed by Chart TL.
 **/package.json @alantreadway
