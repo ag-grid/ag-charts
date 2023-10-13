@@ -46,7 +46,7 @@ export interface ErrorBoundSeriesNodeDatum {
     // Caps can appear on bar, line and scatter series. The length is determined
     // by the size of the marker (line, scatter), width of the bar (vertical
     // bars), or height of the bar (horizontal bars).
-    readonly capDefaults: { lengthRatio: number; lengthRatioMultiplier: number };
+    readonly capDefaults: { lengthRatio: number; lengthRatioMultiplier: number; lengthMax: number };
 }
 
 interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {

@@ -52,13 +52,16 @@ export class ErrorBarNode extends _Scene.Group {
         // 1.  User-defined length (pixels).
         // 2.  User-defined lengthRatio.
         // 3.  Library default (defined by underlying series).
+        let desiredLength: number;
         if (capsTheme.length !== undefined) {
-            return capsTheme.length;
+            desiredLength = capsTheme.length;
         } else if (capsTheme.lengthRatio !== undefined) {
-            return capsTheme.lengthRatio * capDefaults.lengthRatioMultiplier;
+            desiredLength = capsTheme.lengthRatio * capDefaults.lengthRatioMultiplier;
         } else {
-            return capDefaults.lengthRatio * capDefaults.lengthRatioMultiplier;
+            desiredLength = capDefaults.lengthRatio * capDefaults.lengthRatioMultiplier;
         }
+
+        return Math.min(desiredLength, capDefaults.lengthMax);
     }
 
     update(

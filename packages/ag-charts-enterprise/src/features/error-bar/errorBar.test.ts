@@ -335,7 +335,7 @@ describe('ErrorBars', () => {
                 {
                     ...SERIES_CANADA,
                     type: 'bar',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 30.0 } },
                 },
             ],
         });
@@ -349,6 +349,20 @@ describe('ErrorBars', () => {
                 {
                     ...SERIES_BOYLESLAW,
                     errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should limit cap.length to bar width', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 100.0 } },
                 },
             ],
         });
