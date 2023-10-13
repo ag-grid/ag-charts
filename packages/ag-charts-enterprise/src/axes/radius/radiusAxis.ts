@@ -86,7 +86,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         super.updateSelections(data);
 
         const {
-            gridLine: { style, width },
+            gridLine: { enabled, style, width },
             shape,
         } = this;
         if (!style) {
@@ -103,7 +103,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
             node.fill = undefined;
         };
 
-        this.gridArcGroupSelection.update(shape === 'circle' ? ticks : []).each((node, value, index) => {
+        this.gridArcGroupSelection.update(shape === 'circle' && enabled ? ticks : []).each((node, value, index) => {
             setStyle(node, index);
 
             node.centerX = 0;
@@ -113,28 +113,30 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
             node.endAngle = 2 * Math.PI;
         });
 
-        this.gridPolygonGroupSelection.update(shape === 'polygon' ? ticks : []).each((node, value, index) => {
-            setStyle(node, index);
+        this.gridPolygonGroupSelection
+            .update(shape === 'polygon' && enabled ? ticks : [])
+            .each((node, value, index) => {
+                setStyle(node, index);
 
-            const { path } = node;
-            const angles = this.gridAngles;
-            path.clear({ trackChanges: true });
-            if (!angles || angles.length < 3) {
-                return;
-            }
-
-            const radius = this.getTickRadius(value);
-            angles.forEach((angle, i) => {
-                const x = radius * Math.cos(angle);
-                const y = radius * Math.sin(angle);
-                if (i === 0) {
-                    path.moveTo(x, y);
-                } else {
-                    path.lineTo(x, y);
+                const { path } = node;
+                const angles = this.gridAngles;
+                path.clear({ trackChanges: true });
+                if (!angles || angles.length < 3) {
+                    return;
                 }
+
+                const radius = this.getTickRadius(value);
+                angles.forEach((angle, i) => {
+                    const x = radius * Math.cos(angle);
+                    const y = radius * Math.sin(angle);
+                    if (i === 0) {
+                        path.moveTo(x, y);
+                    } else {
+                        path.lineTo(x, y);
+                    }
+                });
+                path.closePath();
             });
-            path.closePath();
-        });
     }
 
     protected override updateTitle() {

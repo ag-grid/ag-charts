@@ -147,8 +147,7 @@ export abstract class AngleAxis<
         const {
             scale,
             gridLength: radius,
-            gridLine: { style, width },
-            tick,
+            gridLine: { enabled, style, width },
             innerRadiusRatio,
         } = this;
         if (!(style && radius > 0)) {
@@ -158,7 +157,7 @@ export abstract class AngleAxis<
         const ticks = this.tickData;
         const innerRadius = radius * innerRadiusRatio;
         const styleCount = style.length;
-        this.gridLineGroupSelection.update(tick.enabled ? ticks : []).each((line, datum, index) => {
+        this.gridLineGroupSelection.update(enabled ? ticks : []).each((line, datum, index) => {
             const { value } = datum;
             const { stroke, lineDash } = style[index % styleCount];
             const angle = scale.convert(value);
