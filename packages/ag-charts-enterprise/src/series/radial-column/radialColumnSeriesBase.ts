@@ -500,11 +500,6 @@ export abstract class RadialColumnSeriesBase<
         const { animationManager } = this.ctx;
         const diff = processedData?.reduced?.diff;
 
-        if (!diff?.changed) {
-            this.resetAllAnimation();
-            return;
-        }
-
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,

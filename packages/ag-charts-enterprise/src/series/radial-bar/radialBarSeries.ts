@@ -471,11 +471,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         } = this;
         const diff = processedData?.reduced?.diff;
 
-        if (!diff?.changed) {
-            this.resetAllAnimation();
-            return;
-        }
-
         const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,

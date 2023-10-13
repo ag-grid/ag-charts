@@ -717,11 +717,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
-        if (!diff?.changed) {
-            super.resetAllAnimation(data);
-            return;
-        }
-
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
         motion.fromToMotion(
             `${this.id}_empty-update-ready`,
