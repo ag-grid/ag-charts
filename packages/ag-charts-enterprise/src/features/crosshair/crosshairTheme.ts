@@ -1,11 +1,13 @@
+import { _Theme } from 'ag-charts-community';
+
 export const AXIS_CROSSHAIR_THEME = {
     crosshair: {
         enabled: true,
         snap: true,
-        stroke: 'rgb(195, 195, 195)',
+        stroke: _Theme.DEFAULT_MUTED_LABEL_COLOUR,
         strokeWidth: 1,
         strokeOpacity: 1,
-        lineDash: [6, 3],
+        lineDash: [],
         lineDashOffset: 0,
         label: {
             enabled: true,
