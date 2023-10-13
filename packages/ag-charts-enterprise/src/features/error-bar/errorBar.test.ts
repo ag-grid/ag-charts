@@ -180,8 +180,20 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should render both scatter axes as expected', async () => {
+    it('should render both errorbars on scatter series as expected', async () => {
         chart = AgEnterpriseCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
+        await compare();
+    });
+
+    it('should render both errorbars on continuous line series as expected', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
+            axes: [
+                { type: 'number', position: 'left' },
+                { type: 'number', position: 'bottom' },
+            ],
+        });
         await compare();
     });
 
@@ -205,6 +217,53 @@ describe('ErrorBars', () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
             series: [{ ...SERIES_CANADA, type: 'bar', direction: 'horizontal', data: EXTENDING_BARS }],
+        });
+        await compare();
+    });
+
+    it('should apply styling to whiskers and cap as expected', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    data: FEWER_MONTHS,
+                    errorBar: {
+                        ...SERIES_CANADA.errorBar,
+                        stroke: 'rgb(0,0,255)',
+                        strokeWidth: 10,
+                        strokeOpacity: 0.5,
+                    },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should override cap styling as expected', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    data: FEWER_MONTHS,
+                    errorBar: {
+                        ...SERIES_CANADA.errorBar,
+                        visible: false,
+                        stroke: 'rgb(0,0,255)',
+                        strokeWidth: 10,
+                        strokeOpacity: 0.25,
+                        cap: {
+                            visible: true,
+                            stroke: 'rgb(0,255,0)',
+                            strokeWidth: 20,
+                            strokeOpacity: 0.75,
+                        },
+                    },
+                },
+            ],
         });
         await compare();
     });
