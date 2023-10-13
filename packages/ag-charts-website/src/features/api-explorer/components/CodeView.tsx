@@ -1,7 +1,7 @@
 import Code from '@components/Code';
 
+import { formatJson } from '../utils/utils';
 import styles from './CodeView.module.scss';
-import { formatJson } from './utils';
 
 /**
  * This renders the code inside the Standalone Charts API Explorer.

@@ -2,11 +2,14 @@
 import type { Framework } from '@ag-grid-types';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
-import { ChartsApiExplorer } from '@features/api-explorer/ChartsApiExplorer';
+import { ChartsApiExplorer } from '@features/api-explorer/components/ChartsApiExplorer';
+import { pathJoin } from '@utils/pathJoin';
+import { SITE_BASE_URL } from '@constants';
 
 const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
 const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
 
+const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 // TODO: Figure out framework
 const framework: Framework = 'javascript';
 ---
@@ -27,6 +30,7 @@ const framework: Framework = 'javascript';
             framework={framework}
             codeLookup={codeLookup}
             interfaceLookup={interfaceLookup}
+            siteUrl={siteUrl}
         />
     </div>
 </APIViewLayout>

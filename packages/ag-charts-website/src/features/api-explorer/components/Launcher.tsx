@@ -1,10 +1,11 @@
 import { Icon } from '@components/icon/Icon';
+import { openPlunker } from '@features/plunkr/utils/plunkr';
 import { doOnEnter } from '@utils/doOnEnter';
 
+import { getJavascriptContent, getPlunkrHtml } from '../utils/templates';
 import styles from './Launcher.module.scss';
 
 interface Props {
-    framework: string;
     options: {};
 
     fullScreen: boolean;
@@ -12,24 +13,18 @@ interface Props {
 
     fullScreenGraph: boolean;
     setFullScreenGraph(fullScreenGraph: boolean): void;
+
+    siteUrl: string;
 }
 
 export const Launcher = ({
-    framework,
     options,
     fullScreen,
     setFullScreen,
     fullScreenGraph,
     setFullScreenGraph,
+    siteUrl,
 }: Props) => {
-    const nodes = []; // TODO: Get nodes
-    const exampleInfo = {}; // TODO: Get example info
-    // const exampleInfo = useMemo(
-    //     () => buildExampleInfo(nodes, framework, options, useFunctionalReact, useVue3, useTypescript),
-    //     [nodes, framework, options, useFunctionalReact, useVue3, useTypescript]
-    // );
-    const isGenerated = isGeneratedExample(exampleInfo.type);
-
     return (
         <div className={styles.launcher}>
             <button
@@ -55,15 +50,18 @@ export const Launcher = ({
             <button
                 className="button-style-none"
                 onClick={() => {
-                    // openPlunker(exampleInfo);
-                    console.log('TODO: Open plunkr');
+                    const contents = getJavascriptContent({ options });
+                    const plunkrHtml = getPlunkrHtml({ contents, siteUrl, modifiedTimeMs: Date.now() });
+                    const plunkrExampleFiles = {
+                        ...contents.files,
+                        'index.html': plunkrHtml,
+                    };
+                    openPlunker({
+                        title: 'API Explorer Example',
+                        files: plunkrExampleFiles,
+                        fileToOpen: contents.entryFileName,
+                    });
                 }}
-                onKeyDown={(e) =>
-                    doOnEnter(e, () => {
-                        // openPlunker(exampleInfo);
-                        console.log('TODO: Open plunkr');
-                    })
-                }
                 role="button"
                 tabIndex={0}
                 title="Edit on Plunker"
@@ -73,5 +71,3 @@ export const Launcher = ({
         </div>
     );
 };
-
-const isGeneratedExample = (type) => ['generated', 'mixed', 'typescript'].includes(type);

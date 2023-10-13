@@ -105,9 +105,6 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
                 plunkrHtmlUrl={plunkrHtmlUrl}
                 boilerPlateFiles={exampleBoilerPlateFiles}
                 fileToOpen={initialSelectedFile!}
-                internalFramework={internalFramework}
-                pageName={title}
-                exampleName={exampleName}
             />
         ) : undefined;
 

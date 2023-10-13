@@ -1,4 +1,4 @@
-import type { Framework, InternalFramework, Library } from '@ag-grid-types';
+import type { InternalFramework, Library } from '@ag-grid-types';
 import type { CollectionEntry } from 'astro:content';
 import glob from 'glob';
 
@@ -43,16 +43,6 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-vue/main.js': 'packages/ag-charts-vue/main.js',
     'ag-charts-vue/lib/AgChartsVue.js': 'packages/ag-charts-vue/lib/AgChartsVue.js',
     'ag-charts-vue3/lib/AgChartsVue.js': 'packages/ag-charts-vue3/lib/AgChartsVue.js',
-};
-
-export const getChartScriptPath = (sitePrefix?: string) => {
-    const sitePrefixUrl = sitePrefix ? sitePrefix : '';
-    return pathJoin(sitePrefixUrl, '/dev/ag-charts-community/dist/main.umd.js');
-};
-
-export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
-    const sitePrefixUrl = sitePrefix ? sitePrefix : '';
-    return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/main.umd.js');
 };
 
 export const getPublicFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
@@ -107,8 +97,6 @@ export const isBuildServerBuild = () => false;
 export const isTypescriptInternalFramework = (internalFramework: InternalFramework) => {
     return TYPESCRIPT_INTERNAL_FRAMEWORKS.includes(internalFramework);
 };
-
-export const getCacheBustingUrl = (url: string, timestamp: number) => `${url}?t=${timestamp}`;
 
 export function getNewFrameworkPath({
     path,

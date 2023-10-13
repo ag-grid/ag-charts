@@ -1,13 +1,13 @@
 import classnames from 'classnames';
 import { useState } from 'react';
 
+import { isXAxisNumeric } from '../utils/utils';
 import { Chart } from './Chart';
 import { ChartTypeSelector } from './ChartTypeSelector';
 import styles from './ChartsApiExplorer.module.scss';
 import { CodeView } from './CodeView';
 import { Launcher } from './Launcher';
 import { Options } from './Options';
-import { isXAxisNumeric } from './utils';
 
 const createOptionsJson = (chartType, options) => {
     const optionsHasAxes = Array.isArray(options.axes) && options.axes.length > 0;
@@ -134,7 +134,7 @@ const createOptionsJson = (chartType, options) => {
  * settings and see how they affect the appearance of the chart, and it will generate the code they would need to use in
  * the framework of their choice.
  */
-export const ChartsApiExplorer = ({ framework, interfaceLookup, codeLookup }) => {
+export const ChartsApiExplorer = ({ framework, interfaceLookup, codeLookup, siteUrl }) => {
     const [chartType, setChartType] = useState('column');
     const [options, setOptions] = useState({});
     const [defaults, setDefaults] = useState({});
@@ -204,7 +204,11 @@ export const ChartsApiExplorer = ({ framework, interfaceLookup, codeLookup }) =>
                 <ChartTypeSelector type={chartType} onChange={updateChartType} />
                 <Launcher
                     options={optionsJson}
-                    {...{ framework, fullScreen, fullScreenGraph, setFullScreen, setFullScreenGraph }}
+                    fullScreen={fullScreen}
+                    fullScreenGraph={fullScreenGraph}
+                    setFullScreen={setFullScreen}
+                    setFullScreenGraph={setFullScreenGraph}
+                    siteUrl={siteUrl}
                 />
             </header>
             <div
