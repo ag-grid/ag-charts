@@ -7,6 +7,7 @@ import type {
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
+import type { RadialColumnShape } from './radialColumnShape';
 
 const {
     ChartAxisDirection,
@@ -20,15 +21,19 @@ const {
     PolarAxis,
     STRING,
     Validate,
+    diff,
+    fixNumericExtent,
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
-    valueProperty,
-    fixNumericExtent,
     resetLabelFn,
+    seriesLabelFadeInAnimation,
+    seriesLabelFadeOutAnimation,
+    valueProperty,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
+const { motion } = _Scene;
 const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeClickEvent<
@@ -64,13 +69,15 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly outerRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
+    readonly axisInnerRadius: number;
+    readonly axisOuterRadius: number;
+    readonly columnWidth: number;
     readonly index: number;
 }
 
-export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> extends _ModuleSupport.PolarSeries<
-    RadialColumnNodeDatum,
-    ItemPathType
-> {
+export abstract class RadialColumnSeriesBase<
+    ItemPathType extends _Scene.Sector | RadialColumnShape,
+> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, ItemPathType> {
     protected override readonly NodeClickEvent = RadialColumnSeriesNodeClickEvent;
 
     readonly label = new _Scene.Label<AgRadialSeriesLabelFormatterParams>();
@@ -191,24 +198,39 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
             extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], normaliseTo, 'range'));
         }
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        if (animationEnabled && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+
+        const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
+
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, true, { id: 'radiusValue-raw', invalidValue: undefined }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window', 'current', {
+                valueProperty(this, radiusKey, true, {
+                    id: 'radiusValue-raw',
+                    invalidValue: null,
+                    ...visibleProps,
+                }),
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'normal', 'current', {
                     id: `radiusValue-end`,
                     invalidValue: null,
                     groupId: stackGroupId,
+                    ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'window-trailing', 'current', {
+                ...groupAccumulativeValueProperty(this, radiusKey, true, 'trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
+                    ...visibleProps,
                 }),
                 ...extraProps,
             ],
-            dataVisible: visible,
+            dataVisible: visible || animationEnabled,
         });
+
+        this.animationState.transition('updateData');
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -340,6 +362,8 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
 
             const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, radiusDatum, x, y) : undefined;
 
+            const columnWidth = this.getColumnWidth(startAngle, endAngle);
+
             return {
                 series: this,
                 datum,
@@ -352,11 +376,18 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
                 outerRadius,
                 startAngle,
                 endAngle,
+                axisInnerRadius,
+                axisOuterRadius,
+                columnWidth,
                 index,
             };
         });
 
         return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
+    }
+
+    protected getColumnWidth(_startAngle: number, _endAngle: number) {
+        return NaN;
     }
 
     async update() {
@@ -378,7 +409,7 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
         this.animationState.transition('update');
     }
 
-    protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum): void;
+    protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
     protected updateSectorSelection(
         selection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>,
@@ -400,7 +431,9 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
         const stroke = highlightedStyle?.stroke ?? this.stroke;
         const strokeOpacity = this.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.strokeWidth;
-        selection.update(selectionData).each((node, datum) => {
+
+        const idFn = (datum: RadialColumnNodeDatum) => datum.angleValue;
+        selection.update(selectionData, undefined, idFn).each((node, datum) => {
             const format = this.formatter
                 ? this.ctx.callbackCache.call(this.formatter, {
                       datum,
@@ -414,7 +447,7 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
                   })
                 : undefined;
 
-            this.updateItemPath(node, datum);
+            this.updateItemPath(node, datum, highlight);
             node.fill = format?.fill ?? fill;
             node.fillOpacity = format?.fillOpacity ?? fillOpacity;
             node.stroke = format?.stroke ?? stroke;
@@ -447,6 +480,52 @@ export abstract class RadialColumnSeriesBase<ItemPathType extends _Scene.Path> e
                 node.visible = false;
             }
         });
+    }
+
+    protected abstract getColumnTransitionFunctions(): {
+        fromFn: _Scene.FromToMotionPropFn<any, any, any>;
+        toFn: _Scene.FromToMotionPropFn<any, any, any>;
+    };
+
+    protected override animateEmptyUpdateReady() {
+        const { labelSelection } = this;
+
+        const fns = this.getColumnTransitionFunctions();
+        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
+    }
+
+    override animateWaitingUpdateReady() {
+        const { itemSelection, labelSelection, processedData } = this;
+        const { animationManager } = this.ctx;
+        const diff = processedData?.reduced?.diff;
+
+        if (!diff?.changed) {
+            this.resetAllAnimation();
+            return;
+        }
+
+        const fns = this.getColumnTransitionFunctions();
+        motion.fromToMotion(
+            `${this.id}_waiting-update-ready`,
+            animationManager,
+            [itemSelection],
+            fns,
+            (_, datum) => String(datum.radiusValue),
+            diff
+        );
+
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
+    }
+
+    override animateClearingUpdateEmpty() {
+        const { itemSelection } = this;
+        const { animationManager } = this.ctx;
+
+        const fns = this.getColumnTransitionFunctions();
+        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
+
+        seriesLabelFadeOutAnimation(this, animationManager, [this.labelSelection]);
     }
 
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): string {

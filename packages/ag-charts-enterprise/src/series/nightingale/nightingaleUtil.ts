@@ -1,0 +1,65 @@
+import { _Scene, _Util } from 'ag-charts-community';
+
+import { createAngleMotionCalculator } from '../radial-column/radialColumnUtil';
+
+const { motion } = _Scene;
+
+export type AnimatableNightingaleDatum = {
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
+};
+
+export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
+    const isRemoved = (datum: AnimatableNightingaleDatum) => !datum;
+    const angles = createAngleMotionCalculator();
+
+    const fromFn = (sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
+        if (status === 'updated' && isRemoved(sect.previousDatum)) {
+            status = 'added';
+        }
+
+        if (status === 'added' && !isRemoved(sect.previousDatum)) {
+            status = 'updated';
+        }
+
+        angles.calculate(sect, datum, status);
+        const { startAngle, endAngle } = angles.from(datum);
+
+        let innerRadius: number;
+        let outerRadius: number;
+        if (status === 'removed' || status === 'updated') {
+            innerRadius = sect.innerRadius;
+            outerRadius = sect.outerRadius;
+        } else {
+            innerRadius = axisZeroRadius;
+            outerRadius = axisZeroRadius;
+        }
+        const mixin = motion.FROM_TO_MIXINS[status];
+        return { innerRadius, outerRadius, startAngle, endAngle, ...mixin };
+    };
+
+    const toFn = (sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
+        const { startAngle, endAngle } = angles.to(datum);
+        let innerRadius: number;
+        let outerRadius: number;
+        if (status === 'removed') {
+            innerRadius = sect.innerRadius;
+            outerRadius = sect.innerRadius;
+        } else {
+            innerRadius = isNaN(datum.innerRadius) ? axisZeroRadius : datum.innerRadius;
+            outerRadius = isNaN(datum.outerRadius) ? axisZeroRadius : datum.outerRadius;
+        }
+        return { innerRadius, outerRadius, startAngle, endAngle };
+    };
+
+    return { toFn, fromFn };
+}
+
+export function resetNightingaleSelectionFn(
+    _sect: _Scene.Sector,
+    { innerRadius, outerRadius, startAngle, endAngle }: AnimatableNightingaleDatum
+) {
+    return { innerRadius, outerRadius, startAngle, endAngle };
+}
