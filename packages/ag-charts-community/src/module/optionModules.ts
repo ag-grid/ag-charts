@@ -10,7 +10,26 @@ export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> ext
 
 export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'series-option';
-    identifier: string;
+    seriesTypes: readonly (
+        | 'area'
+        | 'bar'
+        | 'box-plot'
+        | 'bubble'
+        | 'heatmap'
+        | 'histogram'
+        | 'line'
+        | 'nightingale'
+        | 'pie'
+        | 'radar-area'
+        | 'radar-line'
+        | 'radial-bar'
+        | 'radial-column'
+        | 'range-area'
+        | 'range-bar'
+        | 'scatter'
+        | 'treemap'
+        | 'waterfall'
+    )[];
     instanceConstructor: new (ctx: SeriesContext) => M;
     themeTemplate: {};
 }

@@ -510,7 +510,16 @@ function applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOpti
 
     for (const mod of seriesOptionModules) {
         if (mod.optionsKey in options) {
-            series.getModuleMap().addModule(mod);
+            const supportedSeriesTypes: readonly string[] = mod.seriesTypes;
+            if (!supportedSeriesTypes.includes(series.type)) {
+                console.warn(
+                    `AG Charts - series-option '${mod.optionsKey}' does not support series type '${
+                        series.type
+                    }' (allowed series include: '${supportedSeriesTypes.join("', '")}')`
+                );
+            } else {
+                series.getModuleMap().addModule(mod);
+            }
         }
     }
 }
