@@ -127,9 +127,9 @@
                         "path": "pie-series"
                     },
                     {
-                        "title": "Donut",
-                        "icon": "chartsDonut",
-                        "path": "donut-series"
+                        "title": "Doughnut",
+                        "icon": "chartsDoughnut",
+                        "path": "doughnut-series"
                     },
                     {
                         "title": "Combination",

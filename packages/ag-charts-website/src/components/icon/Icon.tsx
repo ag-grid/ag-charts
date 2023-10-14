@@ -80,7 +80,7 @@ const CHARTS_ICON_MAP = {
     chartsScatter: CarbonIcon.ChartScatter,
     chartsBubble: CarbonIcon.ChartBubble,
     chartsPie: CarbonIcon.ChartPie,
-    chartsDonut: CarbonIcon.ChartRing,
+    chartsDoughnut: CarbonIcon.ChartRing,
     chartsCombination: CarbonIcon.ChartCombo,
     chartsHistogram: CarbonIcon.ChartHistogram,
     chartsHeatmap: CarbonIcon.HeatMap,

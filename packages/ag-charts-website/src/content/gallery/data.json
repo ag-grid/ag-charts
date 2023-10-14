@@ -213,7 +213,7 @@
         {
             "title": "Doughnut",
             "name": "doughnut",
-            "icon": "chartsDonut",
+            "icon": "chartsDoughnut",
             "enterprise": false,
             "examples": [
                 {
