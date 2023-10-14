@@ -2,4 +2,104 @@
 title: 'Doughnut Series'
 ---
 
-TODO
+A Doughnut Series displays categorical data proportions and allows multiple series.
+
+Pie series can be used to create a doughnut chart by using the `innerRadiusOffset` config.
+
+```js
+series: [
+    {
+        type: 'pie',
+        calloutLabelKey: 'os',
+        angleKey: 'share',
+        innerRadiusOffset: -70,
+    },
+];
+```
+
+The config specifies the offset value from the maximum pie radius which all pie sectors use by default (the maximum pie series radius is determined automatically by the chart depending on the chart's dimensions). `-70` in the snippet above means the inner radius of the series should be 70 pixels smaller than the maximum radius.
+
+{% chartExampleRunner title="Doughnut Chart" name="doughnut-chart" type="generated" /%}
+
+Alternatively a doughnut chart can be created by using the `innerRadiusRatio` property. A value between `0.0` and `1.0` should be assigned:
+
+```diff
+series: [{
+    type: 'pie',
+    labelKey: 'os',
+    angleKey: 'share',
++   innerRadiusRatio: 0.75,
+}]
+```
+
+### Additional Doughnut Labels
+
+The `innerLabels` property can be used to put several text lines inside a doughnut chart.
+The colour of the doughnut's centre can be changed by using `innerCircle`.
+
+```js
+series: [{
+    ...
+    innerLabels: [
+        { text: '85%', fontSize: 48, color: 'green' },
+        { text: 'Coverage', margin: 4 }
+    ],
+    innerCircle: {
+        fill: 'lightgreen',
+    }
+}]
+```
+
+{% chartExampleRunner title="Text Inside a Doughnut Chart" name="text-inside-doughnut" type="generated" /%}
+
+### Multiple Doughnuts
+
+As well as the `innerRadiusOffset` or `innerRadiusRatio` we can also configure the `outerRadiusOffset` or `outerRadiusRatio`.
+This gives us the ability to render multiple pie series in a single chart without overlapping.
+
+```js
+series: [
+    {
+        type: 'pie',
+        outerRadiusRatio: 1,   // 100% (default)
+        innerRadiusRatio: 0.8, // 80%
+        ...
+    },
+    {
+        type: 'pie',
+        outerRadiusRatio: 0.5, // 50%
+        innerRadiusRatio: 0.3, // 30%
+        ...
+    }
+]
+```
+
+In the snippet above we configure the `outerRadiusRatio` of the second (inner) series to be smaller than the `innerRadiusRatio` of the first (outer) series.
+The difference of `0.3` (`30%`) between these offsets will determine the size of the gap between the outer and inner series. The difference between `outerRadiusRatio` and `innerRadiusRatio` for each series will determine the thickness of the rings, which will be `20%` of the total radius for both series in this case.
+
+The example below uses one pie series to plot the market share of each operating system and another pie series to plot user satisfaction level with each OS:
+
+{% chartExampleRunner title="Multi-Doughnut Chart" name="multi-doughnut" type="generated" /%}
+
+### Multiple Doughnuts with a Shared Legend
+
+Providing a matching `legendItemKey` allows us to create multiple doughnut series that have synchronised legend items. When a legend item is clicked, the items in all the series that have a matching `legendItemKey` will be toggled together.
+
+```js
+series: [
+    {
+        type: 'pie',
+        calloutLabelKey: 'os',
+        legendItemKey: 'os',
+    },
+    {
+        type: 'pie',
+        legendItemKey: 'os',
+        showInLegend: false,
+    },
+];
+```
+
+In the example below, we match the series with a `legendItemKey` of `'os'` comparing the market share of each operating system in two different years.
+
+{% chartExampleRunner title="Multi-Doughnut Chart with Shared Legend" name="multi-doughnut-shared" type="generated" /%}
