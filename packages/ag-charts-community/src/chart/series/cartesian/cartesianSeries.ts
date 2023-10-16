@@ -123,9 +123,18 @@ export interface CartesianAnimationData<
     duration?: number;
 }
 
-export interface Scaling {
+export type Scaling = ContinuousScaling | CategoryScaling;
+
+export interface ContinuousScaling {
+    type: 'continuous';
     domain: [number, number];
     range: [number, number];
+}
+
+export interface CategoryScaling {
+    type: 'category';
+    domain: string[];
+    range: number[];
 }
 
 export interface CartesianSeriesNodeDataContext<
@@ -133,6 +142,7 @@ export interface CartesianSeriesNodeDataContext<
     TLabel extends SeriesNodeDatum = TDatum,
 > extends SeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
+    animationValid?: boolean;
 }
 
 export abstract class CartesianSeries<
@@ -932,15 +942,25 @@ export abstract class CartesianSeries<
         const addScale = (direction: ChartAxisDirection) => {
             const axis = this.axes[direction];
             if (!axis) return;
-            if (!(axis.scale instanceof ContinuousScale)) return;
 
-            const { range } = axis.scale;
-            const domain = axis.scale.getDomain();
+            if (axis.scale instanceof ContinuousScale) {
+                const { range } = axis.scale;
+                const domain = axis.scale.getDomain();
 
-            result[direction] = {
-                domain: [domain[0], domain[1]],
-                range: [range[0], range[1]],
-            };
+                result[direction] = {
+                    type: 'continuous',
+                    domain: [domain[0], domain[1]],
+                    range: [range[0], range[1]],
+                };
+            } else if (axis.scale) {
+                const { domain } = axis.scale;
+
+                result[direction] = {
+                    type: 'category',
+                    domain,
+                    range: domain.map((d) => axis.scale.convert(d)),
+                };
+            }
         };
 
         addScale(ChartAxisDirection.X);

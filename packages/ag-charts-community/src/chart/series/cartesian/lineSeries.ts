@@ -187,6 +187,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         let moveTo = true;
         let nextPoint: UngroupedDataItem<any, any> | undefined;
+        let lastXValue: number = -Infinity;
+        let isXUniqueAndOrdered = true;
         for (let i = 0; i < processedData.data.length; i++) {
             const { datum, values } = nextPoint ?? processedData.data[i];
             const xDatum = values[xIdx];
@@ -220,6 +222,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     (value) => (isNumber(value) ? value.toFixed(2) : String(value))
                 );
 
+                isXUniqueAndOrdered &&= lastXValue < x;
+                lastXValue = x;
+
                 nodeData.push({
                     series: this,
                     datum,
@@ -247,7 +252,15 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             }
         }
 
-        return [{ itemId: yKey, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
+        return [
+            {
+                itemId: yKey,
+                nodeData,
+                labelData: nodeData,
+                scales: super.calculateScaling(),
+                animationValid: isXUniqueAndOrdered,
+            },
+        ];
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -528,7 +541,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { animationManager } = this.ctx;
         const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
 
-        if (!previousContextData) {
+        if (
+            !previousContextData ||
+            !contextData.every((d) => d.animationValid) ||
+            !previousContextData.every((d) => d.animationValid)
+        ) {
             this.updateLinePaths(paths, contextData);
             super.resetAllAnimation(animationData);
             return;
@@ -539,8 +556,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const [oldData] = previousContextData;
 
         const fns = prepareLinePathAnimation(newData, oldData);
-        fromToMotion(`${this.id}_path_update`, animationManager, markerSelections as any, fns.marker as any);
-        pathMotion(`${this.id}_path_update`, animationManager, path, fns.path, { status: 'updated' });
+        fromToMotion(`${this.id}_marker_update`, animationManager, markerSelections as any, fns.marker as any);
+        fromToMotion(`${this.id}_path_properties`, animationManager, path, fns.pathProperties);
+        pathMotion(`${this.id}_path_update`, animationManager, path, fns.path, { status: fns.status });
         seriesLabelFadeInAnimation(this, animationManager, labelSelections);
     }
 

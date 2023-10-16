@@ -58,7 +58,7 @@ export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
 export function fromToMotion<N extends Node, T extends Record<string, string | number> & Partial<N>, D>(
     id: string,
     animationManager: AnimationManager,
-    selections: Selection<N, D>[],
+    selectionsOrNodes: Selection<N, D>[] | N[],
     fns: {
         fromFn: FromToMotionPropFn<N, T, D>;
         toFn: FromToMotionPropFn<N, T, D>;
@@ -69,6 +69,9 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
 ) {
     const { defaultDuration } = animationManager;
     const { fromFn, toFn, intermediateFn } = fns;
+    const isNodes = isNodeArray(selectionsOrNodes);
+    const nodes = isNodes ? selectionsOrNodes : [];
+    const selections = !isNodes ? selectionsOrNodes : [];
 
     // Dynamic case with varying add/update/remove behavior.
     const ids = { added: {}, removed: {} };
@@ -77,15 +80,11 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
         ids.removed = zipObject(diff.removed, true);
     }
 
-    let selectionIndex = 0;
-    for (const selection of selections) {
+    const processNodes = (liveNodes: N[], nodes: N[]) => {
         let cleanup = false;
         let prevFromProps: T | undefined;
-
-        let nodeIndex = 0;
-        const nodes = selection.nodes();
         let liveNodeIndex = 0;
-        const liveNodes = nodes.filter((n) => !selection.isGarbage(n));
+        let nodeIndex = 0;
         for (const node of nodes) {
             const isLive = liveNodes[liveNodeIndex] === node;
             const ctx: FromToMotionPropFnContext<N> = {
@@ -146,6 +145,15 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             prevFromProps = from as T;
         }
 
+        return cleanup;
+    };
+
+    let selectionIndex = 0;
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        const liveNodes = nodes.filter((n) => !selection.isGarbage(n));
+        const cleanup = processNodes(liveNodes, nodes);
+
         // Only perform selection cleanup once.
         if (cleanup) {
             animationManager.animate({
@@ -160,6 +168,8 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
         }
         selectionIndex++;
     }
+
+    processNodes(nodes, nodes);
 }
 
 /**
