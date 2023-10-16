@@ -39,7 +39,7 @@ export class AngleCrossLine extends PolarCrossLine {
             return;
         }
 
-        const radius = this.gridLength;
+        const { axisInnerRadius, axisOuterRadius } = this;
 
         line.visible = true;
         line.stroke = this.stroke;
@@ -48,10 +48,12 @@ export class AngleCrossLine extends PolarCrossLine {
         line.fill = undefined;
         line.lineDash = this.lineDash;
 
-        const x = radius * Math.cos(angle);
-        const y = radius * Math.sin(angle);
+        const x = axisOuterRadius * Math.cos(angle);
+        const y = axisOuterRadius * Math.sin(angle);
+        const x0 = axisInnerRadius * Math.cos(angle);
+        const y0 = axisInnerRadius * Math.sin(angle);
         line.path.clear({ trackChanges: true });
-        line.path.moveTo(0, 0);
+        line.path.moveTo(x0, y0);
         line.path.lineTo(x, y);
 
         this.group.zIndex = AngleCrossLine.LINE_LAYER_ZINDEX;
@@ -74,7 +76,7 @@ export class AngleCrossLine extends PolarCrossLine {
             return;
         }
 
-        const radius = this.gridLength;
+        const { axisInnerRadius, axisOuterRadius } = this;
         const startIndex = ticks.indexOf(range[0]);
         const endIndex = ticks.indexOf(range[1]);
         const stops =
@@ -86,13 +88,29 @@ export class AngleCrossLine extends PolarCrossLine {
         polygon.visible = true;
         this.updateFill(polygon);
 
-        polygon.path.clear({ trackChanges: true });
-        polygon.path.moveTo(0, 0);
-        angles.forEach((angle) => {
-            const x = radius * Math.cos(angle);
-            const y = radius * Math.sin(angle);
-            polygon.path.lineTo(x, y);
+        const { path } = polygon;
+        path.clear({ trackChanges: true });
+        angles.forEach((angle, index) => {
+            const x = axisOuterRadius * Math.cos(angle);
+            const y = axisOuterRadius * Math.sin(angle);
+            if (index === 0) {
+                path.moveTo(x, y);
+            } else {
+                path.lineTo(x, y);
+            }
         });
+        if (axisInnerRadius === 0) {
+            path.lineTo(0, 0);
+        } else {
+            angles
+                .slice()
+                .reverse()
+                .forEach((angle) => {
+                    const x = axisInnerRadius * Math.cos(angle);
+                    const y = axisInnerRadius * Math.sin(angle);
+                    path.lineTo(x, y);
+                });
+        }
         polygon.path.closePath();
 
         this.group.zIndex = AngleCrossLine.RANGE_LAYER_ZINDEX;
@@ -105,7 +123,7 @@ export class AngleCrossLine extends PolarCrossLine {
             return;
         }
 
-        const radius = this.gridLength;
+        const { axisInnerRadius, axisOuterRadius } = this;
         const angles = range.map((value) => scale.convert(value));
 
         sector.visible = true;
@@ -113,8 +131,8 @@ export class AngleCrossLine extends PolarCrossLine {
 
         sector.centerX = 0;
         sector.centerY = 0;
-        sector.innerRadius = 0;
-        sector.outerRadius = radius;
+        sector.innerRadius = axisInnerRadius;
+        sector.outerRadius = axisOuterRadius;
         sector.startAngle = angles[0];
         sector.endAngle = angles[1];
 
@@ -128,7 +146,7 @@ export class AngleCrossLine extends PolarCrossLine {
             return;
         }
 
-        const radius = this.gridLength;
+        const { axisInnerRadius, axisOuterRadius } = this;
 
         let labelX: number;
         let labelY: number;
@@ -139,8 +157,8 @@ export class AngleCrossLine extends PolarCrossLine {
             const angle = normalizeAngle360(scale.convert(this.value));
             const angle270 = (3 * Math.PI) / 2;
             const isRightSide = isNumberEqual(angle, angle270) || angle > angle270 || angle < Math.PI / 2;
-            const midX = (radius / 2) * Math.cos(angle);
-            const midY = (radius / 2) * Math.sin(angle);
+            const midX = ((axisInnerRadius + axisOuterRadius) / 2) * Math.cos(angle);
+            const midY = ((axisInnerRadius + axisOuterRadius) / 2) * Math.sin(angle);
 
             labelX = midX + label.padding * Math.cos(angle + Math.PI / 2);
             labelY = midY + label.padding * Math.sin(angle + Math.PI / 2);
@@ -158,9 +176,9 @@ export class AngleCrossLine extends PolarCrossLine {
             let distance: number;
             const ticks = scale.ticks?.() ?? [];
             if (this.shape === 'circle' || ticks.length < 3) {
-                distance = radius - label.padding;
+                distance = axisOuterRadius - label.padding;
             } else {
-                distance = radius * Math.cos(Math.PI / ticks.length) - label.padding;
+                distance = axisOuterRadius * Math.cos(Math.PI / ticks.length) - label.padding;
             }
 
             labelX = distance * Math.cos(angle);
