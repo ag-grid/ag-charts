@@ -1,6 +1,6 @@
 import { _Scene, _Util } from 'ag-charts-community';
 
-import { createAngleMotionCalculator } from '../radial-column/radialColumnUtil';
+import { createAngleMotionCalculator, fixRadialColumnAnimationStatus } from '../radial-column/radialColumnUtil';
 
 const { motion } = _Scene;
 
@@ -12,17 +12,10 @@ export type AnimatableNightingaleDatum = {
 };
 
 export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
-    const isRemoved = (datum: AnimatableNightingaleDatum) => !datum;
     const angles = createAngleMotionCalculator();
 
     const fromFn = (sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {
-        if (status === 'updated' && isRemoved(sect.previousDatum)) {
-            status = 'added';
-        }
-
-        if (status === 'added' && !isRemoved(sect.previousDatum)) {
-            status = 'updated';
-        }
+        status = fixRadialColumnAnimationStatus(sect, datum, status);
 
         angles.calculate(sect, datum, status);
         const { startAngle, endAngle } = angles.from(datum);
