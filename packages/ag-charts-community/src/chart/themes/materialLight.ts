@@ -64,15 +64,15 @@ export class MaterialLight extends ChartTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             MaterialLight.getWaterfallSeriesDefaultPositiveColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             MaterialLight.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
             MaterialLight.getWaterfallSeriesDefaultTotalColors()
         );

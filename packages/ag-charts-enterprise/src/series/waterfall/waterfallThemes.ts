@@ -4,21 +4,18 @@ export const WATERFALL_SERIES_THEME = {
     __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
     item: {
         positive: {
-            __extends__: _Theme.DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             strokeWidth: 0,
             label: {
                 enabled: false,
             },
         },
         negative: {
-            __extends__: _Theme.DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             strokeWidth: 0,
             label: {
                 enabled: false,
             },
         },
         total: {
-            __extends__: _Theme.DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
             strokeWidth: 0,
             label: {
                 enabled: false,

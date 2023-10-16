@@ -73,15 +73,15 @@ export class DarkTheme extends ChartTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             DarkTheme.getWaterfallSeriesDefaultPositiveColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             DarkTheme.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, DarkTheme.getWaterfallSeriesDefaultTotalColors());
+        result.properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, DarkTheme.getWaterfallSeriesDefaultTotalColors());
 
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,

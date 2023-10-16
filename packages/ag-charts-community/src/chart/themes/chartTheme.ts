@@ -539,9 +539,6 @@ export class ChartTheme {
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
         extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
-        extensions.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
-        extensions.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
-        extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());
 
         const properties = new Map();
         properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
@@ -556,6 +553,9 @@ export class ChartTheme {
         properties.set(DEFAULT_TREEMAP_TILE_BORDER_COLOUR, 'black');
         properties.set(DEFAULT_HEATMAP_SERIES_COLOUR_RANGE, [DEFAULT_FILLS.BLUE, DEFAULT_FILLS.ORANGE]);
         properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
+        properties.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
+        properties.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
+        properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());
         properties.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke

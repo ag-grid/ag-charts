@@ -64,15 +64,15 @@ export class PolychromaDark extends DarkTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             PolychromaDark.getWaterfallSeriesDefaultPositiveColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             PolychromaDark.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
             PolychromaDark.getWaterfallSeriesDefaultTotalColors()
         );
