@@ -6,6 +6,7 @@ import { JSDOM } from 'jsdom';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { AgChart } from 'ag-charts-community';
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import 'ag-charts-enterprise';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
