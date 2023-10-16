@@ -1008,7 +1008,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         };
 
         if (subtitle) {
-            subtitle.node.visible = (title?.enabled && subtitle.enabled) ?? false;
+            subtitle.node.visible = subtitle.enabled ?? false;
         }
 
         if (title) {
