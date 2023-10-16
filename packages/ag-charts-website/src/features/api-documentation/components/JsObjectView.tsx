@@ -21,7 +21,6 @@ const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['ha
 
 const DEFAULT_JSON_NODES_EXPANDED = false;
 const HIDE_TYPES = true;
-const DEFAULT_ENDING_PUNCTUATION = ',';
 
 export interface ExpandableSnippetParams {
     interfacename: string;
@@ -97,17 +96,11 @@ const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> =
 interface ModelSnippetParams {
     model: JsonModel | JsonUnionType;
     skip?: string[];
-    closeWith?: string;
     path: string[];
     showTypeAsDiscriminatorValue?: boolean;
 }
 
-const ModelSnippet: React.FC<ModelSnippetParams> = ({
-    model,
-    closeWith = DEFAULT_ENDING_PUNCTUATION,
-    path,
-    showTypeAsDiscriminatorValue,
-}) => {
+const ModelSnippet: React.FC<ModelSnippetParams> = ({ model, path, showTypeAsDiscriminatorValue }) => {
     const config = useContext(JsObjectPropertiesViewConfigContext);
 
     if (model.type === 'model') {
@@ -125,7 +118,6 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({
                         desc={desc}
                         meta={propInfo}
                         path={path}
-                        closeWith={closeWith}
                         showTypeAsDiscriminatorValue={showTypeAsDiscriminatorValue}
                     />
                 );
@@ -133,37 +125,26 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({
             .filter((v) => !!v);
         return <>{propertiesRendering}</>;
     } else if (model.type === 'union') {
-        return <Union model={model} closeWith={closeWith} path={path} />;
+        return <Union model={model} path={path} />;
     }
 
     return null;
 };
 
-function PrimitiveUnionOption({
-    opt,
-    closeWith,
-    last,
-}: {
-    opt: JsonPrimitiveProperty;
-    closeWith: string;
-    last: boolean;
-}) {
+function PrimitiveUnionOption({ opt, last }: { opt: JsonPrimitiveProperty; last: boolean }) {
     return (
         <>
             {<PrimitiveType desc={opt} />}
             {!last && <span className={classnames('token', 'operator')}> | </span>}
-            {last && closeWith && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
         </>
     );
 }
 
-function Union({ model, closeWith, path }: { model: JsonUnionType; closeWith: string; path: string[] }) {
+function Union({ model, path }: { model: JsonUnionType; path: string[] }) {
     if (model.options.every((opt) => opt.type === 'primitive')) {
         const lastIdx = model.options.length - 1;
         return model.options.map((opt, idx) => {
-            return opt.type === 'primitive' ? (
-                <PrimitiveUnionOption key={idx} closeWith={closeWith} opt={opt} last={idx >= lastIdx} />
-            ) : null;
+            return opt.type === 'primitive' ? <PrimitiveUnionOption key={idx} opt={opt} last={idx >= lastIdx} /> : null;
         });
     }
 
@@ -174,19 +155,11 @@ function Union({ model, closeWith, path }: { model: JsonUnionType; closeWith: st
                     const lastIdx = model.options.length - 1;
                     switch (desc.type) {
                         case 'primitive':
-                            return <PrimitiveUnionOption opt={desc} closeWith={closeWith} last={idx >= lastIdx} />;
+                            return <PrimitiveUnionOption opt={desc} last={idx >= lastIdx} />;
                         case 'array':
                             break;
                         case 'nested-object':
-                            return (
-                                <UnionNestedObject
-                                    desc={desc}
-                                    index={idx}
-                                    last={idx >= lastIdx}
-                                    closeWith={closeWith}
-                                    path={path}
-                                />
-                            );
+                            return <UnionNestedObject desc={desc} index={idx} last={idx >= lastIdx} path={path} />;
                     }
                 })
                 .map((el, idx) => (
@@ -222,13 +195,11 @@ function UnionNestedObject({
     desc,
     index,
     last,
-    closeWith,
     path,
 }: {
     desc: JsonObjectProperty;
     index: number;
     last: boolean;
-    closeWith: string;
     path: string[];
 }) {
     const config = useContext(JsObjectPropertiesViewConfigContext);
@@ -281,7 +252,6 @@ function UnionNestedObject({
                             </span>
                         </>
                     )}
-                    {!isExpanded && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
                     {isExpanded ? (
                         <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
                             <ModelSnippet
@@ -309,7 +279,6 @@ function UnionNestedObject({
                             | <br />
                         </span>
                     )}
-                    {last && closeWith && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
                 </span>
             </Fragment>
         );
@@ -347,7 +316,6 @@ function UnionNestedObject({
                         | <br />
                     </span>
                 )}
-                {last && closeWith && <span className={classnames('token', 'punctuation')}>{closeWith}</span>}
             </span>
         </Fragment>
     );
@@ -358,9 +326,7 @@ interface PropertySnippetParams {
     desc: JsonProperty;
     meta: Omit<JsonModel['properties'][number], 'desc'>;
     forceInitiallyExpanded?: boolean;
-    needsClosingSemi?: boolean;
     path: string[];
-    closeWith: string;
     showTypeAsDiscriminatorValue?: boolean;
 }
 
@@ -369,9 +335,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     desc,
     meta,
     forceInitiallyExpanded,
-    needsClosingSemi = true,
     path,
-    closeWith,
     showTypeAsDiscriminatorValue,
 }) => {
     const config = useContext(JsObjectPropertiesViewConfigContext);
@@ -418,12 +382,9 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             const simpleUnion = isSimpleUnion(desc);
             propertyRendering = !simpleUnion ? <ModelSnippet model={desc} path={propPath}></ModelSnippet> : null;
             collapsePropertyRendering = !simpleUnion ? <></> : null;
-            needsClosingSemi = simpleUnion;
             break;
         case 'function':
-            propertyRendering = isJSONNodeExpanded ? (
-                <FunctionFragment desc={desc} path={propPath} closeWith={closeWith} />
-            ) : null;
+            propertyRendering = isJSONNodeExpanded ? <FunctionFragment desc={desc} path={propPath} /> : null;
             collapsePropertyRendering = <CollapsedFunction desc={desc} />;
             renderTsType = isSimpleFunction(desc);
             break;
@@ -471,9 +432,6 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                 />
             }
             {propertyValue}
-            {(!isJSONNodeExpanded || needsClosingSemi) && (
-                <span className={classnames('token', 'punctuation')}>{closeWith}</span>
-            )}
         </div>
     );
 };
@@ -591,7 +549,7 @@ function ArrayType({ desc, path }: { desc: JsonArray; path: string[] }) {
         case 'union':
             arrayElementRendering = (
                 <>
-                    <ModelSnippet model={desc.elements} closeWith={''} path={path}></ModelSnippet>
+                    <ModelSnippet model={desc.elements} path={path}></ModelSnippet>
                 </>
             );
             break;
@@ -644,7 +602,7 @@ function CollapsedFunction({ desc }: { desc: JsonFunction }) {
     );
 }
 
-function FunctionFragment({ desc, path, closeWith }: { desc: JsonFunction; path: string[]; closeWith: string }) {
+function FunctionFragment({ desc, path }: { desc: JsonFunction; path: string[] }) {
     if (isSimpleFunction(desc)) {
         return null;
     }
@@ -663,8 +621,6 @@ function FunctionFragment({ desc, path, closeWith }: { desc: JsonFunction; path:
                             meta={model}
                             path={path}
                             forceInitiallyExpanded={singleParameter}
-                            needsClosingSemi={false}
-                            closeWith={closeWith}
                         ></PropertySnippet>
                         {idx + 1 < paramEntries.length && (
                             <span className={classnames('token', 'punctuation')}>, </span>
