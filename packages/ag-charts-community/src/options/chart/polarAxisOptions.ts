@@ -6,7 +6,7 @@ export type AgPolarAxisType = 'angle-category' | 'angle-number' | 'radius-catego
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
 export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
-    type: AgPolarAxisType;
+    type: 'angle-category';
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
     /** Shape of axis. Default: `polygon` */
