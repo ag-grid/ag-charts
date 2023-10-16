@@ -282,7 +282,7 @@ export const Options = ({ chartType, updateOption, interfaceLookup, codeLookup }
     }
 
     const axesModelDesc = model.properties['axes']?.desc;
-    if (axesModelDesc?.type === 'array' && axesModelDesc.elements.type === 'union') {
+    if (chartType !== 'pie' && axesModelDesc?.type === 'array' && axesModelDesc.elements.type === 'union') {
         const isAxisOfType = (axis: any, type: string) => axis.model.properties['type'].desc.tsType.includes(type);
         const getAxisModel = (axisType: string, direction: 'x' | 'y') => {
             const axis = deepClone(
