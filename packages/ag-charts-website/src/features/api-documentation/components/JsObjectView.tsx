@@ -131,20 +131,14 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({ model, path, showTypeAsDis
     return null;
 };
 
-function PrimitiveUnionOption({ opt, last }: { opt: JsonPrimitiveProperty; last: boolean }) {
-    return (
-        <>
-            {<PrimitiveType desc={opt} />}
-            {!last && <span className={classnames('token', 'operator')}> | </span>}
-        </>
-    );
+function PrimitiveUnionOption({ opt }: { opt: JsonPrimitiveProperty }) {
+    return <PrimitiveType desc={opt} />;
 }
 
 function Union({ model, path }: { model: JsonUnionType; path: string[] }) {
     if (model.options.every((opt) => opt.type === 'primitive')) {
-        const lastIdx = model.options.length - 1;
         return model.options.map((opt, idx) => {
-            return opt.type === 'primitive' ? <PrimitiveUnionOption key={idx} opt={opt} last={idx >= lastIdx} /> : null;
+            return opt.type === 'primitive' ? <PrimitiveUnionOption key={idx} opt={opt} /> : null;
         });
     }
 
@@ -152,14 +146,13 @@ function Union({ model, path }: { model: JsonUnionType; path: string[] }) {
         <div className={styles.jsonObjectUnion} role="presentation">
             {model.options
                 .map((desc, idx) => {
-                    const lastIdx = model.options.length - 1;
                     switch (desc.type) {
                         case 'primitive':
-                            return <PrimitiveUnionOption opt={desc} last={idx >= lastIdx} />;
+                            return <PrimitiveUnionOption opt={desc} />;
                         case 'array':
                             break;
                         case 'nested-object':
-                            return <UnionNestedObject desc={desc} index={idx} last={idx >= lastIdx} path={path} />;
+                            return <UnionNestedObject desc={desc} index={idx} path={path} />;
                     }
                 })
                 .map((el, idx) => (
@@ -191,17 +184,7 @@ function DiscriminatorType({ discriminatorType }: { discriminatorType?: string }
     );
 }
 
-function UnionNestedObject({
-    desc,
-    index,
-    last,
-    path,
-}: {
-    desc: JsonObjectProperty;
-    index: number;
-    last: boolean;
-    path: string[];
-}) {
+function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; index: number; path: string[] }) {
     const config = useContext(JsObjectPropertiesViewConfigContext);
     const { pathItem, discriminatorType, discriminatorProp, discriminator } = getUnionPathInfo({
         model: desc.model,
@@ -273,12 +256,6 @@ function UnionNestedObject({
                             <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
                         </>
                     )}
-                    {!last && (
-                        <span className={classnames('token', 'operator')}>
-                            {' '}
-                            | <br />
-                        </span>
-                    )}
                 </span>
             </Fragment>
         );
@@ -309,12 +286,6 @@ function UnionNestedObject({
                         {': '}
                         <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
                     </>
-                )}
-                {!last && (
-                    <span className={classnames('token', 'operator')}>
-                        {' '}
-                        | <br />
-                    </span>
                 )}
             </span>
         </Fragment>
