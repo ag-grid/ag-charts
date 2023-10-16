@@ -3,7 +3,7 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import type { ContextMenuActionParams } from './contextMenu';
 import { ContextMenu } from './contextMenu';
 
-export { ContextMenuActionParams } from './contextMenu';
+export type { ContextMenuActionParams } from './contextMenu';
 
 export const ContextMenuModule: _ModuleSupport.Module = {
     type: 'root',
