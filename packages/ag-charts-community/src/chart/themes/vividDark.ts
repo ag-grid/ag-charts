@@ -64,15 +64,15 @@ export class VividDark extends DarkTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             VividDark.getWaterfallSeriesDefaultPositiveColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             VividDark.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, VividDark.getWaterfallSeriesDefaultTotalColors());
+        result.properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, VividDark.getWaterfallSeriesDefaultTotalColors());
 
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,

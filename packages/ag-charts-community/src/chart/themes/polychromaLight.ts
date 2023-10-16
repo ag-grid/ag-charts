@@ -64,15 +64,15 @@ export class PolychromaLight extends ChartTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             PolychromaLight.getWaterfallSeriesDefaultPositiveColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             PolychromaLight.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
             PolychromaLight.getWaterfallSeriesDefaultTotalColors()
         );

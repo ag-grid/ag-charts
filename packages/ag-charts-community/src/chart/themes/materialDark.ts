@@ -64,15 +64,15 @@ export class MaterialDark extends DarkTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             MaterialDark.getWaterfallSeriesDefaultPositiveColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             MaterialDark.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.extensions.set(
+        result.properties.set(
             DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
             MaterialDark.getWaterfallSeriesDefaultTotalColors()
         );
