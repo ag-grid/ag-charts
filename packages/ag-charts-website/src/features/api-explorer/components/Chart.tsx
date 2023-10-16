@@ -21,7 +21,7 @@ export class Chart extends React.Component<{ options: {}; fullScreen: boolean; s
     }
 
     componentDidMount() {
-        import('ag-charts-community').then(({ AgChart }) => {
+        import('ag-charts-enterprise').then(({ AgChart }) => {
             this.AgChart = AgChart;
             this.createChart();
         });
