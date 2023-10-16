@@ -15,8 +15,8 @@ const {
     OPT_BOOLEAN,
     Validate,
 } = _ModuleSupport;
-const { Arc, Caption, Group, Path, Selection } = _Scene;
-const { toRadians } = _Util;
+const { Caption, Group, Path, Selection } = _Scene;
+const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
 
 class RadiusAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
@@ -37,21 +37,14 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     @Default(0)
     positionAngle: number = 0;
 
-    protected readonly gridArcGroup = this.gridGroup.appendChild(
+    protected readonly gridPathGroup = this.gridGroup.appendChild(
         new Group({
-            name: `${this.id}-gridArcs`,
+            name: `${this.id}-gridPaths`,
             zIndex: Layers.AXIS_GRID_ZINDEX,
         })
     );
 
-    protected readonly gridPolygonGroup = this.gridGroup.appendChild(
-        new Group({
-            name: `${this.id}-gridPolygons`,
-            zIndex: Layers.AXIS_GRID_ZINDEX,
-        })
-    );
-    protected gridArcGroupSelection = Selection.select(this.gridArcGroup, Arc);
-    protected gridPolygonGroupSelection = Selection.select(this.gridPolygonGroup, Path);
+    protected gridPathSelection = Selection.select(this.gridPathGroup, Path);
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: _Scale.Scale<any, any>) {
         super(moduleCtx, scale);
@@ -94,6 +87,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         }
 
         const ticks = this.prepareTickData(data);
+
         const styleCount = style.length;
         const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
             const { stroke, lineDash } = style[index % styleCount];
@@ -103,29 +97,43 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
             node.fill = undefined;
         };
 
-        this.gridArcGroupSelection.update(shape === 'circle' && enabled ? ticks : []).each((node, value, index) => {
-            setStyle(node, index);
+        const [startAngle, endAngle] = this.gridRange ?? [0, 2 * Math.PI];
+        const isFullCircle = isNumberEqual(endAngle - startAngle, 2 * Math.PI);
 
-            node.centerX = 0;
-            node.centerY = 0;
-            node.radius = this.getTickRadius(value);
-            node.startAngle = 0;
-            node.endAngle = 2 * Math.PI;
-        });
+        const drawCircleShape = (node: _Scene.Path, value: any) => {
+            const { path } = node;
+            path.clear({ trackChanges: true });
+            const radius = this.getTickRadius(value);
+            if (isFullCircle) {
+                path.moveTo(radius, 0);
+                path.arc(0, 0, radius, 0, 2 * Math.PI);
+            } else {
+                path.moveTo(radius * Math.cos(startAngle), radius * Math.sin(startAngle));
+                path.arc(0, 0, radius, normalizeAngle360(startAngle), normalizeAngle360(endAngle));
+            }
+            if (isFullCircle) {
+                path.closePath();
+            }
+        };
 
-        this.gridPolygonGroupSelection
-            .update(shape === 'polygon' && enabled ? ticks : [])
-            .each((node, value, index) => {
-                setStyle(node, index);
+        const drawPolygonShape = (node: _Scene.Path, value: any) => {
+            const { path } = node;
+            const angles = this.gridAngles;
+            path.clear({ trackChanges: true });
+            if (!angles || angles.length < 3) {
+                return;
+            }
 
-                const { path } = node;
-                const angles = this.gridAngles;
-                path.clear({ trackChanges: true });
-                if (!angles || angles.length < 3) {
-                    return;
+            const radius = this.getTickRadius(value);
+            angles.forEach((angle, i) => {
+                const x = radius * Math.cos(angle);
+                const y = radius * Math.sin(angle);
+                if (i === 0) {
+                    path.moveTo(x, y);
+                } else {
+                    path.lineTo(x, y);
                 }
 
-                const radius = this.getTickRadius(value);
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);
                     const y = radius * Math.sin(angle);
@@ -137,6 +145,17 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
                 });
                 path.closePath();
             });
+            path.closePath();
+        };
+
+        this.gridPathSelection.update(enabled ? ticks : []).each((node, value, index) => {
+            setStyle(node, index);
+            if (shape === 'circle') {
+                drawCircleShape(node, value);
+            } else {
+                drawPolygonShape(node, value);
+            }
+        });
     }
 
     protected override updateTitle() {
