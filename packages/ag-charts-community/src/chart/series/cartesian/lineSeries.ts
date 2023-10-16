@@ -233,6 +233,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
                 nodeData.push({
                     series: this,
+                    index: i,
                     datum,
                     yKey,
                     xKey,

@@ -171,7 +171,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         const nodeData: ScatterNodeDatum[] = [];
 
         const font = label.getFont();
-        for (const { values, datum } of processedData.data ?? []) {
+        for (let i = 0; i < processedData.data.length; i++) {
+            const { values, datum } = processedData.data[i];
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
             const x = xScale.convert(xDatum) + xOffset;
@@ -196,6 +197,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 itemId: yKey,
                 yKey,
                 xKey,
+                index: i,
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,

@@ -153,6 +153,7 @@ export class ErrorBars
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
+            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode)
         );
     }
@@ -275,10 +276,10 @@ export class ErrorBars
 
     private update() {
         this.selection.update(this.nodeData, undefined, undefined);
-        this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
+        this.selection.each((node, _datum, i) => this.updateNode(node, i));
     }
 
-    private updateNode(node: ErrorBarNode, _datum: any, index: number) {
+    private updateNode(node: ErrorBarNode, index: number) {
         const { nodeData } = this;
         const points = nodeData[index];
         if (points) {
@@ -309,8 +310,48 @@ export class ErrorBars
             yUpperName,
         };
     }
+
     private onToggleSeriesItem(event: SeriesVisibilityEvent): void {
         this.groupNode.visible = event.enabled;
+    }
+
+    private getNodeFromHighlight(highlight: NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>): {
+        index?: number;
+        node?: ErrorBarNode;
+    } {
+        if (highlight.index !== undefined) {
+            const index = highlight.index;
+            const node = this.selection.nodes()[index];
+            return { index, node };
+        }
+        return { index: undefined, node: undefined };
+    }
+
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        const { previousHighlight, currentHighlight } = event;
+        const { cartesianSeries: thisSeries } = this;
+
+        if (currentHighlight?.series === thisSeries) {
+            const { index, node } = this.getNodeFromHighlight(currentHighlight);
+            if (index !== undefined && node !== undefined) {
+                // Highlight this node:
+                const highlightTheme = thisSeries.highlightStyle.item;
+                const capDefaults = this.cartesianSeries.contextNodeData[0].nodeData[index].capDefaults;
+                const points = this.nodeData[index];
+                if (points !== undefined) {
+                    const { length, lengthRatio } = this.cap;
+                    node.update(points, highlightTheme, { ...highlightTheme, length, lengthRatio }, capDefaults);
+                }
+            }
+        }
+
+        if (previousHighlight?.series === thisSeries) {
+            const { index, node } = this.getNodeFromHighlight(previousHighlight);
+            if (node !== undefined && index !== undefined) {
+                // Unhighlight this node:
+                this.updateNode(node, index);
+            }
+        }
     }
 
     private errorBarFactory(): ErrorBarNode {

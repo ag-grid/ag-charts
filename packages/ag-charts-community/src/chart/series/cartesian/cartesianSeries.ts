@@ -42,6 +42,9 @@ export interface ErrorBoundSeriesNodeDatum {
     // by the size of the marker (line, scatter), width of the bar (vertical
     // bars), or height of the bar (horizontal bars).
     readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
+    // The error bar module needs to know which node data to retrieve when
+    // events on are triggered on a datum.
+    readonly index: number;
 }
 
 interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
