@@ -15,13 +15,12 @@ export const defaultLabelCss = `
     pointer-events: none;
     border-radius: 2px;
     font: 12px Verdana, sans-serif;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 20%), 0 1px 1px rgb(0 0 0 / 14%);
     line-height: 1.7em;
     overflow: hidden;
     white-space: nowrap;
     z-index: 99999;
-    background-color: rgb(255, 255, 255);
-    color: rgba(87, 87, 87, 1);
+    background-color: rgb(140, 140, 140);
+    color: rgb(255, 255, 255);
 }
 
 .ag-crosshair-label-content {
