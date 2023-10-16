@@ -184,8 +184,12 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     protected override updateCrossLines() {
         this.crossLines?.forEach((crossLine) => {
             if (crossLine instanceof RadiusCrossLine) {
-                crossLine.shape = this.shape;
-                crossLine.gridAngles = this.gridAngles;
+                const { shape, gridAngles, range, innerRadiusRatio } = this;
+                const radius = range[0];
+                crossLine.shape = shape;
+                crossLine.gridAngles = gridAngles;
+                crossLine.axisOuterRadius = radius;
+                crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
         });
         super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0, sideFlag: -1 });

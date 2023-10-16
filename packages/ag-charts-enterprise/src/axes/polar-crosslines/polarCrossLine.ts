@@ -108,6 +108,9 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
     regularFlipRotation: number = 0;
     direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.X;
 
+    axisInnerRadius: number = 0;
+    axisOuterRadius: number = 0;
+
     readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
 
     abstract update(visible: boolean): void;

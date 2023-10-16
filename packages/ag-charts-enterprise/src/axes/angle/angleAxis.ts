@@ -383,8 +383,8 @@ export abstract class AngleAxis<
             if (crossLine instanceof AngleCrossLine) {
                 const { shape, gridLength: radius, innerRadiusRatio } = this;
                 crossLine.shape = shape;
-                crossLine.outerRadius = radius;
-                crossLine.innerRadius = radius * innerRadiusRatio;
+                crossLine.axisOuterRadius = radius;
+                crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
         });
         super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0, sideFlag: -1 });

@@ -52,15 +52,11 @@ export class RadiusCrossLine extends PolarCrossLine {
         node.lineDash = this.lineDash;
     }
 
-    private getRadius() {
-        return this.scale?.range[0] ?? 0;
-    }
-
     private getRadii() {
-        const { range, scale, type } = this;
-        const radius = this.getRadius();
-        const outerRadius = radius - scale!.convert(type === 'line' ? this.value : Math.max(...range!));
-        const innerRadius = type === 'line' ? 0 : radius - scale!.convert(Math.min(...range!));
+        const { range, scale, type, axisInnerRadius, axisOuterRadius } = this;
+        const getRadius = (value: number) => axisOuterRadius + axisInnerRadius - scale!.convert(value);
+        const outerRadius = getRadius(type === 'line' ? this.value : Math.max(...range!));
+        const innerRadius = type === 'line' ? 0 : getRadius(Math.min(...range!));
         return { innerRadius, outerRadius };
     }
 
