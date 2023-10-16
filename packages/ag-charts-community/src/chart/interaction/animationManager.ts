@@ -72,6 +72,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         return new Animation({
             ...opts,
+            id,
             skip: this.skipAnimations,
             autoplay: this.isPlaying ? opts.autoplay : false,
             duration: opts.duration ?? this.defaultDuration,

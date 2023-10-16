@@ -1,10 +1,10 @@
 import type { ProcessedOutputDiff } from '../chart/data/dataModel';
 import type { AnimationManager } from '../chart/interaction/animationManager';
-import { Node } from '../scene/node';
+import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { zipObject } from '../util/zip';
-import type { AdditionalAnimationOptions, AnimationOptions, AnimationTiming, AnimationValue } from './animation';
-import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE } from './animation';
+import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE, isNodeArray } from './animation';
+import type { AnimationTiming, AnimationValue } from './animation';
 import * as easing from './easing';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated';
@@ -18,12 +18,13 @@ export type FromToMotionPropFnContext<T> = {
     prevLive?: T;
     nextLive?: T;
 };
+type ExtraOpts = { animationDelay?: number; animationDuration?: number };
 export type FromToMotionPropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
     node: N,
     datum: D,
     state: NodeUpdateState,
     ctx: FromToMotionPropFnContext<N>
-) => T & { animationDelay?: number; animationDuration?: number };
+) => T & ExtraOpts;
 type IntermediateFn<N extends Node, D> = (
     node: N,
     datum: D,
@@ -158,10 +159,6 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
     }
 }
 
-function isNodeArray<N extends Node>(array: (Selection<N> | N)[]): array is N[] {
-    return array.every((n) => n instanceof Node);
-}
-
 /**
  * Implements a batch "to/from" animation.
  *
@@ -178,11 +175,13 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     selectionsOrNodes: Selection<N, D>[] | N[],
     from: T,
     to: T,
-    extraOpts: Partial<AnimationOptions<T> & AdditionalAnimationOptions> = {}
+    extraOpts: ExtraOpts = {}
 ) {
     const isNodes = isNodeArray(selectionsOrNodes);
     const nodes = isNodes ? selectionsOrNodes : [];
     const selections = !isNodes ? selectionsOrNodes : [];
+    const { animationDelay = 0, animationDuration = 1 } = extraOpts;
+    const { defaultDuration } = animationManager;
 
     // Simple static to/from case, we can batch updates.
     animationManager.animate({
@@ -210,7 +209,8 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
                 }
             }
         },
-        ...extraOpts,
+        duration: animationDuration * defaultDuration,
+        delay: animationDelay * defaultDuration,
     });
 }
 

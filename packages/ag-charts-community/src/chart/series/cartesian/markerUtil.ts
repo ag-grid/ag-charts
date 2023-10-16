@@ -1,5 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import type { NodeUpdateState } from '../../../motion/fromToMotion';
+import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type {
     AgCartesianSeriesMarkerFormat,
     AgSeriesHighlightMarkerStyle,
@@ -94,15 +95,15 @@ export function updateMarker({ node, config }: { node: Marker; config: MarkerCon
     } = config;
 
     node.setProperties({
-        visible: visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y),
+        visible: visible && size > 0 && !isNaN(point?.x ?? 0) && !isNaN(point?.y ?? 0),
         fill,
         fillOpacity,
         stroke,
         strokeWidth,
         strokeOpacity,
         size,
-        translationX: point?.x,
-        translationY: point?.y,
+        // Don't trample translation properties unless a point is specified.
+        ...(point ? { translationX: point.x, translationY: point.y } : {}),
     });
 
     // Only for custom marker shapes
@@ -118,12 +119,11 @@ export function markerFadeInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
     markerSelections: Selection<NodeWithOpacity, T>[],
-    delay?: true
+    status: NodeUpdateState = 'unknown'
 ) {
-    const params = delay
-        ? { delay: animationManager.defaultDuration, duration: 200 }
-        : { duration: animationManager.defaultDuration };
+    const params = { ...FROM_TO_MIXINS[status] };
     staticFromToMotion(`${id}_markers`, animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
+    markerSelections.forEach((s) => s.cleanup());
 }
 
 export function markerScaleInAnimation<T>(
@@ -136,9 +136,9 @@ export function markerScaleInAnimation<T>(
         animationManager,
         markerSelections,
         { scalingX: 0, scalingY: 0 },
-        { scalingX: 1, scalingY: 1 },
-        { duration: animationManager.defaultDuration }
+        { scalingX: 1, scalingY: 1 }
     );
+    markerSelections.forEach((s) => s.cleanup());
 }
 
 export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
@@ -162,4 +162,11 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
 
 export function resetMarkerFn(_node: NodeWithOpacity & Node) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
+}
+
+export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
+    return {
+        translationX: datum.point?.x ?? NaN,
+        translationY: datum.point?.y ?? NaN,
+    };
 }

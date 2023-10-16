@@ -633,7 +633,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
-        markerFadeInAnimation(this, animationManager, [itemSelection], true);
+        markerFadeInAnimation(this, animationManager, [itemSelection], 'added');
         seriesLabelFadeInAnimation(this, animationManager, [labelSelection]);
     }
 

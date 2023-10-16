@@ -1,4 +1,5 @@
 import { interpolateColor, interpolateNumber } from '../interpolate';
+import { Node } from '../scene/node';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
@@ -34,6 +35,7 @@ export enum RepeatType {
     Reverse = 'reverse',
 }
 export interface AnimationOptions<T extends AnimationValue> {
+    id: string;
     from: T;
     to: T;
     skip?: boolean;
@@ -75,7 +77,12 @@ export interface IAnimation<T extends AnimationValue> {
     readonly update: (time: number) => this;
 }
 
+export function isNodeArray<N extends Node>(array: (object | N)[]): array is N[] {
+    return array.every((n) => n instanceof Node);
+}
+
 export class Animation<T extends AnimationValue> implements IAnimation<T> {
+    protected id;
     protected autoplay;
     protected delay;
     protected duration;
@@ -99,6 +106,7 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
 
     constructor(opts: AnimationOptions<T>) {
         // animation configuration
+        this.id = opts.id;
         this.autoplay = opts.autoplay ?? true;
         this.delay = opts.delay ?? 0;
         this.duration = opts.duration ?? 1000;
@@ -230,6 +238,6 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
         } catch (e) {
             // Error-case handled below.
         }
-        throw new Error('Unable to interpolate values');
+        throw new Error(`Unable to interpolate values: ${a}, ${b}`);
     }
 }

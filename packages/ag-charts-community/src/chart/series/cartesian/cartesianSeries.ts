@@ -69,6 +69,7 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationResetFns?: {
+        path?: (path: Path) => AnimationValue & Partial<Path>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
         marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
@@ -127,7 +128,7 @@ export interface Scaling {
 }
 
 export interface CartesianSeriesNodeDataContext<
-    TDatum extends CartesianSeriesNodeDatum,
+    TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
 > extends SeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
@@ -840,7 +841,12 @@ export abstract class CartesianSeries<
     }
 
     protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        const { datum, label, marker } = this.opts?.animationResetFns ?? {};
+        const { path, datum, label, marker } = this.opts?.animationResetFns ?? {};
+        if (path) {
+            data.paths.forEach((paths) => {
+                resetMotion(paths, path);
+            });
+        }
         if (datum) {
             resetMotion(data.datumSelections, datum);
         }
@@ -926,7 +932,8 @@ export abstract class CartesianSeries<
             if (!axis) return;
             if (!(axis.scale instanceof ContinuousScale)) return;
 
-            const { domain, range } = axis.scale;
+            const { range } = axis.scale;
+            const domain = axis.scale.getDomain();
 
             result[direction] = {
                 domain: [domain[0], domain[1]],

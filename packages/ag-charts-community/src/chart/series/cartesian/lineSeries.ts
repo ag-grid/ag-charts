@@ -39,7 +39,7 @@ import type {
     ErrorBoundSeriesNodeDatum,
 } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
-import { getMarkerConfig, markerFadeInAnimation, markerSwipeScaleInAnimation, updateMarker } from './markerUtil';
+import { getMarkerConfig, markerSwipeScaleInAnimation, updateMarker } from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -265,29 +265,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
-
-    // protected override async updatePathNodes(opts: {
-    //     seriesHighlighted?: boolean | undefined;
-    //     itemId?: string | undefined;
-    //     paths: Path[];
-    //     seriesIdx: number;
-    // }): Promise<void> {
-    //     const {
-    //         contextData: { nodeData },
-    //         paths: [lineNode],
-    //     } = opts;
-    //     const { path: linePath } = lineNode;
-
-    //     linePath.clear({ trackChanges: true });
-    //     for (const data of nodeData) {
-    //         if (data.point.moveTo) {
-    //             linePath.moveTo(data.point.x, data.point.y);
-    //         } else {
-    //             linePath.lineTo(data.point.x, data.point.y);
-    //         }
-    //     }
-    //     lineNode.checkPathDirty();
-    // }
 
     protected override async updatePaths(opts: {
         seriesHighlighted?: boolean;
