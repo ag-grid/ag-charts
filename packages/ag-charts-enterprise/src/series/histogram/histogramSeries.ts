@@ -567,32 +567,25 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(ChartAxisDirection.Y, this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const { datumSelections, labelSelections } = data;
-        const {
-            processedData,
-            getDatumId,
-            ctx: { animationManager },
-        } = this;
-        const diff = processedData?.reduced?.diff;
+        const diff = this.processedData?.reduced?.diff;
 
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(ChartAxisDirection.Y, this.axes));
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,
-            animationManager,
-            datumSelections,
-            fns,
-            (_, datum) => getDatumId(datum),
+            this.ctx.animationManager,
+            data.datumSelections,
+            prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes)),
+            (_, datum) => this.getDatumId(datum),
             diff
         );
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, data.labelSelections);
     }
 
     getDatumId(datum: HistogramNodeDatum) {

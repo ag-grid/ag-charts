@@ -22,7 +22,7 @@ const {
     OPT_LINE_DASH,
     getMarkerConfig,
     updateMarker,
-    updateLabel,
+    updateLabelNode,
     fixNumericExtent,
     areaAnimateEmptyUpdateReady,
     areaAnimateReadyUpdate,
@@ -408,30 +408,25 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             series,
             itemId,
             datum,
-            text: this.getLabelText({ itemId, datum, value }),
+            text: this.getLabelText(
+                this.label,
+                {
+                    value,
+                    datum,
+                    itemId,
+                    xKey: this.xKey ?? '',
+                    yLowKey: this.yLowKey ?? '',
+                    yHighKey: this.yHighKey ?? '',
+                    xName: this.xName,
+                    yLowName: this.yLowName,
+                    yHighName: this.yHighName,
+                    yName: this.yName,
+                },
+                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+            ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
         };
-    }
-
-    private getLabelText({ itemId, datum, value }: { itemId: string; datum: RangeAreaMarkerDatum; value: any }) {
-        let labelText;
-        if (this.label.formatter) {
-            labelText = this.ctx.callbackCache.call(this.label.formatter, {
-                datum,
-                itemId,
-                seriesId: this.id,
-                value: value,
-                xKey: this.xKey ?? '',
-                yLowKey: this.yLowKey ?? '',
-                yHighKey: this.yHighKey ?? '',
-                xName: this.xName,
-                yLowName: this.yLowName,
-                yHighName: this.yHighName,
-                yName: this.yName,
-            });
-        }
-        return labelText ?? (isNumber(value) ? value.toFixed(2) : String(value));
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -528,10 +523,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RangeAreaLabelDatum> }) {
-        const { labelSelection } = opts;
-        labelSelection.each((node, datum) => {
-            const { label } = this;
-            updateLabel({ labelNode: node, labelDatum: datum, config: label, visible: true });
+        opts.labelSelection.each((textNode, datum) => {
+            updateLabelNode(textNode, this.label, datum);
         });
     }
 

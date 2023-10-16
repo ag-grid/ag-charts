@@ -263,8 +263,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const angleEndIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-end`).index;
         const angleRawIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-raw`).index;
 
-        const { label, id: seriesId } = this;
-
         let groupPaddingInner = 0;
         if (radiusAxis instanceof RadiusCategoryAxis) {
             groupPaddingInner = radiusAxis.groupPaddingInner;
@@ -288,30 +286,20 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            let labelText = '';
-            if (label.formatter) {
-                labelText = label.formatter({
+            const labelText = this.getLabelText(
+                this.label,
+                {
                     value: angleDatum,
                     datum,
-                    seriesId,
                     angleKey,
                     radiusKey,
                     angleName: this.angleName,
                     radiusName: this.radiusName,
-                });
-            } else if (typeof angleDatum === 'number' && isFinite(angleDatum)) {
-                labelText = angleDatum.toFixed(2);
-            } else if (angleDatum) {
-                labelText = String(angleDatum);
-            }
+                },
+                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+            );
             if (labelText) {
-                return {
-                    x,
-                    y,
-                    text: labelText,
-                    textAlign: 'center',
-                    textBaseline: 'middle',
-                };
+                return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
             }
         };
 
@@ -338,7 +326,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
             const x = Math.cos(midAngle) * midRadius;
             const y = Math.sin(midAngle) * midRadius;
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, angleDatum, x, y) : undefined;
+            const labelNodeDatum = this.label.enabled ? getLabelNodeDatum(datum, angleDatum, x, y) : undefined;
 
             return {
                 series: this,

@@ -104,7 +104,7 @@ export function updateMarker({ node, config }: { node: Marker; config: MarkerCon
     });
 
     // Only for custom marker shapes
-    if (customMarker && node.dirtyPath) {
+    if (customMarker && !node.dirtyPath) {
         node.path.clear({ trackChanges: true });
         node.updatePath();
         node.checkPathDirty();

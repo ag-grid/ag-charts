@@ -6,6 +6,7 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
 import { isNegative } from '../../../util/number';
+import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { SeriesItemHighlightStyle } from '../series';
@@ -72,10 +73,7 @@ export function getRectConfig<
     seriesId: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
-    const itemFill = isHighlighted ? highlightStyle.fill ?? style.fill : style.fill;
-    const itemStroke = isHighlighted ? highlightStyle.stroke ?? style.stroke : style.stroke;
-    const itemStrokeWidth = isHighlighted ? highlightStyle.strokeWidth ?? style.strokeWidth : style.strokeWidth;
-    const fillOpacity = isHighlighted ? highlightStyle.fillOpacity ?? style.fillOpacity : style.fillOpacity;
+    const { fill, fillOpacity, stroke, strokeWidth } = mergeDefaults(isHighlighted && highlightStyle, style);
     const { strokeOpacity, fillShadow, lineDash, lineDashOffset } = style;
 
     let format: AgBarSeriesStyle | undefined;
@@ -83,9 +81,9 @@ export function getRectConfig<
         format = callbackCache.call(formatter as any, {
             datum: datum.datum,
             xKey: datum.xKey,
-            fill: itemFill,
-            stroke: itemStroke,
-            strokeWidth: itemStrokeWidth,
+            fill,
+            stroke,
+            strokeWidth,
             highlighted: isHighlighted,
             seriesId,
             ...opts,
@@ -93,9 +91,9 @@ export function getRectConfig<
     }
 
     return {
-        fill: format?.fill ?? itemFill,
-        stroke: format?.stroke ?? itemStroke,
-        strokeWidth: format?.strokeWidth ?? itemStrokeWidth,
+        fill: format?.fill ?? fill,
+        stroke: format?.stroke ?? stroke,
+        strokeWidth: format?.strokeWidth ?? strokeWidth,
         fillOpacity,
         strokeOpacity,
         lineDash,
@@ -112,11 +110,10 @@ export function checkCrisp(visibleRange: number[] = []): boolean {
 
 type InitialPosition<T> = { isVertical: boolean; calculate: (datum: T, prevDatum?: T) => T };
 export function collapsedStartingBarPosition(
-    barDirection: ChartAxisDirection,
+    isVertical: boolean,
     axes: Record<ChartAxisDirection, ChartAxis | undefined>
 ): InitialPosition<AnimatableBarDatum> {
-    const isVertical = barDirection === ChartAxisDirection.Y;
-    const { startingX, startingY } = getBarDirectionStartingValues(barDirection, axes);
+    const { startingX, startingY } = getStartingValues(isVertical, axes);
 
     const isDatumNegative = (datum: AnimatableBarDatum) => {
         return isNegative((datum as any)['yValue'] ?? 0);
@@ -142,15 +139,10 @@ export function collapsedStartingBarPosition(
         return { x, y, width, height };
     };
 
-    return {
-        isVertical,
-        calculate,
-    };
+    return { isVertical, calculate };
 }
 
-export function midpointStartingBarPosition(barDirection: ChartAxisDirection): InitialPosition<AnimatableBarDatum> {
-    const isVertical = barDirection === ChartAxisDirection.Y;
-
+export function midpointStartingBarPosition(isVertical: boolean): InitialPosition<AnimatableBarDatum> {
     return {
         isVertical,
         calculate: (datum) => {
@@ -166,9 +158,7 @@ export function midpointStartingBarPosition(barDirection: ChartAxisDirection): I
 
 type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
-    const isRemoved = (datum: T) => {
-        return isNaN(datum.x) || isNaN(datum.y);
-    };
+    const isRemoved = (datum: T) => isNaN(datum.x) || isNaN(datum.y);
 
     const fromFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
         if (status === 'updated' && isRemoved(datum)) {
@@ -194,42 +184,25 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
     return { toFn, fromFn };
 }
 
-function getBarDirectionStartingValues(
-    barDirection: ChartAxisDirection,
-    axes: Record<ChartAxisDirection, ChartAxis | undefined>
-) {
-    const isColumnSeries = barDirection === ChartAxisDirection.Y;
-
-    const xAxis = axes[ChartAxisDirection.X];
-    const yAxis = axes[ChartAxisDirection.Y];
+function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection, ChartAxis | undefined>) {
+    const axis = axes[isVertical ? ChartAxisDirection.Y : ChartAxisDirection.X];
 
     let startingX = Infinity;
     let startingY = 0;
 
-    if (isColumnSeries) {
-        const isContinuousY = yAxis?.scale instanceof ContinuousScale;
-        if (isContinuousY) {
-            startingY = yAxis.scale.convert(0);
-        } else if (yAxis) {
-            startingY = yAxis.scale.convert(Math.max(...yAxis.range));
-        }
+    if (!axis) {
+        return { startingX, startingY };
+    }
+
+    if (isVertical) {
+        startingY = axis.scale.convert(ContinuousScale.is(axis.scale) ? 0 : Math.max(...axis.range));
     } else {
-        const isContinuousX = xAxis?.scale instanceof ContinuousScale;
-        if (isContinuousX) {
-            startingX = xAxis.scale.convert(0);
-        } else if (xAxis) {
-            startingX = xAxis.scale.convert(Math.min(...xAxis.range));
-        }
+        startingX = axis.scale.convert(ContinuousScale.is(axis.scale) ? 0 : Math.min(...axis.range));
     }
 
     return { startingX, startingY };
 }
 
 export function resetBarSelectionsFn(_node: Rect, { x, y, width, height }: AnimatableBarDatum) {
-    return {
-        x,
-        y,
-        width,
-        height,
-    };
+    return { x, y, width, height };
 }

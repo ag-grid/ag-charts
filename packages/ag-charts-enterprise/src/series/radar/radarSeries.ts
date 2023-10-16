@@ -28,7 +28,7 @@ const {
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
-const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
+const { extent, isNumber, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
 export interface RadarLinePoint {
     x: number;
@@ -246,22 +246,19 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
             let labelNodeDatum: RadarNodeDatum['label'];
             if (this.label.enabled) {
-                let labelText = '';
-                if (this.label.formatter) {
-                    labelText = this.label.formatter({
-                        seriesId: this.id,
+                const labelText = this.getLabelText(
+                    this.label,
+                    {
                         value: radiusDatum,
                         datum,
                         angleKey,
                         radiusKey,
                         angleName: this.angleName,
                         radiusName: this.radiusName,
-                    });
-                } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
-                    labelText = radiusDatum.toFixed(2);
-                } else if (radiusDatum) {
-                    labelText = String(radiusDatum);
-                }
+                    },
+                    (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                );
+
                 if (labelText) {
                     labelNodeDatum = {
                         x: x + cos * this.marker.size,
@@ -621,26 +618,20 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override animateEmptyUpdateReady() {
-        const { itemSelection, labelSelection } = this;
-        const { animationManager } = this.ctx;
-
         const duration = this.ctx.animationManager.defaultDuration;
-        const animationOptions = {
-            from: 0,
-            to: duration,
-        };
+        const animationOptions = { from: 0, to: duration };
 
         this.beforePathAnimation();
 
-        animationManager.animate({
+        this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready`,
             ...animationOptions,
             duration,
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
-        markerFadeInAnimation(this, animationManager, [itemSelection], true);
-        seriesLabelFadeInAnimation(this, animationManager, [labelSelection]);
+        markerFadeInAnimation(this, this.ctx.animationManager, [this.itemSelection], true);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.labelSelection]);
     }
 
     override animateReadyUpdate() {
@@ -678,38 +669,5 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
             lineNode.checkPathDirty();
         }
-    }
-
-    protected animateFormatter(datum: RadarNodeDatum) {
-        const {
-            marker,
-            angleKey = '',
-            radiusKey = '',
-            stroke: lineStroke,
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
-        const { size, formatter } = marker;
-
-        const fill = marker.fill;
-        const stroke = marker.stroke ?? lineStroke;
-        const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
-
-        let format: AgRadarSeriesMarkerFormat | undefined;
-        if (formatter) {
-            format = callbackCache.call(formatter, {
-                datum: datum.datum,
-                angleKey,
-                radiusKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
-                seriesId,
-            });
-        }
-
-        return format;
     }
 }

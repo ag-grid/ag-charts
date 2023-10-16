@@ -119,10 +119,10 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     }
 
     protected override calculateDomain() {
-        const { direction, boundSeries } = this;
+        const { direction } = this;
         const domains: any[][] = [];
         let isNumericX: boolean | undefined;
-        boundSeries
+        this.boundSeries
             .filter((s) => s.visible)
             .forEach((series) => {
                 if (direction === ChartAxisDirection.X) {
@@ -141,7 +141,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             });
 
         const domain = new Array<any>().concat(...domains);
-
         const values = extent(domain) ?? domain;
 
         this.dataDomain = this.normaliseDataDomain(values);
@@ -234,8 +233,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const gridLineSelection = this.gridLineSelection.update(this.gridLength ? ticks : []);
         const labelSelection = this.labelSelection.update(treeLabels);
 
-        const labelFormatter = label.formatter;
-
         const labelBBoxes: Map<string, BBox> = new Map();
         let maxLeafLabelWidth = 0;
         labelSelection.each((node, datum, index) => {
@@ -261,9 +258,9 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 } else {
                     node.visible = false;
                 }
-            } else if (labelFormatter) {
+            } else if (label.formatter) {
                 node.text =
-                    callbackCache.call(labelFormatter, {
+                    callbackCache.call(label.formatter, {
                         value: String(datum.label),
                         index,
                     }) ?? String(datum.label);

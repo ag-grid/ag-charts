@@ -17,6 +17,7 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { mod, toFixed } from '../../../util/number';
+import { mergeDefaults } from '../../../util/object';
 import { boxCollidesSector, isPointInSector } from '../../../util/sector';
 import type { Has } from '../../../util/types';
 import {
@@ -514,30 +515,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         calloutLabelValue: string,
         sectorLabelValue: string,
         legendItemValue?: string
-    ): {
-        calloutLabel?: any;
-        legendItem?: {
-            key: string;
-            text: string;
-        };
-        sectorLabel?: { text: string };
-    } {
-        const {
-            calloutLabel,
-            sectorLabel,
-            legendItemKey,
-            ctx: { callbackCache },
-        } = this;
+    ) {
+        const { calloutLabel, sectorLabel, legendItemKey } = this;
 
         const calloutLabelKey = !skipDisabled || calloutLabel.enabled ? this.calloutLabelKey : undefined;
         const sectorLabelKey = !skipDisabled || sectorLabel.enabled ? this.sectorLabelKey : undefined;
 
-        if (!calloutLabelKey && !sectorLabelKey && !legendItemKey) return {};
+        if (!calloutLabelKey && !sectorLabelKey && !legendItemKey) {
+            return {};
+        }
 
         const labelFormatterParams = {
-            seriesId: this.id,
-            value: null,
-            itemId: undefined,
             datum,
             angleKey: this.angleKey,
             angleName: this.angleName,
@@ -549,45 +537,40 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             sectorLabelName: this.sectorLabelName,
         };
 
-        let calloutLabelText;
-        if (calloutLabelKey) {
-            const calloutLabelMinAngle = toRadians(calloutLabel.minAngle);
-            const calloutLabelVisible = span > calloutLabelMinAngle;
+        const result: {
+            calloutLabel?: { text: string } & any;
+            sectorLabel?: { text: string };
+            legendItem?: { key: string; text: string };
+        } = {};
 
-            if (!calloutLabelVisible) {
-                calloutLabelText = undefined;
-            } else if (calloutLabel.formatter) {
-                calloutLabelText = callbackCache.call(calloutLabel.formatter, labelFormatterParams);
-            } else {
-                calloutLabelText = String(calloutLabelValue);
-            }
+        if (calloutLabelKey && span > toRadians(calloutLabel.minAngle)) {
+            result.calloutLabel = {
+                ...this.getTextAlignment(midAngle),
+                text: this.getLabelText(calloutLabel, {
+                    ...labelFormatterParams,
+                    value: calloutLabelValue,
+                }),
+                hidden: false,
+                collisionTextAlign: undefined,
+                collisionOffsetY: 0,
+                box: undefined,
+            };
         }
 
-        let sectorLabelText;
         if (sectorLabelKey) {
-            sectorLabelText = sectorLabel.formatter
-                ? callbackCache.call(sectorLabel.formatter, labelFormatterParams)
-                : String(sectorLabelValue);
+            result.sectorLabel = {
+                text: this.getLabelText(sectorLabel, {
+                    ...labelFormatterParams,
+                    value: sectorLabelValue,
+                }),
+            };
         }
 
-        return {
-            ...(calloutLabelText != null
-                ? {
-                      calloutLabel: {
-                          ...this.getTextAlignment(midAngle),
-                          text: calloutLabelText,
-                          hidden: false,
-                          collisionTextAlign: undefined,
-                          collisionOffsetY: 0,
-                          box: undefined,
-                      },
-                  }
-                : {}),
-            ...(sectorLabelText != null ? { sectorLabel: { text: sectorLabelText } } : {}),
-            ...(legendItemKey != null && legendItemValue != null
-                ? { legendItem: { key: legendItemKey, text: legendItemValue } }
-                : {}),
-        };
+        if (legendItemKey != null && legendItemValue != null) {
+            result.legendItem = { key: legendItemKey, text: legendItemValue };
+        }
+
+        return result;
     }
 
     private getTextAlignment(midAngle: number) {
@@ -620,23 +603,25 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             radiusKey,
             fills,
             strokes,
-            fillOpacity: seriesFillOpacity,
             formatter,
             id: seriesId,
             ctx: { callbackCache, highlightManager },
         } = this;
 
         const formatIndex = this.getSectorIndex(datum) ?? itemId;
-
-        const highlightedDatum = highlightManager?.getActiveHighlight();
+        const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted = highlight && highlightedDatum?.series === this && itemId === highlightedDatum.itemId;
-        const highlightedStyle = isDatumHighlighted ? this.highlightStyle.item : null;
 
-        const fill = highlightedStyle?.fill ?? fills[formatIndex % fills.length];
-        const fillOpacity = highlightedStyle?.fillOpacity ?? seriesFillOpacity;
-        const stroke = highlightedStyle?.stroke ?? strokes[formatIndex % strokes.length];
-        const strokeWidth = highlightedStyle?.strokeWidth ?? this.getStrokeWidth(this.strokeWidth);
-        const strokeOpacity = highlightedStyle?.strokeOpacity ?? this.getOpacity();
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
+            isDatumHighlighted && this.highlightStyle.item,
+            {
+                fill: fills[formatIndex % fills.length],
+                fillOpacity: this.fillOpacity,
+                stroke: strokes[formatIndex % strokes.length],
+                strokeWidth: this.getStrokeWidth(this.strokeWidth),
+                strokeOpacity: this.getOpacity(),
+            }
+        );
 
         let format: AgPieSeriesFormat | undefined;
         if (formatter) {
@@ -663,7 +648,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     getInnerRadius() {
         const { radius, innerRadiusRatio, innerRadiusOffset } = this;
-        const innerRadius = radius * (innerRadiusRatio ?? 1) + (innerRadiusOffset ? innerRadiusOffset : 0);
+        const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;
         if (innerRadius === radius || innerRadius < 0) {
             return 0;
         }
@@ -671,18 +656,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     getOuterRadius() {
-        const { radius, outerRadiusRatio, outerRadiusOffset } = this;
-        const outerRadius = radius * (outerRadiusRatio ?? 1) + (outerRadiusOffset ? outerRadiusOffset : 0);
-        if (outerRadius < 0) {
-            return 0;
-        }
-        return outerRadius;
+        return Math.max(this.radius * this.outerRadiusRatio + this.outerRadiusOffset, 0);
     }
 
     updateRadiusScale() {
-        const innerRadius = this.getInnerRadius();
-        const outerRadius = this.getOuterRadius();
-        this.radiusScale.range = [innerRadius, outerRadius];
+        this.radiusScale.range = [this.getInnerRadius(), this.getOuterRadius()];
     }
 
     private getTitleTranslationY() {

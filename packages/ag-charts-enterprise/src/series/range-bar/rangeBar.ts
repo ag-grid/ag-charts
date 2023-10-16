@@ -23,7 +23,7 @@ const {
     getRectConfig,
     updateRect,
     checkCrisp,
-    updateLabel,
+    updateLabelNode,
     CategoryAxis,
     SMALLEST_KEY_INTERVAL,
     STRING_UNION,
@@ -212,8 +212,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         if (!yLowKey || !yHighKey) return;
 
-        const isContinuousX = this.getCategoryAxis()?.scale instanceof ContinuousScale;
-        const isContinuousY = this.getValueAxis()?.scale instanceof ContinuousScale;
+        const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
+        const isContinuousY = ContinuousScale.is(this.getValueAxis()?.scale);
 
         const animationProp = [];
         if (!this.ctx.animationManager.isSkipped() && this.processedData) {
@@ -328,8 +328,9 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             domain.push(String(groupIdx));
         }
 
-        const xBandWidth =
-            xScale instanceof ContinuousScale ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth;
+        const xBandWidth = ContinuousScale.is(xScale)
+            ? xScale.calcBandwidth(smallestDataInterval?.x)
+            : xScale.bandwidth;
 
         groupScale.domain = domain;
         groupScale.range = [0, xBandWidth ?? 0];
@@ -445,7 +446,18 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText({ itemId: 'low', datum, value: yLowValue }),
+            text: this.getLabelText(
+                this.label,
+                {
+                    datum,
+                    itemId: 'low',
+                    value: yLowValue,
+                    xKey: this.xKey,
+                    yLowKey: this.yLowKey,
+                    yHighKey: this.yHighKey,
+                },
+                (value) => (isNumber(value) ? value.toFixed(2) : '')
+            ),
             itemId: 'low',
             datum,
             series,
@@ -455,7 +467,18 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText({ itemId: 'high', datum, value: yHighValue }),
+            text: this.getLabelText(
+                this.label,
+                {
+                    datum,
+                    itemId: 'high',
+                    value: yHighValue,
+                    xKey: this.xKey,
+                    yLowKey: this.yLowKey,
+                    yHighKey: this.yHighKey,
+                },
+                (value) => (isNumber(value) ? value.toFixed(2) : '')
+            ),
             itemId: 'high',
             datum,
             series,
@@ -469,27 +492,6 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             yHighLabel.textBaseline = barAlongX ? 'middle' : 'bottom';
         }
         return [yLowLabel, yHighLabel];
-    }
-
-    private getLabelText({ itemId, datum, value }: { itemId: string; datum: RangeBarNodeDatum; value: any }) {
-        const {
-            id: seriesId,
-            label: { formatter },
-            ctx: { callbackCache },
-        } = this;
-        let labelText;
-        if (formatter) {
-            labelText = callbackCache.call(formatter, {
-                value: isNumber(value) ? value : undefined,
-                seriesId,
-                itemId,
-                datum,
-                xKey: this.xKey,
-                yLowKey: this.yLowKey,
-                yHighKey: this.yHighKey,
-            });
-        }
-        return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
     }
 
     protected override nodeFactory() {
@@ -577,26 +579,15 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         labelData: RangeBarNodeLabelDatum[];
         labelSelection: RangeBarAnimationData['labelSelections'][number];
     }) {
-        const { labelData, labelSelection } = opts;
-
-        if (labelData.length === 0) {
-            return labelSelection.update([]);
-        }
-        const {
-            label: { enabled },
-        } = this;
-        const data = enabled ? labelData : [];
-
-        return labelSelection.update(data, (text) => {
+        const labelData = this.label.enabled ? opts.labelData : [];
+        return opts.labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;
         });
     }
 
     protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, any> }) {
-        const { labelSelection } = opts;
-        labelSelection.each((text, datum) => {
-            const { label } = this;
-            updateLabel({ labelNode: text, labelDatum: datum, config: label, visible: true });
+        opts.labelSelection.each((textNode, datum) => {
+            updateLabelNode(textNode, this.label, datum);
         });
     }
 
@@ -691,24 +682,15 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
                 itemId: `${yLowKey}-${yHighKey}`,
                 seriesId: id,
                 enabled: visible,
-                label: {
-                    text: `${legendItemText}`,
-                },
-                marker: {
-                    fill,
-                    stroke,
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                },
+                label: { text: `${legendItemText}` },
+                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
             },
         ];
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
-
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
@@ -717,7 +699,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.getBarDirection()));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
         motion.fromToMotion(
             `${this.id}_empty-update-ready`,
             this.ctx.animationManager,

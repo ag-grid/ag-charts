@@ -10,7 +10,6 @@ import type {
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
-    isNumber,
     adjustLabelPlacement,
     Validate,
     SeriesNodePickMode,
@@ -32,7 +31,7 @@ const {
     getRectConfig,
     updateRect,
     checkCrisp,
-    updateLabel,
+    updateLabelNode,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsFn,
@@ -40,7 +39,7 @@ const {
     resetLabelFn,
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
-const { sanitizeHtml, isContinuous } = _Util;
+const { sanitizeHtml, isContinuous, isNumber } = _Util;
 
 const WATERFALL_LABEL_PLACEMENTS: AgWaterfallSeriesLabelPlacement[] = ['start', 'end', 'inside'];
 const OPT_WATERFALL_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
@@ -221,8 +220,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
         if (!yKey) return;
 
-        const isContinuousX = this.getCategoryAxis()?.scale instanceof ContinuousScale;
-
         const positiveNumber = (v: any) => {
             return isContinuous(v) && v >= 0;
         };
@@ -267,6 +264,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             }
         });
 
+        const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
         await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
@@ -476,19 +474,19 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
             pointData.push(pathPoint);
 
-            let labelText;
-            if (label.formatter) {
-                labelText = this.ctx.callbackCache.call(label.formatter, {
-                    value: isNumber(value) ? value : undefined,
-                    seriesId: this.id,
+            const labelText = this.getLabelText(
+                label,
+                {
+                    value,
                     datum,
                     itemId,
                     xKey,
                     yKey,
                     xName: this.xName,
                     yName: this.yName,
-                });
-            }
+                },
+                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+            );
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,
@@ -509,7 +507,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 stroke,
                 strokeWidth,
                 label: {
-                    text: labelText ?? (isNumber(value) ? value.toFixed(2) : ''),
+                    text: labelText,
                     ...adjustLabelPlacement({
                         isPositive: (value ?? -1) >= 0,
                         isVertical: !barAlongX,
@@ -677,29 +675,20 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const itemId = labelData[0].itemId;
-        const {
-            label: { enabled },
-        } = this.getItemConfig(itemId);
-        const data = enabled ? labelData : [];
+        const { label } = this.getItemConfig(itemId);
+        const data = label.enabled ? labelData : [];
 
         return labelSelection.update(data);
     }
 
     protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, WaterfallNodeDatum> }) {
-        const { labelSelection } = opts;
-        labelSelection.each((text, datum) => {
-            const labelDatum = datum.label;
-            const { label } = this.getItemConfig(datum.itemId);
-            updateLabel({ labelNode: text, labelDatum, config: label, visible: true });
+        opts.labelSelection.each((textNode, datum) => {
+            updateLabelNode(textNode, this.getItemConfig(datum.itemId).label, datum.label);
         });
     }
 
     getTooltipHtml(nodeDatum: WaterfallNodeDatum): string {
-        const {
-            xKey,
-            yKey,
-            ctx: { callbackCache },
-        } = this;
+        const { xKey, yKey } = this;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -715,7 +704,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         let format;
 
         if (formatter) {
-            format = callbackCache.call(formatter, {
+            format = this.ctx.callbackCache.call(formatter, {
                 datum,
                 value: yValue,
                 xKey,
@@ -776,7 +765,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
+        );
         motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);

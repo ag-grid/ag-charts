@@ -60,10 +60,7 @@ export abstract class AngleAxis<
     protected tickData: AngleAxisTickDatum<TDomain>[] = [];
     protected radiusLine: _Scene.Path = this.axisGroup.appendChild(new Path());
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {
-        super(moduleCtx, scale);
-        this.includeInvisibleDomains = true;
-    }
+    override includeInvisibleDomains = true;
 
     get direction() {
         return ChartAxisDirection.X;
@@ -265,8 +262,7 @@ export abstract class AngleAxis<
 
             let text = String(value);
             if (label.formatter) {
-                const { callbackCache } = this.moduleCtx;
-                text = callbackCache.call(label.formatter, { value, index }) ?? '';
+                text = this.moduleCtx.callbackCache.call(label.formatter, { value, index }) ?? '';
             }
 
             tempText.text = text;

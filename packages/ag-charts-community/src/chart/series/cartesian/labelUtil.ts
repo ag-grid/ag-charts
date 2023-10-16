@@ -1,4 +1,4 @@
-import type { FontFamily, FontStyle, FontWeight } from '../../../options/agChartOptions';
+import type { AgChartLabelOptions } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
 
@@ -11,41 +11,22 @@ type Bounds = {
 
 type LabelPlacement = 'start' | 'end' | 'inside' | 'outside';
 
-type LabelDatum = Readonly<Point> & {
-    readonly text: string;
-    readonly textAlign: CanvasTextAlign;
-    readonly textBaseline: CanvasTextBaseline;
+type LabelDatum = Point & {
+    text: string;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
 };
 
-export type LabelConfig = {
-    enabled: boolean;
-    fontFamily: FontFamily;
-    fontSize: number;
-    fontWeight?: FontWeight;
-    fontStyle?: FontStyle;
-    color?: string;
-};
-
-export function updateLabel<LabelDatumType extends LabelDatum>({
-    labelNode,
-    labelDatum,
-    config,
-    visible,
-}: {
-    labelNode: Text;
-    labelDatum?: LabelDatumType;
-    config?: LabelConfig;
-    visible: boolean;
-}) {
-    if (labelDatum && config && config.enabled) {
+export function updateLabelNode(textNode: Text, label: AgChartLabelOptions<any, any>, labelDatum?: LabelDatum) {
+    if (label.enabled && labelDatum) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
-        const { fontStyle, fontWeight, fontSize, fontFamily, color } = config;
-        labelNode.setProperties({
-            visible,
+        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
+        textNode.setProperties({
+            visible: true,
             x,
             y,
             text,
-            fill: color,
+            fill,
             fontStyle,
             fontWeight,
             fontSize,
@@ -54,7 +35,7 @@ export function updateLabel<LabelDatumType extends LabelDatum>({
             textBaseline,
         });
     } else {
-        labelNode.visible = false;
+        textNode.visible = false;
     }
 }
 

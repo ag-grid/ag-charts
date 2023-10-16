@@ -29,3 +29,5 @@ export type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 export type RequireOptional<T> = {
     [K in keyof Required<T>]: T[K] extends Required<T[K]> ? T[K] : T[K] | undefined;
 };
+
+export type Intersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
