@@ -1,3 +1,4 @@
+import type { AgSeriesType } from '../options/series/seriesOptions';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { AxisContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 
@@ -10,26 +11,7 @@ export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> ext
 
 export interface SeriesOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'series-option';
-    seriesTypes: readonly (
-        | 'area'
-        | 'bar'
-        | 'box-plot'
-        | 'bubble'
-        | 'heatmap'
-        | 'histogram'
-        | 'line'
-        | 'nightingale'
-        | 'pie'
-        | 'radar-area'
-        | 'radar-line'
-        | 'radial-bar'
-        | 'radial-column'
-        | 'range-area'
-        | 'range-bar'
-        | 'scatter'
-        | 'treemap'
-        | 'waterfall'
-    )[];
+    seriesTypes: readonly AgSeriesType[];
     instanceConstructor: new (ctx: SeriesContext) => M;
     themeTemplate: {};
 }
