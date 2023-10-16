@@ -166,7 +166,8 @@ export abstract class AngleAxis<
         const ticks = this.tickData;
         const innerRadius = radius * innerRadiusRatio;
         const styleCount = style.length;
-        this.gridLineGroupSelection.update(enabled ? ticks : []).each((line, datum, index) => {
+        const idFn = (datum: AngleAxisTickDatum<any>) => datum.value;
+        this.gridLineGroupSelection.update(enabled ? ticks : [], undefined, idFn).each((line, datum, index) => {
             const { value } = datum;
             const { stroke, lineDash } = style[index % styleCount];
             const angle = scale.convert(value);
@@ -179,6 +180,7 @@ export abstract class AngleAxis<
             line.lineDash = lineDash;
             line.fill = undefined;
         });
+        this.gridLineGroupSelection.cleanup();
     }
 
     protected override updateLabels() {
