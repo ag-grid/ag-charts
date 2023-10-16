@@ -19,7 +19,11 @@ function fixRadialBarAnimationStatus(
     status: _Scene.NodeUpdateState
 ) {
     if (status === 'updated') {
-        if (node.previousDatum == null || isNaN(node.previousDatum.innerRadius) || isNaN(node.previousDatum.outerRadius)) {
+        if (
+            node.previousDatum == null ||
+            isNaN(node.previousDatum.innerRadius) ||
+            isNaN(node.previousDatum.outerRadius)
+        ) {
             return 'added';
         }
         if (isNaN(datum.innerRadius) || isNaN(datum.outerRadius)) {
