@@ -126,11 +126,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || this.highlightManager.getActivePicked() !== undefined) return;
 
-        if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY)) {
+        if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && !this.hoveredAxis) {
             return;
         }
 
+        const oldZoom = definedZoomState(this.zoomManager.getZoom());
         const newZoom = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
+
+        if (this.hoveredAxis) {
+            const { direction } = this.hoveredAxis;
+            if (direction === _ModuleSupport.ChartAxisDirection.X) {
+                newZoom.y = oldZoom.y;
+            } else {
+                newZoom.x = oldZoom.x;
+            }
+        }
+
         this.updateZoom(newZoom);
     }
 
