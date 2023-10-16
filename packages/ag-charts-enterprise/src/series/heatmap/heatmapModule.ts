@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scale } from 'ag-charts-community';
+import { _Scale, _Theme } from 'ag-charts-community';
 
 import { HEATMAP_DEFAULTS } from './heatmapDefaults';
 import { HeatmapSeries } from './heatmapSeries';
@@ -15,4 +15,13 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     instanceConstructor: HeatmapSeries,
     seriesDefaults: HEATMAP_DEFAULTS,
     themeTemplate: HEATMAP_SERIES_THEME,
+    paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
+        const { properties } = themeTemplateParameters;
+        const defaultColorRange = properties.get(_Theme.DEFAULT_HEATMAP_SERIES_COLOUR_RANGE);
+        const { fills, strokes } = takeColors(colorsCount);
+        return {
+            stroke: strokes[0],
+            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
+        };
+    },
 };
