@@ -1253,32 +1253,37 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const datum = nearestNode?.datum;
         const nodeClickRange = datum?.series.nodeClickRange;
 
+        let pixelRange;
+        if (typeof nodeClickRange === 'number' && Number.isFinite(nodeClickRange)) {
+            pixelRange = nodeClickRange;
+        }
+
+        const pickedNode = this.pickSeriesNode(
+            { x: event.offsetX, y: event.offsetY },
+            nodeClickRange === 'exact',
+            pixelRange
+        );
+
+        if (pickedNode) {
+            this.highlightManager.updatePicked(this.id, pickedNode.datum);
+        } else {
+            this.highlightManager.updatePicked(this.id);
+        }
+
         // First check if we should trigger the callback based on nearest node
         if (datum && nodeClickRange === 'nearest') {
             callback(datum.series, datum);
             return true;
         }
 
-        // Then check for an exact match or within the given range
-        let pixelRange;
-        if (typeof nodeClickRange === 'number' && Number.isFinite(nodeClickRange)) {
-            pixelRange = nodeClickRange;
-        }
-
-        const pick = this.pickSeriesNode(
-            { x: event.offsetX, y: event.offsetY },
-            nodeClickRange === 'exact',
-            pixelRange
-        );
-
-        if (!pick) return false;
+        if (!pickedNode) return false;
 
         // Then if we've picked a node within the pixel range, or exactly, trigger the callback
         const isPixelRange = pixelRange != null;
-        const exactlyMatched = nodeClickRange === 'exact' && pick.distance === 0;
+        const exactlyMatched = nodeClickRange === 'exact' && pickedNode.distance === 0;
 
         if (isPixelRange || exactlyMatched) {
-            callback(pick.series, pick.datum);
+            callback(pickedNode.series, pickedNode.datum);
             return true;
         }
 

@@ -66,6 +66,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
+    private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly updateService: _ModuleSupport.UpdateService;
@@ -77,7 +78,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly scroller = new ZoomScroller();
 
     // State
-    private isDragging: boolean = false;
+    private isDragging = false;
     private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -85,6 +86,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.scene = ctx.scene;
         this.cursorManager = ctx.cursorManager;
+        this.highlightManager = ctx.highlightManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
@@ -122,13 +124,24 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
-        if (!this.enabled) return;
+        if (!this.enabled || this.highlightManager.getActivePicked() !== undefined) return;
 
-        if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY)) {
+        if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && !this.hoveredAxis) {
             return;
         }
 
+        const oldZoom = definedZoomState(this.zoomManager.getZoom());
         const newZoom = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
+
+        if (this.hoveredAxis) {
+            const { direction } = this.hoveredAxis;
+            if (direction === _ModuleSupport.ChartAxisDirection.X) {
+                newZoom.y = oldZoom.y;
+            } else {
+                newZoom.x = oldZoom.x;
+            }
+        }
+
         this.updateZoom(newZoom);
     }
 
