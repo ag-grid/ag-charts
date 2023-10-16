@@ -4,7 +4,6 @@ import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { CursorManager } from '../chart/interaction/cursorManager';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
-import type { NodeDatumManager } from '../chart/interaction/nodeDatumManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
@@ -26,7 +25,6 @@ export interface ModuleContext {
     cursorManager: CursorManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
-    nodeDatumManager: NodeDatumManager;
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
     dataService: DataService<ISeries<any>>;

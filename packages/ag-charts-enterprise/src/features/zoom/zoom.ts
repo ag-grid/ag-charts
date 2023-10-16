@@ -66,7 +66,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
-    private readonly nodeDatumManager: _ModuleSupport.NodeDatumManager;
+    private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly updateService: _ModuleSupport.UpdateService;
@@ -86,7 +86,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.scene = ctx.scene;
         this.cursorManager = ctx.cursorManager;
-        this.nodeDatumManager = ctx.nodeDatumManager;
+        this.highlightManager = ctx.highlightManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
@@ -124,7 +124,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
-        if (!this.enabled || this.nodeDatumManager.isPointerOverNode()) return;
+        if (!this.enabled || this.highlightManager.getActivePicked() !== undefined) return;
 
         if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY)) {
             return;

@@ -21,25 +21,39 @@ export interface HighlightChangeEvent {
  * distinct dependents and handles conflicting highlight requests.
  */
 export class HighlightManager extends BaseManager<'highlight-change', HighlightChangeEvent> {
-    private readonly states: Map<string, HighlightNodeDatum> = new Map();
+    private readonly highlightStates: Map<string, HighlightNodeDatum> = new Map();
     private activeHighlight?: HighlightNodeDatum;
+    private readonly pickedStates: Map<string, SeriesNodeDatum> = new Map();
+    private activePicked?: SeriesNodeDatum;
 
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum) {
-        this.states.delete(callerId);
+        this.highlightStates.delete(callerId);
         if (highlightedDatum != null) {
-            this.states.set(callerId, highlightedDatum);
+            this.highlightStates.set(callerId, highlightedDatum);
         }
-        this.applyStates();
+        this.applyHighlightStates();
     }
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {
         return this.activeHighlight;
     }
 
-    private applyStates() {
+    public updatePicked(callerId: string, clickableDatum?: SeriesNodeDatum) {
+        this.pickedStates.delete(callerId);
+        if (clickableDatum != null) {
+            this.pickedStates.set(callerId, clickableDatum);
+        }
+        this.applyPickedStates();
+    }
+
+    public getActivePicked(): SeriesNodeDatum | undefined {
+        return this.activePicked;
+    }
+
+    private applyHighlightStates() {
         // Last added entry wins.
         const { activeHighlight: previousHighlight } = this;
-        this.activeHighlight = Array.from(this.states.values()).pop();
+        this.activeHighlight = Array.from(this.highlightStates.values()).pop();
         if (!this.isEqual(this.activeHighlight, previousHighlight)) {
             this.listeners.dispatch('highlight-change', {
                 type: 'highlight-change',
@@ -49,7 +63,11 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
         }
     }
 
-    private isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum) {
+    private applyPickedStates() {
+        this.activePicked = Array.from(this.pickedStates.values()).pop();
+    }
+
+    private isEqual(a?: SeriesNodeDatum, b?: SeriesNodeDatum) {
         return a === b || (a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum);
     }
 }

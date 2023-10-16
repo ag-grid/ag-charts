@@ -44,7 +44,6 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
-import { NodeDatumManager } from './interaction/nodeDatumManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
@@ -253,7 +252,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly cursorManager: CursorManager;
     protected readonly highlightManager: HighlightManager;
     protected readonly interactionManager: InteractionManager;
-    protected readonly nodeDatumManager: NodeDatumManager;
     protected readonly tooltipManager: TooltipManager;
     protected readonly zoomManager: ZoomManager;
     protected readonly layoutService: LayoutService;
@@ -303,7 +301,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
-        this.nodeDatumManager = new NodeDatumManager();
         this.zoomManager = new ZoomManager();
         this.dataService = new DataService<Series<any>>(() => this.series);
         this.layoutService = new LayoutService();
@@ -408,7 +405,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             cursorManager,
             highlightManager,
             interactionManager,
-            nodeDatumManager,
             tooltipManager,
             zoomManager,
             dataService,
@@ -429,7 +425,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             cursorManager,
             highlightManager,
             interactionManager,
-            nodeDatumManager,
             tooltipManager,
             zoomManager,
             dataService,
@@ -1270,9 +1265,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         );
 
         if (pickedNode) {
-            this.nodeDatumManager.pointerEnterNode(this.id, pickedNode.datum);
+            this.highlightManager.updatePicked(this.id, pickedNode.datum);
         } else {
-            this.nodeDatumManager.pointerLeaveNode(this.id);
+            this.highlightManager.updatePicked(this.id);
         }
 
         // First check if we should trigger the callback based on nearest node
