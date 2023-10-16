@@ -51,18 +51,30 @@ export function createAngleMotionCalculator() {
     return { calculate, from, to };
 }
 
+export function fixRadialColumnAnimationStatus(
+    node: _Scene.Path,
+    datum: { startAngle: number; endAngle: number },
+    status: _Scene.NodeUpdateState
+) {
+    if (status === 'updated') {
+        if (node.previousDatum == null || isNaN(node.previousDatum.startAngle) || isNaN(node.previousDatum.endAngle)) {
+            return 'added';
+        }
+        if (isNaN(datum.startAngle) || isNaN(datum.endAngle)) {
+            return 'removed';
+        }
+    }
+    if (status === 'added' && node.previousDatum != null) {
+        return 'updated';
+    }
+    return status;
+}
+
 export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
-    const isRemoved = (datum: AnimatableRadialColumnDatum) => !datum;
     const angles = createAngleMotionCalculator();
 
     const fromFn = (node: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
-        if (status === 'updated' && isRemoved(node.previousDatum)) {
-            status = 'added';
-        }
-
-        if (status === 'added' && !isRemoved(node.previousDatum)) {
-            status = 'updated';
-        }
+        status = fixRadialColumnAnimationStatus(node, datum, status);
 
         angles.calculate(node, datum, status);
         const { startAngle, endAngle } = angles.from(datum);
