@@ -7,6 +7,8 @@ export interface ErrorBarWhiskerTheme {
     stroke?: string;
     strokeWidth?: number;
     strokeOpacity?: number;
+    lineDash?: number[];
+    lineDashOffset?: number;
 }
 
 export interface ErrorBarCapTheme extends ErrorBarWhiskerTheme {

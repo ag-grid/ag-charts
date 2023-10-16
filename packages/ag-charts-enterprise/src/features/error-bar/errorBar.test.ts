@@ -221,7 +221,7 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should apply styling to whiskers and cap as expected', async () => {
+    it('should apply stroke styling to whiskers and cap as expected', async () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
             series: [
@@ -234,6 +234,25 @@ describe('ErrorBars', () => {
                         stroke: 'rgb(0,0,255)',
                         strokeWidth: 10,
                         strokeOpacity: 0.5,
+                    },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should apply line bash styling to whiskers and cap as expected', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    data: FEWER_MONTHS,
+                    errorBar: {
+                        ...SERIES_CANADA.errorBar,
+                        lineDash: [5],
+                        lineDashOffset: 2,
                     },
                 },
             ],
