@@ -517,7 +517,6 @@ function PropertyDeclaration({
                 {expandable && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
                 <span onClick={onSelection}>{propName}</span>
             </span>
-            {!required && <span className={classnames('token', 'optional')}>?</span>}
             {!HIDE_TYPES && (
                 <>
                     <span className={classnames('token', 'operator')}>: </span>
