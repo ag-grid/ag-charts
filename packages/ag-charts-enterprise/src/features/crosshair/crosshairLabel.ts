@@ -20,7 +20,7 @@ export const defaultLabelCss = `
     white-space: nowrap;
     z-index: 99999;
     background-color: rgb(140, 140, 140);
-    color: rgb(255,255,255);
+    color: rgb(255, 255, 255);
 }
 
 .ag-crosshair-label-content {
