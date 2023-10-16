@@ -116,12 +116,19 @@ export abstract class AngleAxis<
         const { scale, shape } = this;
         const node = this.radiusLine;
         const radius = this.gridLength;
+        const [startAngle, endAngle] = this.range;
+        const isFullCircle = isNumberEqual(endAngle - startAngle, 2 * Math.PI);
 
         const { path } = node;
         path.clear({ trackChanges: true });
         if (shape === 'circle') {
-            path.moveTo(radius, 0);
-            path.arc(0, 0, radius, 0, 2 * Math.PI);
+            if (isFullCircle) {
+                path.moveTo(radius, 0);
+                path.arc(0, 0, radius, 0, 2 * Math.PI);
+            } else {
+                path.moveTo(radius * Math.cos(startAngle), radius * Math.sin(startAngle));
+                path.arc(0, 0, radius, normalizeAngle360(startAngle), normalizeAngle360(endAngle));
+            }
         } else if (shape === 'polygon') {
             const angles = (scale.ticks?.() || []).map((value) => scale.convert(value));
             if (angles.length > 2) {
@@ -136,7 +143,9 @@ export abstract class AngleAxis<
                 });
             }
         }
-        path.closePath();
+        if (isFullCircle) {
+            path.closePath();
+        }
 
         node.stroke = this.line.color;
         node.strokeWidth = this.line.width;
