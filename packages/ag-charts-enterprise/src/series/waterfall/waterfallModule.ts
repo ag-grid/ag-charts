@@ -40,7 +40,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                   item: {
                       positive: properties.get(_Theme.DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS),
                       negative: properties.get(_Theme.DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS),
-                      total: properties.get(_Theme.DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS),
+                      total: properties.get(_Theme.DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS),
                   },
               };
     },
