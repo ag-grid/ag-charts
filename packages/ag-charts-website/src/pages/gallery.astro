@@ -13,7 +13,7 @@ const { series } = galleryData;
 ---
 
 <Layout>
-    <div class="gallery-outer font-size-responsive font-size-medium">
+    <div class="gallery-outer font-size-responsive font-size-small">
         <div class="menu">
             <ul class="list-style-none">
                 {
@@ -36,39 +36,25 @@ const { series } = galleryData;
         </div>
 
         <div class="content">
-        <GalleryExampleThemeDropdown client:only></GalleryExampleThemeDropdown>
-            {
-                series.map((series: GalleryExampleChartType) => (
-                    <div class="chart-type">
-                        <h3 id={series.name}>
-                            <span>{series.title} Charts</span>
-                            {series.enterprise && (
-                                <span class="enterpriseIcon">
-                                    <Icon client:only name="enterprise" />
-                                </span>
-                            )}
-
-                            {/* [[TODO]] make series type docs links respect selected framework */}
-                            <a class="font-size-small" href={`./javascript/${series.name}-series/`}>
-                                View {series.title} Series Documentation
-                                <span class="arrow-icon">
-                                    <Icon client:only name="arrowRight" />
-                                </span>
-                            </a>
-                        </h3>
-                        <div class="gallery-list">
-                            {series.examples.map(({ title, name }: GalleryExample) => (
-                                <GalleryExampleLink
-                                    client:visible
-                                    className="galleryExample"
-                                    label={title}
-                                    exampleName={name}
-                                />
-                            ))}
+            <GalleryExampleThemeDropdown client:only></GalleryExampleThemeDropdown>
+            <div>
+                {
+                    series.map((series: GalleryExampleChartType) => (
+                        <div class="chart-type" id={series.name}>
+                            <div class="gallery-list">
+                                {series.examples.map(({ title, name }: GalleryExample) => (
+                                    <GalleryExampleLink
+                                        client:visible
+                                        className="galleryExample"
+                                        label={title}
+                                        exampleName={name}
+                                    />
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))
-            }
+                    ))
+                }
+            </div>
         </div>
     </div>
 </Layout>
@@ -95,8 +81,8 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: #{$size-6};
-        --menu-width: 14rem;
+        --horizontal-padding: #{$size-3};
+        --menu-width: 12rem;
         --gallery-list-gap: #{$size-3};
 
         display: flex;
@@ -104,9 +90,6 @@ const { series } = galleryData;
         position: relative;
         background-color: var(--ghost-blue);
 
-        @media screen and (min-width: $breakpoint-gallery-large) {
-            --menu-width: 17rem;
-        }
     }
 
     .menu {
@@ -132,18 +115,12 @@ const { series } = galleryData;
             overflow-x: scroll;
             z-index: 1;
         }
-
-        @media screen and (min-width: $breakpoint-gallery-large) {
-            width: calc(var(--menu-width) + $size-6);
-            padding-left: $size-6;
-        }
     }
 
     .menu ul {
         @media screen and (max-width: $breakpoint-gallery-small) {
             display: inline-flex;
             align-items: center;
-            gap: $size-4;
             height: 100%;
             margin-bottom: 0 !important;
             padding-left: var(--horizontal-padding) !important;
@@ -218,75 +195,24 @@ const { series } = galleryData;
         padding: $site-header-height var(--horizontal-padding) $size-8;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: 0 var(--horizontal-padding) $size-10;
+            padding: $size-2 var(--horizontal-padding) $size-10;
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
-            padding-left: max(calc(var(--horizontal-padding) - var(--menu-width) - #{$size-6}), $size-6);
+            padding-left: $size-4;
         }
     }
 
-    .chart-type h3 {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
-        align-items: center;
-        width: 100%;
-        margin-bottom: $size-2;
-        scroll-margin-top: -$size-5;
-
-        @media screen and (max-width: $breakpoint-gallery-small) {
-            scroll-margin-top: $site-header-height * 2 - $size-2;
-        }
+    .chart-type:first-child {
+        padding-bottom: $size-4;
+        padding-top: $size-2;
     }
 
-    .chart-type h3:not(:first-child) {
-        padding-top: $size-6;
+    .chart-type:not(:first-child) {
+        padding: $size-4 0;
+        border-top: 1px solid var(--bright-blue-gray);
     }
 
-    .chart-type:first-child h3 {
-        @media screen and (min-width: $breakpoint-gallery-small) {
-            padding-top: $size-4;
-        }
-    }
-
-    .chart-type .enterpriseIcon {
-        --icon-size: #{$size-3};
-
-        margin-left: $size-half;
-        margin-right: $size-half;
-    }
-
-    .chart-type h3 a {
-        position: relative;
-        width: 100%;
-        font-weight: var(--font-weight-normal);
-        margin-bottom: $size-1;
-
-        &:hover .arrow-icon {
-            --text-color: var(--link-hover-color);
-
-            transform: translateX(2px);
-        }
-
-        @media screen and (min-width: $breakpoint-gallery-small) {
-            width: auto;
-            top: 6px;
-            margin-left: $size-1;
-            font-size: var(--font-size-medium);
-        }
-    }
-
-    .arrow-icon {
-        --text-color: var(--link-color);
-        --icon-size: 1.125em;
-
-        position: relative;
-        display: inline-block;
-        top: -1px;
-        left: -2px;
-        transition: transform $default-transition-timing;
-    }
 
     .gallery-list {
         display: flex;
