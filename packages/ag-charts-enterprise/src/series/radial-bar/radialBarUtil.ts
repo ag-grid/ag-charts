@@ -13,6 +13,25 @@ type AnimatableSectorDatum = {
     endAngle: number;
 };
 
+function fixRadialBarAnimationStatus(
+    node: _Scene.Path,
+    datum: { innerRadius: number; outerRadius: number },
+    status: _Scene.NodeUpdateState
+) {
+    if (status === 'updated') {
+        if (node.previousDatum == null || isNaN(node.previousDatum.innerRadius) || isNaN(node.previousDatum.outerRadius)) {
+            return 'added';
+        }
+        if (isNaN(datum.innerRadius) || isNaN(datum.outerRadius)) {
+            return 'removed';
+        }
+    }
+    if (status === 'added' && node.previousDatum != null) {
+        return 'updated';
+    }
+    return status;
+}
+
 export function prepareRadialBarSeriesAnimationFunctions(
     axes: Record<_ModuleSupport.ChartAxisDirection, _ModuleSupport.ChartAxis | undefined>
 ) {
@@ -22,16 +41,8 @@ export function prepareRadialBarSeriesAnimationFunctions(
         axisZeroAngle = angleScale.convert(0);
     }
 
-    const isRemoved = (datum: AnimatableSectorDatum) => !datum;
-
     const fromFn = (sect: _Scene.Sector, datum: AnimatableSectorDatum, status: _Scene.NodeUpdateState) => {
-        if (status === 'updated' && isRemoved(sect.previousDatum)) {
-            status = 'added';
-        }
-
-        if (status === 'added' && !isRemoved(sect.previousDatum)) {
-            status = 'updated';
-        }
+        status = fixRadialBarAnimationStatus(sect, datum, status);
 
         let startAngle: number;
         let endAngle: number;
