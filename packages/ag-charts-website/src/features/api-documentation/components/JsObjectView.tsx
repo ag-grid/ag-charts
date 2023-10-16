@@ -356,7 +356,6 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             break;
         case 'function':
             propertyRendering = isJSONNodeExpanded ? <FunctionFragment desc={desc} path={propPath} /> : null;
-            collapsePropertyRendering = <CollapsedFunction desc={desc} />;
             renderTsType = isSimpleFunction(desc);
             break;
         default:
@@ -541,34 +540,6 @@ function ArrayType({ desc, path }: { desc: JsonArray; path: string[] }) {
             {arrayBracketMode === 'after' && (
                 <span className={classnames('token', 'punctuation')}>{'[]'.repeat(desc.depth)}</span>
             )}
-        </>
-    );
-}
-
-function CollapsedFunction({ desc }: { desc: JsonFunction }) {
-    if (isSimpleFunction(desc)) {
-        return null;
-    }
-
-    const paramEntries = Object.entries(desc.parameters);
-    return (
-        <>
-            <span className={classnames('token', 'punctuation')}> (</span>
-            {paramEntries.map(([name, type], idx) => (
-                <Fragment key={name}>
-                    <span className={classnames('token', 'name')}>{name}</span>
-                    {!HIDE_TYPES && (
-                        <>
-                            <span className={classnames('token', 'punctuation')}>: </span>
-                            <span className={classnames('token', 'builtin')}>{type.desc.tsType}</span>
-                        </>
-                    )}
-                    {idx + 1 < paramEntries.length && <span className={classnames('token', 'punctuation')}>, </span>}
-                </Fragment>
-            ))}
-            <span className={classnames('token', 'punctuation')}>)</span>
-            <span className={classnames('token', 'operator')}>{' => '}</span>
-            <span className={classnames('token', 'builtin')}>{desc.returnType.tsType}</span>
         </>
     );
 }
