@@ -137,14 +137,14 @@ export class ErrorBars
         super();
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
-        const { contentGroup } = this.cartesianSeries;
+        const { annotationGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
-            name: `${contentGroup.id}-series-errorBars`,
-            zIndex: _ModuleSupport.Layers.SERIES_ERRORBAR_ZINDEX,
-            zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('error-bars'),
+            name: `${annotationGroup.id}-errorBars`,
+            zIndex: _ModuleSupport.Layers.SERIES_LAYER_ZINDEX,
+            zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('annotation'),
         });
-        contentGroup.appendChild(this.groupNode);
+        annotationGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
 
         const series = this.cartesianSeries;
@@ -155,8 +155,7 @@ export class ErrorBars
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
-            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
-            () => contentGroup.removeChild(this.groupNode)
+            () => annotationGroup.removeChild(this.groupNode)
         );
     }
 
@@ -316,26 +315,6 @@ export class ErrorBars
     }
     private onToggleSeriesItem(event: SeriesVisibilityEvent): void {
         this.groupNode.visible = event.enabled;
-    }
-
-    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        const { previousHighlight, currentHighlight } = event;
-        const { groupNode, cartesianSeries: thisSeries } = this;
-
-        // When a series is highlighted, we need to move the ErrorBarNode into
-        // the highlight group so that the correct ZIndex is used (the errorbars
-        // should always be on top, even when an item is highlighted).
-        if (currentHighlight?.series === previousHighlight?.series) {
-            // skip - groupNode already has the correct parent.
-        } else if (currentHighlight?.series === thisSeries) {
-            // groupNode has been highlighted.
-            groupNode.parent?.removeChild(groupNode);
-            thisSeries.highlightGroup.appendChild(groupNode);
-        } else if (previousHighlight?.series === thisSeries) {
-            // groupNode has been unhighlighted.
-            groupNode.parent?.removeChild(groupNode);
-            thisSeries.contentGroup.appendChild(groupNode);
-        }
     }
 
     private errorBarFactory(): ErrorBarNode {

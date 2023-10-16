@@ -317,6 +317,8 @@ export abstract class Series<
     // Lazily initialised labelGroup for label presentation.
     readonly labelGroup: Group;
 
+    readonly annotationGroup: Group;
+
     // Package-level visibility, not meant to be set by the user.
     chart?: {
         mode: 'standalone' | 'integrated';
@@ -395,7 +397,7 @@ export abstract class Series<
     seriesGrouping?: SeriesGrouping = undefined;
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
-        const { id, type, visible, rootGroup, highlightGroup } = this;
+        const { id, type, visible, rootGroup, highlightGroup, annotationGroup } = this;
 
         if (prev) {
             this.ctx.seriesStateManager.deregisterSeries({ id, type });
@@ -412,6 +414,7 @@ export abstract class Series<
             type,
             rootGroup,
             highlightGroup,
+            annotationGroup,
             getGroupZIndexSubOrder: (type) => this.getGroupZIndexSubOrder(type),
             seriesGrouping: next,
             oldGrouping: prev,
@@ -482,6 +485,14 @@ export abstract class Series<
                 zIndex: Layers.SERIES_LABEL_ZINDEX,
             })
         );
+
+        this.annotationGroup = new Group({
+            name: `${this.id}-annotation`,
+            layer: !contentGroupVirtual,
+            isVirtual: contentGroupVirtual,
+            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
+        });
     }
 
     getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
@@ -493,15 +504,15 @@ export abstract class Series<
             case 'labels':
                 mainAdjust += 20000;
                 break;
-            case 'error-bars':
-                mainAdjust += 15000;
-                break;
             case 'marker':
                 mainAdjust += 10000;
                 break;
             // Following cases are in their own layer, so need to be careful to respect declarationOrder.
             case 'highlight':
                 subIndex += 15000;
+                break;
+            case 'annotation':
+                mainAdjust += 15000;
                 break;
         }
         const main = () => this._declarationOrder + mainAdjust;
