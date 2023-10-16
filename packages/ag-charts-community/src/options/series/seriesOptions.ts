@@ -1,10 +1,7 @@
 import type { AgChartCallbackParams } from '../chart/callbackOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { InteractionRange, MarkerShape, Opacity, PixelSize } from '../chart/types';
-import type { AgCartesianSeriesOptions } from './cartesian/cartesianSeriesTypes';
 import type { FillOptions, StrokeOptions } from './cartesian/commonOptions';
-import type { AgHierarchySeriesOptions } from './hierarchy/hierarchyOptions';
-import type { AgPolarSeriesOptions } from './polar/polarOptions';
 
 export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
 
@@ -67,9 +64,3 @@ export interface AgSeriesMarkerFormatterParams<DatumType>
     highlighted: boolean;
     size: number;
 }
-
-type RemoveUndefined<T> = T extends undefined ? never : T;
-
-export type AgSeriesType = RemoveUndefined<
-    AgCartesianSeriesOptions['type'] | AgPolarSeriesOptions['type'] | AgHierarchySeriesOptions['type']
->;
