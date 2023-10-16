@@ -627,12 +627,15 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
         const diff = this.processedData?.reduced?.diff;
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
+        );
 
         fromToMotion(
             `${this.id}_waiting-update-ready`,
             this.ctx.animationManager,
             data.datumSelections,
-            prepareBarAnimationFunctions(collapsedStartingBarPosition(this.direction === 'vertical', this.axes)),
+            fns,
             (_, datum) => String(datum.xValue),
             diff
         );

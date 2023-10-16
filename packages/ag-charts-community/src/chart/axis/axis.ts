@@ -137,7 +137,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
         new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
     );
-    protected readonly crossLineGroup: Group = new Group({ name: `${this.id}-CrossLines` });
+    protected readonly crossLineGroup = new Group({ name: `${this.id}-CrossLines` });
 
     readonly gridGroup = new Group({ name: `${this.id}-Axis-grid` });
     protected readonly gridLineGroup = this.gridGroup.appendChild(
@@ -1262,20 +1262,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    private readonly moduleMap: AxisModuleMap = new ModuleMap<AxisOptionModule, ModuleContextWithParent<AxisContext>>(
-        this
-    );
+    private readonly moduleMap: AxisModuleMap = new ModuleMap(this);
 
     getModuleMap(): AxisModuleMap {
         return this.moduleMap;
     }
 
     public createModuleContext(): ModuleContextWithParent<AxisContext> {
-        if (this.axisContext) {
-            return { ...this.moduleCtx, parent: this.axisContext };
-        } else {
-            return { ...this.moduleCtx, parent: (this.axisContext = this.createAxisContext()) };
-        }
+        this.axisContext ??= this.createAxisContext();
+        return { ...this.moduleCtx, parent: this.axisContext };
     }
 
     protected createAxisContext(): AxisContext {
@@ -1292,11 +1287,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     animateReadyUpdate(diff: FromToDiff) {
+        const { animationManager } = this.moduleCtx;
         const selectionCtx = prepareAxisAnimationContext(this);
         const fns = prepareAxisAnimationFunctions(selectionCtx);
+
         fromToMotion(
             `${this.id}_ready-update`,
-            this.moduleCtx.animationManager,
+            animationManager,
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
             fns,
             (_, d) => d.tickId,
@@ -1304,7 +1301,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         );
         fromToMotion(
             `${this.id}_ready-update`,
-            this.moduleCtx.animationManager,
+            animationManager,
             [this.tickLabelGroupSelection],
             fns,
             (_, d) => d.tickId,

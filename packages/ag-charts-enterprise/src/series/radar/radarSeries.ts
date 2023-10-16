@@ -618,20 +618,23 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override animateEmptyUpdateReady() {
-        const duration = this.ctx.animationManager.defaultDuration;
+        const { itemSelection, labelSelection } = this;
+        const { animationManager } = this.ctx;
+
+        const duration = animationManager.defaultDuration;
         const animationOptions = { from: 0, to: duration };
 
         this.beforePathAnimation();
 
-        this.ctx.animationManager.animate({
+        animationManager.animate({
             id: `${this.id}_empty-update-ready`,
             ...animationOptions,
             duration,
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
-        markerFadeInAnimation(this, this.ctx.animationManager, [this.itemSelection], true);
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [this.labelSelection]);
+        markerFadeInAnimation(this, animationManager, [itemSelection], true);
+        seriesLabelFadeInAnimation(this, animationManager, [labelSelection]);
     }
 
     override animateReadyUpdate() {

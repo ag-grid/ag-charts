@@ -575,12 +575,13 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
         const diff = this.processedData?.reduced?.diff;
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
 
         motion.fromToMotion(
             `${this.id}_waiting-update-ready`,
             this.ctx.animationManager,
             data.datumSelections,
-            prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes)),
+            fns,
             (_, datum) => this.getDatumId(datum),
             diff
         );
