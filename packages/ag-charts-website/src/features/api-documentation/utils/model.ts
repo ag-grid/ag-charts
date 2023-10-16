@@ -1,3 +1,12 @@
+/**
+ * Interface type to override model generation
+ */
+const CODE_LOOKUP_OVERRIDE_INTERFACE_TYPE = 'AgChartOptions';
+/**
+ * Interface type to use as a base for the overriden interface type
+ */
+const CODE_LOOKUP_OVERRIDE_BASE_INTERFACE = 'AgCartesianChartOptions';
+
 type InterfaceLookupMetaType = string | { parameters: Record<string, string>; returnType: string };
 
 type MetaRecord = {
@@ -18,16 +27,15 @@ type MetaRecord = {
 
 type OrderingPriority = 'high' | 'natural' | 'low';
 
-export type InterfaceLookup = Record<
-    string,
-    {
-        meta: MetaRecord & {
-            [prop: string]: MetaRecord;
-        };
-        docs: Record<string, string>;
-        type: Record<string, string> | string;
-    }
->;
+type InterfaceLookupValue = {
+    meta: MetaRecord & {
+        [prop: string]: MetaRecord;
+    };
+    docs: Record<string, string>;
+    type: Record<string, string> | string;
+};
+
+export type InterfaceLookup = Record<string, InterfaceLookupValue>;
 
 export type CodeLookup = Record<
     string,
@@ -107,6 +115,87 @@ type Config = {
     includeDeprecated: boolean;
 };
 
+function getResolvedPropertyReturnType({
+    propertyKeyToResolve,
+    propertyDescription,
+    iLookup,
+    interfaceLookup,
+    codeLookup,
+}: {
+    propertyKeyToResolve: string;
+    propertyDescription: string;
+    iLookup: InterfaceLookupValue;
+    interfaceLookup: InterfaceLookup;
+    codeLookup: CodeLookup;
+}) {
+    const resolvedInterfaces = (iLookup?.type as string)
+        ?.split('|')
+        .map((i: string) => {
+            const interfaceCodeLookup = codeLookup[i.trim()];
+            const resolvedInterface = interfaceCodeLookup[propertyKeyToResolve];
+            if (!resolvedInterface) {
+                return;
+            }
+
+            const resolvedReturnType = resolvedInterface.type?.returnType;
+            const resolvedReturnTypePlain = plainType(resolvedReturnType); // Strip ending array `[]`
+            const resolvedValue = interfaceLookup[resolvedReturnTypePlain].type;
+            return resolvedValue;
+        })
+        .filter(Boolean)
+        .flat();
+
+    const returnType = resolvedInterfaces
+        .join('|') // Combine all interfaces
+        .split('|') // Separate all union types
+        // Add ending array (`[]`) back in
+        .map((i: string) => {
+            return `${i.trim()}[]`;
+        })
+        .join(' | '); // Combine interfaces back together
+
+    return {
+        description: propertyDescription,
+        type: {
+            returnType,
+            optional: true,
+        },
+    };
+}
+
+function getOverrideCodeLookup({
+    interfaceLookup,
+    codeLookup,
+    iLookup,
+}: {
+    iLookup: InterfaceLookupValue;
+    interfaceLookup: InterfaceLookup;
+    codeLookup: CodeLookup;
+}) {
+    const series = getResolvedPropertyReturnType({
+        propertyKeyToResolve: 'series',
+        propertyDescription: '/** Series configurations. */',
+        iLookup,
+        interfaceLookup,
+        codeLookup,
+    });
+    const axes = getResolvedPropertyReturnType({
+        propertyKeyToResolve: 'axes',
+        propertyDescription: '/** Axis configurations. */',
+        iLookup,
+        interfaceLookup,
+        codeLookup,
+    });
+
+    const cLookup = {
+        ...codeLookup[CODE_LOOKUP_OVERRIDE_BASE_INTERFACE],
+        axes,
+        series,
+    };
+
+    return cLookup;
+}
+
 export function buildModel(
     type: string,
     interfaceLookup: InterfaceLookup,
@@ -116,7 +205,10 @@ export function buildModel(
 ): JsonModel {
     const includeDeprecated = config?.includeDeprecated ?? false;
     const iLookup = interfaceLookup[type] ?? interfaceLookup[plainType(type)];
-    const cLookup = codeLookup[type] ?? codeLookup[plainType(type)];
+    const cLookup =
+        type === CODE_LOOKUP_OVERRIDE_INTERFACE_TYPE
+            ? getOverrideCodeLookup({ interfaceLookup, codeLookup, iLookup })
+            : codeLookup[type] ?? codeLookup[plainType(type)];
     const { skipProperties } = context;
     let { typeStack } = context;
 
