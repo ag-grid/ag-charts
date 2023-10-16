@@ -5,7 +5,6 @@ import classnames from 'classnames';
  */
 export const ChartTypeSelector = ({ type, onChange }) => {
     const options = {
-        column: 'Column',
         bar: 'Bar',
         line: 'Line',
         scatter: 'Scatter',
