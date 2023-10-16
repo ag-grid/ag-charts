@@ -14,6 +14,7 @@ const {
     Validate,
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
+    OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
 } = _ModuleSupport;
@@ -63,6 +64,12 @@ class ErrorBarCapConfig implements ErrorBarCapTheme {
     @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = undefined;
 
+    @Validate(OPT_LINE_DASH)
+    lineDash?: number[];
+
+    @Validate(OPT_NUMBER(0))
+    lineDashOffset?: number;
+
     @Validate(OPT_NUMBER())
     length?: number = undefined;
 
@@ -109,6 +116,12 @@ export class ErrorBars
 
     @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number = 1;
+
+    @Validate(OPT_LINE_DASH)
+    lineDash?: number[];
+
+    @Validate(OPT_NUMBER(0))
+    lineDashOffset?: number;
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
 

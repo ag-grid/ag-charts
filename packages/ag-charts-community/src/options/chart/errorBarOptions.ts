@@ -1,7 +1,7 @@
-import type { StrokeOptions } from '../series/cartesian/commonOptions';
+import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { PixelSize, Ratio } from './types';
 
-interface ErrorBarStylingOptions extends StrokeOptions {
+interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
     /** Whether to display the error bars. */
     visible?: boolean;
 }
