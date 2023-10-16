@@ -149,6 +149,17 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
     }
 
+    public stopByAnimationId(id: string) {
+        try {
+            if (id != null && this.controllers.has(id)) {
+                this.controllers.get(id)?.stop();
+            }
+        } catch (error: unknown) {
+            this.failsafeOnError(error);
+            return;
+        }
+    }
+
     public reset() {
         if (this.isPlaying) {
             this.stop();

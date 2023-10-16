@@ -117,6 +117,7 @@ export interface CartesianAnimationData<
     markerSelections: Selection<Marker, TDatum>[];
     labelSelections: Selection<Text, TLabel>[];
     contextData: TContext[];
+    previousContextData?: TContext[];
     paths: Path[][];
     seriesRect?: BBox;
     duration?: number;
@@ -258,7 +259,7 @@ export abstract class CartesianSeries<
     }
 
     async update({ seriesRect }: { seriesRect?: BBox }) {
-        const { visible } = this;
+        const { visible, _contextNodeData: previousContextData } = this;
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
         const seriesHighlighted = series ? series === this : undefined;
 
@@ -277,7 +278,7 @@ export abstract class CartesianSeries<
         await this.updateSelections(visible);
         await this.updateNodes(highlightItems, seriesHighlighted, visible);
 
-        const animationData = this.getAnimationData(seriesRect);
+        const animationData = this.getAnimationData(seriesRect, previousContextData);
         if (resize) {
             this.animationState.transition('resize', animationData);
         }
@@ -896,7 +897,7 @@ export abstract class CartesianSeries<
         this.animationState.transition('clear', this.getAnimationData());
     }
 
-    private getAnimationData(seriesRect?: BBox) {
+    private getAnimationData(seriesRect?: BBox, previousContextData?: TContext[]) {
         const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
             markerSelections: this.subGroups
@@ -904,6 +905,7 @@ export abstract class CartesianSeries<
                 .map(({ markerSelection }) => markerSelection!),
             labelSelections: this.subGroups.map(({ labelSelection }) => labelSelection),
             contextData: this._contextNodeData,
+            previousContextData,
             paths: this.subGroups.map(({ paths }) => paths),
             seriesRect,
         };

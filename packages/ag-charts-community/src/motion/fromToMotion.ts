@@ -97,6 +97,9 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 next: nodes[nodeIndex + 1],
                 nextLive: liveNodes[liveNodeIndex + (isLive ? 1 : 0)],
             };
+            const animationId = `${id}_${node.id}`;
+
+            animationManager.stopByAnimationId(animationId);
 
             let status: NodeUpdateState = 'unknown';
             if (!isLive) {
@@ -119,7 +122,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             } = toFn(node, node.datum, status, ctx);
 
             animationManager.animate({
-                id: `${id}_${node.id}`,
+                id: animationId,
                 from: from as T,
                 to: to as T,
                 ease: easing.easeOut,
