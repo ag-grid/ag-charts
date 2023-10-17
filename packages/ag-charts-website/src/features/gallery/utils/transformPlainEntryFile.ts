@@ -1,3 +1,4 @@
+import type { ThemeName } from '@stores/themeStore';
 import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
 import j from 'jscodeshift';
 
@@ -8,7 +9,7 @@ import { parseExampleOptions } from '../../../../../ag-charts-community/src/char
  * JS Code Shift transformer to generate plain entry file
  */
 
-function transformer(sourceFile: string, dataFile?: string) {
+function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeName) {
     const root = j(sourceFile);
 
     const optionsExpression = root
@@ -21,7 +22,7 @@ function transformer(sourceFile: string, dataFile?: string) {
         .find(j.ObjectExpression);
 
     // Find and remove properties in the 'options' object
-    const propertiesToRemove = ['subtitle', 'footnote', 'legend'];
+    const propertiesToRemove = ['subtitle', 'footnote', 'legend', 'gradientLegend'];
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
             removePropertyKeys: propertiesToRemove,
@@ -29,17 +30,97 @@ function transformer(sourceFile: string, dataFile?: string) {
         });
     });
 
+    const optionsNode = optionsExpression.get(0).node;
+
+    // Remove padding
+    optionsNode.properties = optionsNode.properties.filter((property: any) => property.key?.name !== 'padding');
+    const optionsExpressionProperties = optionsNode.properties;
+
     // Add disabled legend
     const legendPropertyNode = j.property(
         'init',
         j.identifier('legend'),
         j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
     );
-
-    const optionsNode = optionsExpression.get(0).node;
-    optionsNode.properties = optionsNode.properties.filter((property: any) => property.key?.name !== 'padding');
-    const optionsExpressionProperties = optionsNode.properties;
     optionsExpressionProperties.push(legendPropertyNode);
+
+    // Add disabled gradient legend
+    const gradientLegendPropertyNode = j.property(
+        'init',
+        j.identifier('gradientLegend'),
+        j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
+    );
+    optionsExpressionProperties.push(gradientLegendPropertyNode);
+
+    // Theme - Apply baseTheme and disable category axis autoRotate
+    const themeNode = optionsExpression
+        .find(j.Property, {
+            key: {
+                name: 'theme',
+            },
+        })
+        .find(j.ObjectExpression);
+
+    const baseThemeProperty = j.property('init', j.identifier('baseTheme'), j.literal(themeName ?? 'ag-default'));
+
+    const themeCommonOverridesProperty = j.property(
+        'init',
+        j.identifier('common'),
+        j.objectExpression([
+            j.property(
+                'init',
+                j.identifier('axes'),
+                j.objectExpression([
+                    j.property(
+                        'init',
+                        j.identifier('category'),
+                        j.objectExpression([
+                            j.property(
+                                'init',
+                                j.identifier('label'),
+                                j.objectExpression([j.property('init', j.identifier('autoRotate'), j.literal(false))])
+                            ),
+                        ])
+                    ),
+                ])
+            ),
+        ])
+    );
+
+    const themeOverridesProperty = j.property(
+        'init',
+        j.identifier('overrides'),
+        j.objectExpression([themeCommonOverridesProperty])
+    );
+
+    if (themeNode.length > 0) {
+        const themeNodeProperties = themeNode.get(0).node.properties;
+        // Add baseTheme
+        themeNodeProperties.push(baseThemeProperty);
+
+        // Add overrides
+        const overridesNode = themeNode
+            .find(j.Property, {
+                key: {
+                    name: 'overrides',
+                },
+            })
+            .find(j.ObjectExpression);
+
+        if (overridesNode.length > 0) {
+            const overridesNodeProperties = overridesNode.get(0).node.properties;
+            overridesNodeProperties.filter((property: any) => property.key?.value === 'common');
+            overridesNodeProperties.push(themeCommonOverridesProperty);
+        } else {
+            themeNodeProperties.filter((property: any) => property.key?.value === 'overrides');
+            themeNodeProperties.push(themeOverridesProperty);
+        }
+    } else {
+        optionsExpressionProperties.filter((property: any) => property.key?.value === 'theme');
+        optionsExpressionProperties.push(
+            j.property('init', j.identifier('theme'), j.objectExpression([baseThemeProperty, themeOverridesProperty]))
+        );
+    }
 
     // Axes
     optionsExpression
@@ -88,6 +169,10 @@ function transformer(sourceFile: string, dataFile?: string) {
     return { code, options };
 }
 
-export function transformPlainEntryFile(entryFile: string, dataFile?: string): { code: string; options: {} } {
-    return transformer(entryFile, dataFile);
+export function transformPlainEntryFile(
+    entryFile: string,
+    dataFile?: string,
+    themeName?: ThemeName
+): { code: string; options: {} } {
+    return transformer(entryFile, dataFile, themeName);
 }
