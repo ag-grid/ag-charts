@@ -45,7 +45,8 @@ function extractTypesFromNode(node, srcFile, includeQuestionMark) {
     let nodeMembers = {};
     const kind = ts.SyntaxKind[node.kind];
 
-    let name = node?.name?.escapedText ?? node?.getText()?.split(':')[0];
+    let name = node?.name?.escapedText ?? node?.name?.text ?? node?.getText()?.split(':')[0];
+
     let returnType = node?.type?.getFullText().trim();
     let optional = includeQuestionMark ? node && !!node.questionToken : undefined;
 
