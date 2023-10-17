@@ -558,7 +558,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const fns = prepareLinePathAnimation(newData, oldData);
         fromToMotion(`${this.id}_marker_update`, animationManager, markerSelections as any, fns.marker as any);
         fromToMotion(`${this.id}_path_properties`, animationManager, path, fns.pathProperties);
-        pathMotion(`${this.id}_path_update`, animationManager, path, fns.path, { status: fns.status });
+        pathMotion(`${this.id}_path_update`, animationManager, path, fns.path);
         seriesLabelFadeInAnimation(this, animationManager, labelSelections);
     }
 

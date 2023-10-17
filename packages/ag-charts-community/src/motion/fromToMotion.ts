@@ -8,6 +8,7 @@ import type { AnimationTiming, AnimationValue } from './animation';
 import * as easing from './easing';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated';
+export const NODE_UPDATE_PHASES: NodeUpdateState[] = ['removed', 'updated', 'added'];
 
 export type FromToMotionPropFnContext<T> = {
     last: boolean;
@@ -81,7 +82,6 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
     }
 
     const processNodes = (liveNodes: N[], nodes: N[]) => {
-        let cleanup = false;
         let prevFromProps: T | undefined;
         let liveNodeIndex = 0;
         let nodeIndex = 0;
@@ -106,8 +106,6 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             } else if (getDatumId && diff) {
                 status = calculateStatus(node, node.datum, getDatumId, ids);
             }
-
-            cleanup ||= status === 'removed';
 
             const {
                 animationDelay: delay,
@@ -144,28 +142,24 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             nodeIndex++;
             prevFromProps = from as T;
         }
-
-        return cleanup;
     };
 
     let selectionIndex = 0;
     for (const selection of selections) {
         const nodes = selection.nodes();
         const liveNodes = nodes.filter((n) => !selection.isGarbage(n));
-        const cleanup = processNodes(liveNodes, nodes);
+        processNodes(liveNodes, nodes);
 
         // Only perform selection cleanup once.
-        if (cleanup) {
-            animationManager.animate({
-                id: `${id}_selection_${selectionIndex}`,
-                from: 0,
-                to: 1,
-                ease: easing.easeOut,
-                onComplete() {
-                    selection.cleanup();
-                },
-            });
-        }
+        animationManager.animate({
+            id: `${id}_selection_${selectionIndex}`,
+            from: 0,
+            to: 1,
+            ease: easing.easeOut,
+            onComplete() {
+                selection.cleanup();
+            },
+        });
         selectionIndex++;
     }
 

@@ -160,6 +160,14 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
     }
 
+    public stopByAnimationIdPrefix(prefix: string) {
+        for (const id of this.controllers.keys()) {
+            if (id.startsWith(prefix)) {
+                this.stopByAnimationId(id);
+            }
+        }
+    }
+
     public reset() {
         if (this.isPlaying) {
             this.stop();

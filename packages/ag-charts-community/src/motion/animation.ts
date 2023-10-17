@@ -54,7 +54,7 @@ export interface AnimationOptions<T extends AnimationValue> {
     onStop?: (self: IAnimation<T>) => void;
     onRepeat?: (self: IAnimation<T>) => void;
     /** Called once per frame with the tweened value between the `from` and `to` properties. */
-    onUpdate?: (value: T, self: IAnimation<T>) => void;
+    onUpdate?: (value: T, preInit: boolean, self: IAnimation<T>) => void;
 }
 
 export interface AdditionalAnimationOptions {
@@ -125,12 +125,13 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
         this.interpolate = this.createInterpolator(opts.from, opts.to) as (delta: number) => T;
 
         if (opts.skip === true) {
-            this.onUpdate?.(opts.to, this);
+            this.onUpdate?.(opts.to, true, this);
             this.onStop?.(this);
             this.onComplete?.(this);
         } else if (this.autoplay) {
             this.play();
-            this.onUpdate?.(opts.from, this); // Initialise the animation immediately without requesting a frame to prevent flashes
+            // Initialise the animation immediately without requesting a frame to prevent flashes
+            this.onUpdate?.(opts.from, true, this);
         }
     }
 
@@ -186,7 +187,7 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
 
         const value = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
 
-        this.onUpdate?.(value, this);
+        this.onUpdate?.(value, false, this);
 
         if (this.elapsed - this.delay >= this.duration) {
             if (this.iteration < this.repeat) {

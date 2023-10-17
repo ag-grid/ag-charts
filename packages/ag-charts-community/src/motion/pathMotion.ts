@@ -17,33 +17,44 @@ export function pathMotion(
     animationManager: AnimationManager,
     paths: Path[],
     fns: {
-        intermediateFn: (ratio: number, path: Path) => void;
-    },
-    extraOpts?: { status?: NodeUpdateState }
+        addPhaseFn: (ratio: number, path: Path) => void;
+        updatePhaseFn: (ratio: number, path: Path) => void;
+        removePhaseFn: (ratio: number, path: Path) => void;
+    }
 ) {
     const { defaultDuration } = animationManager;
-    const { status = 'unknown' } = extraOpts ?? {};
-    const { animationDelay, animationDuration } = FROM_TO_MIXINS[status];
-    const { intermediateFn } = fns;
+    const { addPhaseFn, updatePhaseFn, removePhaseFn } = fns;
 
-    for (const path of paths) {
+    const animate = (phase: NodeUpdateState, path: Path, updateFn: (ratio: number, path: Path) => void) => {
         animationManager.animate({
-            id: `${id}_${path.id}`,
+            id: `${id}_${path.id}_${phase}`,
             from: 0,
             to: 1,
             ease: easing.easeOut,
-            onUpdate(ratio) {
+            onUpdate(ratio, preInit) {
+                if (preInit && phase !== 'removed') return;
+
                 path.path.clear({ trackChanges: true });
-                intermediateFn(ratio, path);
+                updateFn(ratio, path);
                 path.checkPathDirty();
             },
             onStop() {
+                if (phase !== 'added') return;
+
                 path.path.clear({ trackChanges: true });
-                intermediateFn(1, path);
+                updateFn(1, path);
                 path.checkPathDirty();
             },
-            duration: animationDuration * defaultDuration,
-            delay: animationDelay * defaultDuration,
+            duration: FROM_TO_MIXINS[phase].animationDuration * defaultDuration,
+            delay: FROM_TO_MIXINS[phase].animationDelay * defaultDuration,
         });
+    };
+
+    for (const path of paths) {
+        if (!animationManager.isSkipped()) {
+            animate('removed', path, removePhaseFn);
+            animate('updated', path, updatePhaseFn);
+        }
+        animate('added', path, addPhaseFn);
     }
 }

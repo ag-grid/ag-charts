@@ -853,6 +853,10 @@ export abstract class CartesianSeries<
 
     protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         const { path, datum, label, marker } = this.opts?.animationResetFns ?? {};
+
+        // Stop any running animations by prefix convention.
+        this.ctx.animationManager.stopByAnimationIdPrefix(`${this.id}_`);
+
         if (path) {
             data.paths.forEach((paths) => {
                 resetMotion(paths, path);
