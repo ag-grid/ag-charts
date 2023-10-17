@@ -37,6 +37,8 @@ export interface AgAngleNumberAxisOptions extends AgBaseAxisOptions<AgAngleAxisL
     tick?: AgAxisNumberTickOptions;
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: number;
+    /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */
+    endAngle?: number;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions[];
 }
