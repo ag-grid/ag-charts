@@ -14,9 +14,7 @@ export const GalleryExampleThemeDropdown: FunctionComponent = () => {
     return (
         <div className={styles.toolPanel}>
             <select id="theme-select" value={theme} onChange={applyTheme}>
-                <option value="ag-default" selected>
-                    ag-default
-                </option>
+                <option value="ag-default">ag-default</option>
                 <option value="ag-default-dark">ag-default-dark</option>
                 <option value="ag-sheets">ag-sheets</option>
                 <option value="ag-sheets-dark">ag-sheets-dark</option>

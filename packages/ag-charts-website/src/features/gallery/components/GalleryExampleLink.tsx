@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { $theme } from '@stores/themeStore';
 import classnames from 'classnames';
-import type { FunctionComponent } from 'react';
+import { type FunctionComponent, useEffect, useState } from 'react';
 
 import { getPageUrl, getPlainExampleImageUrl } from '../utils/urlPaths';
 import styles from './GalleryExampleLink.module.scss';
@@ -14,15 +14,22 @@ interface Props {
 
 export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
     const theme = useStore($theme);
-    const imageUrl = getPlainExampleImageUrl({
-        exampleName,
-        theme,
-    });
+    const [imageUrl, setImageUrl] = useState<string>();
+    const [isDarkTheme, setIsDarkTheme] = useState<boolean>();
 
-    const isDarkTheme = theme.indexOf('dark') > -1;
+    useEffect(() => {
+        setImageUrl(
+            getPlainExampleImageUrl({
+                exampleName,
+                theme,
+            })
+        );
+        setIsDarkTheme(theme.indexOf('dark') > -1);
+    }, [theme]);
+
     const darkLinkStyle = {
         backgroundColor: '#15181c',
-        'border-top': '1px solid rgb(88, 88, 88)',
+        borderTop: '1px solid rgb(88, 88, 88)',
     };
     const darkSpanStyle = {
         color: 'rgb(200, 200, 200)',
