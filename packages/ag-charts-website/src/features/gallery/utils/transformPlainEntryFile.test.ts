@@ -22,21 +22,7 @@ describe('transformPlainEntryFile', () => {
     test('object key as literal with strings ');
 
     test('default entry file', () => {
-        expect(getChartsOptionsPlainEntryFile({}).code).toMatchInlineSnapshot(`
-          "const options = {
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 10,
-              right: 20,
-              bottom: 10,
-              left: 20
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
+        expect(getChartsOptionsPlainEntryFile({}).code).toMatchSnapshot();
     });
 
     test('remove subtitle', () => {
@@ -47,21 +33,7 @@ describe('transformPlainEntryFile', () => {
                     text: 'Test Subtitle',
                 },
             }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 10,
-              right: 20,
-              bottom: 10,
-              left: 20
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
+        ).toMatchSnapshot();
     });
 
     test('remove footnote', () => {
@@ -72,21 +44,7 @@ describe('transformPlainEntryFile', () => {
                     text: 'Test footnote',
                 },
             }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 10,
-              right: 20,
-              bottom: 10,
-              left: 20
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
+        ).toMatchSnapshot();
     });
 
     test('disable legend', () => {
@@ -97,21 +55,7 @@ describe('transformPlainEntryFile', () => {
                     text: 'Test legend',
                 },
             }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 10,
-              right: 20,
-              bottom: 10,
-              left: 20
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
+        ).toMatchSnapshot();
     });
 
     test('Remove axes titles', () => {
@@ -134,38 +78,7 @@ describe('transformPlainEntryFile', () => {
                     },
                 ],
             }).code
-        ).toMatchInlineSnapshot(`
-        "const options = {
-          axes: [
-            {
-              type: 'category',
-              position: 'bottom',
-              title: {
-                enabled: false
-              }
-            },
-            {
-              type: 'number',
-              position: 'left',
-              title: {
-                enabled: false
-              }
-            }
-          ],
-
-          legend: {
-            enabled: false
-          },
-
-          padding: {
-            top: 10,
-            right: 20,
-            bottom: 10,
-            left: 20
-          }
-        };
-        var chart = agCharts.AgChart.create(options);"
-      `);
+        ).toMatchSnapshot();
     });
 
     test('Adjust padding', () => {
@@ -183,22 +96,6 @@ describe('transformPlainEntryFile', () => {
                     left: 40,
                 },
             }).code
-        ).toMatchInlineSnapshot(`
-          "const options = {
-            seriesArea: { padding: { left: 40 } },
-
-            legend: {
-              enabled: false
-            },
-
-            padding: {
-              top: 10,
-              right: 20,
-              bottom: 10,
-              left: 20
-            }
-          };
-          var chart = agCharts.AgChart.create(options);"
-        `);
+        ).toMatchSnapshot();
     });
 });
