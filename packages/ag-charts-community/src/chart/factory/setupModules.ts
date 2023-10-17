@@ -36,7 +36,8 @@ export function setupModules() {
                 m.stackable,
                 m.groupable,
                 m.stackedByDefault,
-                m.swapDefaultAxesCondition
+                m.swapDefaultAxesCondition,
+                m.seriesSwappedAxesDefaults
             );
         }
 

@@ -15,7 +15,7 @@ export const DEFAULT_CARTESIAN_CHART_OVERRIDES = {
     ],
 };
 
-export function swapAxes<T extends AgChartOptions>(opts: T): T {
+export function swapAxes<T extends AgChartOptions>(opts: T, swapOpts?: T): T {
     if (!isAgCartesianChartOptions(opts)) {
         return opts;
     }
@@ -23,6 +23,7 @@ export function swapAxes<T extends AgChartOptions>(opts: T): T {
     const [axis0, axis1] = opts.axes ?? [];
     return {
         ...opts,
+        ...(swapOpts ?? {}),
         axes: [
             { ...axis0, position: axis1.position },
             { ...axis1, position: axis0.position },

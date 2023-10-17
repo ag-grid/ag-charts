@@ -14,6 +14,7 @@ const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
 const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: AgChartOptions) => boolean> = {};
+const SERIES_SWAPPED_AXES_DEFAULTS: Record<string, {} | undefined> = {};
 
 export function registerSeries(
     seriesType: NonNullable<SeriesOptionsTypes['type']>,
@@ -25,11 +26,13 @@ export function registerSeries(
     stackable: boolean | undefined,
     groupable: boolean | undefined,
     stackedByDefault: boolean | undefined,
-    swapDefaultAxesCondition: ((opts: AgChartOptions) => boolean) | undefined
+    swapDefaultAxesCondition: ((opts: AgChartOptions) => boolean) | undefined,
+    swappedAxesDefaults: {} | undefined
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
     SERIES_THEME_TEMPLATES[seriesType] = theme;
+    SERIES_SWAPPED_AXES_DEFAULTS[seriesType] = swappedAxesDefaults;
     if (paletteFactory) {
         addSeriesPaletteFactory(seriesType, paletteFactory);
     }
@@ -64,6 +67,10 @@ export function getSeriesDefaults(chartType: string): {} {
 
 export function getSeriesThemeTemplate(chartType: string): {} {
     return SERIES_THEME_TEMPLATES[chartType];
+}
+
+export function getSeriesSwappedAxesDefaults(chartType: string) {
+    return SERIES_SWAPPED_AXES_DEFAULTS[chartType];
 }
 
 export function addSeriesPaletteFactory(seriesType: string, factory: SeriesPaletteFactory) {

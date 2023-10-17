@@ -10,7 +10,12 @@ import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
-import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
+import {
+    getSeriesDefaults,
+    getSeriesPaletteFactory,
+    getSeriesSwappedAxesDefaults,
+    isDefaultAxisSwapNeeded,
+} from '../factory/seriesTypes';
 import type { ChartTheme } from '../themes/chartTheme';
 import { swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
@@ -80,7 +85,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
 
     let defaultOverrides = getSeriesDefaults(type);
     if (isDefaultAxisSwapNeeded(options)) {
-        defaultOverrides = swapAxes(defaultOverrides);
+        defaultOverrides = swapAxes(defaultOverrides, getSeriesSwappedAxesDefaults(type));
     }
 
     removeDisabledOptions<T>(options);
