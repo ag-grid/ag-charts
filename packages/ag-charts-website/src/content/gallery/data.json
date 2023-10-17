@@ -269,6 +269,11 @@
                     "title": "Simple Heatmap",
                     "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
                     "name": "simple-heatmap"
+                },
+                {
+                    "title": "Calendar Heatmap",
+                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                    "name": "calendar-heatmap"
                 }
             ]
         },
