@@ -13,11 +13,17 @@ $indent: 24px;
     cursor: pointer;
 }
 
+.expandableSnippet {
+    --sticky-offset: 56px; // top bar height
+    --header-height: 160px;
+}
+
 .expandableSnippet header {
     position: sticky;
     top: 0;
     left: 0;
     width: 100%;
+    height: var(--header-height);
     padding: $size-2;
     background-color: var(--white);
     z-index: 2;
@@ -57,9 +63,7 @@ input[type='search'].searchInput {
 .expandableSnippet,
 .expandableSnippet pre,
 .expandableSnippet pre > code {
-    --sticky-offset: 56px; // top bar height
-
-    min-height: calc(100vh - var(--sticky-offset));
+    min-height: calc(100vh - var(--sticky-offset) - var(--header-height));
 }
 
 .expandableSnippet {
