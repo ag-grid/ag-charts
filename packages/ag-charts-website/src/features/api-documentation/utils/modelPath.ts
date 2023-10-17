@@ -107,7 +107,7 @@ export function getLastTopLevelPath({
     if (!topLevelParentProperties) {
         // Default to top level path item if not in config
         const [topLevelPathItem] = path;
-        return [topLevelPathItem];
+        return topLevelPathItem ? [topLevelPathItem] : [];
     }
 
     const checkPath = path.concat(pathItem);
