@@ -19,7 +19,7 @@ export interface ChartAxis {
     crossLines?: any[];
     dataDomain: { domain: any[]; clipped: boolean };
     destroy(): void;
-    detachAxis(naxisGroup: Node, gridGroup: Node): void;
+    detachAxis(axisGroup: Node, gridGroup: Node): void;
     direction: ChartAxisDirection;
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;
