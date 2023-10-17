@@ -553,12 +553,14 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
 
         if (
+            contextData.length === 0 ||
             !previousContextData ||
+            previousContextData.length === 0 ||
             !contextData.every((d) => d.animationValid) ||
             !previousContextData.every((d) => d.animationValid)
         ) {
-            this.updateLinePaths(paths, contextData);
             super.resetAllAnimation(animationData);
+            this.updateLinePaths(paths, contextData);
             return;
         }
 
