@@ -46,13 +46,13 @@ const PORTIONS: AgLineSeriesOptions = {
     },
 };
 
-const COLUMN_AND_LINE: AgCartesianSeriesOptions[] = [
+const BAR_AND_LINE: AgCartesianSeriesOptions[] = [
     { ...WOMEN, type: 'bar' },
     { ...MEN, type: 'bar' },
     { ...PORTIONS, type: 'line' },
 ];
 
-const AREA_AND_COLUMN: AgCartesianSeriesOptions[] = [
+const AREA_AND_BAR: AgCartesianSeriesOptions[] = [
     { ...PORTIONS, type: 'area' },
     { ...WOMEN, type: 'bar' },
     { ...MEN, type: 'bar' },
@@ -64,7 +64,7 @@ const options: AgCartesianChartOptions = {
     title: {
         text: 'Fruit & Vegetable Consumption',
     },
-    series: COLUMN_AND_LINE,
+    series: BAR_AND_LINE,
     axes: [
         {
             type: 'category',
@@ -91,14 +91,14 @@ const options: AgCartesianChartOptions = {
 
 var chart = AgChart.create(options);
 
-function columnLine() {
-    console.log('Column & Line', COLUMN_AND_LINE);
-    options.series = COLUMN_AND_LINE;
+function barLine() {
+    console.log('Bar & Line', BAR_AND_LINE);
+    options.series = BAR_AND_LINE;
     AgChart.update(chart, options);
 }
 
-function areaColumn() {
-    console.log('Column & Area', AREA_AND_COLUMN);
-    options.series = AREA_AND_COLUMN;
+function areaBar() {
+    console.log('Area & Bar', AREA_AND_BAR);
+    options.series = AREA_AND_BAR;
     AgChart.update(chart, options);
 }
