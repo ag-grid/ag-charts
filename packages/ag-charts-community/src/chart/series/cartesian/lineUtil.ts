@@ -185,9 +185,6 @@ function pairContinuousData(
 
     const { min: minFromNode, max: maxFromNode } = minMax(oldData);
     const { min: minToNode, max: maxToNode } = minMax(newData);
-    if (!minFromNode || !maxFromNode || !minToNode || !maxToNode) {
-        return { result, resultMap };
-    }
 
     let oldIdx = 0;
     let newIdx = 0;
@@ -201,13 +198,13 @@ function pairContinuousData(
         const NA = undefined;
         if (fromShifted && closeMatch(fromShifted.x, to?.point.x)) {
             pairUp(from, to, to.xValue, 'move');
-        } else if (fromShifted && fromShifted.x < minToNode?.point.x) {
+        } else if (fromShifted && fromShifted.x < (minToNode?.point.x ?? -Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (fromShifted && fromShifted.x > maxToNode?.point.x) {
+        } else if (fromShifted && fromShifted.x > (maxToNode?.point.x ?? Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted && toUnshifted.x < minFromNode?.point.x) {
+        } else if (toUnshifted && toUnshifted.x < (minFromNode?.point.x ?? -Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
-        } else if (toUnshifted && toUnshifted.x > maxFromNode?.point.x) {
+        } else if (toUnshifted && toUnshifted.x > (maxFromNode?.point.x ?? Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
         } else if (fromShifted && fromShifted.x < to?.point.x) {
             pairUp(from, NA, from.xValue, 'out');
