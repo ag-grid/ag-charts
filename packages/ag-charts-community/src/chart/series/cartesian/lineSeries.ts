@@ -311,7 +311,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         }
         lineNode.clipMode = 'normal';
         lineNode.clipPath?.clear({ trackChanges: true });
-        lineNode.clipPath?.rect(0, 0, width ?? 0, height ?? 0);
+        lineNode.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
     }
 
     protected override async updateMarkerSelection(opts: {
