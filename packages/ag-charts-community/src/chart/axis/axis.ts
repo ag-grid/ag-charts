@@ -537,7 +537,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 tempText.fontSize = label.fontSize;
                 tempText.fontStyle = label.fontStyle;
                 tempText.fontWeight = label.fontWeight;
-    
+
                 tempText.x = labelX;
                 tempText.y = Math.round(datum.translationY);
                 tempText.rotationCenterX = labelX;
@@ -552,7 +552,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const { title } = this;
         if (title?.enabled && line.enabled) {
-            const { range, moduleCtx: { callbackCache } } = this;
+            const {
+                range,
+                moduleCtx: { callbackCache },
+            } = this;
             const { formatter = (params) => params.defaultValue } = title;
             const padding = title.spacing ?? 0;
 
@@ -576,9 +579,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     bboxYDimension += tickWidth;
                 }
             }
-            titleNode.y = sideFlag === -1
-                ? Math.floor(titleRotationFlag * (-padding - bboxYDimension))
-                : Math.floor(-padding - bboxYDimension);
+            titleNode.y =
+                sideFlag === -1
+                    ? Math.floor(titleRotationFlag * (-padding - bboxYDimension))
+                    : Math.floor(-padding - bboxYDimension);
             titleNode.textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
             titleNode.text = callbackCache.call(formatter, this.getTitleFormatterParams());
         }
@@ -586,7 +590,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const bbox = BBox.merge(boxes);
 
         const matrix = new Matrix();
-        const { rotation: axisRotation, translationX, translationY, rotationCenterX, rotationCenterY } = this.getAxisTransform();
+        const {
+            rotation: axisRotation,
+            translationX,
+            translationY,
+            rotationCenterX,
+            rotationCenterY,
+        } = this.getAxisTransform();
         Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
             scalingCenterX: 0,
             scalingCenterY: 0,
