@@ -59,6 +59,11 @@ export abstract class CartesianAxis<
         return super.update(primaryTickCount);
     }
 
+    override calculateLayout(primaryTickCount?: number) {
+        this.updateDirection();
+        return super.calculateLayout(primaryTickCount);
+    }
+
     protected override createAxisContext(): AxisContext {
         return {
             ...super.createAxisContext(),

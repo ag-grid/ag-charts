@@ -127,6 +127,7 @@ export class CartesianChart extends Chart {
         let clipSeries = false;
         let seriesRect = this.seriesRect?.clone();
         let count = 0;
+        let primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
         do {
             Object.assign(axisWidths, lastPassAxisWidths);
             Object.assign(visibility, lastPassVisibility);
@@ -136,12 +137,19 @@ export class CartesianChart extends Chart {
             lastPassVisibility = result.visibility;
             clipSeries = result.clipSeries;
             seriesRect = result.seriesRect;
+            primaryTickCounts = result.primaryTickCounts;
 
             if (count++ > 10) {
                 Logger.warn('unable to find stable axis layout.');
                 break;
             }
         } while (!stableOutputs(lastPassAxisWidths, lastPassVisibility));
+
+        this.axes.forEach((axis) => {
+            const { direction } = axis;
+            const primaryTickCount = primaryTickCounts[direction];
+            axis.update(primaryTickCount);
+        });
 
         const clipRectPadding = 5;
         this.axes.forEach((axis) => {
@@ -243,7 +251,7 @@ export class CartesianChart extends Chart {
             });
         });
 
-        return { clipSeries, seriesRect, axisWidths: newAxisWidths, visibility };
+        return { clipSeries, seriesRect, axisWidths: newAxisWidths, visibility, primaryTickCounts };
     }
 
     private buildCrossLinePadding(axisWidths: Partial<Record<AgCartesianAxisPosition, number>>) {
@@ -384,14 +392,15 @@ export class CartesianChart extends Chart {
             axis.maxThickness = paddedBounds.height * paddedBoundsCoefficient;
         }
 
-        primaryTickCount = axis.update(primaryTickCount);
+        const layout = axis.calculateLayout(primaryTickCount);
+        primaryTickCount = layout.primaryTickCount;
         primaryTickCounts[direction] = primaryTickCounts[direction] ?? primaryTickCount;
 
         let axisThickness = 0;
         if (axis.thickness != null && axis.thickness > 0) {
             axisThickness = axis.thickness;
         } else {
-            const bbox = axis.computeBBox();
+            const { bbox } = layout;
             axisThickness = direction === ChartAxisDirection.X ? bbox.height : bbox.width;
         }
 
@@ -405,7 +414,7 @@ export class CartesianChart extends Chart {
 
         axis.gridPadding = (axisWidths[position] ?? 0) - (newAxisWidths[position] ?? 0);
 
-        return { clipSeries, axisThickness, axisOffset };
+        return { clipSeries, axisThickness, axisOffset, primaryTickCount };
     }
 
     private positionAxis(opts: {
