@@ -24,12 +24,12 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId } from '../../data/processors';
+import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode, valueProperty } from '../series';
+import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type {
@@ -129,6 +129,17 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const props: DataModelOptions<any, false>['props'] = [];
+
+        // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
+        // They must be identified this way when animated to ensure they can be tracked when their y-value
+        // is updated. If this is a static chart, we can instead not bother with identifying datums and
+        // automatically garbage collect the marker selection.
+        if (!this.ctx.animationManager.isSkipped() && !isContinuousX) {
+            props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
+            if (this.processedData) {
+                props.push(diff(this.processedData));
+            }
+        }
 
         props.push(
             valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
@@ -555,7 +566,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const [newData] = contextData;
         const [oldData] = previousContextData;
 
-        const fns = prepareLinePathAnimation(newData, oldData);
+        const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         fromToMotion(`${this.id}_marker_update`, animationManager, markerSelections as any, fns.marker as any);
         fromToMotion(`${this.id}_path_properties`, animationManager, path, fns.pathProperties);
         pathMotion(`${this.id}_path_update`, animationManager, path, fns.path);

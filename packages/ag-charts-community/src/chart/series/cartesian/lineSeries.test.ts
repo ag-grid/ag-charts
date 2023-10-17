@@ -249,13 +249,13 @@ describe('LineSeries', () => {
         for (const [testCase, changedData, duration = 1200] of animationTestCases) {
             for (const ratio of [0, 0.5, 1]) {
                 it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
-                    spyOnAnimationManager(1000, 1);
+                    spyOnAnimationManager(1200, 1);
                     prepareTestOptions(options);
                     chart = AgChart.create(options) as Chart;
                     await waitForChartStability(chart);
 
-                    AgChart.updateDelta(chart, { data: changedData });
                     spyOnAnimationManager(duration, ratio);
+                    AgChart.updateDelta(chart, { data: changedData });
                     await waitForChartStability(chart);
                     await compare();
                 });
@@ -266,7 +266,7 @@ describe('LineSeries', () => {
             it(`should animate with short-circuiting when run again before it finishes at ${
                 ratio * 100
             }%`, async () => {
-                spyOnAnimationManager(1000, 1);
+                spyOnAnimationManager(1200, 1);
                 prepareTestOptions(options);
                 chart = AgChart.create(options) as Chart;
                 await waitForChartStability(chart);

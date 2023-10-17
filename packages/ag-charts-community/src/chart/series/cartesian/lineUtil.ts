@@ -1,5 +1,6 @@
 import { FROM_TO_MIXINS, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
+import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { Marker } from '../../marker/marker';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum, Scaling } from './cartesianSeries';
 
@@ -99,7 +100,33 @@ function closeMatch<T extends number | string>(a: T, b: T) {
     return a === b;
 }
 
-export function prepareLinePathAnimation(
+function backfillPathPointData(result: PathPoint[]) {
+    backfillPathPoint(result, 'out', 'in', (toProcess, sIdx, eIdx) => {
+        if (sIdx === -1 && result[eIdx]) {
+            toProcess.forEach((d) => (d.to = result[eIdx].from));
+        } else if (eIdx === result.length && result[sIdx]) {
+            toProcess.forEach((d) => (d.to = result[sIdx].from));
+        } else if (result[sIdx]?.from && result[eIdx]?.from) {
+            toProcess.forEach((d) => (d.to = findPointOnLine(result[sIdx].from!, result[eIdx].from!, d.from!.x)));
+        } else {
+            toProcess.forEach((d) => (d.to = d.from));
+        }
+    });
+
+    backfillPathPoint(result, 'in', 'out', (toProcess, sIdx, eIdx) => {
+        if (sIdx === -1 && result[eIdx]) {
+            toProcess.forEach((d) => (d.from = result[eIdx].to));
+        } else if (eIdx === result.length && result[sIdx]) {
+            toProcess.forEach((d) => (d.from = result[sIdx].to));
+        } else if (result[sIdx]?.to && result[eIdx]?.to) {
+            toProcess.forEach((d) => (d.from = findPointOnLine(result[sIdx].to!, result[eIdx].to!, d.to!.x)));
+        } else {
+            toProcess.forEach((d) => (d.from = d.to));
+        }
+    });
+}
+
+function pairContinuousData(
     newData: CartesianSeriesNodeDataContext<LineNodeDatum>,
     oldData: CartesianSeriesNodeDataContext<LineNodeDatum>
 ) {
@@ -115,114 +142,154 @@ export function prepareLinePathAnimation(
             y: scale(newDatum.yValue ?? NaN, oldData.scales.y),
         };
     };
-    const pair = () => {
-        const result: PathPoint[] = [];
-        const resultMap: {
-            [key in 'moved' | 'added' | 'removed']: { [key: string | number]: PathPoint };
-        } = {
-            added: {},
-            moved: {},
-            removed: {},
-        };
 
-        let moveTo = true;
-        const pairUp = (
-            from: PathPoint['from'] | LineNodeDatum,
-            to: PathPoint['to'] | LineNodeDatum,
-            xValue?: any,
-            marker: MarkerChange = 'move'
-        ) => {
-            if (from && isLineNodeDatum(from)) {
-                from = from.point;
-            }
-            if (to && isLineNodeDatum(to)) {
-                to = to.point;
-            }
-
-            const resultPoint = { from, to, moveTo, marker };
-            if (marker === 'move') {
-                resultMap.moved[xValue] = resultPoint;
-                oldIdx++;
-                newIdx++;
-            } else if (marker === 'in') {
-                resultMap.added[xValue] = resultPoint;
-                newIdx++;
-            } else if (marker === 'out') {
-                resultMap.removed[xValue] = resultPoint;
-                oldIdx++;
-            }
-            result.push(resultPoint);
-
-            moveTo = false;
-        };
-
-        const { min: minFromNode, max: maxFromNode } = minMax(oldData);
-        const { min: minToNode, max: maxToNode } = minMax(newData);
-        if (!minFromNode || !maxFromNode || !minToNode || !maxToNode) {
-            return { result, resultMap };
-        }
-
-        let oldIdx = 0;
-        let newIdx = 0;
-        while (oldIdx < oldData.nodeData.length || newIdx < newData.nodeData.length) {
-            const from = oldData.nodeData[oldIdx];
-            const to = newData.nodeData[newIdx];
-
-            const fromShifted = from ? toNewScale(from) : undefined;
-            const toUnshifted = to ? toOldScale(to) : undefined;
-
-            const NA = undefined;
-            if (fromShifted && closeMatch(fromShifted.x, to?.point.x)) {
-                pairUp(from, to, to.xValue, 'move');
-            } else if (fromShifted && fromShifted.x < minToNode?.point.x) {
-                pairUp(from, NA, from.xValue, 'out');
-            } else if (fromShifted && fromShifted.x > maxToNode?.point.x) {
-                pairUp(from, NA, from.xValue, 'out');
-            } else if (toUnshifted && toUnshifted.x < minFromNode?.point.x) {
-                pairUp(NA, to, to.xValue, 'in');
-            } else if (toUnshifted && toUnshifted.x > maxFromNode?.point.x) {
-                pairUp(NA, to, to.xValue, 'in');
-            } else if (fromShifted && fromShifted.x < to?.point.x) {
-                pairUp(from, NA, from.xValue, 'out');
-            } else if (toUnshifted && toUnshifted.x < from?.point.x) {
-                pairUp(NA, to, to.xValue, 'in');
-            } else if (from) {
-                pairUp(from, NA, from.xValue, 'out');
-            } else if (to) {
-                pairUp(NA, to, to.xValue, 'in');
-            } else {
-                throw new Error('Unable to process points');
-            }
-        }
-
-        backfillPathPoint(result, 'out', 'in', (toProcess, sIdx, eIdx) => {
-            if (sIdx === -1 && result[eIdx]) {
-                toProcess.forEach((d) => (d.to = result[eIdx].from));
-            } else if (eIdx === result.length && result[sIdx]) {
-                toProcess.forEach((d) => (d.to = result[sIdx].from));
-            } else if (result[sIdx]?.from && result[eIdx]?.from) {
-                toProcess.forEach((d) => (d.to = findPointOnLine(result[sIdx].from!, result[eIdx].from!, d.from!.x)));
-            } else {
-                toProcess.forEach((d) => (d.to = d.from));
-            }
-        });
-
-        backfillPathPoint(result, 'in', 'out', (toProcess, sIdx, eIdx) => {
-            if (sIdx === -1 && result[eIdx]) {
-                toProcess.forEach((d) => (d.from = result[eIdx].to));
-            } else if (eIdx === result.length && result[sIdx]) {
-                toProcess.forEach((d) => (d.from = result[sIdx].to));
-            } else if (result[sIdx]?.to && result[eIdx]?.to) {
-                toProcess.forEach((d) => (d.from = findPointOnLine(result[sIdx].to!, result[eIdx].to!, d.to!.x)));
-            } else {
-                toProcess.forEach((d) => (d.from = d.to));
-            }
-        });
-
-        return { result, resultMap };
+    const result: PathPoint[] = [];
+    const resultMap: {
+        [key in 'moved' | 'added' | 'removed']: { [key: string | number]: PathPoint };
+    } = {
+        added: {},
+        moved: {},
+        removed: {},
     };
 
-    const { result: pairData, resultMap: pairMap } = pair();
+    let moveTo = true;
+    const pairUp = (
+        from: PathPoint['from'] | LineNodeDatum,
+        to: PathPoint['to'] | LineNodeDatum,
+        xValue?: any,
+        marker: MarkerChange = 'move'
+    ) => {
+        if (from && isLineNodeDatum(from)) {
+            from = from.point;
+        }
+        if (to && isLineNodeDatum(to)) {
+            to = to.point;
+        }
+
+        const resultPoint = { from, to, moveTo, marker };
+        if (marker === 'move') {
+            resultMap.moved[xValue] = resultPoint;
+            oldIdx++;
+            newIdx++;
+        } else if (marker === 'in') {
+            resultMap.added[xValue] = resultPoint;
+            newIdx++;
+        } else if (marker === 'out') {
+            resultMap.removed[xValue] = resultPoint;
+            oldIdx++;
+        }
+        result.push(resultPoint);
+
+        moveTo = false;
+    };
+
+    const { min: minFromNode, max: maxFromNode } = minMax(oldData);
+    const { min: minToNode, max: maxToNode } = minMax(newData);
+    if (!minFromNode || !maxFromNode || !minToNode || !maxToNode) {
+        return { result, resultMap };
+    }
+
+    let oldIdx = 0;
+    let newIdx = 0;
+    while (oldIdx < oldData.nodeData.length || newIdx < newData.nodeData.length) {
+        const from = oldData.nodeData[oldIdx];
+        const to = newData.nodeData[newIdx];
+
+        const fromShifted = from ? toNewScale(from) : undefined;
+        const toUnshifted = to ? toOldScale(to) : undefined;
+
+        const NA = undefined;
+        if (fromShifted && closeMatch(fromShifted.x, to?.point.x)) {
+            pairUp(from, to, to.xValue, 'move');
+        } else if (fromShifted && fromShifted.x < minToNode?.point.x) {
+            pairUp(from, NA, from.xValue, 'out');
+        } else if (fromShifted && fromShifted.x > maxToNode?.point.x) {
+            pairUp(from, NA, from.xValue, 'out');
+        } else if (toUnshifted && toUnshifted.x < minFromNode?.point.x) {
+            pairUp(NA, to, to.xValue, 'in');
+        } else if (toUnshifted && toUnshifted.x > maxFromNode?.point.x) {
+            pairUp(NA, to, to.xValue, 'in');
+        } else if (fromShifted && fromShifted.x < to?.point.x) {
+            pairUp(from, NA, from.xValue, 'out');
+        } else if (toUnshifted && toUnshifted.x < from?.point.x) {
+            pairUp(NA, to, to.xValue, 'in');
+        } else if (from) {
+            pairUp(from, NA, from.xValue, 'out');
+        } else if (to) {
+            pairUp(NA, to, to.xValue, 'in');
+        } else {
+            throw new Error('Unable to process points');
+        }
+    }
+
+    backfillPathPointData(result);
+    return { result, resultMap };
+}
+
+function pairCategoryData(
+    newData: CartesianSeriesNodeDataContext<LineNodeDatum>,
+    oldData: CartesianSeriesNodeDataContext<LineNodeDatum>,
+    diff: ProcessedOutputDiff
+) {
+    const result: PathPoint[] = [];
+    const resultMap: {
+        [key in 'moved' | 'added' | 'removed']: { [key: string | number]: PathPoint };
+    } = {
+        added: {},
+        moved: {},
+        removed: {},
+    };
+
+    // Process oldData first to maintain old order if possible.
+    for (const next of oldData.nodeData) {
+        let resultPoint: PathPoint;
+        if (diff.removed.indexOf(next.xValue) >= 0) {
+            resultPoint = {
+                marker: 'out',
+                moveTo: next.point.moveTo,
+                from: next.point,
+            };
+            resultMap.removed[next.xValue] = resultPoint;
+        } else {
+            resultPoint = {
+                marker: 'move',
+                moveTo: next.point.moveTo,
+                from: next.point,
+            };
+            resultMap.moved[next.xValue] = resultPoint;
+        }
+        result.push(resultPoint);
+    }
+
+    // Process newData to mixin updated/new coordinates/markers.
+    for (const next of newData.nodeData) {
+        const addedIdx = diff.added.indexOf(next.xValue);
+        if (addedIdx >= 0) {
+            const resultPoint: PathPoint = {
+                marker: 'in',
+                moveTo: next.point.moveTo,
+                to: next.point,
+            };
+            resultMap.added[next.xValue] = resultPoint;
+            result.splice(diff.addedIndices[addedIdx], 0, resultPoint);
+        } else {
+            resultMap.moved[next.xValue].to = next.point;
+        }
+    }
+
+    backfillPathPointData(result);
+
+    return { result, resultMap };
+}
+
+export function prepareLinePathAnimation(
+    newData: CartesianSeriesNodeDataContext<LineNodeDatum>,
+    oldData: CartesianSeriesNodeDataContext<LineNodeDatum>,
+    diff?: ProcessedOutputDiff
+) {
+    const isCategoryBased = newData.scales.x?.type === 'category';
+    const { result: pairData, resultMap: pairMap } =
+        isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
 
     const render = (ratios: Partial<Record<MarkerChange, number>>, path: Path) => {
         const { path: linePath } = path;
