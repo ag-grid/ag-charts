@@ -78,7 +78,10 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
                             j.property(
                                 'init',
                                 j.identifier('label'),
-                                j.objectExpression([j.property('init', j.identifier('autoRotate'), j.literal(false))])
+                                j.objectExpression([
+                                    j.property('init', j.identifier('autoRotate'), j.literal(false)),
+                                    j.property('init', j.identifier('minSpacing'), j.literal(20)),
+                                ])
                             ),
                         ])
                     ),
