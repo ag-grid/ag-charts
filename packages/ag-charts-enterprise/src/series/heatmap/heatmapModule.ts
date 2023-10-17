@@ -18,9 +18,12 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
         const { properties } = themeTemplateParameters;
         const defaultColorRange = properties.get(_Theme.DEFAULT_HEATMAP_SERIES_COLOUR_RANGE);
+        const defaultBackgroundColor = properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const backgroundFill =
+            (Array.isArray(defaultBackgroundColor) ? defaultBackgroundColor[0] : defaultBackgroundColor) ?? 'white';
         const { fills, strokes } = takeColors(colorsCount);
         return {
-            stroke: strokes[0],
+            stroke: userPalette ? strokes[0] : backgroundFill,
             colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
         };
     },
