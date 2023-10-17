@@ -4,7 +4,6 @@ import type { ThemeName } from '@stores/themeStore';
 import { getEntry } from 'astro:content';
 import { JSDOM } from 'jsdom';
 
-// eslint-disable-next-line @nx/enforce-module-boundaries
 import { AgChart } from 'ag-charts-community';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import 'ag-charts-enterprise';

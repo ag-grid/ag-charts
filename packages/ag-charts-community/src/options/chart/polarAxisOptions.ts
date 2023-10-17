@@ -6,7 +6,7 @@ export type AgPolarAxisType = 'angle-category' | 'angle-number' | 'radius-catego
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
 export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
-    type: AgPolarAxisType;
+    type: 'angle-category';
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
     /** Shape of axis. Default: `polygon` */
@@ -37,6 +37,8 @@ export interface AgAngleNumberAxisOptions extends AgBaseAxisOptions<AgAngleAxisL
     tick?: AgAxisNumberTickOptions;
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: number;
+    /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */
+    endAngle?: number;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions[];
 }

@@ -31,7 +31,7 @@ export interface AgBasePolarChartOptions {
 
 export interface AgPolarAxesTheme {
     'angle-category'?: AgAngleCategoryAxisOptions;
-    'angle-number'?: AgAngleCategoryAxisOptions;
+    'angle-number'?: AgAngleNumberAxisOptions;
     'radius-category'?: AgRadiusCategoryAxisOptions;
     'radius-number'?: AgRadiusNumberAxisOptions;
 }
