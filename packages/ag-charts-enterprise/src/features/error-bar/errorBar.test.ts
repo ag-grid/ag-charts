@@ -4,6 +4,7 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgChartInstance, AgScatterSeriesTooltipRendererParams } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
     deproxy,
     extractImageData,
     hoverAction,
@@ -557,5 +558,32 @@ describe('ErrorBars', () => {
         expect(actualParams['xUpperName']).toBe(expectedParams.xUpperKey);
         expect(actualParams['yLowerName']).toBe(expectedParams.yLowerKey);
         expect(actualParams['yUpperName']).toBe(expectedParams.yUpperKey);
+    });
+
+    it('should toggle visibility as expected', async () => {
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [
+                    { ...SERIES_CANADA, type: 'line' },
+                    { ...SERIES_AUSTRALIA, type: 'line' },
+                ],
+            })
+        );
+        await waitForChartStability(chart);
+
+        const { x = 0, y = 0, width = 0 } = chart.legend?.computeBBox() ?? {};
+
+        // Hide Canada
+        await clickAction(x, y)(chart);
+        await compare();
+
+        // Show Canada
+        await clickAction(x, y)(chart);
+        await compare();
+
+        // Hide Australia
+        await clickAction(x + width - 1, y)(chart);
+        await compare();
     });
 });

@@ -72,6 +72,8 @@ export class ErrorBarNode extends _Scene.Group {
         capsTheme: ErrorBarCapTheme,
         capDefaults: CapDefaults
     ) {
+        // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
+        // This could be optimised to reduce a amount of unnecessary redraws.
         this.points = points;
         Object.assign(this.whiskerPath, whiskerTheme);
         Object.assign(this.capsPath, capsTheme);
@@ -89,7 +91,7 @@ export class ErrorBarNode extends _Scene.Group {
             whisker.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y);
         }
         whisker.path.closePath();
-        whisker.updatePath();
+        whisker.markDirtyTransform();
 
         // Errorbar caps stretch out pendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
@@ -110,6 +112,6 @@ export class ErrorBarNode extends _Scene.Group {
             caps.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y + capOffset);
         }
         caps.path.closePath();
-        caps.updatePath();
+        caps.markDirtyTransform();
     }
 }
