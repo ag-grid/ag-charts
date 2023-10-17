@@ -2,7 +2,7 @@ import type { AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-communit
 import { _Scale } from 'ag-charts-community';
 
 import { RangeBarSeries } from './rangeBar';
-import { RANGE_BAR_DEFAULTS } from './rangeBarDefaults';
+import { RANGE_BAR_DEFAULTS, RANGE_BAR_SWAPPED_AXES_DEFAULTS } from './rangeBarDefaults';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
 export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
@@ -14,6 +14,7 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
     identifier: 'range-bar',
     instanceConstructor: RangeBarSeries,
     seriesDefaults: RANGE_BAR_DEFAULTS,
+    seriesSwappedAxesDefaults: RANGE_BAR_SWAPPED_AXES_DEFAULTS,
     themeTemplate: RANGE_BAR_SERIES_THEME,
 
     paletteFactory: ({ takeColors }) => {

@@ -1,8 +1,9 @@
+import type { _ModuleSupport } from 'ag-charts-community';
 import { _Theme } from 'ag-charts-community';
 
 const { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } = _Theme;
 
-export const BOX_PLOT_SERIES_DEFAULTS = {
+export const BOX_PLOT_SERIES_DEFAULTS: _ModuleSupport.SeriesModule<'box-plot'>['seriesDefaults'] = {
     axes: [
         {
             type: CARTESIAN_AXIS_TYPES.CATEGORY,
@@ -22,3 +23,12 @@ export const BOX_PLOT_SERIES_DEFAULTS = {
         },
     ],
 };
+
+export const BOX_PLOT_SERIES_SWAPPED_AXES_DEFAULTS: _ModuleSupport.SeriesModule<'box-plot'>['seriesSwappedAxesDefaults'] =
+    {
+        zoom: {
+            axes: 'y',
+            anchorPointX: 'middle',
+            anchorPointY: 'end',
+        },
+    };

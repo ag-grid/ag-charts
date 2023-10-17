@@ -1,6 +1,6 @@
 import { type AgBoxPlotSeriesOptions, type _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
 
-import { BOX_PLOT_SERIES_DEFAULTS } from './boxPlotDefaults';
+import { BOX_PLOT_SERIES_DEFAULTS, BOX_PLOT_SERIES_SWAPPED_AXES_DEFAULTS } from './boxPlotDefaults';
 import { BoxPlotSeries } from './boxPlotSeries';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
@@ -13,6 +13,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     identifier: 'box-plot',
     instanceConstructor: BoxPlotSeries,
     seriesDefaults: BOX_PLOT_SERIES_DEFAULTS,
+    seriesSwappedAxesDefaults: BOX_PLOT_SERIES_SWAPPED_AXES_DEFAULTS,
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 

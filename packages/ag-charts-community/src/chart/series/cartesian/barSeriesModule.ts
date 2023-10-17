@@ -31,6 +31,18 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 position: CARTESIAN_AXIS_POSITIONS.LEFT,
             },
         ],
+        zoom: {
+            axes: 'y',
+            anchorPointX: 'middle',
+            anchorPointY: 'end',
+        },
+    },
+    seriesSwappedAxesDefaults: {
+        zoom: {
+            axes: 'x',
+            anchorPointX: 'end',
+            anchorPointY: 'middle',
+        },
     },
     swapDefaultAxesCondition: (opts) => (opts.series?.[0] as AgBarSeriesOptions)?.direction !== 'horizontal',
     themeTemplate: {
