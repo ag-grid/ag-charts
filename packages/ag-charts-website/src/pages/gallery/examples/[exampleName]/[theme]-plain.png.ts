@@ -47,10 +47,9 @@ export async function get({ params }: { params: Params }) {
                 exampleName,
             })) || {};
         const entryFile = files[entryFileName!];
-        let { options } = transformPlainEntryFile(entryFile, files['data.js']);
+        let { options } = transformPlainEntryFile(entryFile, files['data.js'], theme);
         options = {
             ...options,
-            theme,
             animation: { enabled: false },
             document: jsdom.window.document,
             window: jsdom.window,
