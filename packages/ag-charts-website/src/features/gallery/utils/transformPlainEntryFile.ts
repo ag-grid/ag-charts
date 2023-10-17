@@ -22,7 +22,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
         .find(j.ObjectExpression);
 
     // Find and remove properties in the 'options' object
-    const propertiesToRemove = ['subtitle', 'footnote', 'legend'];
+    const propertiesToRemove = ['subtitle', 'footnote', 'legend', 'gradientLegend'];
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
             removePropertyKeys: propertiesToRemove,
@@ -43,6 +43,14 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
         j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
     );
     optionsExpressionProperties.push(legendPropertyNode);
+
+    // Add disabled gradient legend
+    const gradientLegendPropertyNode = j.property(
+        'init',
+        j.identifier('gradientLegend'),
+        j.objectExpression([j.property('init', j.identifier('enabled'), j.literal(false))])
+    );
+    optionsExpressionProperties.push(gradientLegendPropertyNode);
 
     // Theme - Apply baseTheme and disable category axis autoRotate
     const themeNode = optionsExpression
