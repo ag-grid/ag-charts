@@ -20,6 +20,14 @@ export interface ISeries<TDatum> {
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): void;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
+    // BoundSeries
+    getBandScalePadding?(): { inner: number; outer: number };
+    getDomain(direction: ChartAxisDirection): any[];
+    getKeys(direction: ChartAxisDirection): string[];
+    getNames(direction: ChartAxisDirection): (string | undefined)[];
+    isEnabled(): boolean;
+    type: string;
+    visible: boolean;
 }
 
 /**

@@ -2,6 +2,7 @@ import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import type { ModuleContextInitialiser } from '../../module/moduleMap';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionModule } from '../../module/optionModules';
+import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/chart/labelOptions';
 import type { InteractionRange } from '../../options/chart/types';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -748,5 +749,19 @@ export abstract class Series<
 
     createModuleContext(): SeriesContext {
         return { ...this.ctx, series: this };
+    }
+
+    getLabelText<TParams>(
+        label: AgChartLabelOptions<any, TParams>,
+        params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
+        defaultFormatter: (value: any) => string = String
+    ) {
+        if (label.formatter) {
+            return (
+                this.ctx.callbackCache.call(label.formatter, { seriesId: this.id, ...params }) ??
+                defaultFormatter(params.value)
+            );
+        }
+        return defaultFormatter(params.value);
     }
 }

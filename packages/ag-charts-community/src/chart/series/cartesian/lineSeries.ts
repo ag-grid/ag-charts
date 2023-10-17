@@ -16,6 +16,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { NUMBER, OPT_COLOR_STRING, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
+import { isNumber } from '../../../util/value';
 import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -162,13 +163,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     }
 
     async createNodeData() {
-        const {
-            processedData,
-            dataModel,
-            axes,
-            marker: { enabled: markerEnabled, size: markerSize },
-            ctx: { callbackCache },
-        } = this;
+        const { processedData, dataModel, axes } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -177,13 +172,13 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             return [];
         }
 
-        const { label, yKey = '', xKey = '', id: seriesId } = this;
+        const { label, yKey = '', xKey = '' } = this;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const nodeData: LineNodeDatum[] = [];
-        const size = markerEnabled ? markerSize : 0;
+        const size = this.marker.enabled ? this.marker.size : 0;
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
@@ -210,26 +205,18 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
                 const y = yScale.convert(yDatum) + yOffset;
 
-                let labelText;
-                if (label.formatter) {
-                    labelText = callbackCache.call(label.formatter, {
+                const labelText = this.getLabelText(
+                    label,
+                    {
                         value: yDatum,
                         datum,
-                        seriesId,
                         xKey,
                         yKey,
                         xName: this.xName,
                         yName: this.yName,
-                    });
-                }
-
-                if (labelText !== undefined) {
-                    // Label retrieved from formatter successfully.
-                } else if (typeof yDatum === 'number' && isFinite(yDatum)) {
-                    labelText = yDatum.toFixed(2);
-                } else if (yDatum) {
-                    labelText = String(yDatum);
-                }
+                    },
+                    (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                );
 
                 nodeData.push({
                     series: this,
@@ -240,7 +227,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     midPoint: { x, y },
                     yValue: yDatum,
                     xValue: xDatum,
-                    capDefaults: { lengthRatio: 1, lengthRatioMultiplier: markerSize, lengthMax: Infinity },
+                    capDefaults: { lengthRatio: 1, lengthRatioMultiplier: this.marker.size, lengthMax: Infinity },
                     label: labelText
                         ? {
                               text: labelText,

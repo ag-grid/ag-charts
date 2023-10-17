@@ -206,13 +206,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             xKey = '',
             label,
             labelKey,
-            ctx: { callbackCache },
             dataModel,
             processedData,
             colorScale,
             sizeKey,
             colorKey,
-            id: seriesId,
         } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -242,23 +240,18 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            let labelText = labelKey ? values[labelDataIdx] : yDatum;
-            if (label.formatter) {
-                labelText =
-                    callbackCache.call(label.formatter, {
-                        value: labelText,
-                        seriesId,
-                        datum,
-                        xKey,
-                        yKey,
-                        sizeKey,
-                        labelKey,
-                        xName: this.xName,
-                        yName: this.yName,
-                        sizeName: this.sizeName,
-                        labelName: this.labelName,
-                    }) ?? labelText;
-            }
+            const labelText = this.getLabelText(label, {
+                value: labelKey ? values[labelDataIdx] : yDatum,
+                datum,
+                xKey,
+                yKey,
+                sizeKey,
+                labelKey,
+                xName: this.xName,
+                yName: this.yName,
+                sizeName: this.sizeName,
+                labelName: this.labelName,
+            });
 
             const size = HdpiCanvas.getTextSize(String(labelText), font);
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
@@ -425,11 +418,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const fill = nodeDatum.fill ?? marker.fill;
         const strokeWidth = this.getStrokeWidth(marker.strokeWidth ?? 1);
 
-        const { formatter } = this.marker;
         let format: AgCartesianSeriesMarkerFormat | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (marker.formatter) {
+            format = callbackCache.call(marker.formatter, {
                 datum: nodeDatum,
                 xKey,
                 yKey,

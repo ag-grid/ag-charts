@@ -284,8 +284,9 @@ export class ErrorBars
         const { nodeData } = this;
         const points = nodeData[index];
         if (points) {
+            const { visible, stroke, strokeWidth, strokeOpacity } = this;
             const defaults: ErrorBarWhiskerTheme = ERROR_BARS_THEME.errorBar;
-            const whiskerProps = mergeDefaults(this, defaults);
+            const whiskerProps = mergeDefaults({ visible, stroke, strokeWidth, strokeOpacity }, defaults);
             const capProps = mergeDefaults(this.cap, whiskerProps);
             const capDefaults = this.cartesianSeries.contextNodeData[0].nodeData[index].capDefaults;
             this.getDatum(index);

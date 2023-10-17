@@ -280,8 +280,6 @@ export abstract class RadialColumnSeriesBase<
         const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`).index;
         const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`).index;
 
-        const { label, id: seriesId } = this;
-
         let groupPaddingInner = 0;
         let groupPaddingOuter = 0;
         if (angleAxis instanceof AngleCategoryAxis) {
@@ -308,29 +306,24 @@ export abstract class RadialColumnSeriesBase<
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
-            let labelText = '';
-            if (label.formatter) {
-                labelText = label.formatter({
+            const labelText = this.getLabelText(
+                this.label,
+                {
                     value: radiusDatum,
                     datum,
-                    seriesId,
                     angleKey,
                     radiusKey,
                     angleName: this.angleName,
                     radiusName: this.radiusName,
-                });
-            } else if (typeof radiusDatum === 'number' && isFinite(radiusDatum)) {
-                labelText = radiusDatum.toFixed(2);
-            } else if (radiusDatum) {
-                labelText = String(radiusDatum);
-            }
+                },
+                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+            );
+
             if (labelText) {
-                const labelX = x;
-                const labelY = y;
                 return {
+                    x,
+                    y,
                     text: labelText,
-                    x: labelX,
-                    y: labelY,
                     textAlign: 'center',
                     textBaseline: 'middle',
                 };
@@ -360,7 +353,7 @@ export abstract class RadialColumnSeriesBase<
             const x = cos * midRadius;
             const y = sin * midRadius;
 
-            const labelNodeDatum = label.enabled ? getLabelNodeDatum(datum, radiusDatum, x, y) : undefined;
+            const labelNodeDatum = this.label.enabled ? getLabelNodeDatum(datum, radiusDatum, x, y) : undefined;
 
             const columnWidth = this.getColumnWidth(startAngle, endAngle);
 

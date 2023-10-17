@@ -223,13 +223,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     async createNodeData() {
-        const {
-            axes,
-            data,
-            processedData: { data: groupedData } = {},
-            dataModel,
-            ctx: { callbackCache },
-        } = this;
+        const { axes, data, processedData: { data: groupedData } = {}, dataModel } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -238,11 +232,11 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey = '', xKey = '', marker, label, fill: seriesFill, stroke: seriesStroke, id: seriesId } = this;
+        const { yKey = '', xKey = '', marker, label, fill: seriesFill, stroke: seriesStroke } = this;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
-        const continuousY = yScale instanceof ContinuousScale;
+        const continuousY = ContinuousScale.is(yScale);
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
@@ -350,19 +344,18 @@ export class AreaSeries extends CartesianSeries<
 
                 // label data
                 if (validPoint && label) {
-                    let labelText = isNumber(yRawDatum) ? yRawDatum.toFixed(2) : String(yRawDatum);
-                    if (label.formatter) {
-                        labelText =
-                            callbackCache.call(label.formatter, {
-                                value: yRawDatum,
-                                datum: seriesDatum,
-                                seriesId,
-                                xKey,
-                                yKey,
-                                xName: this.xName,
-                                yName: this.yName,
-                            }) ?? labelText;
-                    }
+                    const labelText = this.getLabelText(
+                        label,
+                        {
+                            value: yRawDatum,
+                            datum: seriesDatum,
+                            xKey,
+                            yKey,
+                            xName: this.xName,
+                            yName: this.yName,
+                        },
+                        (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                    );
 
                     labelData.push({
                         index: datumIdx,

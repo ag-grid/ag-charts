@@ -148,17 +148,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     async createNodeData() {
-        const {
-            visible,
-            axes,
-            yKey = '',
-            xKey = '',
-            label,
-            labelKey,
-            ctx: { callbackCache },
-            dataModel,
-            processedData,
-        } = this;
+        const { visible, axes, yKey = '', xKey = '', label, labelKey, dataModel, processedData } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -170,7 +160,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         const colorDataIdx = this.colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
         const labelDataIdx = this.labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
 
-        const { colorScale, colorKey, id: seriesId } = this;
+        const { colorScale, colorKey } = this;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -186,21 +176,16 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            let labelText = String(labelKey ? values[labelDataIdx] : yDatum);
-            if (label.formatter) {
-                labelText =
-                    callbackCache.call(label.formatter, {
-                        value: labelText,
-                        seriesId,
-                        datum,
-                        xKey,
-                        yKey,
-                        labelKey,
-                        xName: this.xName,
-                        yName: this.yName,
-                        labelName: this.labelName,
-                    }) ?? labelText;
-            }
+            const labelText = this.getLabelText(this.label, {
+                value: labelKey ? values[labelDataIdx] : yDatum,
+                datum,
+                xKey,
+                yKey,
+                labelKey,
+                xName: this.xName,
+                yName: this.yName,
+                labelName: this.labelName,
+            });
 
             const size = HdpiCanvas.getTextSize(labelText, font);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;

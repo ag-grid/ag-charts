@@ -198,21 +198,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const colorValue = colorKey ? values[colorDataIdx] : undefined;
             const fill = colorScaleValid ? colorScale.convert(colorValue) : this.colorRange[0];
 
-            let labelText = String(colorValue);
-            if (this.label.formatter) {
-                labelText =
-                    this.ctx.callbackCache.call(this.label.formatter, {
-                        seriesId: this.id,
-                        value: colorValue,
-                        datum,
-                        colorKey,
-                        colorName,
-                        xKey,
-                        yKey,
-                        xName: this.xName,
-                        yName: this.yName,
-                    }) ?? labelText;
-            }
+            const labelText = this.getLabelText(this.label, {
+                value: colorValue,
+                datum,
+                colorKey,
+                colorName,
+                xKey,
+                yKey,
+                xName: this.xName,
+                yName: this.yName,
+            });
 
             const size = _Scene.HdpiCanvas.getTextSize(labelText, font);
 

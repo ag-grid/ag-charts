@@ -50,8 +50,7 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
 
     protected override calculateDomain() {
         if (!this._paddingOverrideEnabled) {
-            const { boundSeries } = this;
-            const paddings = boundSeries.map((s) => s.getBandScalePadding?.()).filter((p) => p != null);
+            const paddings = this.boundSeries.map((s) => s.getBandScalePadding?.()).filter((p) => p != null);
             if (paddings.length > 0) {
                 this.scale.paddingInner = Math.min(...paddings.map((p) => p!.inner));
                 this.scale.paddingOuter = Math.max(...paddings.map((p) => p!.outer));

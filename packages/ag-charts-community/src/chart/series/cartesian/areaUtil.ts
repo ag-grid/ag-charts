@@ -232,12 +232,7 @@ export function areaAnimateEmptyUpdateReady<
 
         markerSelections[seriesIdx]?.each((marker, datum) => {
             const delay = seriesRect?.width ? (datum.point.x / seriesRect.width) * duration : 0;
-            const format = areaAnimateFormatter<MarkerNodeDatum, FormatterParams, Formatter>({
-                datum,
-                ctx,
-                formatter,
-                getFormatterParams,
-            });
+            const format = formatter ? ctx.callbackCache.call(formatter as any, getFormatterParams(datum)) : null;
 
             ctx.animationManager.animate({
                 id: `${seriesId}_empty-update-ready_${marker.id}`,
@@ -424,12 +419,7 @@ export function areaResetMarkersAndPaths<
         fill.checkPathDirty();
 
         markerSelections[seriesIdx]?.cleanup().each((marker, datum) => {
-            const format = areaAnimateFormatter<MarkerNodeDatum, FormatterParams, Formatter>({
-                datum,
-                ctx,
-                formatter,
-                getFormatterParams,
-            });
+            const format = formatter ? ctx.callbackCache.call(formatter as any, getFormatterParams(datum)) : null;
             marker.size = format?.size ?? datum.point?.size ?? 0;
         });
 
@@ -437,29 +427,4 @@ export function areaResetMarkersAndPaths<
             label.opacity = 1;
         });
     });
-}
-
-function areaAnimateFormatter<
-    MarkerNodeDatum extends MarkerDatum,
-    FormatterParams extends Omit<AgCartesianSeriesMarkerFormatterParams<MarkerNodeDatum>, 'yKey' | 'yValue'>,
-    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined,
->({
-    datum,
-    ctx: { callbackCache },
-    formatter,
-    getFormatterParams,
-}: {
-    datum: MarkerNodeDatum;
-    ctx: ModuleContext;
-    formatter?: Formatter;
-    getFormatterParams: (datum: MarkerNodeDatum) => FormatterParams;
-}) {
-    let format: AgCartesianSeriesMarkerFormat | undefined;
-    if (formatter) {
-        format = callbackCache.call(formatter as any, {
-            ...getFormatterParams(datum),
-        });
-    }
-
-    return format;
 }

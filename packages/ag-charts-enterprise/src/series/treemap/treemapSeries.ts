@@ -4,6 +4,7 @@ import {
     type AgTreemapSeriesFormatterParams,
     type AgTreemapSeriesLabelsOptions,
     type AgTreemapSeriesTooltipRendererParams,
+    type FontOptions,
     type TextWrap,
     _ModuleSupport,
     _Scale,
@@ -98,17 +99,18 @@ enum TextNodeTag {
 
 const tempText = new Text();
 
-function getTextSize(text: string, style: _Scene.Label): { width: number; height: number } {
+function getTextSize(text: string, style: FontOptions): { width: number; height: number } {
     const { fontStyle, fontWeight, fontSize, fontFamily } = style;
-    tempText.fontStyle = fontStyle;
-    tempText.fontWeight = fontWeight;
-    tempText.fontSize = fontSize;
-    tempText.fontFamily = fontFamily;
-    tempText.text = text;
-    tempText.x = 0;
-    tempText.y = 0;
-    tempText.textAlign = 'left';
-    tempText.textBaseline = 'top';
+    tempText.setProperties({
+        text,
+        fontStyle,
+        fontWeight,
+        fontSize,
+        fontFamily,
+        textAlign: 'left',
+        textBaseline: 'top',
+    });
+
     const { width, height } = tempText.computeBBox();
     return { width, height };
 }

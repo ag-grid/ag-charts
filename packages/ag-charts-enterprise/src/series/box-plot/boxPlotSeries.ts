@@ -263,11 +263,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
                 : // Handle high-volume bar charts gracefully.
                   groupScale.rawBandwidth;
 
-        const context: _ModuleSupport.SeriesNodeDataContext<BoxPlotNodeDatum> = {
-            itemId: xKey,
-            nodeData: [],
-            labelData: [],
-        };
+        const nodeData: BoxPlotNodeDatum[] = [];
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [
             'xValue',
@@ -303,7 +299,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
 
-            const nodeData: BoxPlotNodeDatum = {
+            nodeData.push({
                 series: this,
                 itemId: xValue,
                 datum,
@@ -319,12 +315,10 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
-            };
-
-            context.nodeData.push(nodeData);
+            });
         });
 
-        return [context];
+        return [{ itemId: xKey, nodeData, labelData: [] }];
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
@@ -536,6 +530,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             cap: extractDecoratedProperties(cap),
             whisker: extractDecoratedProperties(whisker),
         };
+
         if (formatter) {
             const formatStyles = callbackCache.call(formatter, {
                 datum,

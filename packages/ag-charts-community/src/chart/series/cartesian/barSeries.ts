@@ -6,7 +6,6 @@ import type {
     AgBarSeriesLabelPlacement,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
@@ -56,7 +55,7 @@ import {
 } from './barUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
-import { adjustLabelPlacement, updateLabel } from './labelUtil';
+import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -185,8 +184,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
-        const isContinuousX = this.getCategoryAxis()?.scale instanceof ContinuousScale;
-        const isContinuousY = this.getValueAxis()?.scale instanceof ContinuousScale;
+        const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
+        const isContinuousY = ContinuousScale.is(this.getValueAxis()?.scale);
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
@@ -301,8 +300,9 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             smallestDataInterval,
         } = this;
 
-        const xBandWidth =
-            xScale instanceof ContinuousScale ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth;
+        const xBandWidth = ContinuousScale.is(xScale)
+            ? xScale.calcBandwidth(smallestDataInterval?.x)
+            : xScale.bandwidth;
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
@@ -373,7 +373,18 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 placement,
             } = label;
 
-            const labelText = this.getLabelText(seriesDatum[0], yRawValue);
+            const labelText = this.getLabelText(
+                this.label,
+                {
+                    datum: seriesDatum[0],
+                    value: yRawValue,
+                    xKey,
+                    yKey,
+                    xName: this.xName,
+                    yName: this.yName,
+                },
+                (value) => (isNumber(value) ? value.toFixed(2) : '')
+            );
             const labelDatum = labelText
                 ? {
                       text: labelText,
@@ -422,29 +433,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         });
 
         return [context];
-    }
-
-    protected getLabelText(datum: unknown, value: any): string {
-        const { id: seriesId, ctx, label, xKey, yKey, xName, yName } = this;
-
-        if (!xKey || !yKey) {
-            return '';
-        }
-
-        let labelText;
-        if (label.formatter) {
-            labelText = ctx.callbackCache.call(label.formatter, {
-                seriesId,
-                datum,
-                value,
-                xKey,
-                yKey,
-                xName,
-                yName,
-            });
-        }
-
-        return labelText ?? (isNumber(value) ? value.toFixed(2) : '');
     }
 
     protected nodeFactory() {
@@ -531,12 +519,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     }
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum> }) {
-        const { labelSelection } = opts;
-
-        labelSelection.each((text, datum) => {
-            const labelDatum = datum.label;
-
-            updateLabel({ labelNode: text, labelDatum, config: this.label, visible: true });
+        opts.labelSelection.each((textNode, datum) => {
+            updateLabelNode(textNode, this.label, datum.label);
         });
     }
 
@@ -580,24 +564,21 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
         const color = format?.fill ?? fill;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            color,
-            title,
-            seriesId,
-            stackGroup,
-            ...this.getModuleTooltipParams(datum),
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                datum,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                color,
+                title,
+                seriesId,
+                stackGroup,
+                ...this.getModuleTooltipParams(datum),
+            }
+        );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -636,31 +617,30 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
+        );
 
         fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelections, labelSelections } = data;
-        const {
-            processedData,
-            ctx: { animationManager },
-        } = this;
-        const diff = processedData?.reduced?.diff;
+        const diff = this.processedData?.reduced?.diff;
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
+        );
 
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.getBarDirection(), this.axes));
         fromToMotion(
             `${this.id}_waiting-update-ready`,
-            animationManager,
-            datumSelections,
+            this.ctx.animationManager,
+            data.datumSelections,
             fns,
             (_, datum) => String(datum.xValue),
             diff
         );
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, this.ctx.animationManager, data.labelSelections);
     }
 
     protected isLabelEnabled() {

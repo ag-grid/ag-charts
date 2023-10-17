@@ -14,8 +14,8 @@ export abstract class DataModelSeries<
     protected processedData?: ProcessedData<any>;
 
     protected isContinuous(): { isContinuousX: boolean; isContinuousY: boolean } {
-        const isContinuousX = this.axes[ChartAxisDirection.X]?.scale instanceof ContinuousScale;
-        const isContinuousY = this.axes[ChartAxisDirection.Y]?.scale instanceof ContinuousScale;
+        const isContinuousX = ContinuousScale.is(this.axes[ChartAxisDirection.X]?.scale);
+        const isContinuousY = ContinuousScale.is(this.axes[ChartAxisDirection.Y]?.scale);
         return { isContinuousX, isContinuousY };
     }
 

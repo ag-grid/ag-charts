@@ -5,22 +5,13 @@ import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { AxisLayout } from './layout/layoutService';
-
-export interface BoundSeries {
-    getBandScalePadding?(): { inner: number; outer: number };
-    getDomain(direction: ChartAxisDirection): any[];
-    getKeys(direction: ChartAxisDirection): string[];
-    getNames(direction: ChartAxisDirection): (string | undefined)[];
-    isEnabled(): boolean;
-    type: string;
-    visible: boolean;
-}
+import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
 
 export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
-    boundSeries: BoundSeries[];
+    boundSeries: ISeries<unknown>[];
     calculatePadding(min: number, _max: number): [number, number];
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
@@ -28,7 +19,7 @@ export interface ChartAxis {
     crossLines?: any[];
     dataDomain: { domain: any[]; clipped: boolean };
     destroy(): void;
-    detachAxis(naxisGroup: Node, gridGroup: Node): void;
+    detachAxis(axisGroup: Node, gridGroup: Node): void;
     direction: ChartAxisDirection;
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;

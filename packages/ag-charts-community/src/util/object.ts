@@ -1,4 +1,7 @@
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
+import type { Intersection } from './types';
+
+type FalsyType = false | null | undefined;
 
 export function deepMerge(target: any, source: any) {
     if (isPlainObject(target) && isPlainObject(source)) {
@@ -23,11 +26,11 @@ export function deepMerge(target: any, source: any) {
     return source;
 }
 
-function isObjectLike(value: any): value is Object {
+function isObjectLike(value: any): value is object {
     return typeof value === 'object' && value !== null;
 }
 
-function isObject(value: any): value is Object {
+function isObject(value: any): value is object {
     return isObjectLike(value) && !Array.isArray(value);
 }
 
@@ -35,11 +38,16 @@ function isPlainObject(x: any): x is Object {
     return isObject(x) && x.constructor === Object;
 }
 
-export function mergeDefaults<T extends Record<string, any>>(...sources: (T | false | null | undefined)[]) {
+export function mergeDefaults<TSource extends Record<string, any>, TArgs extends (TSource | FalsyType)[]>(
+    ...sources: TArgs
+) {
     const target: Record<string, any> = {};
+
     for (const source of sources) {
         if (!source) continue;
+
         const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
+
         for (const key of keys) {
             if (isObject(target[key]) && isObject(source[key])) {
                 target[key] = mergeDefaults(target[key], source[key]);
@@ -48,5 +56,6 @@ export function mergeDefaults<T extends Record<string, any>>(...sources: (T | fa
             }
         }
     }
-    return target as T;
+
+    return target as Intersection<Exclude<TArgs[number], FalsyType>>;
 }

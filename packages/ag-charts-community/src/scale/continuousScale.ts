@@ -6,6 +6,10 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     static readonly defaultTickCount = 5;
     static readonly defaultMaxTickCount = 6;
 
+    static is(value: any): value is ContinuousScale<any, any> {
+        return value instanceof ContinuousScale;
+    }
+
     nice = false;
     interval?: I;
     tickCount = ContinuousScale.defaultTickCount;

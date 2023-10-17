@@ -391,7 +391,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private getRange(): [any, any] {
         const { value, range, scale } = this;
 
-        const isContinuous = scale instanceof ContinuousScale;
+        const isContinuous = ContinuousScale.is(scale);
 
         let [start, end] = range ?? [value, undefined];
 

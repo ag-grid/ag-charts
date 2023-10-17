@@ -15,10 +15,7 @@ export class SeriesMarker extends ChangeDetectable {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     enabled = true;
 
-    /**
-     * One of the predefined marker names, or a marker constructor function (for user-defined markers).
-     * A series will create one marker instance per data point.
-     */
+    /** One of the predefined marker names, or a marker constructor function (for user-defined markers). */
     @Validate(MARKER_SHAPE)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     shape: MarkerShape = Circle;
