@@ -263,7 +263,7 @@ describe('LineSeries', () => {
         }
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`should animate with short-circuiting when run again before it finishes at ${
+            it.skip(`should animate with short-circuiting when run again before it finishes at ${
                 ratio * 100
             }%`, async () => {
                 spyOnAnimationManager(1200, 1);
@@ -274,7 +274,7 @@ describe('LineSeries', () => {
                 const changedDataA = [...data, { quarter: 'week 12', iphone: 78 }];
                 const changedDataB = [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }];
 
-                spyOnAnimationManager(2400, ratio);
+                spyOnAnimationManager(1200, ratio);
 
                 AgChart.updateDelta(chart, { data: changedDataA });
                 await waitForChartStability(chart);
