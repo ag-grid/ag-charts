@@ -58,7 +58,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
         },
         errorBar: {
             cap: {
-                lengthRatio: 0.5,
+                lengthRatio: 0.2,
             },
         },
     },
