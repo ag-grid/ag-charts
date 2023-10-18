@@ -35,15 +35,11 @@ export interface AgErrorBarDataOptions {
 
 export interface AgErrorBarCapOptions extends ErrorBarCapLengthOptions, ErrorBarStylingOptions {}
 
-export interface AgErrorBarOptions extends AgErrorBarDataOptions, ErrorBarStylingOptions {
+export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
     /** Options to style error bars' caps */
     cap?: AgErrorBarCapOptions;
 }
 
-export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
+export interface AgErrorBarOptions extends AgErrorBarDataOptions, AgErrorBarThemeableOptions {}
 
-export interface AgErrorBarSeriesOptions {
-    type?: (typeof AgErrorBarSupportedSeriesTypes)[number];
-    /** Configuration for the Error Bars. */
-    errorBar?: AgErrorBarOptions;
-}
+export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
