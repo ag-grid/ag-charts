@@ -56,6 +56,11 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             yOffset: 3,
             blur: 5,
         },
+        errorBar: {
+            cap: {
+                lengthRatio: 0.5,
+            },
+        },
     },
     paletteFactory: singleSeriesPaletteFactory,
 };

@@ -44,6 +44,11 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             color: DEFAULT_LABEL_COLOUR,
             formatter: undefined,
         },
+        errorBar: {
+            cap: {
+                lengthRatio: 1,
+            },
+        },
     },
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);

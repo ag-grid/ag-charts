@@ -8,7 +8,7 @@ export const ERROR_BARS_THEME = {
         strokeOpacity: 1,
         cap: {
             length: undefined,
-            lengthRatio: 0.3,
+            lengthRatio: undefined,
         },
     },
 };
