@@ -206,7 +206,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             });
         }
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
+        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -438,7 +438,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
     override animateEmptyUpdateReady({ markerSelections, labelSelections }: ScatterAnimationData) {
         markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
     protected isLabelEnabled() {

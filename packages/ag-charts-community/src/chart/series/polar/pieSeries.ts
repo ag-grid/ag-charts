@@ -1491,13 +1491,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     override animateEmptyUpdateReady(_data?: PolarAnimationData) {
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
-        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
+        fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, [this.itemSelection], fns);
 
-        seriesLabelFadeInAnimation({ id: `${this.id}_callout` }, this.ctx.animationManager, [
-            this.calloutLabelSelection,
-        ]);
-        seriesLabelFadeInAnimation({ id: `${this.id}_sector` }, this.ctx.animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeInAnimation({ id: `${this.id}_inner` }, this.ctx.animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
+        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
+        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
     }
 
     override animateWaitingUpdateReady() {
@@ -1507,7 +1505,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
         fromToMotion(
-            `${this.id}_waiting-update-ready`,
+            this.id,
+            'waiting-update-ready',
             animationManager,
             [itemSelection],
             fns,
@@ -1515,9 +1514,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             diff
         );
 
-        seriesLabelFadeInAnimation({ id: `${this.id}_callout` }, animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeInAnimation({ id: `${this.id}_sector` }, animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeInAnimation({ id: `${this.id}_inner` }, animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
+        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
+        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
     }
 
     override animateClearingUpdateEmpty() {
@@ -1525,11 +1524,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { animationManager } = this.ctx;
 
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
-        fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
+        fromToMotion(this.id, 'clearing-update-empty', animationManager, [itemSelection], fns);
 
-        seriesLabelFadeOutAnimation({ id: `${this.id}_callout` }, animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeOutAnimation({ id: `${this.id}_sector` }, animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeOutAnimation({ id: `${this.id}_inner` }, animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
+        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
+        seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
     }
 
     getDatumIdFromData(datum: any) {

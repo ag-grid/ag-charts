@@ -1,4 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import { pathMotion } from '../../../motion/pathMotion';
+import { resetMotion } from '../../../motion/resetMotion';
 import type {
     AgCartesianSeriesMarkerFormat,
     AgLineSeriesLabelFormatterParams,
@@ -9,15 +12,14 @@ import type {
 } from '../../../options/agChartOptions';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import type { Path2D } from '../../../scene/path2D';
-import type { Point } from '../../../scene/point';
+import { Path2D } from '../../../scene/path2D';
 import type { Selection } from '../../../scene/selection';
+import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { NUMBER, OPT_COLOR_STRING, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
 import { isNumber } from '../../../util/value';
-import { zipObject } from '../../../util/zip';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
@@ -28,10 +30,23 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
+import type {
+    CartesianAnimationData,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+    ErrorBoundSeriesNodeDatum,
+} from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
-import { getMarkerConfig, updateMarker } from './markerUtil';
+import { prepareLinePathAnimation } from './lineUtil';
+import {
+    getMarkerConfig,
+    markerSwipeScaleInAnimation,
+    resetMarkerFn,
+    resetMarkerPositionFn,
+    updateMarker,
+} from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -87,6 +102,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             markerSelectionGarbageCollection: false,
+            animationResetFns: {
+                path: () => ({ clipScalingX: 1, clipScalingY: 1 }),
+                label: resetLabelFn,
+                marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+            },
         });
     }
 
@@ -114,8 +134,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datums and
         // automatically garbage collect the marker selection.
-        if (!this.ctx.animationManager.isSkipped()) {
+        if (!this.ctx.animationManager.isSkipped() && !isContinuousX) {
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
+            if (this.processedData) {
+                props.push(diff(this.processedData));
+            }
         }
 
         props.push(
@@ -123,22 +146,12 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
-        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
-            props.push(diff(this.processedData));
-        }
-
-        const { processedData } = await this.requestDataModel<any>(dataController, data, {
+        await this.requestDataModel<any>(dataController, data, {
             props,
             dataVisible: this.visible,
         });
 
-        // If the diff is too complex then just clear and redraw to prevent wonky line wobbling
-        const { diff: diffResult } = processedData.reduced ?? {};
-        if (diffResult && diffResult.added.length > 1 && diffResult.removed.length > 1) {
-            this.animationTransitionClear();
-        } else {
-            this.animationState.transition('updateData');
-        }
+        this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
@@ -185,6 +198,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         let moveTo = true;
         let nextPoint: UngroupedDataItem<any, any> | undefined;
+        let lastXValue: number = -Infinity;
+        let isXUniqueAndOrdered = true;
         for (let i = 0; i < processedData.data.length; i++) {
             const { datum, values } = nextPoint ?? processedData.data[i];
             const xDatum = values[xIdx];
@@ -218,6 +233,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     (value) => (isNumber(value) ? value.toFixed(2) : String(value))
                 );
 
+                isXUniqueAndOrdered &&= lastXValue < x;
+                lastXValue = x;
+
                 nodeData.push({
                     series: this,
                     datum,
@@ -245,7 +263,15 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             }
         }
 
-        return [{ itemId: yKey, nodeData, labelData: nodeData }];
+        return [
+            {
+                itemId: yKey,
+                nodeData,
+                labelData: nodeData,
+                scales: super.calculateScaling(),
+                animationValid: isXUniqueAndOrdered,
+            },
+        ];
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -258,9 +284,40 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return new MarkerShape();
     }
 
+    protected override async updatePaths(opts: {
+        seriesHighlighted?: boolean;
+        contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
+        paths: Path[];
+    }) {
+        const {
+            paths: [lineNode],
+        } = opts;
+        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
+
+        lineNode.fill = undefined;
+        lineNode.lineJoin = 'round';
+        lineNode.pointerEvents = PointerEvents.None;
+        lineNode.opacity = 1;
+
+        lineNode.stroke = this.stroke;
+        lineNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
+        lineNode.strokeOpacity = this.strokeOpacity;
+
+        lineNode.lineDash = this.lineDash;
+        lineNode.lineDashOffset = this.lineDashOffset;
+
+        if (lineNode.clipPath == null) {
+            lineNode.clipPath = new Path2D();
+        }
+        lineNode.clipMode = 'normal';
+        lineNode.clipPath?.clear({ trackChanges: true });
+        lineNode.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
+    }
+
     protected override async updateMarkerSelection(opts: {
         nodeData: LineNodeDatum[];
         markerSelection: Selection<Marker, LineNodeDatum>;
+        markerGroup?: Group;
     }) {
         let { nodeData } = opts;
         const { markerSelection } = opts;
@@ -313,7 +370,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 strokeWidth,
             });
 
-            const config = { ...styles, point: datum.point, visible, customMarker };
+            const point = this.ctx.animationManager.isSkipped() ? datum.point : undefined;
+            const config = { ...styles, point, visible, customMarker };
             updateMarker({ node, config });
         });
 
@@ -444,607 +502,78 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         ];
     }
 
-    override animateEmptyUpdateReady(animationData: LineAnimationData) {
-        const { markerSelections, labelSelections, contextData, paths } = animationData;
-
+    private updateLinePaths(
+        paths: Path[][],
+        contextData: CartesianSeriesNodeDataContext<LineNodeDatum, LineNodeDatum>[]
+    ) {
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
 
             const { path: linePath } = lineNode;
 
-            const nodeLengths: Array<number> = [0];
-            const lineLength = nodeData.reduce((sum, datum, index) => {
-                if (index === 0) return sum;
-                const prev = nodeData[index - 1];
-                if (isNaN(datum.point.x) || isNaN(datum.point.y) || isNaN(prev.point.x) || isNaN(prev.point.y)) {
-                    nodeLengths.push(sum);
-                    return sum;
+            linePath.clear({ trackChanges: true });
+            for (const data of nodeData) {
+                if (data.point.moveTo) {
+                    linePath.moveTo(data.point.x, data.point.y);
+                } else {
+                    linePath.lineTo(data.point.x, data.point.y);
                 }
-                const length = Math.sqrt(
-                    Math.pow(datum.point.x - prev.point.x, 2) + Math.pow(datum.point.y - prev.point.y, 2)
-                );
-                nodeLengths.push(sum + length);
-                return sum + length;
-            }, 0);
-
-            lineNode.fill = undefined;
-            lineNode.lineJoin = 'round';
-            lineNode.pointerEvents = PointerEvents.None;
-            lineNode.opacity = 1;
-
-            lineNode.stroke = this.stroke;
-            lineNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
-            lineNode.strokeOpacity = this.strokeOpacity;
-
-            lineNode.lineDash = this.lineDash;
-            lineNode.lineDashOffset = this.lineDashOffset;
-
-            const duration = animationData.duration ?? this.ctx.animationManager.defaultDuration;
-            const markerDuration = 200;
-
-            this.ctx.animationManager.animate({
-                id: `${this.id}_empty-update-ready`,
-                from: 0,
-                to: lineLength,
-                duration,
-                onUpdate(length) {
-                    linePath.clear({ trackChanges: true });
-
-                    nodeData.forEach((datum, index) => {
-                        if (nodeLengths[index] <= length) {
-                            // Draw/move the full segment if past the end of this segment
-                            if (datum.point.moveTo) {
-                                linePath.moveTo(datum.point.x, datum.point.y);
-                            } else {
-                                linePath.lineTo(datum.point.x, datum.point.y);
-                            }
-                        } else if (index > 0 && nodeLengths[index - 1] < length) {
-                            // Draw/move partial line if in between the start and end of this segment
-                            const start = nodeData[index - 1].point;
-                            const end = datum.point;
-
-                            const segmentLength = nodeLengths[index] - nodeLengths[index - 1];
-                            const remainingLength = nodeLengths[index] - length;
-                            const ratio = (segmentLength - remainingLength) / segmentLength;
-
-                            const x = (1 - ratio) * start.x + ratio * end.x;
-                            const y = (1 - ratio) * start.y + ratio * end.y;
-
-                            if (datum.point.moveTo) {
-                                linePath.moveTo(x, y);
-                            } else {
-                                linePath.lineTo(x, y);
-                            }
-                        }
-                    });
-
-                    lineNode.checkPathDirty();
-                },
-            });
-
-            markerSelections[contextDataIndex].each((marker, datum, index) => {
-                const delay = lineLength > 0 ? (nodeLengths[index] / lineLength) * duration : 0;
-                const format = this.animateMarkerFormatter(datum);
-                const size = datum.point?.size ?? 0;
-                marker.opacity = 1;
-
-                this.ctx.animationManager.animate({
-                    id: `${this.id}_empty-update-ready_${marker.id}`,
-                    from: 0,
-                    to: format?.size ?? size,
-                    delay,
-                    duration: markerDuration,
-                    onUpdate(size) {
-                        marker.size = size;
-                    },
-                });
-            });
-
-            labelSelections[contextDataIndex].each((label, _, index) => {
-                const delay = (nodeLengths[index] / lineLength) * duration;
-                this.ctx.animationManager.animate({
-                    id: `${this.id}_empty-update-ready_${label.id}`,
-                    from: 0,
-                    to: 1,
-                    delay,
-                    duration: markerDuration,
-                    onUpdate: (opacity) => {
-                        label.opacity = opacity;
-                    },
-                });
-            });
+            }
+            lineNode.checkPathDirty();
         });
     }
 
-    override animateReadyUpdate(animationData: LineAnimationData) {
-        this.resetMarkersAndPaths(animationData);
-    }
-
-    override animateReadyResize(animationData: LineAnimationData) {
-        this.resetMarkersAndPaths(animationData);
-    }
-
-    override animateWaitingUpdateReady(animationData: LineAnimationData) {
+    protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
-        const { processedData, extendLine, findPointOnLine } = this;
-        const diff = processedData?.reduced?.diff;
+        const { animationManager } = this.ctx;
+        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
-        if (!diff?.changed) {
-            this.resetMarkersAndPaths(animationData);
+        this.updateLinePaths(paths, contextData);
+        staticFromToMotion(
+            this.id,
+            'swipe_path',
+            animationManager,
+            paths.map((p) => p[0]),
+            { clipScalingX: 0 },
+            { clipScalingX: 1 }
+        );
+        resetMotion(markerSelections, resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+    }
+
+    protected override animateReadyResize(animationData: LineAnimationData): void {
+        const { contextData, paths } = animationData;
+        this.updateLinePaths(paths, contextData);
+
+        super.animateReadyResize(animationData);
+    }
+
+    protected override animateWaitingUpdateReady(animationData: LineAnimationData) {
+        const { animationManager } = this.ctx;
+        const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
+
+        if (
+            contextData.length === 0 ||
+            !previousContextData ||
+            previousContextData.length === 0 ||
+            !contextData.every((d) => d.animationValid) ||
+            !previousContextData.every((d) => d.animationValid)
+        ) {
+            super.resetAllAnimation(animationData);
+            this.updateLinePaths(paths, contextData);
             return;
         }
 
-        // Treat undefined values as removed data points
-        processedData?.data.forEach((datum, index) => {
-            if (datum.values.includes(undefined)) {
-                diff.removed.push(createDatumId(datum.keys));
-                diff.removedIndices.push(index);
-            }
-        });
-
-        contextData.forEach(({ nodeData }, contextDataIndex) => {
-            const [lineNode] = paths[contextDataIndex];
-            const { path: linePath } = lineNode;
-
-            const markerNodes: { [keyof: string]: Marker } = {};
-            markerSelections[contextDataIndex].each((marker, datum) => {
-                markerNodes[this.getDatumId(datum)] = marker;
-            });
-
-            labelSelections[contextDataIndex].each((label) => {
-                label.opacity = 0;
-            });
-
-            // Zip diff arrays into keyed objects for O(1) access
-            const addedIds = zipObject(diff.added, true);
-            const addedIndices = zipObject(diff.addedIndices, true);
-            const removedIds = zipObject(diff.removed, true);
-            const removedIndices = zipObject(diff.removedIndices, true);
-
-            // Find the first and last nodes that already existed and were not just added, removed nodes will not
-            // appear in `nodeData` so do not need to be filtered out
-            let firstExistingIndex = -1;
-            let lastExistingIndex = Infinity;
-
-            if (diff.added.length > 0) {
-                for (let i = 0; i < nodeData.length; i++) {
-                    if (!addedIds[this.getDatumId(nodeData[i])]) {
-                        firstExistingIndex = i;
-                        break;
-                    }
-                }
-
-                for (let i = nodeData.length - 1; i >= 0; i--) {
-                    if (!addedIds[this.getDatumId(nodeData[i])]) {
-                        lastExistingIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            // Find the points on the path before the changes, which points were removed and create a map of the new to
-            // old indices of points that continue to exist
-            const pathPoints = linePath.getPoints();
-            const removedPoints: Array<{ x: number; y: number }> = [];
-            const existingPointsPathMap: Map<number, number> = new Map();
-
-            let j = 0;
-            for (let i = 0; i < pathPoints.length; i++) {
-                const point = pathPoints[i];
-                if (removedIndices[`${i}`]) {
-                    removedPoints.push(point);
-                } else if (!addedIndices[`${j}`]) {
-                    existingPointsPathMap.set(j++, i);
-                }
-            }
-
-            j = 0;
-            for (let i = 0; i < nodeData.length; i++) {
-                if (!removedIndices[`${j}`] && !addedIndices[`${i}`]) {
-                    existingPointsPathMap.set(i, j++);
-                }
-            }
-
-            const removedMarkers: Array<Marker> = [];
-            markerSelections[contextDataIndex].each((marker) => {
-                if (removedIds[this.getDatumId(marker.datum)]) {
-                    removedMarkers.push(marker);
-                }
-            });
-
-            // Bucket the removed nodes into before and after existing nodes
-            const removedBefore: Point[] = [];
-            const removedAfter: Point[] = [];
-            const removedBeforeMarkers: Marker[] = [];
-            const removedAfterMarkers: Marker[] = [];
-
-            const firstPathPointIndex = existingPointsPathMap.get(0);
-            const firstPathPoint = firstPathPointIndex != null ? pathPoints[firstPathPointIndex] : undefined;
-
-            const lastPathPointIndex = existingPointsPathMap.get(existingPointsPathMap.size - 1);
-            const lastPathPoint = lastPathPointIndex != null ? pathPoints[lastPathPointIndex] : undefined;
-
-            for (let i = 0; i < removedPoints.length; i++) {
-                const removed = removedPoints[i];
-                const removedMarker = removedMarkers[i];
-
-                if (firstPathPoint && removed.x < firstPathPoint.x) {
-                    removedBefore.push(removed);
-                    removedBeforeMarkers.push(removedMarker);
-                }
-
-                if (lastPathPoint && removed.x > lastPathPoint.x) {
-                    removedAfter.push(removed);
-                    removedAfterMarkers.push(removedMarker);
-                }
-            }
-
-            const duration = this.ctx.animationManager.defaultDuration;
-            const markerFormats: Record<string, AgCartesianSeriesMarkerFormat | undefined> = {};
-
-            // Animate all nodes using a single animation to ensure the line is drawn correctly from node to node
-            this.ctx.animationManager.animate({
-                id: `${this.id}_waiting-update-ready_${contextDataIndex}`,
-                from: 0,
-                to: 1,
-                duration,
-                shortCircuitId: this.id,
-                onUpdate: (ratio) => {
-                    linePath.clear({ trackChanges: true });
-
-                    // Animate out nodes that were removed before the first node
-                    const first = nodeData[0];
-                    const firstDatumId = this.getDatumId(first);
-                    for (let i = 0; i < removedBefore.length; i++) {
-                        const removed = removedBefore[i];
-                        const { x, y } = findPointOnLine(removed, first.point, ratio);
-                        linePath.lineTo(x, y);
-                    }
-
-                    markerFormats[firstDatumId] ??= this.animateMarkerFormatter(markerNodes[firstDatumId].datum);
-                    const firstMarkerSize = markerFormats[firstDatumId]?.size ?? first.point.size ?? 0;
-
-                    for (const removed of removedBeforeMarkers) {
-                        removed.setProperties({
-                            x: ratio * (first.point.x - removed.translationX),
-                            y: ratio * (first.point.y - removed.translationY),
-                            size: (1 - ratio) * firstMarkerSize,
-                        });
-                    }
-
-                    for (let index = 0; index < nodeData.length; index++) {
-                        const datum = nodeData[index];
-                        const { point } = datum;
-                        const datumId = this.getDatumId(datum);
-                        const prevPoint = index > 0 ? nodeData[index - 1].point : undefined;
-
-                        const existingIndex = existingPointsPathMap.get(index);
-                        const prevExistingIndex = existingPointsPathMap.get(index - 1);
-
-                        const pathPoint = existingIndex != null ? pathPoints[existingIndex] : undefined;
-                        const prevPathPoint = prevExistingIndex != null ? pathPoints[prevExistingIndex] : undefined;
-
-                        const marker = markerNodes[datumId];
-                        let markerX = point.x;
-                        let markerY = point.y;
-
-                        markerFormats[datumId] ??= this.animateMarkerFormatter(marker.datum);
-                        let markerSize = markerFormats[datumId]?.size ?? datum.point?.size ?? 0;
-
-                        // Find nodes that were removed between this point and the previous point
-                        const removedBetween = [];
-                        const removedBetweenMarkers = [];
-
-                        for (let i = 0; i < removedPoints.length; i++) {
-                            const removed = removedPoints[i];
-                            const removedMarker = removedMarkers[i];
-
-                            if (prevPathPoint && pathPoint && removed.x > prevPathPoint.x && removed.x < pathPoint.x) {
-                                removedBetween.push(removed);
-                                removedBetweenMarkers.push(removedMarker);
-                            }
-                        }
-
-                        // Animate out nodes that were removed between two other nodes
-                        if (prevPoint) {
-                            for (let i = 0; i < removedBetween.length; i++) {
-                                const removed = removedBetween[i];
-
-                                // Flatten the line such that each 'between' point moves to an equal fraction along the
-                                // final straight line between the previous and next points
-                                const fraction = (i + 1) / (removedBetween.length + 1);
-                                const { x, y } = findPointOnLine(
-                                    removed,
-                                    findPointOnLine(prevPoint, point, fraction),
-                                    ratio
-                                );
-
-                                linePath.lineTo(x, y);
-                            }
-
-                            for (let i = 0; i < removedBetweenMarkers.length; i++) {
-                                const removed = removedBetweenMarkers[i];
-
-                                const fraction = (i + 1) / (removedBetweenMarkers.length + 1);
-
-                                let { x, y } = findPointOnLine(prevPoint, point, fraction);
-
-                                x -= removed.translationX;
-                                y -= removed.translationY;
-
-                                x *= ratio;
-                                y *= ratio;
-
-                                removed.size = (1 - ratio) * markerSize;
-                                removed.x = x;
-                                removed.y = y;
-                            }
-                        }
-
-                        if (addedIds[datumId] && index > lastExistingIndex) {
-                            // Animate in nodes that were added after the last existing node
-                            const startPoint = nodeData[lastExistingIndex].point;
-                            const startExistingIndex = existingPointsPathMap.get(lastExistingIndex);
-                            const start = startExistingIndex != null ? pathPoints[startExistingIndex] : startPoint;
-
-                            const { x, y } = findPointOnLine(start, point, ratio);
-                            markerX = x;
-                            markerY = y;
-                            markerSize *= ratio;
-
-                            extendLine(linePath, { x, y, moveTo: point.moveTo });
-                        } else if (addedIds[datumId] && index < firstExistingIndex) {
-                            // Animate in nodes that were added before the first existing node
-                            const startPoint = nodeData[firstExistingIndex].point;
-                            const startExistingIndex = existingPointsPathMap.get(firstExistingIndex);
-                            const start = startExistingIndex != null ? pathPoints[startExistingIndex] : startPoint;
-
-                            const { x, y } = findPointOnLine(start, point, ratio);
-                            markerX = x;
-                            markerY = y;
-                            markerSize *= ratio;
-
-                            extendLine(linePath, { x, y, moveTo: point.moveTo });
-                        } else if (addedIds[datumId]) {
-                            // Animate in nodes that were added between other nodes
-
-                            // Find the line between the nodes that existed either side of this group of added nodes
-                            let startPoint = point;
-                            let endPoint = point;
-                            let startIndex = index;
-                            let endIndex = index;
-                            let addedBetweenCount = 1;
-
-                            for (let i = index - 1; i > 0; i--) {
-                                if (!addedIds[this.getDatumId(nodeData[i])]) {
-                                    startPoint = nodeData[i].point;
-                                    startIndex = i;
-                                    break;
-                                }
-
-                                addedBetweenCount++;
-                            }
-
-                            for (let i = index + 1; i < nodeData.length; i++) {
-                                if (!addedIds[this.getDatumId(nodeData[i])]) {
-                                    endPoint = nodeData[i].point;
-                                    endIndex = i;
-                                    break;
-                                }
-
-                                addedBetweenCount++;
-                            }
-
-                            const startExistingIndex = existingPointsPathMap.get(startIndex);
-                            const endExistingIndex = existingPointsPathMap.get(endIndex);
-                            const start = startExistingIndex != null ? pathPoints[startExistingIndex] : startPoint;
-                            const end = endExistingIndex != null ? pathPoints[endExistingIndex] : endPoint;
-
-                            const fraction = (index - startIndex) / (addedBetweenCount + 1);
-
-                            const { x, y } = findPointOnLine(findPointOnLine(start, end, fraction), point, ratio);
-                            markerX = x;
-                            markerY = y;
-                            markerSize *= ratio;
-
-                            linePath.lineTo(x, y);
-                        } else if (pathPoint) {
-                            // Translate nodes that existed at other coordinates
-
-                            const x = (markerX = (1 - ratio) * pathPoint.x + ratio * point.x);
-                            const y = (markerY = (1 - ratio) * pathPoint.y + ratio * point.y);
-
-                            const hasRemovedAllPointsBefore = index === 0 && removedBefore.length > 0;
-
-                            if (point.moveTo && !hasRemovedAllPointsBefore) {
-                                linePath.moveTo(x, y);
-                            } else {
-                                linePath.lineTo(x, y);
-                            }
-                        } else {
-                            // Catch any other nodes and immediately place them at their final position
-                            extendLine(linePath, point);
-                        }
-
-                        marker.translationX = markerX;
-                        marker.translationY = markerY;
-                        marker.size = markerSize;
-                    }
-
-                    // Animate out nodes that were removed after the last node
-                    const last = nodeData[nodeData.length - 1];
-                    const lastDatumId = this.getDatumId(last);
-                    for (let i = 0; i < removedAfter.length; i++) {
-                        const removed = removedAfter[i];
-                        const { x, y } = findPointOnLine(removed, last.point, ratio);
-                        linePath.lineTo(x, y);
-                    }
-
-                    markerFormats[lastDatumId] ??= this.animateMarkerFormatter(markerNodes[lastDatumId].datum);
-                    const lastMarkerSize = markerFormats[lastDatumId]?.size ?? last.point.size ?? 0;
-
-                    for (let i = 0; i < removedAfterMarkers.length; i++) {
-                        const removed = removedAfterMarkers[i];
-
-                        const x = ratio * (last.point.x - removed.translationX);
-                        const y = ratio * (last.point.y - removed.translationY);
-
-                        removed.size = (1 - ratio) * lastMarkerSize;
-                        removed.x = x;
-                        removed.y = y;
-                    }
-
-                    lineNode.checkPathDirty();
-                },
-                onComplete: () => {
-                    this.resetMarkersAndPaths(animationData);
-                },
-                onStop: () => {
-                    this.resetMarkersAndPaths(animationData);
-                },
-            });
-
-            this.ctx.animationManager.animate({
-                id: `${this.id}_waiting-update-ready_labels_${contextDataIndex}`,
-                from: 0,
-                to: 1,
-                delay: duration,
-                duration: 200,
-                onUpdate: (opacity) => {
-                    labelSelections[contextDataIndex].each((label) => {
-                        label.opacity = opacity;
-                    });
-                },
-            });
-        });
-    }
-
-    protected override animateClearingUpdateEmpty(animationData: LineAnimationData) {
-        const { markerSelections, labelSelections, contextData, paths } = animationData;
-
-        const updateDuration = this.ctx.animationManager.defaultDuration / 2;
-        const clearDuration = 200;
-
-        contextData.forEach((_, contextDataIndex) => {
-            const [lineNode] = paths[contextDataIndex];
-            const { path: linePath } = lineNode;
-            const pathPoints = linePath.getPoints();
-
-            labelSelections.forEach((labelSelection) => {
-                labelSelection.each((label) => {
-                    label.opacity = 0;
-                });
-            });
-
-            this.ctx.animationManager.animate({
-                id: `${this.id}_animate-clearing-update-empty_${contextDataIndex}`,
-                from: 1,
-                to: 0,
-                duration: clearDuration,
-                onUpdate(opacity) {
-                    lineNode.opacity = opacity;
-                    markerSelections.forEach((markerSelection) => {
-                        markerSelection.each((marker, _, index) => {
-                            marker.opacity = opacity;
-                            marker.translationX = pathPoints[index]?.x;
-                            marker.translationY = pathPoints[index]?.y;
-                        });
-                    });
-                },
-                onComplete: () => {
-                    this.resetMarkersAndPaths(animationData);
-                    this.animationState.transition('update', {
-                        ...animationData,
-                        duration: updateDuration,
-                    });
-                },
-            });
-        });
-    }
-
-    resetMarkersAndPaths({ markerSelections, contextData, paths }: LineAnimationData) {
-        contextData.forEach(({ nodeData }, contextDataIndex) => {
-            const [lineNode] = paths[contextDataIndex];
-
-            const { path: linePath } = lineNode;
-
-            lineNode.stroke = this.stroke;
-            lineNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
-            lineNode.strokeOpacity = this.strokeOpacity;
-
-            lineNode.lineDash = this.lineDash;
-            lineNode.lineDashOffset = this.lineDashOffset;
-
-            linePath.clear({ trackChanges: true });
-
-            nodeData.forEach((datum) => {
-                if (datum.point.moveTo) {
-                    linePath.moveTo(datum.point.x, datum.point.y);
-                } else {
-                    linePath.lineTo(datum.point.x, datum.point.y);
-                }
-            });
-
-            lineNode.checkPathDirty();
-        });
-
-        markerSelections.forEach((markerSelection) => {
-            markerSelection.cleanup().each((marker, datum) => {
-                const format = this.animateMarkerFormatter(datum);
-                const size = datum.point?.size ?? 0;
-                marker.size = format?.size ?? size;
-                marker.translationX = datum.point.x;
-                marker.translationY = datum.point.y;
-            });
-        });
-    }
-
-    private animateMarkerFormatter(datum: LineNodeDatum) {
-        const {
-            marker,
-            xKey = '',
-            yKey = '',
-            stroke: lineStroke,
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
-        const { size, formatter } = marker;
-
-        const fill = marker.fill;
-        const stroke = marker.stroke ?? lineStroke;
-        const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
-
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-        if (formatter) {
-            format = callbackCache.call(formatter, {
-                datum: datum.datum,
-                xKey,
-                yKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
-                seriesId,
-            });
-        }
-
-        return format;
-    }
-
-    private extendLine(linePath: Path2D, point: { x: number; y: number; moveTo: boolean }) {
-        if (point.moveTo) {
-            linePath.moveTo(point.x, point.y);
-        } else {
-            linePath.lineTo(point.x, point.y);
-        }
-    }
-
-    private findPointOnLine(a: { x: number; y: number }, b: { x: number; y: number }, distance: number) {
-        // Find a point a distance along the line from `a` and `b`
-        const x = a.x + distance * (b.x - a.x);
-        const y = a.y + distance * (b.y - a.y);
-        return { x, y };
+        const [path] = paths;
+        const [newData] = contextData;
+        const [oldData] = previousContextData;
+
+        const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
+        fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
+        fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
+        pathMotion(this.id, 'path_update', animationManager, path, fns.path);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
     private getDatumId(datum: LineNodeDatum) {

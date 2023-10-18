@@ -273,7 +273,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             });
         }
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
+        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -512,7 +512,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
     override animateEmptyUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
         markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
     getDatumId(datum: BubbleNodeDatum) {

@@ -28,7 +28,7 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
+import type { SeriesNodeDatum } from '../series';
 import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesTooltip } from '../seriesTooltip';
 import {
@@ -39,7 +39,11 @@ import {
     areaAnimateReadyUpdate,
     areaResetMarkersAndPaths,
 } from './areaUtil';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type {
+    CartesianAnimationData,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
 import { getMarkerConfig, updateMarker } from './markerUtil';
 
@@ -66,7 +70,7 @@ interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     };
 }
 
-interface AreaSeriesNodeDataContext extends SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
+interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
 }
@@ -291,6 +295,7 @@ export class AreaSeries extends CartesianSeries<
             strokeData,
             labelData,
             nodeData: markerData,
+            scales: super.calculateScaling(),
         };
 
         const fillPoints = fillData.points;

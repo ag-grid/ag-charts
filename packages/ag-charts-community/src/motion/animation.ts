@@ -1,4 +1,5 @@
 import { interpolateColor, interpolateNumber } from '../interpolate';
+import { Node } from '../scene/node';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
@@ -6,6 +7,7 @@ export type AnimationTiming = {
     animationDuration: number;
     animationDelay: number;
 };
+export const QUICK_TRANSITION = 0.2;
 export const INITIAL_LOAD: AnimationTiming = {
     animationDuration: 1,
     animationDelay: 0,
@@ -23,7 +25,7 @@ export const ADD_PHASE: AnimationTiming = {
     animationDelay: 0.75,
 };
 export const LABEL_PHASE: AnimationTiming = {
-    animationDuration: 0.2,
+    animationDuration: QUICK_TRANSITION,
     animationDelay: 1,
 };
 
@@ -34,6 +36,8 @@ export enum RepeatType {
     Reverse = 'reverse',
 }
 export interface AnimationOptions<T extends AnimationValue> {
+    id: string;
+    groupId: string;
     from: T;
     to: T;
     skip?: boolean;
@@ -52,7 +56,7 @@ export interface AnimationOptions<T extends AnimationValue> {
     onStop?: (self: IAnimation<T>) => void;
     onRepeat?: (self: IAnimation<T>) => void;
     /** Called once per frame with the tweened value between the `from` and `to` properties. */
-    onUpdate?: (value: T, self: IAnimation<T>) => void;
+    onUpdate?: (value: T, preInit: boolean, self: IAnimation<T>) => void;
 }
 
 export interface AdditionalAnimationOptions {
@@ -68,6 +72,8 @@ export type ResetAnimationOptions<T extends AnimationValue> = Pick<
 >;
 
 export interface IAnimation<T extends AnimationValue> {
+    readonly id: string;
+    readonly groupId: string;
     readonly play: () => this;
     readonly pause: () => this;
     readonly stop: () => this;
@@ -75,7 +81,13 @@ export interface IAnimation<T extends AnimationValue> {
     readonly update: (time: number) => this;
 }
 
+export function isNodeArray<N extends Node>(array: (object | N)[]): array is N[] {
+    return array.every((n) => n instanceof Node);
+}
+
 export class Animation<T extends AnimationValue> implements IAnimation<T> {
+    public readonly id;
+    public readonly groupId;
     protected autoplay;
     protected delay;
     protected duration;
@@ -99,6 +111,8 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
 
     constructor(opts: AnimationOptions<T>) {
         // animation configuration
+        this.id = opts.id;
+        this.groupId = opts.groupId;
         this.autoplay = opts.autoplay ?? true;
         this.delay = opts.delay ?? 0;
         this.duration = opts.duration ?? 1000;
@@ -117,12 +131,13 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
         this.interpolate = this.createInterpolator(opts.from, opts.to) as (delta: number) => T;
 
         if (opts.skip === true) {
-            this.onUpdate?.(opts.to, this);
+            this.onUpdate?.(opts.to, true, this);
             this.onStop?.(this);
             this.onComplete?.(this);
         } else if (this.autoplay) {
             this.play();
-            this.onUpdate?.(opts.from, this); // Initialise the animation immediately without requesting a frame to prevent flashes
+            // Initialise the animation immediately without requesting a frame to prevent flashes
+            this.onUpdate?.(opts.from, true, this);
         }
     }
 
@@ -178,7 +193,7 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
 
         const value = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
 
-        this.onUpdate?.(value, this);
+        this.onUpdate?.(value, false, this);
 
         if (this.elapsed - this.delay >= this.duration) {
             if (this.iteration < this.repeat) {
@@ -230,6 +245,6 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
         } catch (e) {
             // Error-case handled below.
         }
-        throw new Error('Unable to interpolate values');
+        throw new Error(`Unable to interpolate values: ${a}, ${b}`);
     }
 }

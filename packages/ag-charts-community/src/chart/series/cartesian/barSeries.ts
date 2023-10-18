@@ -40,7 +40,6 @@ import { fixNumericExtent } from '../../data/dataModel';
 import { SMALLEST_KEY_INTERVAL, diff, normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -53,7 +52,12 @@ import {
     resetBarSelectionsFn,
     updateRect,
 } from './barUtil';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
+import type {
+    CartesianAnimationData,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+    ErrorBoundSeriesNodeDatum,
+} from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
@@ -335,10 +339,11 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
-        const context: SeriesNodeDataContext<BarNodeDatum> = {
+        const context: CartesianSeriesNodeDataContext<BarNodeDatum> = {
             itemId: yKey,
             nodeData: [],
             labelData: [],
+            scales: super.calculateScaling(),
         };
         processedData?.data.forEach(({ keys, datum: seriesDatum, values }, dataIndex) => {
             const xValue = keys[xIndex];
@@ -621,8 +626,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
         );
 
-        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
@@ -632,7 +637,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         );
 
         fromToMotion(
-            `${this.id}_waiting-update-ready`,
+            this.id,
+            'waiting-update-ready',
             this.ctx.animationManager,
             data.datumSelections,
             fns,
@@ -640,7 +646,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             diff
         );
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, data.labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);
     }
 
     protected isLabelEnabled() {
