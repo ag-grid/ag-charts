@@ -1,3 +1,4 @@
+import { hasRegisteredEnterpriseModules } from '../../module-support';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
@@ -10,6 +11,7 @@ import { registerChartSeriesType } from './chartTypes';
 const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
 const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
+const ENTERPRISE_SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
 const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
@@ -22,6 +24,7 @@ export function registerSeries(
     cstr: SeriesConstructor,
     defaults: {},
     theme: {},
+    enterpriseTheme: {} | undefined,
     paletteFactory: SeriesPaletteFactory | undefined,
     stackable: boolean | undefined,
     groupable: boolean | undefined,
@@ -31,7 +34,7 @@ export function registerSeries(
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
 
-    registerSeriesThemeTemplate(seriesType, theme);
+    registerSeriesThemeTemplate(seriesType, theme, enterpriseTheme);
 
     if (paletteFactory) {
         addSeriesPaletteFactory(seriesType, paletteFactory);
@@ -52,10 +55,18 @@ export function registerSeries(
     registerChartSeriesType(seriesType, chartType);
 }
 
-export function registerSeriesThemeTemplate(seriesType: NonNullable<SeriesOptionsTypes['type']>, themeTemplate: {}) {
+export function registerSeriesThemeTemplate(
+    seriesType: NonNullable<SeriesOptionsTypes['type']>,
+    themeTemplate: {},
+    enterpriseThemeTemplate = {}
+) {
     const existingTemplate = SERIES_THEME_TEMPLATES[seriesType];
-    const theme = jsonMerge([existingTemplate, themeTemplate]);
-    SERIES_THEME_TEMPLATES[seriesType] = theme;
+    SERIES_THEME_TEMPLATES[seriesType] = jsonMerge([existingTemplate, themeTemplate]);
+    ENTERPRISE_SERIES_THEME_TEMPLATES[seriesType] = jsonMerge([
+        existingTemplate,
+        themeTemplate,
+        enterpriseThemeTemplate,
+    ]);
 }
 
 export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {
@@ -72,6 +83,9 @@ export function getSeriesDefaults(chartType: string): {} {
 }
 
 export function getSeriesThemeTemplate(chartType: string): {} {
+    if (hasRegisteredEnterpriseModules()) {
+        return ENTERPRISE_SERIES_THEME_TEMPLATES[chartType];
+    }
     return SERIES_THEME_TEMPLATES[chartType];
 }
 

@@ -42,6 +42,8 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_LABEL_COLOUR,
         },
+    },
+    enterpriseThemeTemplate: {
         errorBar: {
             cap: {
                 lengthRatio: 1,

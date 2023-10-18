@@ -56,6 +56,8 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             yOffset: 3,
             blur: 5,
         },
+    },
+    enterpriseThemeTemplate: {
         errorBar: {
             cap: {
                 lengthRatio: 0.2,

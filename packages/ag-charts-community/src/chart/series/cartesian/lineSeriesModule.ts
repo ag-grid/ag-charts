@@ -44,6 +44,8 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             color: DEFAULT_LABEL_COLOUR,
             formatter: undefined,
         },
+    },
+    enterpriseThemeTemplate: {
         errorBar: {
             cap: {
                 lengthRatio: 1,
