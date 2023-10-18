@@ -318,8 +318,8 @@ export class ErrorBars
         return new ErrorBarNode();
     }
 
-    private getWhiskerProperties() {
-        const { stroke, strokeWidth, visible, strokeOpacity, lineDash } = this;
-        return { stroke, strokeWidth, visible, strokeOpacity, lineDash };
+    private getWhiskerProperties(): ErrorBarWhiskerTheme {
+        const { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset } = this;
+        return { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset };
     }
 }
