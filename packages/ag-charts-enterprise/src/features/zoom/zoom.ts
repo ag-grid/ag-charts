@@ -125,9 +125,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
-        if (!this.enabled || this.highlightManager.getActivePicked() !== undefined) return;
+        if (!this.enabled) return;
 
-        if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && !this.hoveredAxis) {
+        // Check if the pointer is over a valid area, either the series area or an axis, but not also over a node.
+        if (
+            !this.seriesRect?.containsPoint(event.offsetX, event.offsetY) &&
+            !this.hoveredAxis &&
+            this.highlightManager.getActivePicked() === undefined
+        ) {
             return;
         }
 
