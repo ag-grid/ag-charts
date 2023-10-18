@@ -1,5 +1,4 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import type { _Scale } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
 
 export interface ErrorBarWhiskerTheme {

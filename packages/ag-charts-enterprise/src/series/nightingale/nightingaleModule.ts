@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scale, _Theme } from 'ag-charts-community';
+import { _Theme } from 'ag-charts-community';
 
 import { NIGHTINGALE_DEFAULTS } from './nightingaleDefaults';
 import { NightingaleSeries } from './nightingaleSeries';

@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { PolarCrossLine } from './polarCrossLine';
 

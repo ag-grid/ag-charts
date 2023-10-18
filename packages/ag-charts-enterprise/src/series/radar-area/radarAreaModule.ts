@@ -1,5 +1,4 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { _Scale } from 'ag-charts-community';
 
 import { POLAR_DEFAULTS } from '../polarDefaults';
 import { RadarAreaSeries } from './radarAreaSeries';

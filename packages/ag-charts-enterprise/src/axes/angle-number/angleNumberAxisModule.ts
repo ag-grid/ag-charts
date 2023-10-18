@@ -1,5 +1,4 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scale } from 'ag-charts-community';
 
 import { ANGLE_AXIS_THEME } from '../angle/angleAxisThemes';
 import { AngleNumberAxis } from './angleNumberAxis';

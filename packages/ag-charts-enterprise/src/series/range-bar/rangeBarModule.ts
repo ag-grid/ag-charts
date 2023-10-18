@@ -1,5 +1,4 @@
 import type { AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { _Scale } from 'ag-charts-community';
 
 import { RangeBarSeries } from './rangeBar';
 import { RANGE_BAR_DEFAULTS } from './rangeBarDefaults';
