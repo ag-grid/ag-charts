@@ -82,7 +82,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 if (disableInteractions) {
                     this.interactionManager.pause('animation');
                 }
-                opts.onPlay?.(controller);
+                opts.onPlay?.call(controller, controller);
             },
             onStop: (controller) => {
                 this.controllers.delete(id);
@@ -92,7 +92,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 if (disableInteractions) {
                     this.interactionManager.resume('animation');
                 }
-                opts.onStop?.(controller);
+                opts.onStop?.call(controller, controller);
             },
         });
     }
