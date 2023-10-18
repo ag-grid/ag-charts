@@ -428,13 +428,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         motion.resetMotion(datumSelections, resetBoxPlotSelectionsScalingCenterFn(isVertical));
 
         const { from, to } = prepareBoxPlotFromTo(isVertical);
-        motion.staticFromToMotion(
-            `${this.id}_empty-update-ready`,
-            this.ctx.animationManager,
-            datumSelections,
-            from,
-            to
-        );
+        motion.staticFromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, from, to);
     }
 
     protected isLabelEnabled(): boolean {

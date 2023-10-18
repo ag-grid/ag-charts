@@ -122,7 +122,7 @@ export function markerFadeInAnimation<T>(
     status: NodeUpdateState = 'unknown'
 ) {
     const params = { ...FROM_TO_MIXINS[status] };
-    staticFromToMotion(`${id}_markers`, animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
+    staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     markerSelections.forEach((s) => s.cleanup());
 }
 
@@ -132,7 +132,8 @@ export function markerScaleInAnimation<T>(
     markerSelections: Selection<Node, T>[]
 ) {
     staticFromToMotion(
-        `${id}_markers`,
+        id,
+        'markers',
         animationManager,
         markerSelections,
         { scalingX: 0, scalingY: 0 },
@@ -157,7 +158,7 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         return { scalingX: 1, scalingY: 1 };
     };
 
-    fromToMotion(`${id}_markers`, animationManager, markerSelections, { fromFn, toFn });
+    fromToMotion(id, 'markers', animationManager, markerSelections, { fromFn, toFn });
 }
 
 export function resetMarkerFn(_node: NodeWithOpacity & Node) {

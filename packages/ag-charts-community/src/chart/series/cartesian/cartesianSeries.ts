@@ -855,7 +855,7 @@ export abstract class CartesianSeries<
         const { path, datum, label, marker } = this.opts?.animationResetFns ?? {};
 
         // Stop any running animations by prefix convention.
-        this.ctx.animationManager.stopByAnimationIdPrefix(`${this.id}_`);
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         if (path) {
             data.paths.forEach((paths) => {

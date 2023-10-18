@@ -1292,7 +1292,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const fns = prepareAxisAnimationFunctions(selectionCtx);
 
         fromToMotion(
-            `${this.id}_ready-update`,
+            this.id,
+            'ready-update',
             animationManager,
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
             fns,
@@ -1300,7 +1301,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             diff
         );
         fromToMotion(
-            `${this.id}_ready-update`,
+            this.id,
+            'ready-update',
             animationManager,
             [this.tickLabelGroupSelection],
             fns,

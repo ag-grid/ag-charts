@@ -530,7 +530,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         this.updateLinePaths(paths, contextData);
         staticFromToMotion(
-            `${this.id}_swipe_path`,
+            this.id,
+            'swipe_path',
             animationManager,
             paths.map((p) => p[0]),
             { clipScalingX: 0 },
@@ -538,7 +539,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         );
         resetMotion(markerSelections, resetMarkerPositionFn);
         markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
-        seriesLabelFadeInAnimation(this, animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
     protected override animateReadyResize(animationData: LineAnimationData): void {
@@ -569,10 +570,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const [oldData] = previousContextData;
 
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
-        fromToMotion(`${this.id}_marker_update`, animationManager, markerSelections as any, fns.marker as any);
-        fromToMotion(`${this.id}_path_properties`, animationManager, path, fns.pathProperties);
-        pathMotion(`${this.id}_path_update`, animationManager, path, fns.path);
-        seriesLabelFadeInAnimation(this, animationManager, labelSelections);
+        fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
+        fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
+        pathMotion(this.id, 'path_update', animationManager, path, fns.path);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
     private getDatumId(datum: LineNodeDatum) {

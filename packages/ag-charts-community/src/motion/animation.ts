@@ -36,6 +36,7 @@ export enum RepeatType {
 }
 export interface AnimationOptions<T extends AnimationValue> {
     id: string;
+    groupId: string;
     from: T;
     to: T;
     skip?: boolean;
@@ -70,6 +71,8 @@ export type ResetAnimationOptions<T extends AnimationValue> = Pick<
 >;
 
 export interface IAnimation<T extends AnimationValue> {
+    readonly id: string;
+    readonly groupId: string;
     readonly play: () => this;
     readonly pause: () => this;
     readonly stop: () => this;
@@ -82,7 +85,8 @@ export function isNodeArray<N extends Node>(array: (object | N)[]): array is N[]
 }
 
 export class Animation<T extends AnimationValue> implements IAnimation<T> {
-    protected id;
+    public readonly id;
+    public readonly groupId;
     protected autoplay;
     protected delay;
     protected duration;
@@ -107,6 +111,7 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
     constructor(opts: AnimationOptions<T>) {
         // animation configuration
         this.id = opts.id;
+        this.groupId = opts.groupId;
         this.autoplay = opts.autoplay ?? true;
         this.delay = opts.delay ?? 0;
         this.duration = opts.duration ?? 1000;

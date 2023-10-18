@@ -626,8 +626,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
         );
 
-        fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
@@ -637,7 +637,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         );
 
         fromToMotion(
-            `${this.id}_waiting-update-ready`,
+            this.id,
+            'waiting-update-ready',
             this.ctx.animationManager,
             data.datumSelections,
             fns,
@@ -645,7 +646,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             diff
         );
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, data.labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);
     }
 
     protected isLabelEnabled() {

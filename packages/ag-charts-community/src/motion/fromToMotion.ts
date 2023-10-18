@@ -57,7 +57,8 @@ export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
  * @param diff optional diff from a DataModel to use to detect added/moved/removed cases
  */
 export function fromToMotion<N extends Node, T extends Record<string, string | number> & Partial<N>, D>(
-    id: string,
+    groupId: string,
+    subId: string,
     animationManager: AnimationManager,
     selectionsOrNodes: Selection<N, D>[] | N[],
     fns: {
@@ -96,7 +97,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 next: nodes[nodeIndex + 1],
                 nextLive: liveNodes[liveNodeIndex + (isLive ? 1 : 0)],
             };
-            const animationId = `${id}_${node.id}`;
+            const animationId = `${groupId}_${subId}_${node.id}`;
 
             animationManager.stopByAnimationId(animationId);
 
@@ -120,6 +121,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
 
             animationManager.animate({
                 id: animationId,
+                groupId,
                 from: from as T,
                 to: to as T,
                 ease: easing.easeOut,
@@ -152,7 +154,8 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
 
         // Only perform selection cleanup once.
         animationManager.animate({
-            id: `${id}_selection_${selectionIndex}`,
+            id: `${groupId}_${subId}_selection_${selectionIndex}`,
+            groupId,
             from: 0,
             to: 1,
             ease: easing.easeOut,
@@ -177,7 +180,8 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
  * @param extraOpts optional additional animation properties to pass to AnimationManager#animate.
  */
 export function staticFromToMotion<N extends Node, T extends AnimationValue & Partial<N>, D>(
-    id: string,
+    groupId: string,
+    subId: string,
     animationManager: AnimationManager,
     selectionsOrNodes: Selection<N, D>[] | N[],
     from: T,
@@ -192,7 +196,8 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
 
     // Simple static to/from case, we can batch updates.
     animationManager.animate({
-        id: `${id}_batch`,
+        id: `${groupId}_${subId}_batch`,
+        groupId,
         from,
         to,
         ease: easing.easeOut,

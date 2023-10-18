@@ -447,8 +447,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const { labelSelection } = this;
 
         const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, [this.itemSelection], fns);
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
+        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, [this.itemSelection], fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
     }
 
     override animateWaitingUpdateReady() {
@@ -461,7 +461,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
         const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
         motion.fromToMotion(
-            `${this.id}_waiting-update-ready`,
+            this.id,
+            'waiting-update-ready',
             animationManager,
             [itemSelection],
             fns,
@@ -469,7 +470,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
             diff
         );
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, [labelSelection]);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
     }
 
     override animateClearingUpdateEmpty() {
@@ -477,9 +478,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const { animationManager } = this.ctx;
 
         const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(`${this.id}_clearing-update-empty`, animationManager, [itemSelection], fns);
+        motion.fromToMotion(this.id, 'clearing-update-empty', animationManager, [itemSelection], fns);
 
-        seriesLabelFadeOutAnimation(this, animationManager, [this.labelSelection]);
+        seriesLabelFadeOutAnimation(this, 'labels', animationManager, [this.labelSelection]);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {

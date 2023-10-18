@@ -13,7 +13,8 @@ import { FROM_TO_MIXINS, type NodeUpdateState } from './fromToMotion';
  * @param extraOpts optional additional animation properties to pass to AnimationManager#animate.
  */
 export function pathMotion(
-    id: string,
+    groupId: string,
+    subId: string,
     animationManager: AnimationManager,
     paths: Path[],
     fns: {
@@ -27,7 +28,8 @@ export function pathMotion(
 
     const animate = (phase: NodeUpdateState, path: Path, updateFn: (ratio: number, path: Path) => void) => {
         animationManager.animate({
-            id: `${id}_${path.id}_${phase}`,
+            id: `${groupId}_${subId}_${path.id}_${phase}`,
+            groupId,
             from: 0,
             to: 1,
             ease: easing.easeOut,
