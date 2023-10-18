@@ -31,6 +31,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public enableAxisDragging = true;
 
     @Validate(BOOLEAN)
+    public enableDoubleClickToReset = true;
+
+    @Validate(BOOLEAN)
     public enablePanning = true;
 
     @Validate(BOOLEAN)
@@ -125,7 +128,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.enableDoubleClickToReset) return;
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
