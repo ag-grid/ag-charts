@@ -457,7 +457,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         // highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
-        const invertAxes = this.isVertical();
+        const invertAxes = this.shouldFlipXY();
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -555,16 +555,16 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         return { inner: 0.2, outer: 0.1 };
     }
 
-    protected isVertical() {
+    override shouldFlipXY() {
         return this.direction === 'vertical';
     }
 
     protected getValuesDirection() {
-        return this.isVertical() ? ChartAxisDirection.Y : ChartAxisDirection.X;
+        return this.shouldFlipXY() ? ChartAxisDirection.Y : ChartAxisDirection.X;
     }
 
     protected getCategoryDirection() {
-        return this.isVertical() ? ChartAxisDirection.X : ChartAxisDirection.Y;
+        return this.shouldFlipXY() ? ChartAxisDirection.X : ChartAxisDirection.Y;
     }
 
     protected getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {

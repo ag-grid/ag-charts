@@ -8,6 +8,7 @@ import type { SpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
+import { CartesianSeries } from './series/cartesian/cartesianSeries';
 
 type VisibilityMap = { crossLines: boolean; series: boolean };
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
@@ -50,7 +51,12 @@ export class CartesianChart extends Chart {
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
             clipSeries,
-            series: { rect: seriesRect, paddedRect: seriesPaddedRect, visible: visibility.series },
+            series: {
+                rect: seriesRect,
+                paddedRect: seriesPaddedRect,
+                visible: visibility.series,
+                shouldFlipXY: this.shouldFlipXY(),
+            },
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });
 
@@ -454,5 +460,10 @@ export class CartesianChart extends Chart {
         }
 
         axis.updatePosition({ rotation: toRadians(axis.rotation), sideFlag: axis.label.getSideFlag() });
+    }
+
+    private shouldFlipXY() {
+        // Only flip the xy axes if all the series agree on flipping
+        return !this.series.map((series) => series instanceof CartesianSeries && series.shouldFlipXY()).includes(false);
     }
 }
