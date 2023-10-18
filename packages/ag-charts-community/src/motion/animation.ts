@@ -7,6 +7,7 @@ export type AnimationTiming = {
     animationDuration: number;
     animationDelay: number;
 };
+export const QUICK_TRANSITION = 0.2;
 export const INITIAL_LOAD: AnimationTiming = {
     animationDuration: 1,
     animationDelay: 0,
@@ -24,7 +25,7 @@ export const ADD_PHASE: AnimationTiming = {
     animationDelay: 0.75,
 };
 export const LABEL_PHASE: AnimationTiming = {
-    animationDuration: 0.2,
+    animationDuration: QUICK_TRANSITION,
     animationDelay: 1,
 };
 

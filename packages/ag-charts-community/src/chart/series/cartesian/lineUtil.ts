@@ -107,7 +107,7 @@ function backfillPathPointData(result: PathPoint[]) {
         } else if (eIdx === result.length && result[sIdx]) {
             toProcess.forEach((d) => (d.to = result[sIdx].from));
         } else if (result[sIdx]?.from && result[eIdx]?.from) {
-            toProcess.forEach((d) => (d.to = findPointOnLine(result[sIdx].from!, result[eIdx].from!, d.from!.x)));
+            toProcess.forEach((d) => (d.to = intersectionOnLine(result[sIdx].from!, result[eIdx].from!, d.from!.x)));
         } else {
             toProcess.forEach((d) => (d.to = d.from));
         }
@@ -119,7 +119,7 @@ function backfillPathPointData(result: PathPoint[]) {
         } else if (eIdx === result.length && result[sIdx]) {
             toProcess.forEach((d) => (d.from = result[sIdx].to));
         } else if (result[sIdx]?.to && result[eIdx]?.to) {
-            toProcess.forEach((d) => (d.from = findPointOnLine(result[sIdx].to!, result[eIdx].to!, d.to!.x)));
+            toProcess.forEach((d) => (d.from = intersectionOnLine(result[sIdx].to!, result[eIdx].to!, d.to!.x)));
         } else {
             toProcess.forEach((d) => (d.from = d.to));
         }
@@ -394,7 +394,7 @@ export function prepareLinePathAnimation(
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties, marker: { fromFn, toFn } };
 }
 
-function findPointOnLine(a: { x: number; y: number }, b: { x: number; y: number }, targetX: number) {
+function intersectionOnLine(a: { x: number; y: number }, b: { x: number; y: number }, targetX: number) {
     const m = (b.y - a.y) / (b.x - a.x);
     // Find a point a distance along the line from `a` and `b`
     const y = (targetX - a.x) * m + a.y;

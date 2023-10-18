@@ -1,4 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type {
@@ -148,11 +149,16 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
     markerSelections: Selection<Node, T>[],
     seriesWidth: number
 ) {
+    // Improves consistency with matching parallel animations.
+    const tweakFactor = 0.1;
+
     const fromFn = (_: Node, datum: T) => {
         const x = datum.midPoint?.x ?? seriesWidth;
-        const delayRatio = easing.easeInOut(x / seriesWidth) - 0.1;
+        // Calculate a delay that depends on the X position of the datum, so that nodes appear
+        // gradually from left to right. Use easeInOut to match any parallel swipe animations.
+        const delayRatio = easing.easeInOut(x / seriesWidth) - tweakFactor;
         const delay = Math.max(Math.min(delayRatio, 1), 0);
-        return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration: 0.2 };
+        return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration: QUICK_TRANSITION };
     };
     const toFn = () => {
         return { scalingX: 1, scalingY: 1 };
