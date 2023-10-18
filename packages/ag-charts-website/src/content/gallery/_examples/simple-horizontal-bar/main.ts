@@ -16,6 +16,10 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'type',
             yKey: 'earnings',
+            errorBar: {
+                yLowerKey: 'earningsLower',
+                yUpperKey: 'earningsUpper'
+            },
             label: {
                 formatter: ({ value }) => `£${value.toFixed(0)}`,
             },
