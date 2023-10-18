@@ -60,7 +60,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     enterpriseThemeTemplate: {
         errorBar: {
             cap: {
-                lengthRatio: 0.2,
+                lengthRatio: 0.3,
             },
         },
     },
