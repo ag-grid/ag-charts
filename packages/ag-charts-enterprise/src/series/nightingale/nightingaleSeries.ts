@@ -1,8 +1,8 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
-import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
+import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
 const { Sector } = _Scene;

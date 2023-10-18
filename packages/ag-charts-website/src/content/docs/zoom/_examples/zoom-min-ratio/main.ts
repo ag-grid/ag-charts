@@ -17,7 +17,8 @@ const options: AgCartesianChartOptions = {
     axes: "xy",
     minXRatio: 0.4,
     minYRatio: 0.4,
-    scrollingPivot: "pointer",
+    anchorPointX: "pointer",
+    anchorPointY: "pointer"
   },
   tooltip: {
     enabled: false,

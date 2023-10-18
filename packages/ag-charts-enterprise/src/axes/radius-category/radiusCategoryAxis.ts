@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scale } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 

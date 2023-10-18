@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
+import { _Scale, _Util } from 'ag-charts-community';
 
 const { LinearScale } = _Scale;
 const { isNumberEqual, range } = _Util;

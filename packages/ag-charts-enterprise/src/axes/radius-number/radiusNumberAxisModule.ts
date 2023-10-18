@@ -1,5 +1,4 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scale } from 'ag-charts-community';
 
 import { RADIUS_AXIS_THEME } from '../radius/radiusAxisThemes';
 import { RadiusNumberAxis } from './radiusNumberAxis';

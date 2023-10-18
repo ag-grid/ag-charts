@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { RangeAreaSeries } from './rangeArea';
 import { RANGE_AREA_DEFAULTS } from './rangeAreaDefaults';
