@@ -7,7 +7,15 @@ import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
-import { constrainZoom, definedZoomState, pointToRatio, scaleZoomCenter, translateZoom } from './zoomTransformers';
+import {
+    UNIT,
+    constrainZoom,
+    definedZoomState,
+    pointToRatio,
+    scaleZoomCenter,
+    translateZoom,
+    unitZoomState,
+} from './zoomTransformers';
 import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
 
 const { BOOLEAN, NUMBER, STRING_UNION, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
@@ -49,13 +57,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public axes: 'xy' | 'x' | 'y' = 'x';
 
     @Validate(NUMBER(0, 1))
-    public scrollingStep = 0.1;
+    public scrollingStep = UNIT.max / 10;
 
     @Validate(NUMBER(0, 1))
-    public minXRatio: number = 0.2;
+    public minXRatio: number = UNIT.max / 5;
 
     @Validate(NUMBER(0, 1))
-    public minYRatio: number = 0.2;
+    public minYRatio: number = UNIT.max / 5;
 
     @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
     public anchorPointX: AnchorPoint = 'end';
@@ -132,12 +140,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
-            this.updateAxisZoom(id, direction, { min: 0, max: 1 });
+            this.updateAxisZoom(id, direction, { ...UNIT });
         } else if (
             this.seriesRect?.containsPoint(event.offsetX, event.offsetY) &&
             this.highlightManager.getActivePicked() === undefined
         ) {
-            this.updateZoom({ x: { min: 0, max: 1 }, y: { min: 0, max: 1 } });
+            this.updateZoom(unitZoomState());
         }
     }
 
@@ -157,7 +165,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (this.enableAxisDragging && this.seriesRect && this.hoveredAxis) {
             const { id: axisId, direction } = this.hoveredAxis;
             const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
-            const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { min: 0, max: 1 };
+            const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { ...UNIT };
             const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
             this.updateAxisZoom(axisId, direction, newZoom);
             return;
@@ -296,15 +304,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const scaledOriginX = origin.x * (zoom.x.max - zoom.x.min);
         const scaledOriginY = origin.y * (zoom.y.max - zoom.y.min);
 
+        const size = UNIT.max - UNIT.min;
+        const halfSize = size / 2;
+
         let newZoom = {
-            x: { min: origin.x - 0.5, max: origin.x + 0.5 },
-            y: { min: origin.y - 0.5, max: origin.y + 0.5 },
+            x: { min: origin.x - halfSize, max: origin.x + halfSize },
+            y: { min: origin.y - halfSize, max: origin.y + halfSize },
         };
 
         newZoom = scaleZoomCenter(
             newZoom,
-            this.isScalingX() ? this.minXRatio : 1,
-            this.isScalingY() ? this.minYRatio : 1
+            this.isScalingX() ? this.minXRatio : size,
+            this.isScalingY() ? this.minYRatio : size
         );
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
@@ -323,9 +334,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const scaledOriginX = origin.x * scaleX;
         const scaledOriginY = origin.y * scaleY;
 
+        const halfSize = (UNIT.max - UNIT.min) / 2;
+
         let newZoom = {
-            x: { min: origin.x - 0.5, max: origin.x + 0.5 },
-            y: { min: origin.y - 0.5, max: origin.y + 0.5 },
+            x: { min: origin.x - halfSize, max: origin.x + halfSize },
+            y: { min: origin.y - halfSize, max: origin.y + halfSize },
         };
 
         newZoom = scaleZoomCenter(newZoom, scaleX, scaleY);
@@ -381,7 +394,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMaxZoom(zoom: DefinedZoomState): boolean {
-        return zoom.x.min === 0 && zoom.x.max === 1 && zoom.y.min === 0 && zoom.y.max === 1;
+        return zoom.x.min === UNIT.min && zoom.x.max === UNIT.max && zoom.y.min === UNIT.min && zoom.y.max === UNIT.max;
     }
 
     private updateZoom(zoom: DefinedZoomState) {
