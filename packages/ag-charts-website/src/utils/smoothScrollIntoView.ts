@@ -2,15 +2,15 @@
  * Scroll to href location on page and update url
  */
 export function smoothScrollIntoView({
-    href,
+    id,
     skipReplaceUrl,
     offset = 0,
 }: {
-    href: string;
+    id: string;
     skipReplaceUrl?: boolean;
     offset?: number;
 }) {
-    const element = document.getElementById(href.substring(1));
+    const element = document.getElementById(id);
     if (!element) {
         return;
     }
@@ -29,6 +29,6 @@ export function smoothScrollIntoView({
     }
 
     if (!skipReplaceUrl) {
-        history.replaceState(undefined, '', href);
+        history.replaceState(undefined, '', `#${id}`);
     }
 }

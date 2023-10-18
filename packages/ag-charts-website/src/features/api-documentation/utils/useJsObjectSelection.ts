@@ -27,7 +27,7 @@ function scrollToId(id?: string) {
     if (id) {
         // Wait for one render cycle before scrolling to position
         setTimeout(() => {
-            smoothScrollIntoView({ href: `#${id}`, skipReplaceUrl: true, offset: HEADER_OFFSET });
+            smoothScrollIntoView({ id, skipReplaceUrl: true, offset: HEADER_OFFSET });
         }, 0);
     }
 }
