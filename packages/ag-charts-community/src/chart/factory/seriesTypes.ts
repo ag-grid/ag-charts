@@ -29,7 +29,9 @@ export function registerSeries(
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
-    SERIES_THEME_TEMPLATES[seriesType] = theme;
+
+    registerSeriesThemeTemplate(seriesType, theme);
+
     if (paletteFactory) {
         addSeriesPaletteFactory(seriesType, paletteFactory);
     }
@@ -47,6 +49,15 @@ export function registerSeries(
     }
 
     registerChartSeriesType(seriesType, chartType);
+}
+
+export function registerSeriesThemeTemplate(seriesType: NonNullable<SeriesOptionsTypes['type']>, themeTemplate: {}) {
+    const existingTemplate = SERIES_THEME_TEMPLATES[seriesType];
+    const theme = {
+        ...(typeof existingTemplate === 'object' ? existingTemplate : {}),
+        ...themeTemplate,
+    };
+    SERIES_THEME_TEMPLATES[seriesType] = theme;
 }
 
 export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {

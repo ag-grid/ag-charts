@@ -5,7 +5,7 @@ import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
 import { registerChartDefaults } from './chartTypes';
 import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
 import { registerLegend } from './legendTypes';
-import { registerSeries } from './seriesTypes';
+import { registerSeries, registerSeriesThemeTemplate } from './seriesTypes';
 
 export function setupModules() {
     for (const m of REGISTERED_MODULES) {
@@ -38,6 +38,12 @@ export function setupModules() {
                 m.stackedByDefault,
                 m.swapDefaultAxesCondition
             );
+        }
+
+        if (m.type === 'series-option' && m.themeTemplate) {
+            for (const seriesType of m.seriesTypes) {
+                registerSeriesThemeTemplate(seriesType, m.themeTemplate);
+            }
         }
 
         if (m.type === 'axis-option' && m.themeTemplate) {
