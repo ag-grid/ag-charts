@@ -50,13 +50,13 @@ export interface AnimationOptions<T extends AnimationValue> {
     repeat?: number;
     repeatType?: RepeatType;
     /** Called once when the animation is successfully completed, after all repetitions if any. */
-    onComplete?: (self: IAnimation<T>) => void;
-    onPlay?: (self: IAnimation<T>) => void;
+    onComplete?: (this: IAnimation<T>, self: IAnimation<T>) => void;
+    onPlay?: (this: IAnimation<T>, self: IAnimation<T>) => void;
     /** Called once when then animation successfully completes or is prematurely stopped. */
-    onStop?: (self: IAnimation<T>) => void;
-    onRepeat?: (self: IAnimation<T>) => void;
+    onStop?: (this: IAnimation<T>, self: IAnimation<T>) => void;
+    onRepeat?: (this: IAnimation<T>, self: IAnimation<T>) => void;
     /** Called once per frame with the tweened value between the `from` and `to` properties. */
-    onUpdate?: (value: T, preInit: boolean, self: IAnimation<T>) => void;
+    onUpdate?: (this: IAnimation<T>, value: T, preInit: boolean, self: IAnimation<T>) => void;
 }
 
 export interface AdditionalAnimationOptions {
