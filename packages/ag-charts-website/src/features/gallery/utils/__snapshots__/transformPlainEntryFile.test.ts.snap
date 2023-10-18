@@ -20,7 +20,8 @@ exports[`transformPlainEntryFile > Adjust padding 1`] = `
         axes: {
           category: {
             label: {
-              autoRotate: false
+              autoRotate: false,
+              minSpacing: 20
             }
           }
         }
@@ -73,7 +74,8 @@ exports[`transformPlainEntryFile > Remove axes titles 1`] = `
         axes: {
           category: {
             label: {
-              autoRotate: false
+              autoRotate: false,
+              minSpacing: 20
             }
           }
         }
@@ -109,7 +111,8 @@ exports[`transformPlainEntryFile > default entry file 1`] = `
         axes: {
           category: {
             label: {
-              autoRotate: false
+              autoRotate: false,
+              minSpacing: 20
             }
           }
         }
@@ -145,7 +148,8 @@ exports[`transformPlainEntryFile > disable legend 1`] = `
         axes: {
           category: {
             label: {
-              autoRotate: false
+              autoRotate: false,
+              minSpacing: 20
             }
           }
         }
@@ -181,7 +185,8 @@ exports[`transformPlainEntryFile > remove footnote 1`] = `
         axes: {
           category: {
             label: {
-              autoRotate: false
+              autoRotate: false,
+              minSpacing: 20
             }
           }
         }
@@ -217,7 +222,8 @@ exports[`transformPlainEntryFile > remove subtitle 1`] = `
         axes: {
           category: {
             label: {
-              autoRotate: false
+              autoRotate: false,
+              minSpacing: 20
             }
           }
         }
