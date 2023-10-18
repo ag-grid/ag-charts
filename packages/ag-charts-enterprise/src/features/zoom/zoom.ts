@@ -127,28 +127,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled) return;
 
-        // Check if the pointer is over a valid area, either the series area or an axis, but not also over a node.
-        if (
-            !this.seriesRect?.containsPoint(event.offsetX, event.offsetY) &&
-            !this.hoveredAxis &&
+        if (this.hoveredAxis) {
+            const { id, direction } = this.hoveredAxis;
+            this.updateAxisZoom(id, direction, { min: 0, max: 1 });
+        } else if (
+            this.seriesRect?.containsPoint(event.offsetX, event.offsetY) &&
             this.highlightManager.getActivePicked() === undefined
         ) {
-            return;
+            this.updateZoom({ x: { min: 0, max: 1 }, y: { min: 0, max: 1 } });
         }
-
-        const oldZoom = definedZoomState(this.zoomManager.getZoom());
-        const newZoom = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
-
-        if (this.hoveredAxis) {
-            const { direction } = this.hoveredAxis;
-            if (direction === _ModuleSupport.ChartAxisDirection.X) {
-                newZoom.y = oldZoom.y;
-            } else {
-                newZoom.x = oldZoom.x;
-            }
-        }
-
-        this.updateZoom(newZoom);
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
