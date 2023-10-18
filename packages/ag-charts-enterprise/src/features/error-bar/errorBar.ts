@@ -319,7 +319,7 @@ export class ErrorBars
     }
 
     private getWhiskerProperties() {
-        const { stroke, strokeWidth, visible, strokeOpacity } = this;
-        return { stroke, strokeWidth, visible, strokeOpacity };
+        const { stroke, strokeWidth, visible, strokeOpacity, lineDash } = this;
+        return { stroke, strokeWidth, visible, strokeOpacity, lineDash };
     }
 }
