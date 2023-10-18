@@ -1,4 +1,4 @@
-import type { AgErrorBarSeriesOptions } from '../../chart/errorBarOptions';
+import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -25,6 +25,8 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     label?: AgChartLabelOptions<TDatum, AgLineSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams<TDatum>>;
+    /** Configuration for the Error Bars. */
+    errorBar?: AgErrorBarThemeableOptions;
 }
 
 export interface AgLineSeriesOptionsKeys {
@@ -46,7 +48,8 @@ export interface AgLineSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgLineSeriesOptionsKeys,
         AgLineSeriesOptionsNames,
-        AgLineSeriesThemeableOptions<TDatum>,
-        AgErrorBarSeriesOptions {
+        AgLineSeriesThemeableOptions<TDatum> {
     type?: 'line';
+    /** Configuration for the Error Bars. */
+    errorBar?: AgErrorBarOptions;
 }

@@ -245,7 +245,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     midPoint: { x, y },
                     yValue: yDatum,
                     xValue: xDatum,
-                    capDefaults: { lengthRatio: 1, lengthRatioMultiplier: this.marker.size, lengthMax: Infinity },
+                    capDefaults: { lengthRatioMultiplier: this.marker.size, lengthMax: Infinity },
                     label: labelText
                         ? {
                               text: labelText,

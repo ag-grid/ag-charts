@@ -1,6 +1,6 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgErrorBarSeriesOptions } from '../../chart/errorBarOptions';
+import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -47,6 +47,8 @@ export interface AgBarSeriesThemeableOptions<TDatum = any> extends AgBarSeriesSt
     tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgBarSeriesFormatterParams<TDatum>) => AgBarSeriesStyle;
+    /** Configuration for the Error Bars. */
+    errorBar?: AgErrorBarThemeableOptions;
 }
 
 export interface AgBarSeriesOptionsKeys {
@@ -68,8 +70,7 @@ export interface AgBarSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
-        AgBarSeriesThemeableOptions<TDatum>,
-        AgErrorBarSeriesOptions {
+        AgBarSeriesThemeableOptions<TDatum> {
     type: 'bar';
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
@@ -81,4 +82,6 @@ export interface AgBarSeriesOptions<TDatum = any>
     normalizedTo?: number;
     /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
     legendItemName?: string;
+    /** Configuration for the Error Bars. */
+    errorBar?: AgErrorBarOptions;
 }

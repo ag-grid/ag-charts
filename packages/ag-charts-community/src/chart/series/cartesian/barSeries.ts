@@ -419,7 +419,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 yKey,
                 xKey,
                 capDefaults: {
-                    lengthRatio: 0.5,
                     lengthRatioMultiplier: lengthRatioMultiplier,
                     lengthMax: lengthRatioMultiplier,
                 },

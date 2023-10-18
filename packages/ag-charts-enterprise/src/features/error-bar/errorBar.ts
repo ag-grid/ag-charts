@@ -3,7 +3,6 @@ import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-chart
 
 import type { ErrorBarCapTheme, ErrorBarPoints, ErrorBarWhiskerTheme } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
-import { ERROR_BARS_THEME } from './errorBarTheme';
 
 const {
     fixNumericExtent,
@@ -283,9 +282,7 @@ export class ErrorBars
         const { nodeData } = this;
         const points = nodeData[index];
         if (points) {
-            const { visible, stroke, strokeWidth, strokeOpacity } = this;
-            const defaults: ErrorBarWhiskerTheme = ERROR_BARS_THEME.errorBar;
-            const whiskerProps = mergeDefaults({ visible, stroke, strokeWidth, strokeOpacity }, defaults);
+            const whiskerProps = this.getWhiskerProperties();
             const capProps = mergeDefaults(this.cap, whiskerProps);
             const capDefaults = this.cartesianSeries.contextNodeData[0].nodeData[index].capDefaults;
             this.getDatum(index);
@@ -318,5 +315,10 @@ export class ErrorBars
 
     private errorBarFactory(): ErrorBarNode {
         return new ErrorBarNode();
+    }
+
+    private getWhiskerProperties(): ErrorBarWhiskerTheme {
+        const { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset } = this;
+        return { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset };
     }
 }
