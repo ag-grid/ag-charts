@@ -45,7 +45,8 @@ export interface AgRangeBarSeriesTooltipRendererParams
     readonly yHighName?: string;
 }
 
-export interface AgRangeBarSeriesLabelOptions<TDatum> extends AgChartLabelOptions<TDatum> {
+export interface AgRangeBarSeriesLabelOptions<TDatum>
+    extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams> {
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
@@ -72,6 +73,8 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgRangeBarSeriesFormatterParams<TDatum>) => AgRangeBarSeriesFormat;
 }
+
+export type AgRangeBarSeriesLabelFormatterParams = AgRangeBarSeriesOptionsKeys & AgRangeBarSeriesOptionsNames;
 
 export interface AgRangeBarSeriesOptionsKeys {
     /** The key to use to retrieve x-values from the data. */

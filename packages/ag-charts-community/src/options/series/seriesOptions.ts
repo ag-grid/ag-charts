@@ -1,6 +1,5 @@
-import type { AgChartCallbackParams } from '../chart/callbackOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { InteractionRange, MarkerShape, Opacity, PixelSize } from '../chart/types';
+import type { InteractionRange, Opacity, PixelSize } from '../chart/types';
 import type { FillOptions, StrokeOptions } from './cartesian/commonOptions';
 
 export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
@@ -31,7 +30,7 @@ export interface AgBaseSeriesThemeableOptions {
     showInLegend?: boolean;
 }
 
-export interface AgBaseSeriesOptions<DatumType> extends AgBaseSeriesThemeableOptions {
+export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOptions {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple
      * series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour
@@ -41,26 +40,9 @@ export interface AgBaseSeriesOptions<DatumType> extends AgBaseSeriesThemeableOpt
      */
     id?: string;
     /** The data to use when rendering the series. If this is not supplied, data must be set on the chart instead. */
-    data?: DatumType[];
+    data?: TDatum[];
     /** Whether to display the series. */
     visible?: boolean;
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<DatumType>;
-}
-
-export interface AgSeriesMarker extends FillOptions, StrokeOptions {
-    /** Whether to show markers. */
-    enabled?: boolean;
-    /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: MarkerShape;
-    /** The size in pixels of the markers. */
-    size?: PixelSize;
-}
-
-export interface AgSeriesMarkerFormatterParams<DatumType>
-    extends AgChartCallbackParams<DatumType>,
-        FillOptions,
-        StrokeOptions {
-    highlighted: boolean;
-    size: number;
+    listeners?: AgSeriesListeners<TDatum>;
 }

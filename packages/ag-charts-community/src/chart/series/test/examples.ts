@@ -1,7 +1,6 @@
 import type {
     AgAreaSeriesOptions,
     AgCartesianChartOptions,
-    AgChartLabelOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
 } from '../../../options/agChartOptions';
@@ -25,7 +24,7 @@ const BUBBLE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('bubble-with-
 const PIE_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-pie');
 const DOUGHNUT_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-doughnut');
 
-const columnSeriesLabelFormatter: AgChartLabelOptions['formatter'] = ({ value }) =>
+const columnSeriesLabelFormatter: ({ value }: { value: any }) => string = ({ value }) =>
     value == null ? '' : value.toFixed(0);
 
 export const COLUMN_SERIES_LABELS: AgCartesianChartOptions = {

@@ -1,5 +1,5 @@
 import type { CssColor, PixelSize } from '../../chart/types';
-import type { AgSeriesMarker, AgSeriesMarkerFormatterParams } from '../seriesOptions';
+import type { AgSeriesMarkerFormatterParams } from '../markerOptions';
 
 export interface AgCartesianSeriesMarkerFormatterParams<DatumType> extends AgSeriesMarkerFormatterParams<DatumType> {
     xKey: string;
@@ -15,9 +15,4 @@ export interface AgCartesianSeriesMarkerFormat {
     stroke?: CssColor;
     strokeWidth?: PixelSize;
     size?: PixelSize;
-}
-
-export interface AgCartesianSeriesMarker<DatumType> extends AgSeriesMarker {
-    /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: AgCartesianSeriesMarkerFormatter<DatumType>;
 }

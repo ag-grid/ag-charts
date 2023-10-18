@@ -1,8 +1,8 @@
 import type { AgErrorBarSeriesOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type {
     AgCartesianSeriesTooltipRendererParams,
     AgErrorBoundSeriesTooltipRendererParams,
@@ -18,7 +18,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
-    marker?: AgCartesianSeriesMarker<TDatum>;
+    marker?: AgSeriesMarkerOptions<AgLineSeriesOptionsKeys, TDatum>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */

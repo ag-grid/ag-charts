@@ -4,6 +4,11 @@ import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionModule } from '../../module/optionModules';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/chart/labelOptions';
 import type { InteractionRange } from '../../options/chart/types';
+import type {
+    AgSeriesMarkerFormatterParams,
+    AgSeriesMarkerStyle,
+    ISeriesMarker,
+} from '../../options/series/markerOptions';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
@@ -11,6 +16,7 @@ import type { Point } from '../../scene/point';
 import { createId } from '../../util/id';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Listeners } from '../../util/listeners';
+import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
@@ -33,6 +39,7 @@ import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import type { Marker } from '../marker/marker';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesGrouping } from './seriesStateManager';
@@ -762,7 +769,7 @@ export abstract class Series<
         return { ...this.ctx, series: this };
     }
 
-    getLabelText<TParams>(
+    protected getLabelText<TParams>(
         label: AgChartLabelOptions<any, TParams>,
         params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
         defaultFormatter: (value: any) => string = String
@@ -774,5 +781,46 @@ export abstract class Series<
             );
         }
         return defaultFormatter(params.value);
+    }
+
+    protected getMarkerStyle<TParams>(
+        marker: ISeriesMarker<TDatum, TParams>,
+        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
+    ) {
+        const defaultSize = { size: params.datum.point?.size ?? 0 };
+        const markerStyle = mergeDefaults(defaultSize, defaultStyle);
+        if (marker.formatter) {
+            const style = this.ctx.callbackCache.call(marker.formatter, {
+                seriesId: this.id,
+                ...markerStyle,
+                ...params,
+            });
+            return mergeDefaults(style, markerStyle);
+        }
+        return markerStyle;
+    }
+
+    protected updateMarkerStyle<TParams>(
+        markerNode: Marker,
+        marker: ISeriesMarker<TDatum, TParams>,
+        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
+    ) {
+        const { point } = params.datum;
+        const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
+        markerNode.setProperties({
+            visible: this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y),
+            translationX: point?.x,
+            translationY: point?.y,
+            ...activeStyle,
+        });
+
+        // Only for custom marker shapes
+        if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {
+            markerNode.path.clear({ trackChanges: true });
+            markerNode.updatePath();
+            markerNode.checkPathDirty();
+        }
     }
 }

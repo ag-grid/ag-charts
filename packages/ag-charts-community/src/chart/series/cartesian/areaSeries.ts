@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgAreaSeriesLabelFormatterParams,
+    AgAreaSeriesOptionsKeys,
     AgCartesianSeriesMarkerFormat,
     AgCartesianSeriesMarkerFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
@@ -15,6 +16,7 @@ import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
+import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING, NUMBER, OPT_LINE_DASH, OPT_NUMBER, OPT_STRING, Validate } from '../../../util/validation';
 import { isContinuous, isNumber } from '../../../util/value';
@@ -30,6 +32,7 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
 import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import {
     type AreaPathDatum,
@@ -40,8 +43,7 @@ import {
     areaResetMarkersAndPaths,
 } from './areaUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
-import { getMarkerConfig, updateMarker } from './markerUtil';
+import { CartesianSeries } from './cartesianSeries';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
     readonly index: number;
@@ -89,7 +91,7 @@ export class AreaSeries extends CartesianSeries<
 
     tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
-    readonly marker = new CartesianSeriesMarker();
+    readonly marker = new SeriesMarker<AgAreaSeriesOptionsKeys, MarkerSelectionDatum>();
 
     readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
 
@@ -462,41 +464,17 @@ export class AreaSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
-        const {
-            id: seriesId,
-            xKey = '',
-            yKey = '',
-            marker,
+        const { xKey = '', yKey = '', marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this;
+        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle(), {
             fill,
             stroke,
             strokeWidth,
             fillOpacity,
             strokeOpacity,
-            highlightStyle: { item: markerHighlightStyle },
-            visible,
-            ctx,
-        } = this;
-
-        const customMarker = typeof marker.shape === 'function';
+        });
 
         markerSelection.each((node, datum) => {
-            const styles = getMarkerConfig({
-                datum,
-                highlighted,
-                formatter: marker.formatter,
-                markerStyle: marker,
-                seriesStyle: { fill, stroke, strokeWidth, fillOpacity, strokeOpacity },
-                highlightStyle: markerHighlightStyle,
-                seriesId,
-                ctx,
-                xKey,
-                yKey,
-                size: datum.point.size,
-                strokeWidth,
-            });
-
-            const config = { ...styles, point: datum.point, visible, customMarker };
-            updateMarker({ node, config });
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle);
         });
 
         if (!highlighted) {

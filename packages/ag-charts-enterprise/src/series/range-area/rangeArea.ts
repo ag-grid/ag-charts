@@ -1,8 +1,7 @@
 import type {
-    AgCartesianSeriesMarkerFormat,
     AgRangeAreaSeriesLabelFormatterParams,
     AgRangeAreaSeriesLabelPlacement,
-    AgRangeAreaSeriesMarkerFormatterParams,
+    AgRangeAreaSeriesOptionsKeys,
     AgRangeAreaSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
@@ -17,18 +16,16 @@ const {
     STRING_UNION,
     OPT_NUMBER,
     OPT_STRING,
-    OPT_FUNCTION,
     OPT_COLOR_STRING,
     OPT_LINE_DASH,
-    getMarkerConfig,
-    updateMarker,
+    mergeDefaults,
     updateLabelNode,
     fixNumericExtent,
     areaAnimateEmptyUpdateReady,
     areaAnimateReadyUpdate,
     AreaSeriesTag,
 } = _ModuleSupport;
-const { getMarker, PointerEvents, SceneChangeDetection } = _Scene;
+const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
 const DEFAULT_DIRECTION_KEYS = {
@@ -85,14 +82,6 @@ class RangeAreaSeriesLabel extends _Scene.Label<AgRangeAreaSeriesLabelFormatterP
     padding: number = 6;
 }
 
-class RangeAreaSeriesMarker extends _ModuleSupport.SeriesMarker {
-    @Validate(OPT_FUNCTION)
-    @SceneChangeDetection({ redraw: _Scene.RedrawType.MAJOR })
-    formatter?: (
-        params: AgRangeAreaSeriesMarkerFormatterParams<RangeAreaMarkerDatum>
-    ) => AgCartesianSeriesMarkerFormat = undefined;
-}
-
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _Scene.Group,
     RangeAreaMarkerDatum,
@@ -104,7 +93,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override readonly NodeClickEvent = RangeAreaSeriesNodeClickEvent;
 
-    readonly marker = new RangeAreaSeriesMarker();
+    readonly marker = new _ModuleSupport.SeriesMarker<AgRangeAreaSeriesOptionsKeys, RangeAreaMarkerDatum>();
     readonly label = new RangeAreaSeriesLabel();
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
@@ -464,7 +453,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
         const {
-            id: seriesId,
             xKey = '',
             yLowKey = '',
             yHighKey = '',
@@ -474,35 +462,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeWidth,
             fillOpacity,
             strokeOpacity,
-            highlightStyle: { item: markerHighlightStyle },
-            visible,
-            ctx,
         } = this;
 
-        const customMarker = typeof marker.shape === 'function';
+        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle(), {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+        });
 
         markerSelection.each((node, datum) => {
-            const styles = getMarkerConfig({
-                datum,
-                highlighted,
-                formatter: marker.formatter,
-                markerStyle: marker,
-                seriesStyle: { fill, stroke, strokeWidth, fillOpacity, strokeOpacity },
-                highlightStyle: markerHighlightStyle,
-                seriesId,
-                ctx,
-                xKey,
-                yHighKey,
-                yLowKey,
-                highValue: datum.yHighValue,
-                lowValue: datum.yLowValue,
-                itemId: datum.itemId,
-                size: datum.point.size,
-                strokeWidth,
-            });
-
-            const config = { ...styles, point: datum.point, visible, customMarker };
-            updateMarker({ node, config });
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yHighKey, yLowKey }, baseStyle);
         });
 
         if (!highlighted) {
@@ -675,15 +646,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             };
         };
 
-        areaAnimateEmptyUpdateReady<
-            RangeAreaMarkerDatum,
-            RangeAreaLabelDatum,
-            _ModuleSupport.AreaPathDatum,
-            _ModuleSupport.AreaPathDatum,
-            RangeAreaContext,
-            AgRangeAreaSeriesMarkerFormatterParams<RangeAreaMarkerDatum>,
-            (typeof this.marker)['formatter']
-        >({
+        areaAnimateEmptyUpdateReady({
             markerSelections,
             labelSelections,
             contextData,

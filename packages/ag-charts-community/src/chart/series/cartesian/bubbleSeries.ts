@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgBubbleSeriesLabelFormatterParams,
+    AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesTooltipRendererParams,
     AgCartesianSeriesMarkerFormat,
     AgTooltipRendererResult,
@@ -14,6 +15,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
+import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -27,10 +29,11 @@ import { getMarker } from '../../marker/util';
 import type { SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker, CartesianSeriesNodeClickEvent } from './cartesianSeries';
-import { getMarkerConfig, markerScaleInAnimation, resetMarkerFn, updateMarker } from './markerUtil';
+import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
+import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
@@ -51,7 +54,7 @@ class BubbleSeriesNodeClickEvent<
     }
 }
 
-class BubbleSeriesMarker extends CartesianSeriesMarker {
+class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys, BubbleNodeDatum> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the
@@ -295,15 +298,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         markerSelection: Selection<Marker, BubbleNodeDatum>;
     }) {
         const { nodeData, markerSelection } = opts;
-        const {
-            marker: { enabled },
-        } = this;
 
         if (this.marker.isDirty()) {
             markerSelection.clear();
         }
 
-        const data = enabled ? nodeData : [];
+        const data = this.marker.enabled ? nodeData : [];
         return markerSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
@@ -312,37 +312,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
-        const {
-            id: seriesId,
-            xKey = '',
-            yKey = '',
-            marker,
-            highlightStyle: { item: markerHighlightStyle },
-            visible,
-            ctx,
-        } = this;
+        const { xKey = '', yKey = '', sizeKey, labelKey, marker } = this;
+        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle());
 
         this.sizeScale.range = [marker.size, marker.maxSize];
-        const customMarker = typeof marker.shape === 'function';
 
         markerSelection.each((node, datum) => {
-            const styles = getMarkerConfig({
-                datum,
-                highlighted,
-                formatter: marker.formatter,
-                markerStyle: marker,
-                seriesStyle: {},
-                highlightStyle: markerHighlightStyle,
-                seriesId,
-                ctx,
-                xKey,
-                yKey,
-                size: datum.point.size,
-                strokeWidth: marker.strokeWidth ?? 1,
-            });
-
-            const config = { ...styles, point: datum.point, visible, customMarker };
-            updateMarker({ node, config });
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, sizeKey, labelKey }, baseStyle);
         });
 
         if (!highlighted) {
@@ -431,6 +407,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 size: nodeDatum.point?.size ?? 0,
                 highlighted: false,
                 seriesId,
+                sizeKey: undefined,
+                labelKey: undefined,
             });
         }
 

@@ -1,12 +1,7 @@
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
-import type {
-    AgCartesianSeriesMarkerFormat,
-    AgCartesianSeriesMarkerFormatterParams,
-} from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
-import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import { Group } from '../../../scene/group';
 import type { Node, ZIndexSubOrder } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -16,7 +11,7 @@ import { Text } from '../../../scene/shape/text';
 import { Debug } from '../../../util/debug';
 import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { OPT_FUNCTION, OPT_STRING, Validate } from '../../../util/validation';
+import { OPT_STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
@@ -33,7 +28,6 @@ import type {
 } from '../series';
 import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
-import { SeriesMarker } from '../seriesMarker';
 
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly xKey: string;
@@ -496,19 +490,10 @@ export abstract class CartesianSeries<
                     return;
                 }
 
-                await this.updateDatumNodes({
-                    datumSelection,
-                    highlightedItems,
-                    isHighlight: false,
-                    seriesIdx,
-                });
+                await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false, seriesIdx });
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
-                    await this.updateMarkerNodes({
-                        markerSelection,
-                        isHighlight: false,
-                        seriesIdx,
-                    });
+                    await this.updateMarkerNodes({ markerSelection, isHighlight: false, seriesIdx });
                 }
             })
         );
@@ -877,10 +862,4 @@ export abstract class CartesianSeries<
     }): Promise<void>;
 
     protected abstract isLabelEnabled(): boolean;
-}
-
-export class CartesianSeriesMarker extends SeriesMarker {
-    @Validate(OPT_FUNCTION)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    formatter?: (params: AgCartesianSeriesMarkerFormatterParams<any>) => AgCartesianSeriesMarkerFormat = undefined;
 }

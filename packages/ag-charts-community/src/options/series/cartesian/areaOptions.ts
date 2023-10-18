@@ -1,8 +1,8 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -14,7 +14,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = any>
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
     /** Configuration for the markers used in the series. */
-    marker?: AgCartesianSeriesMarker<TDatum>;
+    marker?: AgSeriesMarkerOptions<AgAreaSeriesOptionsKeys, TDatum>;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on top of data points. */
