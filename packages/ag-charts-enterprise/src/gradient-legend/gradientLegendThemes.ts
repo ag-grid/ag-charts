@@ -1,5 +1,5 @@
-import { _Theme } from 'ag-charts-community';
 import type { AgChartLegendPosition } from 'ag-charts-community';
+import { _Theme } from 'ag-charts-community';
 
 const BOTTOM: AgChartLegendPosition = 'bottom';
 

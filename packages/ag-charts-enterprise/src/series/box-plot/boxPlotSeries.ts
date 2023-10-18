@@ -2,9 +2,11 @@ import {
     type AgBoxPlotSeriesFormatterParams,
     type AgBoxPlotSeriesStyles,
     type AgBoxPlotSeriesTooltipRendererParams,
+    _ModuleSupport,
+    _Scale,
     _Scene,
+    _Util,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
