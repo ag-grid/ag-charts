@@ -944,5 +944,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         return { inner: 0.2, outer: 0.1 };
     }
 
+    override shouldFlipXY() {
+        return this.direction === 'horizontal';
+    }
+
     protected override onDataChange() {}
 }

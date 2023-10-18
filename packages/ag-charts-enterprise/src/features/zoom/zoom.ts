@@ -80,6 +80,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     // State
     private isDragging = false;
     private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
+    private shouldFlipXY?: boolean;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -124,9 +125,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
-        if (!this.enabled || this.highlightManager.getActivePicked() !== undefined) return;
+        if (!this.enabled) return;
 
-        if (!this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && !this.hoveredAxis) {
+        // Check if the pointer is over a valid area, either the series area or an axis, but not also over a node.
+        if (
+            !this.seriesRect?.containsPoint(event.offsetX, event.offsetY) &&
+            !this.hoveredAxis &&
+            this.highlightManager.getActivePicked() === undefined
+        ) {
             return;
         }
 
@@ -245,8 +251,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const newZoom = this.scroller.update(
                 event,
                 this.scrollingStep,
-                this.anchorPointX,
-                this.anchorPointY,
+                this.getAnchorPointX(),
+                this.getAnchorPointY(),
                 isScalingX,
                 isScalingY,
                 this.seriesRect,
@@ -280,10 +286,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onLayoutComplete({ series: { paddedRect } }: _ModuleSupport.LayoutCompleteEvent) {
+    private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         if (!this.enabled) return;
 
+        const {
+            series: { paddedRect, shouldFlipXY },
+        } = event;
+
         this.seriesRect = paddedRect;
+        this.shouldFlipXY = shouldFlipXY;
     }
 
     private onContextMenuZoomToHere({ event }: ContextMenu.ContextMenuActionParams) {
@@ -346,12 +357,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private isScalingX(): boolean {
-        return this.axes === 'x' || this.axes === 'xy';
+    private isScalingX() {
+        if (this.axes === 'xy') return true;
+        return this.shouldFlipXY ? this.axes === 'y' : this.axes === 'x';
     }
 
-    private isScalingY(): boolean {
-        return this.axes === 'y' || this.axes === 'xy';
+    private isScalingY() {
+        if (this.axes === 'xy') return true;
+        return this.shouldFlipXY ? this.axes === 'x' : this.axes === 'y';
+    }
+
+    private getAnchorPointX() {
+        return this.shouldFlipXY ? this.anchorPointY : this.anchorPointX;
+    }
+
+    private getAnchorPointY() {
+        return this.shouldFlipXY ? this.anchorPointX : this.anchorPointY;
     }
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
