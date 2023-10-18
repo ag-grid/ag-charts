@@ -1,7 +1,6 @@
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
-import type { AgSeriesMarkerFormatterParams } from '../../../options/agChartOptions';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { AnimationManager } from '../../interaction/animationManager';

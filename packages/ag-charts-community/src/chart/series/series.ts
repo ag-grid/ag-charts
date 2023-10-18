@@ -809,12 +809,20 @@ export abstract class Series<
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
+
         markerNode.setProperties({
             visible: this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y),
             translationX: point?.x,
             translationY: point?.y,
             ...activeStyle,
         });
+
+        if (this.ctx.animationManager.isSkipped()) {
+            markerNode.setProperties({
+                translationX: point?.x,
+                translationY: point?.y,
+            });
+        }
 
         // Only for custom marker shapes
         if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {

@@ -30,7 +30,7 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDataContext, SeriesNodeDatum } from '../series';
+import type { SeriesNodeDatum } from '../series';
 import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -42,7 +42,11 @@ import {
     areaAnimateReadyUpdate,
     areaResetMarkersAndPaths,
 } from './areaUtil';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type {
+    CartesianAnimationData,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
@@ -68,7 +72,7 @@ interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     };
 }
 
-interface AreaSeriesNodeDataContext extends SeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
+interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
 }
