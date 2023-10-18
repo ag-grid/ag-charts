@@ -1,3 +1,5 @@
+import { _Theme } from 'ag-charts-community';
+
 export const ERROR_BARS_THEME = {
     errorBar: {
         visible: true,
