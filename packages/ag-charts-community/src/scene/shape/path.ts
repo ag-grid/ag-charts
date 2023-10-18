@@ -105,8 +105,10 @@ export class Path extends Shape {
                 ctx.setTransform(transform);
             }
 
-            this.path.draw(ctx);
-            this.fillStroke(ctx);
+            if (this.clipScalingX > 0 && this.clipScalingY > 0) {
+                this.path.draw(ctx);
+                this.fillStroke(ctx);
+            }
 
             if (this.clipMode === 'punch-out') {
                 const transform = ctx.getTransform();

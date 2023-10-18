@@ -308,6 +308,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         if (lineNode.clipPath == null) {
             lineNode.clipPath = new Path2D();
+            lineNode.clipScalingX = 0;
+            lineNode.clipScalingY = 1;
         }
         lineNode.clipMode = 'normal';
         lineNode.clipPath?.clear({ trackChanges: true });
