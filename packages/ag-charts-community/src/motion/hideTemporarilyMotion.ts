@@ -10,14 +10,16 @@ import type { Selection } from '../scene/selection';
  * @param selections contains nodes to be animated
  */
 export function hideTemporarilyMotion<N extends Node, D>(
-    id: string,
+    groupId: string,
+    subId: string,
     animationManager: AnimationManager,
     selections: Selection<N, D>[]
 ) {
     for (const selection of selections) {
         for (const node of selection.nodes()) {
             animationManager.animate({
-                id: `${id}_${node.id}`,
+                id: `${groupId}_${subId}_${node.id}`,
+                groupId,
                 from: 0,
                 to: 1,
                 onUpdate(value) {

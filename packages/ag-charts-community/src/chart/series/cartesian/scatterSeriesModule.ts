@@ -43,5 +43,12 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             color: DEFAULT_LABEL_COLOUR,
         },
     },
+    enterpriseThemeTemplate: {
+        errorBar: {
+            cap: {
+                lengthRatio: 1,
+            },
+        },
+    },
     paletteFactory: markerPaletteFactory,
 };

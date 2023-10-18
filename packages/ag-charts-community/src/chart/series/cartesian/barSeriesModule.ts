@@ -57,5 +57,12 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             blur: 5,
         },
     },
+    enterpriseThemeTemplate: {
+        errorBar: {
+            cap: {
+                lengthRatio: 0.2,
+            },
+        },
+    },
     paletteFactory: singleSeriesPaletteFactory,
 };

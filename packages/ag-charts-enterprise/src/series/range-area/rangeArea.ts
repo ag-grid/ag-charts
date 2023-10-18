@@ -54,7 +54,8 @@ interface RangeAreaMarkerDatum extends Required<Omit<_ModuleSupport.CartesianSer
     readonly yHighValue: number;
 }
 
-interface RangeAreaContext extends _ModuleSupport.SeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
+interface RangeAreaContext
+    extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
     fillData: _ModuleSupport.AreaPathDatum;
     strokeData: _ModuleSupport.AreaPathDatum;
 }
@@ -260,6 +261,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             nodeData: markerData,
             fillData,
             strokeData,
+            scales: super.calculateScaling(),
         };
 
         const fillHighPoints = fillData.points;

@@ -293,6 +293,7 @@ export class AreaSeries extends CartesianSeries<
             strokeData,
             labelData,
             nodeData: markerData,
+            scales: super.calculateScaling(),
         };
 
         const fillPoints = fillData.points;

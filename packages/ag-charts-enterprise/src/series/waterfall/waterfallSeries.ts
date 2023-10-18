@@ -68,7 +68,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly strokeWidth: number;
 }
 
-interface WaterfallContext extends _ModuleSupport.SeriesNodeDataContext<WaterfallNodeDatum> {
+interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
 }
 
@@ -445,6 +445,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 nodeData: [],
                 labelData: [],
                 pointData: [],
+                scales: super.calculateScaling(),
             };
 
             const rect = {
@@ -768,9 +769,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         const fns = prepareBarAnimationFunctions(
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
         );
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
+        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
 
         contextData.forEach(({ pointData }, contextDataIndex) => {
             if (contextDataIndex !== 0 || !pointData) {
@@ -806,6 +807,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready`,
+            groupId: this.id,
             from: startX,
             to: endX,
             ease: _ModuleSupport.Motion.easeOut,
@@ -846,6 +848,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
         this.ctx.animationManager.animate({
             id: `${this.id}_empty-update-ready`,
+            groupId: this.id,
             from: startY,
             to: endY,
             ease: _ModuleSupport.Motion.easeOut,

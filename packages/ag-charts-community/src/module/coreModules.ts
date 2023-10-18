@@ -82,6 +82,7 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
 
     seriesDefaults: ExtensibleDefaults<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
+    enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
     stackable?: boolean;
     groupable?: boolean;

@@ -105,6 +105,7 @@ describe('LineSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
+        jest.resetAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -230,7 +231,7 @@ describe('LineSeries', () => {
                 [...data.slice(0, 2), { quarter: 'week 5', iphone: undefined }, ...data.slice(3)],
             ],
             [
-                'adding, removing and updating simultaneously by reloading',
+                'adding, removing and updating simultaneously',
                 [
                     { quarter: 'week 1', iphone: 89, mac: 40 },
                     { quarter: 'week 2', iphone: 110, mac: 40 },
@@ -249,39 +250,17 @@ describe('LineSeries', () => {
         for (const [testCase, changedData, duration = 1200] of animationTestCases) {
             for (const ratio of [0, 0.5, 1]) {
                 it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
-                    spyOnAnimationManager(1000, 1);
+                    spyOnAnimationManager(1200, 1);
                     prepareTestOptions(options);
                     chart = AgChart.create(options) as Chart;
                     await waitForChartStability(chart);
 
-                    AgChart.updateDelta(chart, { data: changedData });
                     spyOnAnimationManager(duration, ratio);
+                    AgChart.updateDelta(chart, { data: changedData });
                     await waitForChartStability(chart);
                     await compare();
                 });
             }
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`should animate with short-circuiting when run again before it finishes at ${
-                ratio * 100
-            }%`, async () => {
-                spyOnAnimationManager(1000, 1);
-                prepareTestOptions(options);
-                chart = AgChart.create(options) as Chart;
-                await waitForChartStability(chart);
-
-                const changedDataA = [...data, { quarter: 'week 12', iphone: 78 }];
-                const changedDataB = [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }];
-
-                spyOnAnimationManager(2400, ratio);
-
-                AgChart.updateDelta(chart, { data: changedDataA });
-                await waitForChartStability(chart);
-
-                AgChart.updateDelta(chart, { data: changedDataB });
-                await compare();
-            });
         }
     });
 

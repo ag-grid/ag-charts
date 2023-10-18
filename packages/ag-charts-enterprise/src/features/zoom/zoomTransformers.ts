@@ -2,17 +2,18 @@ import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
 
-const unitZoomState: () => DefinedZoomState = () => ({
-    x: { min: 0, max: 1 },
-    y: { min: 0, max: 1 },
-});
+export const UNIT = { min: 0, max: 1 };
+
+export function unitZoomState(): DefinedZoomState {
+    return { x: { ...UNIT }, y: { ...UNIT } };
+}
 
 const constrain = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
 export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
     return {
-        x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
-        y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
+        x: { min: zoom?.x?.min ?? UNIT.min, max: zoom?.x?.max ?? UNIT.max },
+        y: { min: zoom?.y?.min ?? UNIT.min, max: zoom?.y?.max ?? UNIT.max },
     };
 }
 
@@ -78,13 +79,14 @@ export function scaleZoomAxisWithAnchor(
     anchor: AnchorPoint
 ): _ModuleSupport.ZoomState {
     let { min, max } = oldState;
+    const center = (UNIT.max - UNIT.min) / 2;
     const diff = newState.max - newState.min;
 
     if (anchor === 'start') {
         max = oldState.min + diff;
     } else if (anchor === 'middle') {
-        min = 0.5 - diff / 2;
-        max = 0.5 + diff / 2;
+        min = center - diff / 2;
+        max = center + diff / 2;
     } else if (anchor === 'end') {
         min = oldState.max - diff;
     }
@@ -98,27 +100,20 @@ export function scaleZoomAxisWithAnchor(
 export function constrainZoom(zoom: DefinedZoomState): DefinedZoomState {
     const after = unitZoomState();
 
-    const dx = zoom.x.max - zoom.x.min;
-
-    const xMin = zoom.x.min;
-    const xMax = zoom.x.max;
-
-    after.x.min = xMax > 1 ? 1 - dx : xMin;
-    after.x.max = xMin < 0 ? dx : xMax;
-
-    after.x.min = Math.max(0, after.x.min);
-    after.x.max = Math.min(1, after.x.max);
-
-    const dy = zoom.y.max - zoom.y.min;
-
-    const yMin = zoom.y.min;
-    const yMax = zoom.y.max;
-
-    after.y.min = yMax > 1 ? 1 - dy : yMin;
-    after.y.max = yMin < 0 ? dy : yMax;
-
-    after.y.min = Math.max(0, after.y.min);
-    after.y.max = Math.min(1, after.y.max);
+    after.x = constrainAxis(zoom.x);
+    after.y = constrainAxis(zoom.y);
 
     return after;
+}
+
+function constrainAxis(axis: { min: number; max: number }) {
+    const size = axis.max - axis.min;
+
+    let min = axis.max > UNIT.max ? UNIT.max - size : axis.min;
+    let max = axis.min < UNIT.min ? size : axis.max;
+
+    min = Math.max(UNIT.min, min);
+    max = Math.min(UNIT.max, max);
+
+    return { min, max };
 }

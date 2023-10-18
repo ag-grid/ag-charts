@@ -242,7 +242,7 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should apply line bash styling to whiskers and cap as expected', async () => {
+    it('should apply line dash styling to whiskers and cap as expected', async () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
             series: [

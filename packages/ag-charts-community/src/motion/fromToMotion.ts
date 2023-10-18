@@ -3,11 +3,12 @@ import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { zipObject } from '../util/zip';
-import type { AdditionalAnimationOptions, AnimationOptions, AnimationTiming, AnimationValue } from './animation';
-import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE } from './animation';
+import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE, isNodeArray } from './animation';
+import type { AnimationTiming, AnimationValue } from './animation';
 import * as easing from './easing';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated';
+export const NODE_UPDATE_PHASES: NodeUpdateState[] = ['removed', 'updated', 'added'];
 
 export type FromToMotionPropFnContext<T> = {
     last: boolean;
@@ -18,12 +19,13 @@ export type FromToMotionPropFnContext<T> = {
     prevLive?: T;
     nextLive?: T;
 };
+type ExtraOpts = { animationDelay?: number; animationDuration?: number };
 export type FromToMotionPropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
     node: N,
     datum: D,
     state: NodeUpdateState,
     ctx: FromToMotionPropFnContext<N>
-) => T & { animationDelay?: number; animationDuration?: number };
+) => T & ExtraOpts;
 type IntermediateFn<N extends Node, D> = (
     node: N,
     datum: D,
@@ -55,9 +57,10 @@ export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
  * @param diff optional diff from a DataModel to use to detect added/moved/removed cases
  */
 export function fromToMotion<N extends Node, T extends Record<string, string | number> & Partial<N>, D>(
-    id: string,
+    groupId: string,
+    subId: string,
     animationManager: AnimationManager,
-    selections: Selection<N, D>[],
+    selectionsOrNodes: Selection<N, D>[] | N[],
     fns: {
         fromFn: FromToMotionPropFn<N, T, D>;
         toFn: FromToMotionPropFn<N, T, D>;
@@ -68,6 +71,9 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
 ) {
     const { defaultDuration } = animationManager;
     const { fromFn, toFn, intermediateFn } = fns;
+    const isNodes = isNodeArray(selectionsOrNodes);
+    const nodes = isNodes ? selectionsOrNodes : [];
+    const selections = !isNodes ? selectionsOrNodes : [];
 
     // Dynamic case with varying add/update/remove behavior.
     const ids = { added: {}, removed: {} };
@@ -76,15 +82,10 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
         ids.removed = zipObject(diff.removed, true);
     }
 
-    let selectionIndex = 0;
-    for (const selection of selections) {
-        let cleanup = false;
+    const processNodes = (liveNodes: N[], nodes: N[]) => {
         let prevFromProps: T | undefined;
-
-        let nodeIndex = 0;
-        const nodes = selection.nodes();
         let liveNodeIndex = 0;
-        const liveNodes = nodes.filter((n) => !selection.isGarbage(n));
+        let nodeIndex = 0;
         for (const node of nodes) {
             const isLive = liveNodes[liveNodeIndex] === node;
             const ctx: FromToMotionPropFnContext<N> = {
@@ -96,6 +97,9 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 next: nodes[nodeIndex + 1],
                 nextLive: liveNodes[liveNodeIndex + (isLive ? 1 : 0)],
             };
+            const animationId = `${groupId}_${subId}_${node.id}`;
+
+            animationManager.stopByAnimationId(animationId);
 
             let status: NodeUpdateState = 'unknown';
             if (!isLive) {
@@ -103,8 +107,6 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             } else if (getDatumId && diff) {
                 status = calculateStatus(node, node.datum, getDatumId, ids);
             }
-
-            cleanup ||= status === 'removed';
 
             const {
                 animationDelay: delay,
@@ -118,7 +120,8 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             } = toFn(node, node.datum, status, ctx);
 
             animationManager.animate({
-                id: `${id}_${node.id}`,
+                id: animationId,
+                groupId,
                 from: from as T,
                 to: to as T,
                 ease: easing.easeOut,
@@ -141,21 +144,29 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             nodeIndex++;
             prevFromProps = from as T;
         }
+    };
+
+    let selectionIndex = 0;
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        const liveNodes = nodes.filter((n) => !selection.isGarbage(n));
+        processNodes(liveNodes, nodes);
 
         // Only perform selection cleanup once.
-        if (cleanup) {
-            animationManager.animate({
-                id: `${id}_selection_${selectionIndex}`,
-                from: 0,
-                to: 1,
-                ease: easing.easeOut,
-                onComplete() {
-                    selection.cleanup();
-                },
-            });
-        }
+        animationManager.animate({
+            id: `${groupId}_${subId}_selection_${selectionIndex}`,
+            groupId,
+            from: 0,
+            to: 1,
+            ease: easing.easeOut,
+            onComplete() {
+                selection.cleanup();
+            },
+        });
         selectionIndex++;
     }
+
+    processNodes(nodes, nodes);
 }
 
 /**
@@ -163,26 +174,37 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
  *
  * @param id prefix for all animation ids generated by this call
  * @param animationManager used to schedule generated animations
- * @param selections contains nodes to be animated
+ * @param selectionsOrNodes contains nodes to be animated
  * @param from node starting properties
  * @param to node final properties
  * @param extraOpts optional additional animation properties to pass to AnimationManager#animate.
  */
 export function staticFromToMotion<N extends Node, T extends AnimationValue & Partial<N>, D>(
-    id: string,
+    groupId: string,
+    subId: string,
     animationManager: AnimationManager,
-    selections: Selection<N, D>[],
+    selectionsOrNodes: Selection<N, D>[] | N[],
     from: T,
     to: T,
-    extraOpts: Partial<AnimationOptions<T> & AdditionalAnimationOptions> = {}
+    extraOpts: ExtraOpts = {}
 ) {
+    const isNodes = isNodeArray(selectionsOrNodes);
+    const nodes = isNodes ? selectionsOrNodes : [];
+    const selections = !isNodes ? selectionsOrNodes : [];
+    const { animationDelay = 0, animationDuration = 1 } = extraOpts;
+    const { defaultDuration } = animationManager;
+
     // Simple static to/from case, we can batch updates.
     animationManager.animate({
-        id: `${id}_batch`,
+        id: `${groupId}_${subId}_batch`,
+        groupId,
         from,
         to,
         ease: easing.easeOut,
         onUpdate(props) {
+            for (const node of nodes) {
+                node.setProperties(props);
+            }
             for (const selection of selections) {
                 for (const node of selection.nodes()) {
                     node.setProperties(props);
@@ -190,13 +212,17 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
             }
         },
         onStop() {
+            for (const node of nodes) {
+                node.setProperties(to);
+            }
             for (const selection of selections) {
                 for (const node of selection.nodes()) {
                     node.setProperties(to);
                 }
             }
         },
-        ...extraOpts,
+        duration: animationDuration * defaultDuration,
+        delay: animationDelay * defaultDuration,
     });
 }
 

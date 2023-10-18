@@ -72,6 +72,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         return new Animation({
             ...opts,
+            id,
             skip: this.skipAnimations,
             autoplay: this.isPlaying ? opts.autoplay : false,
             duration: opts.duration ?? this.defaultDuration,
@@ -81,7 +82,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 if (disableInteractions) {
                     this.interactionManager.pause('animation');
                 }
-                opts.onPlay?.(controller);
+                opts.onPlay?.call(controller, controller);
             },
             onStop: (controller) => {
                 this.controllers.delete(id);
@@ -91,7 +92,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 if (disableInteractions) {
                     this.interactionManager.resume('animation');
                 }
-                opts.onStop?.(controller);
+                opts.onStop?.call(controller, controller);
             },
         });
     }
@@ -144,6 +145,25 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 controller.stop();
             } catch (error: unknown) {
                 this.failsafeOnError(error, false);
+            }
+        }
+    }
+
+    public stopByAnimationId(id: string) {
+        try {
+            if (id != null && this.controllers.has(id)) {
+                this.controllers.get(id)?.stop();
+            }
+        } catch (error: unknown) {
+            this.failsafeOnError(error);
+            return;
+        }
+    }
+
+    public stopByAnimationGroupId(id: string) {
+        for (const controller of this.controllers.values()) {
+            if (controller.groupId === id) {
+                this.stopByAnimationId(controller.id);
             }
         }
     }

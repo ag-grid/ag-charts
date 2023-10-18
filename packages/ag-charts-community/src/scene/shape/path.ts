@@ -29,6 +29,12 @@ export class Path extends Shape {
     @ScenePathChangeDetection()
     clipMode?: 'normal' | 'punch-out';
 
+    @ScenePathChangeDetection()
+    clipScalingX = 1;
+
+    @ScenePathChangeDetection()
+    clipScalingY = 1;
+
     /**
      * The path only has to be updated when certain attributes change.
      * For example, if transform attributes (such as `translationX`)
@@ -53,7 +59,8 @@ export class Path extends Shape {
             return;
         }
 
-        this.dirtyPath = this.path.isDirty() || (this.fillShadow?.isDirty() ?? false);
+        this.dirtyPath =
+            this.path.isDirty() || (this.fillShadow?.isDirty() ?? false) || (this.clipPath?.isDirty() ?? false);
     }
 
     isPointInPath(x: number, y: number): boolean {
@@ -90,21 +97,29 @@ export class Path extends Shape {
             ctx.save();
 
             if (this.clipMode === 'normal') {
+                const transform = ctx.getTransform();
+                ctx.scale(this.clipScalingX, this.clipScalingY);
                 // Bound the shape rendered to the clipping path.
                 this.clipPath.draw(ctx);
                 ctx.clip();
+                ctx.setTransform(transform);
             }
 
-            this.path.draw(ctx);
-            this.fillStroke(ctx);
+            if (this.clipScalingX > 0 && this.clipScalingY > 0) {
+                this.path.draw(ctx);
+                this.fillStroke(ctx);
+            }
 
             if (this.clipMode === 'punch-out') {
+                const transform = ctx.getTransform();
+                ctx.scale(this.clipScalingX, this.clipScalingY);
                 // Bound the shape rendered to outside the clipping path.
                 this.clipPath.draw(ctx);
                 ctx.clip();
                 // Fallback values, but practically these should never be used.
                 const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
                 ctx.clearRect(x, y, width, height);
+                ctx.setTransform(transform);
             }
 
             ctx.restore();

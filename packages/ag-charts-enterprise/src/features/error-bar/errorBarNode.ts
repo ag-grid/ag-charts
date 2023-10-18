@@ -53,16 +53,10 @@ export class ErrorBarNode extends _Scene.Group {
         // 1.  User-defined length (pixels).
         // 2.  User-defined lengthRatio.
         // 3.  Library default (defined by underlying series).
-        let desiredLength: number;
-        if (capsTheme.length !== undefined) {
-            desiredLength = capsTheme.length;
-        } else if (capsTheme.lengthRatio !== undefined) {
-            desiredLength = capsTheme.lengthRatio * capDefaults.lengthRatioMultiplier;
-        } else {
-            desiredLength = capDefaults.lengthRatio * capDefaults.lengthRatioMultiplier;
-        }
-
-        return Math.min(desiredLength, capDefaults.lengthMax);
+        const { lengthRatio = 1, length } = capsTheme;
+        const { lengthRatioMultiplier, lengthMax } = capDefaults;
+        const desiredLength = length ?? lengthRatio * lengthRatioMultiplier;
+        return Math.min(desiredLength, lengthMax);
     }
 
     update(

@@ -620,14 +620,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.beforePathAnimation();
 
         animationManager.animate({
-            id: `${this.id}_empty-update-ready`,
+            id: `${this.id}_'empty-update-ready`,
+            groupId: this.id,
             ...animationOptions,
             duration,
             onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
         });
 
-        markerFadeInAnimation(this, animationManager, [itemSelection], true);
-        seriesLabelFadeInAnimation(this, animationManager, [labelSelection]);
+        markerFadeInAnimation(this, animationManager, [itemSelection], 'added');
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, [labelSelection]);
     }
 
     override animateReadyUpdate() {

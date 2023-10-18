@@ -14,7 +14,7 @@ import type { SeriesNodeDatum } from '../series';
 import { SeriesNodePickMode } from '../series';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-export type PolarAnimationEvent = 'update' | 'updateData' | 'clear';
+export type PolarAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize' | 'clear';
 export type PolarAnimationData = { duration?: number };
 
 export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends Node> extends DataModelSeries<TDatum> {
@@ -88,7 +88,7 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
         this.sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 
-        this.animationState = new StateMachine('empty', {
+        this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -96,28 +96,12 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
                 },
             },
             ready: {
-                updateData: {
-                    target: 'waiting',
-                },
-                update: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyUpdate(data),
-                },
-                highlight: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyHighlight(data),
-                },
-                highlightMarkers: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyHighlightMarkers(data),
-                },
-                resize: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyResize(data),
-                },
-                clear: {
-                    target: 'clearing',
-                },
+                updateData: 'waiting',
+                clear: 'clearing',
+                update: (data) => this.animateReadyUpdate(data),
+                highlight: (data) => this.animateReadyHighlight(data),
+                highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
+                resize: (data) => this.animateReadyResize(data),
             },
             waiting: {
                 update: {

@@ -1,3 +1,4 @@
+import { ContinuousScale } from '../../../integrated-charts-scene';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
@@ -40,7 +41,7 @@ export interface ErrorBoundSeriesNodeDatum {
     // Caps can appear on bar, line and scatter series. The length is determined
     // by the size of the marker (line, scatter), width of the bar (vertical
     // bars), or height of the bar (horizontal bars).
-    readonly capDefaults: { lengthRatio: number; lengthRatioMultiplier: number; lengthMax: number };
+    readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
 }
 
 interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
@@ -62,6 +63,7 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationResetFns?: {
+        path?: (path: Path) => AnimationValue & Partial<Path>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
         marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
@@ -102,23 +104,46 @@ type CartesianAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highligh
 export interface CartesianAnimationData<
     TNode extends Node,
     TDatum extends CartesianSeriesNodeDatum,
-    TLabel = TDatum,
-    TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
+    TLabel extends SeriesNodeDatum = TDatum,
+    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > {
     datumSelections: Selection<TNode, TDatum>[];
     markerSelections: Selection<Marker, TDatum>[];
     labelSelections: Selection<Text, TLabel>[];
     contextData: TContext[];
+    previousContextData?: TContext[];
     paths: Path[][];
     seriesRect?: BBox;
     duration?: number;
+}
+
+export type Scaling = ContinuousScaling | CategoryScaling;
+
+export interface ContinuousScaling {
+    type: 'continuous';
+    domain: [number, number];
+    range: [number, number];
+}
+
+export interface CategoryScaling {
+    type: 'category';
+    domain: string[];
+    range: number[];
+}
+
+export interface CartesianSeriesNodeDataContext<
+    TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum = TDatum,
+> extends SeriesNodeDataContext<TDatum, TLabel> {
+    scales: { [key in ChartAxisDirection]?: Scaling };
+    animationValid?: boolean;
 }
 
 export abstract class CartesianSeries<
     TNode extends Node,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
-    TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
+    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > extends DataModelSeries<TDatum, TLabel, TContext> {
     @Validate(OPT_STRING)
     legendItemName?: string = undefined;
@@ -130,7 +155,7 @@ export abstract class CartesianSeries<
 
     protected override readonly NodeClickEvent = CartesianSeriesNodeClickEvent;
 
-    private nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
+    protected nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
 
     private highlightSelection = Selection.select(this.highlightNode, () =>
         this.opts.hasMarkers ? this.markerFactory() : this.nodeFactory()
@@ -177,7 +202,7 @@ export abstract class CartesianSeries<
             markerSelectionGarbageCollection,
         };
 
-        this.animationState = new StateMachine('empty', {
+        this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent>('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -185,28 +210,12 @@ export abstract class CartesianSeries<
                 },
             },
             ready: {
-                updateData: {
-                    target: 'waiting',
-                },
-                update: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyUpdate(data),
-                },
-                highlight: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyHighlight(data),
-                },
-                highlightMarkers: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyHighlightMarkers(data),
-                },
-                resize: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyResize(data),
-                },
-                clear: {
-                    target: 'clearing',
-                },
+                updateData: 'waiting',
+                clear: 'clearing',
+                update: (data) => this.animateReadyUpdate(data),
+                highlight: (data) => this.animateReadyHighlight(data),
+                highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
+                resize: (data) => this.animateReadyResize(data),
             },
             waiting: {
                 update: {
@@ -238,7 +247,7 @@ export abstract class CartesianSeries<
     }
 
     async update({ seriesRect }: { seriesRect?: BBox }) {
-        const { visible } = this;
+        const { visible, _contextNodeData: previousContextData } = this;
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
         const seriesHighlighted = series ? series === this : undefined;
 
@@ -257,7 +266,7 @@ export abstract class CartesianSeries<
         await this.updateSelections(visible);
         await this.updateNodes(highlightItems, seriesHighlighted, visible);
 
-        const animationData = this.getAnimationData(seriesRect);
+        const animationData = this.getAnimationData(seriesRect, previousContextData);
         if (resize) {
             this.animationState.transition('resize', animationData);
         }
@@ -288,11 +297,16 @@ export abstract class CartesianSeries<
         await Promise.all(this.subGroups.map((g, i) => this.updateSeriesGroupSelections(g, i)));
     }
 
-    private async updateSeriesGroupSelections(subGroup: SubGroup<any, TDatum, TLabel>, seriesIdx: number) {
-        const { datumSelection, labelSelection, markerSelection } = subGroup;
+    private async updateSeriesGroupSelections(
+        subGroup: SubGroup<any, TDatum, TLabel>,
+        seriesIdx: number,
+        seriesHighlighted?: boolean
+    ) {
+        const { datumSelection, labelSelection, markerSelection, paths } = subGroup;
         const contextData = this._contextNodeData[seriesIdx];
-        const { nodeData, labelData } = contextData;
+        const { nodeData, labelData, itemId } = contextData;
 
+        await this.updatePaths({ seriesHighlighted, itemId, contextData, paths, seriesIdx });
         subGroup.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection, seriesIdx });
         subGroup.labelSelection = await this.updateLabelSelection({ labelData, labelSelection, seriesIdx });
         if (markerSelection) {
@@ -460,6 +474,7 @@ export abstract class CartesianSeries<
                     paths,
                     labelGroup,
                 } = subGroup;
+                const { itemId } = this.contextNodeData[seriesIdx];
 
                 const subGroupVisible = visible;
                 const subGroupOpacity = subGroupOpacities[seriesIdx];
@@ -490,6 +505,7 @@ export abstract class CartesianSeries<
                     return;
                 }
 
+                await this.updatePathNodes({ seriesHighlighted, itemId, paths, seriesIdx });
                 await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false, seriesIdx });
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
@@ -784,8 +800,37 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
+    protected async updatePaths(opts: {
+        seriesHighlighted?: boolean;
+        itemId?: string;
+        contextData: TContext;
+        paths: Path[];
+        seriesIdx: number;
+    }): Promise<void> {
+        // Override point for sub-classes.
+        opts.paths.forEach((p) => (p.visible = false));
+    }
+
+    protected async updatePathNodes(_opts: {
+        seriesHighlighted?: boolean;
+        itemId?: string;
+        paths: Path[];
+        seriesIdx: number;
+    }): Promise<void> {
+        // Override point for sub-classes.
+    }
+
     protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        const { datum, label, marker } = this.opts?.animationResetFns ?? {};
+        const { path, datum, label, marker } = this.opts?.animationResetFns ?? {};
+
+        // Stop any running animations by prefix convention.
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        if (path) {
+            data.paths.forEach((paths) => {
+                resetMotion(paths, path);
+            });
+        }
         if (datum) {
             resetMotion(data.datumSelections, datum);
         }
@@ -835,7 +880,7 @@ export abstract class CartesianSeries<
         this.animationState.transition('clear', this.getAnimationData());
     }
 
-    private getAnimationData(seriesRect?: BBox) {
+    private getAnimationData(seriesRect?: BBox, previousContextData?: TContext[]) {
         const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
             markerSelections: this.subGroups
@@ -843,6 +888,7 @@ export abstract class CartesianSeries<
                 .map(({ markerSelection }) => markerSelection!),
             labelSelections: this.subGroups.map(({ labelSelection }) => labelSelection),
             contextData: this._contextNodeData,
+            previousContextData,
             paths: this.subGroups.map(({ paths }) => paths),
             seriesRect,
         };
@@ -862,4 +908,37 @@ export abstract class CartesianSeries<
     }): Promise<void>;
 
     protected abstract isLabelEnabled(): boolean;
+
+    protected calculateScaling(): TContext['scales'] {
+        const result: TContext['scales'] = {};
+
+        const addScale = (direction: ChartAxisDirection) => {
+            const axis = this.axes[direction];
+            if (!axis) return;
+
+            if (axis.scale instanceof ContinuousScale) {
+                const { range } = axis.scale;
+                const domain = axis.scale.getDomain();
+
+                result[direction] = {
+                    type: 'continuous',
+                    domain: [domain[0], domain[1]],
+                    range: [range[0], range[1]],
+                };
+            } else if (axis.scale) {
+                const { domain } = axis.scale;
+
+                result[direction] = {
+                    type: 'category',
+                    domain,
+                    range: domain.map((d) => axis.scale.convert(d)),
+                };
+            }
+        };
+
+        addScale(ChartAxisDirection.X);
+        addScale(ChartAxisDirection.Y);
+
+        return result;
+    }
 }

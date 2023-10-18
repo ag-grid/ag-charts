@@ -45,6 +45,13 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             formatter: undefined,
         },
     },
+    enterpriseThemeTemplate: {
+        errorBar: {
+            cap: {
+                lengthRatio: 1,
+            },
+        },
+    },
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);
         return {

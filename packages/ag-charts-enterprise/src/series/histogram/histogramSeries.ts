@@ -393,7 +393,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             });
         });
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData }];
+        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
     }
 
     protected override nodeFactory() {
@@ -568,9 +568,9 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
+        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
@@ -578,7 +578,8 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
 
         motion.fromToMotion(
-            `${this.id}_waiting-update-ready`,
+            this.id,
+            'waiting-update-ready',
             this.ctx.animationManager,
             data.datumSelections,
             fns,
@@ -586,7 +587,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             diff
         );
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, data.labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);
     }
 
     getDatumId(datum: HistogramNodeDatum) {

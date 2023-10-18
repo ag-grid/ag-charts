@@ -80,7 +80,7 @@ interface RangeBarNodeDatum
     readonly strokeWidth: number;
 }
 
-type RangeBarContext = _ModuleSupport.SeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
+type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
 type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<
     _Scene.Rect,
@@ -320,6 +320,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             itemId,
             nodeData: [],
             labelData: [],
+            scales: super.calculateScaling(),
         };
 
         const domain = [];
@@ -683,8 +684,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
-        motion.fromToMotion(`${this.id}_empty-update-ready`, this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
     override animateWaitingUpdateReady(data: RangeBarAnimationData) {
@@ -694,7 +695,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
         motion.fromToMotion(
-            `${this.id}_empty-update-ready`,
+            this.id,
+            'empty-update-ready',
             this.ctx.animationManager,
             datumSelections,
             fns,
@@ -702,7 +704,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             diff
         );
 
-        seriesLabelFadeInAnimation(this, this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {
