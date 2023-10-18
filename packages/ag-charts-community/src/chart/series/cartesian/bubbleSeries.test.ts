@@ -32,6 +32,7 @@ describe('BubbleSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
+        jest.resetAllMocks();
     });
 
     const ctx = setupMockCanvas();

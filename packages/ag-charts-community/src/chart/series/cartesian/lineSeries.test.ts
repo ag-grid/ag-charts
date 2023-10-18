@@ -105,6 +105,7 @@ describe('LineSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
+        jest.resetAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -263,7 +264,7 @@ describe('LineSeries', () => {
         }
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it.skip(`should animate with short-circuiting when run again before it finishes at ${
+            it(`should animate with short-circuiting when run again before it finishes at ${
                 ratio * 100
             }%`, async () => {
                 spyOnAnimationManager(1200, 1);
