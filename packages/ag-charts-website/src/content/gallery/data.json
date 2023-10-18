@@ -40,9 +40,6 @@
             "seriesExampleName": "simple-box-plot"
         },
         {
-            "seriesExampleName": "line-series-error-bars"
-        },
-        {
             "seriesExampleName": "simple-waterfall"
         },
         {
@@ -348,29 +345,6 @@
                     "title": "Box Plot Outliers",
                     "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
                     "name": "box-plot-outliers"
-                }
-            ]
-        },
-        {
-            "title": "Error Bars",
-            "name": "error-bars",
-            "icon": "chartsErrorBar",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Line Series Error Bars",
-                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
-                    "name": "line-series-error-bars"
-                },
-                {
-                    "title": "Bar Series Error Bars",
-                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
-                    "name": "bar-series-error-bars"
-                },
-                {
-                    "title": "Scatter Series Error Bars",
-                    "description": "Error Bars show the uncertainty of continuous data values. They can be enabled on Line, Bar and Scatter Series.",
-                    "name": "scatter-series-error-bars"
                 }
             ]
         },
