@@ -1,6 +1,7 @@
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
+import { jsonMerge } from '../../sparklines-util';
 import type { SeriesOptionsTypes } from '../mapping/types';
 import type { Series } from '../series/series';
 import type { ChartType } from './chartTypes';
@@ -53,10 +54,7 @@ export function registerSeries(
 
 export function registerSeriesThemeTemplate(seriesType: NonNullable<SeriesOptionsTypes['type']>, themeTemplate: {}) {
     const existingTemplate = SERIES_THEME_TEMPLATES[seriesType];
-    const theme = {
-        ...(typeof existingTemplate === 'object' ? existingTemplate : {}),
-        ...themeTemplate,
-    };
+    const theme = jsonMerge([existingTemplate, themeTemplate]);
     SERIES_THEME_TEMPLATES[seriesType] = theme;
 }
 
