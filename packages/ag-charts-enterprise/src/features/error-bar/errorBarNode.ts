@@ -1,23 +1,21 @@
 import type { AgErrorBarCapLengthOptions, AgErrorBarThemeableOptions, _ModuleSupport } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
 
-export type ErrorBoundSeriesNodeDatum = _ModuleSupport.ErrorBoundSeriesNodeDatum;
+export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 
-interface ErrorBarPoint {
-    readonly lowerPoint: _Scene.Point;
-    readonly upperPoint: _Scene.Point;
-}
-
-export interface ErrorBarPoints {
-    readonly xBar?: ErrorBarPoint;
-    readonly yBar?: ErrorBarPoint;
-}
-
-type CapDefaults = ErrorBoundSeriesNodeDatum['capDefaults'];
+type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 
 export class ErrorBarNode extends _Scene.Group {
     private whiskerPath: _Scene.Path;
     private capsPath: _Scene.Path;
+
+    protected override _datum?: ErrorBarNodeDatum;
+    public override get datum(): ErrorBarNodeDatum | undefined {
+        return this._datum;
+    }
+    public override set datum(datum: ErrorBarNodeDatum | undefined) {
+        this._datum = datum;
+    }
 
     constructor() {
         super();
@@ -47,10 +45,13 @@ export class ErrorBarNode extends _Scene.Group {
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
     }
 
-    updateTranslation(points: ErrorBarPoints, cap: AgErrorBarCapLengthOptions, capDefaults: CapDefaults) {
+    updateTranslation(cap: AgErrorBarCapLengthOptions) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
-        const { xBar, yBar } = points;
+        if (this.datum === undefined) {
+            return;
+        }
+        const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
         whisker.path.clear();

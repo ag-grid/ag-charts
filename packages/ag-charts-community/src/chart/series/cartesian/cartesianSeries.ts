@@ -42,6 +42,8 @@ export interface ErrorBoundSeriesNodeDatum {
     // by the size of the marker (line, scatter), width of the bar (vertical
     // bars), or height of the bar (horizontal bars).
     readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
+    xBar?: { lowerPoint: Point; upperPoint: Point };
+    yBar?: { lowerPoint: Point; upperPoint: Point };
 }
 
 interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {
