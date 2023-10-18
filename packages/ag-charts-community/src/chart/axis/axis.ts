@@ -509,21 +509,24 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { line } = this;
         if (line.enabled) {
             const { range } = this;
-            const lineBox = new BBox(0, range[0], 0, range[1] - range[0]);
+            const lineBox = new BBox(0, Math.min(...range), 0, Math.abs(range[1] - range[0]));
             boxes.push(lineBox);
         }
 
         const { tick } = this;
+        const tickLineBoxes: BBox[] = [];
         if (tick.enabled) {
             tickData.ticks.forEach((datum) => {
                 const x = sideFlag * tick.size;
                 const y = Math.round(datum.translationY);
                 const tickLineBox = new BBox(Math.min(0, x), y, Math.abs(x), 0);
                 boxes.push(tickLineBox);
+                tickLineBoxes.push(tickLineBox);
             });
         }
 
         const { label } = this;
+        const tickLabelBoxes: BBox[] = [];
         if (label.enabled) {
             const tempText = new Text();
             tickData.ticks.forEach((datum) => {
@@ -539,16 +542,38 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 tempText.fontWeight = label.fontWeight;
 
                 tempText.x = labelX;
-                tempText.y = Math.round(datum.translationY);
+                tempText.y = 0;
                 tempText.rotationCenterX = labelX;
                 tempText.rotation = combinedRotation;
                 tempText.textAlign = textAlign;
                 tempText.textBaseline = textBaseline;
+                tempText.translationY = Math.round(datum.translationY);
 
-                const box = tempText.computeBBox();
-                boxes.push(box);
+                const box = tempText.computeTransformedBBox();
+                if (box) {
+                    boxes.push(box);
+                    tickLabelBoxes.push(box);
+                }
             });
         }
+
+        const getTransformBox = (bbox: BBox) => {
+            const matrix = new Matrix();
+            const {
+                rotation: axisRotation,
+                translationX,
+                translationY,
+                rotationCenterX,
+                rotationCenterY,
+            } = this.getAxisTransform();
+            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
+                scalingCenterX: 0,
+                scalingCenterY: 0,
+                rotationCenterX,
+                rotationCenterY,
+            });
+            return matrix.transformBBox(bbox);
+        };
 
         const { title } = this;
         if (title?.enabled && line.enabled) {
@@ -573,7 +598,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
             let bboxYDimension = 0;
             if (tickData.ticks.length > 0) {
-                const contentBox = BBox.merge(boxes);
+                const contentBox = getTransformBox(BBox.merge([...tickLineBoxes, ...tickLabelBoxes]));
                 const tickWidth = rotation === 0 ? contentBox.width : contentBox.height;
                 if (isFinite(tickWidth)) {
                     bboxYDimension += tickWidth;
@@ -585,26 +610,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     : Math.floor(-padding - bboxYDimension);
             titleNode.textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
             titleNode.text = callbackCache.call(formatter, this.getTitleFormatterParams());
+
+            const titleBox = titleNode.computeTransformedBBox()!;
+            if (titleBox) {
+                boxes.push(titleBox);
+            }
         }
 
         const bbox = BBox.merge(boxes);
-
-        const matrix = new Matrix();
-        const {
-            rotation: axisRotation,
-            translationX,
-            translationY,
-            rotationCenterX,
-            rotationCenterY,
-        } = this.getAxisTransform();
-        Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-            scalingCenterX: 0,
-            scalingCenterY: 0,
-            rotationCenterX,
-            rotationCenterY,
-        });
-
-        const transformedBBox = matrix.transformBBox(bbox);
+        const transformedBBox = getTransformBox(bbox);
 
         this.updateLayoutState();
 
