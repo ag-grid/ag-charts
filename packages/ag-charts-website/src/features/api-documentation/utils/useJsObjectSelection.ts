@@ -15,14 +15,19 @@ import type { JsonModel } from './model';
 import { getTopLevelSelection, getTopSelection } from './modelPath';
 import { selectionHasChanged } from './selectionHasChanged';
 
+const HEADER_OFFSET = 64;
+
 function scrollToId(id?: string) {
     // Scroll to top to reset scroll position
-    smoothScrollIntoView({ href: '#top', skipReplaceUrl: true });
+    window.scrollTo({
+        behavior: 'smooth',
+        top: 0,
+    });
 
     if (id) {
         // Wait for one render cycle before scrolling to position
         setTimeout(() => {
-            smoothScrollIntoView({ href: `#${id}`, skipReplaceUrl: true });
+            smoothScrollIntoView({ href: `#${id}`, skipReplaceUrl: true, offset: HEADER_OFFSET });
         }, 0);
     }
 }
