@@ -17,12 +17,8 @@ type PathPoint = {
     from?: { x: number; y: number };
     to?: { x: number; y: number };
     marker: MarkerChange;
-    moveTo: boolean;
+    moveTo: true | false | 'in' | 'out';
 };
-
-function isLineNodeDatum(v: LineNodeDatum | {}): v is LineNodeDatum {
-    return 'point' in v;
-}
 
 function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
@@ -126,6 +122,14 @@ function backfillPathPointData(result: PathPoint[]) {
     });
 }
 
+function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
+    if (from === to) {
+        return !!from;
+    }
+
+    return from ? 'in' : 'out';
+}
+
 function pairContinuousData(
     newData: CartesianSeriesNodeDataContext<LineNodeDatum>,
     oldData: CartesianSeriesNodeDataContext<LineNodeDatum>
@@ -152,21 +156,13 @@ function pairContinuousData(
         removed: {},
     };
 
-    let moveTo = true;
-    const pairUp = (
-        from: PathPoint['from'] | LineNodeDatum,
-        to: PathPoint['to'] | LineNodeDatum,
-        xValue?: any,
-        marker: MarkerChange = 'move'
-    ) => {
-        if (from && isLineNodeDatum(from)) {
-            from = from.point;
-        }
-        if (to && isLineNodeDatum(to)) {
-            to = to.point;
-        }
-
-        const resultPoint = { from, to, moveTo, marker };
+    const pairUp = (from?: LineNodeDatum, to?: LineNodeDatum, xValue?: any, marker: MarkerChange = 'move') => {
+        const resultPoint = {
+            from: from?.point,
+            to: to?.point,
+            moveTo: calculateMoveTo(from?.point.moveTo, to?.point.moveTo),
+            marker,
+        };
         if (marker === 'move') {
             resultMap.moved[xValue] = resultPoint;
             oldIdx++;
@@ -179,8 +175,6 @@ function pairContinuousData(
             oldIdx++;
         }
         result.push(resultPoint);
-
-        moveTo = false;
     };
 
     const { min: minFromNode, max: maxFromNode } = minMax(oldData);
@@ -270,7 +264,9 @@ function pairCategoryData(
             resultMap.added[next.xValue] = resultPoint;
             result.splice(diff.addedIndices[addedIdx], 0, resultPoint);
         } else {
-            resultMap.moved[next.xValue].to = next.point;
+            const moved = resultMap.moved[next.xValue];
+            moved.to = next.point;
+            moved.moveTo = calculateMoveTo(!!moved.moveTo, next.point.moveTo);
         }
     }
 
@@ -290,6 +286,7 @@ export function prepareLinePathAnimation(
 
     const render = (ratios: Partial<Record<MarkerChange, number>>, path: Path) => {
         const { path: linePath } = path;
+        let previousTo: PathPoint['to'];
         for (const data of pairData) {
             const ratio = ratios[data.marker];
             if (ratio == null) continue;
@@ -299,11 +296,18 @@ export function prepareLinePathAnimation(
 
             const x = from.x + (to.x - from.x) * ratio;
             const y = from.y + (to.y - from.y) * ratio;
-            if (data.moveTo) {
-                linePath.moveTo(x, y);
-            } else {
+            if (data.moveTo === false) {
                 linePath.lineTo(x, y);
+            } else if (data.moveTo === true || !previousTo) {
+                linePath.moveTo(x, y);
+            } else if (previousTo) {
+                const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
+                const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
+                const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
+                linePath.lineTo(midPointX, midPointY);
+                linePath.moveTo(x, y);
             }
+            previousTo = to;
         }
     };
 
