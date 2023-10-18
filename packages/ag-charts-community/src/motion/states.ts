@@ -1,11 +1,13 @@
 import { Debug } from '../util/debug';
 
 type StateDefinition<State extends string, Event extends string> = {
-    [key in Event]?: {
-        target: State;
-        action?: (data?: any) => void;
-    };
+    [key in Event]?: StateTransition<State> | StateTransitionAction | State;
 };
+type StateTransition<State> = {
+    target: State;
+    action?: StateTransitionAction;
+};
+type StateTransitionAction = (data?: any) => void;
 
 export class StateMachine<State extends string, Event extends string> {
     private readonly debug = Debug.create(true, 'animation');
@@ -28,14 +30,24 @@ export class StateMachine<State extends string, Event extends string> {
             return;
         }
 
-        const destinationState = destinationTransition.target;
+        let destinationState = this.state;
+
+        if (typeof destinationTransition === 'string') {
+            destinationState = destinationTransition as State;
+        } else if (typeof destinationTransition === 'object') {
+            destinationState = destinationTransition.target;
+        }
 
         this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${destinationState}`, 'color: green');
 
         // Change the state before calling the transition action to allow the action to trigger a subsequent transition
         this.state = destinationState;
 
-        destinationTransition.action?.(data);
+        if (typeof destinationTransition === 'function') {
+            destinationTransition(data);
+        } else if (typeof destinationTransition === 'object') {
+            destinationTransition.action?.(data);
+        }
 
         return this.state;
     }

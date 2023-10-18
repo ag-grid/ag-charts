@@ -209,7 +209,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.destroyFns.push(moduleCtx.interactionManager.addListener('hover', (e) => this.checkAxisHover(e)));
 
         this.animationManager = moduleCtx.animationManager;
-        this.animationState = new StateMachine('empty', {
+        this.animationState = new StateMachine<AxisAnimationState, AxisAnimationEvent>('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -217,14 +217,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 },
             },
             ready: {
-                update: {
-                    target: 'ready',
-                    action: (data: FromToDiff) => this.animateReadyUpdate(data),
-                },
-                resize: {
-                    target: 'ready',
-                    action: () => this.resetSelectionNodes(),
-                },
+                update: (data: FromToDiff) => this.animateReadyUpdate(data),
+                resize: () => this.resetSelectionNodes(),
             },
         });
 

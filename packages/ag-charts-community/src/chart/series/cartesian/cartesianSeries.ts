@@ -183,7 +183,7 @@ export abstract class CartesianSeries<
             markerSelectionGarbageCollection,
         };
 
-        this.animationState = new StateMachine('empty', {
+        this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent>('empty', {
             empty: {
                 update: {
                     target: 'ready',
@@ -191,28 +191,12 @@ export abstract class CartesianSeries<
                 },
             },
             ready: {
-                updateData: {
-                    target: 'waiting',
-                },
-                update: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyUpdate(data),
-                },
-                highlight: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyHighlight(data),
-                },
-                highlightMarkers: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyHighlightMarkers(data),
-                },
-                resize: {
-                    target: 'ready',
-                    action: (data) => this.animateReadyResize(data),
-                },
-                clear: {
-                    target: 'clearing',
-                },
+                updateData: 'waiting',
+                clear: 'clearing',
+                update: (data) => this.animateReadyUpdate(data),
+                highlight: (data) => this.animateReadyHighlight(data),
+                highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
+                resize: (data) => this.animateReadyResize(data),
             },
             waiting: {
                 update: {
