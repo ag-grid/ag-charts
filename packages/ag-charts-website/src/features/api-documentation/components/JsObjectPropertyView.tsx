@@ -1,4 +1,3 @@
-import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
 import { useContext } from 'react';
@@ -17,6 +16,7 @@ import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectProperties
 import type { JsonArray, JsonModel, JsonModelProperty, JsonObjectProperty, JsonUnionType } from '../utils/model';
 import { getUnionPathInfo } from '../utils/modelPath';
 import { OptionsDataContext } from '../utils/optionsDataContext';
+import { removeTopLevelPath } from '../utils/removeTopLevelPath';
 import styles from './ApiDocumentation.module.scss';
 import { HeadingPath } from './HeadingPath';
 import { MetaList } from './MetaList';
@@ -29,11 +29,12 @@ interface Props {
 
 function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
     const displayNameSplit = splitName(name);
-    const pathSeparator = name && path.length > 0 ? '.' : '';
+    const headingPath = removeTopLevelPath(path);
+    const pathSeparator = name && headingPath.length > 0 ? '.' : '';
 
     return (
         <h6 className={classnames(styles.name, 'side-menu-exclude')}>
-            <HeadingPath path={path} />
+            <HeadingPath path={path} ignoreTopLevelPath={true} />
             <span>
                 {pathSeparator}
                 {displayNameSplit && <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>}

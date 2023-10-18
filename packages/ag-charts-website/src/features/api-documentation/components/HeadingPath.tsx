@@ -1,12 +1,15 @@
 import { createUnionNestedObjectPathItemRegex } from '../utils/modelPath';
+import { removeTopLevelPath } from '../utils/removeTopLevelPath';
 import styles from './ApiDocumentation.module.scss';
 
-export function HeadingPath({ path }: { path: string[] }) {
+export function HeadingPath({ path, ignoreTopLevelPath }: { path: string[]; ignoreTopLevelPath?: boolean }) {
     const regex = createUnionNestedObjectPathItemRegex();
+    const headingPath = ignoreTopLevelPath ? removeTopLevelPath(path) : path;
+
     return (
-        path.length > 0 && (
+        headingPath.length > 0 && (
             <span className={styles.parentProperties}>
-                {path.map((pathItem, index) => {
+                {headingPath.map((pathItem, index) => {
                     const arrayDiscriminatorMatches = regex.exec(pathItem);
                     const [_, preValue, value, postValue] = arrayDiscriminatorMatches || [];
                     // Only show separator `.` at the front, when not the first and not an array discriminator afterwards

@@ -16,12 +16,25 @@
     margin-right: var(--right-margin);
 }
 
+$header-nav-height: 56px;
+$header-nav-border: 2px;
+$header-top: $header-nav-height + $header-nav-border;
+
 .referenceOuter {
     width: 100%;
     margin-bottom: $size-9;
 
     header {
-        margin-top: $size-4;
-        margin-bottom: $size-4;
+        padding-top: $size-4;
+        padding-bottom: $size-4;
+        position: sticky;
+        top: $header-top;
+        z-index: 1;
+        background-color: var(--white);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    tr:first-child {
+        border-top: none;
     }
 }
