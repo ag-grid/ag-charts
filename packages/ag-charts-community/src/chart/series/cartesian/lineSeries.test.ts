@@ -230,7 +230,7 @@ describe('LineSeries', () => {
                 [...data.slice(0, 2), { quarter: 'week 5', iphone: undefined }, ...data.slice(3)],
             ],
             [
-                'adding, removing and updating simultaneously by reloading',
+                'adding, removing and updating simultaneously',
                 [
                     { quarter: 'week 1', iphone: 89, mac: 40 },
                     { quarter: 'week 2', iphone: 110, mac: 40 },
