@@ -1,39 +1,21 @@
 import { AgChartOptions, AgChart } from 'ag-charts-community'
+import { getData } from "./data";
 
 const options: AgChartOptions = {
   container: document.getElementById('myChart'),
   title: {
-    text: 'Fuel Spending (2019)',
+    text: 'Annual Fuel Expenditure)',
   },
-  data: [
-    {
-      quarter: 'Q1',
-      petrol: 200,
-      diesel: 100,
-    },
-    {
-      quarter: 'Q2',
-      petrol: 300,
-      diesel: 130,
-    },
-    {
-      quarter: 'Q3',
-      petrol: 350,
-      diesel: 160,
-    },
-    {
-      quarter: 'Q4',
-      petrol: 400,
-      diesel: 200,
-    },
-  ],
+  data: getData(),
   series: [
     {
+      type: 'line',
       xKey: 'quarter',
       yKey: 'petrol',
       yName: 'Petrol',
     },
     {
+      type: 'line',
       xKey: 'quarter',
       yKey: 'diesel',
       yName: 'Diesel',
