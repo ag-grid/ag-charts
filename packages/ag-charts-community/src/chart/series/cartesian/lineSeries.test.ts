@@ -166,7 +166,7 @@ describe('LineSeries', () => {
         }
     });
 
-    describe('animation', () => {
+    describe('category animation', () => {
         const data = [
             { quarter: 'week 3', iphone: 60 },
             { quarter: 'week 4', iphone: 185 },
