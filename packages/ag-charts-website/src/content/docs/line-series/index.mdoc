@@ -5,6 +5,7 @@ title: 'Line Series'
 A Line Series visualises continuous data, and is typically used to see trends or fluctuations over time.
 
 ## Simple Line
+
 {% chartExampleRunner title="Simple Line Series" name="simple-line" type="generated" /%}
 
 To create a Line Series, use the `line` series type. If no `type` is provided, a Line Series will be created by default.
@@ -24,12 +25,13 @@ In this configuration:
 
 ## Customisation
 
-It is possible to customise the appearance of the line, labels and markers for each series. 
+It is possible to customise the appearance of the line, labels and markers for each series.
 {% chartExampleRunner title="Customised Line Series" name="customised-line" type="generated" /%}
-Note that the [Legend](./legend) automatically reflects the customisation of the series and markers. 
+Note that the [Legend](./legend) automatically reflects the customisation of the series and markers.
 
 ### Labels
-Labels can be displayed above each data point. Use the `label` option to enable and style the labels. 
+
+Labels can be displayed above each data point. Use the `label` option to enable and style the labels.
 
 ```js
 series: [{
@@ -40,9 +42,11 @@ series: [{
     }
 }]
 ```
+
 Please see the [API Reference](./line-series/#reference-AgLineSeriesOptions-label) for a list of all available label options.
 
 ### Markers
+
 Markers are displayed by default in the Line Series. Use the `marker` option to style or disable the markers.
 
 ```js
@@ -61,20 +65,22 @@ series: [{
 Please see the [Series Markers](./markers/) page for more information or the [API Reference](./line-series/#reference-AgLineSeriesOptions-marker) for a list of all available marker options.
 
 ## Data
+
 ### Missing Data
 
 {% chartExampleRunner title="Line Series with Incomplete Data" name="gap-line" type="generated" /%}
 
--    Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the line.
--    Data points with invalid `xKey` values will be ignored.
+-   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the line.
+-   Data points with invalid `xKey` values will be ignored.
 
 ### Continuous Data
+
 By default, the Line series uses a [Category Axis](./axes-types/#category) to plot the `xKey` values, but this can be changed if you have continuous data, such as trends over time.
 
 {% chartExampleRunner title="Time Data: Temperature Sensors" name="time-line" type="generated" /%}
 
--    Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
--    The time axis automatically selects an appropriate label format depending on the time span of the data, making a best-effort attempt to prevent the labels from overlapping.
+-   Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
+-   The time axis automatically selects an appropriate label format depending on the time span of the data, making a best-effort attempt to prevent the labels from overlapping.
 
 See [Axes Types](./axes-types/) for more information on using a [Time Axis](./axes-types/#time) or a [Number Axis](./axes-types/#number).
 
