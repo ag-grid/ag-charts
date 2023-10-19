@@ -1,7 +1,8 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
 import { BandScale } from '../../scale/bandScale';
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
+import { Matrix } from '../../scene/matrix';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
@@ -399,5 +400,241 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             });
         }
         return primaryTickCount;
+    }
+
+    override calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
+        this.updateDirection();
+        this.calculateDomain();
+        this.updateRange();
+
+        const {
+            scale,
+            label,
+            label: { parallel },
+            moduleCtx: { callbackCache },
+            range: requestedRange,
+            title,
+            title: { formatter = (p: AgAxisCaptionFormatterParams) => p.defaultValue } = {},
+        } = this;
+
+        const rangeStart = scale.range[0];
+        const rangeEnd = scale.range[1];
+        const rangeLength = Math.abs(rangeEnd - rangeStart);
+        const bandwidth = rangeLength / scale.domain.length || 0;
+        const rotation = toRadians(this.rotation);
+        const isHorizontal = Math.abs(Math.cos(rotation)) < 1e-8;
+        const sideFlag = label.getSideFlag();
+
+        // The Text `node` of the Caption is not used to render the title of the grouped category axis.
+        // The phantom root of the tree layout is used instead.
+        const lineHeight = this.lineHeight;
+
+        // Render ticks and labels.
+        const tickTreeLayout = this.tickTreeLayout;
+        const labels = scale.ticks();
+        const treeLabels = tickTreeLayout ? tickTreeLayout.nodes : [];
+        const isLabelTree = tickTreeLayout ? tickTreeLayout.depth > 1 : false;
+        // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
+        // flip the labels to avoid upside-down text, when the axis is rotated
+        // such that it is in the right hemisphere, i.e. the angle of rotation
+        // is in the [0, π] interval.
+        // The rotation angle is normalized, so that we have an easier time checking
+        // if it's in the said interval. Since the axis is always rendered vertically
+        // and then rotated, zero rotation means 12 (not 3) o-clock.
+        // -1 = flip
+        //  1 = don't flip (default)
+        const { defaultRotation, configuredRotation, parallelFlipFlag } = calculateLabelRotation({
+            rotation: label.rotation,
+            parallel,
+            regularFlipRotation: normalizeAngle360(rotation - Math.PI / 2),
+            parallelFlipRotation: normalizeAngle360(rotation),
+        });
+
+        const labelBBoxes: Map<number, BBox> = new Map();
+        let maxLeafLabelWidth = 0;
+        const tempText = new Text();
+
+        const setLabelProps = (datum: typeof treeLabels[number], index: number) => {
+            tempText.textAlign = 'center';
+            tempText.translationX = datum.screenY - label.fontSize * 0.25;
+            tempText.translationY = datum.screenX;
+
+            tempText.fontStyle = label.fontStyle;
+            tempText.fontWeight = label.fontWeight;
+            tempText.fontSize = label.fontSize;
+            tempText.fontFamily = label.fontFamily;
+            tempText.textBaseline = parallelFlipFlag === -1 ? 'bottom' : 'hanging';
+            tempText.textAlign = 'center';
+            tempText.translationX = datum.screenY - label.fontSize * 0.25;
+            tempText.translationY = datum.screenX;
+
+            if (index === 0) {
+                const isCaptionEnabled = title?.enabled && labels.length > 0;
+                if (!isCaptionEnabled) {
+                    return false;
+                }
+                tempText.fontFamily = title.fontFamily;
+                tempText.fontSize = title.fontSize;
+                tempText.fontStyle = title.fontStyle;
+                tempText.fontWeight = title.fontWeight;
+                tempText.textBaseline = 'hanging';
+                tempText.text = callbackCache.call(formatter, this.getTitleFormatterParams());
+            } else {
+                const isInRange = datum.screenX >= requestedRange[0] && datum.screenX <= requestedRange[1];
+                if (!isInRange) {
+                    return false;
+                }
+                if (label.formatter) {
+                    tempText.text =
+                        callbackCache.call(label.formatter, {
+                            value: String(datum.label),
+                            index,
+                        }) ?? String(datum.label);
+                } else {
+                    tempText.text = String(datum.label);
+                }
+            }
+
+            return true;
+        };
+        treeLabels.forEach((datum, index) => {
+            const isVisible = setLabelProps(datum, index);
+            if (isVisible) {
+                const bbox = tempText.computeTransformedBBox();
+                if (bbox) {
+                    labelBBoxes.set(index, bbox);
+                    if (bbox.width > maxLeafLabelWidth) {
+                        maxLeafLabelWidth = bbox.width;
+                    }
+                }
+            }
+        });
+
+        const labelX = sideFlag * label.padding;
+
+        const labelGrid = this.label.grid;
+        const separatorData = [] as { y: number; x1: number; x2: number; toString: () => string }[];
+        treeLabels.forEach((datum, index) => {
+            const isVisible = setLabelProps(datum, index);
+            const id = index;
+            tempText.x = labelX;
+            tempText.rotationCenterX = labelX;
+            const isLeaf = !datum.children.length;
+            if (isLeaf) {
+                tempText.rotation = configuredRotation;
+                tempText.textAlign = 'end';
+                tempText.textBaseline = 'middle';
+                const bbox = labelBBoxes.get(id);
+                if (bbox && bbox.height > bandwidth) {
+                    labelBBoxes.delete(id);
+                }
+            } else {
+                tempText.translationX -= maxLeafLabelWidth - lineHeight + this.label.padding;
+                const availableRange = datum.leafCount * bandwidth;
+                const bbox = labelBBoxes.get(id);
+                if (bbox && bbox.width > availableRange) {
+                    labelBBoxes.delete(id);
+                } else if (isHorizontal) {
+                    tempText.rotation = defaultRotation;
+                } else {
+                    tempText.rotation = -Math.PI / 2;
+                }
+            }
+
+            // Calculate positions of label separators for all nodes except the root.
+            // Each separator is placed to the top of the current label.
+            if (datum.parent && isLabelTree) {
+                const y = isLeaf
+                    ? datum.screenX - bandwidth / 2
+                    : datum.screenX - (datum.leafCount * bandwidth) / 2;
+
+                if (isLeaf) {
+                    if (datum.number !== datum.children.length - 1 || labelGrid) {
+                        separatorData.push({
+                            y,
+                            x1: 0,
+                            x2: -maxLeafLabelWidth - this.label.padding * 2,
+                            toString: () => String(index),
+                        });
+                    }
+                } else {
+                    const x = -maxLeafLabelWidth - this.label.padding * 2 + datum.screenY;
+                    separatorData.push({
+                        y,
+                        x1: x + lineHeight,
+                        x2: x,
+                        toString: () => String(index),
+                    });
+                }
+            }
+
+            if (isVisible) {
+                const bbox = tempText.computeTransformedBBox();
+                if (bbox) {
+                    labelBBoxes.set(index, bbox);
+                }
+            } else {
+                labelBBoxes.delete(index);
+            }
+        });
+
+
+
+        // Calculate the position of the long separator on the far bottom of the axis.
+        let minX = 0;
+        separatorData.forEach((d) => (minX = Math.min(minX, d.x2)));
+        separatorData.push({
+            y: Math.max(rangeStart, rangeEnd),
+            x1: 0,
+            x2: minX,
+            toString: () => String(separatorData.length),
+        });
+
+        const separatorBoxes: BBox[] = [];
+        const epsilon = 0.0000001;
+        separatorData.forEach((datum) => {
+            if (datum.y >= requestedRange[0] - epsilon && datum.y <= requestedRange[1] + epsilon) {
+                const { x1, x2, y } = datum;
+                const separatorBox = new BBox(Math.min(x1, x2), y, Math.abs(x1 - x2), 0);
+                separatorBoxes.push(separatorBox);
+            }
+        });
+
+        // Render axis lines.
+        const axisLineBoxes: BBox[] = [];
+        const lineCount = tickTreeLayout ? tickTreeLayout.depth + 1 : 1;
+        for (let i = 0; i < lineCount; i++) {
+            if (i === 0 || (labelGrid && isLabelTree)) {
+                const x = i > 0 ? -maxLeafLabelWidth - this.label.padding * 2 - (i - 1) * lineHeight : 0;
+                const lineBox = new BBox(x, Math.min(...requestedRange), 0, Math.abs(requestedRange[0] - requestedRange[1]));
+                axisLineBoxes.push(lineBox);
+            }
+        }
+
+        const getTransformBox = (bbox: BBox) => {
+            const matrix = new Matrix();
+            const {
+                rotation: axisRotation,
+                translationX,
+                translationY,
+                rotationCenterX,
+                rotationCenterY,
+            } = this.getAxisTransform();
+            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
+                scalingCenterX: 0,
+                scalingCenterY: 0,
+                rotationCenterX,
+                rotationCenterY,
+            });
+            return matrix.transformBBox(bbox);
+        };
+
+        const bbox = BBox.merge([...labelBBoxes.values(), ...separatorBoxes, ...axisLineBoxes]);
+        const transformedBBox = getTransformBox(bbox);
+
+        return {
+            primaryTickCount,
+            bbox: transformedBBox,
+        };
     }
 }
