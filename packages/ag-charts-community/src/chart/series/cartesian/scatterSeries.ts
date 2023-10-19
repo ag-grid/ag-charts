@@ -197,7 +197,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 itemId: yKey,
                 yKey,
                 xKey,
-                index: i,
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,

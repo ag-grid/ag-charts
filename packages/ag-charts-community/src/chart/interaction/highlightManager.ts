@@ -8,7 +8,6 @@ interface HighlightNodeDatum extends SeriesNodeDatum {
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;
     readonly domain?: [number, number];
-    readonly index?: number;
 }
 
 export interface HighlightChangeEvent {
