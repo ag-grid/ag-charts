@@ -38,6 +38,15 @@ const options: AgChartOptions = {
             min: -180,
             max: 180,
             nice: false,
+            crossLines: [
+                {
+                    value: 0,
+                    label: {
+                        text: 'North',
+                        position: 'top',
+                    },
+                },
+            ],
         },
         {
             position: 'left',
@@ -48,6 +57,15 @@ const options: AgChartOptions = {
             min: -90,
             max: 90,
             nice: false,
+            crossLines: [
+                {
+                    value: 0,
+                    label: {
+                        text: 'East',
+                        position: 'right',
+                    },
+                },
+            ],
         },
     ],
 };
