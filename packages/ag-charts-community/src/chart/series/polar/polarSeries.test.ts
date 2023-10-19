@@ -136,51 +136,46 @@ describe('PolarSeries', () => {
     });
 
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options);
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }
     });
 
     describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options);
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200);
 
-                animate(1200, ratio);
                 AgChart.update(chart, {
                     ...options,
                     data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
                 });
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }
     });
 
     describe('add animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
@@ -188,34 +183,31 @@ describe('PolarSeries', () => {
                     ...options,
                     data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
                 });
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200);
 
-                animate(1200, ratio);
                 AgChart.update(chart, { ...options });
-
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }
     });
 
     describe('update animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options);
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200);
 
-                animate(1200, ratio);
                 AgChart.update(chart, {
                     ...options,
                     data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),
                 });
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }

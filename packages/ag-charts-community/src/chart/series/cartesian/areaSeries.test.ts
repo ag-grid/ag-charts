@@ -134,7 +134,6 @@ describe('AreaSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.resetAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -179,12 +178,10 @@ describe('AreaSeries', () => {
     });
 
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
                 const options: AgChartOptions = examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(
                     DATA_FRACTIONAL_LOG_AXIS,
                     'area'
@@ -192,7 +189,7 @@ describe('AreaSeries', () => {
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options) as Chart;
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }

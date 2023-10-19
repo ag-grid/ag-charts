@@ -196,7 +196,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
 
     // Simple static to/from case, we can batch updates.
     animationManager.animate({
-        id: `${groupId}_${subId}_batch`,
+        id: `${groupId}_${subId}`,
         groupId,
         from,
         to,

@@ -114,83 +114,71 @@ describe('Radial Column Chart', () => {
     });
 
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgEnterpriseCharts.create(options);
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }
     });
 
     describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgEnterpriseCharts.create(options);
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200);
 
                 AgEnterpriseCharts.updateDelta(chart, {
                     data: options.data!.slice(0, 4),
                 });
-                animate(1200, ratio);
-
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }
     });
 
     describe('add animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
                 const { data: fullData } = EXAMPLE_OPTIONS;
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData.slice(0, 4) };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgEnterpriseCharts.create(options);
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200);
 
                 AgEnterpriseCharts.updateDelta(chart, {
                     data: fullData,
                 });
-                animate(1200, ratio);
-
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }
     });
 
     describe('update animation', () => {
-        const animate = spyOnAnimationManager();
+        spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgEnterpriseCharts.create(options);
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200);
 
                 AgEnterpriseCharts.updateDelta(chart, {
                     data: options.data!.map((d: any) => {
@@ -199,9 +187,7 @@ describe('Radial Column Chart', () => {
                         }, {});
                     }),
                 });
-                animate(1200, ratio);
-
-                await waitForChartStability(chart);
+                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }

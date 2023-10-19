@@ -73,7 +73,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         return new Animation({
             ...opts,
             id,
-            skip: this.skipAnimations,
+            skip: this.isSkipped(),
             autoplay: this.isPlaying ? opts.autoplay : false,
             duration: opts.duration ?? this.defaultDuration,
             onPlay: (controller) => {
@@ -181,6 +181,16 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.skipAnimations = skip;
     }
 
+    /** Mocking point for tests to guarantee that animation updates happen. */
+    public isSkippingFrames() {
+        return true;
+    }
+
+    /** Mocking point for tests to capture requestAnimationFrame callbacks. */
+    public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
+        this.requestId = requestAnimationFrame(cb);
+    }
+
     public isSkipped() {
         return this.skipAnimations;
     }
@@ -189,9 +199,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.controllers.size === 0 || this.requestId !== null) return;
 
         let prevTime: number;
-        const onAnimationFrame = (time: number) => {
-            this.requestId = requestAnimationFrame(onAnimationFrame);
-
+        const onAnimationFrame = async (time: number) => {
             const executeAnimationFrame = async () => {
                 const deltaTime = time - (prevTime ?? time);
 
@@ -215,11 +223,18 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 });
             };
 
-            // Only run the animation frame if we can acquire the chart update mutex immediately.
-            this.chartUpdateMutex.acquireImmediately(executeAnimationFrame);
+            if (this.isSkippingFrames()) {
+                // Only run the animation frame if we can acquire the chart update mutex immediately.
+                await this.chartUpdateMutex.acquireImmediately(executeAnimationFrame);
+            } else {
+                // Wait for the next available point we can execute.
+                await this.chartUpdateMutex.acquire(executeAnimationFrame);
+            }
+
+            this.scheduleAnimationFrame(onAnimationFrame);
         };
 
-        this.requestId = requestAnimationFrame(onAnimationFrame);
+        this.scheduleAnimationFrame(onAnimationFrame);
     }
 
     private cancelAnimation() {
