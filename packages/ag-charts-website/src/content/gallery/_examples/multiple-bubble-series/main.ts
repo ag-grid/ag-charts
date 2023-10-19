@@ -68,12 +68,26 @@ const options: AgChartOptions = {
             title: {
                 text: 'Number Of Franchises →',
             },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 0,
+                    strokeWidth: 2,
+                    strokeOpacity: 0.5,
+                    label: {
+                        text: '^',
+                        position: 'top',
+                        fontSize: 14,
+                        padding: 0
+                    }
+                },
+            ],
         },
         {
             position: 'left',
             type: 'number',
             title: {
-                text: 'Franchise Growth Rate →',
+                text: 'Franchise Growth Rate',
             },
             nice: false,
         },
