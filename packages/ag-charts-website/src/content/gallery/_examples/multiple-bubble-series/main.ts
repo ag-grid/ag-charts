@@ -1,0 +1,83 @@
+import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { getFoodIndustryData, getCoffeeIndustryData } from './data';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'The Food & Coffee Industries',
+    },
+    subtitle: {
+        text: 'Growth Rate Versus Number of Franchises',
+    },
+    footnote: {
+        text: 'Comparative Analysis of UK Food and Coffee Franchises',
+    },
+    series: [
+        {
+            type: 'bubble',
+            data: getFoodIndustryData(),
+            xKey: 'numberOfFranchises',
+            xName: 'Number of Franchises',
+            yKey: 'growthRate',
+            yName: 'Growth Rate',
+            sizeKey: 'licenseFee',
+            sizeName: 'Lisense Fee',
+            labelKey: 'franchiseName',
+            labelName: 'Franchise',
+            marker: {
+                maxSize: 90,
+                formatter: ({ datum }) => {
+                    const { growthRate } = datum;
+                    return {
+                        fillOpacity: growthRate / 18,
+                    };
+                },
+            },
+            label: {},
+        },
+        {
+            type: 'bubble',
+            data: getCoffeeIndustryData(),
+            xKey: 'numberOfFranchises',
+            xName: 'Number of Franchises',
+            yKey: 'growthRate',
+            yName: 'Growth Rate',
+            sizeKey: 'licenseFee',
+            sizeName: 'Lisense Fee',
+            labelKey: 'franchiseName',
+            labelName: 'Franchise',
+            marker: {
+                maxSize: 90,
+                formatter: ({ datum }) => {
+                    const { growthRate } = datum;
+                    return {
+                        fillOpacity: growthRate / 24,
+                    };
+                },
+            },
+            label: {},
+        },
+    ],
+    axes: [
+        {
+            position: 'bottom',
+            type: 'number',
+            nice: false,
+            min: -11000,
+            max: 50000,
+            title: {
+                text: 'Number Of Franchises →',
+            },
+        },
+        {
+            position: 'left',
+            type: 'number',
+            title: {
+                text: 'Franchise Growth Rate →',
+            },
+            nice: false,
+        },
+    ],
+};
+
+AgEnterpriseCharts.create(options);
