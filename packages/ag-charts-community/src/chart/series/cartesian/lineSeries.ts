@@ -9,11 +9,6 @@ import type {
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
-import type {
-    AgSeriesMarkerFormatterParams,
-    AgSeriesMarkerStyle,
-    ISeriesMarker,
-} from '../../../options/series/markerOptions';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Path2D } from '../../../scene/path2D';
@@ -548,17 +543,5 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
     protected nodeFactory() {
         return new Group();
-    }
-
-    protected override updateMarkerStyle<TParams>(
-        markerNode: Marker,
-        marker: ISeriesMarker<LineNodeDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<LineNodeDatum>, 'seriesId'>,
-        defaultStyle: AgSeriesMarkerStyle
-    ) {
-        if (this.ctx.animationManager.isSkipped()) {
-            return super.updateMarkerStyle(markerNode, marker, params, defaultStyle);
-        }
-        markerNode.visible = false;
     }
 }
