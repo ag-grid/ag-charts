@@ -19,7 +19,7 @@
         "strict": true,
         "noInterop": true
     },
-    "sourceMaps": true,
+    "sourceMaps": "inline",
     "exclude": [
         "jest.config.ts",
         ".*\\.spec.tsx?$",
