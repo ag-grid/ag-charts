@@ -15,7 +15,7 @@ import type { JsonModel } from './model';
 import { getTopLevelSelection, getTopSelection } from './modelPath';
 import { selectionHasChanged } from './selectionHasChanged';
 
-const HEADER_OFFSET = 64;
+const HEADER_OFFSET = 65;
 
 function scrollToId(id?: string) {
     // Scroll to top to reset scroll position
