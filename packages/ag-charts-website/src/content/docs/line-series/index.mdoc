@@ -2,32 +2,34 @@
 title: 'Line Series'
 ---
 
-The Line series is a good choice when you need to spot a trend, render large amounts of data or create a real-time chart. Line series is also the preferred choice for rendering continuous data with irregular intervals or incomplete data that has some values missing.
+A Line Series visualises continuous data, and is typically used to see trends or fluctuations over time.
 
-## Single Series
+## Simple Line
+{% chartExampleRunner title="Simple Line Series" name="simple-line" type="generated" /%}
 
-Since the `'line'` series type is so common, it doesn't have to be specified explicitly. The chart factory method, `AgChart.create`, uses it as the default type.
-
-The simplest line series config therefore only requires two properties, `xKey` and `yKey`:
+To create a Line Series, use the `line` series type. If no `type` is provided, a Line Series will be created by default.
 
 ```js
 series: [
-    {
-        // type: 'line' -- assumed
-        xKey: 'year',
-        yKey: 'spending',
-    },
+    { type: 'line', xKey: 'quarter', yKey: 'petrol', yName: 'Petrol' },
+    { type: 'line', xKey: 'quarter', yKey: 'diesel', yName: 'Diesel' },
 ];
 ```
 
-{% chartExampleRunner title="Single Line Series" name="basic-line" type="generated" /%}
+In this configuration:
 
-The chart expects the data (`chart.data` property) to be an array of objects, where each object is a table row or a database record and each key is a column.
+-   `xKey` defines the categories, and is mapped to the [Category Axis](./axes-types/#category).
+-   `yKey` provides the numerical values, corresponding to the [Number Axis](./axes-types/#number).
+-   `yName` configures display names, reflected in [Tooltip Titles](./tooltips) and [Legend Items](./legend).
 
-To plot anything on a plane, we need at least two coordinates: `x` and `y`. The `xKey` and `yKey` series configs tell the series which keys should be used to fetch the values of these coordinates from each object in the `data` array.
+## Customisation
 
-Showing labels on top of data points is also an option with the `label` config. Labels can be enabled independently of series markers.
-For example, to show bold labels on top of each data point (and in this case a marker) we would use the following config:
+It is possible to customise the appearance of the line, labels and markers for each series. 
+{% chartExampleRunner title="Customised Line Series" name="customised-line" type="generated" /%}
+Note that the [Legend](./legend) automatically reflects the customisation of the series and markers. 
+
+### Labels
+Labels can be displayed above each data point. Use the `label` option to enable and style the labels. 
 
 ```js
 series: [{
@@ -38,153 +40,51 @@ series: [{
     }
 }]
 ```
+Please see the [API Reference](./line-series/#reference-AgLineSeriesOptions-label) for a list of all available label options.
 
-The above config is used in the example below. Feel free to open it in Pluker and experiment with other [label options](#reference-line.label).
-
-{% chartExampleRunner title="Line Series With Labels" name="basic-line-labels" type="generated" /%}
-
-## Multiple Series
-
-If we have more than two fields inside each object in the `data` array, we can create a multi-series line chart. For example, if a datum looks like this:
+### Markers
+Markers are displayed by default in the Line Series. Use the `marker` option to style or disable the markers.
 
 ```js
-{
-    quarter: 'Q1',
-    petrol: 200,
-    diesel: 100
-}
+series: [{
+    ...
+    marker: {
+        fill: 'orange',
+        size: 10,
+        stroke: 'black',
+        strokeWidth: 3,
+        shape: 'diamond',
+    }
+}]
 ```
 
-We can use the same `quarter` key as `xKey` for both series and `petrol` and `diesel` keys for `yKey` of the first and second line series, respectively.
+Please see the [Series Markers](./markers/) page for more information or the [API Reference](./line-series/#reference-AgLineSeriesOptions-marker) for a list of all available marker options.
 
-To create multiple line series we need to provide two config objects in the `series` array:
-
-```js
-series: [
-    {
-        xKey: 'quarter',
-        yKey: 'petrol',
-    },
-    {
-        xKey: 'quarter',
-        yKey: 'diesel',
-    },
-];
-```
-
-And we get a result like this:
-
-{% chartExampleRunner title="Multiple Line Series" name="multi-line" type="generated" /%}
-
-## Legend and Tooltip Information
-
-By default the legend shows the keys used to fetch the series data, but those may not be very presentable. In our case, the `petrol` and `diesel` keys inside the data objects are not capitalised. We can provide a better display name using the `yName` config, and the legend will show that instead.
-
-```js
-series: [
-    {
-        xKey: 'quarter',
-        yKey: 'petrol',
-        yName: 'Petrol',
-    },
-    {
-        xKey: 'quarter',
-        yKey: 'diesel',
-        yName: 'Diesel',
-    },
-];
-```
-
-{% chartExampleRunner title="Legend and Tooltip Information" name="legend-info" type="generated" /%}
-
-The provided `yName` will also show up in tooltip titles:
-
-{% imageCaption pageName="charts-line-series" imageName="tooltip-titles.png" alt="Left: tooltip with no title, Right: tooltip with title" maxWidth="80%" constrained=true centered=true /%}
-
-## Line and Marker Colours
-
-The chart above is not complicated, but it could still benefit from more visual separation. Let's make the diesel series look more like diesel. Just add the following two configs to the second series:
-
-```js
-stroke: 'black',
-marker: {
-    fill: 'gray',
-    stroke: 'black'
-}
-```
-
-We'll get a result like this:
-
-{% chartExampleRunner title="Line and Marker Colours" name="line-marker-colors" type="generated" /%}
-
-There are many other customisations you can make to the markers; see the [markers section](./markers/) for more information.
-
-## Missing Data
-
-In a perfect world all data would be 100% complete. Unfortunately, in the real one, data for certain items or time periods might be missing or corrupted. But that shouldn't result in corrupted charts, and AG Charts supports the correct rendering of incomplete data:
+## Data
+### Missing Data
 
 {% chartExampleRunner title="Line Series with Incomplete Data" name="gap-line" type="generated" /%}
 
-If the `yKey` value of a data point is positive or negative `Infinity`, `null`, `undefined` or `NaN`, that data point will be rendered as a gap.
+-    Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the line.
+-    Data points with invalid `xKey` values will be ignored.
 
-If the bottom axis is also continuous (for example, if it's a `'number'` axis too), rather than being rendered as a gap, invalid `xKey` values from the data will be skipped all together.
-
-## Continuous Data
-
-By default, the bottom axis is a `'category'` axis, but this can be changed if you have continuous data that you would like to plot. See the [axes section](./axes/) for more information on configuring axes.
-
-{% chartExampleRunner title="Continuous Data: Spiral Curve" name="two-number-axes" type="generated" options="{ \"exampleHeight\": 600 }" /%}
-
-## Time-Series Data
-
-The following example shows how line series can be used to render time-series data, using a `'time'` axis. In this case, we have two ambient temperature sensors that give us two independent data sets, with different numbers of readings taken at different times:
+### Continuous Data
+By default, the Line series uses a [Category Axis](./axes-types/#category) to plot the `xKey` values, but this can be changed if you have continuous data, such as trends over time.
 
 {% chartExampleRunner title="Time Data: Temperature Sensors" name="time-line" type="generated" /%}
 
-Because we have two separate data sets, we are using the `series.data` property of each series, rather than the `data` property of the chart itself:
+-    Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
+-    The time axis automatically selects an appropriate label format depending on the time span of the data, making a best-effort attempt to prevent the labels from overlapping.
 
-```js
-series: [
-    {
-        data: [
-            {
-                time: new Date('01 Jan 2020 13:25:30 GMT'),
-                sensor: 25
-            },
-            {
-                time: new Date('01 Jan 2020 13:26:30 GMT'),
-                sensor: 24
-            }
-        ],
-        ...
-    },
-    {
-        data: [
-            {
-                time: Date.parse('01 Jan 2020 13:25:00 GMT'),
-                sensor: 21
-            },
-            {
-                time: Date.parse('01 Jan 2020 13:26:00 GMT'),
-                sensor: 22
-            }
-        ],
-        ...
-    }
-]
-```
+See [Axes Types](./axes-types/) for more information on using a [Time Axis](./axes-types/#time) or a [Number Axis](./axes-types/#number).
 
-Notice that even though one data set has dates as `Date` objects and another uses timestamps, it doesn't present a problem and both series render just fine.
-
-The time axis automatically selects an appropriate label format depending on the time span of the data, making a best-effort attempt to prevent the labels from overlapping.
-
-## Real-Time Data
+### Real-Time Data
 
 The chart will update whenever new data is supplied via the chart's or series' `data` property.
 
 {% chartExampleRunner title="Real-Time Chart: Core Voltage" name="real-time" type="mixed" /%}
 
-This example uses the `'time'` axis which is configured to show a tick every 5 seconds and to use the `%H:%M:%S` label format to show colon separated hours, minutes and seconds.
+This example uses a [Time Axis](./axes-types/#time) which is configured to show a tick every 5 seconds and to use the `%H:%M:%S` label format to show colon separated hours, minutes and seconds.
 
 ## API Reference
 
