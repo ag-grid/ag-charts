@@ -123,7 +123,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Axis Title',
-                spacing: 15,
+                spacing: 25,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: FONT_SIZE.MEDIUM,
