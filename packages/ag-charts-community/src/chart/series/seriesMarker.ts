@@ -62,7 +62,7 @@ export class SeriesMarker<TParams = never, TDatum = any>
     strokeOpacity: number = 1;
 
     @Validate(OPT_FUNCTION)
-    // @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     formatter?: (
         params: AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>
     ) => AgSeriesMarkerStyle | undefined;

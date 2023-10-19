@@ -3,14 +3,17 @@ import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type {
-    AgCartesianSeriesMarkerFormat,
     AgLineSeriesLabelFormatterParams,
     AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
+import type {
+    AgSeriesMarkerFormatterParams,
+    AgSeriesMarkerStyle,
+    ISeriesMarker,
+} from '../../../options/series/markerOptions';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Path2D } from '../../../scene/path2D';
@@ -408,43 +411,23 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const title = sanitizeHtml(this.title ?? yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        const { formatter: markerFormatter, fill: markerFill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
-        const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
+        const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth: this.strokeWidth });
+        const { fill: color } = this.getMarkerStyle(marker, { datum, xKey, yKey, highlighted: false }, baseStyle);
 
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-        if (markerFormatter) {
-            format = markerFormatter({
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
                 datum,
                 xKey,
+                xName,
                 yKey,
-                fill: markerFill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
+                yName,
+                title,
+                color,
                 seriesId,
-            });
-        }
-
-        const color = format?.fill ?? stroke ?? markerFill;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            title,
-            color,
-            seriesId,
-            ...this.getModuleTooltipParams(datum),
-        });
+                ...this.getModuleTooltipParams(datum),
+            }
+        );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -565,5 +548,17 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    protected override updateMarkerStyle<TParams>(
+        markerNode: Marker,
+        marker: ISeriesMarker<LineNodeDatum, TParams>,
+        params: TParams & Omit<AgSeriesMarkerFormatterParams<LineNodeDatum>, 'seriesId'>,
+        defaultStyle: AgSeriesMarkerStyle
+    ) {
+        if (this.ctx.animationManager.isSkipped()) {
+            return super.updateMarkerStyle(markerNode, marker, params, defaultStyle);
+        }
+        markerNode.visible = false;
     }
 }

@@ -15,7 +15,6 @@ export * from './chart/types';
 export * from './chart/zoomOptions';
 export * from './series/seriesOptions';
 export * from './series/cartesian/cartesianOptions';
-export * from './series/cartesian/cartesianSeriesMarkerOptions';
 export * from './series/cartesian/cartesianSeriesTooltipOptions';
 export * from './series/cartesian/cartesianSeriesTypes';
 export * from './series/cartesian/areaOptions';

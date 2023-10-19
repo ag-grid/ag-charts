@@ -3,8 +3,6 @@ import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesTooltipRendererParams,
-    AgCartesianSeriesMarkerFormat,
-    AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
@@ -378,41 +376,19 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             return '';
         }
 
-        const {
+        const { marker, tooltip, xName, yName, sizeName, labelKey, labelName, id: seriesId } = this;
+
+        const baseStyle = mergeDefaults(
+            { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
+            marker.getStyle()
+        );
+
+        const { fill: color = 'gray' } = this.getMarkerStyle(
             marker,
-            tooltip,
-            xName,
-            yName,
-            sizeName,
-            labelKey,
-            labelName,
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
+            { datum: nodeDatum, highlighted: false, xKey, yKey, sizeKey, labelKey },
+            baseStyle
+        );
 
-        const { stroke } = marker;
-        const fill = nodeDatum.fill ?? marker.fill;
-        const strokeWidth = this.getStrokeWidth(marker.strokeWidth ?? 1);
-
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-
-        if (marker.formatter) {
-            format = callbackCache.call(marker.formatter, {
-                datum: nodeDatum,
-                xKey,
-                yKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size: nodeDatum.point?.size ?? 0,
-                highlighted: false,
-                seriesId,
-                sizeKey: undefined,
-                labelKey: undefined,
-            });
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
         const title = this.title ?? yName;
         const {
             datum,
@@ -436,26 +412,23 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(labelText)}<br>` + content;
         }
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            sizeKey,
-            sizeName,
-            labelKey,
-            labelName,
-            title,
-            color,
-            seriesId,
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                datum,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                sizeKey,
+                sizeName,
+                labelKey,
+                labelName,
+                title,
+                color,
+                seriesId,
+            }
+        );
     }
 
     getLegendData(): CategoryLegendDatum[] {

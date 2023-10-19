@@ -2,10 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesOptionsKeys,
-    AgCartesianSeriesMarkerFormat,
-    AgCartesianSeriesMarkerFormatterParams,
     AgCartesianSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
@@ -523,18 +520,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     getTooltipHtml(nodeDatum: MarkerSelectionDatum): string {
-        const {
-            xKey,
-            id: seriesId,
-            axes,
-            xName,
-            yName,
-            fill: seriesFill,
-            stroke: seriesStroke,
-            tooltip,
-            marker,
-            dataModel,
-        } = this;
+        const { xKey, id: seriesId, axes, xName, yName, tooltip, marker, dataModel } = this;
         const { yKey, xValue, yValue, datum } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -544,57 +530,30 @@ export class AreaSeries extends CartesianSeries<
             return '';
         }
 
-        const {
-            size,
-            formatter: markerFormatter,
-            strokeWidth: markerStrokeWidth,
-            fill: markerFill,
-            stroke: markerStroke,
-        } = marker;
-
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
         const title = sanitizeHtml(yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
-        const fill = seriesFill ?? markerFill;
-        const stroke = markerStroke ?? seriesStroke;
+        const baseStyle = mergeDefaults({ fill: this.fill }, marker.getStyle(), {
+            stroke: this.stroke,
+            strokeWidth: this.strokeWidth,
+        });
+        const { fill: color } = this.getMarkerStyle(marker, { datum, xKey, yKey, highlighted: false }, baseStyle);
 
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-
-        if (markerFormatter) {
-            format = markerFormatter({
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
                 datum,
                 xKey,
+                xName,
                 yKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
+                yName,
+                color,
+                title,
                 seriesId,
-            });
-        }
-
-        const color = format?.fill ?? fill;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            color,
-            title,
-            seriesId,
-        });
+            }
+        );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -685,7 +644,7 @@ export class AreaSeries extends CartesianSeries<
         const fill = marker.fill ?? styles.fill;
         const stroke = marker.stroke ?? styles.stroke;
         const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
-        const getFormatterParams = (nodeDatum: MarkerSelectionDatum): AgCartesianSeriesMarkerFormatterParams<any> => {
+        const getFormatterParams = (nodeDatum: MarkerSelectionDatum) => {
             return {
                 datum: nodeDatum.datum,
                 xKey,

@@ -785,7 +785,7 @@ export abstract class Series<
 
     protected getMarkerStyle<TParams>(
         marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum['datum']>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size: params.datum.point?.size ?? 0 };
@@ -795,6 +795,7 @@ export abstract class Series<
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
+                datum: params.datum.datum,
             });
             return mergeDefaults(style, markerStyle);
         }
@@ -804,25 +805,14 @@ export abstract class Series<
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
         marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum['datum']>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
+        const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        markerNode.setProperties({
-            visible: this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y),
-            translationX: point?.x,
-            translationY: point?.y,
-            ...activeStyle,
-        });
-
-        if (this.ctx.animationManager.isSkipped()) {
-            markerNode.setProperties({
-                translationX: point?.x,
-                translationY: point?.y,
-            });
-        }
+        markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
 
         // Only for custom marker shapes
         if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {
