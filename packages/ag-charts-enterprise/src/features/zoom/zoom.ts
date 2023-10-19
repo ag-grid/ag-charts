@@ -1,4 +1,4 @@
-import type { _Scene } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import * as ContextMenu from '../context-menu/main';
@@ -16,7 +16,7 @@ import {
     translateZoom,
     unitZoomState,
 } from './zoomTransformers';
-import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
+import type { DefinedZoomState } from './zoomTypes';
 
 const { BOOLEAN, NUMBER, STRING_UNION, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
 
@@ -66,10 +66,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public minYRatio: number = UNIT.max / 5;
 
     @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
-    public anchorPointX: AnchorPoint = 'end';
+    public anchorPointX: AgZoomAnchorPoint = 'end';
 
     @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
-    public anchorPointY: AnchorPoint = 'middle';
+    public anchorPointY: AgZoomAnchorPoint = 'middle';
 
     // Scenes
     private readonly scene: _Scene.Scene;

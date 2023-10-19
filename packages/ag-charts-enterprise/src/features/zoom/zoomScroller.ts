@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
     constrainZoom,
@@ -7,14 +7,14 @@ import {
     scaleZoomAxisWithAnchor,
     translateZoom,
 } from './zoomTransformers';
-import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
+import type { DefinedZoomState } from './zoomTypes';
 
 export class ZoomScroller {
     update(
         event: _ModuleSupport.InteractionEvent<'wheel'>,
         step: number,
-        anchorPointX: AnchorPoint,
-        anchorPointY: AnchorPoint,
+        anchorPointX: AgZoomAnchorPoint,
+        anchorPointY: AgZoomAnchorPoint,
         isScalingX: boolean,
         isScalingY: boolean,
         bbox: _Scene.BBox,

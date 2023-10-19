@@ -73,10 +73,13 @@ export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number):
     };
 }
 
+/**
+ * Scale a single zoom axis about its anchor, ignoring `pointer` anchors.
+ */
 export function scaleZoomAxisWithAnchor(
     newState: _ModuleSupport.ZoomState,
     oldState: _ModuleSupport.ZoomState,
-    anchor: AnchorPoint
+    anchor: AgZoomAnchorPoint
 ): _ModuleSupport.ZoomState {
     let { min, max } = oldState;
     const center = (UNIT.max - UNIT.min) / 2;
