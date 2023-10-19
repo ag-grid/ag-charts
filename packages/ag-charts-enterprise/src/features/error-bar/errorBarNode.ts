@@ -9,6 +9,14 @@ export class ErrorBarNode extends _Scene.Group {
     private whiskerPath: _Scene.Path;
     private capsPath: _Scene.Path;
 
+    private bboxes: {
+        // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
+        // testing, therefore we'll use a hierachial bbox structure: `union` is the bbox that includes
+        // all the components.
+        union: _Scene.BBox;
+        components: _Scene.BBox[];
+    } = { union: this.computeBBox(), components: [] };
+
     protected override _datum?: ErrorBarNodeDatum;
     public override get datum(): ErrorBarNodeDatum | undefined {
         return this._datum;
@@ -86,5 +94,43 @@ export class ErrorBarNode extends _Scene.Group {
         }
         caps.path.closePath();
         caps.markDirtyTransform();
+
+        const { components } = this.bboxes;
+        components.length = 0;
+        if (yBar !== undefined) {
+            const whiskerHeight = yBar.lowerPoint.y - yBar.upperPoint.y;
+            components.push(
+                new _Scene.BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight),
+                new _Scene.BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth),
+                new _Scene.BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth)
+            );
+        }
+        if (xBar !== undefined) {
+            const whiskerWidth = xBar.upperPoint.x - xBar.lowerPoint.x;
+            components.push(
+                new _Scene.BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth),
+                new _Scene.BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength),
+                new _Scene.BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength)
+            );
+        }
+        this.bboxes.union = _Scene.BBox.merge(components);
+    }
+
+    override pickNode(x: number, y: number): _Scene.Node | undefined {
+        const point = this.transformPoint(x, y);
+        if (this.containsPoint(point.x, point.y)) {
+            return this;
+        }
+    }
+
+    override containsPoint(x: number, y: number): boolean {
+        if (this.bboxes.union.containsPoint(x, y)) {
+            for (const bbox of this.bboxes.components) {
+                if (bbox.containsPoint(x, y)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

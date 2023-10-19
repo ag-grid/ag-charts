@@ -124,6 +124,7 @@ export class ErrorBars
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: _Scene.Group;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
+    private readonly ctx: _ModuleSupport.SeriesContext;
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
@@ -132,6 +133,7 @@ export class ErrorBars
         super();
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
+        this.ctx = ctx;
         const { annotationGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
@@ -150,6 +152,7 @@ export class ErrorBars
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
+            ctx.interactionManager.addListener('hover', (event) => this.onHoverEvent(event)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode)
         );
@@ -280,6 +283,17 @@ export class ErrorBars
         node.datum = datum;
         node.updateStyle(style);
         node.updateTranslation(this.cap);
+    }
+
+    private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {
+        const { offsetX, offsetY } = event;
+        // TODO(olegat) Add TNode generic type to _Scene.Group to avoid `as ErrorBarNode`
+        const node = this.groupNode.pickNode(offsetX, offsetY) as ErrorBarNode | undefined;
+        if (node?.datum !== undefined) {
+            this.ctx.highlightManager.updateHighlight(this.groupNode.id, node.datum);
+        } else {
+            this.ctx.highlightManager.updateHighlight(this.groupNode.id, undefined);
+        }
     }
 
     private onTooltipGetParams(_event: SeriesTooltipGetParamsEvent) {
