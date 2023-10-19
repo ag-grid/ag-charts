@@ -1,8 +1,8 @@
 import {
     type AgTooltipRendererResult,
-    type AgTreemapSeriesFormat,
     type AgTreemapSeriesFormatterParams,
     type AgTreemapSeriesLabelsOptions,
+    type AgTreemapSeriesStyle,
     type AgTreemapSeriesTooltipRendererParams,
     type FontOptions,
     type TextWrap,
@@ -237,7 +237,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
     gradient: boolean = true;
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesFormat = undefined;
+    formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle = undefined;
 
     @Validate(STRING)
     colorName: string = 'Change';
@@ -517,7 +517,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         return datum === highlightedDatum && (datum.isLeaf || this.highlightGroups);
     }
 
-    private getTileFormat(datum: TreemapNodeDatum, isHighlighted: boolean): AgTreemapSeriesFormat {
+    private getTileFormat(datum: TreemapNodeDatum, isHighlighted: boolean): AgTreemapSeriesStyle {
         const {
             formatter,
             ctx: { callbackCache },

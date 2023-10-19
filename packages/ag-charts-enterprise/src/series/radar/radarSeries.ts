@@ -3,8 +3,7 @@ import type {
     AgPieSeriesFormatterParams,
     AgPieSeriesTooltipRendererParams,
     AgRadarSeriesLabelFormatterParams,
-    AgRadarSeriesMarkerFormat,
-    AgRadarSeriesMarkerFormatterParams,
+    AgRadialSeriesOptionsKeys,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -60,18 +59,12 @@ interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly radiusValue: any;
 }
 
-export class RadarSeriesMarker extends _ModuleSupport.SeriesMarker {
-    @Validate(OPT_FUNCTION)
-    @_Scene.SceneChangeDetection({ redraw: _Scene.RedrawType.MAJOR })
-    formatter?: (params: AgRadarSeriesMarkerFormatterParams<any>) => AgRadarSeriesMarkerFormat = undefined;
-}
-
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {
     static className = 'RadarSeries';
 
     protected override readonly NodeClickEvent = RadarSeriesNodeClickEvent;
 
-    readonly marker = new RadarSeriesMarker();
+    readonly marker = new _ModuleSupport.SeriesMarker<AgRadialSeriesOptionsKeys, RadarNodeDatum>();
     readonly label = new _Scene.Label<AgRadarSeriesLabelFormatterParams>();
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;

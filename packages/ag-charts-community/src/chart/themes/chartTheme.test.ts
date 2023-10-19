@@ -3,7 +3,6 @@ import { fail } from 'assert';
 
 import type {
     AgCartesianChartOptions,
-    AgCartesianSeriesMarkerFormatter,
     AgChartInstance,
     AgChartTheme,
     AgPolarChartOptions,
@@ -43,7 +42,7 @@ describe('ChartTheme', () => {
 
     describe('cartesian overrides', () => {
         const tooltipRenderer = () => 'testing';
-        const markerFormatter: AgCartesianSeriesMarkerFormatter<any> = () => {
+        const markerFormatter = () => {
             return {};
         };
 

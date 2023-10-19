@@ -1,14 +1,14 @@
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { PixelSize } from '../../chart/types';
+import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesMarker } from './cartesianSeriesMarkerOptions';
 
 export type AgBubbleSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
     AgBubbleSeriesOptionsNames;
 
-export interface AgBubbleSeriesMarker<TDatum> extends AgCartesianSeriesMarker<TDatum> {
+export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBubbleSeriesOptionsKeys, TDatum> {
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series sizeKey. */

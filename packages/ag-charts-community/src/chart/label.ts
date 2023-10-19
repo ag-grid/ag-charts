@@ -38,7 +38,7 @@ export class Label<TParams = never, TDatum = any> implements AgChartLabelOptions
     fontFamily = 'Verdana, sans-serif';
 
     @Validate(OPT_FUNCTION)
-    formatter?: (params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>) => string;
+    formatter?: (params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>) => string | undefined;
 
     getFont(): string {
         return getFont(this);

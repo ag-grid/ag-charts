@@ -3,10 +3,9 @@ import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type {
-    AgCartesianSeriesMarkerFormat,
     AgLineSeriesLabelFormatterParams,
+    AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
@@ -17,6 +16,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
+import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { NUMBER, OPT_COLOR_STRING, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
 import { isNumber } from '../../../util/value';
@@ -31,6 +31,7 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type {
     CartesianAnimationData,
@@ -38,15 +39,9 @@ import type {
     CartesianSeriesNodeDatum,
     ErrorBoundSeriesNodeDatum,
 } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
+import { CartesianSeries } from './cartesianSeries';
 import { prepareLinePathAnimation } from './lineUtil';
-import {
-    getMarkerConfig,
-    markerSwipeScaleInAnimation,
-    resetMarkerFn,
-    resetMarkerPositionFn,
-    updateMarker,
-} from './markerUtil';
+import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -71,7 +66,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     static type = 'line' as const;
 
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();
-    readonly marker = new CartesianSeriesMarker();
+    readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();
     readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
     @Validate(OPT_STRING)
@@ -341,40 +336,15 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
-        const {
-            id: seriesId,
-            xKey = '',
-            yKey = '',
-            marker,
+        const { xKey = '', yKey = '', marker, stroke, strokeWidth, strokeOpacity } = this;
+        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle(), {
             stroke,
             strokeWidth,
             strokeOpacity,
-            highlightStyle: { item: markerHighlightStyle },
-            visible,
-            ctx,
-        } = this;
-
-        const customMarker = typeof marker.shape === 'function';
+        });
 
         markerSelection.each((node, datum) => {
-            const styles = getMarkerConfig({
-                datum,
-                highlighted,
-                formatter: marker.formatter,
-                markerStyle: marker,
-                seriesStyle: { stroke, strokeWidth, strokeOpacity },
-                highlightStyle: markerHighlightStyle,
-                seriesId,
-                ctx,
-                xKey,
-                yKey,
-                size: datum.point.size,
-                strokeWidth,
-            });
-
-            const point = this.ctx.animationManager.isSkipped() ? datum.point : undefined;
-            const config = { ...styles, point, visible, customMarker };
-            updateMarker({ node, config });
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle);
         });
 
         if (!highlighted) {
@@ -436,43 +406,23 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const title = sanitizeHtml(this.title ?? yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        const { formatter: markerFormatter, fill: markerFill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
-        const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
+        const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth: this.strokeWidth });
+        const { fill: color } = this.getMarkerStyle(marker, { datum, xKey, yKey, highlighted: false }, baseStyle);
 
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-        if (markerFormatter) {
-            format = markerFormatter({
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
                 datum,
                 xKey,
+                xName,
                 yKey,
-                fill: markerFill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
+                yName,
+                title,
+                color,
                 seriesId,
-            });
-        }
-
-        const color = format?.fill ?? stroke ?? markerFill;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            title,
-            color,
-            seriesId,
-            ...this.getModuleTooltipParams(datum),
-        });
+                ...this.getModuleTooltipParams(datum),
+            }
+        );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {

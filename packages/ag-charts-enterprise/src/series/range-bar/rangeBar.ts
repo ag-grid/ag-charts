@@ -1,8 +1,8 @@
 import type {
     AgRangeBarSeriesFormat,
     AgRangeBarSeriesFormatterParams,
+    AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
-    AgRangeBarSeriesOptionsKeys,
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
 } from 'ag-charts-community';
@@ -103,7 +103,7 @@ class RangeBarSeriesNodeClickEvent<
     }
 }
 
-class RangeBarSeriesLabel extends _Scene.Label<Partial<AgRangeBarSeriesOptionsKeys>> {
+class RangeBarSeriesLabel extends _Scene.Label<AgRangeBarSeriesLabelFormatterParams> {
     @Validate(STRING_UNION('inside', 'outside'))
     placement: AgRangeBarSeriesLabelPlacement = 'inside';
 
@@ -442,22 +442,24 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
 
         const paddingDirection = placement === 'outside' ? 1 : -1;
         const labelPadding = padding * paddingDirection;
+        const labelParams = {
+            datum,
+            xKey: this.xKey ?? '',
+            yLowKey: this.yLowKey ?? '',
+            yHighKey: this.yHighKey ?? '',
+            xName: this.xName,
+            yLowName: this.yLowName,
+            yHighName: this.yHighName,
+            yName: this.yName,
+        };
+
         const yLowLabel: RangeBarNodeLabelDatum = {
             x: rect.x + (barAlongX ? -labelPadding : rect.width / 2),
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(
-                this.label,
-                {
-                    datum,
-                    itemId: 'low',
-                    value: yLowValue,
-                    xKey: this.xKey,
-                    yLowKey: this.yLowKey,
-                    yHighKey: this.yHighKey,
-                },
-                (value) => (isNumber(value) ? value.toFixed(2) : '')
+            text: this.getLabelText(this.label, { itemId: 'low', value: yLowValue, ...labelParams }, (value) =>
+                isNumber(value) ? value.toFixed(2) : ''
             ),
             itemId: 'low',
             datum,
@@ -468,17 +470,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText(
-                this.label,
-                {
-                    datum,
-                    itemId: 'high',
-                    value: yHighValue,
-                    xKey: this.xKey,
-                    yLowKey: this.yLowKey,
-                    yHighKey: this.yHighKey,
-                },
-                (value) => (isNumber(value) ? value.toFixed(2) : '')
+            text: this.getLabelText(this.label, { itemId: 'high', value: yHighValue, ...labelParams }, (value) =>
+                isNumber(value) ? value.toFixed(2) : ''
             ),
             itemId: 'high',
             datum,

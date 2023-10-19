@@ -1,8 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import type {
-    AgCartesianSeriesMarkerFormat,
-    AgCartesianSeriesMarkerFormatterParams,
-} from '../../../options/agChartOptions';
+import type { AgSeriesMarkerStyle } from '../../../options/series/markerOptions';
 import type { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import { PointerEvents } from '../../../scene/node';
@@ -55,8 +52,7 @@ export function areaAnimateEmptyUpdateReady<
         fillData: FillDatum;
         strokeData: StrokeDatum;
     },
-    FormatterParams extends Omit<AgCartesianSeriesMarkerFormatterParams<MarkerNodeDatum>, 'yKey' | 'yValue'>,
-    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined,
+    Formatter extends (...args: any[]) => AgSeriesMarkerStyle | undefined,
 >({
     markerSelections,
     labelSelections,
@@ -77,7 +73,7 @@ export function areaAnimateEmptyUpdateReady<
     seriesId: string;
     styles: AreaSeriesStyleOptions;
     formatter?: Formatter;
-    getFormatterParams: (datum: MarkerNodeDatum) => FormatterParams;
+    getFormatterParams: (datum: MarkerNodeDatum) => Parameters<Formatter>[0];
     ctx: ModuleContext;
 }) {
     const {
@@ -346,8 +342,7 @@ export function areaResetMarkersAndPaths<
         fillData: FillDatum;
         strokeData: StrokeDatum;
     },
-    FormatterParams extends Omit<AgCartesianSeriesMarkerFormatterParams<MarkerNodeDatum>, 'yKey' | 'yValue'>,
-    Formatter extends ((params: FormatterParams) => AgCartesianSeriesMarkerFormat) | undefined,
+    Formatter extends (...args: any[]) => AgSeriesMarkerStyle | undefined,
 >({
     markerSelections,
     labelSelections,
@@ -364,7 +359,7 @@ export function areaResetMarkersAndPaths<
     paths: Array<Array<Path>>;
     styles: AreaSeriesStyleOptions;
     formatter?: Formatter;
-    getFormatterParams: (datum: MarkerNodeDatum) => FormatterParams;
+    getFormatterParams: (datum: MarkerNodeDatum) => Parameters<Formatter>[0];
     ctx: ModuleContext;
 }) {
     const {

@@ -1,5 +1,19 @@
+import type {
+    AgSeriesMarkerFormatterParams,
+    AgSeriesMarkerStyle,
+    ISeriesMarker,
+} from '../../options/series/markerOptions';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
-import { BOOLEAN, NUMBER, OPT_COLOR_STRING, OPT_NUMBER, Validate, predicateWithMessage } from '../../util/validation';
+import type { RequireOptional } from '../../util/types';
+import {
+    BOOLEAN,
+    NUMBER,
+    OPT_COLOR_STRING,
+    OPT_FUNCTION,
+    OPT_NUMBER,
+    Validate,
+    predicateWithMessage,
+} from '../../util/validation';
 import { Circle } from '../marker/circle';
 import { Marker } from '../marker/marker';
 import type { MarkerShape } from '../marker/util';
@@ -10,7 +24,10 @@ const MARKER_SHAPE = predicateWithMessage(
     `expecting a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
 );
 
-export class SeriesMarker extends ChangeDetectable {
+export class SeriesMarker<TParams = never, TDatum = any>
+    extends ChangeDetectable
+    implements ISeriesMarker<TDatum, RequireOptional<TParams>>
+{
     @Validate(BOOLEAN)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     enabled = true;
@@ -43,4 +60,15 @@ export class SeriesMarker extends ChangeDetectable {
     @Validate(OPT_NUMBER(0, 1))
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     strokeOpacity: number = 1;
+
+    @Validate(OPT_FUNCTION)
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    formatter?: (
+        params: AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>
+    ) => AgSeriesMarkerStyle | undefined;
+
+    getStyle(): AgSeriesMarkerStyle {
+        const { size, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this;
+        return { size, fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
+    }
 }

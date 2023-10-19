@@ -3,12 +3,8 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
-import type {
-    AgBaseSeriesOptions,
-    AgBaseSeriesThemeableOptions,
-    AgSeriesHighlightStyle,
-    AgSeriesMarker,
-} from '../seriesOptions';
+import type { AgSeriesMarkerOptions } from '../markerOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -67,7 +63,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
     /** Configuration for the markers used in the series.  */
-    marker?: AgRangeAreaSeriesMarker<TDatum>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys>;
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
@@ -106,10 +102,6 @@ export interface AgRangeAreaSeriesOptions<TDatum = any>
         AgRangeAreaSeriesThemeableOptions<TDatum> {
     /** Configuration for the RangeArea series. */
     type: 'range-area';
-}
-export interface AgRangeAreaSeriesMarker<TDatum> extends AgSeriesMarker {
-    /** Function used to return formatting for individual RangeArea series markers, based on the given parameters. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgRangeAreaSeriesMarkerFormatterParams<TDatum>) => AgRangeAreaSeriesFormat;
 }
 
 /**

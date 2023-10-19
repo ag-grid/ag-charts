@@ -1,9 +1,8 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type {
-    AgCartesianSeriesMarkerFormat,
     AgScatterSeriesLabelFormatterParams,
+    AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
@@ -12,6 +11,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
+import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { COLOR_STRING_ARRAY, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -24,10 +24,11 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesMarker } from './cartesianSeries';
-import { getMarkerConfig, markerScaleInAnimation, resetMarkerFn, updateMarker } from './markerUtil';
+import { CartesianSeries } from './cartesianSeries';
+import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
     readonly label: MeasuredLabel;
@@ -40,7 +41,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     static className = 'ScatterSeries';
     static type = 'scatter' as const;
 
-    readonly marker = new CartesianSeriesMarker();
+    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys, ScatterNodeDatum>();
 
     readonly label = new Label<AgScatterSeriesLabelFormatterParams>();
 
@@ -244,37 +245,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
     }) {
+        const { xKey = '', yKey = '', labelKey, marker } = this;
         const { markerSelection, isHighlight: highlighted } = opts;
-        const {
-            id: seriesId,
-            xKey = '',
-            yKey = '',
-            marker,
-            highlightStyle: { item: markerHighlightStyle },
-            visible,
-            ctx,
-        } = this;
-
-        const customMarker = typeof marker.shape === 'function';
+        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle());
 
         markerSelection.each((node, datum) => {
-            const styles = getMarkerConfig({
-                datum,
-                highlighted,
-                formatter: marker.formatter,
-                markerStyle: marker,
-                seriesStyle: {},
-                highlightStyle: markerHighlightStyle,
-                seriesId,
-                ctx,
-                xKey,
-                yKey,
-                size: datum.point.size,
-                strokeWidth: marker.strokeWidth ?? 1,
-            });
-
-            const config = { ...styles, point: datum.point, visible, customMarker };
-            updateMarker({ node, config });
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle);
         });
 
         if (!highlighted) {
@@ -334,46 +310,20 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             return '';
         }
 
-        const {
+        const { marker, tooltip, xName, yName, labelKey, labelName, id: seriesId, title = yName } = this;
+
+        const baseStyle = mergeDefaults(
+            { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
+            marker.getStyle()
+        );
+
+        const { fill: color = 'gray' } = this.getMarkerStyle(
             marker,
-            tooltip,
-            xName,
-            yName,
-            labelKey,
-            labelName,
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
+            { datum: nodeDatum, highlighted: false, xKey, yKey, labelKey },
+            baseStyle
+        );
 
-        const { stroke } = marker;
-        const fill = nodeDatum.fill ?? marker.fill;
-        const strokeWidth = this.getStrokeWidth(marker.strokeWidth ?? 1);
-
-        const { formatter } = this.marker;
-        let format: AgCartesianSeriesMarkerFormat | undefined;
-
-        if (formatter) {
-            format = callbackCache.call(formatter, {
-                datum: nodeDatum,
-                xKey,
-                yKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size: nodeDatum.point?.size ?? 0,
-                highlighted: false,
-                seriesId,
-            });
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
-        const title = this.title ?? yName;
-        const {
-            datum,
-            xValue,
-            yValue,
-            label: { text: labelText },
-        } = nodeDatum;
+        const { datum, xValue, yValue, label } = nodeDatum;
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
 
@@ -382,28 +332,25 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
 
         if (labelKey) {
-            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(labelText)}<br>` + content;
+            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(label.text)}<br>` + content;
         }
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            labelKey,
-            labelName,
-            title,
-            color,
-            seriesId,
-            ...this.getModuleTooltipParams(datum),
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                datum,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                labelKey,
+                labelName,
+                title,
+                color,
+                seriesId,
+                ...this.getModuleTooltipParams(datum),
+            }
+        );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
