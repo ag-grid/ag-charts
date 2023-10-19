@@ -331,10 +331,27 @@ export async function createChart(options: AgChartOptions) {
     return chart;
 }
 
-export function spyOnAnimationManager(totalDuration: number, ratio: number) {
-    jest.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
-    jest.spyOn(AnimationManager.prototype, 'animate').mockImplementation((opts) => {
-        const controller = new Animation(opts);
-        return controller.update(totalDuration * ratio);
+export function spyOnAnimationManager() {
+    const mocks: jest.SpiedFunction<(...args: any[]) => any>[] = [];
+    const animateParameters = [0, 0];
+    beforeEach(() => {
+        const skippedMock = jest.spyOn(AnimationManager.prototype, 'isSkipped');
+        skippedMock.mockImplementation(() => false);
+
+        const animateMock = jest.spyOn(AnimationManager.prototype, 'animate');
+        animateMock.mockImplementation((opts) => {
+            const controller = new Animation(opts);
+            return controller.update(animateParameters[0] * animateParameters[1]);
+        });
+        mocks.push(skippedMock, animateMock);
     });
+
+    afterEach(() => {
+        mocks.forEach((mock) => mock.mockRestore());
+    });
+
+    return (totalDuration: number, ratio: number) => {
+        animateParameters[0] = totalDuration;
+        animateParameters[1] = ratio;
+    };
 }

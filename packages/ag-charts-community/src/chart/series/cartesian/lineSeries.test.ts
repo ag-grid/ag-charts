@@ -105,7 +105,6 @@ describe('LineSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.resetAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -145,14 +144,11 @@ describe('LineSeries', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
-
+                animate(1200, ratio);
                 const options: AgChartOptions = examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(
                     DATA_FRACTIONAL_LOG_AXIS,
                     'line'
@@ -167,6 +163,8 @@ describe('LineSeries', () => {
     });
 
     describe('category animation', () => {
+        const animate = spyOnAnimationManager();
+
         const data = [
             { quarter: 'week 3', iphone: 60 },
             { quarter: 'week 4', iphone: 185 },
@@ -250,12 +248,12 @@ describe('LineSeries', () => {
         for (const [testCase, changedData, duration = 1200] of animationTestCases) {
             for (const ratio of [0, 0.5, 1]) {
                 it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
-                    spyOnAnimationManager(1200, 1);
+                    animate(1200, 1);
                     prepareTestOptions(options);
                     chart = AgChart.create(options) as Chart;
                     await waitForChartStability(chart);
 
-                    spyOnAnimationManager(duration, ratio);
+                    animate(duration, ratio);
                     AgChart.updateDelta(chart, { data: changedData });
                     await waitForChartStability(chart);
                     await compare();

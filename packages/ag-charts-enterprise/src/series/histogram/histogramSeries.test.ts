@@ -148,13 +148,11 @@ describe('HistogramSeries', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
@@ -167,13 +165,11 @@ describe('HistogramSeries', () => {
     });
 
     describe('remove animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
@@ -188,7 +184,7 @@ describe('HistogramSeries', () => {
                         ),
                     ],
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -197,13 +193,11 @@ describe('HistogramSeries', () => {
     });
 
     describe('add animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
@@ -221,7 +215,7 @@ describe('HistogramSeries', () => {
                 await waitForChartStability(chart);
 
                 AgEnterpriseCharts.update(chart, options);
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -230,13 +224,11 @@ describe('HistogramSeries', () => {
     });
 
     describe('update animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
@@ -252,7 +244,7 @@ describe('HistogramSeries', () => {
                         })),
                     ],
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();

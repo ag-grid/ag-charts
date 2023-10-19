@@ -89,7 +89,7 @@ describe('PolarSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -136,13 +136,11 @@ describe('PolarSeries', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
@@ -154,13 +152,11 @@ describe('PolarSeries', () => {
     });
 
     describe('remove animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
@@ -168,7 +164,7 @@ describe('PolarSeries', () => {
                 chart = AgChart.create(options);
                 await waitForChartStability(chart);
 
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
                 AgChart.update(chart, {
                     ...options,
                     data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
@@ -179,13 +175,11 @@ describe('PolarSeries', () => {
     });
 
     describe('add animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
@@ -196,7 +190,7 @@ describe('PolarSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
                 AgChart.update(chart, { ...options });
 
                 await compare();
@@ -205,13 +199,11 @@ describe('PolarSeries', () => {
     });
 
     describe('update animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
@@ -219,7 +211,7 @@ describe('PolarSeries', () => {
                 chart = AgChart.create(options);
                 await waitForChartStability(chart);
 
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
                 AgChart.update(chart, {
                     ...options,
                     data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),

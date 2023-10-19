@@ -32,7 +32,7 @@ describe('ScatterSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -78,13 +78,11 @@ describe('ScatterSeries', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
@@ -96,13 +94,11 @@ describe('ScatterSeries', () => {
     });
 
     describe('remove animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
@@ -110,7 +106,7 @@ describe('ScatterSeries', () => {
                 chart = AgChart.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                spyOnAnimationManager(900, ratio);
+                animate(900, ratio);
                 AgChart.updateDelta(chart, {
                     data: options.data!.slice(Math.floor(options.data!.length / 2)),
                 });
@@ -121,13 +117,11 @@ describe('ScatterSeries', () => {
     });
 
     describe('add animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
@@ -138,12 +132,12 @@ describe('ScatterSeries', () => {
                 AgChart.updateDelta(chart, {
                     data: options.data!.slice(Math.floor(options.data!.length / 2)),
                 });
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 await waitForChartStability(chart);
 
                 AgChart.update(chart, options);
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await compare();
             });
@@ -151,13 +145,11 @@ describe('ScatterSeries', () => {
     });
 
     describe('update animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
@@ -170,7 +162,7 @@ describe('ScatterSeries', () => {
                         i % 2 === 0 ? { ...d, height: d.height * 1.1 } : d
                     ),
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await compare();
             });
