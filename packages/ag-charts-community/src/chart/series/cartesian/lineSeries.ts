@@ -527,6 +527,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const [oldData] = previousContextData;
 
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
+        if (fns === undefined) {
+            this.updateLinePaths(paths, contextData);
+            return;
+        }
+
         fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
