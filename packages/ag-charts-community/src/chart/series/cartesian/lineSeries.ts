@@ -342,8 +342,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             strokeOpacity,
         });
 
+        const applyTranslation = this.ctx.animationManager.isSkipped();
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
         });
 
         if (!highlighted) {
