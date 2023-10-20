@@ -105,7 +105,7 @@ export class Path extends Shape {
             this.dirtyPath = false;
         }
 
-        if (this.clipPath) {
+        if (this.clipPath && this.clipMode != null) {
             ctx.save();
 
             if (this.clipMode === 'normal') {
