@@ -1,19 +1,7 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgErrorBarCapLengthOptions, AgErrorBarThemeableOptions, _ModuleSupport } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
 
-export interface ErrorBarWhiskerTheme {
-    visible?: boolean;
-    stroke?: string;
-    strokeWidth?: number;
-    strokeOpacity?: number;
-    lineDash?: number[];
-    lineDashOffset?: number;
-}
-
-export interface ErrorBarCapTheme extends ErrorBarWhiskerTheme {
-    length?: number;
-    lengthRatio?: number;
-}
+export type ErrorBoundSeriesNodeDatum = _ModuleSupport.ErrorBoundSeriesNodeDatum;
 
 interface ErrorBarPoint {
     readonly lowerPoint: _Scene.Point;
@@ -25,19 +13,9 @@ export interface ErrorBarPoints {
     readonly yBar?: ErrorBarPoint;
 }
 
-type CapDefaults = _ModuleSupport.ErrorBoundSeriesNodeDatum['capDefaults'];
+type CapDefaults = ErrorBoundSeriesNodeDatum['capDefaults'];
 
 export class ErrorBarNode extends _Scene.Group {
-    private points: ErrorBarPoints = {
-        xBar: {
-            lowerPoint: { x: 0, y: 0 },
-            upperPoint: { x: 0, y: 0 },
-        },
-        yBar: {
-            lowerPoint: { x: 0, y: 0 },
-            upperPoint: { x: 0, y: 0 },
-        },
-    };
     private whiskerPath: _Scene.Path;
     private capsPath: _Scene.Path;
 
@@ -48,7 +26,7 @@ export class ErrorBarNode extends _Scene.Group {
         this.append([this.whiskerPath, this.capsPath]);
     }
 
-    private calculateCapLength(capsTheme: ErrorBarCapTheme, capDefaults: CapDefaults): number {
+    private calculateCapLength(capsTheme: AgErrorBarCapLengthOptions, capDefaults: CapDefaults): number {
         // Order of priorities for determining the length of the cap:
         // 1.  User-defined length (pixels).
         // 2.  User-defined lengthRatio.
@@ -59,19 +37,20 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    update(
-        points: ErrorBarPoints,
-        whiskerTheme: ErrorBarWhiskerTheme,
-        capsTheme: ErrorBarCapTheme,
-        capDefaults: CapDefaults
-    ) {
+    updateStyle(style: AgErrorBarThemeableOptions) {
+        const { whiskerPath, capsPath } = this;
+        const { cap, ...whiskerStyle } = style;
+        const { length, lengthRatio, ...capsStyle } = cap ?? {};
+        Object.assign(whiskerPath, whiskerStyle);
+        Object.assign(capsPath, capsStyle);
+        whiskerPath.markDirty(whiskerPath, _Scene.RedrawType.MINOR);
+        capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
+    }
+
+    updateTranslation(points: ErrorBarPoints, cap: AgErrorBarCapLengthOptions, capDefaults: CapDefaults) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
-        this.points = points;
-        Object.assign(this.whiskerPath, whiskerTheme);
-        Object.assign(this.capsPath, capsTheme);
-
-        const { xBar, yBar } = this.points;
+        const { xBar, yBar } = points;
 
         const whisker = this.whiskerPath;
         whisker.path.clear();
@@ -88,7 +67,7 @@ export class ErrorBarNode extends _Scene.Group {
 
         // Errorbar caps stretch out pendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
-        const capLength = this.calculateCapLength(capsTheme, capDefaults);
+        const capLength = this.calculateCapLength(cap, capDefaults);
         const capOffset = capLength / 2;
         const caps = this.capsPath;
         caps.path.clear();

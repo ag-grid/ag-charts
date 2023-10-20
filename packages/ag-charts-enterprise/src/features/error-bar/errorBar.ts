@@ -1,7 +1,7 @@
-import type { _Scale } from 'ag-charts-community';
+import type { AgErrorBarCapOptions, AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { ErrorBarCapTheme, ErrorBarPoints, ErrorBarWhiskerTheme } from './errorBarNode';
+import type { ErrorBarPoints } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 
 const {
@@ -41,6 +41,7 @@ function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBo
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
+type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 
 type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
@@ -49,7 +50,7 @@ type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
-class ErrorBarCapConfig implements ErrorBarCapTheme {
+class ErrorBarCapConfig implements AgErrorBarCapOptions {
     @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
@@ -77,7 +78,7 @@ class ErrorBarCapConfig implements ErrorBarCapTheme {
 
 export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance, ErrorBarWhiskerTheme
+    implements _ModuleSupport.ModuleInstance, AgErrorBarOptions
 {
     @Validate(OPT_STRING)
     yLowerKey?: string = undefined;
@@ -153,6 +154,7 @@ export class ErrorBars
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
+            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode)
         );
     }
@@ -275,18 +277,17 @@ export class ErrorBars
 
     private update() {
         this.selection.update(this.nodeData, undefined, undefined);
-        this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
+        this.selection.each((node, _datum, i) => this.updateNode(node, i));
     }
 
-    private updateNode(node: ErrorBarNode, _datum: any, index: number) {
+    private updateNode(node: ErrorBarNode, index: number) {
         const { nodeData } = this;
         const points = nodeData[index];
         if (points) {
-            const whiskerProps = this.getWhiskerProperties();
-            const capProps = mergeDefaults(this.cap, whiskerProps);
+            const style = this.getDefaultStyle();
             const capDefaults = this.cartesianSeries.contextNodeData[0].nodeData[index].capDefaults;
-            this.getDatum(index);
-            node.update(points, whiskerProps, capProps, capDefaults);
+            node.updateStyle(style);
+            node.updateTranslation(points, this.cap, capDefaults);
         }
     }
 
@@ -309,15 +310,57 @@ export class ErrorBars
             yUpperName,
         };
     }
+
     private onToggleSeriesItem(event: SeriesVisibilityEvent): void {
         this.groupNode.visible = event.enabled;
+    }
+
+    private getDefaultStyle() {
+        const whiskerStyle = this.getWhiskerProperties();
+        const capStyle = mergeDefaults(this.cap, whiskerStyle);
+        return { ...whiskerStyle, cap: capStyle };
+    }
+
+    private getHighlightStyle() {
+        const style = this.cartesianSeries.highlightStyle.item;
+        const { length, lengthRatio } = this.cap;
+        return { ...style, cap: { ...style, length, lengthRatio } };
+    }
+
+    private restyleHightlightChange(highlightChange: HighlightNodeDatum, style: AgErrorBarThemeableOptions) {
+        // Search for the ErrorBarNode that matches this highlight change. This
+        // isn't a good solution in terms of performance. However, it's assumed
+        // that the typical use case for error bars includes few data points
+        // (because the chart will get cluttered very quickly if there are many
+        // data points with error bars).
+        for (let i = 0; i < this.nodeData.length; i++) {
+            if (highlightChange === this.cartesianSeries.contextNodeData[0].nodeData[i]) {
+                this.selection.nodes()[i].updateStyle(style);
+                break;
+            }
+        }
+    }
+
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        const { previousHighlight, currentHighlight } = event;
+        const { cartesianSeries: thisSeries } = this;
+
+        if (currentHighlight?.series === thisSeries) {
+            // Highlight this node:
+            this.restyleHightlightChange(currentHighlight, this.getHighlightStyle());
+        }
+
+        if (previousHighlight?.series === thisSeries) {
+            // Unhighlight this node:
+            this.restyleHightlightChange(previousHighlight, this.getDefaultStyle());
+        }
     }
 
     private errorBarFactory(): ErrorBarNode {
         return new ErrorBarNode();
     }
 
-    private getWhiskerProperties(): ErrorBarWhiskerTheme {
+    private getWhiskerProperties(): Omit<AgErrorBarThemeableOptions, 'cap'> {
         const { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset } = this;
         return { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset };
     }
