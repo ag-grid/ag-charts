@@ -173,14 +173,14 @@
                     "name": "simple-bubble"
                 },
                 {
-                    "title": "Bubble With Negative Values",
-                    "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
-                    "name": "bubble-with-negative-values"
-                },
-                {
                     "title": "Multiple Bubble Series",
                     "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
                     "name": "multiple-bubble-series"
+                },
+                {
+                    "title": "Bubble With Negative Values",
+                    "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
+                    "name": "bubble-with-negative-values"
                 },
                 {
                     "title": "Bubble With Categories",
