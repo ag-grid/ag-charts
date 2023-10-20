@@ -200,7 +200,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,
-                capDefaults: { lengthRatioMultiplier: marker.size, lengthMax: Infinity },
+                capDefaults: { lengthRatioMultiplier: this.marker.getDiameter(), lengthMax: Infinity },
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
                 fill,
