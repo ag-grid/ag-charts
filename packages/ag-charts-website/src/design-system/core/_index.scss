@@ -1,8 +1,8 @@
-@forward 'variables';
-@forward 'breakpoints' as breakpoint-*;
+@forward "variables";
+@forward "breakpoints" as breakpoint-*;
 
-@forward 'utils';
+@forward "utils";
 
-@forward 'mixins/layout-mixins';
-@forward 'mixins/table-mixins';
-@forward 'mixins/typography-mixins';
+@forward "mixins/layout-mixins";
+@forward "mixins/table-mixins";
+@forward "mixins/typography-mixins";
