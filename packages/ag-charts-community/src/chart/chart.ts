@@ -52,6 +52,7 @@ import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
+import type { ErrorBoundSeriesNodeDatum } from './series/cartesian/cartesianSeries';
 import type { Series, SeriesNodeDatum } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
@@ -1311,12 +1312,19 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.fireEvent(seriesNodeDoubleClick);
     };
 
-    private mergePointerDatum(meta: PointerMeta, datum: SeriesNodeDatum): PointerMeta {
+    private mergePointerDatum(
+        meta: PointerMeta,
+        datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
+    ): PointerMeta {
         const { type } = datum.series.tooltip.position;
 
-        if (type === 'node' && datum.midPoint) {
+        // On line and scatter series, the tooltip covers the top of errorbars when using
+        // datum.midPoint. Using datum.yBar.upperPoint renders the tooltip higher up.
+        const refPoint: Point | undefined = datum.yBar?.upperPoint ?? datum.midPoint;
+
+        if (type === 'node' && refPoint) {
             const { window } = this.specialOverrides;
-            const { x, y } = datum.midPoint;
+            const { x, y } = refPoint;
             const { canvas } = this.scene;
             const point = datum.series.contentGroup.inverseTransformPoint(x, y);
             const canvasRect = canvas.element.getBoundingClientRect();
