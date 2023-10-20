@@ -1,4 +1,8 @@
 import type { BBox } from '../../scene/bbox';
+import type { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
+import type { Point } from '../../scene/point';
+import type { ErrorBoundSeriesNodeDatum } from '../series/cartesian/cartesianSeries';
+import type { SeriesNodeDatum } from '../series/series';
 import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
 import type { InteractionEvent, InteractionManager } from './interactionManager';
 
@@ -105,5 +109,47 @@ export class TooltipManager {
         }
 
         this.appliedState = { content: contentToApply, meta: metaToApply };
+    }
+
+    public static makeTooltipMeta(
+        event: InteractionEvent<'hover'>,
+        canvas: HdpiCanvas,
+        datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+        window: Window
+    ): TooltipMeta {
+        const { pageX, pageY, offsetX, offsetY } = event;
+        const position = {
+            xOffset: datum.series.tooltip.position.xOffset,
+            yOffset: datum.series.tooltip.position.yOffset,
+        };
+        const meta: TooltipMeta = {
+            pageX,
+            pageY,
+            offsetX,
+            offsetY,
+            event: event,
+            showArrow: datum.series.tooltip.showArrow,
+            position,
+        };
+
+        // On line and scatter series, the tooltip covers the top of errorbars when using
+        // datum.midPoint. Using datum.yBar.upperPoint renders the tooltip higher up.
+        const refPoint: Point | undefined = datum.yBar?.upperPoint ?? datum.midPoint;
+
+        if (datum.series.tooltip.position.type === 'node' && refPoint) {
+            const { x, y } = refPoint;
+            const point = datum.series.contentGroup.inverseTransformPoint(x, y);
+            const canvasRect = canvas.element.getBoundingClientRect();
+            return {
+                ...meta,
+                pageX: Math.round(canvasRect.left + window.scrollX + point.x),
+                pageY: Math.round(canvasRect.top + window.scrollY + point.y),
+                offsetX: Math.round(point.x),
+                offsetY: Math.round(point.y),
+            };
+        }
+        meta.enableInteraction = datum.series.tooltip.interaction?.enabled ?? false;
+
+        return meta;
     }
 }

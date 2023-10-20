@@ -286,13 +286,18 @@ export class ErrorBars
     }
 
     private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {
-        const { offsetX, offsetY } = event;
-        // TODO(olegat) Add TNode generic type to _Scene.Group to avoid `as ErrorBarNode`
-        const node = this.groupNode.pickNode(offsetX, offsetY) as ErrorBarNode | undefined;
+        const { scene, highlightManager, tooltipManager, window } = this.ctx;
+        const { id } = this.groupNode;
+
+        const node = this.groupNode.pickNode(event.offsetX, event.offsetY);
         if (node?.datum !== undefined) {
-            this.ctx.highlightManager.updateHighlight(this.groupNode.id, node.datum);
+            const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, node.datum, window);
+            const html = this.cartesianSeries.getTooltipHtml(node.datum);
+            highlightManager.updateHighlight(id, node.datum);
+            tooltipManager.updateTooltip(id, meta, html);
         } else {
-            this.ctx.highlightManager.updateHighlight(this.groupNode.id, undefined);
+            highlightManager.updateHighlight(id, undefined);
+            tooltipManager.removeTooltip(id);
         }
     }
 
