@@ -91,7 +91,7 @@ const { series } = galleryData;
         display: flex;
         flex-direction: row;
         position: relative;
-        background-color: var(--ghost-blue);
+        background-color: var(--background-100);
 
     }
 
@@ -103,8 +103,8 @@ const { series } = galleryData;
         top: $site-header-height;
         padding-top: calc($size-7 + $size-2);
         padding-left: var(--horizontal-padding);
-        background-color: var(--white);
-        border-right: solid 1px var(--bright-blue-gray);
+        background-color: var(--default-background-color);
+        border-right: solid 1px var(--neutral-200);
         overflow-y: scroll;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
@@ -180,7 +180,7 @@ const { series } = galleryData;
         height: $size-8;
         bottom: 0;
         left: 0;
-        background: linear-gradient(transparent, white);
+        background: linear-gradient(transparent, var(--default-background-color));
         pointer-events: none;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
