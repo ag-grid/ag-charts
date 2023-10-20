@@ -63,7 +63,6 @@
     @each $name, $var-name in $dark-semantic-colors {
         --#{$name}: var(--#{$var-name});
     }
-
     --color-scheme: dark;
 }
 
