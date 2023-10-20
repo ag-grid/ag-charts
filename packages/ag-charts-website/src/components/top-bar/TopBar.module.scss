@@ -9,6 +9,10 @@
         top: 0;
         z-index: 3;
     }
+
+    #{$darkmode-selector} & {
+        border-bottom: 1px solid #394755;
+    }
 }
 
 .topBarInner {

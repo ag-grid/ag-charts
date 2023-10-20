@@ -59,6 +59,10 @@
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         width: auto;
     }
+
+    #{$darkmode-selector} & {
+        border: 1px solid #354856;
+    }
 }
 
 .frameworkSelector.showSelected .option {
@@ -134,7 +138,7 @@
     }
 
     #{$darkmode-selector} & {
-        background-color: var(--background-500);
+        background-color: var(--background-300);
     }
 }
 
