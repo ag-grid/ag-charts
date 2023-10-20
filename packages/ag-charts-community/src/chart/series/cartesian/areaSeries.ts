@@ -1,4 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { resetMotion } from '../../../motion/resetMotion';
 import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesOptionsKeys,
@@ -9,8 +10,11 @@ import type {
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';
+import { PointerEvents } from '../../../scene/node';
+import { Path2D } from '../../../scene/path2D';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
+import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
@@ -28,23 +32,19 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import {
-    type AreaPathDatum,
-    type AreaPathPoint,
-    AreaSeriesTag,
-    areaAnimateEmptyUpdateReady,
-    areaAnimateReadyUpdate,
-    areaResetMarkersAndPaths,
-} from './areaUtil';
+import { type AreaPathDatum, type AreaPathPoint, AreaSeriesTag } from './areaUtil';
 import type {
     CartesianAnimationData,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
 } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
+import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import { pathSwipeInAnimation, resetPathFn } from './pathUtil';
 
 interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
     readonly index: number;
@@ -120,6 +120,12 @@ export class AreaSeries extends CartesianSeries<
             pathsPerSeries: 2,
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
+            markerSelectionGarbageCollection: false,
+            animationResetFns: {
+                path: resetPathFn,
+                label: resetLabelFn,
+                marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+            },
         });
     }
 
@@ -442,6 +448,49 @@ export class AreaSeries extends CartesianSeries<
         return new MarkerShape();
     }
 
+    protected override async updatePaths(opts: { paths: Path[] }) {
+        const [fill, stroke] = opts.paths;
+        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
+
+        const strokeWidth = this.getStrokeWidth(this.strokeWidth);
+        stroke.setProperties({
+            tag: AreaSeriesTag.Stroke,
+            fill: undefined,
+            lineJoin: (stroke.lineCap = 'round'),
+            pointerEvents: PointerEvents.None,
+            stroke: this.stroke,
+            strokeWidth,
+            strokeOpacity: this.strokeOpacity,
+            lineDash: this.lineDash,
+            lineDashOffset: this.lineDashOffset,
+        });
+        fill.setProperties({
+            tag: AreaSeriesTag.Fill,
+            stroke: undefined,
+            lineJoin: 'round',
+            pointerEvents: PointerEvents.None,
+            fill: this.fill,
+            fillOpacity: this.fillOpacity,
+            lineDash: this.lineDash,
+            lineDashOffset: this.lineDashOffset,
+            strokeOpacity: this.strokeOpacity,
+            fillShadow: this.shadow,
+            strokeWidth,
+        });
+
+        const updateClipPath = (path: Path) => {
+            if (path.clipPath == null) {
+                path.clipPath = new Path2D();
+                path.clipScalingX = 1;
+                path.clipScalingY = 1;
+            }
+            path.clipPath?.clear({ trackChanges: true });
+            path.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
+        };
+        updateClipPath(stroke);
+        updateClipPath(fill);
+    }
+
     protected override async updateMarkerSelection(opts: {
         nodeData: MarkerSelectionDatum[];
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
@@ -585,80 +634,78 @@ export class AreaSeries extends CartesianSeries<
         ];
     }
 
-    override animateEmptyUpdateReady({
-        markerSelections,
-        labelSelections,
-        contextData,
-        paths,
-        seriesRect,
-    }: AreaAnimationData) {
-        const { seriesId, styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
-        areaAnimateEmptyUpdateReady({
-            markerSelections,
-            labelSelections,
-            contextData,
-            paths,
-            seriesRect,
-            styles,
-            seriesId,
-            ctx,
-            formatter,
-            getFormatterParams,
+    private updateAreaPaths(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
+        contextData.forEach(({ strokeData, fillData }, contextDataIndex) => {
+            const [fill, stroke] = paths[contextDataIndex];
+
+            const { path: strokePath } = stroke;
+            strokePath.clear({ trackChanges: true });
+            let moveTo = true;
+            for (const point of strokeData.points) {
+                if (point.yValue === undefined || isNaN(point.x) || isNaN(point.y)) {
+                    moveTo = true;
+                } else if (moveTo) {
+                    strokePath.moveTo(point.x, point.y);
+                    moveTo = false;
+                } else {
+                    strokePath.lineTo(point.x, point.y);
+                }
+            }
+            stroke.checkPathDirty();
+
+            const { path: fillPath } = fill;
+            fillPath.clear({ trackChanges: true });
+            moveTo = true;
+            for (const point of fillData.points) {
+                if (moveTo) {
+                    fillPath.moveTo(point.x, point.y);
+                    moveTo = false;
+                } else {
+                    fillPath.lineTo(point.x, point.y);
+                }
+            }
+            fillPath.closePath();
+            fill.checkPathDirty();
         });
     }
 
-    override animateReadyUpdate({ contextData, paths }: AreaAnimationData) {
-        const { styles } = this.getAnimationOptions();
-        areaAnimateReadyUpdate({ contextData, paths, styles });
+    override animateEmptyUpdateReady(animationData: AreaAnimationData) {
+        const { markerSelections, labelSelections, contextData, paths } = animationData;
+        const { animationManager } = this.ctx;
+        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
+
+        this.updateAreaPaths(paths, contextData);
+        pathSwipeInAnimation(this, animationManager, paths.flat());
+        resetMotion(markerSelections, resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
-    override animateReadyResize({ contextData, markerSelections, labelSelections, paths }: AreaAnimationData) {
-        const { styles, ctx, formatter, getFormatterParams } = this.getAnimationOptions();
+    protected override animateReadyResize(animationData: AreaAnimationData): void {
+        const { contextData, paths } = animationData;
+        this.updateAreaPaths(paths, contextData);
 
-        areaResetMarkersAndPaths({
-            contextData,
-            markerSelections,
-            labelSelections,
-            paths,
-            styles,
-            ctx,
-            formatter,
-            getFormatterParams,
-        });
+        super.animateReadyResize(animationData);
     }
 
-    getAnimationOptions() {
-        const { id: seriesId, ctx, xKey = '', yKey = '', marker } = this;
-        const styles = {
-            stroke: this.stroke,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
-            strokeOpacity: this.strokeOpacity,
-            shadow: this.shadow,
-            strokeWidth: this.getStrokeWidth(this.strokeWidth),
-        };
+    override animateReadyUpdate(animationData: AreaAnimationData) {
+        const { animationManager } = this.ctx;
+        const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
 
-        const { size, formatter } = marker;
-        const fill = marker.fill ?? styles.fill;
-        const stroke = marker.stroke ?? styles.stroke;
-        const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
-        const getFormatterParams = (nodeDatum: MarkerSelectionDatum) => {
-            return {
-                datum: nodeDatum.datum,
-                xKey,
-                yKey,
-                seriesId,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                highlighted: false,
-            };
-        };
+        super.resetAllAnimation(animationData);
 
-        return { seriesId, styles, ctx, formatter, getFormatterParams };
+        if (
+            contextData.length === 0 ||
+            !previousContextData ||
+            previousContextData.length === 0 ||
+            !contextData.every((d) => d.animationValid) ||
+            !previousContextData.every((d) => d.animationValid)
+        ) {
+            this.updateAreaPaths(paths, contextData);
+            return;
+        }
+
+        this.updateAreaPaths(paths, contextData);
     }
 
     protected isLabelEnabled() {

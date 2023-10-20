@@ -51,7 +51,7 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationResetFns?: {
-        path?: (path: Path) => AnimationValue & Partial<Path>;
+        path?: (path: Path) => Partial<Path>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
         marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
