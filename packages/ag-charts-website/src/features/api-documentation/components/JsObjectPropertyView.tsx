@@ -29,12 +29,13 @@ interface Props {
 
 function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
     const displayNameSplit = splitName(name);
-    const headingPath = removeTopLevelPath(path);
+    const keepTopLevelIfOnlyItem = !displayNameSplit;
+    const headingPath = removeTopLevelPath({ path, keepTopLevelIfOnlyItem });
     const pathSeparator = name && headingPath.length > 0 ? '.' : '';
 
     return (
         <h6 className={classnames(styles.name, 'side-menu-exclude')}>
-            <HeadingPath path={path} ignoreTopLevelPath={true} />
+            <HeadingPath path={path} keepTopLevelIfOnlyItem={keepTopLevelIfOnlyItem} />
             <span>
                 {pathSeparator}
                 {displayNameSplit && <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>}

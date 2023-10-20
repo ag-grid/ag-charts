@@ -2,9 +2,9 @@ import { createUnionNestedObjectPathItemRegex } from '../utils/modelPath';
 import { removeTopLevelPath } from '../utils/removeTopLevelPath';
 import styles from './ApiDocumentation.module.scss';
 
-export function HeadingPath({ path, ignoreTopLevelPath }: { path: string[]; ignoreTopLevelPath?: boolean }) {
+export function HeadingPath({ path, keepTopLevelIfOnlyItem }: { path: string[]; keepTopLevelIfOnlyItem?: boolean }) {
     const regex = createUnionNestedObjectPathItemRegex();
-    const headingPath = ignoreTopLevelPath ? removeTopLevelPath(path) : path;
+    const headingPath = removeTopLevelPath({ path, keepTopLevelIfOnlyItem });
 
     return (
         headingPath.length > 0 && (
