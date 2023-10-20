@@ -185,24 +185,28 @@ describe('Chart', () => {
     });
 
     describe('initial animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for WATERFALL_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
                 const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgEnterpriseCharts.create(options);
-                await waitForChartStability(chart, 1200 * ratio);
+                await waitForChartStability(chart);
                 await compare();
             });
 
             it(`for horizontal WATERFALL_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
                 const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal') };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgEnterpriseCharts.create(options);
-                await waitForChartStability(chart, 1200 * ratio);
+                await waitForChartStability(chart);
                 await compare();
             });
         }

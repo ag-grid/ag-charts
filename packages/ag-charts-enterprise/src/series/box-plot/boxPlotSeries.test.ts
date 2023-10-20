@@ -61,16 +61,16 @@ describe('Chart', () => {
     });
 
     describe('initial animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for BOX_PLOT_BAR_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
                 const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                const chart = AgEnterpriseCharts.create(options);
-                await waitForChartStability(chart, 1200 * ratio);
-                await compareSnapshot(chart);
+                await compareSnapshot(AgEnterpriseCharts.create(options));
             });
         }
     });

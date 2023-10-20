@@ -144,10 +144,11 @@ describe('LineSeries', () => {
     });
 
     describe('initial animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS should animate at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
                 const options: AgChartOptions = examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(
                     DATA_FRACTIONAL_LOG_AXIS,
                     'line'
@@ -155,14 +156,14 @@ describe('LineSeries', () => {
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options) as Chart;
-                await waitForChartStability(chart, 1200 * ratio);
+                await waitForChartStability(chart);
                 await compare();
             });
         }
     });
 
     describe('category animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         const data = [
             { quarter: 'week 3', iphone: 60 },
@@ -250,10 +251,11 @@ describe('LineSeries', () => {
                     animate(1200, 1);
                     prepareTestOptions(options);
                     chart = AgChart.create(options) as Chart;
-                    await waitForChartStability(chart, duration);
+                    await waitForChartStability(chart);
 
+                    animate(duration, ratio);
                     AgChart.updateDelta(chart, { data: changedData });
-                    await waitForChartStability(chart, duration * ratio);
+                    await waitForChartStability(chart);
                     await compare();
                 });
             }

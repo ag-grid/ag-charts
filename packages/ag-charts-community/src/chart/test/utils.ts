@@ -18,7 +18,7 @@ import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import * as mockCanvas from './mock-canvas';
 
-const { AnimationManager, resetIds } = _ModuleSupport;
+const { Animation, AnimationManager, resetIds } = _ModuleSupport;
 
 export interface TestCase {
     options: AgChartOptions;
@@ -347,6 +347,7 @@ export function spyOnAnimationManager() {
     const mocks: jest.SpiedFunction<(...args: any[]) => any>[] = [];
     const rafCbs: Map<number, Parameters<typeof requestAnimationFrame>[0]> = new Map();
     let nextRafId = 1;
+    const animateParameters = [0, 0];
 
     let time = Date.now();
     const animateCb = async (totalDuration: number, ratio: number) => {
@@ -360,6 +361,12 @@ export function spyOnAnimationManager() {
     beforeEach(() => {
         const skippedMock = jest.spyOn(AnimationManager.prototype, 'isSkipped');
         skippedMock.mockImplementation(() => false);
+
+        const animateMock = jest.spyOn(AnimationManager.prototype, 'animate');
+        animateMock.mockImplementation((opts) => {
+            const controller = new Animation(opts);
+            return controller.update(animateParameters[0] * animateParameters[1]);
+        });
         const skippingFramesMock = jest.spyOn(AnimationManager.prototype, 'isSkippingFrames');
         skippingFramesMock.mockImplementation(() => false);
 
@@ -370,7 +377,7 @@ export function spyOnAnimationManager() {
             const rafId = nextRafId++;
             rafCbs.set(rafId, cb);
         });
-        mocks.push(skippedMock, skippingFramesMock, safMock);
+        mocks.push(skippedMock, animateMock, skippingFramesMock, safMock);
 
         if (activeAnimateCb) throw new Error('activeAnimateCb already initialized - something is very wrong!');
         activeAnimateCb = animateCb;
@@ -382,5 +389,8 @@ export function spyOnAnimationManager() {
         rafCbs.clear();
     });
 
-    return animateCb;
+    return (totalDuration: number, ratio: number) => {
+        animateParameters[0] = totalDuration;
+        animateParameters[1] = ratio;
+    };
 }

@@ -78,35 +78,38 @@ describe('ScatterSeries', () => {
     });
 
     describe('initial animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options) as Chart;
-                await waitForChartStability(chart, 1200 * ratio);
                 await compare();
             });
         }
     });
 
     describe('remove animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options) as Chart;
-                await waitForChartStability(chart, 1200 * ratio);
+                await waitForChartStability(chart);
 
+                animate(900, ratio);
                 AgChart.updateDelta(chart, {
                     data: options.data!.slice(Math.floor(options.data!.length / 2)),
                 });
-                await waitForChartStability(chart, 900 * ratio);
 
                 await compare();
             });
@@ -114,45 +117,53 @@ describe('ScatterSeries', () => {
     });
 
     describe('add animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options) as Chart;
-                await waitForChartStability(chart, 1200);
+                await waitForChartStability(chart);
 
                 AgChart.updateDelta(chart, {
                     data: options.data!.slice(Math.floor(options.data!.length / 2)),
                 });
-                await waitForChartStability(chart, 1200);
+                animate(1200, 1);
+
+                await waitForChartStability(chart);
 
                 AgChart.update(chart, options);
-                await waitForChartStability(chart, 1200 * ratio);
+                animate(1200, ratio);
+
                 await compare();
             });
         }
     });
 
     describe('update animation', () => {
-        spyOnAnimationManager();
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
                 chart = AgChart.create(options) as Chart;
-                await waitForChartStability(chart, 1200);
+                await waitForChartStability(chart);
 
                 AgChart.updateDelta(chart, {
                     data: options.data!.map((d: any, i: number) =>
                         i % 2 === 0 ? { ...d, height: d.height * 1.1 } : d
                     ),
                 });
-                await waitForChartStability(chart, 1200 * ratio);
+                animate(1200, ratio);
+
                 await compare();
             });
         }
