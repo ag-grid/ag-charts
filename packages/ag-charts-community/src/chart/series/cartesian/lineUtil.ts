@@ -329,14 +329,14 @@ export function prepareLinePathAnimation(
         if (status === 'unknown') return { opacity: 0 };
 
         const defaults = {
-            translationX: marker.translationX,
-            translationY: marker.translationY,
+            translationX: point?.from?.x ?? marker.translationX,
+            translationY: point?.from?.y ?? marker.translationY,
             opacity: marker.opacity,
             ...FROM_TO_MIXINS[status],
         };
 
         if (status === 'added') {
-            return { ...defaults, opacity: 0, translationX: point?.from?.x, translationY: point?.from?.y };
+            return { ...defaults, opacity: 0 };
         }
 
         return defaults;
