@@ -282,7 +282,7 @@ export class ErrorBars
         const style = this.getDefaultStyle();
         node.datum = datum;
         node.updateStyle(style);
-        node.updateTranslation(this.cap);
+        node.updateTranslation(this.cap, this.ctx.tooltipManager.getRange());
     }
 
     private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {

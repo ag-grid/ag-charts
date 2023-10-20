@@ -1,5 +1,6 @@
 import type { AgErrorBarCapLengthOptions, AgErrorBarThemeableOptions, _ModuleSupport } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
+import type { InteractionRange } from 'ag-charts-community';
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 
@@ -53,7 +54,7 @@ export class ErrorBarNode extends _Scene.Group {
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
     }
 
-    updateTranslation(cap: AgErrorBarCapLengthOptions) {
+    updateTranslation(cap: AgErrorBarCapLengthOptions, range: InteractionRange) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
@@ -112,6 +113,12 @@ export class ErrorBarNode extends _Scene.Group {
                 new _Scene.BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength),
                 new _Scene.BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength)
             );
+        }
+        const expansion = typeof range === 'string' ? 0 : range;
+        if (expansion > 0) {
+            for (const bbox of components) {
+                bbox.grow({ top: expansion, bottom: expansion, left: expansion, right: expansion });
+            }
         }
         this.bboxes.union = _Scene.BBox.merge(components);
     }

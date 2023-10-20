@@ -29,6 +29,10 @@ export class TooltipManager {
         this.destroyFns.push(interactionManager.addListener('hover', (e) => this.checkExclusiveRects(e)));
     }
 
+    public getRange() {
+        return this.tooltip.range;
+    }
+
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: string) {
         if (content == null) {
             content = this.states[callerId]?.content;
