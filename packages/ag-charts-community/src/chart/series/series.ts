@@ -806,13 +806,18 @@ export abstract class Series<
         markerNode: Marker,
         marker: ISeriesMarker<TDatum, TParams>,
         params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum['datum']>, 'seriesId'>,
-        defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
+        defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
+        { applyTranslation = true } = {}
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
+        if (applyTranslation) {
+            markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
+        } else {
+            markerNode.setProperties({ visible, ...activeStyle });
+        }
 
         // Only for custom marker shapes
         if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {

@@ -19,13 +19,13 @@ export type FromToMotionPropFnContext<T> = {
     prevLive?: T;
     nextLive?: T;
 };
-type ExtraOpts = { animationDelay?: number; animationDuration?: number };
+type ExtraOpts<T> = { animationDelay?: number; animationDuration?: number; start?: Partial<T>; finish?: Partial<T> };
 export type FromToMotionPropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
     node: N,
     datum: D,
     state: NodeUpdateState,
     ctx: FromToMotionPropFnContext<N>
-) => T & ExtraOpts;
+) => T & ExtraOpts<N>;
 type IntermediateFn<N extends Node, D> = (
     node: N,
     datum: D,
@@ -111,11 +111,15 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             const {
                 animationDelay: delay,
                 animationDuration: duration,
+                start = {},
+                finish = {},
                 ...from
             } = fromFn(node, node.datum, status, ctx);
             const {
                 animationDelay: toDelay,
                 animationDuration: toDuration,
+                start: toStart = {},
+                finish: toFinish = {},
                 ...to
             } = toFn(node, node.datum, status, ctx);
 
@@ -125,14 +129,17 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 from: from as T,
                 to: to as T,
                 ease: easing.easeOut,
+                onPlay: () => {
+                    node.setProperties({ ...start, ...toStart });
+                },
                 onUpdate(props) {
                     node.setProperties(props);
                     if (intermediateFn) {
                         node.setProperties(intermediateFn(node, node.datum, status, ctx));
                     }
                 },
-                onStop() {
-                    node.setProperties(to as T);
+                onStop: () => {
+                    node.setProperties({ ...to, ...finish, ...toFinish } as T);
                 },
                 duration: (duration ?? toDuration ?? 1) * defaultDuration,
                 delay: (delay ?? toDelay ?? 0) * defaultDuration,
@@ -179,28 +186,38 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
  * @param to node final properties
  * @param extraOpts optional additional animation properties to pass to AnimationManager#animate.
  */
-export function staticFromToMotion<N extends Node, T extends AnimationValue & Partial<N>, D>(
+export function staticFromToMotion<N extends Node, T extends AnimationValue & Partial<N> & object, D>(
     groupId: string,
     subId: string,
     animationManager: AnimationManager,
     selectionsOrNodes: Selection<N, D>[] | N[],
     from: T,
     to: T,
-    extraOpts: ExtraOpts = {}
+    extraOpts: ExtraOpts<N> = {}
 ) {
     const isNodes = isNodeArray(selectionsOrNodes);
     const nodes = isNodes ? selectionsOrNodes : [];
     const selections = !isNodes ? selectionsOrNodes : [];
-    const { animationDelay = 0, animationDuration = 1 } = extraOpts;
+    const { animationDelay = 0, animationDuration = 1, start = {}, finish = {} } = extraOpts;
     const { defaultDuration } = animationManager;
 
     // Simple static to/from case, we can batch updates.
     animationManager.animate({
-        id: `${groupId}_${subId}_batch`,
+        id: `${groupId}_${subId}`,
         groupId,
         from,
         to,
         ease: easing.easeOut,
+        onPlay: () => {
+            for (const node of nodes) {
+                node.setProperties(start);
+            }
+            for (const selection of selections) {
+                for (const node of selection.nodes()) {
+                    node.setProperties(start);
+                }
+            }
+        },
         onUpdate(props) {
             for (const node of nodes) {
                 node.setProperties(props);
@@ -211,13 +228,13 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
                 }
             }
         },
-        onStop() {
+        onStop: () => {
             for (const node of nodes) {
-                node.setProperties(to);
+                node.setProperties({ ...to, ...finish });
             }
             for (const selection of selections) {
                 for (const node of selection.nodes()) {
-                    node.setProperties(to);
+                    node.setProperties({ ...to, ...finish });
                 }
             }
         },
