@@ -1,4 +1,4 @@
-import { isPathExactMatch } from '@utils/isPathExactMatch';
+import { isPathMatch } from '@utils/isPathMatch';
 
 import type { JsObjectPropertiesViewConfig } from '../types';
 
@@ -20,12 +20,7 @@ export function getShouldLimitParent({
     let shouldLimitParent = false;
     for (let i = 0; i < limitChildrenProperties.length; i++) {
         const property = limitChildrenProperties[i];
-        const propertyPath = property.split('.');
-        const hasWildcardEnd = propertyPath[propertyPath.length - 1] === '*';
-        const pathLongerThanPropertyMatcher = path.length + 1 > propertyPath.length;
-        const isWildcardEndMatch = hasWildcardEnd && pathLongerThanPropertyMatcher;
-
-        if (isPathExactMatch({ path, pathItem, pathMatcher: property }) || isWildcardEndMatch) {
+        if (isPathMatch({ path, pathItem, pathMatcher: property })) {
             shouldLimitParent = true;
             break;
         }
