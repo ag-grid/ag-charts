@@ -620,6 +620,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const bbox = BBox.merge(boxes);
         const transformedBBox = getTransformBox(bbox);
 
+        const anySeriesActive = this.isAnySeriesActive();
+        this.crossLines?.forEach((crossLine) => {
+            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
+            crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            if (crossLine instanceof CartesianCrossLine) {
+                crossLine.label.parallel = crossLine.label.parallel ?? this.label.parallel;
+            }
+            crossLine.parallelFlipRotation = parallelFlipRotation;
+            crossLine.regularFlipRotation = regularFlipRotation;
+            crossLine.calculateLayout(anySeriesActive);
+        });
+
         this.updateLayoutState();
 
         primaryTickCount = ticksResult.primaryTickCount;

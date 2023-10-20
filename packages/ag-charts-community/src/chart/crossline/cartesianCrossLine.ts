@@ -6,7 +6,7 @@ import type {
 } from '../../options/agChartOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
 import type { Point } from '../../scene/point';
@@ -200,6 +200,40 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         this.group.zIndex = this.getZIndex(this.isRange);
     }
 
+    calculateLayout(visible: boolean): BBox | undefined {
+        if (!visible) {
+            return;
+        }
+
+        const dataCreated = this.createNodeData();
+        if (!dataCreated) {
+            return;
+        }
+
+        const {
+            sideFlag,
+            gridLength,
+            data,
+        } = this;
+
+        const boxes: BBox[] = [];
+
+        const x1 = 0;
+        const x2 = sideFlag * gridLength;
+        const y1 = data[0];
+        const y2 = data[1];
+        const crossLineBox = new BBox(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
+        boxes.push(crossLineBox);
+
+
+        const labelBox = this.computeLabelBBox();
+        if (labelBox) {
+            boxes.push(labelBox);
+        }
+
+        return BBox.merge(boxes)
+    }
+
     private updateNodes() {
         this.updateRangeNode();
 
@@ -362,7 +396,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         crossLineLabel.textBaseline = 'middle';
         crossLineLabel.textAlign = 'center';
 
-        const bbox = this.computeLabelBBox();
+        const bbox = crossLineLabel.computeTransformedBBox();
 
         if (!bbox) {
             return;
@@ -415,7 +449,59 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     }
 
     private computeLabelBBox(): BBox | undefined {
-        return this.crossLineLabel.computeTransformedBBox();
+        const { label } = this;
+        if (!label.enabled) {
+            return undefined;
+        }
+        const tempText = new Text();
+        tempText.fontFamily = label.fontFamily;
+        tempText.fontSize = label.fontSize;
+        tempText.fontStyle = label.fontStyle;
+        tempText.fontWeight = label.fontWeight;
+        tempText.text = label.text;
+
+        const {
+            labelPoint: { x = undefined, y = undefined } = {},
+            label: { parallel, rotation, position = 'top', padding = 0 },
+            direction,
+            parallelFlipRotation,
+            regularFlipRotation,
+        } = this;
+    
+        if (x === undefined || y === undefined) {
+            return undefined;
+        }
+    
+        const { configuredRotation } = calculateLabelRotation({
+            rotation,
+            parallel,
+            regularFlipRotation,
+            parallelFlipRotation,
+        });
+    
+        tempText.rotation = configuredRotation;
+    
+        tempText.textBaseline = 'middle';
+        tempText.textAlign = 'center';
+    
+        const bbox = tempText.computeTransformedBBox();
+    
+        if (!bbox) {
+            return undefined;
+        }
+    
+        const yDirection = direction === ChartAxisDirection.Y;
+        const { xTranslation, yTranslation } = calculateLabelTranslation({
+            yDirection,
+            padding,
+            position,
+            bbox,
+        });
+    
+        tempText.translationX = x + xTranslation;
+        tempText.translationY = y + yTranslation;
+
+        return tempText.computeTransformedBBox();
     }
 
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>) {
@@ -431,7 +517,6 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         }
 
         const crossLineLabelBBox = this.computeLabelBBox();
-
         const labelX = crossLineLabelBBox?.x;
         const labelY = crossLineLabelBBox?.y;
 

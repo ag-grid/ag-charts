@@ -1,11 +1,13 @@
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../../options/agChartOptions';
 import type { Scale } from '../../scale/scale';
+import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export type CrossLineType = 'line' | 'range';
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
+    calculateLayout(visible: boolean): BBox | undefined;
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     clippedRange: [number, number];
     direction: ChartAxisDirection;

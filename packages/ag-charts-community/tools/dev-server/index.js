@@ -156,6 +156,11 @@ async function run() {
                     .replace(/( from ['"]\..*?)(['"];?)$/gm, '$1.js$2')
                     .replace(/( from ['"])ag-charts-community(['"])/g, `$1/${agChartsCommunityFile}$2`)
                     .replace(/( from ['"])ag-charts-enterprise(['"])/g, `$1/${agChartsEnterpriseFile}$2`);
+
+                if (file.includes('ag-charts-website/src/content/docs/')) {
+                    // Fix global functions in examples
+                    content = content.replace(/^function (.+?)\s*?\(/gm, 'window.$1 = function $1 (');
+                }
             }
 
             devServer.addStaticFile(file, content);
