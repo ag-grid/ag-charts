@@ -14,31 +14,7 @@ interface MetaTag {
     /** Suppress the missing property check. Needed for events as they are dynamic and so do not appear in src code */
     suppressMissingPropCheck?: true;
 }
-export type DocEntryMap = {
-    meta?: MetaTag;
-} & {
-    [key in string]: DocEntry | ChildDocEntry;
-};
-type DocEntry = {
-    meta?: MetaTag;
-    options?: never;
-    more?: never;
-    type?: never;
-} & {
-    [key: string]: DocEntryMap | ChildDocEntry;
-};
-export interface PropertyType {
-    /** @deprecated This should be removed when all the old json files have been updated to use code types instead of hard coded. */
-    parameters?: {
-        [key in string]: string;
-    };
-    arguments?: {
-        [key in string]: string;
-    };
-    returnType?: string;
-    /** True if property is defined with ? i.e pinned?: boolean Currently only applied to doc-interfaces.AUTO */
-    optional?: boolean;
-}
+
 export interface ChildDocEntry {
     meta?: never;
     more?: {
@@ -60,12 +36,32 @@ export interface ChildDocEntry {
      */
     overrideMissingPropCheck?: true;
 }
+
+interface DocEntry {
+    [key: string]: DocEntryMap | ChildDocEntry;
+    meta?: MetaTag;
+    options?: never;
+    more?: never;
+    type?: never;
+}
+
+export interface DocEntryMap {
+    [key: string]: DocEntry | ChildDocEntry;
+    meta?: MetaTag;
+}
+
+export interface PropertyType {
+    /** @deprecated This should be removed when all the old json files have been updated to use code types instead of hard coded. */
+    parameters?: Record<string, string>;
+    arguments?: Record<string, string>;
+    returnType?: string;
+    /** True if property is defined with ? i.e pinned?: boolean Currently only applied to doc-interfaces.AUTO */
+    optional?: boolean;
+}
 export interface ObjectCode {
-    framework?: Framework;
+    framework: Framework;
     id?: string;
-    breadcrumbs?: {
-        [key in string]: string;
-    };
+    breadcrumbs?: Record<string, string>;
     properties: DocEntryMap;
 }
 interface CodeEntry {
@@ -95,9 +91,7 @@ interface IEntry extends BaseInterface {
         isCallSignature?: never;
         isEvent?: never;
     };
-    type: {
-        [key in string]: string;
-    };
+    type: Record<string, string>;
 }
 interface IEnum extends BaseInterface {
     meta: {
@@ -125,9 +119,7 @@ export interface ICallSignature extends BaseInterface {
         isEvent?: never;
     };
     type: {
-        arguments: {
-            [key in string]: string;
-        };
+        arguments: Record<string, string>;
         returnType: string;
     };
 }
@@ -138,15 +130,9 @@ export interface Config {
     showSnippets?: boolean;
     lookupRoot?: string;
     lookups?: {
-        codeLookup: {
-            [key: string]: CodeEntry;
-        };
-        interfaces: {
-            [key: string]: InterfaceEntry;
-        };
-        htmlLookup?: {
-            [key: string]: Record<string, string>;
-        };
+        codeLookup: Record<string, CodeEntry>;
+        interfaces: Record<string, InterfaceEntry>;
+        htmlLookup?: Record<string, Record<string, string>>;
     };
     codeSrcProvided: string[];
     gridOpProp?: InterfaceEntry;
@@ -199,9 +185,7 @@ export type SectionProps = {
     title: string;
     properties: DocEntryMap | DocEntry | ChildDocEntry;
     config: Config;
-    breadcrumbs?: {
-        [key in string]: string;
-    };
+    breadcrumbs?: Record<string, string>;
     names?: string[];
 };
 export type PropertyCall = {
@@ -218,14 +202,7 @@ export type FunctionCode = {
     config: Config;
 };
 
-type InterfaceLookup = Record<
-    string,
-    {
-        meta: any;
-        type: any;
-        docs: any;
-    }
->;
+type InterfaceLookup = Record<string, { meta: any; type: any; docs: any }>;
 type CodeLookup = Record<string, any>;
 
 export interface ApiDocumentationProps {
@@ -330,7 +307,6 @@ export interface InterfaceDocumentationProps {
      * Property names to exclude
      */
     exclude?: string[];
-    wrapNamesAt?: string;
     interfaceLookup: InterfaceLookup;
     codeLookup: CodeLookup;
     config: Config;

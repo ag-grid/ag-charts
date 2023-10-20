@@ -6,30 +6,33 @@ export function HeadingPath({ path, ignoreTopLevelPath }: { path: string[]; igno
     const regex = createUnionNestedObjectPathItemRegex();
     const headingPath = ignoreTopLevelPath ? removeTopLevelPath(path) : path;
 
-    return (
-        headingPath.length > 0 && (
-            <span className={styles.parentProperties}>
-                {headingPath.map((pathItem, index) => {
-                    const arrayDiscriminatorMatches = regex.exec(pathItem);
-                    const [_, preValue, value, postValue] = arrayDiscriminatorMatches || [];
-                    // Only show separator `.` at the front, when not the first and not an array discriminator afterwards
-                    const separator = index !== 0 && !arrayDiscriminatorMatches ? '.' : '';
+    if (headingPath.length === 0) {
+        return null;
+    }
 
-                    return (
-                        <span className={styles.noWrap} key={`${pathItem}-${index}`}>
-                            {separator}
-                            {!arrayDiscriminatorMatches && <>{pathItem}</>}
-                            {arrayDiscriminatorMatches && (
-                                <>
-                                    {preValue}
-                                    <span className={styles.unionDiscriminator}>{value}</span>
-                                    {postValue}
-                                </>
-                            )}
-                        </span>
-                    );
-                })}
-            </span>
-        )
+    return (
+        <span className={styles.parentProperties}>
+            {headingPath.map((pathItem, index) => {
+                const arrayDiscriminatorMatches = regex.exec(pathItem);
+                const [_, preValue, value, postValue] = arrayDiscriminatorMatches || [];
+                // Only show separator `.` at the front, when not the first and not an array discriminator afterwards
+                const separator = index !== 0 && !arrayDiscriminatorMatches ? '.' : '';
+
+                return (
+                    <span className={styles.noWrap} key={`${pathItem}-${index}`}>
+                        {separator}
+                        {arrayDiscriminatorMatches ? (
+                            <>
+                                {preValue}
+                                <span className={styles.unionDiscriminator}>{value}</span>
+                                {postValue}
+                            </>
+                        ) : (
+                            pathItem
+                        )}
+                    </span>
+                );
+            })}
+        </span>
     );
 }

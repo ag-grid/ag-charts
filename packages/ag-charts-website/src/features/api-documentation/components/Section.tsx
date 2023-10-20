@@ -1,11 +1,11 @@
-import { Icon } from '@components/icon/Icon';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
-import type { FunctionComponent } from 'react';
+import type { FunctionComponent, ReactElement } from 'react';
 
 import type { Config, DocEntryMap, SectionProps } from '../types';
 import { convertMarkdown, getLongestNameLength } from '../utils/documentationHelpers';
+import { clamp } from '../utils/numbers';
 import styles from './ApiDocumentation.module.scss';
 import { Breadcrumbs } from './Breadcrumbs';
 import { ObjectCodeSample } from './ObjectCodeSample';
@@ -20,12 +20,12 @@ export const Section: FunctionComponent<SectionProps> = ({
     names = [],
 }): any => {
     const { meta } = properties;
-    const displayName = (meta && meta.displayName) || title;
-    if (meta && meta.isEvent) {
+    const displayName = meta?.displayName || title;
+    if (meta?.isEvent) {
         // Support event display for a section
         config = { ...config, isEvent: true };
     }
-    if (meta && meta.suppressMissingPropCheck) {
+    if (meta?.suppressMissingPropCheck) {
         config = { ...config, suppressMissingPropCheck: true };
     }
 
@@ -58,16 +58,8 @@ export const Section: FunctionComponent<SectionProps> = ({
                 )}
                 {meta && meta.page && (
                     <p>
-                        See{' '}
-                        <a
-                            href={getExamplePageUrl({
-                                path: meta.page.url,
-                                framework,
-                            })}
-                        >
-                            {meta.page.name}
-                        </a>{' '}
-                        for more information.
+                        See <a href={getExamplePageUrl({ path: meta.page.url, framework })}>{meta.page.name}</a> for
+                        more information.
                     </p>
                 )}
                 {config.showSnippets && names.length < 1 && (
@@ -81,17 +73,15 @@ export const Section: FunctionComponent<SectionProps> = ({
         return null;
     }
 
-    const rows = [];
+    const rows: ReactElement[] = [];
     const objectProperties: DocEntryMap = {};
 
     let leftColumnWidth = 25;
     const processed = new Set();
     Object.entries(properties)
-        .sort((a, b) => {
-            return config.sortAlphabetically ? (a[0] < b[0] ? -1 : 1) : 0;
-        })
+        .sort((a, b) => (config.sortAlphabetically ? (a[0] < b[0] ? -1 : 1) : 0))
         .forEach(([name, definition]) => {
-            if (name === 'meta' || (names.length > 0 && !names.includes(name))) {
+            if (name === 'meta' || (names.length && !names.includes(name))) {
                 return;
             }
             processed.add(name);
@@ -100,15 +90,7 @@ export const Section: FunctionComponent<SectionProps> = ({
                 return;
             }
 
-            const length = getLongestNameLength(name);
-            if (leftColumnWidth < length) {
-                leftColumnWidth = length;
-            }
-            if (config.maxLeftColumnWidth < leftColumnWidth) {
-                leftColumnWidth = config.maxLeftColumnWidth;
-            }
-
-            const gridOptionProperty = config.lookups?.codeLookup[name];
+            leftColumnWidth = clamp(getLongestNameLength(name), leftColumnWidth, config.maxLeftColumnWidth);
 
             rows.push(
                 <Property
@@ -119,7 +101,7 @@ export const Section: FunctionComponent<SectionProps> = ({
                     definition={definition}
                     config={{
                         ...config,
-                        gridOpProp: gridOptionProperty,
+                        gridOpProp: config.lookups?.codeLookup[name],
                         interfaceHierarchyOverrides: definition.interfaceHierarchyOverrides,
                     }}
                 />
@@ -150,8 +132,8 @@ export const Section: FunctionComponent<SectionProps> = ({
                 style={config.overrideBottomMargin ? { marginBottom: config.overrideBottomMargin } : {}}
             >
                 <colgroup>
-                    <col></col>
-                    <col></col>
+                    <col />
+                    <col />
                 </colgroup>
                 <tbody>{rows}</tbody>
             </table>

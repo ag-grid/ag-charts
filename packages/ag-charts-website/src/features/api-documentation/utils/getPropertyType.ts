@@ -13,7 +13,7 @@ export function getPropertyType(type: string | PropertyType, config?: Config) {
             if (type.arguments || type.parameters) {
                 if (isGridOptionEvent(config?.gridOpProp) || config?.isEvent) {
                     // If an event show the event type instead of Function
-                    propertyType = Object.values(type.arguments)[0];
+                    [propertyType] = Object.values(type.arguments ?? {});
                 } else {
                     propertyType = `Function`;
                 }
@@ -34,11 +34,7 @@ export function getPropertyType(type: string | PropertyType, config?: Config) {
         }
     }
     // We hide generics from this part of the display for simplicity
-    // Could be done with a Regex...
-    propertyType = propertyType.replace(
-        /<(TData|TValue|TContext|any)?(, )?(TData|TValue|TContext|any)?(, )?(TData|TValue|TContext|any)?>/g,
-        ''
-    );
+    propertyType = propertyType.replace(/<(.*)>/g, '');
 
     return propertyType;
 }

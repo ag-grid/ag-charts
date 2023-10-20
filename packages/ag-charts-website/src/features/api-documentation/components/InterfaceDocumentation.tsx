@@ -1,41 +1,26 @@
 import Code from '@components/Code';
-import type { FunctionComponent } from 'react';
-import { types } from 'sass';
 
 import type { ChildDocEntry, DocEntryMap, InterfaceDocumentationProps } from '../types';
-import {
-    escapeGenericCode,
-    formatJsDocString,
-    getInterfaceWithGenericParams,
-    sortAndFilterProperties,
-    writeAllInterfaces,
-} from '../utils/documentationHelpers';
+import { escapeGenericCode, formatJsDocString, writeAllInterfaces } from '../utils/documentationHelpers';
 import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
 import { Section } from './Section';
-
-import Error = types.Error;
 
 /**
  * This generates tabulated interface documentation based on information in JSON files.
  */
-export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationProps> = ({
+export function InterfaceDocumentation({
     interfaceName,
     framework,
     names = [],
     exclude = [],
-    wrapNamesAt = null,
     interfaceLookup,
     codeLookup,
-    config = {},
-}) => {
+    config,
+}: InterfaceDocumentationProps) {
     const codeSrcProvided = [interfaceName];
 
-    if (names && names.length) {
-        config = { overrideBottomMargin: '1rem', ...config };
-    }
-
-    if (wrapNamesAt) {
-        config = { wrapNamesAt: parseFloat(wrapNamesAt), ...config };
+    if (names?.length) {
+        config.overrideBottomMargin = '1rem';
     }
 
     for (const ignoreName of config.suppressTypes ?? []) {
@@ -46,14 +31,11 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
         codeLookup: codeLookup[interfaceName],
         interfaces: interfaceLookup,
     };
-    let hideHeader = true;
-    if (config.hideHeader !== undefined) {
-        hideHeader = config.hideHeader;
-    }
+    const hideHeader = config.hideHeader ?? true;
     if (config.sortAlphabetically !== undefined) {
         config.sortAlphabetically = String(config.sortAlphabetically).toLowerCase() == 'true';
     }
-    config = { ...config, lookups, codeSrcProvided, hideHeader };
+    Object.assign(config, { lookups, codeSrcProvided, hideHeader });
 
     const li = interfaceLookup[interfaceName];
 
@@ -70,67 +52,37 @@ export const InterfaceDocumentation: FunctionComponent<InterfaceDocumentationPro
                 </h2>
             );
         }
-        const lines = [];
-        lines.push(
-            ...writeAllInterfaces(interfacesToWrite.slice(0, 1), framework, {
-                lineBetweenProps: config.lineBetweenProps ?? true,
-                hideName: config.hideName,
-                exclude,
-                applyOptionalOrdering: true,
-            })
-        );
-        const escapedLines = escapeGenericCode(lines);
-        return <Code code={escapedLines} keepMarkup={true} />;
+        const lines = writeAllInterfaces(interfacesToWrite.slice(0, 1), framework, {
+            lineBetweenProps: config.lineBetweenProps ?? true,
+            hideName: config.hideName,
+            exclude,
+            applyOptionalOrdering: true,
+        });
+        return <Code code={escapeGenericCode(lines)} keepMarkup />;
     }
 
-    const props = {};
-
-    const typeProps = Object.entries(li.type);
-    sortAndFilterProperties(typeProps, framework).forEach(([k, v]) => {
+    const props: Record<string, Partial<ChildDocEntry>> = {};
+    Object.entries<string>(li.type).forEach(([k, v]) => {
         // interfaces include the ? as part of the name. We want to remove this for the <interface-documentation> component
         // Instead the type will be unioned with undefined as part of the propertyType
         let propNameOnly = k.replace('?', '');
         // for function properties like failCallback(): void; We only want the name failCallback part
         // as this is what is listed in the doc-interfaces.AUTO.json file
-        propNameOnly = propNameOnly.split('(')[0];
-        if (
-            (names.length === 0 || names.includes(propNameOnly)) &&
-            (exclude.length == 0 || !exclude.includes(propNameOnly))
-        ) {
-            const docs = (li.docs && formatJsDocString(li.docs[k])) || '';
+        [propNameOnly] = propNameOnly.split('(');
+        if ((names.length === 0 || names.includes(propNameOnly)) && !exclude.includes(propNameOnly)) {
+            const docs = formatJsDocString(li.docs?.[k]);
             if (!docs.includes('@deprecated')) {
                 props[propNameOnly] = { description: docs || v };
             }
         }
     });
 
-    const orderedProps = {};
-    const ordered = Object.entries(props).sort(([, v1], [, v2]) => {
-        // Put required props at the top as likely to be the most important
-        if ((v1 as ChildDocEntry).isRequired == (v2 as ChildDocEntry).isRequired) {
-            return 0;
-        }
-        return (v1 as ChildDocEntry).isRequired ? -1 : 1;
-    });
-
-    ordered.map(([k, v]) => (orderedProps[k] = v));
-
-    const interfaceDeclaration = getInterfaceWithGenericParams(interfaceName, li.meta);
-    const description =
-        config.description != null
-            ? config.description
-            : `Properties available on the \`${interfaceDeclaration}\` interface.`;
+    const description = config.description ?? `Properties available on the \`${interfaceName}\` interface.`;
     const properties: DocEntryMap = {
-        [interfaceName]: {
-            ...orderedProps,
-            meta: {
-                displayName: interfaceName,
-                description,
-            },
-        },
+        [interfaceName]: { ...props, meta: { displayName: interfaceName, description } },
     };
 
     return Object.entries(properties).map(([key, value]) => (
         <Section key={key} framework={framework} title={key} properties={value} config={config} />
     ));
-};
+}

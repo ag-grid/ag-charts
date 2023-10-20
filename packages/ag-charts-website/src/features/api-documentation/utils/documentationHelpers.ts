@@ -1,9 +1,16 @@
 import type { Framework } from '@ag-grid-types';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 
-import type { PropertyType } from '../types';
+import type { InterfaceLookup, PropertyType } from '../types';
+import { createLink } from '../utils/html';
+import { isString } from '../utils/strings';
 import { getTypeLink } from './getTypeLinks';
 import type { JsonModelProperty } from './model';
+
+interface InterfaceType {
+    docs?: string[];
+    type: string[];
+}
 
 export const inferType = (value: any): string | null => {
     if (value == null) {
@@ -29,16 +36,8 @@ export const convertMarkdown = (content: string, framework: Framework) =>
         )
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
-export function escapeGenericCode(lines) {
-    // When you have generic parameters such as ChartOptions<any>
-    // the <any> gets removed as the code formatter thinks its a invalid tag.
-
-    // By adding a <span/> the generic type is preserved in the doc output
-
-    // Regex to match all '<' but not valid links such as '<a ' and closing tags '</'
-    const typeRegex = /<(?!a[\s]|[/])/g;
-    const escapedLines = lines.join('\n').replace(typeRegex, '<<span/>');
-    return escapedLines;
+export function escapeGenericCode(lines: string[]) {
+    return lines.join('\n').replace('<', '&lt;').replace('>', '&gt;');
 }
 
 export function getTypeUrl(type: string | PropertyType, framework: Framework): string | null {
@@ -47,7 +46,7 @@ export function getTypeUrl(type: string | PropertyType, framework: Framework): s
             const linkedTypes = type
                 .split('|')
                 .map((t) => getTypeUrl(t.trim(), framework))
-                .filter((url) => !!url);
+                .filter(Boolean);
             // If there is only one linked type then lets return that otherwise we don't support union type links
             if (linkedTypes.length === 1) {
                 return linkedTypes[0];
@@ -57,55 +56,36 @@ export function getTypeUrl(type: string | PropertyType, framework: Framework): s
         } else if (type.endsWith('[]')) {
             type = type.replace(/\[\]/g, '');
         }
-    } else if (type && typeof type === 'object' && typeof type.returnType === 'string') {
+    } else if (typeof type === 'object' && typeof type.returnType === 'string') {
         // This method can be called with a type object
         return getTypeUrl(type.returnType, framework);
     }
     const link = getTypeLink(type);
 
-    return link ? getExamplePageUrl({ path: getTypeLink(type), framework }) : link;
+    return link ? getExamplePageUrl({ path: link, framework }) : null;
 }
 
-export function getLinkedType(type: string | PropertyType, framework: Framework) {
-    if (!Array.isArray(type)) {
-        type = [type];
+export function getLinkedType(types: string | string[], framework: Framework) {
+    if (!Array.isArray(types)) {
+        types = [types];
     }
 
-    // Extract all the words to enable support for Union types
-    const typeRegex = /\w+/g;
-    const formattedTypes = type
-        .filter((t) => typeof t === 'string')
-        .map((t) => {
-            const definitionTypes = [...t.matchAll(typeRegex)];
-
-            const typesToLink = definitionTypes
-                .map((regMatch) => {
-                    const typeName = regMatch[0];
-                    const url = getTypeUrl(typeName, framework);
-
-                    return url
-                        ? {
-                              toReplace: typeName,
-                              link: `<a href="${url}" target="${
-                                  url.startsWith('http') ? '_blank' : '_self'
-                              }" rel="noreferrer">${typeName}</a>`,
-                          }
-                        : undefined;
-                })
-                .filter((dt) => !!dt);
-
-            let formatted = t;
-            typesToLink.forEach((toLink) => {
-                formatted = formatted.split(toLink.toReplace).join(toLink.link);
-            });
-
-            return formatted;
-        });
+    const formattedTypes = types.filter(isString).map((type) => {
+        const typesToLink = [];
+        // Extract all the words to enable support for Union types
+        for (const [typeName] of type.matchAll(/\w+/g)) {
+            const url = getTypeUrl(typeName, framework);
+            if (url) {
+                typesToLink.push({ toReplace: typeName, link: createLink(url, typeName) });
+            }
+        }
+        return typesToLink.reduce((formatted, { toReplace, link }) => formatted.split(toReplace).join(link), type);
+    });
 
     return formattedTypes.join(' | ');
 }
 
-export function sortAndFilterProperties(properties, framework, applyOptionalOrdering = false) {
+export function sortAndFilterProperties(properties, applyOptionalOrdering = false) {
     properties.sort(([p1], [p2]) => {
         if (applyOptionalOrdering) {
             // Push mandatory props to the top
@@ -122,24 +102,25 @@ export function sortAndFilterProperties(properties, framework, applyOptionalOrde
     return properties;
 }
 
-export function getInterfaceWithGenericParams(name, meta) {
-    return `${name}${meta?.typeParams?.length > 0 ? `&lt;${meta.typeParams.join(', ')}&gt;` : ''}`;
-}
-
-export function appendInterface(name, interfaceType, framework, allLines, printConfig = {}) {
+export function appendInterface(
+    name: string,
+    interfaceType: InterfaceType,
+    framework: Framework,
+    lines: string[],
+    printConfig = {}
+) {
     const toExclude = printConfig.exclude || [];
-    const interfaceDeclaration = getInterfaceWithGenericParams(name, interfaceType.meta);
-    const lines = [`interface ${printConfig.hideName ? '' : interfaceDeclaration} {`];
     const properties = Object.entries(interfaceType.type);
 
-    sortAndFilterProperties(properties, framework, printConfig.applyOptionalOrdering)
-        .filter(([prop]) => {
-            return !toExclude.includes(prop);
-        })
+    lines.push(`interface ${printConfig.hideName ? '' : name} {`);
+    sortAndFilterProperties(properties, printConfig.applyOptionalOrdering)
+        .filter(([prop]) => !toExclude.includes(prop))
         .forEach(([property, type]) => {
             const docs = interfaceType.docs && interfaceType.docs[property];
-            if (!docs || (docs && !docs.includes('@deprecated'))) {
-                addDocLines(docs, lines);
+            if (!docs?.includes('@deprecated')) {
+                if (docs) {
+                    lines.push(...formatDocs(docs));
+                }
                 lines.push(`  ${property}: ${getLinkedType(type, framework)};`);
                 if (printConfig.lineBetweenProps) {
                     lines.push('');
@@ -147,84 +128,39 @@ export function appendInterface(name, interfaceType, framework, allLines, printC
             }
         });
     lines.push('}');
-    allLines.push(...lines);
 }
 
-export function addDocLines(docs, lines) {
-    if (!docs || docs.length === 0) {
-        return;
-    }
-
+export function formatDocs(docs: string) {
     const indentReg = /\s+\*(?!\*)/g;
     const lastNewLine = /\n\s+\*\//g;
 
-    docs.replace('/**', '//')
+    return docs
+        .replace('/**', '//')
         .replace(lastNewLine, '')
         .split(/\n/g)
-        .forEach((s) => {
-            lines.push(`  ${s.replace('*/', '').replace(indentReg, '//')}`);
-        });
+        .map((s) => `  ${s.replace('*/', '').replace(indentReg, '//')}`);
 }
 
-/**
- * Ensure that we correctly apply the undefined as a separate union type for complex type
- *  e.g isExternalFilterPresent: (() => boolean) | undefined = undefined;
- *  Without the brackets this changes the return type!
- */
-export function applyUndefinedUnionType(typeName) {
-    const trimmed = typeName.trim();
-    if (trimmed === 'any') {
-        // Don't union type with any
-        return trimmed;
-    }
-    if (trimmed.includes('=>')) {
-        return `(${trimmed}) | undefined`;
-    } else {
-        return `${trimmed} | undefined`;
-    }
-}
-
-const NEWLINE_DEFAULT_STRING = '<br> Default:';
-/** Handle correct placement of more link so that default is always at the end on a new line even if already included in JsDoc. */
-export function addMoreLink(description, seeMore) {
-    // Get default string along with its value
-    //  var defaultReg = new RegExp(NEWLINE_DEFAULT_STRING + '(.*)', "g");
-    //  const hasDefault = description.match(defaultReg);
-    //  if (hasDefault && hasDefault.length > 0) {
-    //      return description.replace(hasDefault[0], seeMore + hasDefault[0]);
-    //  }
-    return description + seeMore;
-}
-
-export function removeDefaultValue(docString) {
+export function removeDefaultValue(docString: string) {
     // Default may or may not be on a new line in JsDoc but in both cases we want the default to be on the next line
-    const defaultReg = /(\n\s+\*)?(<br>)? Default:.*<\/code>/g;
-
-    return docString.replace(defaultReg, '');
+    return docString.replace(/(\n\s+\*)?(<br>)? Default:.*<\/code>/g, '');
 }
 
-export function getFormattedDefaultValue({ model, description }: { model: JsonModelProperty; description: string }) {
-    let defaultValue = model.default;
-    if (description != null && !defaultValue) {
-        const defaultReg = / Default: <code>(.*)<\/code>/;
-        defaultValue = description.match(defaultReg)?.length === 2 ? description.match(defaultReg)![1] : undefined;
+export function getFormattedDefaultValue(defaultValue: any, description: string) {
+    if (description && !defaultValue) {
+        const matches = description.match(/ Default: <code>(.*)<\/code>/);
+        if (matches?.length === 2) {
+            defaultValue = matches[1];
+        }
     }
-
-    const formattedDefaultValue = Array.isArray(defaultValue)
-        ? '[' +
-          defaultValue.map((v, i) => {
-              return i === 0 ? `"${v}"` : ` "${v}"`;
-          }) +
-          ']'
-        : defaultValue;
-
-    return formattedDefaultValue;
+    return Array.isArray(defaultValue) ? `[${defaultValue.map((v) => `"${v}"`).join(', ')}]` : defaultValue;
 }
 
-export function formatJsDocString(docString) {
-    if (!docString || docString.length === 0) {
-        return;
+export function formatJsDocString(docString: string): string {
+    if (!docString) {
+        return '';
     }
+
     const paramReg = /\* @param (\w+) (.*)\n/g;
     const returnsReg = /\* (@returns) (.*)\n/g;
     const newLineReg = /\n\s+\*(?!\*)/g;
@@ -233,20 +169,17 @@ export function formatJsDocString(docString) {
     // eslint-disable-next-line
     const optionReg = /\n[\s]*[*]*[\s]*- (.*)/g;
 
-    const formatted = docString
+    return docString
         .replace('/**', '')
         .replace('*/', '')
         .replace(paramReg, '<br> `$1` $2 \n')
         .replace(returnsReg, '<br> <strong>Returns: </strong> $2 \n')
         .replace(optionReg, '<li style="margin-left:1rem"> $1 </li>')
         .replace(newLineReg, ' ');
-
-    return formatted;
 }
 
-export function appendCallSignature(name, interfaceType, framework, allLines) {
-    const interfaceDeclaration = getInterfaceWithGenericParams(name, interfaceType.meta);
-    const lines = [`interface ${interfaceDeclaration} {`];
+export function appendCallSignature(name, interfaceType, framework: Framework, allLines) {
+    const lines = [`interface ${name} {`];
     const args = Object.entries(interfaceType.type.arguments);
     const argTypes = args.map(([property, type]) => {
         return `${property}: ${getLinkedType(type, framework)}`;
@@ -256,21 +189,18 @@ export function appendCallSignature(name, interfaceType, framework, allLines) {
     allLines.push(...lines);
 }
 
-export function appendEnum(name, interfaceType, allLines) {
-    const lines = [`enum ${name} {`];
-    const properties = interfaceType.type;
-    const docs = interfaceType.docs;
-    properties.forEach((property, i) => {
-        if (docs && docs[i]) {
-            addDocLines(docs[i], lines);
-        }
-        lines.push(`  ${property}`);
-    });
-    lines.push('}');
-    allLines.push(...lines);
+export function formatEnum(name: string, { type: properties, docs }: InterfaceType) {
+    return [
+        `enum ${name} {`,
+        ...properties.flatMap((property: string, i: number) => {
+            const lines = docs?.[i] ? formatDocs(docs[i]) : [];
+            return lines.concat(`  ${property}`);
+        }),
+        '}',
+    ];
 }
 
-export function appendTypeAlias(name, interfaceType, allLines) {
+export function appendTypeAlias(name: string, interfaceType: InterfaceType, allLines: string[]) {
     const shouldMultiLine = interfaceType.type.length > 20;
 
     const split = interfaceType.type.split('|');
@@ -299,22 +229,25 @@ export function appendTypeAlias(name, interfaceType, allLines) {
     allLines.push(`type ${name} = ${multiLine}`);
 }
 
-export function writeAllInterfaces(interfacesToWrite, framework, printConfig) {
+export function writeAllInterfaces(
+    interfacesToWrite: { name: string; interfaceType: any }[],
+    framework: string,
+    printConfig?: object
+) {
     const allLines = [];
-    const alreadyWritten = {};
+    const alreadyWritten = new Set<string>();
     interfacesToWrite.forEach(({ name, interfaceType }) => {
-        if (!alreadyWritten[name]) {
-            allLines.push('');
+        if (!alreadyWritten.has(name)) {
             if (interfaceType.meta.isTypeAlias) {
                 appendTypeAlias(name, interfaceType, allLines);
             } else if (interfaceType.meta.isEnum) {
-                appendEnum(name, interfaceType, allLines);
+                allLines.push(...formatEnum(name, interfaceType));
             } else if (interfaceType.meta.isCallSignature) {
                 appendCallSignature(name, interfaceType, framework, allLines);
             } else {
                 appendInterface(name, interfaceType, framework, allLines, printConfig);
             }
-            alreadyWritten[name] = true;
+            alreadyWritten.add(name);
         }
     });
     return allLines;
@@ -350,11 +283,7 @@ export function extractInterfaces(definitionOrArray, interfaceLookup, overrideIn
             return;
         }
 
-        if (typeof defs !== 'string') {
-            return;
-        }
-
-        if (alreadyIncluded[defs]) {
+        if (typeof defs !== 'string' || alreadyIncluded[defs]) {
             return;
         }
 
@@ -450,35 +379,19 @@ export function extractInterfaces(definitionOrArray, interfaceLookup, overrideIn
     return allDefs;
 }
 
-export function getLongestNameLength(nameWithBreaks) {
+export function getLongestNameLength(nameWithBreaks: string) {
     const splitNames = nameWithBreaks.split(/<br(.*)\/>/);
     splitNames.sort((a, b) => (a.length > b.length ? 1 : -1));
     return splitNames[0].length;
 }
 
-/**
- * Split display name on capital letter, add <wbr> to improve text splitting across lines
- */
-export function splitName(name?: string) {
-    if (!name) {
-        return name;
-    }
-    return name
-        .split(/(?=[A-Z])/)
-        .reverse()
-        .reduce((acc, cv) => {
-            return `${cv}<wbr />` + acc;
-        });
-}
-
 export function formatPropertyDocumentation(model: Omit<JsonModelProperty, 'desc'>): string[] {
-    const { documentation } = model;
-    const defaultValue = model.default;
-    const result: string[] = documentation?.trim() ? [formatJsDocString(documentation.trim())] : [];
+    const documentation = model.documentation?.trim();
+    const result: string[] = documentation ? [formatJsDocString(documentation)] : [];
 
     if (Object.hasOwn(model, 'default')) {
-        result.push('Default: `' + JSON.stringify(defaultValue) + '`');
+        result.push('Default: `' + JSON.stringify(model.default) + '`');
     }
 
-    return result.filter((v) => !!v?.trim());
+    return result.filter((v) => v?.trim());
 }

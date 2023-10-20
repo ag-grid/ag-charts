@@ -3,12 +3,7 @@ import classnames from 'classnames';
 import { useContext } from 'react';
 
 import type { JsObjectSelection, JsObjectSelectionProperty, JsObjectSelectionUnionNestedObject } from '../types';
-import {
-    convertMarkdown,
-    formatPropertyDocumentation,
-    removeDefaultValue,
-    splitName,
-} from '../utils/documentationHelpers';
+import { convertMarkdown, formatPropertyDocumentation, removeDefaultValue } from '../utils/documentationHelpers';
 import { FrameworkContext } from '../utils/frameworkContext';
 import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
 import { getPropertyType } from '../utils/getPropertyType';
@@ -20,6 +15,7 @@ import { removeTopLevelPath } from '../utils/removeTopLevelPath';
 import styles from './ApiDocumentation.module.scss';
 import { HeadingPath } from './HeadingPath';
 import { MetaList } from './MetaList';
+import { SplitName } from './SplitName';
 
 interface Props {
     selection: JsObjectSelection;
@@ -28,16 +24,15 @@ interface Props {
 }
 
 function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
-    const displayNameSplit = splitName(name);
     const headingPath = removeTopLevelPath(path);
     const pathSeparator = name && headingPath.length > 0 ? '.' : '';
 
     return (
         <h6 className={classnames(styles.name, 'side-menu-exclude')}>
-            <HeadingPath path={path} ignoreTopLevelPath={true} />
+            <HeadingPath path={path} ignoreTopLevelPath />
             <span>
                 {pathSeparator}
-                {displayNameSplit && <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>}
+                <SplitName>{name}</SplitName>
             </span>
             {/* Hide, until nav support is added <LinkIcon href={`#${id}`} /> */}
         </h6>
@@ -209,17 +204,13 @@ function UnionProperties({
     onlyShowToDepth?: number;
     isRoot?: boolean;
 }) {
-    return elements.options.map((model, index) => {
-        const selection: JsObjectSelectionUnionNestedObject = {
-            type: 'unionNestedObject',
-            index,
-            path: parentPath,
-            model,
-            onlyShowToDepth,
-            isRoot,
-        };
-        return <JsObjectPropertyView key={JSON.stringify(model)} selection={selection} parentName={parentName} />;
-    });
+    return elements.options.map((model, index) => (
+        <JsObjectPropertyView
+            key={JSON.stringify(model)}
+            parentName={parentName}
+            selection={{ type: 'unionNestedObject', path: parentPath, index, model, onlyShowToDepth, isRoot }}
+        />
+    ));
 }
 
 function NestedArrayProperties({

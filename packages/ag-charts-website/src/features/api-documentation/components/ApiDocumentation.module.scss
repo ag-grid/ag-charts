@@ -11,6 +11,10 @@
 
 .required {
     color: red;
+
+    &:before {
+        content: ' ';
+    }
 }
 
 .apiReferenceOuter {

@@ -4,26 +4,27 @@ import type { FunctionComponent } from 'react';
 import type { FunctionCode, ICallSignature } from '../types';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
 import { escapeGenericCode, extractInterfaces, getLinkedType, writeAllInterfaces } from '../utils/documentationHelpers';
-import { getInterfaceName } from '../utils/getInterfaceName';
 import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
 import { isGridOptionEvent } from '../utils/isGridOptionEvent';
+import { capitalize } from '../utils/strings';
 
 export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework, name, type, config }) => {
     if (typeof type == 'string') {
+        // eslint-disable-next-line no-console
         console.log('type is a string!', type);
     }
 
-    type = type || {};
+    type ||= {};
     let returnType = typeof type == 'string' ? undefined : type.returnType;
     const returnTypeIsObject = !!returnType && typeof returnType === 'object';
     const extracted = extractInterfaces(returnType, config.lookups?.interfaces, applyInterfaceInclusions(config));
-    const returnTypeInterface = config.lookups?.interfaces[returnType];
+    const returnTypeInterface = returnType && config.lookups?.interfaces[returnType];
     const isCallSig = returnTypeInterface && returnTypeInterface.meta.isCallSignature;
     const returnTypeHasInterface = extracted.length > 0;
 
     let functionName = name.replace(/\([^)]*\)/g, '');
     if (isGridOptionEvent(config.gridOpProp)) {
-        functionName = 'on' + getInterfaceName(functionName);
+        functionName = 'on' + capitalize(functionName);
     }
 
     let args = {};
@@ -31,7 +32,7 @@ export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework,
         if (type.parameters) {
             args = {
                 params: {
-                    meta: { name: `${getInterfaceName(functionName)}Params` },
+                    meta: { name: `${capitalize(functionName)}Params` },
                     ...type.parameters,
                 },
             };
@@ -46,11 +47,11 @@ export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework,
     }
 
     let shouldUseNewline = false;
-    const argumentDefinitions = [];
+    const argumentDefinitions: string[] = [];
 
-    const getArgumentTypeName = (key, type) => {
-        if (!Array.isArray(type) && typeof type === 'object') {
-            return (type.meta && type.meta.name) || getInterfaceName(key);
+    const getArgumentTypeName = (key: string, type: string | { meta?: { name: string } }) => {
+        if (typeof type === 'object' && !Array.isArray(type)) {
+            return type.meta?.name ?? capitalize(key);
         }
 
         return type;
@@ -70,59 +71,39 @@ export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework,
         ? `\n    ${argumentDefinitions.join(',\n    ')}\n`
         : argumentDefinitions.join('');
 
-    const returnTypeName = getInterfaceName(functionName).replace(/^get/, '');
+    const returnTypeName = capitalize(functionName).replace(/^get/, '');
     const functionPrefix =
         name.includes('(') || config.isApi
             ? `function ${functionName}(${functionArguments}):`
             : `${functionName} = (${functionArguments}) =>`;
 
-    const lines = [];
-    if (typeof type != 'string' && (type.parameters || type.arguments || isCallSig)) {
-        lines.push(
-            `${functionPrefix} ${returnTypeIsObject ? returnTypeName : getLinkedType(returnType || 'void', framework)};`
-        );
-    } else {
-        lines.push(`${name}: ${returnType};`);
-    }
-
-    let interfacesToWrite = [];
+    const interfacesToWrite = [];
     if (type.parameters) {
         Object.keys(args)
             .filter((key) => !Array.isArray(args[key]) && typeof args[key] === 'object')
             .forEach((key) => {
                 const { meta, ...type } = args[key];
-                interfacesToWrite = [
-                    ...interfacesToWrite,
-                    ...getInterfacesToWrite(getArgumentTypeName(key, { meta }), type, config),
-                ];
+                interfacesToWrite.push(...getInterfacesToWrite(getArgumentTypeName(key, { meta }), type, config));
             });
     } else if (args) {
         Object.entries(args).forEach(([key, type]) => {
-            interfacesToWrite = [
-                ...interfacesToWrite,
-                ...getInterfacesToWrite(getArgumentTypeName(key, type), type, config),
-            ];
+            interfacesToWrite.push(...getInterfacesToWrite(getArgumentTypeName(key, type), type, config));
         });
     }
 
     if (returnTypeIsObject) {
-        interfacesToWrite = [...interfacesToWrite, ...getInterfacesToWrite(returnTypeName, returnType, config)];
+        interfacesToWrite.push(...getInterfacesToWrite(returnTypeName, returnType, config));
     } else if (returnTypeHasInterface) {
-        interfacesToWrite = [...interfacesToWrite, ...getInterfacesToWrite(returnType, returnType, config)];
+        interfacesToWrite.push(...getInterfacesToWrite(returnType, returnType, config));
     }
 
-    lines.push(...writeAllInterfaces(interfacesToWrite, framework));
-
-    const escapedLines = escapeGenericCode(lines);
-    let customHTML = undefined;
-    if (config.lookups?.htmlLookup && config.lookups?.htmlLookup[name]) {
-        customHTML = <p dangerouslySetInnerHTML={{ __html: config.lookups?.htmlLookup[name] }}></p>;
-    }
+    const customHTML = config.lookups?.htmlLookup?.[name];
+    const lines = writeAllInterfaces(interfacesToWrite, framework);
 
     return (
         <>
-            <Code code={escapedLines} keepMarkup={true} />
-            {customHTML ?? customHTML}
+            <Code code={escapeGenericCode(lines)} keepMarkup />
+            {customHTML && <p dangerouslySetInnerHTML={{ __html: customHTML }} />}
         </>
     );
 };

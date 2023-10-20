@@ -1,7 +1,15 @@
+import type { InterfaceEntry } from 'src/features/api-documentation/types';
+
 import { isGridOptionEvent } from './isGridOptionEvent';
 
-export function applyInterfaceInclusions({ gridOpProp, interfaceHierarchyOverrides }) {
-    return (typeName) => {
+export function applyInterfaceInclusions({
+    gridOpProp,
+    interfaceHierarchyOverrides,
+}: {
+    gridOpProp: InterfaceEntry;
+    interfaceHierarchyOverrides?: { exclude: string[]; include: string[] };
+}) {
+    return (typeName: string) => {
         if (interfaceHierarchyOverrides) {
             // If definition includes overrides apply them
             if ((interfaceHierarchyOverrides.exclude || []).includes(typeName)) {

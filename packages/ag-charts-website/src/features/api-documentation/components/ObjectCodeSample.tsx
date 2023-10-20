@@ -1,72 +1,71 @@
 import Code from '@components/Code';
-import type { FunctionComponent } from 'react';
 
 import type { ObjectCode } from '../types';
 import { escapeGenericCode, getLinkedType } from '../utils/documentationHelpers';
 import { formatJson } from '../utils/formatJson';
-import { getInterfaceName } from '../utils/getInterfaceName';
+import { capitalize, indent } from '../utils/strings';
 
-export const ObjectCodeSample: FunctionComponent<ObjectCode> = ({ framework, id, breadcrumbs, properties }) => {
-    const lines = [];
-    let indentationLevel = 0;
-
-    const getIndent = (level: string) => '  '.repeat(level);
-
-    Object.keys(breadcrumbs).forEach((key) => {
-        const indent = getIndent(indentationLevel);
-
-        if (indentationLevel > 0) {
-            lines.push(`${indent}...`);
-        }
-
-        lines.push(`${indent}${key}: {`);
-
-        indentationLevel++;
-    });
+export function ObjectCodeSample({ framework, id, breadcrumbs, properties }: ObjectCode) {
+    const breadcrumbKeys = Object.keys(breadcrumbs ?? {});
+    const lines: string[] = formatBreadcrumbs(breadcrumbKeys);
 
     Object.entries(properties).forEach(([key, definition]) => {
         if (key === 'meta') {
             return;
         }
 
-        let line = getIndent(indentationLevel) + key;
+        let line = indent(key, breadcrumbKeys.length);
 
         // process property object
         if (!definition.isRequired) {
             line += '?';
         }
 
-        let type;
+        let type = getDefinitionType(definition);
         let isObject = false;
 
-        if (definition.meta && definition.meta.type != null) {
-            type = definition.meta.type;
-        } else if (definition.type != null) {
-            type = typeof definition.type === 'object' ? 'Function' : definition.type;
-        } else if (definition.options != null) {
-            type = definition.options.map((option) => formatJson(option)).join(' | ');
-        } else if (definition.default != null) {
-            type = Array.isArray(definition.default) ? 'object[]' : typeof definition.default;
-        } else if (definition.description != null) {
-            type = 'object';
-        } else {
-            type = getInterfaceName(key);
+        if (!type) {
+            type = capitalize(key);
             isObject = true;
         }
 
         line += `: ${isObject ? `<a href='#reference-${id}.${key}'>${type}</a>` : getLinkedType(type, framework)};`;
 
-        if (definition.default != null) {
+        if (definition.type && definition.default != null) {
             line += ` // default: ${formatJson(definition.default)}`;
         }
 
         lines.push(line);
     });
 
-    while (indentationLevel > 0) {
-        lines.push(`${getIndent(indentationLevel-- - 1)}}`);
+    for (let i = breadcrumbKeys.length; i > 0; i--) {
+        lines.push(indent('}', i - 1));
     }
 
-    const escapedLines = escapeGenericCode(lines);
-    return <Code code={escapedLines} keepMarkup={true} />;
-};
+    return <Code code={escapeGenericCode(lines)} keepMarkup />;
+}
+
+function formatBreadcrumbs(breadcrumbs: string[]) {
+    return breadcrumbs.flatMap((property, index) => {
+        const lines = index > 0 ? [indent('...', index)] : [];
+        return lines.concat(indent(`${property}: {`, index));
+    });
+}
+
+function getDefinitionType(def: ObjectCode['properties'][string]) {
+    if (def.meta?.type) {
+        return def.meta.type;
+    }
+    if (def.type) {
+        return typeof def.type === 'object' ? 'Function' : def.type;
+    }
+    if (def.options) {
+        return def.options.map((option) => formatJson(option)).join(' | ');
+    }
+    if (def.default) {
+        return Array.isArray(def.default) ? 'object[]' : typeof def.default;
+    }
+    if (def.description != null) {
+        return 'object';
+    }
+}

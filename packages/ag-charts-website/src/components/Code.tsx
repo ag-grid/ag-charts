@@ -29,7 +29,7 @@ type Language = keyof typeof GrammarMap;
 /**
  * This uses Prism to highlight a provided code snippet.
  */
-const Code = ({
+function Code({
     code,
     language = 'ts',
     className,
@@ -38,11 +38,11 @@ const Code = ({
     ...props
 }: {
     code: string;
-    language: Language;
-    className: string;
-    keepMarkup: boolean;
-    lineNumbers: boolean;
-}) => {
+    language?: Language;
+    className?: string;
+    keepMarkup?: boolean;
+    lineNumbers?: boolean;
+}) {
     if (Array.isArray(code)) {
         code = code.join('\n');
     }
@@ -59,7 +59,7 @@ const Code = ({
             )}
         </pre>
     );
-};
+}
 
 /**
  * This component uses Prism.highlightElement() rather than Prism.highlight() which utilises more of the Prism lifecycle,
@@ -70,10 +70,8 @@ const CodeWithPrismPlugins = ({ code, keepMarkup }: { code: string; keepMarkup: 
     const ref = useRef<HTMLElement>(null);
 
     useEffect(() => {
-        if (ref && ref.current) {
-            const { current } = ref;
-
-            Prism.highlightElement(current);
+        if (ref.current) {
+            Prism.highlightElement(ref.current);
         }
     });
 
