@@ -3,6 +3,8 @@ import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { Marker } from '../../marker/marker';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum, Scaling } from './cartesianSeries';
+import type { MarkerChange } from './markerUtil';
+import type { PathPoint, PathPointMap } from './pathUtil';
 
 type LineNodeDatum = CartesianSeriesNodeDatum & {
     point: CartesianSeriesNodeDatum['point'] & {
@@ -10,14 +12,6 @@ type LineNodeDatum = CartesianSeriesNodeDatum & {
     };
     xValue?: number;
     yValue?: number;
-};
-
-type MarkerChange = 'move' | 'in' | 'out';
-type PathPoint = {
-    from?: { x: number; y: number };
-    to?: { x: number; y: number };
-    marker: MarkerChange;
-    moveTo: true | false | 'in' | 'out';
 };
 
 function scale(val: number | string | Date, scaling?: Scaling) {
@@ -41,16 +35,19 @@ function scale(val: number | string | Date, scaling?: Scaling) {
     return NaN;
 }
 
-function minMax(data: CartesianSeriesNodeDataContext<LineNodeDatum>) {
-    return data.nodeData.reduce<{ min?: LineNodeDatum; max?: LineNodeDatum }>(({ min, max }, node: LineNodeDatum) => {
-        if (min == null || min.point.x > node.point.x) {
-            min = node;
-        }
-        if (max == null || max.point.x < node.point.x) {
-            max = node;
-        }
-        return { min, max };
-    }, {});
+function minMax(nodeData: LineNodeDatumLike[]) {
+    return nodeData.reduce<{ min?: LineNodeDatumLike; max?: LineNodeDatumLike }>(
+        ({ min, max }, node: LineNodeDatumLike) => {
+            if (min == null || min.point.x > node.point.x) {
+                min = node;
+            }
+            if (max == null || max.point.x < node.point.x) {
+                max = node;
+            }
+            return { min, max };
+        },
+        {}
+    );
 }
 
 function backfillPathPoint(
@@ -130,10 +127,13 @@ function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
     return from ? 'in' : 'out';
 }
 
-function pairContinuousData(
-    newData: CartesianSeriesNodeDataContext<LineNodeDatum>,
-    oldData: CartesianSeriesNodeDataContext<LineNodeDatum>
-) {
+export interface LineNodeDatumLike extends CartesianSeriesNodeDatum {
+    readonly point: CartesianSeriesNodeDatum['point'] & { moveTo?: boolean };
+}
+
+type LineContextLike = Pick<CartesianSeriesNodeDataContext<LineNodeDatumLike>, 'scales' | 'nodeData'>;
+
+export function pairContinuousData(newData: LineContextLike, oldData: LineContextLike) {
     const toNewScale = (oldDatum: { xValue?: number; yValue?: number }) => {
         return {
             x: scale(oldDatum.xValue ?? NaN, newData.scales.x),
@@ -156,7 +156,7 @@ function pairContinuousData(
         removed: {},
     };
 
-    const pairUp = (from?: LineNodeDatum, to?: LineNodeDatum, xValue?: any, marker: MarkerChange = 'move') => {
+    const pairUp = (from?: LineNodeDatumLike, to?: LineNodeDatumLike, xValue?: any, marker: MarkerChange = 'move') => {
         const resultPoint = {
             from: from?.point,
             to: to?.point,
@@ -177,8 +177,8 @@ function pairContinuousData(
         result.push(resultPoint);
     };
 
-    const { min: minFromNode, max: maxFromNode } = minMax(oldData);
-    const { min: minToNode, max: maxToNode } = minMax(newData);
+    const { min: minFromNode, max: maxFromNode } = minMax(oldData.nodeData);
+    const { min: minToNode, max: maxToNode } = minMax(newData.nodeData);
 
     let oldIdx = 0;
     let newIdx = 0;
@@ -217,15 +217,9 @@ function pairContinuousData(
     return { result, resultMap };
 }
 
-function pairCategoryData(
-    newData: CartesianSeriesNodeDataContext<LineNodeDatum>,
-    oldData: CartesianSeriesNodeDataContext<LineNodeDatum>,
-    diff: ProcessedOutputDiff
-) {
+export function pairCategoryData(newData: LineContextLike, oldData: LineContextLike, diff: ProcessedOutputDiff) {
     const result: PathPoint[] = [];
-    const resultMap: {
-        [key in 'moved' | 'added' | 'removed']: { [key: string | number]: PathPoint };
-    } = {
+    const resultMap: PathPointMap = {
         added: {},
         moved: {},
         removed: {},
@@ -237,14 +231,14 @@ function pairCategoryData(
         if (diff.removed.indexOf(next.xValue) >= 0) {
             resultPoint = {
                 marker: 'out',
-                moveTo: next.point.moveTo,
+                moveTo: next.point.moveTo ?? false,
                 from: next.point,
             };
             resultMap.removed[next.xValue] = resultPoint;
         } else {
             resultPoint = {
                 marker: 'move',
-                moveTo: next.point.moveTo,
+                moveTo: next.point.moveTo ?? false,
                 from: next.point,
             };
             resultMap.moved[next.xValue] = resultPoint;
@@ -258,7 +252,7 @@ function pairCategoryData(
         if (addedIdx >= 0) {
             const resultPoint: PathPoint = {
                 marker: 'in',
-                moveTo: next.point.moveTo,
+                moveTo: next.point.moveTo ?? false,
                 to: next.point,
             };
             resultMap.added[next.xValue] = resultPoint;
@@ -288,47 +282,8 @@ function pairCategoryData(
     return { result, resultMap };
 }
 
-export function prepareLinePathAnimation(
-    newData: CartesianSeriesNodeDataContext<LineNodeDatum>,
-    oldData: CartesianSeriesNodeDataContext<LineNodeDatum>,
-    diff?: ProcessedOutputDiff
-) {
-    const isCategoryBased = newData.scales.x?.type === 'category';
-    const { result: pairData, resultMap: pairMap } =
-        isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
-
-    if (pairData === undefined || pairMap === undefined) {
-        return;
-    }
-
-    const render = (ratios: Partial<Record<MarkerChange, number>>, path: Path) => {
-        const { path: linePath } = path;
-        let previousTo: PathPoint['to'];
-        for (const data of pairData) {
-            const ratio = ratios[data.marker];
-            if (ratio == null) continue;
-
-            const { from, to } = data;
-            if (from == null || to == null) continue;
-
-            const x = from.x + (to.x - from.x) * ratio;
-            const y = from.y + (to.y - from.y) * ratio;
-            if (data.moveTo === false) {
-                linePath.lineTo(x, y);
-            } else if (data.moveTo === true || !previousTo) {
-                linePath.moveTo(x, y);
-            } else if (previousTo) {
-                const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
-                const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
-                const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
-                linePath.lineTo(midPointX, midPointY);
-                linePath.moveTo(x, y);
-            }
-            previousTo = to;
-        }
-    };
-
-    const markerStatus = (datum: LineNodeDatum): { point?: PathPoint; status: NodeUpdateState } => {
+export function prepareLineMarkerAnimation(pairMap: PathPointMap) {
+    const markerStatus = (datum: LineNodeDatumLike): { point?: PathPoint; status: NodeUpdateState } => {
         const { xValue } = datum;
 
         if (pairMap.moved[xValue]) {
@@ -341,7 +296,7 @@ export function prepareLinePathAnimation(
 
         return { status: 'unknown' };
     };
-    const fromFn = (marker: Marker, datum: LineNodeDatum) => {
+    const fromFn = (marker: Marker, datum: LineNodeDatumLike) => {
         const { status, point } = markerStatus(datum);
         if (status === 'unknown') return { opacity: 0 };
 
@@ -359,7 +314,7 @@ export function prepareLinePathAnimation(
         return defaults;
     };
 
-    const toFn = (_marker: Marker, datum: LineNodeDatum) => {
+    const toFn = (_marker: Marker, datum: LineNodeDatumLike) => {
         const { status, point } = markerStatus(datum);
         if (status === 'unknown') return { opacity: 0 };
 
@@ -372,30 +327,21 @@ export function prepareLinePathAnimation(
         return defaults;
     };
 
+    return { fromFn, toFn };
+}
+
+export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike) {
     let status: NodeUpdateState = 'updated';
     if (oldData.nodeData.length === 0 && newData.nodeData.length > 0) {
         status = 'added';
     } else if (oldData.nodeData.length > 0 && newData.nodeData.length === 0) {
         status = 'removed';
     }
+    return status;
+}
 
-    const removePhaseFn = (ratio: number, path: Path) => {
-        if (status === 'added') addPhaseFn(1, path);
-        if (status === 'removed') render({ move: 0, out: 0 }, path);
-        if (status === 'updated') render({ move: 0, out: ratio }, path);
-    };
-    const updatePhaseFn = (ratio: number, path: Path) => {
-        if (status === 'added') addPhaseFn(1, path);
-        if (status === 'removed') removePhaseFn(0, path);
-        if (status === 'updated') render({ move: ratio }, path);
-    };
-    const addPhaseFn = (ratio: number, path: Path) => {
-        if (status === 'added') render({ move: 1, in: 1 }, path);
-        if (status === 'removed') removePhaseFn(0, path);
-        if (status === 'updated') render({ move: 1, in: ratio }, path);
-    };
-
-    const pathProperties = {
+function prepareLinePathPropertyAnimation(status: NodeUpdateState) {
+    return {
         fromFn: (path: Path) => {
             if (status === 'added') {
                 return { opacity: 0, ...FROM_TO_MIXINS['added'] };
@@ -411,8 +357,78 @@ export function prepareLinePathAnimation(
             return { opacity: status === 'removed' ? 0 : path.opacity, ...FROM_TO_MIXINS[status] };
         },
     };
+}
 
-    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties, marker: { fromFn, toFn } };
+export function prepareLinePathAnimationFns(
+    newData: LineContextLike,
+    oldData: LineContextLike,
+    pairData: PathPoint[],
+    render: (pairData: PathPoint[], ratios: Partial<Record<MarkerChange, number>>, path: Path) => void
+) {
+    const status = determinePathStatus(newData, oldData);
+    const removePhaseFn = (ratio: number, path: Path) => {
+        if (status === 'added') addPhaseFn(1, path);
+        if (status === 'removed') render(pairData, { move: 0, out: 0 }, path);
+        if (status === 'updated') render(pairData, { move: 0, out: ratio }, path);
+    };
+    const updatePhaseFn = (ratio: number, path: Path) => {
+        if (status === 'added') addPhaseFn(1, path);
+        if (status === 'removed') removePhaseFn(0, path);
+        if (status === 'updated') render(pairData, { move: ratio }, path);
+    };
+    const addPhaseFn = (ratio: number, path: Path) => {
+        if (status === 'added') render(pairData, { move: 1, in: 1 }, path);
+        if (status === 'removed') removePhaseFn(0, path);
+        if (status === 'updated') render(pairData, { move: 1, in: ratio }, path);
+    };
+    const pathProperties = prepareLinePathPropertyAnimation(status);
+
+    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
+}
+
+function renderPartialLine(pairData: PathPoint[], ratios: Partial<Record<MarkerChange, number>>, path: Path) {
+    const { path: linePath } = path;
+    let previousTo: PathPoint['to'];
+    for (const data of pairData) {
+        const ratio = ratios[data.marker];
+        if (ratio == null) continue;
+
+        const { from, to } = data;
+        if (from == null || to == null) continue;
+
+        const x = from.x + (to.x - from.x) * ratio;
+        const y = from.y + (to.y - from.y) * ratio;
+        if (data.moveTo === false) {
+            linePath.lineTo(x, y);
+        } else if (data.moveTo === true || !previousTo) {
+            linePath.moveTo(x, y);
+        } else if (previousTo) {
+            const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
+            const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
+            const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
+            linePath.lineTo(midPointX, midPointY);
+            linePath.moveTo(x, y);
+        }
+        previousTo = to;
+    }
+}
+
+export function prepareLinePathAnimation(
+    newData: LineContextLike,
+    oldData: LineContextLike,
+    diff?: ProcessedOutputDiff
+) {
+    const isCategoryBased = newData.scales.x?.type === 'category';
+    const { result: pairData, resultMap: pairMap } =
+        isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
+
+    if (pairData === undefined || pairMap === undefined) {
+        return;
+    }
+
+    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialLine);
+    const marker = prepareLineMarkerAnimation(pairMap);
+    return { ...pathFns, marker };
 }
 
 function intersectionOnLine(a: { x: number; y: number }, b: { x: number; y: number }, targetX: number) {

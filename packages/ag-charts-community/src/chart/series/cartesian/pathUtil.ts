@@ -1,6 +1,17 @@
 import { staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
 import type { AnimationManager } from '../../interaction/animationManager';
+import type { MarkerChange } from './markerUtil';
+
+export type PathPoint = {
+    from?: { x: number; y: number };
+    to?: { x: number; y: number };
+    marker: MarkerChange;
+    moveTo: true | false | 'in' | 'out';
+};
+export type PathPointMap = {
+    [key in 'moved' | 'added' | 'removed']: { [key: string | number]: PathPoint };
+};
 
 export function pathSwipeInAnimation({ id }: { id: string }, animationManager: AnimationManager, paths: Path[]) {
     staticFromToMotion(

@@ -1,13 +1,17 @@
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { AgSeriesMarkerStyle } from '../../../options/series/markerOptions';
-import type { DropShadow } from '../../../scene/dropShadow';
+import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
-import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
-import type { Text } from '../../../scene/shape/text';
-import type { Marker } from '../../marker/marker';
-import type { SeriesNodeDataContext } from '../series';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { ProcessedOutputDiff } from '../../data/dataModel';
+import type { SeriesNodeDatum } from '../seriesTypes';
+import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
+import {
+    pairCategoryData,
+    pairContinuousData,
+    prepareLineMarkerAnimation,
+    prepareLinePathAnimationFns,
+} from './lineUtil';
+import type { MarkerChange } from './markerUtil';
+import type { PathPoint } from './pathUtil';
 
 export enum AreaSeriesTag {
     Fill,
@@ -28,182 +32,74 @@ export type AreaPathDatum = {
     readonly itemId: string;
 };
 
-interface AreaSeriesStyleOptions {
-    stroke: string;
-    fill: string;
-    fillOpacity: number;
-    lineDash?: number[];
-    lineDashOffset: number;
-    strokeOpacity: number;
-    strokeWidth: number;
-    shadow?: DropShadow;
+export interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
+    readonly index: number;
+    readonly fill?: string;
+    readonly stroke?: string;
+    readonly strokeWidth: number;
+    readonly cumulativeValue: number;
 }
 
-type MarkerDatum = Omit<Required<CartesianSeriesNodeDatum>, 'yKey' | 'yValue'>;
-
-export function areaAnimateReadyUpdate<
-    MarkerNodeDatum extends MarkerDatum,
-    LabelNodeDatum extends Readonly<Point>,
-    FillDatum extends AreaPathDatum,
-    StrokeDatum extends AreaPathDatum,
-    ContextDatum extends SeriesNodeDataContext<MarkerNodeDatum, LabelNodeDatum> & {
-        fillData: FillDatum;
-        strokeData: StrokeDatum;
-    },
->({
-    contextData,
-    paths,
-    styles,
-}: {
-    contextData: Array<ContextDatum>;
-    paths: Array<Array<Path>>;
-    styles: AreaSeriesStyleOptions;
-}) {
-    const {
-        stroke: seriesStroke,
-        fill: seriesFill,
-        fillOpacity,
-        lineDash,
-        lineDashOffset,
-        strokeOpacity,
-        strokeWidth,
-        shadow,
-    } = styles;
-
-    contextData.forEach(({ strokeData, fillData }, seriesIdx) => {
-        const [fill, stroke] = paths[seriesIdx];
-
-        // Stroke
-        stroke.setProperties({ stroke: seriesStroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset });
-        stroke.path.clear({ trackChanges: true });
-
-        let moveTo = true;
-        strokeData.points.forEach((point) => {
-            if (point.yValue === undefined || isNaN(point.x) || isNaN(point.y)) {
-                moveTo = true;
-            } else if (moveTo) {
-                stroke.path.moveTo(point.x, point.y);
-                moveTo = false;
-            } else {
-                stroke.path.lineTo(point.x, point.y);
-            }
-        });
-
-        stroke.checkPathDirty();
-
-        // Fill
-        fill.setProperties({
-            fill: seriesFill,
-            fillShadow: shadow,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-        });
-
-        fill.path.clear({ trackChanges: true });
-
-        fillData.points.forEach((point) => {
-            fill.path.lineTo(point.x, point.y);
-        });
-
-        fill.path.closePath();
-        fill.checkPathDirty();
-    });
+export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
+    readonly index: number;
+    readonly itemId: any;
+    readonly label?: {
+        readonly text: string;
+        readonly fontStyle?: FontStyle;
+        readonly fontWeight?: FontWeight;
+        readonly fontSize: number;
+        readonly fontFamily: string;
+        readonly textAlign: CanvasTextAlign;
+        readonly textBaseline: CanvasTextBaseline;
+        readonly fill: string;
+    };
 }
 
-export function areaResetMarkersAndPaths<
-    MarkerNodeDatum extends MarkerDatum,
-    LabelNodeDatum extends Readonly<Point>,
-    FillDatum extends AreaPathDatum,
-    StrokeDatum extends AreaPathDatum,
-    ContextDatum extends SeriesNodeDataContext<MarkerNodeDatum, LabelNodeDatum> & {
-        fillData: FillDatum;
-        strokeData: StrokeDatum;
-    },
-    Formatter extends (...args: any[]) => AgSeriesMarkerStyle | undefined,
->({
-    markerSelections,
-    labelSelections,
-    contextData,
-    paths,
-    styles,
-    formatter,
-    getFormatterParams,
-    ctx,
-}: {
-    markerSelections: Array<Selection<Marker, MarkerNodeDatum> | undefined>;
-    labelSelections: Array<Selection<Text, LabelNodeDatum>>;
-    contextData: Array<ContextDatum>;
-    paths: Array<Array<Path>>;
-    styles: AreaSeriesStyleOptions;
-    formatter?: Formatter;
-    getFormatterParams: (datum: MarkerNodeDatum) => Parameters<Formatter>[0];
-    ctx: ModuleContext;
-}) {
-    const {
-        stroke: seriesStroke,
-        fill: seriesFill,
-        fillOpacity,
-        lineDash,
-        lineDashOffset,
-        strokeOpacity,
-        strokeWidth,
-        shadow,
-    } = styles;
+export interface AreaSeriesNodeDataContext
+    extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
+    fillData: AreaPathDatum;
+    strokeData: AreaPathDatum;
+}
 
-    contextData.forEach(({ strokeData, fillData }, seriesIdx) => {
-        const [fill, stroke] = paths[seriesIdx];
+function renderPartialArea(_pairData: PathPoint[], _ratios: Partial<Record<MarkerChange, number>>, _path: Path) {
+    // const { path: linePath } = path;
+    // let previousTo: PathPoint['to'];
+    // for (const data of pairData) {
+    //     const ratio = ratios[data.marker];
+    //     if (ratio == null) continue;
+    //     const { from, to } = data;
+    //     if (from == null || to == null) continue;
+    //     const x = from.x + (to.x - from.x) * ratio;
+    //     const y = from.y + (to.y - from.y) * ratio;
+    //     if (data.moveTo === false) {
+    //         linePath.lineTo(x, y);
+    //     } else if (data.moveTo === true || !previousTo) {
+    //         linePath.moveTo(x, y);
+    //     } else if (previousTo) {
+    //         const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
+    //         const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
+    //         const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
+    //         linePath.lineTo(midPointX, midPointY);
+    //         linePath.moveTo(x, y);
+    //     }
+    //     previousTo = to;
+    // }
+}
 
-        // Stroke
-        stroke.stroke = seriesStroke;
-        stroke.strokeWidth = strokeWidth;
-        stroke.strokeOpacity = strokeOpacity;
-        stroke.lineDash = lineDash;
-        stroke.lineDashOffset = lineDashOffset;
+export function prepareAreaPathAnimation(
+    newData: AreaSeriesNodeDataContext,
+    oldData: AreaSeriesNodeDataContext,
+    diff?: ProcessedOutputDiff
+) {
+    const isCategoryBased = newData.scales.x?.type === 'category';
+    const { result: pairData, resultMap: pairMap } =
+        isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
 
-        stroke.path.clear({ trackChanges: true });
+    if (pairData === undefined || pairMap === undefined) {
+        return;
+    }
 
-        let moveTo = true;
-        strokeData.points.forEach((point) => {
-            if (point.yValue === undefined || isNaN(point.x) || isNaN(point.y)) {
-                moveTo = true;
-            } else if (moveTo) {
-                stroke.path.moveTo(point.x, point.y);
-                moveTo = false;
-            } else {
-                stroke.path.lineTo(point.x, point.y);
-            }
-        });
-
-        stroke.checkPathDirty();
-
-        // Fill
-        fill.fill = seriesFill;
-        fill.fillOpacity = fillOpacity;
-        fill.strokeOpacity = strokeOpacity;
-        fill.strokeWidth = strokeWidth;
-        fill.lineDash = lineDash;
-        fill.lineDashOffset = lineDashOffset;
-        fill.fillShadow = shadow;
-
-        fill.path.clear({ trackChanges: true });
-
-        fillData.points.forEach((point) => {
-            fill.path.lineTo(point.x, point.y);
-        });
-
-        fill.path.closePath();
-        fill.checkPathDirty();
-
-        markerSelections[seriesIdx]?.cleanup().each((marker, datum) => {
-            const format = formatter ? ctx.callbackCache.call(formatter as any, getFormatterParams(datum)) : null;
-            marker.size = format?.size ?? datum.point?.size ?? 0;
-        });
-
-        labelSelections[seriesIdx].each((label) => {
-            label.opacity = 1;
-        });
-    });
+    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialArea);
+    const marker = prepareLineMarkerAnimation(pairMap);
+    return { ...pathFns, marker };
 }

@@ -7,6 +7,8 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
+export type MarkerChange = 'move' | 'in' | 'out';
+
 type NodeWithOpacity = Node & { opacity: number };
 export function markerFadeInAnimation<T>(
     { id }: { id: string },

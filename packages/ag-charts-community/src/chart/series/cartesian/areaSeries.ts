@@ -1,4 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import { fromToMotion } from '../../../motion/fromToMotion';
+import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type {
     AgAreaSeriesLabelFormatterParams,
@@ -35,44 +37,19 @@ import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../s
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { SeriesNodeDatum } from '../seriesTypes';
-import { type AreaPathDatum, type AreaPathPoint, AreaSeriesTag } from './areaUtil';
-import type {
-    CartesianAnimationData,
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
-} from './cartesianSeries';
+import {
+    type AreaPathDatum,
+    type AreaPathPoint,
+    type AreaSeriesNodeDataContext,
+    AreaSeriesTag,
+    type LabelSelectionDatum,
+    type MarkerSelectionDatum,
+    prepareAreaPathAnimation,
+} from './areaUtil';
+import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
 import { pathSwipeInAnimation, resetPathFn } from './pathUtil';
-
-interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
-    readonly index: number;
-    readonly fill?: string;
-    readonly stroke?: string;
-    readonly strokeWidth: number;
-    readonly cumulativeValue: number;
-}
-
-interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
-    readonly index: number;
-    readonly itemId: any;
-    readonly label?: {
-        readonly text: string;
-        readonly fontStyle?: FontStyle;
-        readonly fontWeight?: FontWeight;
-        readonly fontSize: number;
-        readonly fontFamily: string;
-        readonly textAlign: CanvasTextAlign;
-        readonly textBaseline: CanvasTextBaseline;
-        readonly fill: string;
-    };
-}
-
-interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
-    fillData: AreaPathDatum;
-    strokeData: AreaPathDatum;
-}
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -301,6 +278,7 @@ export class AreaSeries extends CartesianSeries<
             labelData,
             nodeData: markerData,
             scales: super.calculateScaling(),
+            animationValid: true,
         };
 
         const fillPoints = fillData.points;
@@ -705,7 +683,20 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        this.updateAreaPaths(paths, contextData);
+        const [path] = paths;
+        const [newData] = contextData;
+        const [oldData] = previousContextData;
+
+        const fns = prepareAreaPathAnimation(newData, oldData, this.processedData?.reduced?.diff);
+        if (fns === undefined) {
+            this.updateAreaPaths(paths, contextData);
+            return;
+        }
+
+        fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
+        fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
+        pathMotion(this.id, 'path_update', animationManager, path, fns.path);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
     protected isLabelEnabled() {
