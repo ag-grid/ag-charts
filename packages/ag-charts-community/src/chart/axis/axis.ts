@@ -507,10 +507,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const boxes: BBox[] = [];
 
         const { line } = this;
+        const axisLineBoxes: BBox[] = [];
         if (line.enabled) {
             const { range } = this;
             const lineBox = new BBox(0, Math.min(...range), 0, Math.abs(range[1] - range[0]));
             boxes.push(lineBox);
+            axisLineBoxes.push(lineBox);
         }
 
         const { tick } = this;
@@ -598,8 +600,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
             let bboxYDimension = 0;
             if (tickData.ticks.length > 0) {
-                const contentBox = getTransformBox(BBox.merge([...tickLineBoxes, ...tickLabelBoxes]));
-                const tickWidth = rotation === 0 ? contentBox.width : contentBox.height;
+                const contentBox = BBox.merge([...axisLineBoxes, ...tickLineBoxes, ...tickLabelBoxes]);
+                const tickWidth = contentBox.width;
                 if (isFinite(tickWidth)) {
                     bboxYDimension += tickWidth;
                 }
@@ -1302,7 +1304,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             let bboxYDimension = 0;
 
             if (anyTickVisible) {
-                const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup]);
+                const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
                 const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
                 if (Math.abs(tickWidth) < Infinity) {
                     bboxYDimension += tickWidth;
