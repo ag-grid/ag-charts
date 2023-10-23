@@ -178,26 +178,14 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     }
 
     update(visible: boolean) {
-        if (!this.enabled) {
-            return;
-        }
-
-        this.group.visible = visible;
-
-        if (!visible) {
-            return;
-        }
-
-        const dataCreated = this.createNodeData();
-
-        if (!dataCreated) {
+        if (!this.enabled || !visible || this.data.length === 0) {
             this.group.visible = false;
             return;
         }
 
-        this.updateNodes();
-
+        this.group.visible = true;
         this.group.zIndex = this.getZIndex(this.isRange);
+        this.updateNodes();
     }
 
     calculateLayout(visible: boolean): BBox | undefined {
@@ -210,11 +198,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             return;
         }
 
-        const {
-            sideFlag,
-            gridLength,
-            data,
-        } = this;
+        const { sideFlag, gridLength, data } = this;
 
         const boxes: BBox[] = [];
 
@@ -225,13 +209,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         const crossLineBox = new BBox(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
         boxes.push(crossLineBox);
 
-
         const labelBox = this.computeLabelBBox();
         if (labelBox) {
             boxes.push(labelBox);
         }
 
-        return BBox.merge(boxes)
+        return BBox.merge(boxes);
     }
 
     private updateNodes() {
@@ -253,6 +236,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             clippedRange,
             strokeWidth = 0,
         } = this;
+
+        this.data = [];
 
         if (!scale) {
             return false;
@@ -467,29 +452,29 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             parallelFlipRotation,
             regularFlipRotation,
         } = this;
-    
+
         if (x === undefined || y === undefined) {
             return undefined;
         }
-    
+
         const { configuredRotation } = calculateLabelRotation({
             rotation,
             parallel,
             regularFlipRotation,
             parallelFlipRotation,
         });
-    
+
         tempText.rotation = configuredRotation;
-    
+
         tempText.textBaseline = 'middle';
         tempText.textAlign = 'center';
-    
+
         const bbox = tempText.computeTransformedBBox();
-    
+
         if (!bbox) {
             return undefined;
         }
-    
+
         const yDirection = direction === ChartAxisDirection.Y;
         const { xTranslation, yTranslation } = calculateLabelTranslation({
             yDirection,
@@ -497,7 +482,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             position,
             bbox,
         });
-    
+
         tempText.translationX = x + xTranslation;
         tempText.translationY = y + yTranslation;
 
