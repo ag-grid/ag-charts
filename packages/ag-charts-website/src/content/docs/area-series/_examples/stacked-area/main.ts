@@ -2,41 +2,31 @@ import { AgChart, AgChartOptions } from "ag-charts-community";
 import { getData } from "./data";
 
 const options: AgChartOptions = {
-  container: document.getElementById("myChart"),
+  container: document.getElementById('myChart'),
   title: {
-    text: "Browser Wars",
-  },
-  subtitle: {
-    text: "2009-2019",
+    text: 'Sales by Month',
   },
   data: getData(),
   series: [
     {
-      type: "area",
-      xKey: "year",
-      yKey: "ie",
-      yName: "IE",
+      type: 'area',
+      xKey: 'month',
+      yKey: 'subscriptions',
+      yName: 'Subscriptions',
       stacked: true,
     },
     {
-      type: "area",
-      xKey: "year",
-      yKey: "firefox",
-      yName: "Firefox",
+      type: 'area',
+      xKey: 'month',
+      yKey: 'services',
+      yName: 'Services',
       stacked: true,
     },
-    {
-      type: "area",
-      xKey: "year",
-      yKey: "safari",
-      yName: "Safari",
-      stacked: true,
-    },
-    {
-      type: "area",
-      xKey: "year",
-      yKey: "chrome",
-      yName: "Chrome",
+        {
+      type: 'area',
+      xKey: 'month',
+      yKey: 'products',
+      yName: 'Products',
       stacked: true,
     },
   ],

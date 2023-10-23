@@ -13,24 +13,38 @@ const options: AgChartOptions = {
       xKey: 'month',
       yKey: 'subscriptions',
       yName: 'Subscriptions',
-      stacked: true,
-      normalizedTo: 1000,
+      stroke: 'blue',
+      strokeWidth: 3,
+      lineDash: [3,4],
+      fill: 'lightBlue',
     },
     {
       type: 'area',
       xKey: 'month',
       yKey: 'services',
       yName: 'Services',
-      stacked: true,
-      normalizedTo: 1000,
+      stroke: 'red',
+      strokeWidth: 3,
+      fill: 'pink',
+      marker: {
+        enabled: true,
+        fill: 'red'
+      }
     },
     {
       type: 'area',
       xKey: 'month',
       yKey: 'products',
       yName: 'Products',
-      stacked: true,
-      normalizedTo: 1000,
+      stroke: 'green',
+      strokeWidth: 3,
+      fill: 'lightGreen',
+      label: {
+        enabled: true,
+        fontWeight: 'bold',
+        formatter: ({value}) => value.toFixed(0),
+      }
+      
     },
   ],
 }
