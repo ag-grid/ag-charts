@@ -17,6 +17,7 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_FONT_FAMILY,
     DEFAULT_HEATMAP_SERIES_COLOUR_RANGE,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -123,7 +124,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Axis Title',
-                spacing: 15,
+                spacing: 25,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: FONT_SIZE.MEDIUM,
@@ -157,8 +158,9 @@ export class ChartTheme {
             },
             crossLines: {
                 enabled: false,
-                fill: 'rgb(187,221,232)',
-                stroke: 'rgb(70,162,192)',
+                fill: DEFAULT_CROSS_LINES_COLOUR,
+                stroke: DEFAULT_CROSS_LINES_COLOUR,
+                fillOpacity: 0.1,
                 strokeWidth: 1,
                 label: {
                     enabled: false,
@@ -547,6 +549,7 @@ export class ChartTheme {
         properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
         properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
         properties.set(DEFAULT_AXIS_LINE_COLOUR, 'rgb(195, 195, 195)');
+        properties.set(DEFAULT_CROSS_LINES_COLOUR, 'rgb(70, 70, 70)');
         properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');

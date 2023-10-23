@@ -20,7 +20,7 @@ const options: AgChartOptions = {
             colorKey: 'steps',
             colorName: 'Steps',
 
-            strokeWidth: 4,
+            strokeWidth: 2,
         },
     ],
     gradientLegend: {

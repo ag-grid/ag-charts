@@ -1,33 +1,4 @@
-var hours = [
-    '12a',
-    '1a',
-    '2a',
-    '3a',
-    '4a',
-    '5a',
-    '6a',
-    '7a',
-    '8a',
-    '9a',
-    '10a',
-    '11a',
-    '12p',
-    '1p',
-    '2p',
-    '3p',
-    '4p',
-    '5p',
-    '6p',
-    '7p',
-    '8p',
-    '9p',
-    '10p',
-    '11p',
-];
-
-var days = ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday'];
-
-var rawData = [
+const rawData = [
     [0, 0, 5],
     [0, 1, 1],
     [0, 2, 0],
@@ -198,14 +169,47 @@ var rawData = [
     [6, 23, 6],
 ];
 
-var data = rawData.map(function (item) {
-    return {
+const hours = [
+    '12a',
+    '1a',
+    '2a',
+    '3a',
+    '4a',
+    '5a',
+    '6a',
+    '7a',
+    '8a',
+    '9a',
+    '10a',
+    '11a',
+    '12p',
+    '1p',
+    '2p',
+    '3p',
+    '4p',
+    '5p',
+    '6p',
+    '7p',
+    '8p',
+    '9p',
+    '10p',
+    '11p',
+];
+
+export const days = [
+    'Saturday',
+    'Friday',
+    'Thursday',
+    'Wednesday',
+    'Tuesday',
+    'Monday',
+    'Sunday',
+];
+
+export function getData() {
+    return rawData.map((item) => ({
         hour: hours[item[1]],
         day: days[item[0]],
         size: item[2],
-    };
-});
-
-export function getData(): any[] {
-    return data;
+    }));
 }

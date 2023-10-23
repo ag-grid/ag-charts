@@ -433,7 +433,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
     getLegendData(): CategoryLegendDatum[] {
         const { id, data, xKey, yKey, yName, title, visible, marker } = this;
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
         if (!(data?.length && xKey && yKey)) {
             return [];
@@ -450,9 +450,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                     text: title ?? yName ?? yKey,
                 },
                 marker: {
-                    shape: marker.shape,
-                    fill: marker.fill ?? fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                    shape,
+                    fill: fill ?? 'rgba(0, 0, 0, 0)',
+                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
                     fillOpacity: fillOpacity ?? 1,
                     strokeOpacity: strokeOpacity ?? 1,
                     strokeWidth: strokeWidth ?? 0,
