@@ -326,7 +326,6 @@ export function extractInterfaces(definitionOrArray, interfaceLookup, overrideIn
                 !alreadyIncluded[type]
             ) {
                 if (!addDef({ name: type, interfaceType })) {
-                    console.log(123);
                     // Previously added - no need to continue.
                     return;
                 }
