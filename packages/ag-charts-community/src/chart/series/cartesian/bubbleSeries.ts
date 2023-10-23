@@ -176,8 +176,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             dataVisible: this.visible,
         });
 
-        const processedSize = processedData.reduced?.domainValuesByGroup?.['bubble-size'] ?? [];
-
+        const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
+        const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];
         this.sizeScale.domain = marker.domain ? marker.domain : processedSize;
 
         if (colorKey) {

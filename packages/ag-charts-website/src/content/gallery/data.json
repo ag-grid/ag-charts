@@ -186,6 +186,11 @@
                     "title": "Bubble With Categories",
                     "description": "The axes of scatter and bubble charts can show categories in addition to values.",
                     "name": "bubble-with-categories"
+                },
+                {
+                    "title": "Bubble With Labels",
+                    "description": "The axes of scatter and bubble charts can show categories in addition to values.",
+                    "name": "bubble-with-labels"
                 }
             ]
         },
