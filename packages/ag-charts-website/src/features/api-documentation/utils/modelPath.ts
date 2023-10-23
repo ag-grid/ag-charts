@@ -263,3 +263,7 @@ export function getTopSelection({
         isRoot: true,
     };
 }
+
+export function getFullPath(selection: JsObjectSelection) {
+    return selection.type === 'property' ? selection.path.concat(selection.propName) : selection.path;
+}

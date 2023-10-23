@@ -113,13 +113,11 @@ describe('Nightingale Chart', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
@@ -132,13 +130,11 @@ describe('Nightingale Chart', () => {
     });
 
     describe('remove animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
@@ -149,7 +145,7 @@ describe('Nightingale Chart', () => {
                 AgEnterpriseCharts.updateDelta(chart, {
                     data: options.data!.slice(0, 4),
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -158,13 +154,11 @@ describe('Nightingale Chart', () => {
     });
 
     describe('add animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const { data: fullData } = EXAMPLE_OPTIONS;
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData.slice(0, 4) };
@@ -176,7 +170,7 @@ describe('Nightingale Chart', () => {
                 AgEnterpriseCharts.updateDelta(chart, {
                     data: fullData,
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -185,13 +179,11 @@ describe('Nightingale Chart', () => {
     });
 
     describe('update animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
@@ -206,7 +198,7 @@ describe('Nightingale Chart', () => {
                         }, {});
                     }),
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();

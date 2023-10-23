@@ -111,7 +111,7 @@ describe('BarSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -158,13 +158,11 @@ describe('BarSeries', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -177,7 +175,7 @@ describe('BarSeries', () => {
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -190,13 +188,11 @@ describe('BarSeries', () => {
     });
 
     describe('remove animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -207,7 +203,7 @@ describe('BarSeries', () => {
                 AgChart.updateDelta(chart, {
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -216,7 +212,7 @@ describe('BarSeries', () => {
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -227,7 +223,7 @@ describe('BarSeries', () => {
                 AgChart.updateDelta(chart, {
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -236,13 +232,11 @@ describe('BarSeries', () => {
     });
 
     describe('add animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -256,7 +250,7 @@ describe('BarSeries', () => {
                 await waitForChartStability(chart);
 
                 AgChart.update(chart, options);
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -265,7 +259,7 @@ describe('BarSeries', () => {
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -279,7 +273,7 @@ describe('BarSeries', () => {
                 await waitForChartStability(chart);
 
                 AgChart.update(chart, options);
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -288,13 +282,11 @@ describe('BarSeries', () => {
     });
 
     describe('update animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -305,7 +297,7 @@ describe('BarSeries', () => {
                 AgChart.updateDelta(chart, {
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -314,7 +306,7 @@ describe('BarSeries', () => {
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
@@ -325,7 +317,7 @@ describe('BarSeries', () => {
                 AgChart.updateDelta(chart, {
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();

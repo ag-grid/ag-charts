@@ -73,7 +73,6 @@ interface BarNodeLabelDatum extends Readonly<Point> {
 }
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
-    readonly index: number;
     readonly xValue: string | number;
     readonly yValue: string | number;
     readonly cumulativeValue: number;
@@ -345,7 +344,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             labelData: [],
             scales: super.calculateScaling(),
         };
-        processedData?.data.forEach(({ keys, datum: seriesDatum, values }, dataIndex) => {
+        processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
             const xValue = keys[xIndex];
             const x = xScale.convert(xValue);
 
@@ -409,7 +408,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
             const lengthRatioMultiplier = this.shouldFlipXY() ? rect.height : rect.width;
             const nodeData: BarNodeDatum = {
-                index: dataIndex,
                 series: this,
                 itemId: yKey,
                 datum: seriesDatum[0],

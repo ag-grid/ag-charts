@@ -114,13 +114,11 @@ describe('Radial Column Chart', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
@@ -133,13 +131,11 @@ describe('Radial Column Chart', () => {
     });
 
     describe('remove animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
@@ -150,7 +146,7 @@ describe('Radial Column Chart', () => {
                 AgEnterpriseCharts.updateDelta(chart, {
                     data: options.data!.slice(0, 4),
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -159,13 +155,11 @@ describe('Radial Column Chart', () => {
     });
 
     describe('add animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const { data: fullData } = EXAMPLE_OPTIONS;
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData.slice(0, 4) };
@@ -177,7 +171,7 @@ describe('Radial Column Chart', () => {
                 AgEnterpriseCharts.updateDelta(chart, {
                     data: fullData,
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -186,13 +180,11 @@ describe('Radial Column Chart', () => {
     });
 
     describe('update animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, 1);
+                animate(1200, 1);
 
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
@@ -207,7 +199,7 @@ describe('Radial Column Chart', () => {
                         }, {});
                     }),
                 });
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();

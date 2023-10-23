@@ -77,6 +77,18 @@ export class Path extends Shape {
         // Override point for subclasses.
     }
 
+    private clip(ctx: CanvasRenderingContext2D, op: () => void) {
+        const transform = ctx.getTransform();
+        const clipScale = this.clipScalingX !== 1 || this.clipScalingY !== 1;
+        if (clipScale) {
+            ctx.scale(this.clipScalingX, this.clipScalingY);
+        }
+        op();
+        if (clipScale) {
+            ctx.setTransform(transform);
+        }
+    }
+
     override render(renderCtx: RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
 
@@ -93,16 +105,15 @@ export class Path extends Shape {
             this.dirtyPath = false;
         }
 
-        if (this.clipPath) {
+        if (this.clipPath && this.clipMode != null) {
             ctx.save();
 
             if (this.clipMode === 'normal') {
-                const transform = ctx.getTransform();
-                ctx.scale(this.clipScalingX, this.clipScalingY);
-                // Bound the shape rendered to the clipping path.
-                this.clipPath.draw(ctx);
-                ctx.clip();
-                ctx.setTransform(transform);
+                this.clip(ctx, () => {
+                    // Bound the shape rendered to the clipping path.
+                    this.clipPath?.draw(ctx);
+                    ctx.clip();
+                });
             }
 
             if (this.clipScalingX > 0 && this.clipScalingY > 0) {
@@ -111,15 +122,14 @@ export class Path extends Shape {
             }
 
             if (this.clipMode === 'punch-out') {
-                const transform = ctx.getTransform();
-                ctx.scale(this.clipScalingX, this.clipScalingY);
-                // Bound the shape rendered to outside the clipping path.
-                this.clipPath.draw(ctx);
-                ctx.clip();
-                // Fallback values, but practically these should never be used.
-                const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
-                ctx.clearRect(x, y, width, height);
-                ctx.setTransform(transform);
+                this.clip(ctx, () => {
+                    // Bound the shape rendered to the clipping path.
+                    this.clipPath?.draw(ctx);
+                    ctx.clip();
+                    // Fallback values, but practically these should never be used.
+                    const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
+                    ctx.clearRect(x, y, width, height);
+                });
             }
 
             ctx.restore();

@@ -163,6 +163,10 @@ input[type='search'].searchInput {
     }
 }
 
+.propertyNameText {
+    user-select: none;
+}
+
 .jsonUnionItem {
     position: relative;
 

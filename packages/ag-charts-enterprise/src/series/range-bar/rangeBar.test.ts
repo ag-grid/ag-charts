@@ -316,13 +316,11 @@ describe('Chart', () => {
     });
 
     describe('initial animation', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const animate = spyOnAnimationManager();
 
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`for RANGE_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = { ...RANGE_COLUMN_OPTIONS };
                 prepareEnterpriseTestOptions(options);
@@ -333,7 +331,7 @@ describe('Chart', () => {
             });
 
             it(`for horizontal RANGE_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                spyOnAnimationManager(1200, ratio);
+                animate(1200, ratio);
 
                 const options: AgChartOptions = { ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal') };
                 prepareEnterpriseTestOptions(options);
