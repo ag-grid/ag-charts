@@ -31,10 +31,6 @@ function isCallSig(gridProp: InterfaceEntry): gridProp is ICallSignature {
 }
 
 export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name, definition, config }) => {
-    if (name === 'formatter') {
-        console.log(name, { definition, config });
-    }
-
     const [isExpanded, toggleExpanded, setExpanded] = useToggle(config.defaultExpand);
     const propertyRef = useRef<HTMLTableRowElement>(null);
     const idName = `reference-${id}-${name}`;

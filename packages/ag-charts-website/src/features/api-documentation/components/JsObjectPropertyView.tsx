@@ -359,12 +359,18 @@ function PropertyRow({
 }) {
     const framework = 'javascript';
     const config = useContext(JsObjectPropertiesViewConfigContext);
-    const additionalDetails = extractCodeSample({
-        framework,
-        name,
-        type: config.lookups?.codeLookup[config.pageType][name]?.type,
-        config,
-    });
+    const pageType =
+        config.pageType === 'AgChartOptions' && !['axes', 'series', 'theme'].includes(name)
+            ? 'AgCartesianChartOptions'
+            : config.pageType;
+    const additionalDetails =
+        name &&
+        extractCodeSample({
+            framework,
+            name,
+            type: config.lookups?.codeLookup[pageType][name]?.type,
+            config,
+        });
 
     return (
         <tr id={id}>

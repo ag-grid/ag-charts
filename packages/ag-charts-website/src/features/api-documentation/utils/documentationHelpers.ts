@@ -39,9 +39,10 @@ export const convertMarkdown = (content: string, framework: Framework) =>
 export function escapeGenericCode(lines: string[]) {
     return lines
         .join('\n')
+        .replace(/\n{2,}/gm, '\n\n')
+        .replace(/<([^>]*)>/g, '')
         .replace('<', '&lt;')
         .replace('>', '&gt;')
-        .replace(/\n{2,}/gm, '\n\n')
         .trim();
 }
 
