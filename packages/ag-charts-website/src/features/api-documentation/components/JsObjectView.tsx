@@ -247,7 +247,6 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
                             <PropertyDeclaration
                                 propName={discriminatorProp}
                                 tsType={discriminatorType}
-                                propDesc={discriminator}
                                 isExpanded={isExpanded}
                                 expandable={true}
                                 toggleExpand={toggleExpand}
@@ -418,11 +417,10 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             role="presentation"
         >
             <SelectionWrapper>
-                {
+                <>
                     <PropertyDeclaration
                         propName={propName}
                         tsType={renderTsType ? tsType : null}
-                        propDesc={meta}
                         isExpanded={isJSONNodeExpanded}
                         expandable={expandable}
                         toggleExpand={toggleExpand}
@@ -431,8 +429,8 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
                             showTypeAsDiscriminatorValue && propName === UNION_DISCRIMINATOR_PROP
                         }
                     />
-                }
-                {propertyValue}
+                    {propertyValue}
+                </>
             </SelectionWrapper>
         </div>
     );
@@ -451,7 +449,6 @@ function JsonNodeExpander({ toggleExpand, isExpanded }: { toggleExpand: () => vo
 function PropertyDeclaration({
     propName,
     tsType,
-    propDesc,
     showTypeAsDiscriminatorValue,
     isExpanded,
     expandable,
@@ -461,7 +458,6 @@ function PropertyDeclaration({
 }: {
     propName: string;
     tsType: string | null;
-    propDesc: { required: boolean };
     showTypeAsDiscriminatorValue?: boolean;
     isExpanded: boolean;
     expandable: boolean;
@@ -469,7 +465,6 @@ function PropertyDeclaration({
     onSelection: () => void;
     style?: string;
 }) {
-    const { required } = propDesc;
     return (
         <>
             {isExpanded && <div className={styles.expanderBar}></div>}
