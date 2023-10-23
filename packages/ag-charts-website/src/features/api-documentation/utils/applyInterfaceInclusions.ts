@@ -1,5 +1,4 @@
-import type { InterfaceEntry } from 'src/features/api-documentation/types';
-
+import type { InterfaceEntry } from '../types';
 import { isGridOptionEvent } from './isGridOptionEvent';
 
 export function applyInterfaceInclusions({

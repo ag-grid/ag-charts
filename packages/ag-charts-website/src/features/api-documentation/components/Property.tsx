@@ -1,23 +1,15 @@
+import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
-import {
-    Children,
-    Fragment,
-    type FunctionComponent,
-    ReactElement,
-    ReactNode,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
-import { ChildrenSeparator } from 'src/features/api-documentation/components/ChildrenSeparator';
+import { type FunctionComponent, useEffect, useRef } from 'react';
 
 import type { ICallSignature, InterfaceEntry, PropertyCall } from '../types';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
 import {
     convertMarkdown,
+    escapeGenericCode,
     extractInterfaces,
     formatJsDocString,
     getFormattedDefaultValue,
@@ -25,13 +17,14 @@ import {
     inferType,
     removeDefaultValue,
 } from '../utils/documentationHelpers';
+import { extractCodeSample } from '../utils/extractCodeSample';
 import { formatJson } from '../utils/formatJson';
 import { getPropertyType } from '../utils/getPropertyType';
 import { useToggle } from '../utils/hooks';
 import { capitalize } from '../utils/strings';
 import styles from './ApiDocumentation.module.scss';
-import { FunctionCodeSample, extractCodeSample } from './FunctionCodeSample';
-import { SplitName } from './SplitName';
+import { ChildrenSeparator } from './ChildrenSeparator';
+import { PropertyName } from './PropertyName';
 
 function isCallSig(gridProp: InterfaceEntry): gridProp is ICallSignature {
     return Boolean(gridProp?.meta?.isCallSignature);
@@ -118,11 +111,6 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         showAdditionalDetails = false;
     }
 
-    if (config.lookups?.htmlLookup) {
-        // Force open if we have custom html content to display for the property
-        showAdditionalDetails ||= !!config.lookups?.htmlLookup[name];
-    }
-
     const propertyType = getPropertyType(type, config);
     const typeUrl = isObject
         ? `#reference-${id}.${name}`
@@ -130,13 +118,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         ? getTypeUrl(type, framework)
         : null;
 
-    const codeSection = codeLines.length ? (
-        <FunctionCodeSample
-            name={name}
-            config={config}
-            codeLines={extractCodeSample({ framework, name, type, config })}
-        />
-    ) : null;
+    const codeSection = codeLines.length ? <Code code={escapeGenericCode(codeLines)} keepMarkup /> : null;
 
     if (config.codeOnly) {
         return (
@@ -156,13 +138,13 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         <tr ref={propertyRef}>
             <td role="presentation" className={styles.leftColumn}>
                 <h6 id={idName} className={classnames(styles.name, 'side-menu-exclude')}>
-                    <SplitName
+                    <PropertyName
                         isRequired={definition.isRequired}
                         style={definition.strikeThrough ? { textDecoration: 'line-through' } : {}}
                         onClick={toggleExpanded}
                     >
                         {name}
-                    </SplitName>
+                    </PropertyName>
                     <LinkIcon href={`#${idName}`} />
                 </h6>
 
@@ -174,7 +156,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                     >
                         <span className={styles.metaLabel}>Type</span>
                         {typeUrl ? (
-                            <SplitName
+                            <PropertyName
                                 as="a"
                                 className={styles.metaValue}
                                 href={typeUrl}
@@ -182,9 +164,9 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                                 rel="noreferrer"
                             >
                                 {isObject ? capitalize(name) : propertyType}
-                            </SplitName>
+                            </PropertyName>
                         ) : (
-                            <SplitName className={styles.metaValue}>{propertyType}</SplitName>
+                            <PropertyName className={styles.metaValue}>{propertyType}</PropertyName>
                         )}
                     </div>
                     {formattedDefaultValue != null && (

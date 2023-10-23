@@ -1,7 +1,7 @@
 import { getFormattedDefaultValue } from '../utils/documentationHelpers';
 import type { JsonModelProperty } from '../utils/model';
 import styles from './ApiDocumentation.module.scss';
-import { SplitName } from './SplitName';
+import { PropertyName } from './PropertyName';
 
 export function MetaList({
     propertyType,
@@ -17,7 +17,7 @@ export function MetaList({
         <div className={styles.metaList}>
             <div title={propertyType} className={styles.metaItem}>
                 <span className={styles.metaLabel}>Type</span>
-                <SplitName className={styles.metaValue}>{propertyType}</SplitName>
+                <PropertyName className={styles.metaValue}>{propertyType}</PropertyName>
             </div>
             {formattedDefaultValue != null && (
                 <div className={styles.metaItem}>

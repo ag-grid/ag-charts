@@ -2,7 +2,9 @@ import type { AllHTMLAttributes, ReactElement, ReactNode } from 'react';
 
 import styles from './ApiDocumentation.module.scss';
 
-function wbrInject(text: string, splitRegex = /(?=[A-Z]|\s+\|\s+)/) {
+const defaultSplitRegex = /(?=[A-Z]|\s+\|\s+)/;
+
+function wbrInject(text: string, splitRegex: RegExp) {
     return text
         .split(splitRegex)
         .reduce<ReactNode[]>((result, part, index) => result.concat(index ? [<wbr key={index} />, part] : part), []);
@@ -11,18 +13,19 @@ function wbrInject(text: string, splitRegex = /(?=[A-Z]|\s+\|\s+)/) {
 /**
  * Split display name on capital letter, add <wbr> to improve text splitting across lines
  */
-export function SplitName({
+export function PropertyName({
     as: Component = 'span',
+    splitRegex = defaultSplitRegex,
     isRequired,
     children,
     ...props
-}: AllHTMLAttributes<Element> & { as?: string; isRequired?: boolean }) {
+}: AllHTMLAttributes<Element> & { as?: string; isRequired?: boolean; splitRegex?: RegExp }) {
     if (typeof children !== 'string') {
         return <Component {...props} />;
     }
     return (
         <Component {...props}>
-            {wbrInject(children)}
+            {wbrInject(children, splitRegex)}
             {isRequired && (
                 <span title="Required" className={styles.required}>
                     &ast;

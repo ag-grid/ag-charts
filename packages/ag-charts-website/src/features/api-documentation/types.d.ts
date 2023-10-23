@@ -128,7 +128,6 @@ export interface Config {
     lookups?: {
         codeLookup: Record<string, CodeEntry>;
         interfaces: Record<string, InterfaceEntry>;
-        htmlLookup?: Record<string, Record<string, string>>;
     };
     codeSrcProvided: string[];
     gridOpProp?: InterfaceEntry;

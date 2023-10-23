@@ -15,7 +15,7 @@ import { removeTopLevelPath } from '../utils/removeTopLevelPath';
 import styles from './ApiDocumentation.module.scss';
 import { HeadingPath } from './HeadingPath';
 import { MetaList } from './MetaList';
-import { SplitName } from './SplitName';
+import { PropertyName } from './PropertyName';
 
 interface Props {
     selection: JsObjectSelection;
@@ -33,7 +33,7 @@ function NameHeading({ id, name, path }: { id: string; name?: string; path: stri
             <HeadingPath path={path} keepTopLevelIfOnlyItem={keepTopLevelIfOnlyItem} />
             <span>
                 {pathSeparator}
-                <SplitName>{name}</SplitName>
+                <PropertyName>{name}</PropertyName>
             </span>
             {/* Hide, until nav support is added <LinkIcon href={`#${id}`} /> */}
         </h6>

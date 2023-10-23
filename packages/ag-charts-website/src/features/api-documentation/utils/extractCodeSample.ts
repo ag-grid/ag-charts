@@ -1,13 +1,11 @@
-import Code from '@components/Code';
-
 import type { FunctionCode, ICallSignature } from '../types';
-import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
-import { escapeGenericCode, extractInterfaces, getLinkedType, writeAllInterfaces } from '../utils/documentationHelpers';
-import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
-import { isGridOptionEvent } from '../utils/isGridOptionEvent';
-import { capitalize } from '../utils/strings';
+import { applyInterfaceInclusions } from './applyInterfaceInclusions';
+import { extractInterfaces, writeAllInterfaces } from './documentationHelpers';
+import { getInterfacesToWrite } from './getInterfacesToWrite';
+import { isGridOptionEvent } from './isGridOptionEvent';
+import { capitalize } from './strings';
 
-const blacklistInterfaces = [
+const hiddenInterfaces = [
     'CssColor',
     'FontStyle',
     'FontWeight',
@@ -88,26 +86,8 @@ export function extractCodeSample({ framework, name, type, config }: FunctionCod
 
     return writeAllInterfaces(
         interfacesToWrite.filter(
-            (item) => !item.interfaceType.meta.isTypeAlias || !blacklistInterfaces.includes(item.name)
+            (item) => !item.interfaceType.meta.isTypeAlias || !hiddenInterfaces.includes(item.name)
         ),
         framework
-    );
-}
-
-export function FunctionCodeSample({
-    name,
-    codeLines,
-    config,
-}: {
-    name: string;
-    codeLines: string[];
-    config: FunctionCode['config'];
-}) {
-    const customHTML = config.lookups?.htmlLookup?.[name];
-    return (
-        <>
-            {codeLines.length > 0 && <Code code={escapeGenericCode(codeLines)} keepMarkup />}
-            {customHTML && <p dangerouslySetInnerHTML={{ __html: customHTML }} />}
-        </>
     );
 }
