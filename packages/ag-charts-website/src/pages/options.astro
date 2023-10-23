@@ -12,13 +12,13 @@ const optionsData = (await getEntry('options-reference', 'data')).data;
 
 const framework = Astro.params.framework as Framework;
 
-const interfaceName = 'AgChartOptions';
+const interfaceName = 'AgBarSeriesOptions'; // TODO revert back
 const breadcrumbs = ['options'];
 ---
 
 <APIViewLayout>
     <JsObjectPropertiesView
-        client:load
+        client:only
         interfaceName={interfaceName}
         interfaceLookup={interfaceLookup}
         codeLookup={codeLookup}

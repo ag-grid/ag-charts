@@ -287,6 +287,12 @@ export interface JsObjectPropertiesViewConfig {
      * The most specific parent is used
      */
     topLevelParentProperties?: string[];
+
+    pageType?: string;
+    lookups?: {
+        interfaces: Record<string, InterfaceEntry>;
+        codeLookup: Record<string, CodeEntry>;
+    };
 }
 
 export interface InterfaceDocumentationProps {

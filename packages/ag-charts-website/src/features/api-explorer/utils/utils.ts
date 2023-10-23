@@ -10,7 +10,7 @@ export const formatJson = (object) => {
             const format = formatters[type];
 
             if (format && array.every((x) => typeof x === type)) {
-                return `[${array.map((x) => format(x)).join(', ')}]`;
+                return `[${array.map(format).join(', ')}]`;
             }
         }
 
@@ -29,16 +29,6 @@ export const formatJson = (object) => {
 };
 
 export const deepClone = (object) => JSON.parse(JSON.stringify(object || {}));
-
-export const getUrlParameters = () => {
-    const parameters = {};
-
-    window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
-        parameters[key] = value;
-    });
-
-    return parameters;
-};
 
 export function isXAxisNumeric(chartType: string) {
     return ['scatter', 'histogram'].includes(chartType);

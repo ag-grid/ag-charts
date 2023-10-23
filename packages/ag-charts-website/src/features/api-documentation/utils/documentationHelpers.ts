@@ -1,8 +1,8 @@
 import type { Framework } from '@ag-grid-types';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 
-import type { InterfaceLookup, PropertyType } from '../types';
-import { createLink } from '../utils/html';
+import type { PropertyType } from '../types';
+import { createLink } from '../utils/dom';
 import { isString } from '../utils/strings';
 import { getTypeLink } from './getTypeLinks';
 import type { JsonModelProperty } from './model';
@@ -37,7 +37,12 @@ export const convertMarkdown = (content: string, framework: Framework) =>
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
 export function escapeGenericCode(lines: string[]) {
-    return lines.join('\n').replace('<', '&lt;').replace('>', '&gt;');
+    return lines
+        .join('\n')
+        .replace('<', '&lt;')
+        .replace('>', '&gt;')
+        .replace(/\n{2,}/gm, '\n\n')
+        .trim();
 }
 
 export function getTypeUrl(type: string | PropertyType, framework: Framework): string | null {
@@ -242,6 +247,7 @@ export function writeAllInterfaces(
             } else {
                 lines.push(...appendInterface(name, interfaceType, framework, printConfig));
             }
+            lines.push('');
             alreadyWritten.add(name);
         }
     });

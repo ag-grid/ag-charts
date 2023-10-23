@@ -3,8 +3,8 @@
  */
 export function smoothScrollIntoView({
     id,
-    skipReplaceUrl,
     offset = 0,
+    skipReplaceUrl,
 }: {
     id: string;
     skipReplaceUrl?: boolean;
@@ -15,17 +15,11 @@ export function smoothScrollIntoView({
         return;
     }
 
-    const elementOffsetTop = element.offsetTop ?? 0;
     if (offset) {
-        const top = elementOffsetTop + offset;
-        window.scrollTo({
-            behavior: 'smooth',
-            top,
-        });
+        const top = element.offsetTop + offset;
+        window.scrollTo({ behavior: 'smooth', top });
     } else {
-        element.scrollIntoView({
-            behavior: 'smooth',
-        });
+        element.scrollIntoView({ behavior: 'smooth' });
     }
 
     if (!skipReplaceUrl) {

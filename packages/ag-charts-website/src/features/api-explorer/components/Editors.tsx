@@ -120,15 +120,14 @@ export const getPrimitivePropertyEditor = (desc: JsonProperty) => {
 
 export const getPrimitiveEditor = ({ meta, desc }: JsonModelProperty, key: string) => {
     let editor: any;
-    let editorProps: Record<string, any> = {};
+    const editorProps: Record<string, any> = {};
 
-    let specialOverride = SPECIAL_OVERRIDE_PROPS[key];
+    const specialOverride = SPECIAL_OVERRIDE_PROPS[key];
     if (specialOverride != null) {
         // Apply special overrides to a copy of meta before application below.
         meta = { ...meta };
         Object.entries(specialOverride).forEach(([prop, valueOrFn]) => {
-            let value = typeof valueOrFn === 'function' ? valueOrFn() : valueOrFn;
-            meta[prop] = value;
+            meta[prop] = typeof valueOrFn === 'function' ? valueOrFn() : valueOrFn;
         });
     }
 

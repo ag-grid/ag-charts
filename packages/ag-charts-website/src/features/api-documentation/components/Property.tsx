@@ -1,7 +1,7 @@
 import Code from '@components/Code';
-import { Icon } from '@components/icon/Icon';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import { type FunctionComponent, useEffect, useRef } from 'react';
 
@@ -20,17 +20,21 @@ import {
 import { extractCodeSample } from '../utils/extractCodeSample';
 import { formatJson } from '../utils/formatJson';
 import { getPropertyType } from '../utils/getPropertyType';
-import { useToggle } from '../utils/hooks';
 import { capitalize } from '../utils/strings';
 import styles from './ApiDocumentation.module.scss';
 import { ChildrenSeparator } from './ChildrenSeparator';
 import { PropertyName } from './PropertyName';
+import { ToggleDetails } from './ToggleDetails';
 
 function isCallSig(gridProp: InterfaceEntry): gridProp is ICallSignature {
     return Boolean(gridProp?.meta?.isCallSignature);
 }
 
 export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name, definition, config }) => {
+    if (name === 'formatter') {
+        console.log(name, { definition, config });
+    }
+
     const [isExpanded, toggleExpanded, setExpanded] = useToggle(config.defaultExpand);
     const propertyRef = useRef<HTMLTableRowElement>(null);
     const idName = `reference-${id}-${name}`;
@@ -214,11 +218,3 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         </tr>
     );
 };
-
-function ToggleDetails({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
-    return (
-        <button className={classnames(styles.seeMore, 'button-style-none')} role="presentation" onClick={onToggle}>
-            {!isOpen ? 'More' : 'Hide'} details <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} />
-        </button>
-    );
-}

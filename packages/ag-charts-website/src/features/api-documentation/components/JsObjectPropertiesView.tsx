@@ -66,7 +66,11 @@ export const JsObjectPropertiesView: FunctionComponent<JsObjectPropertiesViewPro
                 <div className={styles.objectViewOuter}>
                     <JsObjectView breadcrumbs={breadcrumbs} handleSelection={handleSelection} model={model} />
                 </div>
+            </JsObjectPropertiesViewConfigContext.Provider>
 
+            <JsObjectPropertiesViewConfigContext.Provider
+                value={{ ...config, pageType: model.tsType, lookups: { interfaces: interfaceLookup, codeLookup } }}
+            >
                 <FrameworkContext.Provider value={framework}>
                     <OptionsDataContext.Provider value={optionsData}>
                         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>

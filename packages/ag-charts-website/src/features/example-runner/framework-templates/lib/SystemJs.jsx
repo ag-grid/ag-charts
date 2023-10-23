@@ -214,7 +214,7 @@ const publishedConfiguration = {
 };
 
 function getRelevantConfig(configuration, framework) {
-    const filterByFramework = ([k, v]) => {
+    const filterByFramework = ([k]) => {
         const inverseFrameworks = {
             react: ['angular', 'vue', 'vue3'],
             angular: ['react', 'vue', 'vue3'],
@@ -225,7 +225,7 @@ function getRelevantConfig(configuration, framework) {
         return !inverseFrameworks[framework].some((f) => k.endsWith(f));
     };
 
-    const filterOutChartWrapper = ([k, v]) => {
+    const filterOutChartWrapper = ([k]) => {
         // integrated does not need the charts framework wrapper
         if (k.includes('ag-charts')) {
             return k !== `ag-charts-${framework}`;
@@ -238,7 +238,7 @@ function getRelevantConfig(configuration, framework) {
         Object.entries(config)
             .filter(filterOutChartWrapper)
             .filter(filterByFramework)
-            .sort(([k1, v1], [k2, v2]) => (k1 < k2 ? -1 : 1))
+            .sort(([k1], [k2]) => (k1 < k2 ? -1 : 1))
             .forEach(([k, v]) => {
                 valid[k] = v;
             });
@@ -249,7 +249,7 @@ function getRelevantConfig(configuration, framework) {
         let valid = {};
         Object.entries(config)
             .filter(filterByFramework)
-            .sort(([k1, v1], [k2, v2]) => (k1 < k2 ? -1 : 1))
+            .sort(([k1], [k2]) => (k1 < k2 ? -1 : 1))
             .forEach(([k, v]) => {
                 valid[k] = v;
             });

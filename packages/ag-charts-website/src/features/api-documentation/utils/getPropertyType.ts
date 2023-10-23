@@ -34,7 +34,7 @@ export function getPropertyType(type: string | PropertyType, config?: Config) {
         }
     }
     // We hide generics from this part of the display for simplicity
-    propertyType = propertyType.replace(/<(.*)>/g, '');
+    propertyType = propertyType.replace(/<([^>]*)>/g, '');
 
     return propertyType;
 }

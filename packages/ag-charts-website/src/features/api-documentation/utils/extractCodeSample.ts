@@ -23,11 +23,8 @@ export function extractCodeSample({ framework, name, type, config }: FunctionCod
     }
 
     type ||= {};
-    let returnType = typeof type == 'string' ? undefined : type.returnType;
-    const returnTypeIsObject = !!returnType && typeof returnType === 'object';
+    const returnType = typeof type == 'string' ? undefined : type.returnType;
     const extracted = extractInterfaces(returnType, config.lookups?.interfaces, applyInterfaceInclusions(config));
-    const returnTypeInterface = returnType && config.lookups?.interfaces[returnType];
-    const isCallSig = returnTypeInterface && returnTypeInterface.meta.isCallSignature;
     const returnTypeHasInterface = extracted.length > 0;
 
     let functionName = name.replace(/\([^)]*\)/g, '');
@@ -46,11 +43,6 @@ export function extractCodeSample({ framework, name, type, config }: FunctionCod
             };
         } else if (type.arguments) {
             args = type.arguments;
-        } else if (isCallSig) {
-            // Required to handle call signature interfaces so we can flatten out the interface to make it clearer
-            const callSigInterface = returnTypeInterface as ICallSignature;
-            args = callSigInterface.type.arguments;
-            returnType = callSigInterface.type.returnType;
         }
     }
 
@@ -78,7 +70,7 @@ export function extractCodeSample({ framework, name, type, config }: FunctionCod
         });
     }
 
-    if (returnTypeIsObject) {
+    if (typeof returnType === 'object' && returnType !== null) {
         interfacesToWrite.push(...getInterfacesToWrite(returnTypeName, returnType, config));
     } else if (returnTypeHasInterface) {
         interfacesToWrite.push(...getInterfacesToWrite(returnType, returnType, config));
