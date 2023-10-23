@@ -46,8 +46,6 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 
-export type { SeriesNodeDatum } from './seriesTypes';
-
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
     /** Pick matches based upon pick coordinates being inside a matching shape/marker. */

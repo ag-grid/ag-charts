@@ -26,7 +26,8 @@ import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum } from './cartesianSeries';
+import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 

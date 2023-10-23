@@ -10,8 +10,8 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
-import type { SeriesNodeDatum } from '../series';
 import { SeriesNodePickMode } from '../series';
+import type { SeriesNodeDatum } from '../seriesTypes';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type PolarAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize' | 'clear';

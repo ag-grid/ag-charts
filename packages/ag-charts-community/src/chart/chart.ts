@@ -52,11 +52,11 @@ import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
-import type { Series, SeriesNodeDatum } from './series/series';
+import type { Series } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { SeriesStateManager } from './series/seriesStateManager';
-import type { ISeries } from './series/seriesTypes';
+import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
 import { UpdateService } from './updateService';
 

@@ -1,8 +1,7 @@
 import type { BBox } from '../../scene/bbox';
 import type { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
 import type { Point } from '../../scene/point';
-import type { ErrorBoundSeriesNodeDatum } from '../series/cartesian/cartesianSeries';
-import type { SeriesNodeDatum } from '../series/series';
+import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
 import type { InteractionEvent, InteractionManager } from './interactionManager';
 

@@ -27,10 +27,10 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeDatum } from '../series';
 import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { SeriesNodeDatum } from '../seriesTypes';
 import {
     type AreaPathDatum,
     type AreaPathPoint,
