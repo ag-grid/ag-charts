@@ -475,7 +475,7 @@ function PropertyDeclaration({
             {isExpanded && <div className={styles.expanderBar}></div>}
             <span className={classnames('token', 'name', styles[style])}>
                 {expandable && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
-                <span className={styles.propertyNameText} onClick={onSelection} onDoubleClick={toggleExpand}>
+                <span onClick={onSelection} onDoubleClick={toggleExpand}>
                     {propName}
                 </span>
             </span>
