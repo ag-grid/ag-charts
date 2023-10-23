@@ -34,6 +34,7 @@ const options: AgChartOptions = {
             title: {
                 text: 'Depth (m)',
             },
+            nice: false
         },
         {
             position: 'left',
@@ -41,6 +42,7 @@ const options: AgChartOptions = {
             title: {
                 text: 'Magnitude',
             },
+            nice: false
         },
     ],
     seriesArea: {
