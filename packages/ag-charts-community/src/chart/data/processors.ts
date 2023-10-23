@@ -198,11 +198,11 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
 
                     const sumValue = sum === 'current' ? currentVal : lastValue;
                     if (typeof currentVal !== 'number' || isNaN(currentVal)) {
-                        values[valueIdx] = sumValue;
+                        values[valueIdx] = acc;
                         continue;
                     }
                     if (typeof lastValue !== 'number' || isNaN(lastValue)) {
-                        values[valueIdx] = sumValue;
+                        values[valueIdx] = acc;
                         continue;
                     }
 

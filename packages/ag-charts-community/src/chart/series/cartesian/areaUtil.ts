@@ -25,6 +25,7 @@ export interface AreaPathPoint {
     point: {
         x: number;
         y: number;
+        moveTo?: boolean;
     };
     size?: number;
     xValue?: string | number;
