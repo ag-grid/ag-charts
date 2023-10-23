@@ -22,6 +22,7 @@ import type {
     JsonUnionType,
 } from '../utils/model';
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
+import { Highlight } from './Highlight';
 import styles from './JsObjectView.module.scss';
 
 interface SelectionContextData {
@@ -228,7 +229,7 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
         setExpanded((expanded: boolean) => !expanded);
     };
 
-    const SelectionWrapper = isSelected(selection) ? 'mark' : Fragment;
+    const SelectionWrapper = isSelected(selection) ? Highlight : Fragment;
 
     if (discriminatorType) {
         return (
@@ -402,7 +403,7 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
         );
     }
 
-    const SelectionWrapper = isSelected(selection) ? 'mark' : Fragment;
+    const SelectionWrapper = isSelected(selection) ? Highlight : Fragment;
 
     return (
         <div
@@ -650,7 +651,7 @@ export function ObjectBreadcrumb({
     const handleTopObjectSelection = () => {
         handleSelection && handleSelection(selection);
     };
-    const SelectionWrapper = isSelected(selection) ? 'mark' : Fragment;
+    const SelectionWrapper = isSelected(selection) ? Highlight : Fragment;
 
     return (
         <>
