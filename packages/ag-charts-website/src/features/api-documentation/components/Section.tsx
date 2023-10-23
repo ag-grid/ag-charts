@@ -53,10 +53,10 @@ export const Section: FunctionComponent<SectionProps> = ({
                     </HeaderTag>
                 )}
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
-                {meta && meta.description && (
+                {meta?.description && (
                     <p dangerouslySetInnerHTML={{ __html: convertMarkdown(meta.description, framework) }}></p>
                 )}
-                {meta && meta.page && (
+                {meta?.page && (
                     <p>
                         See <a href={getExamplePageUrl({ path: meta.page.url, framework })}>{meta.page.name}</a> for
                         more information.
@@ -78,40 +78,38 @@ export const Section: FunctionComponent<SectionProps> = ({
 
     let leftColumnWidth = 25;
     const processed = new Set();
-    Object.entries(properties)
-        .sort((a, b) => (config.sortAlphabetically ? (a[0] < b[0] ? -1 : 1) : 0))
-        .forEach(([name, definition]) => {
-            if (name === 'meta' || (names.length && !names.includes(name))) {
-                return;
-            }
-            processed.add(name);
+    Object.entries(properties).forEach(([name, definition]) => {
+        if (name === 'meta' || (names.length && !names.includes(name))) {
+            return;
+        }
+        processed.add(name);
 
-            if (!pattern.test(name)) {
-                return;
-            }
+        if (!pattern.test(name)) {
+            return;
+        }
 
-            leftColumnWidth = clamp(getLongestNameLength(name), leftColumnWidth, config.maxLeftColumnWidth);
+        leftColumnWidth = clamp(getLongestNameLength(name), leftColumnWidth, config.maxLeftColumnWidth);
 
-            rows.push(
-                <Property
-                    key={name}
-                    framework={framework}
-                    id={id}
-                    name={name}
-                    definition={definition}
-                    config={{
-                        ...config,
-                        gridOpProp: config.lookups?.codeLookup[name],
-                        interfaceHierarchyOverrides: definition.interfaceHierarchyOverrides,
-                    }}
-                />
-            );
+        rows.push(
+            <Property
+                key={name}
+                framework={framework}
+                id={id}
+                name={name}
+                definition={definition}
+                config={{
+                    ...config,
+                    gridOpProp: config.lookups?.codeLookup[name],
+                    interfaceHierarchyOverrides: definition.interfaceHierarchyOverrides,
+                }}
+            />
+        );
 
-            if (typeof definition !== 'string' && definition.meta) {
-                // store object property to process later
-                objectProperties[name] = definition;
-            }
-        });
+        if (typeof definition !== 'string' && definition.meta) {
+            // store object property to process later
+            objectProperties[name] = definition;
+        }
+    });
 
     if (names.length > 0) {
         // Validate we found properties for each provided name

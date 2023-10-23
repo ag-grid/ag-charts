@@ -17,9 +17,8 @@ export interface AgChartTooltipOptions {
 }
 
 export type AgTooltipPositionType = 'pointer' | 'node';
-export type AgTooltipPositionOptions = AgMovingTooltipPositionOptions;
 
-export interface AgMovingTooltipPositionOptions {
+export interface AgTooltipPositionOptions {
     /** The type of positioning for the tooltip. By default, the tooltip follows the mouse pointer for series without markers, and it is anchored to the highlighted marker node for series with markers. */
     type: AgTooltipPositionType;
     /** The horizontal offset in pixels for the position of the tooltip. */

@@ -75,10 +75,10 @@ const TYPE_LINKS: Record<string, string> = {
     Touch: 'https://developer.mozilla.org/en-US/docs/Web/API/Touch',
 };
 
-export function getTypeLink(type: any) {
+export function getTypeLink(type: string) {
     if (typeof type === 'string') {
         // handle removal of generics.
-        const cleanType = type?.split('<')[0];
+        const [cleanType] = type.split('<');
         return TYPE_LINKS[cleanType];
     }
     return undefined;

@@ -32,9 +32,6 @@ export function InterfaceDocumentation({
         interfaces: interfaceLookup,
     };
     const hideHeader = config.hideHeader ?? true;
-    if (config.sortAlphabetically !== undefined) {
-        config.sortAlphabetically = String(config.sortAlphabetically).toLowerCase() == 'true';
-    }
     Object.assign(config, { lookups, codeSrcProvided, hideHeader });
 
     const li = interfaceLookup[interfaceName];

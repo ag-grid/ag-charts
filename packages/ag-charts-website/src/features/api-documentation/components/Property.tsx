@@ -2,7 +2,17 @@ import { Icon } from '@components/icon/Icon';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
-import { Fragment, type FunctionComponent, useEffect, useRef, useState } from 'react';
+import {
+    Children,
+    Fragment,
+    type FunctionComponent,
+    ReactElement,
+    ReactNode,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
+import { ChildrenSeparator } from 'src/features/api-documentation/components/ChildrenSeparator';
 
 import type { ICallSignature, InterfaceEntry, PropertyCall } from '../types';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
@@ -20,7 +30,7 @@ import { getPropertyType } from '../utils/getPropertyType';
 import { useToggle } from '../utils/hooks';
 import { capitalize } from '../utils/strings';
 import styles from './ApiDocumentation.module.scss';
-import { FunctionCodeSample } from './FunctionCodeSample';
+import { FunctionCodeSample, extractCodeSample } from './FunctionCodeSample';
 import { SplitName } from './SplitName';
 
 function isCallSig(gridProp: InterfaceEntry): gridProp is ICallSignature {
@@ -61,7 +71,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         description = convertMarkdown(propDescription, framework);
     } else {
         // this must be the parent of a child object
-        if (definition.meta != null && definition.meta.description != null) {
+        if (definition.meta?.description) {
             description = convertMarkdown(definition.meta.description, framework);
         }
 
@@ -101,9 +111,16 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
             type = inferType(definition.default);
         }
     }
+
+    const codeLines = extractCodeSample({ framework, name, type, config });
+
+    if (codeLines.length === 0) {
+        showAdditionalDetails = false;
+    }
+
     if (config.lookups?.htmlLookup) {
         // Force open if we have custom html content to display for the property
-        showAdditionalDetails = showAdditionalDetails || !!config.lookups?.htmlLookup[name];
+        showAdditionalDetails ||= !!config.lookups?.htmlLookup[name];
     }
 
     const propertyType = getPropertyType(type, config);
@@ -113,7 +130,13 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         ? getTypeUrl(type, framework)
         : null;
 
-    const codeSection = <FunctionCodeSample framework={framework} name={name} type={type} config={config} />;
+    const codeSection = codeLines.length ? (
+        <FunctionCodeSample
+            name={name}
+            config={config}
+            codeLines={extractCodeSample({ framework, name, type, config })}
+        />
+    ) : null;
 
     if (config.codeOnly) {
         return (
@@ -188,12 +211,11 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                 {definition.options != null && (
                     <div>
                         Options:{' '}
-                        {definition.options.map((o: string, i: number) => (
-                            <Fragment key={o}>
-                                {i > 0 ? ', ' : ''}
-                                <code>{formatJson(o)}</code>
-                            </Fragment>
-                        ))}
+                        <ChildrenSeparator>
+                            {definition.options.map((o) => (
+                                <code key={o}>{formatJson(o)}</code>
+                            ))}
+                        </ChildrenSeparator>
                     </div>
                 )}
                 <div className={styles.actions}>

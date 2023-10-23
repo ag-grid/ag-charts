@@ -9,7 +9,7 @@ import type { JsonModelProperty } from './model';
 
 interface InterfaceType {
     docs?: string[];
-    type: string[];
+    type: string | string[];
 }
 
 export const inferType = (value: any): string | null => {
@@ -85,7 +85,7 @@ export function getLinkedType(types: string | string[], framework: Framework) {
     return formattedTypes.join(' | ');
 }
 
-export function sortAndFilterProperties(properties, applyOptionalOrdering = false) {
+export function sortAndFilterProperties(properties: [string, unknown][], applyOptionalOrdering = false) {
     properties.sort(([p1], [p2]) => {
         if (applyOptionalOrdering) {
             // Push mandatory props to the top
@@ -102,13 +102,8 @@ export function sortAndFilterProperties(properties, applyOptionalOrdering = fals
     return properties;
 }
 
-export function appendInterface(
-    name: string,
-    interfaceType: InterfaceType,
-    framework: Framework,
-    lines: string[],
-    printConfig = {}
-) {
+export function appendInterface(name: string, interfaceType: InterfaceType, framework: Framework, printConfig = {}) {
+    const lines: string[] = [];
     const toExclude = printConfig.exclude || [];
     const properties = Object.entries(interfaceType.type);
 
@@ -128,6 +123,7 @@ export function appendInterface(
             }
         });
     lines.push('}');
+    return lines;
 }
 
 export function formatDocs(docs: string) {
@@ -167,7 +163,7 @@ export function formatJsDocString(docString: string): string {
 
     // Turn option list, new line starting with - into bullet points
     // eslint-disable-next-line
-    const optionReg = /\n[\s]*[*]*[\s]*- (.*)/g;
+    const optionReg = /\n\s*[*]*\s*- (.*)/g;
 
     return docString
         .replace('/**', '')
@@ -178,15 +174,14 @@ export function formatJsDocString(docString: string): string {
         .replace(newLineReg, ' ');
 }
 
-export function appendCallSignature(name, interfaceType, framework: Framework, allLines) {
+export function appendCallSignature(name: string, interfaceType: InterfaceType, framework: Framework) {
     const lines = [`interface ${name} {`];
-    const args = Object.entries(interfaceType.type.arguments);
-    const argTypes = args.map(([property, type]) => {
-        return `${property}: ${getLinkedType(type, framework)}`;
-    });
+    const argTypes = Object.entries(interfaceType.type.arguments).map(
+        ([property, type]) => `${property}: ${getLinkedType(type, framework)}`
+    );
     lines.push(`    (${argTypes.join(', ')}) : ${interfaceType.type.returnType}`);
     lines.push('}');
-    allLines.push(...lines);
+    return lines;
 }
 
 export function formatEnum(name: string, { type: properties, docs }: InterfaceType) {
@@ -200,7 +195,7 @@ export function formatEnum(name: string, { type: properties, docs }: InterfaceTy
     ];
 }
 
-export function appendTypeAlias(name: string, interfaceType: InterfaceType, allLines: string[]) {
+export function appendTypeAlias(name: string, interfaceType: InterfaceType) {
     const shouldMultiLine = interfaceType.type.length > 20;
 
     const split = interfaceType.type.split('|');
@@ -226,35 +221,37 @@ export function appendTypeAlias(name: string, interfaceType: InterfaceType, allL
     }
 
     const multiLine = shouldMultiLine ? `\n      ${smartSplit.reverse().join('\n    |')}\n` : interfaceType.type;
-    allLines.push(`type ${name} = ${multiLine}`);
+    return `type ${name} = ${multiLine}`;
 }
 
 export function writeAllInterfaces(
     interfacesToWrite: { name: string; interfaceType: any }[],
-    framework: string,
+    framework: Framework,
     printConfig?: object
 ) {
-    const allLines = [];
+    const lines: string[] = [];
     const alreadyWritten = new Set<string>();
     interfacesToWrite.forEach(({ name, interfaceType }) => {
         if (!alreadyWritten.has(name)) {
             if (interfaceType.meta.isTypeAlias) {
-                appendTypeAlias(name, interfaceType, allLines);
+                lines.push(appendTypeAlias(name, interfaceType));
             } else if (interfaceType.meta.isEnum) {
-                allLines.push(...formatEnum(name, interfaceType));
+                lines.push(...formatEnum(name, interfaceType));
             } else if (interfaceType.meta.isCallSignature) {
-                appendCallSignature(name, interfaceType, framework, allLines);
+                lines.push(...appendCallSignature(name, interfaceType, framework));
             } else {
-                appendInterface(name, interfaceType, framework, allLines, printConfig);
+                lines.push(...appendInterface(name, interfaceType, framework, printConfig));
             }
             alreadyWritten.add(name);
         }
     });
-    return allLines;
+    return lines;
 }
 
 export function extractInterfaces(definitionOrArray, interfaceLookup, overrideIncludeInterfaceFunc, allDefs = []) {
-    if (!definitionOrArray) return [];
+    if (!definitionOrArray) {
+        return [];
+    }
 
     if (allDefs.length > 1000) {
         // eslint-disable-next-line no-console
@@ -329,27 +326,29 @@ export function extractInterfaces(definitionOrArray, interfaceLookup, overrideIn
                 !alreadyIncluded[type]
             ) {
                 if (!addDef({ name: type, interfaceType })) {
+                    console.log(123);
                     // Previously added - no need to continue.
                     return;
                 }
 
                 // Now if this is a top level interface see if we should include any interfaces for its properties
                 if (interfaceType.type) {
-                    const interfacesToInclude = {};
+                    const interfacesToInclude: Record<string, boolean> = {};
 
                     if (typeof interfaceType.type === 'string') {
                         interfacesToInclude[interfaceType.type] = true;
                     } else {
-                        const propertyTypes = Object.entries(interfaceType.type);
-                        propertyTypes
-                            .filter(([k, v]) => !!v && typeof v == 'string')
+                        Object.entries<string>(interfaceType.type)
                             .filter(([k, v]) => {
-                                const docs = interfaceType.docs && interfaceType.docs[k];
-                                return !docs || !docs.includes('@deprecated');
+                                if (v && typeof v === 'string') {
+                                    const docs = interfaceType.docs?.[k];
+                                    return !docs || !docs.includes('@deprecated');
+                                }
+                                return false;
                             })
-                            .map(([k, i]) => {
+                            .map(([k, v]) => {
                                 // Extract all the words from the type to handle unions and functions and params cleanly.
-                                const words = [...k.matchAll(typeRegex), ...i.matchAll(typeRegex)].map((ws) => ws[0]);
+                                const words = [...k.matchAll(typeRegex), ...v.matchAll(typeRegex)].map((ws) => ws[0]);
                                 return words.filter((w) => !getTypeLink(w) && interfaceLookup[w]);
                             })
                             .forEach((s) => {
@@ -359,10 +358,7 @@ export function extractInterfaces(definitionOrArray, interfaceLookup, overrideIn
                             });
                     }
 
-                    const toAdd = Object.keys(interfacesToInclude);
-                    if (toAdd.length > 0) {
-                        toAdd.forEach((v) => recurse(v, overrideIncludeInterfaceFunc));
-                    }
+                    Object.keys(interfacesToInclude).forEach((v) => recurse(v, overrideIncludeInterfaceFunc));
                 }
             }
 

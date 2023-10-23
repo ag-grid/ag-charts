@@ -37,18 +37,14 @@ export interface ChildDocEntry {
     overrideMissingPropCheck?: true;
 }
 
-interface DocEntry {
-    [key: string]: DocEntryMap | ChildDocEntry;
+interface DocEntry extends Record<string, DocEntryMap | ChildDocEntry> {
     meta?: MetaTag;
     options?: never;
     more?: never;
     type?: never;
 }
 
-export interface DocEntryMap {
-    [key: string]: DocEntry | ChildDocEntry;
-    meta?: MetaTag;
-}
+export type DocEntryMap = { meta?: MetaTag } & Record<string, DocEntry | ChildDocEntry>;
 
 export interface PropertyType {
     /** @deprecated This should be removed when all the old json files have been updated to use code types instead of hard coded. */
@@ -146,8 +142,6 @@ export interface Config {
     defaultExpand?: boolean;
     /** Do not sort the sections, list as provided in JSON */
     suppressSort?: boolean;
-    /** Sore the properties alphabetically*/
-    sortAlphabetically?: boolean;
     /**
      * By default we do not include the "See More" links when api-documentation is used with specific names selected.
      * This is because it is likely the link will be pointing to the same place it is currently being used.

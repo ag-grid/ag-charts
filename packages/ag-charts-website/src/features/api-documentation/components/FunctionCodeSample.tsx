@@ -1,5 +1,4 @@
 import Code from '@components/Code';
-import type { FunctionComponent } from 'react';
 
 import type { FunctionCode, ICallSignature } from '../types';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
@@ -8,7 +7,18 @@ import { getInterfacesToWrite } from '../utils/getInterfacesToWrite';
 import { isGridOptionEvent } from '../utils/isGridOptionEvent';
 import { capitalize } from '../utils/strings';
 
-export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework, name, type, config }) => {
+const blacklistInterfaces = [
+    'CssColor',
+    'FontStyle',
+    'FontWeight',
+    'FontSize',
+    'FontFamily',
+    'Opacity',
+    'PixelSize',
+    'Ratio',
+];
+
+export function extractCodeSample({ framework, name, type, config }: FunctionCode) {
     if (typeof type == 'string') {
         // eslint-disable-next-line no-console
         console.log('type is a string!', type);
@@ -46,9 +56,6 @@ export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework,
         }
     }
 
-    let shouldUseNewline = false;
-    const argumentDefinitions: string[] = [];
-
     const getArgumentTypeName = (key: string, type: string | { meta?: { name: string } }) => {
         if (typeof type === 'object' && !Array.isArray(type)) {
             return type.meta?.name ?? capitalize(key);
@@ -57,25 +64,7 @@ export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework,
         return type;
     };
 
-    Object.entries(args).forEach(([key, type]) => {
-        const typeName = getArgumentTypeName(key, type);
-
-        argumentDefinitions.push(`${key}: ${getLinkedType(typeName, framework)}`);
-
-        if (argumentDefinitions.length > 1 || (key + typeName).length > 20) {
-            shouldUseNewline = true;
-        }
-    });
-
-    const functionArguments = shouldUseNewline
-        ? `\n    ${argumentDefinitions.join(',\n    ')}\n`
-        : argumentDefinitions.join('');
-
     const returnTypeName = capitalize(functionName).replace(/^get/, '');
-    const functionPrefix =
-        name.includes('(') || config.isApi
-            ? `function ${functionName}(${functionArguments}):`
-            : `${functionName} = (${functionArguments}) =>`;
 
     const interfacesToWrite = [];
     if (type.parameters) {
@@ -97,13 +86,28 @@ export const FunctionCodeSample: FunctionComponent<FunctionCode> = ({ framework,
         interfacesToWrite.push(...getInterfacesToWrite(returnType, returnType, config));
     }
 
-    const customHTML = config.lookups?.htmlLookup?.[name];
-    const lines = writeAllInterfaces(interfacesToWrite, framework);
+    return writeAllInterfaces(
+        interfacesToWrite.filter(
+            (item) => !item.interfaceType.meta.isTypeAlias || !blacklistInterfaces.includes(item.name)
+        ),
+        framework
+    );
+}
 
+export function FunctionCodeSample({
+    name,
+    codeLines,
+    config,
+}: {
+    name: string;
+    codeLines: string[];
+    config: FunctionCode['config'];
+}) {
+    const customHTML = config.lookups?.htmlLookup?.[name];
     return (
         <>
-            <Code code={escapeGenericCode(lines)} keepMarkup />
+            {codeLines.length > 0 && <Code code={escapeGenericCode(codeLines)} keepMarkup />}
             {customHTML && <p dangerouslySetInnerHTML={{ __html: customHTML }} />}
         </>
     );
-};
+}
