@@ -1,10 +1,20 @@
+import type { IconName } from '@components/icon/Icon';
+import { Icon } from '@components/icon/Icon';
+import classnames from 'classnames';
 import type { AllHTMLAttributes } from 'react';
-import { Icon } from 'src/components/icon/Icon';
-import styles from 'src/features/api-documentation/components/JsObjectView.module.scss';
 
-export function SearchBox({ ...props }: AllHTMLAttributes<Element>) {
-    return (<div className={...props}>
-        <input className={styles.searchInput} type="search" placeholder="Search properties..." />
-        <Icon svgClasses={styles.searchIcon} name={'search'} />
-    </div>);
+import styles from './JsObjectView.module.scss';
+
+export function SearchBox({
+    className,
+    placeholder = 'Search properties...',
+    iconName = 'search',
+    ...props
+}: AllHTMLAttributes<Element> & { iconName?: IconName }) {
+    return (
+        <div className={classnames(styles.searchOuter, className)} {...props}>
+            <input className={styles.searchInput} type="search" placeholder={placeholder} />
+            <Icon svgClasses={styles.searchIcon} name={iconName} />
+        </div>
+    );
 }
