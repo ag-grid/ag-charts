@@ -4,9 +4,11 @@ title: 'Area Series'
 
 Area series are line series with the area under the line filled, placing more emphasis on the magnitude of the change. Area series additionally support stacking to show the total value and the way individual values relate to the whole.
 
-## Single Area Series
+## Simple Area Series
 
-To create a simple area chart we need to use series type `'area'`. We also have to provide the `xKey` and `yKey` properties. A minimal `'area'` series config would therefore look like this:
+{% chartExampleRunner title="Simple Area Series" name="simple-area" type="generated" /%}
+
+To create a Simple Area series we need to use series type `'area'`. We also have to provide the `xKey` and `yKey` properties. A minimal `'area'` series config would therefore look like this:
 
 ```js
 series: [
@@ -19,8 +21,6 @@ series: [
 ```
 
 In the snippet above we are using `'ie'` as the `yKey` to show market share of this internet browser. Using this simple series config produces the following chart:
-
-{% chartExampleRunner title="Single Area Series" name="single-area" type="generated" /%}
 
 {% note %}
 Even though area series support markers, they are turned off by default for this series type, as this stylisation is the most common.
