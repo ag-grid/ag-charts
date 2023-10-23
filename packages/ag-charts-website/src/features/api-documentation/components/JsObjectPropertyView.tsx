@@ -24,7 +24,7 @@ interface Props {
 }
 
 function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
-    const keepTopLevelIfOnlyItem = !displayNameSplit;
+    const keepTopLevelIfOnlyItem = !name;
     const headingPath = removeTopLevelPath({ path, keepTopLevelIfOnlyItem });
     const pathSeparator = name && headingPath.length > 0 ? '.' : '';
 
