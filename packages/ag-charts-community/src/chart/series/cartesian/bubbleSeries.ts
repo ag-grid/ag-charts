@@ -19,7 +19,7 @@ import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } fr
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, diff, domainValuesByGroup } from '../../data/processors';
+import { createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -158,8 +158,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
-        const sizeGroupId = 'bubble-size';
-
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
@@ -167,11 +165,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
                 valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-                valueProperty(this, sizeKey, true, { id: `sizeValue`, groupId: sizeGroupId }),
+                valueProperty(this, sizeKey, true, { id: `sizeValue` }),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
                 ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
-                domainValuesByGroup(sizeGroupId),
             ],
             dataVisible: this.visible,
         });

@@ -31,7 +31,6 @@ export interface UngroupedData<D> {
         smallestKeyInterval?: number;
         aggValuesExtent?: [number, number];
         sortedGroupDomain?: any[][];
-        domainValuesByGroup?: { [groupId: string]: any[] };
     };
     defs: {
         keys: DatumPropertyDefinition<keyof D>[];
@@ -256,7 +255,7 @@ export type ReducerOutputPropertyDefinition<P extends ReducerOutputKeys = Reduce
 export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
     type: 'processor';
     property: P;
-    calculate: <T extends object>(data: ProcessedData<T>, model: DataModel<T>) => ReducerOutputTypes[P];
+    calculate: (data: ProcessedData<any>) => ReducerOutputTypes[P];
 };
 
 const INVALID_VALUE = Symbol('invalid');
@@ -357,6 +356,10 @@ export class DataModel<
         return { index, def };
     }
 
+    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string | RegExp): ProcessedDataDef[] | never {
+        return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ index, def }));
+    }
+
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
         return this.resolveProcessedDataDefsById(scope, searchId)[0];
     }
@@ -418,24 +421,6 @@ export class DataModel<
         throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
     }
 
-    valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
-        return this.values
-            .map((def, index) => ({ def, index }))
-            .filter(({ def }) => {
-                if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) {
-                    return false;
-                }
-                if (!matchIds) return true;
-                if (def.ids == null) return false;
-
-                return matchIds.some(
-                    ([matchScope, matchId]) =>
-                        def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
-                );
-            })
-            .map(({ index }) => index);
-    }
-
     getDomain(
         scope: ScopeProvider,
         searchId: string | RegExp,
@@ -444,7 +429,7 @@ export class DataModel<
     ): any[] | ContinuousDomain<number> | [] {
         let matches;
         try {
-            matches = this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ index, def }));
+            matches = this.resolveProcessedDataIndicesById(scope, searchId);
         } catch (e: any) {
             if (typeof searchId !== 'string' && /didn't find property definition/.test(e.message)) return [];
             throw e;
@@ -535,6 +520,24 @@ export class DataModel<
         }
 
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
+    }
+
+    private valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
+        return this.values
+            .map((def, index) => ({ def, index }))
+            .filter(({ def }) => {
+                if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) {
+                    return false;
+                }
+                if (!matchIds) return true;
+                if (def.ids == null) return false;
+
+                return matchIds.some(
+                    ([matchScope, matchId]) =>
+                        def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
+                );
+            })
+            .map(({ index }) => index);
     }
 
     private valueIdxLookup(scopes: string[], prop: PropertyId<string>) {
@@ -876,7 +879,7 @@ export class DataModel<
 
         for (const def of processorDefs) {
             processedData.reduced ??= {};
-            processedData.reduced[def.property] = def.calculate(processedData, this as any) as any;
+            processedData.reduced[def.property] = def.calculate(processedData) as any;
         }
     }
 

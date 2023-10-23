@@ -10,7 +10,6 @@ import type {
     ReducerOutputPropertyDefinition,
     ScopeProvider,
 } from './dataModel';
-import { NULL_DOMAIN, extendDomain } from './utilFunctions';
 
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'> = {
     type: 'reducer',
@@ -48,30 +47,6 @@ export const AGG_VALUES_EXTENT: ProcessorOutputPropertyDefinition<'aggValuesExte
         return result;
     },
 };
-
-export function domainValuesByGroup(
-    ...matchGroupIds: string[]
-): ProcessorOutputPropertyDefinition<'domainValuesByGroup'> {
-    return {
-        type: 'processor',
-        property: 'domainValuesByGroup',
-        calculate: (processedData, model) => {
-            const result: NonNullable<ProcessedData<unknown>['reduced']>['domainValuesByGroup'] = {};
-
-            for (const groupId of matchGroupIds) {
-                const valueIndicies = model.valueGroupIdxLookup({ matchGroupIds: [groupId] });
-
-                let domain = NULL_DOMAIN;
-                for (const groupIndex of valueIndicies) {
-                    domain = extendDomain(processedData.domain.values[groupIndex], domain);
-                }
-                result[groupId] = domain;
-            }
-
-            return result;
-        },
-    };
-}
 
 export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
     type: 'processor',
