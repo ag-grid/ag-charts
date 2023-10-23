@@ -233,15 +233,15 @@ export class AreaSeries extends CartesianSeries<
         const yPreviousEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-previous-end`).index;
         const yCumulativeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-cumulative`).index;
 
-        const createPathCoordinates = (xDatum: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
-            const x = xScale.convert(xDatum) + xOffset;
+        const createPathCoordinates = (xValue: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
+            const x = xScale.convert(xValue) + xOffset;
 
             const prevYCoordinate = yScale.convert(lastYEnd);
             const currYCoordinate = yScale.convert(yEnd);
 
             return [
-                { x, y: currYCoordinate, yValue: yEnd },
-                { x, y: prevYCoordinate, yValue: lastYEnd },
+                { point: { x, y: currYCoordinate }, yValue: yEnd, xValue },
+                { point: { x, y: prevYCoordinate }, yValue: lastYEnd, xValue },
             ];
         };
 
@@ -395,7 +395,7 @@ export class AreaSeries extends CartesianSeries<
                 fillPhantomPoints.push(nextCoordinates[1]);
 
                 // stroke data
-                strokePoints.push({ x: NaN, y: NaN, yValue: undefined }); // moveTo
+                strokePoints.push({ point: { x: NaN, y: NaN }, yValue: undefined, xValue: xDatum }); // moveTo
 
                 if (yPreviousEnd != null) {
                     strokePoints.push(prevCoordinates[0]);
@@ -619,8 +619,8 @@ export class AreaSeries extends CartesianSeries<
             const { path: strokePath } = stroke;
             strokePath.clear({ trackChanges: true });
             let moveTo = true;
-            for (const point of strokeData.points) {
-                if (point.yValue === undefined || isNaN(point.x) || isNaN(point.y)) {
+            for (const { point, yValue } of strokeData.points) {
+                if (yValue === undefined || isNaN(point.x) || isNaN(point.y)) {
                     moveTo = true;
                 } else if (moveTo) {
                     strokePath.moveTo(point.x, point.y);
@@ -634,7 +634,7 @@ export class AreaSeries extends CartesianSeries<
             const { path: fillPath } = fill;
             fillPath.clear({ trackChanges: true });
             moveTo = true;
-            for (const point of fillData.points) {
+            for (const { point } of fillData.points) {
                 if (moveTo) {
                     fillPath.moveTo(point.x, point.y);
                     moveTo = false;
@@ -683,7 +683,7 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        const [path] = paths;
+        const [[fill, stroke]] = paths;
         const [newData] = contextData;
         const [oldData] = previousContextData;
 
@@ -694,8 +694,10 @@ export class AreaSeries extends CartesianSeries<
         }
 
         fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
-        fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
-        pathMotion(this.id, 'path_update', animationManager, path, fns.path);
+        fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
+        pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
+        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
+        pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 

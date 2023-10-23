@@ -10,7 +10,7 @@ export type PathPoint = {
     moveTo: true | false | 'in' | 'out';
 };
 export type PathPointMap = {
-    [key in 'moved' | 'added' | 'removed']: { [key: string | number]: PathPoint };
+    [key in 'moved' | 'added' | 'removed']: { [key: string]: PathPoint };
 };
 
 export function pathSwipeInAnimation({ id }: { id: string }, animationManager: AnimationManager, paths: Path[]) {

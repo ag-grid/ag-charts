@@ -21,8 +21,6 @@ const {
     mergeDefaults,
     updateLabelNode,
     fixNumericExtent,
-    areaAnimateEmptyUpdateReady,
-    areaAnimateReadyUpdate,
     AreaSeriesTag,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
@@ -246,8 +244,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const yLowCoordinate = yScale.convert(yLow);
 
             return [
-                { x, y: yHighCoordinate, size: this.marker.size, itemId: `high`, yValue: yHigh },
-                { x, y: yLowCoordinate, size: this.marker.size, itemId: `low`, yValue: yLow },
+                { point: { x, y: yHighCoordinate }, size: this.marker.size, itemId: `high`, yValue: yHigh, xValue },
+                { point: { x, y: yLowCoordinate }, size: this.marker.size, itemId: `low`, yValue: yLow, xValue },
             ];
         };
 
@@ -270,7 +268,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const strokeHighPoints = strokeData.points;
         const strokeLowPoints: _ModuleSupport.AreaPathPoint[] = [];
 
-        const moveTo: _ModuleSupport.AreaPathPoint = { x: NaN, y: NaN, yValue: undefined, itemId: 'moveTo' };
+        const moveTo: _ModuleSupport.AreaPathPoint = {
+            point: { x: NaN, y: NaN },
+            yValue: undefined,
+            itemId: 'moveTo',
+            xValue: undefined,
+        };
 
         let lastXValue: any;
         processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
@@ -284,7 +287,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue);
 
             const inverted = yLowValue > yHighValue;
-            points.forEach(({ x, y, size, itemId = '', yValue }) => {
+            points.forEach(({ point: { x, y }, size, itemId = '', yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,
@@ -599,89 +602,89 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         ];
     }
 
-    override animateEmptyUpdateReady({
-        markerSelections,
-        labelSelections,
-        contextData,
-        paths,
-        seriesRect,
-    }: {
-        markerSelections: Array<_Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>>;
-        labelSelections: Array<_Scene.Selection<_Scene.Text, RangeAreaLabelDatum>>;
-        contextData: Array<RangeAreaContext>;
-        paths: Array<Array<_Scene.Path>>;
-        seriesRect?: _Scene.BBox;
-    }) {
-        const { id: seriesId, ctx, marker, xKey = '', yHighKey = '', yLowKey = '' } = this;
-        const styles = {
-            stroke: this.stroke,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
-            strokeOpacity: this.strokeOpacity,
-            shadow: this.shadow,
-            strokeWidth: this.getStrokeWidth(this.strokeWidth),
-        };
+    // override animateEmptyUpdateReady({
+    //     markerSelections,
+    //     labelSelections,
+    //     contextData,
+    //     paths,
+    //     seriesRect,
+    // }: {
+    //     markerSelections: Array<_Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>>;
+    //     labelSelections: Array<_Scene.Selection<_Scene.Text, RangeAreaLabelDatum>>;
+    //     contextData: Array<RangeAreaContext>;
+    //     paths: Array<Array<_Scene.Path>>;
+    //     seriesRect?: _Scene.BBox;
+    // }) {
+    //     const { id: seriesId, ctx, marker, xKey = '', yHighKey = '', yLowKey = '' } = this;
+    //     const styles = {
+    //         stroke: this.stroke,
+    //         fill: this.fill,
+    //         fillOpacity: this.fillOpacity,
+    //         lineDash: this.lineDash,
+    //         lineDashOffset: this.lineDashOffset,
+    //         strokeOpacity: this.strokeOpacity,
+    //         shadow: this.shadow,
+    //         strokeWidth: this.getStrokeWidth(this.strokeWidth),
+    //     };
 
-        const { size, formatter } = marker;
-        const fill = marker.fill ?? styles.fill;
-        const stroke = marker.stroke ?? styles.stroke;
-        const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
+    //     const { size, formatter } = marker;
+    //     const fill = marker.fill ?? styles.fill;
+    //     const stroke = marker.stroke ?? styles.stroke;
+    //     const strokeWidth = marker.strokeWidth ?? this.strokeWidth;
 
-        const getFormatterParams = (nodeDatum: RangeAreaMarkerDatum) => {
-            const { datum, itemId, yLowValue, yHighValue } = nodeDatum;
-            return {
-                datum,
-                lowValue: yLowValue,
-                highValue: yHighValue,
-                itemId,
-                xKey,
-                yLowKey,
-                yHighKey,
-                fill,
-                stroke,
-                strokeWidth,
-                size,
-                seriesId,
-                highlighted: false,
-            };
-        };
+    //     const getFormatterParams = (nodeDatum: RangeAreaMarkerDatum) => {
+    //         const { datum, itemId, yLowValue, yHighValue } = nodeDatum;
+    //         return {
+    //             datum,
+    //             lowValue: yLowValue,
+    //             highValue: yHighValue,
+    //             itemId,
+    //             xKey,
+    //             yLowKey,
+    //             yHighKey,
+    //             fill,
+    //             stroke,
+    //             strokeWidth,
+    //             size,
+    //             seriesId,
+    //             highlighted: false,
+    //         };
+    //     };
 
-        areaAnimateEmptyUpdateReady({
-            markerSelections,
-            labelSelections,
-            contextData,
-            paths,
-            seriesRect,
-            styles,
-            formatter,
-            getFormatterParams,
-            seriesId,
-            ctx,
-        });
-    }
+    //     areaAnimateEmptyUpdateReady({
+    //         markerSelections,
+    //         labelSelections,
+    //         contextData,
+    //         paths,
+    //         seriesRect,
+    //         styles,
+    //         formatter,
+    //         getFormatterParams,
+    //         seriesId,
+    //         ctx,
+    //     });
+    // }
 
-    override animateReadyUpdate({
-        contextData,
-        paths,
-    }: {
-        contextData: Array<RangeAreaContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
-        const styles = {
-            stroke: this.stroke,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
-            strokeOpacity: this.strokeOpacity,
-            shadow: this.shadow,
-            strokeWidth: this.getStrokeWidth(this.strokeWidth),
-        };
+    // override animateReadyUpdate({
+    //     contextData,
+    //     paths,
+    // }: {
+    //     contextData: Array<RangeAreaContext>;
+    //     paths: Array<Array<_Scene.Path>>;
+    // }) {
+    //     const styles = {
+    //         stroke: this.stroke,
+    //         fill: this.fill,
+    //         fillOpacity: this.fillOpacity,
+    //         lineDash: this.lineDash,
+    //         lineDashOffset: this.lineDashOffset,
+    //         strokeOpacity: this.strokeOpacity,
+    //         shadow: this.shadow,
+    //         strokeWidth: this.getStrokeWidth(this.strokeWidth),
+    //     };
 
-        areaAnimateReadyUpdate({ contextData, paths, styles });
-    }
+    //     areaAnimateReadyUpdate({ contextData, paths, styles });
+    // }
 
     protected isLabelEnabled() {
         return this.label.enabled;

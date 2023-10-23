@@ -1,18 +1,11 @@
 import { FROM_TO_MIXINS, type NodeUpdateState } from '../../../motion/fromToMotion';
+import type { Point } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { Marker } from '../../marker/marker';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum, Scaling } from './cartesianSeries';
 import type { MarkerChange } from './markerUtil';
 import type { PathPoint, PathPointMap } from './pathUtil';
-
-type LineNodeDatum = CartesianSeriesNodeDatum & {
-    point: CartesianSeriesNodeDatum['point'] & {
-        moveTo: boolean;
-    };
-    xValue?: number;
-    yValue?: number;
-};
 
 function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
@@ -127,11 +120,14 @@ function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
     return from ? 'in' : 'out';
 }
 
-export interface LineNodeDatumLike extends CartesianSeriesNodeDatum {
-    readonly point: CartesianSeriesNodeDatum['point'] & { moveTo?: boolean };
+export interface LineNodeDatumLike extends Pick<CartesianSeriesNodeDatum, 'xValue'> {
+    readonly point: Point & { moveTo?: boolean };
 }
 
-type LineContextLike = Pick<CartesianSeriesNodeDataContext<LineNodeDatumLike>, 'scales' | 'nodeData'>;
+type LineContextLike = {
+    scales: CartesianSeriesNodeDataContext['scales'];
+    nodeData: LineNodeDatumLike[];
+};
 
 export function pairContinuousData(newData: LineContextLike, oldData: LineContextLike) {
     const toNewScale = (oldDatum: { xValue?: number; yValue?: number }) => {
@@ -386,7 +382,7 @@ export function prepareLinePathAnimationFns(
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
 
-function renderPartialLine(pairData: PathPoint[], ratios: Partial<Record<MarkerChange, number>>, path: Path) {
+export function renderPartialLine(pairData: PathPoint[], ratios: Partial<Record<MarkerChange, number>>, path: Path) {
     const { path: linePath } = path;
     let previousTo: PathPoint['to'];
     for (const data of pairData) {

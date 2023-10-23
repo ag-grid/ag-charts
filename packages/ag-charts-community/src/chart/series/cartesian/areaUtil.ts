@@ -9,6 +9,7 @@ import {
     pairContinuousData,
     prepareLineMarkerAnimation,
     prepareLinePathAnimationFns,
+    renderPartialLine,
 } from './lineUtil';
 import type { MarkerChange } from './markerUtil';
 import type { PathPoint } from './pathUtil';
@@ -21,8 +22,12 @@ export enum AreaSeriesTag {
 }
 
 export interface AreaPathPoint {
-    x: number;
-    y: number;
+    point: {
+        x: number;
+        y: number;
+    };
+    size?: number;
+    xValue?: string | number;
     yValue?: number;
     itemId?: string;
 }
@@ -61,29 +66,72 @@ export interface AreaSeriesNodeDataContext
     strokeData: AreaPathDatum;
 }
 
-function renderPartialArea(_pairData: PathPoint[], _ratios: Partial<Record<MarkerChange, number>>, _path: Path) {
-    // const { path: linePath } = path;
-    // let previousTo: PathPoint['to'];
-    // for (const data of pairData) {
-    //     const ratio = ratios[data.marker];
-    //     if (ratio == null) continue;
-    //     const { from, to } = data;
-    //     if (from == null || to == null) continue;
-    //     const x = from.x + (to.x - from.x) * ratio;
-    //     const y = from.y + (to.y - from.y) * ratio;
-    //     if (data.moveTo === false) {
-    //         linePath.lineTo(x, y);
-    //     } else if (data.moveTo === true || !previousTo) {
-    //         linePath.moveTo(x, y);
-    //     } else if (previousTo) {
-    //         const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
-    //         const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
-    //         const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
-    //         linePath.lineTo(midPointX, midPointY);
-    //         linePath.moveTo(x, y);
-    //     }
-    //     previousTo = to;
-    // }
+function renderPartialArea(pairData: PathPoint[], ratios: Partial<Record<MarkerChange, number>>, path: Path) {
+    const { path: areaPath } = path;
+    let previousTo: PathPoint['to'];
+    for (const data of pairData) {
+        const ratio = ratios[data.marker];
+        if (ratio == null) continue;
+
+        const { from, to } = data;
+        if (from == null || to == null) continue;
+
+        const x = from.x + (to.x - from.x) * ratio;
+        const y = from.y + (to.y - from.y) * ratio;
+
+        if (data.moveTo === false) {
+            areaPath.lineTo(x, y);
+        } else if (data.moveTo === true || !previousTo) {
+            areaPath.moveTo(x, y);
+        } else if (previousTo) {
+            const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
+            const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
+            const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
+            areaPath.lineTo(midPointX, midPointY);
+            areaPath.moveTo(x, y);
+        }
+        previousTo = to;
+    }
+}
+
+function splitFillPoints(context: AreaSeriesNodeDataContext) {
+    const { points } = context.fillData;
+    return { top: points.slice(0, points.length / 2), bottom: points.slice(points.length / 2).reverse() };
+}
+
+function prepPoints(key: 'top' | 'bottom', ctx: AreaSeriesNodeDataContext, points: ReturnType<typeof splitFillPoints>) {
+    return {
+        scales: ctx.scales,
+        nodeData: points[key],
+    };
+}
+
+function pairFillCategoryData(
+    newData: AreaSeriesNodeDataContext,
+    oldData: AreaSeriesNodeDataContext,
+    diff: ProcessedOutputDiff
+) {
+    const oldPoints = splitFillPoints(oldData);
+    const newPoints = splitFillPoints(newData);
+
+    return {
+        top: pairCategoryData(prepPoints('top', newData, newPoints), prepPoints('top', oldData, oldPoints), diff),
+        bottom: pairCategoryData(
+            prepPoints('bottom', newData, newPoints),
+            prepPoints('bottom', oldData, oldPoints),
+            diff
+        ),
+    };
+}
+
+function pairFillContinuousData(newData: AreaSeriesNodeDataContext, oldData: AreaSeriesNodeDataContext) {
+    const oldPoints = splitFillPoints(oldData);
+    const newPoints = splitFillPoints(newData);
+
+    return {
+        top: pairContinuousData(prepPoints('top', newData, newPoints), prepPoints('top', oldData, oldPoints)),
+        bottom: pairContinuousData(prepPoints('bottom', newData, newPoints), prepPoints('bottom', oldData, oldPoints)),
+    };
 }
 
 export function prepareAreaPathAnimation(
@@ -92,14 +140,31 @@ export function prepareAreaPathAnimation(
     diff?: ProcessedOutputDiff
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
-    const { result: pairData, resultMap: pairMap } =
-        isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
 
-    if (pairData === undefined || pairMap === undefined) {
+    const prepareMarkerPairs = () => {
+        if (isCategoryBased && diff) {
+            return pairCategoryData(newData, oldData, diff);
+        }
+        return pairContinuousData(newData, oldData);
+    };
+
+    const prepareFillPairs = () => {
+        if (isCategoryBased && diff) {
+            return pairFillCategoryData(newData, oldData, diff);
+        }
+        return pairFillContinuousData(newData, oldData);
+    };
+
+    const { resultMap: markerPairMap } = prepareMarkerPairs();
+    const { top, bottom } = prepareFillPairs();
+
+    if (markerPairMap === undefined || top.result === undefined || bottom.result === undefined) {
         return;
     }
 
-    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialArea);
-    const marker = prepareLineMarkerAnimation(pairMap);
-    return { ...pathFns, marker };
+    const pairData = [...top.result, ...bottom.result.reverse()];
+    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialArea);
+    const stroke = prepareLinePathAnimationFns(newData, oldData, top.result, renderPartialLine);
+    const marker = prepareLineMarkerAnimation(markerPairMap);
+    return { fill, marker, stroke };
 }
