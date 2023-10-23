@@ -11,9 +11,9 @@ import { formatPropertyDocumentation, removeDefaultValue } from './documentation
 import { getSelectionReferenceId } from './getObjectReferenceId';
 import { getPropertyType } from './getPropertyType';
 import { getShouldLimitChildren } from './getShouldLimitChildren';
+import { getTopLevelSelectionChanged } from './getTopLevelSelectionChanged';
 import type { JsonModel } from './model';
-import { getTopLevelSelection, getTopSelection } from './modelPath';
-import { selectionHasChanged } from './selectionHasChanged';
+import { getTopSelection } from './modelPath';
 
 const HEADER_OFFSET = 65;
 
@@ -98,15 +98,16 @@ export function useJsObjectSelection({ model, config }: { model: JsonModel; conf
                         : newSelection.onlyShowToDepth;
 
                 try {
-                    const selectionChanged = selectionHasChanged({
-                        selection: topLevelSelection,
+                    const { hasChanged, newTopLevelSelection } = getTopLevelSelectionChanged({
+                        selection,
+                        topLevelSelection,
                         newSelection,
+                        model,
                         config,
                     });
                     const [newTopLevelPathItem] = newSelection.path;
 
-                    if (selectionChanged) {
-                        const newTopLevelSelection = getTopLevelSelection({ selection: newSelection, model, config });
+                    if (hasChanged) {
                         if (newTopLevelSelection) {
                             setTopLevelSelection({ ...newTopLevelSelection, onlyShowToDepth });
                         } else {

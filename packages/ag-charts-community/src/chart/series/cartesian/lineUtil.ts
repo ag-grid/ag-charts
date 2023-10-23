@@ -270,6 +270,19 @@ function pairCategoryData(
         }
     }
 
+    let previousX = -Infinity;
+    const isXUnordered = result.some((pathPoint) => {
+        const { marker, to: { x = -Infinity } = {} } = pathPoint;
+
+        if (marker === 'out') return;
+        const result = x < previousX;
+        previousX = x;
+        return result;
+    });
+    if (isXUnordered) {
+        return { result: undefined, resultMap: undefined };
+    }
+
     backfillPathPointData(result);
 
     return { result, resultMap };
@@ -283,6 +296,10 @@ export function prepareLinePathAnimation(
     const isCategoryBased = newData.scales.x?.type === 'category';
     const { result: pairData, resultMap: pairMap } =
         isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
+
+    if (pairData === undefined || pairMap === undefined) {
+        return;
+    }
 
     const render = (ratios: Partial<Record<MarkerChange, number>>, path: Path) => {
         const { path: linePath } = path;
@@ -324,25 +341,25 @@ export function prepareLinePathAnimation(
 
         return { status: 'unknown' };
     };
-    const fromFn = (marker: Marker, datum: LineNodeDatum, _status: NodeUpdateState) => {
+    const fromFn = (marker: Marker, datum: LineNodeDatum) => {
         const { status, point } = markerStatus(datum);
         if (status === 'unknown') return { opacity: 0 };
 
         const defaults = {
-            translationX: marker.translationX,
-            translationY: marker.translationY,
+            translationX: point?.from?.x ?? marker.translationX,
+            translationY: point?.from?.y ?? marker.translationY,
             opacity: marker.opacity,
             ...FROM_TO_MIXINS[status],
         };
 
         if (status === 'added') {
-            return { ...defaults, opacity: 0, translationX: point?.from?.x, translationY: point?.from?.y };
+            return { ...defaults, opacity: 0 };
         }
 
         return defaults;
     };
 
-    const toFn = (_marker: Marker, datum: LineNodeDatum, _status: NodeUpdateState) => {
+    const toFn = (_marker: Marker, datum: LineNodeDatum) => {
         const { status, point } = markerStatus(datum);
         if (status === 'unknown') return { opacity: 0 };
 

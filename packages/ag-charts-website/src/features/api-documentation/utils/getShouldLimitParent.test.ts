@@ -46,6 +46,30 @@ describe('getShouldLimitParent', () => {
         expect(getShouldLimitParent(options)).toEqual(true);
     });
 
+    it('is false if start path does not match even with wildcard', () => {
+        const options = {
+            config: {
+                limitChildrenProperties: ['axes.*'],
+            },
+            path: ['other'],
+            pathItem: 'something',
+        };
+
+        expect(getShouldLimitParent(options)).toEqual(false);
+    });
+
+    it('is false if start of long path does not match even with wildcard', () => {
+        const options = {
+            config: {
+                limitChildrenProperties: ['axes.*'],
+            },
+            path: ['other', 'something'],
+            pathItem: 'else',
+        };
+
+        expect(getShouldLimitParent(options)).toEqual(false);
+    });
+
     it('is true if long path matches with wildcard', () => {
         const options = {
             config: {

@@ -1,9 +1,16 @@
 import { Icon } from '@components/icon/Icon';
 import classnames from 'classnames';
-import { Fragment, type FunctionComponent, createContext, useContext, useState } from 'react';
+import { Fragment, type FunctionComponent, createContext, useCallback, useContext, useState } from 'react';
 
 import { UNION_DISCRIMINATOR_PROP } from '../constants';
-import type { Config, JsObjectPropertiesViewConfig, JsObjectViewProps } from '../types';
+import type {
+    Config,
+    JsObjectPropertiesViewConfig,
+    JsObjectSelection,
+    JsObjectSelectionProperty,
+    JsObjectSelectionUnionNestedObject,
+    JsObjectViewProps,
+} from '../types';
 import { JsObjectPropertiesViewConfigContext } from '../utils/jsObjectPropertiesViewConfigContext';
 import type {
     JsonArray,
@@ -17,7 +24,13 @@ import type {
 import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
 import styles from './JsObjectView.module.scss';
 
-const SelectionContext = createContext<{ handleSelection?: JsObjectViewProps['handleSelection'] }>({});
+interface SelectionContextData {
+    handleSelection?: JsObjectViewProps['handleSelection'];
+    selectionPathId: string;
+    isSelected: (selection: JsObjectSelection) => boolean;
+}
+
+const SelectionContext = createContext<SelectionContextData>({} as SelectionContextData);
 
 const DEFAULT_JSON_NODES_EXPANDED = false;
 const HIDE_TYPES = true;
@@ -31,18 +44,33 @@ export interface ExpandableSnippetParams {
 interface ModelSnippetWithBreadcrumbsParams {
     breadcrumbs?: string[];
     model: JsonModel;
-    topBreakcrumbOnClick: () => void;
 }
 
-export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({ model, breadcrumbs = [], handleSelection }) => {
-    const handleTopObjectSelection = () => {
-        handleSelection &&
-            handleSelection(
-                getTopSelection({
-                    model,
-                    hideChildren: true,
-                })
-            );
+function getSelectionPathId(selection: JsObjectSelection): string {
+    let selectionPathId: string[] = selection.path;
+    if (selection.type === 'property') {
+        selectionPathId = selectionPathId.concat(selection.propName);
+    } else if (selection.type === 'unionNestedObject') {
+        selectionPathId = selectionPathId.concat(selection.index.toString());
+    }
+    return selectionPathId.join('.');
+}
+
+export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
+    model,
+    breadcrumbs = [],
+    handleSelection: parentHandleSelection,
+}) => {
+    const [selectionPathId, setSelectionPathId] = useState<string>('');
+    const isSelected = useCallback(
+        (selection: JsObjectSelection) => {
+            return selectionPathId === getSelectionPathId(selection);
+        },
+        [selectionPathId]
+    );
+    const handleSelection = (selection: JsObjectSelection) => {
+        parentHandleSelection(selection);
+        setSelectionPathId(getSelectionPathId(selection));
     };
     return (
         <div className={styles.expandableSnippet} role="presentation">
@@ -60,12 +88,8 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({ model, brea
 
             <pre className={classnames('code', 'language-ts')}>
                 <code className={'language-ts'}>
-                    <SelectionContext.Provider value={{ handleSelection }}>
-                        <ModelSnippetWithBreadcrumbs
-                            breadcrumbs={breadcrumbs}
-                            model={model}
-                            topBreakcrumbOnClick={handleTopObjectSelection}
-                        />
+                    <SelectionContext.Provider value={{ handleSelection, selectionPathId, isSelected }}>
+                        <ModelSnippetWithBreadcrumbs breadcrumbs={breadcrumbs} model={model} />
                     </SelectionContext.Provider>
                 </code>
             </pre>
@@ -73,14 +97,11 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({ model, brea
     );
 };
 
-const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> = ({
-    model,
-    breadcrumbs = [],
-    topBreakcrumbOnClick,
-}) => {
+const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> = ({ model, breadcrumbs = [] }) => {
     return (
         <ObjectBreadcrumb
             breadcrumbs={breadcrumbs}
+            model={model}
             bodyContent={() => (
                 <>
                     <div className={styles.jsonObject} role="presentation">
@@ -88,7 +109,6 @@ const ModelSnippetWithBreadcrumbs: React.FC<ModelSnippetWithBreadcrumbsParams> =
                     </div>
                 </>
             )}
-            topBreakcrumbOnClick={topBreakcrumbOnClick}
         />
     );
 };
@@ -193,24 +213,26 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
     const unionPath = path.concat(pathItem);
     const expandedInitially = isExpandedInitially(discriminatorType || String(index), unionPath, config);
     const [isExpanded, setExpanded] = useState(expandedInitially);
-    const { handleSelection } = useContext(SelectionContext);
+    const { handleSelection, isSelected } = useContext(SelectionContext);
+    const selection = {
+        type: 'unionNestedObject',
+        index,
+        // NOTE: Not passing in `unionPath`, as selection should handle how to determine the path
+        path,
+        model: desc,
+    } as JsObjectSelectionUnionNestedObject;
     const handleUnionNestedObjectSelection = () => {
-        handleSelection &&
-            handleSelection({
-                type: 'unionNestedObject',
-                index,
-                // NOTE: Not passing in `unionPath`, as selection should handle how to determine the path
-                path,
-                model: desc,
-            });
+        handleSelection && handleSelection(selection);
     };
     const toggleExpand = () => {
         setExpanded((expanded: boolean) => !expanded);
     };
 
+    const SelectionWrapper = isSelected(selection) ? 'mark' : Fragment;
+
     if (discriminatorType) {
         return (
-            <Fragment key={discriminatorType}>
+            <SelectionWrapper>
                 <span className={styles.expandable}>
                     {isExpanded && <div className={styles.expanderBar}></div>}
                     <span className={classnames('token', 'punctuation')}>
@@ -257,12 +279,12 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
                         </>
                     )}
                 </span>
-            </Fragment>
+            </SelectionWrapper>
         );
     }
 
     return (
-        <Fragment key={index}>
+        <SelectionWrapper>
             <span className={styles.expandable}>
                 {isExpanded && <div className={styles.expanderBar}></div>}
                 <span className={classnames('token', 'punctuation')}>
@@ -288,7 +310,7 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
                     </>
                 )}
             </span>
-        </Fragment>
+        </SelectionWrapper>
     );
 }
 
@@ -313,9 +335,10 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
     const propPath = path.concat(propName);
     const expandedInitially = forceInitiallyExpanded || isExpandedInitially(propName, propPath, config as Config);
     const [isJSONNodeExpanded, setJSONNodeExpanded] = useState(expandedInitially);
-    const { handleSelection } = useContext(SelectionContext);
+    const { handleSelection, isSelected } = useContext(SelectionContext);
+    const selection = { type: 'property', propName, path, model: meta } as JsObjectSelectionProperty;
     const handlePropertySelection = () => {
-        handleSelection && handleSelection({ type: 'property', propName, path, model: meta });
+        handleSelection && handleSelection(selection);
     };
     const toggleExpand = () => {
         if (!expandable) {
@@ -379,6 +402,8 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
         );
     }
 
+    const SelectionWrapper = isSelected(selection) ? 'mark' : Fragment;
+
     return (
         <div
             className={classnames(
@@ -389,19 +414,23 @@ const PropertySnippet: React.FC<PropertySnippetParams> = ({
             )}
             role="presentation"
         >
-            {
-                <PropertyDeclaration
-                    propName={propName}
-                    tsType={renderTsType ? tsType : null}
-                    propDesc={meta}
-                    isExpanded={isJSONNodeExpanded}
-                    expandable={expandable}
-                    toggleExpand={toggleExpand}
-                    onSelection={handlePropertySelection}
-                    showTypeAsDiscriminatorValue={showTypeAsDiscriminatorValue && propName === UNION_DISCRIMINATOR_PROP}
-                />
-            }
-            {propertyValue}
+            <SelectionWrapper>
+                {
+                    <PropertyDeclaration
+                        propName={propName}
+                        tsType={renderTsType ? tsType : null}
+                        propDesc={meta}
+                        isExpanded={isJSONNodeExpanded}
+                        expandable={expandable}
+                        toggleExpand={toggleExpand}
+                        onSelection={handlePropertySelection}
+                        showTypeAsDiscriminatorValue={
+                            showTypeAsDiscriminatorValue && propName === UNION_DISCRIMINATOR_PROP
+                        }
+                    />
+                }
+                {propertyValue}
+            </SelectionWrapper>
         </div>
     );
 };
@@ -443,7 +472,9 @@ function PropertyDeclaration({
             {isExpanded && <div className={styles.expanderBar}></div>}
             <span className={classnames('token', 'name', styles[style])}>
                 {expandable && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
-                <span onClick={onSelection}>{propName}</span>
+                <span className={styles.propertyNameText} onClick={onSelection} onDoubleClick={toggleExpand}>
+                    {propName}
+                </span>
             </span>
             {!HIDE_TYPES && (
                 <>
@@ -605,19 +636,29 @@ export function buildObjectIndent(level: number): string {
 export function ObjectBreadcrumb({
     breadcrumbs,
     bodyContent,
-    topBreakcrumbOnClick,
+    model,
 }: {
     breadcrumbs: string[];
     bodyContent: () => any;
-    topBreakcrumbOnClick?: () => void;
+    model: JsonModel;
 }) {
+    const { handleSelection, isSelected } = useContext(SelectionContext);
+    const selection = getTopSelection({
+        model,
+        hideChildren: true,
+    });
+    const handleTopObjectSelection = () => {
+        handleSelection && handleSelection(selection);
+    };
+    const SelectionWrapper = isSelected(selection) ? 'mark' : Fragment;
+
     return (
         <>
             {breadcrumbs.length > 0 && (
                 <>
                     <div role="presentation">
-                        <span className={styles.topBreadcrumb} onClick={topBreakcrumbOnClick}>
-                            {breadcrumbs[0]}
+                        <span className={styles.topBreadcrumb} onClick={handleTopObjectSelection}>
+                            <SelectionWrapper>{breadcrumbs[0]}</SelectionWrapper>
                         </span>
                         : {'{'}
                     </div>
@@ -626,13 +667,7 @@ export function ObjectBreadcrumb({
             {breadcrumbs.length > 1 ? (
                 <div className={styles.jsonObject} role="presentation">
                     <div role="presentation">...</div>
-                    {
-                        <ObjectBreadcrumb
-                            breadcrumbs={breadcrumbs.slice(1)}
-                            bodyContent={bodyContent}
-                            topBreakcrumbOnClick={topBreakcrumbOnClick}
-                        />
-                    }
+                    {<ObjectBreadcrumb breadcrumbs={breadcrumbs.slice(1)} bodyContent={bodyContent} model={model} />}
                 </div>
             ) : (
                 bodyContent()

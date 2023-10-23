@@ -303,10 +303,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         if (lineNode.clipPath == null) {
             lineNode.clipPath = new Path2D();
-            lineNode.clipScalingX = 0;
+            lineNode.clipScalingX = 1;
             lineNode.clipScalingY = 1;
         }
-        lineNode.clipMode = 'normal';
         lineNode.clipPath?.clear({ trackChanges: true });
         lineNode.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
     }
@@ -343,8 +342,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             strokeOpacity,
         });
 
+        const applyTranslation = this.ctx.animationManager.isSkipped();
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
         });
 
         if (!highlighted) {
@@ -483,11 +483,15 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         this.updateLinePaths(paths, contextData);
         staticFromToMotion(
             this.id,
-            'swipe_path',
+            'path_properties',
             animationManager,
             paths.map((p) => p[0]),
             { clipScalingX: 0 },
-            { clipScalingX: 1 }
+            { clipScalingX: 1 },
+            {
+                start: { clipMode: 'normal' },
+                finish: { clipMode: undefined },
+            }
         );
         resetMotion(markerSelections, resetMarkerPositionFn);
         markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
@@ -505,6 +509,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { animationManager } = this.ctx;
         const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
 
+        super.resetAllAnimation(animationData);
+
         if (
             contextData.length === 0 ||
             !previousContextData ||
@@ -512,7 +518,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             !contextData.every((d) => d.animationValid) ||
             !previousContextData.every((d) => d.animationValid)
         ) {
-            super.resetAllAnimation(animationData);
             this.updateLinePaths(paths, contextData);
             return;
         }
@@ -522,6 +527,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const [oldData] = previousContextData;
 
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
+        if (fns === undefined) {
+            this.updateLinePaths(paths, contextData);
+            return;
+        }
+
         fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);

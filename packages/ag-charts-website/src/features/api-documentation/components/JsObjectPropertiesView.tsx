@@ -34,7 +34,7 @@ function TopLevelHeader({
     return (
         <header>
             <h1 className="font-size-gigantic">
-                <HeadingPath path={topLevelHeader.path} />
+                <HeadingPath path={topLevelHeader.path} keepTopLevelIfOnlyItem={true} />
                 {pathSeparator}
                 {topLevelHeader.heading}
             </h1>

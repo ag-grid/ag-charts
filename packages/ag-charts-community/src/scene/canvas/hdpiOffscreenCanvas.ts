@@ -16,6 +16,7 @@ interface OffscreenCanvasOptions {
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiOffscreenCanvas {
+    readonly realContext: OffscreenCanvasRenderingContext2D;
     readonly context: OffscreenCanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly canvas: OffscreenCanvas;
     imageSource: ImageBitmap;
@@ -30,10 +31,10 @@ export class HdpiOffscreenCanvas {
     // 300/150 according to w3.org.
     constructor({ width = 600, height = 300, overrideDevicePixelRatio }: OffscreenCanvasOptions) {
         this.canvas = new OffscreenCanvas(width, height);
-        this.context = this.canvas.getContext('2d')!;
+        this.realContext = this.canvas.getContext('2d')!;
         this.imageSource = this.canvas.transferToImageBitmap();
 
-        this.setPixelRatio(overrideDevicePixelRatio);
+        this.context = this.setPixelRatio(overrideDevicePixelRatio);
         this.resize(width, height);
     }
 
@@ -80,9 +81,8 @@ export class HdpiOffscreenCanvas {
             pixelRatio = 1;
         }
 
-        HdpiCanvas.overrideScale(this.context, pixelRatio);
-
         this._pixelRatio = pixelRatio;
+        return HdpiCanvas.overrideScale(this.realContext, pixelRatio);
     }
 
     private _width: number = 0;

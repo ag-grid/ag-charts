@@ -14,6 +14,7 @@ export class HdpiCanvas {
     readonly document: Document;
     readonly window: Window;
     readonly element: HTMLCanvasElement;
+    readonly realContext: CanvasRenderingContext2D;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly imageSource: HTMLCanvasElement;
 
@@ -49,8 +50,8 @@ export class HdpiCanvas {
         this.element.width = width;
         this.element.height = height;
 
-        this.context = this.element.getContext('2d')!;
-        this.imageSource = this.context.canvas;
+        this.realContext = this.element.getContext('2d')!;
+        this.imageSource = this.realContext.canvas;
 
         const { style } = this.element;
 
@@ -69,7 +70,7 @@ export class HdpiCanvas {
             }
         }
 
-        this.setPixelRatio(overrideDevicePixelRatio);
+        this.context = this.setPixelRatio(overrideDevicePixelRatio);
         this.resize(width, height);
     }
 
@@ -178,10 +179,9 @@ export class HdpiCanvas {
             // have memory allocation quirks - see https://bugs.webkit.org/show_bug.cgi?id=195325.
             pixelRatio = 1;
         }
-
-        HdpiCanvas.overrideScale(this.context, pixelRatio);
-
         this._pixelRatio = pixelRatio;
+
+        return HdpiCanvas.overrideScale(this.realContext, pixelRatio);
     }
 
     set pixelated(value: boolean) {
@@ -407,5 +407,7 @@ export class HdpiCanvas {
                 ctx[name] = overrides[name];
             }
         }
+
+        return ctx;
     }
 }

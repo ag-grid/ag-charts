@@ -6,7 +6,7 @@ interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
     visible?: boolean;
 }
 
-interface ErrorBarCapLengthOptions {
+export interface AgErrorBarCapLengthOptions {
     /** Absolute length of caps in pixels. */
     length?: PixelSize;
     /** Length of caps relative to the shape used by the series. */
@@ -33,7 +33,7 @@ export interface AgErrorBarDataOptions {
     yUpperName?: string;
 }
 
-export interface AgErrorBarCapOptions extends ErrorBarCapLengthOptions, ErrorBarStylingOptions {}
+export interface AgErrorBarCapOptions extends AgErrorBarCapLengthOptions, ErrorBarStylingOptions {}
 
 export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
     /** Options to style error bars' caps */

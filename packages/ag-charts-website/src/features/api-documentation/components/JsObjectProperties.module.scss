@@ -28,10 +28,14 @@ $header-top: $header-nav-height + $header-nav-border;
         padding-top: $size-4;
         padding-bottom: $size-4;
         position: sticky;
-        top: $header-top;
+        top: 0;
         z-index: 1;
         background-color: var(--white);
         border-bottom: 1px solid var(--border-color);
+
+        @media screen and (min-width: $breakpoint-docs-nav-medium) {
+            top: $header-top;
+        }
     }
 
     tr:first-child {

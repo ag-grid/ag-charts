@@ -114,7 +114,8 @@ export function dateRange(start: Date, end: Date, step = 24 * 60 * 60 * 1000): D
     return result;
 }
 
-export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, timeoutMs = 5000): Promise<void> {
+export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, animationAdvanceMs = 0): Promise<void> {
+    const timeoutMs = 5000;
     const chart = deproxy(chartOrProxy);
     const chartAny = chart as any; // to access private properties
     await chart.waitForUpdate(timeoutMs);
@@ -125,6 +126,16 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
         chartAny._lastAutoSize = [width, height];
         chartAny.resize(width, height);
         await chart.waitForUpdate(timeoutMs);
+    }
+
+    if (activeAnimateCb) {
+        await activeAnimateCb(0, 1);
+        if (animationAdvanceMs > 0) {
+            await activeAnimateCb(animationAdvanceMs, 1);
+        }
+        await chart.waitForUpdate(timeoutMs);
+    } else if (animationAdvanceMs > 0) {
+        throw new Error(`animationAdvancedMs is non-zero, but no animation mocks are present.`);
     }
 }
 
@@ -331,9 +342,22 @@ export async function createChart(options: AgChartOptions) {
     return chart;
 }
 
+let activeAnimateCb: ((totalDuration: number, ratio: number) => Promise<void>) | undefined;
 export function spyOnAnimationManager() {
     const mocks: jest.SpiedFunction<(...args: any[]) => any>[] = [];
+    const rafCbs: Map<number, Parameters<typeof requestAnimationFrame>[0]> = new Map();
+    let nextRafId = 1;
     const animateParameters = [0, 0];
+
+    let time = Date.now();
+    const animateCb = async (totalDuration: number, ratio: number) => {
+        time += totalDuration * ratio;
+        const cbs = [...rafCbs.values()];
+        rafCbs.clear();
+
+        await Promise.all(cbs.map((cb) => cb(time)));
+    };
+
     beforeEach(() => {
         const skippedMock = jest.spyOn(AnimationManager.prototype, 'isSkipped');
         skippedMock.mockImplementation(() => false);
@@ -343,11 +367,26 @@ export function spyOnAnimationManager() {
             const controller = new Animation(opts);
             return controller.update(animateParameters[0] * animateParameters[1]);
         });
-        mocks.push(skippedMock, animateMock);
+        const skippingFramesMock = jest.spyOn(AnimationManager.prototype, 'isSkippingFrames');
+        skippingFramesMock.mockImplementation(() => false);
+
+        const safMock = jest.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
+        safMock.mockImplementation(function (this: _ModuleSupport.AnimationManager, cb) {
+            (this as any).requestId = nextRafId++;
+
+            const rafId = nextRafId++;
+            rafCbs.set(rafId, cb);
+        });
+        mocks.push(skippedMock, animateMock, skippingFramesMock, safMock);
+
+        if (activeAnimateCb) throw new Error('activeAnimateCb already initialized - something is very wrong!');
+        activeAnimateCb = animateCb;
     });
 
     afterEach(() => {
+        activeAnimateCb = undefined;
         mocks.forEach((mock) => mock.mockRestore());
+        rafCbs.clear();
     });
 
     return (totalDuration: number, ratio: number) => {
