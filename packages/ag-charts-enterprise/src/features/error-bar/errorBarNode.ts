@@ -131,13 +131,16 @@ export class ErrorBarNode extends _Scene.Group {
     }
 
     override containsPoint(x: number, y: number): boolean {
-        if (this.bboxes.union.containsPoint(x, y)) {
-            for (const bbox of this.bboxes.components) {
-                if (bbox.containsPoint(x, y)) {
-                    return true;
-                }
+        if (!this.bboxes.union.containsPoint(x, y)) {
+            return false;
+        }
+
+        for (const bbox of this.bboxes.components) {
+            if (bbox.containsPoint(x, y)) {
+                return true;
             }
         }
+
         return false;
     }
 }
