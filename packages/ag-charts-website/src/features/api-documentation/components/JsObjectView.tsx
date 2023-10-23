@@ -659,7 +659,9 @@ export function ObjectBreadcrumb({
                 <>
                     <div role="presentation">
                         <span className={styles.topBreadcrumb} onClick={handleTopObjectSelection}>
-                            <SelectionWrapper>{breadcrumbs[0]}</SelectionWrapper>
+                            <SelectionWrapper>
+                                <span>{breadcrumbs[0]}</span>
+                            </SelectionWrapper>
                         </span>
                         : {'{'}
                     </div>

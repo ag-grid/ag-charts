@@ -99,7 +99,11 @@ input[type='search'].searchInput {
     height: 2px;
     top: 12px;
     left: -34px;
-    background-color: var(--neutral-200);
+    background-color: var(--neutral-300);
+
+    #{$darkmode-selector} & {
+        background-color: var(--neutral-600);
+    }
 }
 
 .type-nested-object::before,
@@ -146,9 +150,13 @@ input[type='search'].searchInput {
     top: 19px;
     border-width: 2px;
     border-style: solid;
-    border-color: var(--neutral-200);
+    border-color: var(--neutral-300);
     border-top-width: 0;
     border-right-width: 0;
+
+    #{$darkmode-selector} & {
+        border-color: var(--neutral-600);
+    }
 }
 
 .propertyName {

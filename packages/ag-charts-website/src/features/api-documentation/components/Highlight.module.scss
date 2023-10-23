@@ -1,3 +1,28 @@
+@use '../../../design-system' as *;
+
 .highlight {
-    background-color: var(--papaya-whip);
+    --highlight-color: var(--primary-600);
+    --highlight-opacity: 0.15;
+
+    &::before {
+        content: '';
+        position: absolute;
+        right: -$size-2;
+        left: -100vw;
+        height: calc(1em * var(--code-line-height));
+        background-color: var(--highlight-color);
+        opacity: var(--highlight-opacity);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    > * {
+        position: relative;
+        z-index: 2;
+    }
+
+    #{$darkmode-selector} & {
+        --highlight-color: var(--property-color);
+        --highlight-opacity: 0.16;
+    }
 }
