@@ -96,8 +96,8 @@ class LegendMarker {
     @Validate(NUMBER(0))
     padding: number = 8;
 
-    @Validate(NUMBER(0))
-    strokeWidth: number = 1;
+    @Validate(OPT_NUMBER(0))
+    strokeWidth: number | undefined = undefined;
 
     parent?: { onMarkerShapeChange(): void };
 }
@@ -644,12 +644,13 @@ export class Legend {
     update() {
         const {
             label: { color },
+            marker: itemMarker,
         } = this.item;
         this.itemSelection.each((markerLabel, datum) => {
             const marker = datum.marker;
             markerLabel.markerFill = marker.fill;
             markerLabel.markerStroke = marker.stroke;
-            markerLabel.markerStrokeWidth = marker.strokeWidth;
+            markerLabel.markerStrokeWidth = itemMarker.strokeWidth ?? Math.min(2, marker.strokeWidth);
             markerLabel.markerFillOpacity = marker.fillOpacity;
             markerLabel.markerStrokeOpacity = marker.strokeOpacity;
             markerLabel.opacity = datum.enabled ? 1 : 0.5;
