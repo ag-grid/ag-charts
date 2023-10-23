@@ -1,5 +1,5 @@
 export function getData() {
-    return [
+  return [
   { month: 'Jan', subscriptions: 222, services: 250, products: 200, },
   { month: 'Feb', subscriptions: 240, services: 255, products: 210, },
   { month: 'Mar', subscriptions: 280, services: 245, products: 195, },
