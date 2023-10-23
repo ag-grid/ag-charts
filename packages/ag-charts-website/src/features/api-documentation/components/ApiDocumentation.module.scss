@@ -52,11 +52,6 @@
         height: 1px; // needed for divs to fit table cell heights correctly
     }
 
-    tr:nth-child(even),
-    tr:nth-child(even) td {
-        background-color: white;
-    }
-
     pre:global(.code) {
         margin-top: $size-2;
         margin-bottom: $size-1;
@@ -132,6 +127,10 @@
     font-size: var(--font-size-small);
     font-family: var(--monospace-font-family);
     color: var(--code-text-color);
+
+    #{$darkmode-selector} & {
+        font-weight: 600;
+    }
 }
 
 .description {

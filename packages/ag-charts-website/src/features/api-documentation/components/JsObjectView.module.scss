@@ -25,9 +25,9 @@ $indent: 24px;
     width: 100%;
     height: var(--header-height);
     padding: $size-2;
-    background-color: var(--white);
+    background-color: var(--default-background-color);
     z-index: 2;
-    border-bottom: 1px solid var(--platinum-gray);
+    border-bottom: 1px solid var(--neutral-200);
 
     h3 {
         margin-bottom: 0;
@@ -99,7 +99,7 @@ input[type='search'].searchInput {
     height: 2px;
     top: 12px;
     left: -34px;
-    background-color: var(--platinum-gray);
+    background-color: var(--neutral-200);
 }
 
 .type-nested-object::before,
@@ -146,7 +146,7 @@ input[type='search'].searchInput {
     top: 19px;
     border-width: 2px;
     border-style: solid;
-    border-color: var(--platinum-gray);
+    border-color: var(--neutral-200);
     border-top-width: 0;
     border-right-width: 0;
 }

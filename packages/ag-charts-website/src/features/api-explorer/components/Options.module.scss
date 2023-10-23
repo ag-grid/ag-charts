@@ -24,7 +24,11 @@
     margin-top: $size-2;
 
     > .option:nth-child(even) {
-        background-color: var(--ghost-blue);
+        background-color: var(--background-100);
+
+        #{$darkmode-selector} & {
+            background-color: var(--background-200);
+        }
     }
 }
 

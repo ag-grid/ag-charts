@@ -27,16 +27,15 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
         setIsDarkTheme(theme.indexOf('dark') > -1);
     }, [theme]);
 
-    const darkLinkStyle = {
-        backgroundColor: '#15181c',
-        borderTop: '1px solid rgb(88, 88, 88)',
-    };
-    const darkSpanStyle = {
-        color: 'rgb(200, 200, 200)',
+    const lightLinkStyle = {
+        backgroundColor: '#fff',
     };
 
-    const linkStyle = isDarkTheme ? darkLinkStyle : {};
-    const spanStyle = isDarkTheme ? darkSpanStyle : {};
+    const darkLinkStyle = {
+        backgroundColor: '#15181c',
+    };
+
+    const linkStyle = isDarkTheme ? darkLinkStyle : lightLinkStyle;
 
     return (
         <a
@@ -45,7 +44,7 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
             style={linkStyle}
         >
             <img src={imageUrl} alt={label} />
-            <span style={spanStyle}>{label}</span>
+            <span>{label}</span>
         </a>
     );
 };

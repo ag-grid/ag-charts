@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import { Collapsible } from '../Collapsible';
 import { Icon } from '../icon/Icon';
+import { DarkModeToggle } from './DarkModeToggle';
 import styles from './SiteHeader.module.scss';
 
 const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
@@ -86,6 +87,8 @@ const HeaderLinks = ({ path, isOpen, toggleIsOpen }) => {
                     </li>
                 );
             })}
+
+            <DarkModeToggle />
         </ul>
     );
 };

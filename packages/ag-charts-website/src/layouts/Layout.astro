@@ -23,6 +23,13 @@ const frameworks = FRAMEWORKS;
 const framework = getFrameworkFromPath(path);
 ---
 
+<script>
+  const htmlEl = document.querySelector('html');
+  const localDarkmode = localStorage['documentation:darkmode'];
+
+  if (localDarkmode !== undefined) htmlEl.dataset.darkMode = localDarkmode;
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
