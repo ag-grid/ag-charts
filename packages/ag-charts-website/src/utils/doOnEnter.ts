@@ -1,5 +1,5 @@
-export const doOnEnter = (e, action) => {
-    if (e.key && e.key === 'Enter') {
+export const doOnEnter = (e: KeyboardEvent, action: Function) => {
+    if (e.key === 'Enter') {
         action();
     }
 };

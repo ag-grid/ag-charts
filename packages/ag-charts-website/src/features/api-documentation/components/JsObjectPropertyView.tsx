@@ -1,13 +1,16 @@
+import Code from '@components/Code';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import { useContext } from 'react';
+import { extractCodeSample } from 'src/features/api-documentation/utils/extractCodeSample';
 
 import type { JsObjectSelection, JsObjectSelectionProperty, JsObjectSelectionUnionNestedObject } from '../types';
 import {
     convertMarkdown,
+    escapeGenericCode,
     formatPropertyDocumentation,
     removeDefaultValue,
-    splitName,
 } from '../utils/documentationHelpers';
 import { FrameworkContext } from '../utils/frameworkContext';
 import { getSelectionReferenceId } from '../utils/getObjectReferenceId';
@@ -20,6 +23,8 @@ import { removeTopLevelPath } from '../utils/removeTopLevelPath';
 import styles from './ApiDocumentation.module.scss';
 import { HeadingPath } from './HeadingPath';
 import { MetaList } from './MetaList';
+import { PropertyName } from './PropertyName';
+import { ToggleDetails } from './ToggleDetails';
 
 interface Props {
     selection: JsObjectSelection;
@@ -28,8 +33,7 @@ interface Props {
 }
 
 function NameHeading({ id, name, path }: { id: string; name?: string; path: string[] }) {
-    const displayNameSplit = splitName(name);
-    const keepTopLevelIfOnlyItem = !displayNameSplit;
+    const keepTopLevelIfOnlyItem = !name;
     const headingPath = removeTopLevelPath({ path, keepTopLevelIfOnlyItem });
     const pathSeparator = name && headingPath.length > 0 ? '.' : '';
 
@@ -38,14 +42,15 @@ function NameHeading({ id, name, path }: { id: string; name?: string; path: stri
             <HeadingPath path={path} keepTopLevelIfOnlyItem={keepTopLevelIfOnlyItem} />
             <span>
                 {pathSeparator}
-                {displayNameSplit && <span dangerouslySetInnerHTML={{ __html: displayNameSplit }}></span>}
+                <PropertyName>{name}</PropertyName>
             </span>
             {/* Hide, until nav support is added <LinkIcon href={`#${id}`} /> */}
         </h6>
     );
 }
 
-function Actions({ propName }: { propName?: string }) {
+function Actions({ propName, additionalDetails }: { propName?: string; additionalDetails?: string[] }) {
+    const [isExpanded, toggleExpanded] = useToggle();
     const framework = useContext(FrameworkContext);
     const optionsData = useContext(OptionsDataContext);
     const config = useContext(JsObjectPropertiesViewConfigContext);
@@ -53,26 +58,35 @@ function Actions({ propName }: { propName?: string }) {
     const more = actionsData?.more;
     const hasMore = Boolean(more);
 
-    if (!actionsData || !hasMore) {
+    const hasAdditionalDetails = Boolean(additionalDetails?.length);
+    if ((!actionsData || !hasMore) && !hasAdditionalDetails) {
         return null;
     }
 
     return (
-        <div className={styles.actions}>
-            {hasMore && more.url && !config.hideMore && (
-                <span>
-                    <span className="text-secondary">See:</span>{' '}
-                    <a
-                        href={getExamplePageUrl({
-                            path: more.url,
-                            framework,
-                        })}
-                    >
-                        {more.name}
-                    </a>
-                </span>
+        <>
+            <div className={styles.actions}>
+                {hasAdditionalDetails && <ToggleDetails isOpen={isExpanded} onToggle={toggleExpanded} />}
+                {hasMore && more.url && !config.hideMore && (
+                    <span>
+                        <span className="text-secondary">See:</span>{' '}
+                        <a
+                            href={getExamplePageUrl({
+                                path: more.url,
+                                framework,
+                            })}
+                        >
+                            {more.name}
+                        </a>
+                    </span>
+                )}
+            </div>
+            {hasAdditionalDetails && isExpanded && (
+                <div>
+                    <Code code={escapeGenericCode(additionalDetails)} keepMarkup />
+                </div>
             )}
-        </div>
+        </>
     );
 }
 
@@ -90,24 +104,20 @@ function PrimitivePropertyView({
     const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const propertyType = getPropertyType(
-        (model as any).type === 'primitive' ? (model as any).tsType : model.desc.tsType
+        // model.desc.type === 'primitive' ? model.desc.aliasType ?? model.desc.tsType : model.desc.tsType
+        model.type === 'primitive' ? model.tsType : model.desc.aliasType ?? model.desc.tsType
     );
     const description = convertMarkdown(formattedDocumentation, framework);
+
     return (
-        <tr id={id}>
-            <td role="presentation" className={styles.leftColumn}>
-                <NameHeading id={id} name={name} path={path} />
-                <MetaList propertyType={propertyType} model={model} description={description} />
-            </td>
-            <td className={styles.rightColumn}>
-                <div
-                    role="presentation"
-                    className={styles.description}
-                    dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
-                ></div>
-                <Actions propName={name} />
-            </td>
-        </tr>
+        <PropertyRow
+            id={id}
+            name={name}
+            path={path}
+            propertyType={propertyType}
+            model={model}
+            description={description}
+        />
     );
 }
 
@@ -170,20 +180,14 @@ function NestedObjectPropertyView({
     return (
         <>
             {showTopLevel && (
-                <tr id={id}>
-                    <td role="presentation" className={styles.leftColumn}>
-                        <NameHeading id={id} name={name} path={path} />
-                        <MetaList propertyType={propertyType} model={model} description={description} />
-                    </td>
-                    <td className={styles.rightColumn}>
-                        <div
-                            role="presentation"
-                            className={styles.description}
-                            dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
-                        ></div>
-                        <Actions propName={name} />
-                    </td>
-                </tr>
+                <PropertyRow
+                    id={id}
+                    name={name}
+                    path={path}
+                    propertyType={propertyType}
+                    model={model}
+                    description={description}
+                />
             )}
             {showChildren && (
                 <NestedObjectProperties
@@ -210,17 +214,13 @@ function UnionProperties({
     onlyShowToDepth?: number;
     isRoot?: boolean;
 }) {
-    return elements.options.map((model, index) => {
-        const selection: JsObjectSelectionUnionNestedObject = {
-            type: 'unionNestedObject',
-            index,
-            path: parentPath,
-            model,
-            onlyShowToDepth,
-            isRoot,
-        };
-        return <JsObjectPropertyView key={JSON.stringify(model)} selection={selection} parentName={parentName} />;
-    });
+    return elements.options.map((model, index) => (
+        <JsObjectPropertyView
+            key={JSON.stringify(model)}
+            parentName={parentName}
+            selection={{ type: 'unionNestedObject', path: parentPath, index, model, onlyShowToDepth, isRoot }}
+        />
+    ));
 }
 
 function NestedArrayProperties({
@@ -299,20 +299,14 @@ function ArrayPropertyView({
     return (
         <>
             {showTopLevel && (
-                <tr id={id}>
-                    <td role="presentation" className={styles.leftColumn}>
-                        <NameHeading id={id} name={name} path={path} />
-                        <MetaList propertyType={propertyType} model={model} description={description} />
-                    </td>
-                    <td className={styles.rightColumn}>
-                        <div
-                            role="presentation"
-                            className={styles.description}
-                            dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
-                        ></div>
-                        <Actions propName={name} />
-                    </td>
-                </tr>
+                <PropertyRow
+                    id={id}
+                    name={name}
+                    path={path}
+                    propertyType={propertyType}
+                    model={model}
+                    description={description}
+                />
             )}
             {showChildren && elements.type !== 'primitive' && (
                 <NestedArrayProperties
@@ -343,7 +337,40 @@ function FunctionPropertyView({
     const framework = useContext(FrameworkContext);
     const formattedDocumentation = formatPropertyDocumentation(model).join('\n');
     const description = convertMarkdown(formattedDocumentation, framework);
-    const propertyType = getPropertyType(model.desc.tsType);
+    return (
+        <PropertyRow id={id} name={name} path={path} propertyType="Function" model={model} description={description} />
+    );
+}
+
+function PropertyRow({
+    id,
+    name,
+    path,
+    model,
+    propertyType,
+    description,
+}: {
+    id: string;
+    name?: string;
+    path: string[];
+    propertyType: string;
+    model: JsonModelProperty;
+    description: string;
+}) {
+    const framework = 'javascript';
+    const config = useContext(JsObjectPropertiesViewConfigContext);
+    const pageType =
+        config.pageType === 'AgChartOptions' && !['axes', 'series', 'theme'].includes(name)
+            ? 'AgCartesianChartOptions'
+            : config.pageType;
+    const additionalDetails =
+        name &&
+        extractCodeSample({
+            framework,
+            name,
+            type: config.lookups?.codeLookup[pageType][name]?.type,
+            config,
+        });
 
     return (
         <tr id={id}>
@@ -356,8 +383,8 @@ function FunctionPropertyView({
                     role="presentation"
                     className={styles.description}
                     dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
-                ></div>
-                <Actions propName={name} />
+                />
+                <Actions propName={name} additionalDetails={additionalDetails} />
             </td>
         </tr>
     );

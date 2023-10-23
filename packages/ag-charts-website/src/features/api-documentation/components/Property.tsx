@@ -1,33 +1,38 @@
-import { Icon } from '@components/icon/Icon';
+import Code from '@components/Code';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
-import { Fragment, type FunctionComponent, useEffect, useRef, useState } from 'react';
+import { type FunctionComponent, useEffect, useRef } from 'react';
 
 import type { ICallSignature, InterfaceEntry, PropertyCall } from '../types';
 import { applyInterfaceInclusions } from '../utils/applyInterfaceInclusions';
 import {
     convertMarkdown,
+    escapeGenericCode,
     extractInterfaces,
     formatJsDocString,
+    getFormattedDefaultValue,
     getTypeUrl,
     inferType,
     removeDefaultValue,
-    splitName,
 } from '../utils/documentationHelpers';
+import { extractCodeSample } from '../utils/extractCodeSample';
 import { formatJson } from '../utils/formatJson';
-import { getInterfaceName } from '../utils/getInterfaceName';
 import { getPropertyType } from '../utils/getPropertyType';
+import { capitalize } from '../utils/strings';
 import styles from './ApiDocumentation.module.scss';
-import { FunctionCodeSample } from './FunctionCodeSample';
+import { ChildrenSeparator } from './ChildrenSeparator';
+import { PropertyName } from './PropertyName';
+import { ToggleDetails } from './ToggleDetails';
 
 function isCallSig(gridProp: InterfaceEntry): gridProp is ICallSignature {
-    return gridProp && gridProp.meta && gridProp.meta.isCallSignature;
+    return Boolean(gridProp?.meta?.isCallSignature);
 }
 
 export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name, definition, config }) => {
-    const [isExpanded, setExpanded] = useState(config.defaultExpand);
-    const propertyRef = useRef<HTMLElement>(null);
+    const [isExpanded, toggleExpanded, setExpanded] = useToggle(config.defaultExpand);
+    const propertyRef = useRef<HTMLTableRowElement>(null);
     const idName = `reference-${id}-${name}`;
     let description = '';
     let isObject = false;
@@ -52,34 +57,18 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         );
     }
 
-    let propDescription = definition.description || (gridParams && gridParams.description) || undefined;
+    let propDescription = definition.description || gridParams?.description;
     if (propDescription) {
         propDescription = formatJsDocString(propDescription);
         // process property object
         description = convertMarkdown(propDescription, framework);
     } else {
         // this must be the parent of a child object
-        if (definition.meta != null && definition.meta.description != null) {
+        if (definition.meta?.description) {
             description = convertMarkdown(definition.meta.description, framework);
         }
 
         isObject = true;
-    }
-
-    // Default may or may not be on a new line in JsDoc but in both cases we want the default to be on the next line
-    let defaultValue = definition.default;
-    if (description != null && !defaultValue) {
-        const defaultReg = / Default: <code>(.*)<\/code>/;
-        defaultValue = description.match(defaultReg)?.length === 2 ? description.match(defaultReg)[1] : undefined;
-    }
-
-    let displayName = name;
-    if (!!definition.isRequired) {
-        displayName += `&nbsp;<span class="${styles.required}" title="Required">&ast;</span>`;
-    }
-
-    if (!!definition.strikeThrough) {
-        displayName = `<span style='text-decoration: line-through'>${displayName}</span>`;
     }
 
     // Use the type definition if manually specified in config
@@ -91,8 +80,11 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
             type = gridParams.type;
 
             if (gridParams.description && gridParams.description.includes('@deprecated')) {
-                console.warn(`Docs include a property: ${name} that has been marked as deprecated.`);
-                console.warn(gridParams.description);
+                // eslint-disable-next-line no-console
+                console.warn(
+                    `Docs include a property: ${name} that has been marked as deprecated.\n`,
+                    gridParams.description
+                );
             }
 
             const anyInterfaces = extractInterfaces(
@@ -112,9 +104,11 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
             type = inferType(definition.default);
         }
     }
-    if (config.lookups?.htmlLookup) {
-        // Force open if we have custom html content to display for the property
-        showAdditionalDetails = showAdditionalDetails || !!config.lookups?.htmlLookup[name];
+
+    const codeLines = extractCodeSample({ framework, name, type, config });
+
+    if (codeLines.length === 0) {
+        showAdditionalDetails = false;
     }
 
     const propertyType = getPropertyType(type, config);
@@ -124,7 +118,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         ? getTypeUrl(type, framework)
         : null;
 
-    const codeSection = <FunctionCodeSample framework={framework} name={name} type={type} config={config} />;
+    const codeSection = codeLines.length ? <Code code={escapeGenericCode(codeLines)} keepMarkup /> : null;
 
     if (config.codeOnly) {
         return (
@@ -136,52 +130,43 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
         );
     }
 
-    const displayNameSplit = splitName(displayName);
-
     const { more } = definition;
 
-    const formattedDefaultValue = Array.isArray(defaultValue)
-        ? '[' +
-          defaultValue.map((v, i) => {
-              return i === 0 ? `"${v}"` : ` "${v}"`;
-          }) +
-          ']'
-        : defaultValue;
-    const formattedPropertyType = splitName(propertyType);
+    const formattedDefaultValue = getFormattedDefaultValue(definition.default, description);
 
     return (
         <tr ref={propertyRef}>
             <td role="presentation" className={styles.leftColumn}>
                 <h6 id={idName} className={classnames(styles.name, 'side-menu-exclude')}>
-                    <span
-                        onClick={() => setExpanded(!isExpanded)}
-                        dangerouslySetInnerHTML={{ __html: displayNameSplit }}
-                    ></span>
+                    <PropertyName
+                        isRequired={definition.isRequired}
+                        style={definition.strikeThrough ? { textDecoration: 'line-through' } : {}}
+                        onClick={toggleExpanded}
+                    >
+                        {name}
+                    </PropertyName>
                     <LinkIcon href={`#${idName}`} />
                 </h6>
 
                 <div className={styles.metaList}>
                     <div
-                        title={typeUrl && isObject ? getInterfaceName(name) : propertyType}
+                        title={typeUrl && isObject ? capitalize(name) : propertyType}
                         className={styles.metaItem}
-                        onClick={() => setExpanded(!isExpanded)}
+                        onClick={toggleExpanded}
                     >
                         <span className={styles.metaLabel}>Type</span>
                         {typeUrl ? (
-                            <a
+                            <PropertyName
+                                as="a"
                                 className={styles.metaValue}
                                 href={typeUrl}
                                 target={typeUrl.startsWith('http') ? '_blank' : '_self'}
                                 rel="noreferrer"
-                                dangerouslySetInnerHTML={{
-                                    __html: isObject ? getInterfaceName(name) : formattedPropertyType,
-                                }}
-                            ></a>
+                            >
+                                {isObject ? capitalize(name) : propertyType}
+                            </PropertyName>
                         ) : (
-                            <span
-                                className={styles.metaValue}
-                                dangerouslySetInnerHTML={{ __html: formattedPropertyType }}
-                            ></span>
+                            <PropertyName className={styles.metaValue}>{propertyType}</PropertyName>
                         )}
                     </div>
                     {formattedDefaultValue != null && (
@@ -194,7 +179,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
             </td>
             <td className={styles.rightColumn}>
                 <div
-                    onClick={() => setExpanded(!isExpanded)}
+                    onClick={toggleExpanded}
                     role="presentation"
                     className={styles.description}
                     dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
@@ -208,38 +193,19 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                 {definition.options != null && (
                     <div>
                         Options:{' '}
-                        {definition.options.map((o, i) => (
-                            <Fragment key={o}>
-                                {i > 0 ? ', ' : ''}
-                                <code>{formatJson(o)}</code>
-                            </Fragment>
-                        ))}
+                        <ChildrenSeparator>
+                            {definition.options.map((o) => (
+                                <code key={o}>{formatJson(o)}</code>
+                            ))}
+                        </ChildrenSeparator>
                     </div>
                 )}
                 <div className={styles.actions}>
-                    {showAdditionalDetails && (
-                        <button
-                            className={classnames(styles.seeMore, 'button-style-none')}
-                            onClick={() => {
-                                setExpanded(!isExpanded);
-                            }}
-                            role="presentation"
-                        >
-                            {!isExpanded ? 'More' : 'Hide'} details{' '}
-                            <Icon name={isExpanded ? 'chevronUp' : 'chevronDown'} />
-                        </button>
-                    )}
+                    {showAdditionalDetails && <ToggleDetails isOpen={isExpanded} onToggle={toggleExpanded} />}
                     {more != null && more.url && !config.hideMore && (
                         <span>
                             <span className="text-secondary">See:</span>{' '}
-                            <a
-                                href={getExamplePageUrl({
-                                    path: more.url,
-                                    framework,
-                                })}
-                            >
-                                {more.name}
-                            </a>
+                            <a href={getExamplePageUrl({ path: more.url, framework })}>{more.name}</a>
                         </span>
                     )}
                 </div>

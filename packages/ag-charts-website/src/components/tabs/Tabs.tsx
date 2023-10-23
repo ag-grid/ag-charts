@@ -1,5 +1,6 @@
 import classnames from 'classnames';
-import { FunctionComponent, ReactNode, useState } from 'react';
+import type { FunctionComponent, ReactNode } from 'react';
+import { useState } from 'react';
 
 import styles from './Tabs.module.scss';
 

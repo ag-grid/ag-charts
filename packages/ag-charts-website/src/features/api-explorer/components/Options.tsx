@@ -21,7 +21,7 @@ import styles from './Options.module.scss';
 const FunctionDefinition = ({ definition }: { definition: JsonFunction }) => {
     const lines = [`function ${definition.tsType};`];
 
-    let typesToDisplay: JsonObjectProperty[] = [];
+    const typesToDisplay: JsonObjectProperty[] = [];
     const addTypeToDisplay = (property: JsonProperty) => {
         if (property.type === 'nested-object') {
             typesToDisplay.push(property);
@@ -34,7 +34,7 @@ const FunctionDefinition = ({ definition }: { definition: JsonFunction }) => {
     Object.values(definition.parameters).forEach((prop) => addTypeToDisplay(prop.desc));
     addTypeToDisplay(definition.returnType);
 
-    let typesDisplayed = [];
+    const typesDisplayed = [];
     while (typesToDisplay.length > 0) {
         const desc = typesToDisplay.pop();
 
@@ -389,7 +389,7 @@ const generateOptions = ({
         isArraySkipped,
         isEditable,
     } = context;
-    let elements: ReactNode[] = [];
+    const elements: ReactNode[] = [];
 
     Object.entries(model.properties).forEach(([name, prop]) => {
         const key = `${prefix}${normalizeArrayIndexName(name)}`;
@@ -414,7 +414,7 @@ const generateOptions = ({
             context.hasResults = true;
         }
 
-        let commonProps = {
+        const commonProps = {
             prefix,
             key: componentKey,
             name: name,

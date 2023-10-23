@@ -1,6 +1,7 @@
 import { SITE_BASE_URL } from '@constants';
 import { ReactComponent as LogoType } from '@images/inline-svgs/ag-charts-logotype.svg';
-import { FunctionComponent, useState } from 'react';
+import type { FunctionComponent } from 'react';
+import { useState } from 'react';
 
 import LogoMark from '../logo/LogoMark';
 import styles from './SiteHeader.module.scss';

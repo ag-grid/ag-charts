@@ -1,6 +1,7 @@
 import { Icon } from '@components/icon/Icon';
 import classnames from 'classnames';
 import { Fragment, type FunctionComponent, createContext, useCallback, useContext, useState } from 'react';
+import { SearchBox } from 'src/features/api-documentation/components/SearchBox';
 
 import { UNION_DISCRIMINATOR_PROP } from '../constants';
 import type {
@@ -81,10 +82,7 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
                     A comprehensive interactive explorer for the <b>AgChartOptions</b> structure.
                 </p>
 
-                <div className={styles.searchOuter}>
-                    <input className={styles.searchInput} type="search" placeholder="Search properties..." />
-                    <Icon svgClasses={styles.searchIcon} name={'search'} />
-                </div>
+                <SearchBox />
             </header>
 
             <pre className={classnames('code', 'language-ts')}>
@@ -158,9 +156,13 @@ function PrimitiveUnionOption({ opt }: { opt: JsonPrimitiveProperty }) {
 
 function Union({ model, path }: { model: JsonUnionType; path: string[] }) {
     if (model.options.every((opt) => opt.type === 'primitive')) {
-        return model.options.map((opt, idx) => {
-            return opt.type === 'primitive' ? <PrimitiveUnionOption key={idx} opt={opt} /> : null;
-        });
+        return (
+            <>
+                {model.options.map((opt, idx) => {
+                    return opt.type === 'primitive' ? <PrimitiveUnionOption key={idx} opt={opt} /> : null;
+                })}
+            </>
+        );
     }
 
     return (
@@ -187,7 +189,7 @@ function Union({ model, path }: { model: JsonUnionType; path: string[] }) {
 
 function DiscriminatorType({ discriminatorType }: { discriminatorType?: string }) {
     if (!discriminatorType) {
-        return;
+        return null;
     }
 
     const quotationMatches = /(["'])(.*)(["'])/.exec(discriminatorType);

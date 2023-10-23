@@ -6,7 +6,7 @@ const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.
 const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
 
 const { config: configString, names: namesString, exclude: excludeString, ...props } = Astro.props;
-const config = configString ? JSON.parse(configString) : undefined;
+const config = configString ? JSON.parse(configString) : {};
 const names = namesString ? JSON.parse(namesString) : undefined;
 const exclude = excludeString ? JSON.parse(excludeString) : undefined;
 ---

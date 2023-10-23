@@ -1,11 +1,11 @@
-import { Icon } from '@components/icon/Icon';
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
-import type { FunctionComponent } from 'react';
+import type { FunctionComponent, ReactElement } from 'react';
 
 import type { Config, DocEntryMap, SectionProps } from '../types';
 import { convertMarkdown, getLongestNameLength } from '../utils/documentationHelpers';
+import { clamp } from '../utils/numbers';
 import styles from './ApiDocumentation.module.scss';
 import { Breadcrumbs } from './Breadcrumbs';
 import { ObjectCodeSample } from './ObjectCodeSample';
@@ -20,12 +20,12 @@ export const Section: FunctionComponent<SectionProps> = ({
     names = [],
 }): any => {
     const { meta } = properties;
-    const displayName = (meta && meta.displayName) || title;
-    if (meta && meta.isEvent) {
+    const displayName = meta?.displayName || title;
+    if (meta?.isEvent) {
         // Support event display for a section
         config = { ...config, isEvent: true };
     }
-    if (meta && meta.suppressMissingPropCheck) {
+    if (meta?.suppressMissingPropCheck) {
         config = { ...config, suppressMissingPropCheck: true };
     }
 
@@ -53,21 +53,13 @@ export const Section: FunctionComponent<SectionProps> = ({
                     </HeaderTag>
                 )}
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
-                {meta && meta.description && (
+                {meta?.description && (
                     <p dangerouslySetInnerHTML={{ __html: convertMarkdown(meta.description, framework) }}></p>
                 )}
-                {meta && meta.page && (
+                {meta?.page && (
                     <p>
-                        See{' '}
-                        <a
-                            href={getExamplePageUrl({
-                                path: meta.page.url,
-                                framework,
-                            })}
-                        >
-                            {meta.page.name}
-                        </a>{' '}
-                        for more information.
+                        See <a href={getExamplePageUrl({ path: meta.page.url, framework })}>{meta.page.name}</a> for
+                        more information.
                     </p>
                 )}
                 {config.showSnippets && names.length < 1 && (
@@ -81,55 +73,43 @@ export const Section: FunctionComponent<SectionProps> = ({
         return null;
     }
 
-    const rows = [];
+    const rows: ReactElement[] = [];
     const objectProperties: DocEntryMap = {};
 
     let leftColumnWidth = 25;
     const processed = new Set();
-    Object.entries(properties)
-        .sort((a, b) => {
-            return config.sortAlphabetically ? (a[0] < b[0] ? -1 : 1) : 0;
-        })
-        .forEach(([name, definition]) => {
-            if (name === 'meta' || (names.length > 0 && !names.includes(name))) {
-                return;
-            }
-            processed.add(name);
+    Object.entries(properties).forEach(([name, definition]) => {
+        if (name === 'meta' || (names.length && !names.includes(name))) {
+            return;
+        }
+        processed.add(name);
 
-            if (!pattern.test(name)) {
-                return;
-            }
+        if (!pattern.test(name)) {
+            return;
+        }
 
-            const length = getLongestNameLength(name);
-            if (leftColumnWidth < length) {
-                leftColumnWidth = length;
-            }
-            if (config.maxLeftColumnWidth < leftColumnWidth) {
-                leftColumnWidth = config.maxLeftColumnWidth;
-            }
+        leftColumnWidth = clamp(getLongestNameLength(name), leftColumnWidth, config.maxLeftColumnWidth);
 
-            const gridOptionProperty = config.lookups?.codeLookup[name];
+        rows.push(
+            <Property
+                key={name}
+                framework={framework}
+                id={id}
+                name={name}
+                definition={definition}
+                config={{
+                    ...config,
+                    gridOpProp: config.lookups?.codeLookup[name],
+                    interfaceHierarchyOverrides: definition.interfaceHierarchyOverrides,
+                }}
+            />
+        );
 
-            rows.push(
-                <Property
-                    key={name}
-                    framework={framework}
-                    id={id}
-                    name={name}
-                    definition={definition}
-                    config={{
-                        ...config,
-                        gridOpProp: gridOptionProperty,
-                        interfaceHierarchyOverrides: definition.interfaceHierarchyOverrides,
-                    }}
-                />
-            );
-
-            if (typeof definition !== 'string' && definition.meta) {
-                // store object property to process later
-                objectProperties[name] = definition;
-            }
-        });
+        if (typeof definition !== 'string' && definition.meta) {
+            // store object property to process later
+            objectProperties[name] = definition;
+        }
+    });
 
     if (names.length > 0) {
         // Validate we found properties for each provided name
@@ -150,8 +130,8 @@ export const Section: FunctionComponent<SectionProps> = ({
                 style={config.overrideBottomMargin ? { marginBottom: config.overrideBottomMargin } : {}}
             >
                 <colgroup>
-                    <col></col>
-                    <col></col>
+                    <col />
+                    <col />
                 </colgroup>
                 <tbody>{rows}</tbody>
             </table>

@@ -1,8 +1,8 @@
-export const formatName = (name) => {
+export const formatName = (name: string) => {
     return name.replace('ag-grid', 'AG Grid').replaceAll('-', ' ');
 };
 
-export function hexToRGB(hex) {
+export function hexToRGB(hex: string) {
     if (!hex) {
         return;
     }
@@ -23,7 +23,7 @@ export function hexToRGB(hex) {
     return [r, g, b];
 }
 
-export function isLight(hex) {
+export function isLight(hex: string) {
     if (!hex) {
         return;
     }
@@ -33,7 +33,7 @@ export function isLight(hex) {
     return (r + g + b) / 3 > 150;
 }
 
-export function hexToHSL(hex) {
+export function hexToHSL(hex: string) {
     if (!hex) {
         return;
     }
@@ -49,9 +49,7 @@ export function hexToHSL(hex) {
     const cmin = Math.min(r, g, b),
         cmax = Math.max(r, g, b),
         delta = cmax - cmin;
-    let l = 0,
-        h = 0,
-        s = 0;
+    let l, h, s;
 
     if (delta == 0) {
         h = 0;
