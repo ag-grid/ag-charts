@@ -1,8 +1,29 @@
-import type { AgErrorBarCapLengthOptions, AgErrorBarThemeableOptions, _ModuleSupport } from 'ag-charts-community';
+import type {
+    AgErrorBarCapLengthOptions,
+    AgErrorBarCapOptions,
+    AgErrorBarDataOptions,
+    AgErrorBarFormatterParams,
+    AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
 import type { InteractionRange } from 'ag-charts-community';
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
+
+interface ErrorBarPoint {
+    readonly lowerPoint: _Scene.Point;
+    readonly upperPoint: _Scene.Point;
+}
+
+export interface ErrorBarPoints {
+    readonly xBar?: ErrorBarPoint;
+    readonly yBar?: ErrorBarPoint;
+}
+
+export type ErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions;
+export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarCapOptions;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 
@@ -44,7 +65,32 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    updateStyle(style: AgErrorBarThemeableOptions) {
+    private getFormatterParams(
+        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
+    ): AgErrorBarFormatterParams | undefined {
+        const { datum } = this;
+        if (datum === undefined) {
+            return undefined;
+        }
+        const { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName } =
+            formatters;
+        return {
+            ...datum,
+            xLowerKey,
+            xLowerName,
+            xUpperKey,
+            xUpperName,
+            yLowerKey,
+            yLowerName,
+            yUpperKey,
+            yUpperName,
+        };
+    }
+
+    updateStyle(
+        style: AgErrorBarThemeableOptions,
+        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
+    ) {
         const { whiskerPath, capsPath } = this;
         const { cap, ...whiskerStyle } = style;
         const { length, lengthRatio, ...capsStyle } = cap ?? {};
@@ -52,6 +98,27 @@ export class ErrorBarNode extends _Scene.Group {
         Object.assign(capsPath, capsStyle);
         whiskerPath.markDirty(whiskerPath, _Scene.RedrawType.MINOR);
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
+
+        const params = this.getFormatterParams(formatters);
+        if (params !== undefined) {
+            if (formatters.formatter !== undefined) {
+                const result = formatters.formatter(params);
+                const cap = result.cap;
+                delete result.cap;
+                // TODO(olegat) filter out unknown keys like result['blabla']
+                Object.assign(whiskerPath, result);
+                Object.assign(capsPath, result);
+                if (cap !== undefined) {
+                    Object.assign(capsPath, cap);
+                }
+            }
+
+            if (formatters.cap.formatter !== undefined) {
+                const result = formatters.cap.formatter(params);
+                // TODO(olegat) filter out unknown keys like result['blabla']
+                Object.assign(capsPath, result);
+            }
+        }
     }
 
     updateTranslation(cap: AgErrorBarCapLengthOptions, range: InteractionRange) {

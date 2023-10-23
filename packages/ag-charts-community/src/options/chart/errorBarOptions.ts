@@ -43,3 +43,5 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 export interface AgErrorBarOptions extends AgErrorBarDataOptions, AgErrorBarThemeableOptions {}
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
+
+export interface AgErrorBarFormatterParams extends AgErrorBarDataOptions {}
