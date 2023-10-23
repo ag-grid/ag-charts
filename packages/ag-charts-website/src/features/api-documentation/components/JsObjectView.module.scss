@@ -26,7 +26,7 @@ $indent: 24px;
     height: var(--header-height);
     padding: $size-2;
     background-color: var(--default-background-color);
-    z-index: 2;
+    z-index: 3;
     border-bottom: 1px solid var(--neutral-200);
 
     h3 {

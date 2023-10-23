@@ -22,7 +22,7 @@ $header-top: $header-nav-height + $header-nav-border;
 
 .referenceOuter {
     width: 100%;
-    margin-bottom: $size-9;
+    margin-bottom: calc(100vh - $header-nav-height);
 
     header {
         padding-top: $size-4;
