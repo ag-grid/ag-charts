@@ -237,13 +237,25 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
         return (
             <SelectionWrapper>
                 <span className={styles.expandable}>
-                    {isExpanded && <div className={styles.expanderBar}></div>}
-                    <span className={classnames('token', 'punctuation')}>
-                        {isExpanded && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
-                        {'{ '}
-                    </span>
+                    {isExpanded && (
+                        <>
+                            <div className={styles.expanderBar}></div>
+                            <span className={classnames('token', 'punctuation')}>
+                                <JsonNodeExpander isExpanded={true} toggleExpand={toggleExpand} />
+                                {'{ '}
+                            </span>
+                            <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
+                                <ModelSnippet
+                                    model={desc.model}
+                                    path={unionPath}
+                                    showTypeAsDiscriminatorValue={true}
+                                ></ModelSnippet>
+                            </div>
+                        </>
+                    )}
                     {!isExpanded && (
                         <>
+                            <span className={classnames('token', 'punctuation')}>{'{ '}</span>
                             <PropertyDeclaration
                                 propName={discriminatorProp}
                                 tsType={discriminatorType}
@@ -257,21 +269,11 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
                                 {' '}
                                 = <DiscriminatorType discriminatorType={discriminatorType} />
                             </span>
+                            <span onClick={toggleExpand} className={classnames('token', 'operator')}>
+                                {' '}
+                                ...{' '}
+                            </span>
                         </>
-                    )}
-                    {isExpanded ? (
-                        <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
-                            <ModelSnippet
-                                model={desc.model}
-                                path={unionPath}
-                                showTypeAsDiscriminatorValue={true}
-                            ></ModelSnippet>
-                        </div>
-                    ) : (
-                        <span onClick={toggleExpand} className={classnames('token', 'operator')}>
-                            {' '}
-                            ...{' '}
-                        </span>
                     )}
                     <span className={classnames('token', 'punctuation')}>{' }'}</span>
                     {!HIDE_TYPES && (
