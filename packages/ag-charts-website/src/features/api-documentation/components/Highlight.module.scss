@@ -4,8 +4,6 @@
     --highlight-color: var(--primary-600);
     --highlight-opacity: 0.15;
 
-    user-select: none;
-
     &::before {
         content: '';
         position: absolute;

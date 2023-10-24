@@ -8,6 +8,10 @@ $indent: 24px;
     border: none;
 }
 
+.navContainer {
+    user-select: none;
+}
+
 .topBreadcrumb {
     color: var(--property-color);
     cursor: pointer;

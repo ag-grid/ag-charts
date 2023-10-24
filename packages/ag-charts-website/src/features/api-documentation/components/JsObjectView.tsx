@@ -85,7 +85,7 @@ export const JsObjectView: FunctionComponent<JsObjectViewProps> = ({
                 <SearchBox />
             </header>
 
-            <pre className={classnames('code', 'language-ts')}>
+            <pre className={classnames('code', 'language-ts', styles.navContainer)}>
                 <code className={'language-ts'}>
                     <SelectionContext.Provider value={{ handleSelection, selectionPathId, isSelected }}>
                         <ModelSnippetWithBreadcrumbs breadcrumbs={breadcrumbs} model={model} />
