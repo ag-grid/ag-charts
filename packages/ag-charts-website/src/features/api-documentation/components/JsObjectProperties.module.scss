@@ -17,8 +17,6 @@
 }
 
 $header-nav-height: 56px;
-$header-nav-border: 1px;
-$header-top: $header-nav-height + $header-nav-border;
 
 .referenceOuter {
     width: 100%;
@@ -34,7 +32,7 @@ $header-top: $header-nav-height + $header-nav-border;
         border-bottom: 1px solid var(--border-color);
 
         @media screen and (min-width: $breakpoint-docs-nav-medium) {
-            top: $header-top;
+            top: $header-nav-height;
         }
     }
 
