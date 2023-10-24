@@ -22,7 +22,7 @@ import type {
     JsonProperty,
     JsonUnionType,
 } from '../utils/model';
-import { getTopSelection, getUnionPathInfo } from '../utils/modelPath';
+import { getDiscriminatorPropertySelection, getTopSelection, getUnionPathInfo } from '../utils/modelPath';
 import { Highlight } from './Highlight';
 import styles from './JsObjectView.module.scss';
 
@@ -230,6 +230,26 @@ function DiscriminatorTypeProperty({
     };
     const SelectionWrapper = isSelected(selection) ? Highlight : Fragment;
 
+    const discriminatorToggleExpand = useCallback(() => {
+        const discriminatorPropSelection = getDiscriminatorPropertySelection({
+            parentSelection: selection,
+            path,
+            discriminatorProp,
+        });
+        const isExpanding = !isExpanded;
+        // If collapsing and the discriminator prop is selected, select the parent union object
+        if (!isExpanding && isSelected(discriminatorPropSelection)) {
+            handleUnionNestedObjectSelection();
+        }
+        // Select the discriminator prop if discriminator is selected and expanding
+        else if (isExpanding && isSelected(selection)) {
+            handleSelection && handleSelection(discriminatorPropSelection);
+        }
+
+        // NOTE: Do checks before toggling, as toggling doesn't happen synchronously
+        toggleExpand();
+    }, [selection]);
+
     return (
         <SelectionWrapper>
             <span className={styles.expandable}>
@@ -237,7 +257,7 @@ function DiscriminatorTypeProperty({
                     <>
                         <div className={styles.expanderBar}></div>
                         <span className={classnames('token', 'punctuation')}>
-                            <JsonNodeExpander isExpanded={true} toggleExpand={toggleExpand} />
+                            <JsonNodeExpander isExpanded={true} toggleExpand={discriminatorToggleExpand} />
                             {'{ '}
                         </span>
                         <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
@@ -257,7 +277,7 @@ function DiscriminatorTypeProperty({
                             tsType={discriminatorType}
                             isExpanded={isExpanded}
                             expandable={true}
-                            toggleExpand={toggleExpand}
+                            toggleExpand={discriminatorToggleExpand}
                             onSelection={handleUnionNestedObjectSelection}
                             style="unionTypeProperty"
                         />
@@ -265,7 +285,7 @@ function DiscriminatorTypeProperty({
                             {' '}
                             = <DiscriminatorType discriminatorType={discriminatorType} />
                         </span>
-                        <span onClick={toggleExpand} className={classnames('token', 'operator')}>
+                        <span onClick={discriminatorToggleExpand} className={classnames('token', 'operator')}>
                             {' '}
                             ...{' '}
                         </span>

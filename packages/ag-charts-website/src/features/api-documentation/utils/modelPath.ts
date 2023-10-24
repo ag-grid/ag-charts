@@ -1,7 +1,12 @@
 import type { JsonArray, JsonModel, JsonObjectProperty, JsonUnionType } from '@features/api-documentation/utils/model';
 
 import { UNION_DISCRIMINATOR_PROP } from '../constants';
-import type { JsObjectPropertiesViewConfig, JsObjectSelection, JsObjectSelectionProperty } from '../types';
+import type {
+    JsObjectPropertiesViewConfig,
+    JsObjectSelection,
+    JsObjectSelectionProperty,
+    JsObjectSelectionUnionNestedObject,
+} from '../types';
 import { getShouldLimitChildren } from './getShouldLimitChildren';
 import { getShouldLimitParent } from './getShouldLimitParent';
 
@@ -54,6 +59,20 @@ export function getUnionPathInfo({
         discriminatorProp,
         discriminator,
     };
+}
+
+export function getDiscriminatorPropertySelection({
+    parentSelection,
+    path,
+    discriminatorProp,
+}: {
+    parentSelection: JsObjectSelectionUnionNestedObject;
+    path: string[];
+    discriminatorProp: string;
+}): JsObjectSelection {
+    const propName = discriminatorProp;
+    const model = parentSelection.model;
+    return { type: 'property', propName, path, model };
 }
 
 function getTopLevelNestedObject({ model, path }: { model: JsonModel; path: string[] }) {
