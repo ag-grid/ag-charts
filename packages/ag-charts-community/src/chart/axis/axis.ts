@@ -485,7 +485,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const sideFlag = label.getSideFlag();
         const x = sideFlag * tick.size;
         const x1 = Math.min(0, x);
-        const x2 = Math.abs(x);
+        const x2 = x1 + Math.abs(x);
         const y = Math.round(datum.translationY);
         return { x1, x2, y };
     }
@@ -1131,15 +1131,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateTickLines() {
-        const { tick } = this;
-        this.tickLineGroupSelection.each((line, datum) => {
-            const { x1, x2, y } = this.getTickLineCoordinates(datum);
+        const { tick, label } = this;
+        const sideFlag = label.getSideFlag();
+        this.tickLineGroupSelection.each((line) => {
             line.strokeWidth = tick.width;
             line.stroke = tick.color;
-            line.x1 = x1;
-            line.x2 = x2;
-            line.y1 = y;
-            line.y2 = y;
+            line.x1 = sideFlag * tick.size;
+            line.x2 = 0;
+            line.y1 = 0;
+            line.y2 = 0;
         });
     }
 
