@@ -15,7 +15,7 @@ export function MetaList({
     const formattedDefaultValue = getFormattedDefaultValue(model.default, description);
     return (
         <div className={styles.metaList}>
-            <div title={propertyType} className={styles.metaItem}>
+            <div className={styles.metaItem}>
                 <span className={styles.metaLabel}>Type</span>
                 <PropertyName className={styles.metaValue}>{propertyType}</PropertyName>
             </div>
