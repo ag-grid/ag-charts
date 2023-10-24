@@ -473,6 +473,6 @@ export class CartesianChart extends Chart {
 
     private shouldFlipXY() {
         // Only flip the xy axes if all the series agree on flipping
-        return !this.series.map((series) => series instanceof CartesianSeries && series.shouldFlipXY()).includes(false);
+        return !this.series.some((series) => !(series instanceof CartesianSeries && series.shouldFlipXY()));
     }
 }
