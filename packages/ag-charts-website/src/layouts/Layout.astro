@@ -27,7 +27,12 @@ const framework = getFrameworkFromPath(path);
   const htmlEl = document.querySelector('html');
   const localDarkmode = localStorage['documentation:darkmode'];
 
-  if (localDarkmode !== undefined) htmlEl.dataset.darkMode = localDarkmode;
+  if (localDarkmode !== undefined) {
+    htmlEl.classList.add('no-transitions');
+    htmlEl.dataset.darkMode = localDarkmode;
+    htmlEl.offsetHeight; // Trigger a reflow, flushing the CSS changes
+    htmlEl.classList.remove('no-transitions');
+  }
 </script>
 
 <!DOCTYPE html>
