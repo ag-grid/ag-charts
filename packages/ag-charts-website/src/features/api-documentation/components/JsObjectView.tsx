@@ -123,10 +123,10 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({ model, path, showTypeAsDis
     const config = useContext(JsObjectPropertiesViewConfigContext);
 
     if (model.type === 'model') {
-        const propertiesRendering = Object.entries(model.properties)
+        return Object.entries(model.properties)
             .map(([propName, propInfo]) => {
                 if (config?.excludeProperties?.includes(propName)) {
-                    return;
+                    return null;
                 }
 
                 const { desc } = propInfo;
@@ -142,7 +142,6 @@ const ModelSnippet: React.FC<ModelSnippetParams> = ({ model, path, showTypeAsDis
                 );
             })
             .filter((v) => !!v);
-        return <>{propertiesRendering}</>;
     } else if (model.type === 'union') {
         return <Union model={model} path={path} />;
     }
