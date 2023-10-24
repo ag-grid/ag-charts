@@ -47,13 +47,16 @@ export class CartesianChart extends Chart {
 
         this.hoverRect = seriesPaddedRect;
 
-        const minRects = this.series.map((series) => (series as CartesianSeries<any, any>).getMinRect?.());
-        const minRect = new BBox(
-            0,
-            0,
-            minRects.reduce((max, rect) => Math.max(max, rect.width), 0),
-            minRects.reduce((max, rect) => Math.max(max, rect.height), 0)
-        );
+        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
+        let minRect;
+        if (minRects.length > 0) {
+            minRect = new BBox(
+                0,
+                0,
+                minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
+                minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
+            );
+        }
 
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
@@ -62,9 +65,9 @@ export class CartesianChart extends Chart {
             series: {
                 rect: seriesRect,
                 paddedRect: seriesPaddedRect,
+                minRect,
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
-                minRect,
             },
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });

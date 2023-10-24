@@ -727,10 +727,10 @@ export abstract class CartesianSeries<
      * may not represent the same two points for both directions. The dimensions represent the greatest distance
      * between any two adjacent nodes.
      */
-    getMinRect(): BBox {
+    override getMinRect() {
         const [context] = this._contextNodeData;
 
-        if (!context) return new BBox(0, 0, 0, 0);
+        if (!context || context.nodeData.length == 0) return;
 
         const width = context.nodeData
             .map(({ midPoint }) => midPoint?.x ?? 0)

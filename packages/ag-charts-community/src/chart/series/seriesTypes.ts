@@ -25,6 +25,7 @@ export interface ISeries<TDatum> {
     getDomain(direction: ChartAxisDirection): any[];
     getKeys(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
+    getMinRect(): BBox | undefined;
     isEnabled(): boolean;
     type: string;
     visible: boolean;
