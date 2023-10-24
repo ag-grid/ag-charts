@@ -10,6 +10,8 @@ import type {
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { InteractionRange } from 'ag-charts-community';
 
+const { partialAssign, mergeDefaults } = _ModuleSupport;
+
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 
 interface ErrorBarPoint {
@@ -90,7 +92,7 @@ export class ErrorBarNode extends _Scene.Group {
     private applyStyling(target: AgErrorBarStylingOptions, source?: AgErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
-        _ModuleSupport.partialAssign(
+        partialAssign(
             ['visible', 'stroke', 'strokeWidth', 'strokeOpacity', 'lineDash', 'lineDashOffset'],
             target,
             source
@@ -101,28 +103,28 @@ export class ErrorBarNode extends _Scene.Group {
         style: AgErrorBarThemeableOptions,
         formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
     ) {
-        const { whiskerPath, capsPath } = this;
-        const { cap, ...whiskerStyle } = style;
-        const { length, lengthRatio, ...capsStyle } = cap ?? {};
-        this.applyStyling(whiskerPath, whiskerStyle);
-        this.applyStyling(capsPath, capsStyle);
-        whiskerPath.markDirty(whiskerPath, _Scene.RedrawType.MINOR);
-        capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
+        let { cap, ...whiskerStyle } = style;
+        let { length, lengthRatio, ...capsStyle } = cap ?? {};
 
         const params = this.getFormatterParams(formatters);
         if (params !== undefined) {
             if (formatters.formatter !== undefined) {
                 const result = formatters.formatter(params);
-                this.applyStyling(whiskerPath, result);
-                this.applyStyling(capsPath, result);
-                this.applyStyling(capsPath, result?.cap);
+                whiskerStyle = mergeDefaults(result, whiskerStyle);
+                capsStyle = mergeDefaults(result, capsStyle);
             }
 
             if (formatters.cap.formatter !== undefined) {
                 const result = formatters.cap.formatter(params);
-                this.applyStyling(capsPath, result);
+                capsStyle = mergeDefaults(result, capsStyle);
             }
         }
+
+        const { whiskerPath, capsPath } = this;
+        this.applyStyling(whiskerPath, whiskerStyle);
+        this.applyStyling(capsPath, capsStyle);
+        whiskerPath.markDirty(whiskerPath, _Scene.RedrawType.MINOR);
+        capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
     }
 
     updateTranslation(cap: AgErrorBarCapLengthOptions, range: InteractionRange) {
