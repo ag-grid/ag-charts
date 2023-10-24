@@ -206,16 +206,93 @@ function DiscriminatorType({ discriminatorType }: { discriminatorType?: string }
     );
 }
 
+function DiscriminatorTypeProperty({
+    desc,
+    path,
+    isExpanded,
+    toggleExpand,
+    selection,
+    discriminatorType,
+    discriminatorProp,
+}: {
+    desc: JsonObjectProperty;
+    path: string[];
+    isExpanded: boolean;
+    toggleExpand: () => void;
+    selection: JsObjectSelectionUnionNestedObject;
+    discriminatorType: string;
+    discriminatorProp: string;
+}) {
+    const { isSelected } = useContext(SelectionContext);
+    const { handleSelection } = useContext(SelectionContext);
+    const handleUnionNestedObjectSelection = () => {
+        handleSelection && handleSelection(selection);
+    };
+    const SelectionWrapper = isSelected(selection) ? Highlight : Fragment;
+
+    return (
+        <SelectionWrapper>
+            <span className={styles.expandable}>
+                {isExpanded && (
+                    <>
+                        <div className={styles.expanderBar}></div>
+                        <span className={classnames('token', 'punctuation')}>
+                            <JsonNodeExpander isExpanded={true} toggleExpand={toggleExpand} />
+                            {'{ '}
+                        </span>
+                        <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
+                            <ModelSnippet
+                                model={desc.model}
+                                path={path}
+                                showTypeAsDiscriminatorValue={true}
+                            ></ModelSnippet>
+                        </div>
+                    </>
+                )}
+                {!isExpanded && (
+                    <>
+                        <span className={classnames('token', 'punctuation')}>{'{ '}</span>
+                        <PropertyDeclaration
+                            propName={discriminatorProp}
+                            tsType={discriminatorType}
+                            isExpanded={isExpanded}
+                            expandable={true}
+                            toggleExpand={toggleExpand}
+                            onSelection={handleUnionNestedObjectSelection}
+                            style="unionTypeProperty"
+                        />
+                        <span onClick={handleUnionNestedObjectSelection}>
+                            {' '}
+                            = <DiscriminatorType discriminatorType={discriminatorType} />
+                        </span>
+                        <span onClick={toggleExpand} className={classnames('token', 'operator')}>
+                            {' '}
+                            ...{' '}
+                        </span>
+                    </>
+                )}
+                <span className={classnames('token', 'punctuation')}>{' }'}</span>
+                {!HIDE_TYPES && (
+                    <>
+                        {': '}
+                        <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
+                    </>
+                )}
+            </span>
+        </SelectionWrapper>
+    );
+}
+
 function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; index: number; path: string[] }) {
     const config = useContext(JsObjectPropertiesViewConfigContext);
-    const { pathItem, discriminatorType, discriminatorProp, discriminator } = getUnionPathInfo({
+    const { pathItem, discriminatorType, discriminatorProp } = getUnionPathInfo({
         model: desc.model,
         index,
     });
     const unionPath = path.concat(pathItem);
     const expandedInitially = isExpandedInitially(discriminatorType || String(index), unionPath, config);
     const [isExpanded, setExpanded] = useState(expandedInitially);
-    const { handleSelection, isSelected } = useContext(SelectionContext);
+    const { isSelected } = useContext(SelectionContext);
     const selection = {
         type: 'unionNestedObject',
         index,
@@ -223,9 +300,6 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
         path,
         model: desc,
     } as JsObjectSelectionUnionNestedObject;
-    const handleUnionNestedObjectSelection = () => {
-        handleSelection && handleSelection(selection);
-    };
     const toggleExpand = () => {
         setExpanded((expanded: boolean) => !expanded);
     };
@@ -234,55 +308,15 @@ function UnionNestedObject({ desc, index, path }: { desc: JsonObjectProperty; in
 
     if (discriminatorType) {
         return (
-            <SelectionWrapper>
-                <span className={styles.expandable}>
-                    {isExpanded && (
-                        <>
-                            <div className={styles.expanderBar}></div>
-                            <span className={classnames('token', 'punctuation')}>
-                                <JsonNodeExpander isExpanded={true} toggleExpand={toggleExpand} />
-                                {'{ '}
-                            </span>
-                            <div className={styles.jsonObject} onClick={(e) => e.stopPropagation()} role="presentation">
-                                <ModelSnippet
-                                    model={desc.model}
-                                    path={unionPath}
-                                    showTypeAsDiscriminatorValue={true}
-                                ></ModelSnippet>
-                            </div>
-                        </>
-                    )}
-                    {!isExpanded && (
-                        <>
-                            <span className={classnames('token', 'punctuation')}>{'{ '}</span>
-                            <PropertyDeclaration
-                                propName={discriminatorProp}
-                                tsType={discriminatorType}
-                                isExpanded={isExpanded}
-                                expandable={true}
-                                toggleExpand={toggleExpand}
-                                onSelection={handleUnionNestedObjectSelection}
-                                style="unionTypeProperty"
-                            />
-                            <span onClick={handleUnionNestedObjectSelection}>
-                                {' '}
-                                = <DiscriminatorType discriminatorType={discriminatorType} />
-                            </span>
-                            <span onClick={toggleExpand} className={classnames('token', 'operator')}>
-                                {' '}
-                                ...{' '}
-                            </span>
-                        </>
-                    )}
-                    <span className={classnames('token', 'punctuation')}>{' }'}</span>
-                    {!HIDE_TYPES && (
-                        <>
-                            {': '}
-                            <span className={classnames('token', 'builtin')}>{desc.tsType}</span>
-                        </>
-                    )}
-                </span>
-            </SelectionWrapper>
+            <DiscriminatorTypeProperty
+                desc={desc}
+                path={unionPath}
+                isExpanded={isExpanded}
+                toggleExpand={toggleExpand}
+                selection={selection}
+                discriminatorType={discriminatorType}
+                discriminatorProp={discriminatorProp}
+            />
         );
     }
 
