@@ -272,18 +272,21 @@ function DiscriminatorTypeProperty({
                 {!isExpanded && (
                     <>
                         <span className={classnames('token', 'punctuation')}>{'{ '}</span>
-                        <PropertyDeclaration
-                            propName={discriminatorProp}
-                            tsType={discriminatorType}
-                            isExpanded={isExpanded}
-                            expandable={true}
-                            toggleExpand={discriminatorToggleExpand}
-                            onSelection={handleUnionNestedObjectSelection}
-                            style="unionTypeProperty"
-                        />
-                        <span onClick={handleUnionNestedObjectSelection}>
-                            {' '}
-                            = <DiscriminatorType discriminatorType={discriminatorType} />
+                        <span onDoubleClick={discriminatorToggleExpand}>
+                            <PropertyDeclaration
+                                propName={discriminatorProp}
+                                tsType={discriminatorType}
+                                isExpanded={isExpanded}
+                                expandable={true}
+                                toggleExpand={discriminatorToggleExpand}
+                                onSelection={handleUnionNestedObjectSelection}
+                                style="unionTypeProperty"
+                                ignoreDoubleClickToggle={true}
+                            />
+                            <span onClick={handleUnionNestedObjectSelection}>
+                                {' '}
+                                = <DiscriminatorType discriminatorType={discriminatorType} />
+                            </span>
                         </span>
                         <span onClick={discriminatorToggleExpand} className={classnames('token', 'operator')}>
                             {' '}
@@ -510,6 +513,7 @@ function PropertyDeclaration({
     toggleExpand,
     onSelection,
     style = 'propertyName',
+    ignoreDoubleClickToggle,
 }: {
     propName: string;
     tsType: string | null;
@@ -519,13 +523,21 @@ function PropertyDeclaration({
     toggleExpand: () => void;
     onSelection: () => void;
     style?: string;
+    ignoreDoubleClickToggle?: boolean;
 }) {
     return (
         <>
             {isExpanded && <div className={styles.expanderBar}></div>}
             <span className={classnames('token', 'name', styles[style])}>
                 {expandable && <JsonNodeExpander isExpanded={isExpanded} toggleExpand={toggleExpand} />}
-                <span onClick={onSelection} onDoubleClick={toggleExpand}>
+                <span
+                    onClick={onSelection}
+                    onDoubleClick={() => {
+                        if (!ignoreDoubleClickToggle) {
+                            toggleExpand();
+                        }
+                    }}
+                >
                     {propName}
                 </span>
             </span>
