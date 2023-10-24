@@ -22,8 +22,8 @@ export interface ErrorBarPoints {
     readonly yBar?: ErrorBarPoint;
 }
 
-export type ErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions;
-export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarCapOptions;
+export type ErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
+export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarCapOptions | undefined;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 
@@ -87,7 +87,7 @@ export class ErrorBarNode extends _Scene.Group {
         };
     }
 
-    private applyStyling(target: AgErrorBarStylingOptions, source: AgErrorBarStylingOptions) {
+    private applyStyling(target: AgErrorBarStylingOptions, source?: AgErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
         _ModuleSupport.partialAssign(
@@ -113,13 +113,9 @@ export class ErrorBarNode extends _Scene.Group {
         if (params !== undefined) {
             if (formatters.formatter !== undefined) {
                 const result = formatters.formatter(params);
-                const cap = result.cap;
-                delete result.cap;
                 this.applyStyling(whiskerPath, result);
                 this.applyStyling(capsPath, result);
-                if (cap !== undefined) {
-                    this.applyStyling(capsPath, cap);
-                }
+                this.applyStyling(capsPath, result?.cap);
             }
 
             if (formatters.cap.formatter !== undefined) {

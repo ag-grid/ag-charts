@@ -61,12 +61,14 @@ export function mergeDefaults<TSource extends Record<string, any>, TArgs extends
 }
 
 // Similar to Object.assign, but only copy an explicit set of keys.
-export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source: Partial<T>): T {
-    keysToCopy.forEach((key) => {
-        const value: T[keyof T] | undefined = source[key];
-        if (value !== undefined) {
-            target[key] = value;
-        }
-    });
+export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source?: Partial<T>): T {
+    if (source !== undefined) {
+        keysToCopy.forEach((key) => {
+            const value: T[keyof T] | undefined = source[key];
+            if (value !== undefined) {
+                target[key] = value;
+            }
+        });
+    }
     return target;
 }
