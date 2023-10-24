@@ -78,6 +78,7 @@
 .name {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    --parent-properties-color: var(--secondary-text-color);
 
     position: relative;
     display: inline-block;
@@ -103,7 +104,7 @@
 
 .parentProperties {
     font-weight: var(--font-weight-normal);
-    color: var(--secondary-text-color);
+    color: var(--parent-properties-color);
     line-break: anywhere;
 }
 

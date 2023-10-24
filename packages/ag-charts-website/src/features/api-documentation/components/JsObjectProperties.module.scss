@@ -23,6 +23,8 @@ $header-nav-height: 56px;
     margin-bottom: calc(100vh - $header-nav-height);
 
     header {
+        --parent-properties-color: var(--text-color);
+
         padding-top: $size-4;
         padding-bottom: $size-4;
         position: sticky;
