@@ -397,6 +397,6 @@ export abstract class AngleAxis<
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
         });
-        super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0, sideFlag: -1 });
+        super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0 });
     }
 }

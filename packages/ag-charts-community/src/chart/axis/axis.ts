@@ -89,6 +89,22 @@ export type TickDatum = {
 
 type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
 
+interface TickGenerationParams {
+    primaryTickCount?: number;
+    parallelFlipRotation: number;
+    regularFlipRotation: number;
+    labelX: number;
+    sideFlag: ChartAxisLabelFlipFlag;
+}
+
+interface TickGenerationResult {
+    tickData: TickData;
+    primaryTickCount?: number;
+    combinedRotation: number;
+    textBaseline: CanvasTextBaseline;
+    textAlign: CanvasTextAlign;
+}
+
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = 'update' | 'resize';
 
@@ -418,58 +434,262 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
     update(primaryTickCount?: number): number | undefined {
-        const previous = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
+        if (!this.tickGenerationResult) {
+            return;
+        }
+        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
+        const sideFlag = this.label.getSideFlag();
+        this.updatePosition();
 
+        this.updateAxisLine();
+
+        const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
+        const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
+        this.updateSelections(tickData.ticks);
+
+        if (this.animationManager.isSkipped()) {
+            this.resetSelectionNodes();
+        } else {
+            const diff = this.calculateUpdateDiff(previousTicks, tickData);
+            this.animationState.transition('update', diff);
+        }
+
+        this.updateLabels({
+            combinedRotation,
+            textBaseline,
+            textAlign,
+        });
+
+        this.updateVisibility();
+        this.updateGridLines(sideFlag);
+        this.updateTickLines();
+        this.updateTitle({ anyTickVisible: tickData.ticks.length > 0 });
+        this.updateCrossLines({ rotation, parallelFlipRotation, regularFlipRotation });
+        this.updateLayoutState();
+
+        primaryTickCount = ticksResult.primaryTickCount;
+        return primaryTickCount;
+    }
+
+    private getAxisLineCoordinates() {
+        const {
+            range: [start, end],
+        } = this;
+        const x = 0;
+        const y1 = Math.min(start, end);
+        const y2 = Math.max(start, end);
+        return { x, y1, y2 };
+    }
+
+    private getTickLineCoordinates(datum: TickDatum) {
+        const { tick, label } = this;
+        const sideFlag = label.getSideFlag();
+        const x = sideFlag * tick.size;
+        const x1 = Math.min(0, x);
+        const x2 = x1 + Math.abs(x);
+        const y = Math.round(datum.translationY);
+        return { x1, x2, y };
+    }
+
+    private getTickLabelProps(
+        datum: TickDatum,
+        params: {
+            combinedRotation: number;
+            textBaseline: CanvasTextBaseline;
+            textAlign: CanvasTextAlign;
+        }
+    ) {
+        const { label } = this;
+        const { combinedRotation, textBaseline, textAlign } = params;
+        const text = datum.tickLabel;
+        const sideFlag = label.getSideFlag();
+        const tickSize = this.tick.size;
+        const labelX = sideFlag * (tickSize + label.padding + this.seriesAreaPadding);
+        const visible = text !== '' && text != undefined;
+        return {
+            fill: label.color,
+            fontFamily: label.fontFamily,
+            fontSize: label.fontSize,
+            fontStyle: label.fontStyle,
+            fontWeight: label.fontWeight,
+            rotation: combinedRotation,
+            rotationCenterX: labelX,
+            text,
+            textAlign,
+            textBaseline,
+            visible,
+            x: labelX,
+            y: 0,
+        };
+    }
+
+    private setTitleProps(
+        caption: Caption,
+        params: {
+            tickSpace: number;
+        }
+    ) {
+        const { title } = this;
+        if (!title) {
+            caption.enabled = false;
+            return;
+        }
+
+        caption.color = title.color;
+        caption.fontFamily = title.fontFamily;
+        caption.fontSize = title.fontSize;
+        caption.fontStyle = title.fontStyle;
+        caption.fontWeight = title.fontWeight;
+        caption.enabled = title.enabled;
+        caption.wrapping = title.wrapping;
+
+        if (title.enabled && this.line.enabled) {
+            const titleNode = caption.node;
+            const { tickSpace } = params;
+            const padding = (title.spacing ?? 0) + tickSpace;
+            const sideFlag = this.label.getSideFlag();
+
+            const parallelFlipRotation = normalizeAngle360(this.rotation);
+            const titleRotationFlag =
+                sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
+            const rotation = (titleRotationFlag * sideFlag * Math.PI) / 2;
+            const textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
+
+            const { range } = this;
+            const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
+            const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
+
+            const { callbackCache } = this.moduleCtx;
+            const { formatter = (params) => params.defaultValue } = title;
+            const text = callbackCache.call(formatter, this.getTitleFormatterParams());
+
+            titleNode.setProperties({
+                rotation,
+                text,
+                textBaseline,
+                visible: true,
+                x,
+                y,
+            });
+        }
+    }
+
+    private tickGenerationResult: TickGenerationResult | undefined = undefined;
+
+    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.tick.size + this.label.padding + this.seriesAreaPadding);
 
         this.updateScale();
-        this.updatePosition({ rotation, sideFlag });
 
-        this.lineNode.setProperties({
-            x: 0,
-            y1: this.range[0],
-            y2: this.range[1],
-            stroke: this.line.color,
-            strokeWidth: this.line.width,
-            visible: this.line.enabled,
-        });
-
-        const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.generateTicks({
+        this.tickGenerationResult = this.generateTicks({
             primaryTickCount,
             parallelFlipRotation,
             regularFlipRotation,
             labelX,
             sideFlag,
         });
+        const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
 
-        this.updateSelections(tickData.ticks);
+        const boxes: BBox[] = [];
 
-        if (this.animationManager.isSkipped()) {
-            this.resetSelectionNodes();
-        } else {
-            const diff = this.calculateUpdateDiff(previous, tickData);
-            this.animationState.transition('update', diff);
+        if (this.line.enabled) {
+            const { x, y1, y2 } = this.getAxisLineCoordinates();
+            const lineBox = new BBox(x, y1, 0, y2 - y1);
+            boxes.push(lineBox);
         }
 
-        this.updateLabels({
-            tickLabelGroupSelection: this.tickLabelGroupSelection,
-            combinedRotation,
-            textBaseline,
-            textAlign,
-            labelX,
+        const { tick } = this;
+        if (tick.enabled) {
+            tickData.ticks.forEach((datum) => {
+                const { x1, x2, y } = this.getTickLineCoordinates(datum);
+                const tickLineBox = new BBox(x1, y, x2 - x1, 0);
+                boxes.push(tickLineBox);
+            });
+        }
+
+        const { label } = this;
+        if (label.enabled) {
+            const tempText = new Text();
+            tickData.ticks.forEach((datum) => {
+                const labelProps = this.getTickLabelProps(datum, {
+                    combinedRotation,
+                    textAlign,
+                    textBaseline,
+                });
+                if (!labelProps.visible) {
+                    return;
+                }
+
+                tempText.setProperties({
+                    ...labelProps,
+                    translationY: Math.round(datum.translationY),
+                });
+
+                const box = tempText.computeTransformedBBox();
+                if (box) {
+                    boxes.push(box);
+                }
+            });
+        }
+
+        const getTransformBox = (bbox: BBox) => {
+            const matrix = new Matrix();
+            const {
+                rotation: axisRotation,
+                translationX,
+                translationY,
+                rotationCenterX,
+                rotationCenterY,
+            } = this.getAxisTransform();
+            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
+                scalingCenterX: 0,
+                scalingCenterY: 0,
+                rotationCenterX,
+                rotationCenterY,
+            });
+            return matrix.transformBBox(bbox);
+        };
+
+        const { title } = this;
+        if (title?.enabled && this.line.enabled) {
+            const caption = new Caption();
+            let tickSpace = 0;
+            if (tickData.ticks.length > 0) {
+                const contentBox = BBox.merge(boxes);
+                const tickWidth = contentBox.width;
+                if (isFinite(tickWidth)) {
+                    tickSpace += tickWidth;
+                }
+            }
+            this.setTitleProps(caption, { tickSpace });
+            const titleNode = caption.node;
+            const titleBox = titleNode.computeTransformedBBox()!;
+            if (titleBox) {
+                boxes.push(titleBox);
+            }
+        }
+
+        const bbox = BBox.merge(boxes);
+        const transformedBBox = getTransformBox(bbox);
+
+        const anySeriesActive = this.isAnySeriesActive();
+        this.crossLines?.forEach((crossLine) => {
+            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
+            crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            if (crossLine instanceof CartesianCrossLine) {
+                crossLine.label.parallel = crossLine.label.parallel ?? this.label.parallel;
+            }
+            crossLine.parallelFlipRotation = parallelFlipRotation;
+            crossLine.regularFlipRotation = regularFlipRotation;
+            crossLine.calculateLayout(anySeriesActive);
         });
 
-        this.updateVisibility();
-        this.updateGridLines(sideFlag);
-        this.updateTickLines(sideFlag);
-        this.updateTitle({ anyTickVisible: tickData.ticks.length > 0, sideFlag });
-        this.updateCrossLines({ rotation, parallelFlipRotation, regularFlipRotation, sideFlag });
         this.updateLayoutState();
 
         primaryTickCount = ticksResult.primaryTickCount;
-        return primaryTickCount;
+        return { primaryTickCount, bbox: transformedBBox };
     }
 
     private updateLayoutState() {
@@ -519,19 +739,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         regularFlipRotation,
         labelX,
         sideFlag,
-    }: {
-        primaryTickCount?: number;
-        parallelFlipRotation: number;
-        regularFlipRotation: number;
-        labelX: number;
-        sideFlag: ChartAxisLabelFlipFlag;
-    }): {
-        tickData: TickData;
-        primaryTickCount?: number;
-        combinedRotation: number;
-        textBaseline: CanvasTextBaseline;
-        textAlign: CanvasTextAlign;
-    } {
+    }: TickGenerationParams): TickGenerationResult {
         const {
             scale,
             tick,
@@ -904,13 +1112,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         rotation,
         parallelFlipRotation,
         regularFlipRotation,
-        sideFlag,
     }: {
         rotation: number;
         parallelFlipRotation: number;
         regularFlipRotation: number;
-        sideFlag: ChartAxisLabelFlipFlag;
     }) {
+        const sideFlag = this.label.getSideFlag();
         const anySeriesActive = this.isAnySeriesActive();
         this.crossLines?.forEach((crossLine) => {
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
@@ -924,8 +1131,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected updateTickLines(sideFlag: ChartAxisLabelFlipFlag) {
-        const { tick } = this;
+    protected updateTickLines() {
+        const { tick, label } = this;
+        const sideFlag = label.getSideFlag();
         this.tickLineGroupSelection.each((line) => {
             line.strokeWidth = tick.width;
             line.stroke = tick.color;
@@ -965,9 +1173,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    updatePosition({ rotation, sideFlag }: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }) {
+    updatePosition() {
         const { crossLineGroup, axisGroup, gridGroup, translation, gridLineGroupSelection, gridPadding, gridLength } =
             this;
+        const { rotation } = this.calculateRotations();
+        const sideFlag = this.label.getSideFlag();
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
@@ -1006,6 +1216,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         );
     }
 
+    protected updateAxisLine() {
+        const { line } = this;
+        const lineData = this.getAxisLineCoordinates();
+        this.lineNode.setProperties({
+            x: lineData.x,
+            y1: lineData.y1,
+            y2: lineData.y2,
+            stroke: line.color,
+            strokeWidth: line.width,
+            visible: line.enabled,
+        });
+    }
+
     protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
         const {
             gridLine: { style, width },
@@ -1030,48 +1253,22 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected updateLabels({
-        tickLabelGroupSelection,
-        combinedRotation,
-        textBaseline,
-        textAlign,
-        labelX,
-    }: {
-        tickLabelGroupSelection: Selection<Text, any>;
+    protected updateLabels(params: {
         combinedRotation: number;
         textBaseline: CanvasTextBaseline;
         textAlign: CanvasTextAlign;
-        labelX: number;
     }) {
         const { label } = this;
-
         if (!label.enabled) {
             return;
         }
 
         // Apply label option values
-        tickLabelGroupSelection.each((node, datum) => {
+        this.tickLabelGroupSelection.each((node, datum) => {
+            const props = this.getTickLabelProps(datum, params);
             node.setProperties({
+                ...props,
                 fill: label.color,
-                text: datum.tickLabel,
-                fontFamily: label.fontFamily,
-                fontSize: label.fontSize,
-                fontStyle: label.fontStyle,
-                fontWeight: label.fontWeight,
-            });
-
-            if (node.text === '' || node.text == undefined) {
-                node.visible = false; // hide empty labels
-                return;
-            }
-
-            // Position labels
-            node.setProperties({
-                x: labelX,
-                rotationCenterX: labelX,
-                rotation: combinedRotation,
-                textAlign,
-                textBaseline,
             });
         });
     }
@@ -1099,73 +1296,24 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { tickData, index, autoRotation: 0, terminate: true };
     }
 
-    protected updateTitle({
-        anyTickVisible,
-        sideFlag,
-    }: {
-        anyTickVisible: boolean;
-        sideFlag: ChartAxisLabelFlipFlag;
-    }): void {
-        const {
-            rotation,
-            title,
-            _titleCaption,
-            lineNode,
-            range: requestedRange,
-            tickLineGroup,
-            tickLabelGroup,
-            moduleCtx: { callbackCache },
-        } = this;
+    protected updateTitle(params: { anyTickVisible: boolean }): void {
+        const { rotation, title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
 
         if (!title) {
             _titleCaption.enabled = false;
             return;
         }
 
-        const { formatter = (params) => params.defaultValue } = title;
-
-        _titleCaption.enabled = title.enabled;
-        _titleCaption.fontFamily = title.fontFamily;
-        _titleCaption.fontSize = title.fontSize;
-        _titleCaption.fontStyle = title.fontStyle;
-        _titleCaption.fontWeight = title.fontWeight;
-        _titleCaption.color = title.color;
-        _titleCaption.wrapping = title.wrapping;
-
-        let titleVisible = false;
-        const titleNode = _titleCaption.node;
-        if (title.enabled && lineNode.visible) {
-            titleVisible = true;
-
-            const parallelFlipRotation = normalizeAngle360(rotation);
-            const padding = title.spacing ?? 0;
-            const titleRotationFlag =
-                sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
-
-            titleNode.rotation = (titleRotationFlag * sideFlag * Math.PI) / 2;
-            titleNode.x = Math.floor((titleRotationFlag * sideFlag * (requestedRange[0] + requestedRange[1])) / 2);
-
-            let bboxYDimension = 0;
-
-            if (anyTickVisible) {
-                const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup]);
-                const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
-                if (Math.abs(tickWidth) < Infinity) {
-                    bboxYDimension += tickWidth;
-                }
+        let tickSpace = 0;
+        const { anyTickVisible } = params;
+        if (title.enabled && this.line.enabled && anyTickVisible) {
+            const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
+            const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
+            if (Math.abs(tickWidth) < Infinity) {
+                tickSpace += tickWidth;
             }
-
-            titleNode.setProperties({
-                y:
-                    sideFlag === -1
-                        ? Math.floor(titleRotationFlag * (-padding - bboxYDimension))
-                        : Math.floor(-padding - bboxYDimension),
-                textBaseline: titleRotationFlag === 1 ? 'bottom' : 'top',
-                text: callbackCache.call(formatter, this.getTitleFormatterParams()),
-            });
         }
-
-        titleNode.visible = titleVisible;
+        this.setTitleProps(_titleCaption, { tickSpace });
     }
 
     // For formatting (nice rounded) tick values.
