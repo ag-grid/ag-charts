@@ -188,9 +188,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             return;
         }
 
-        this.updateDirection();
-        this.calculateDomain();
-        this.updateRange();
         this.updatePosition();
 
         this.updateTitleCaption();
