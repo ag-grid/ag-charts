@@ -1,11 +1,10 @@
 import { FROM_TO_MIXINS, type NodeUpdateState } from '../../../motion/fromToMotion';
-import type { Point } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
-import type { Marker } from '../../marker/marker';
-import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum, Scaling } from './cartesianSeries';
-import type { MarkerChange } from './markerUtil';
-import type { PathPoint, PathPointMap } from './pathUtil';
+import type { CartesianSeriesNodeDataContext, Scaling } from './cartesianSeries';
+import { prepareMarkerAnimation } from './markerUtil';
+import type { PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
+import { backfillPathPointData, minMax } from './pathUtil';
 
 function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
@@ -28,55 +27,6 @@ function scale(val: number | string | Date, scaling?: Scaling) {
     return NaN;
 }
 
-function minMax(nodeData: LineNodeDatumLike[]) {
-    return nodeData.reduce<{ min?: LineNodeDatumLike; max?: LineNodeDatumLike }>(
-        ({ min, max }, node: LineNodeDatumLike) => {
-            if (min == null || min.point.x > node.point.x) {
-                min = node;
-            }
-            if (max == null || max.point.x < node.point.x) {
-                max = node;
-            }
-            return { min, max };
-        },
-        {}
-    );
-}
-
-function backfillPathPoint(
-    results: PathPoint[],
-    process: MarkerChange,
-    skip: MarkerChange,
-    processFn: (toProcess: PathPoint[], prevMarkerIdx: number, nextMarkerIdx: number) => void
-) {
-    let prevMarkerIdx = -1,
-        nextMarkerIdx = 0;
-    const toProcess: PathPoint[] = [];
-    while (nextMarkerIdx < results.length) {
-        if (results[nextMarkerIdx].marker === process) {
-            toProcess.push(results[nextMarkerIdx]);
-            nextMarkerIdx++;
-            continue;
-        }
-
-        if (results[nextMarkerIdx].marker === skip) {
-            nextMarkerIdx++;
-            continue;
-        }
-
-        if (toProcess.length > 0) {
-            processFn(toProcess, prevMarkerIdx, nextMarkerIdx);
-            toProcess.length = 0;
-        }
-        prevMarkerIdx = nextMarkerIdx;
-        nextMarkerIdx++;
-    }
-
-    if (toProcess.length > 0) {
-        processFn(toProcess, prevMarkerIdx, nextMarkerIdx);
-    }
-}
-
 function closeMatch<T extends number | string>(a: T, b: T) {
     const an = Number(a);
     const bn = Number(b);
@@ -84,32 +34,6 @@ function closeMatch<T extends number | string>(a: T, b: T) {
         return Math.abs(bn - an) < 0.25;
     }
     return a === b;
-}
-
-function backfillPathPointData(result: PathPoint[]) {
-    backfillPathPoint(result, 'out', 'in', (toProcess, sIdx, eIdx) => {
-        if (sIdx === -1 && result[eIdx]) {
-            toProcess.forEach((d) => (d.to = result[eIdx].from));
-        } else if (eIdx === result.length && result[sIdx]) {
-            toProcess.forEach((d) => (d.to = result[sIdx].from));
-        } else if (result[sIdx]?.from && result[eIdx]?.from) {
-            toProcess.forEach((d) => (d.to = intersectionOnLine(result[sIdx].from!, result[eIdx].from!, d.from!.x)));
-        } else {
-            toProcess.forEach((d) => (d.to = d.from));
-        }
-    });
-
-    backfillPathPoint(result, 'in', 'out', (toProcess, sIdx, eIdx) => {
-        if (sIdx === -1 && result[eIdx]) {
-            toProcess.forEach((d) => (d.from = result[eIdx].to));
-        } else if (eIdx === result.length && result[sIdx]) {
-            toProcess.forEach((d) => (d.from = result[sIdx].to));
-        } else if (result[sIdx]?.to && result[eIdx]?.to) {
-            toProcess.forEach((d) => (d.from = intersectionOnLine(result[sIdx].to!, result[eIdx].to!, d.to!.x)));
-        } else {
-            toProcess.forEach((d) => (d.from = d.to));
-        }
-    });
 }
 
 function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
@@ -120,13 +44,9 @@ function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
     return from ? 'in' : 'out';
 }
 
-export interface LineNodeDatumLike extends Pick<CartesianSeriesNodeDatum, 'xValue'> {
-    readonly point: Point & { moveTo?: boolean };
-}
-
 type LineContextLike = {
     scales: CartesianSeriesNodeDataContext['scales'];
-    nodeData: LineNodeDatumLike[];
+    nodeData: PathNodeDatumLike[];
 };
 
 export function pairContinuousData(newData: LineContextLike, oldData: LineContextLike) {
@@ -152,21 +72,26 @@ export function pairContinuousData(newData: LineContextLike, oldData: LineContex
         removed: {},
     };
 
-    const pairUp = (from?: LineNodeDatumLike, to?: LineNodeDatumLike, xValue?: any, marker: MarkerChange = 'move') => {
+    const pairUp = (
+        from?: PathNodeDatumLike,
+        to?: PathNodeDatumLike,
+        xValue?: any,
+        change: PathPointChange = 'move'
+    ) => {
         const resultPoint = {
             from: from?.point,
             to: to?.point,
             moveTo: calculateMoveTo(from?.point.moveTo, to?.point.moveTo),
-            marker,
+            change,
         };
-        if (marker === 'move') {
+        if (change === 'move') {
             resultMap.moved[xValue] = resultPoint;
             oldIdx++;
             newIdx++;
-        } else if (marker === 'in') {
+        } else if (change === 'in') {
             resultMap.added[xValue] = resultPoint;
             newIdx++;
-        } else if (marker === 'out') {
+        } else if (change === 'out') {
             resultMap.removed[xValue] = resultPoint;
             oldIdx++;
         }
@@ -226,14 +151,14 @@ export function pairCategoryData(newData: LineContextLike, oldData: LineContextL
         let resultPoint: PathPoint;
         if (diff.removed.indexOf(next.xValue) >= 0) {
             resultPoint = {
-                marker: 'out',
+                change: 'out',
                 moveTo: next.point.moveTo ?? false,
                 from: next.point,
             };
             resultMap.removed[next.xValue] = resultPoint;
         } else {
             resultPoint = {
-                marker: 'move',
+                change: 'move',
                 moveTo: next.point.moveTo ?? false,
                 from: next.point,
             };
@@ -247,7 +172,7 @@ export function pairCategoryData(newData: LineContextLike, oldData: LineContextL
         const addedIdx = diff.added.indexOf(next.xValue);
         if (addedIdx >= 0) {
             const resultPoint: PathPoint = {
-                marker: 'in',
+                change: 'in',
                 moveTo: next.point.moveTo ?? false,
                 to: next.point,
             };
@@ -262,7 +187,7 @@ export function pairCategoryData(newData: LineContextLike, oldData: LineContextL
 
     let previousX = -Infinity;
     const isXUnordered = result.some((pathPoint) => {
-        const { marker, to: { x = -Infinity } = {} } = pathPoint;
+        const { change: marker, to: { x = -Infinity } = {} } = pathPoint;
 
         if (marker === 'out') return;
         const result = x < previousX;
@@ -276,54 +201,6 @@ export function pairCategoryData(newData: LineContextLike, oldData: LineContextL
     backfillPathPointData(result);
 
     return { result, resultMap };
-}
-
-export function prepareLineMarkerAnimation(pairMap: PathPointMap) {
-    const markerStatus = (datum: LineNodeDatumLike): { point?: PathPoint; status: NodeUpdateState } => {
-        const { xValue } = datum;
-
-        if (pairMap.moved[xValue]) {
-            return { point: pairMap.moved[xValue], status: 'updated' };
-        } else if (pairMap.removed[xValue]) {
-            return { point: pairMap.removed[xValue], status: 'removed' };
-        } else if (pairMap.added[xValue]) {
-            return { point: pairMap.added[xValue], status: 'added' };
-        }
-
-        return { status: 'unknown' };
-    };
-    const fromFn = (marker: Marker, datum: LineNodeDatumLike) => {
-        const { status, point } = markerStatus(datum);
-        if (status === 'unknown') return { opacity: 0 };
-
-        const defaults = {
-            translationX: point?.from?.x ?? marker.translationX,
-            translationY: point?.from?.y ?? marker.translationY,
-            opacity: marker.opacity,
-            ...FROM_TO_MIXINS[status],
-        };
-
-        if (status === 'added') {
-            return { ...defaults, opacity: 0 };
-        }
-
-        return defaults;
-    };
-
-    const toFn = (_marker: Marker, datum: LineNodeDatumLike) => {
-        const { status, point } = markerStatus(datum);
-        if (status === 'unknown') return { opacity: 0 };
-
-        const defaults = { translationX: datum.point.x, translationY: datum.point.y, opacity: 1 };
-
-        if (status === 'removed') {
-            return { ...defaults, translationX: point?.to?.x, translationY: point?.to?.y, opacity: 0 };
-        }
-
-        return defaults;
-    };
-
-    return { fromFn, toFn };
 }
 
 export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike) {
@@ -359,7 +236,7 @@ export function prepareLinePathAnimationFns(
     newData: LineContextLike,
     oldData: LineContextLike,
     pairData: PathPoint[],
-    render: (pairData: PathPoint[], ratios: Partial<Record<MarkerChange, number>>, path: Path) => void
+    render: (pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) => void
 ) {
     const status = determinePathStatus(newData, oldData);
     const removePhaseFn = (ratio: number, path: Path) => {
@@ -382,11 +259,11 @@ export function prepareLinePathAnimationFns(
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
 
-export function renderPartialLine(pairData: PathPoint[], ratios: Partial<Record<MarkerChange, number>>, path: Path) {
+export function renderPartialLine(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) {
     const { path: linePath } = path;
     let previousTo: PathPoint['to'];
     for (const data of pairData) {
-        const ratio = ratios[data.marker];
+        const ratio = ratios[data.change];
         if (ratio == null) continue;
 
         const { from, to } = data;
@@ -423,13 +300,6 @@ export function prepareLinePathAnimation(
     }
 
     const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialLine);
-    const marker = prepareLineMarkerAnimation(pairMap);
+    const marker = prepareMarkerAnimation(pairMap);
     return { ...pathFns, marker };
-}
-
-function intersectionOnLine(a: { x: number; y: number }, b: { x: number; y: number }, targetX: number) {
-    const m = (b.y - a.y) / (b.x - a.x);
-    // Find a point a distance along the line from `a` and `b`
-    const y = (targetX - a.x) * m + a.y;
-    return { x: targetX, y };
 }
