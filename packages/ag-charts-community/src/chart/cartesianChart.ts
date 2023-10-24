@@ -1,5 +1,5 @@
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
-import type { BBox } from '../scene/bbox';
+import { BBox } from '../scene/bbox';
 import { toRadians } from '../util/angle';
 import { Logger } from '../util/logger';
 import { CategoryAxis } from './axis/categoryAxis';
@@ -47,6 +47,14 @@ export class CartesianChart extends Chart {
 
         this.hoverRect = seriesPaddedRect;
 
+        const minRects = this.series.map((series) => (series as CartesianSeries<any, any>).getMinRect?.());
+        const minRect = new BBox(
+            0,
+            0,
+            minRects.reduce((max, rect) => Math.max(max, rect.width), 0),
+            minRects.reduce((max, rect) => Math.max(max, rect.height), 0)
+        );
+
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
@@ -56,6 +64,7 @@ export class CartesianChart extends Chart {
                 paddedRect: seriesPaddedRect,
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
+                minRect,
             },
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });

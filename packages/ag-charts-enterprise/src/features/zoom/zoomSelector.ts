@@ -16,8 +16,8 @@ export class ZoomSelector {
 
     update(
         event: _ModuleSupport.InteractionEvent<'drag' | 'hover'>,
-        minXRatio: number,
-        minYRatio: number,
+        minRatioX: number,
+        minRatioY: number,
         isScalingX: boolean,
         isScalingY: boolean,
         bbox?: _Scene.BBox,
@@ -28,8 +28,8 @@ export class ZoomSelector {
         this.updateCoords(
             event.offsetX,
             event.offsetY,
-            minXRatio,
-            minYRatio,
+            minRatioX,
+            minRatioY,
             isScalingX,
             isScalingY,
             bbox,
@@ -60,8 +60,8 @@ export class ZoomSelector {
     private updateCoords(
         x: number,
         y: number,
-        minXRatio: number,
-        minYRatio: number,
+        minRatioX: number,
+        minRatioY: number,
         isScalingX: boolean,
         isScalingY: boolean,
         bbox?: _Scene.BBox,
@@ -87,8 +87,8 @@ export class ZoomSelector {
         const scaleX = zoom.x.max - zoom.x.min;
         const scaleY = zoom.y.max - zoom.y.min;
 
-        const xRatio = minXRatio / scaleX;
-        const yRatio = minYRatio / scaleY;
+        const xRatio = minRatioX / scaleX;
+        const yRatio = minRatioY / scaleY;
 
         if (normal.width / bbox.width < xRatio) {
             if (this.coords.x2 < this.coords.x1) {

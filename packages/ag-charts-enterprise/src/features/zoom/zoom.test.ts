@@ -10,7 +10,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import type { AgChartOptions } from '../../../main';
+import type { AgChartOptions } from '../../main';
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -40,7 +40,7 @@ describe('Zoom', () => {
     let cx: number = 0;
     let cy: number = 0;
 
-    async function prepareChart(zoomOptions?: AgChartOptions.Zoom) {
+    async function prepareChart(zoomOptions?: AgChartOptions['zoom']) {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             zoom: { ...EXAMPLE_OPTIONS.zoom, ...(zoomOptions ?? {}) },
