@@ -19,5 +19,5 @@ export const setDarkmode = (darkmode: boolean) => {
 };
 
 export const getDarkmode = () => {
-    return !!$darkmode.get();
+    return $darkmode.get() === 'true' || $darkmode.get() === true;
 };
