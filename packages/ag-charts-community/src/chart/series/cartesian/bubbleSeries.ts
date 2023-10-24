@@ -6,6 +6,7 @@ import type {
 } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
+import { BBox } from '../../../scene/bbox';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import { Group } from '../../../scene/group';
@@ -234,6 +235,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
         sizeScale.range = [marker.size, marker.maxSize];
 
+        const bounds = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
+
         const font = label.getFont();
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
@@ -258,6 +261,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
+            bounds.x0 = bounds.x0 < x ? bounds.x0 : x;
+            bounds.x1 = bounds.x1 > x ? bounds.x1 : x;
+            bounds.y0 = bounds.y0 < y ? bounds.y0 : y;
+            bounds.y1 = bounds.y1 > y ? bounds.y1 : y;
+
             nodeData.push({
                 series: this,
                 itemId: yKey,
@@ -274,7 +282,17 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             });
         }
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
+        const nodeDataBounds = new BBox(bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0);
+
+        return [
+            {
+                itemId: this.yKey ?? this.id,
+                nodeData,
+                labelData: nodeData,
+                scales: super.calculateScaling(),
+                nodeDataBounds,
+            },
+        ];
     }
 
     protected override isPathOrSelectionDirty(): boolean {

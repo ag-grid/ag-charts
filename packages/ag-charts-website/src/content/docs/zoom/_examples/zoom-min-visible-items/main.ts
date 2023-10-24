@@ -14,11 +14,8 @@ const options: AgCartesianChartOptions = {
   },
   zoom: {
     enabled: true,
-    axes: "xy",
-    minXRatio: 0.4,
-    minYRatio: 0.4,
-    anchorPointX: "pointer",
-    anchorPointY: "pointer"
+    axes: "x",
+    minVisibleItemsX: 4,
   },
   tooltip: {
     enabled: false,

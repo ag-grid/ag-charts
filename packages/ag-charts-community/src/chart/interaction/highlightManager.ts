@@ -7,7 +7,7 @@ interface HighlightNodeDatum extends SeriesNodeDatum {
     readonly colorValue?: number;
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;
-    readonly domain?: [number, number];
+    // readonly domain?: [number, number];
 }
 
 export interface HighlightChangeEvent {

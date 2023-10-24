@@ -40,7 +40,6 @@ export class ZoomScroller {
             }
         }
 
-        // Constrain the zoom bounding box to remain within the ultimate bounds of 0,0 and 1,1
         newZoom = constrainZoom(newZoom);
 
         return newZoom;

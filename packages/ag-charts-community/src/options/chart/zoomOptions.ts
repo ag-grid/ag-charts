@@ -21,10 +21,10 @@ export interface AgZoomOptions {
     enableScrolling?: boolean;
     /** Set to true to enable selecting an area of the chart to zoom into, defaults to false. */
     enableSelecting?: boolean;
-    /** The minimum amount of the chart to show in the x-axis as a ratio of the full chart, defaults to `0.2`. */
-    minXRatio?: number;
-    /** The minimum amount of the chart to show in the y-axis as a ratio of the full chart, defaults to `0.2`. */
-    minYRatio?: number;
+    /** The minimum number of x-axis items to be shown, beyond which zooming is stopped, defaults to `2`. */
+    minVisibleItemsX?: number;
+    /** The minimum number of y-axis items to be shown, beyond which zooming is stopped, defaults to `2`. */
+    minVisibleItemsY?: number;
     /** The key that should be pressed to allow dragging to pan around while zoomed, one of `alt`, `ctrl`, `meta` or `shift`, defaults to `alt`. */
     panKey?: AgZoomPanKey;
     /** The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart, defaults to `0.1`. */

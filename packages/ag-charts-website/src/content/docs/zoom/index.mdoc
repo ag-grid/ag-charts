@@ -96,20 +96,19 @@ zoom: {
 
 {% chartExampleRunner title="Zoom Scrolling Step" name="zoom-scrolling-step" type="generated" options="{ \"enterprise\": true }" /%}
 
-## Min X/Y Ratio
+## Minimum Visible Items
 
-The `minXRatio` and `minYRatio` options can be used to limit how far a user can zoom in to the chart, helping to prevent them from getting lost in a blank space of the chart. These options are defined as the minimum proportion of the full chart that can be displayed. The default for both values is `0.2`.
+The `minVisibleItemsX` and `minVisibleItemsY` options can be used to limit how far a user can zoom in to the chart, helping to prevent them from getting lost in a blank space of the chart. These options set the minimum number of items visible on each axis, for example the number of bars in a bar series or points in a line series. The default for both values is `2`.
 
-The example below demonstrates setting both these properties to `0.4`, preventing the user from zooming beyond showing a minimum of 40% of the full chart.
+The example below demonstrates setting `minVisibleItemsX` to `4`, preventing the user from zooming beyond showing a minimum of 4 points on the line.
 
 ```ts
 zoom: {
-    minXRatio: 0.4,
-    minYRatio: 0.4,
+    minVisibleItemsX: 4,
 }
 ```
 
-{% chartExampleRunner title="Zoom Min Ratio" name="zoom-min-ratio" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Zoom Min Visible Items" name="zoom-min-visible-items" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## Pan Key
 

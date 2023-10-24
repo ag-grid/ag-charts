@@ -10,7 +10,7 @@ export const AnimationModule: _ModuleSupport.Module = {
     instanceConstructor: Animation,
     themeTemplate: {
         animation: {
-            enabled: true,
+            enabled: false,
         },
     },
 };

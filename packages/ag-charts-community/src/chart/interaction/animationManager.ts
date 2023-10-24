@@ -5,6 +5,7 @@ import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
 import { BaseManager } from './baseManager';
 import type { InteractionManager } from './interactionManager';
+import type { ZoomManager } from './zoomManager';
 
 type AnimationEventType = 'animation-frame';
 
@@ -30,9 +31,13 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     constructor(
         private readonly interactionManager: InteractionManager,
+        private readonly zoomManager: ZoomManager,
         private readonly chartUpdateMutex: Mutex
     ) {
         super();
+        this.zoomManager.addListener('zoom-change', ({ axes }) => {
+            // this.stop();
+        });
     }
 
     /**

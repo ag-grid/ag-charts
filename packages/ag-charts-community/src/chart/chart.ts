@@ -310,7 +310,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
 
-        this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
+        this.animationManager = new AnimationManager(this.interactionManager, this.zoomManager, this.updateMutex);
         this.animationManager.skip();
         this.animationManager.play();
 

@@ -47,6 +47,8 @@ export class CartesianChart extends Chart {
 
         this.hoverRect = seriesPaddedRect;
 
+        // console.log(this.series, (this.series[0] as any).getMinRect?.());
+
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
@@ -56,6 +58,7 @@ export class CartesianChart extends Chart {
                 paddedRect: seriesPaddedRect,
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
+                minRect: (this.series[0] as any).getMinRect?.(),
             },
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });
@@ -464,6 +467,6 @@ export class CartesianChart extends Chart {
 
     private shouldFlipXY() {
         // Only flip the xy axes if all the series agree on flipping
-        return !this.series.map((series) => series instanceof CartesianSeries && series.shouldFlipXY()).includes(false);
+        return !this.series.some((series) => !(series instanceof CartesianSeries && series.shouldFlipXY()));
     }
 }

@@ -1,14 +1,14 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
+import type { DefinedZoomState } from './zoomTypes';
 
 export const UNIT = { min: 0, max: 1 };
+
+const constrain = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
 export function unitZoomState(): DefinedZoomState {
     return { x: { ...UNIT }, y: { ...UNIT } };
 }
-
-const constrain = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
 export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
     return {

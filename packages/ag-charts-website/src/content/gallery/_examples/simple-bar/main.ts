@@ -38,6 +38,8 @@ const options: AgChartOptions = {
             title: {
                 text: 'Year',
             },
+            paddingInner: 0,
+            paddingOuter: 0
         },
         {
             type: 'number',

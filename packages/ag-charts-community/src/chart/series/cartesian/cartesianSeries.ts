@@ -2,7 +2,7 @@ import { ContinuousScale } from '../../../integrated-charts-scene';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
-import type { BBox } from '../../../scene/bbox';
+import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import type { Node, ZIndexSubOrder } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -125,6 +125,7 @@ export interface CartesianSeriesNodeDataContext<
 > extends SeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
+    nodeDataBounds?: BBox;
 }
 
 export abstract class CartesianSeries<
@@ -720,6 +721,24 @@ export abstract class CartesianSeries<
 
     shouldFlipXY(): boolean {
         return false;
+    }
+
+    protected getMinRect(): BBox {
+        const [context] = this._contextNodeData;
+
+        if (!context) return new BBox(0, 0, 0, 0);
+
+        const width = context.nodeData
+            .map(({ midPoint }) => midPoint?.x ?? 0)
+            .sort((a, b) => a - b)
+            .reduce((max, x, i, array) => (i > 0 ? Math.max(max, x - array[i - 1]) : max), 0);
+
+        const height = context.nodeData
+            .map(({ midPoint }) => midPoint?.y ?? 0)
+            .sort((a, b) => a - b)
+            .reduce((max, y, i, array) => (i > 0 ? Math.max(max, y - array[i - 1]) : max), 0);
+
+        return new BBox(0, 0, width, height);
     }
 
     protected async updateHighlightSelectionItem(opts: {
