@@ -46,7 +46,7 @@ import {
 import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { pathSwipeInAnimation, resetPathFn } from './pathUtil';
+import { pathFadeInAnimation, pathSwipeInAnimation, resetPathFn } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -602,20 +602,13 @@ export class AreaSeries extends CartesianSeries<
     }
 
     private updateAreaPaths(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
-        contextData.forEach(({ strokeData, fillData }, contextDataIndex) => {
-            const [fill, stroke] = paths[contextDataIndex];
+        this.updateFillPath(paths, contextData);
+        this.updateStrokePath(paths, contextData);
+    }
 
-            const { path: strokePath } = stroke;
-            strokePath.clear({ trackChanges: true });
-            for (const { point } of strokeData.points) {
-                if (point.moveTo === true) {
-                    strokePath.moveTo(point.x, point.y);
-                } else {
-                    strokePath.lineTo(point.x, point.y);
-                }
-            }
-            stroke.checkPathDirty();
-
+    private updateFillPath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
+        contextData.forEach(({ fillData }, contextDataIndex) => {
+            const [fill] = paths[contextDataIndex];
             const { path: fillPath } = fill;
             fillPath.clear({ trackChanges: true });
             let moveTo = true;
@@ -629,6 +622,22 @@ export class AreaSeries extends CartesianSeries<
             }
             fillPath.closePath();
             fill.checkPathDirty();
+        });
+    }
+
+    private updateStrokePath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
+        contextData.forEach(({ strokeData }, contextDataIndex) => {
+            const [, stroke] = paths[contextDataIndex];
+            const { path: strokePath } = stroke;
+            strokePath.clear({ trackChanges: true });
+            for (const { point } of strokeData.points) {
+                if (point.moveTo === true) {
+                    strokePath.moveTo(point.x, point.y);
+                } else {
+                    strokePath.lineTo(point.x, point.y);
+                }
+            }
+            stroke.checkPathDirty();
         });
     }
 
@@ -681,8 +690,9 @@ export class AreaSeries extends CartesianSeries<
         fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
-        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
-        pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+
+        this.updateStrokePath(paths, contextData);
+        pathFadeInAnimation(this, 'stroke', animationManager, [stroke]);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 

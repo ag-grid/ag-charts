@@ -4,7 +4,7 @@ import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { pairCategoryData, pairContinuousData, prepareLinePathAnimationFns, renderPartialLine } from './lineUtil';
+import { pairCategoryData, pairContinuousData, prepareLinePathAnimationFns } from './lineUtil';
 import { prepareMarkerAnimation } from './markerUtil';
 import type { PathPoint, PathPointChange } from './pathUtil';
 
@@ -129,24 +129,6 @@ function pairFillContinuousData(newData: AreaSeriesNodeDataContext, oldData: Are
     };
 }
 
-function pairStrokeCategoryData(
-    newData: AreaSeriesNodeDataContext,
-    oldData: AreaSeriesNodeDataContext,
-    diff: ProcessedOutputDiff
-) {
-    const oldPoints = { scales: oldData.scales, nodeData: oldData.strokeData.points };
-    const newPoints = { scales: newData.scales, nodeData: newData.strokeData.points };
-
-    return pairCategoryData(newPoints, oldPoints, diff);
-}
-
-function pairStrokeContinuousData(newData: AreaSeriesNodeDataContext, oldData: AreaSeriesNodeDataContext) {
-    const oldPoints = { scales: oldData.scales, nodeData: oldData.strokeData.points };
-    const newPoints = { scales: newData.scales, nodeData: newData.strokeData.points };
-
-    return pairContinuousData(newPoints, oldPoints);
-}
-
 export function prepareAreaPathAnimation(
     newData: AreaSeriesNodeDataContext,
     oldData: AreaSeriesNodeDataContext,
@@ -161,13 +143,6 @@ export function prepareAreaPathAnimation(
         return pairContinuousData(newData, oldData);
     };
 
-    const prepareStrokePairs = () => {
-        if (isCategoryBased && diff) {
-            return pairStrokeCategoryData(newData, oldData, diff);
-        }
-        return pairStrokeContinuousData(newData, oldData);
-    };
-
     const prepareFillPairs = () => {
         if (isCategoryBased && diff) {
             return pairFillCategoryData(newData, oldData, diff);
@@ -176,21 +151,14 @@ export function prepareAreaPathAnimation(
     };
 
     const { resultMap: markerPairMap } = prepareMarkerPairs();
-    const { result: strokeResult } = prepareStrokePairs();
     const { top, bottom } = prepareFillPairs();
 
-    if (
-        strokeResult === undefined ||
-        markerPairMap === undefined ||
-        top.result === undefined ||
-        bottom.result === undefined
-    ) {
+    if (markerPairMap === undefined || top.result === undefined || bottom.result === undefined) {
         return;
     }
 
     const pairData = [...top.result, ...bottom.result.reverse()];
     const fill = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialArea);
-    const stroke = prepareLinePathAnimationFns(newData, oldData, strokeResult, renderPartialLine);
     const marker = prepareMarkerAnimation(markerPairMap);
-    return { fill, marker, stroke };
+    return { fill, marker };
 }

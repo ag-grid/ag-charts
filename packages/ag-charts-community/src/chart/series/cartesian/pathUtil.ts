@@ -1,5 +1,7 @@
+import { LABEL_PHASE } from '../../../motion/animation';
 import { staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
+import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -114,6 +116,24 @@ export function pathSwipeInAnimation({ id }: { id: string }, animationManager: A
             finish: { clipMode: undefined },
         }
     );
+}
+
+export function pathFadeInAnimation<T>(
+    { id }: { id: string },
+    subId: string,
+    animationManager: AnimationManager,
+    selection: Selection<Path, T>[] | Path[]
+) {
+    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, LABEL_PHASE);
+}
+
+export function pathFadeOutAnimation<T>(
+    { id }: { id: string },
+    subId: string,
+    animationManager: AnimationManager,
+    selection: Selection<Path, T>[] | Path[]
+) {
+    staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, LABEL_PHASE);
 }
 
 export function resetPathFn(_node: Path) {
