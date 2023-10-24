@@ -28,7 +28,7 @@ export const Launcher = ({
     return (
         <div className={styles.launcher}>
             <button
-                className="button-style-none"
+                className="button-as-link"
                 onClick={() => setFullScreenGraph(!fullScreenGraph)}
                 onKeyDown={(e) => doOnEnter(e, () => setFullScreenGraph(!fullScreenGraph))}
                 role="button"
@@ -38,7 +38,7 @@ export const Launcher = ({
                 <Icon name="docs-integrated-charts" />
             </button>
             <button
-                className="button-style-none"
+                className="button-as-link"
                 onClick={() => setFullScreen(!fullScreen)}
                 onKeyDown={(e) => doOnEnter(e, () => setFullScreen(!fullScreen))}
                 role="button"
@@ -48,7 +48,7 @@ export const Launcher = ({
                 {fullScreen ? <Icon name="minimize" /> : <Icon name="maximize" />}
             </button>
             <button
-                className="button-style-none"
+                className="button-as-link"
                 onClick={() => {
                     const contents = getJavascriptContent({ options });
                     const plunkrHtml = getPlunkrHtml({ contents, siteUrl, modifiedTimeMs: Date.now() });

@@ -2,13 +2,11 @@
 
 .cta {
     --text-color: var(--link-color);
-    --button-text-color: var(--link-color);
 
     transition: color $default-transition-timing;
 
     &:hover {
         --text-color: var(--link-hover-color);
-        --button-text-color: var(--link-hover-color);
     }
 
     svg {
