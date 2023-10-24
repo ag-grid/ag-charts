@@ -62,7 +62,7 @@ export class PolarChart extends Chart {
         [angleAxis, radiusAxis].forEach((axis) => {
             axis.translation.x = cx;
             axis.translation.y = cy;
-            axis.update();
+            axis.calculateLayout();
         });
     }
 

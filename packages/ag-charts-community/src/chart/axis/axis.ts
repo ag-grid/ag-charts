@@ -439,6 +439,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
+        this.updatePosition();
 
         this.updateAxisLine();
 
