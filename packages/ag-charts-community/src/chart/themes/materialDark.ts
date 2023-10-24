@@ -9,29 +9,29 @@ import {
 } from './symbols';
 
 const MATERIAL_DARK_FILLS = {
-    BLUE: '#03a9f4',
-    CYAN: '#00bcd4',
-    DARK_CYAN: '#009688',
-    GREEN: '#4caf50',
-    RED: '#f44336',
-    PINK: '#e91e63',
-    MAGENTA: '#9c27b0',
-    VIOLET: '#673ab7',
-    DARK_BLUE: '#3f51b5',
-    VIVID_BLUE: '#2196f3',
+    BLUE: '#2196F3',
+    ORANGE: '#FF9800',
+    GREEN: '#4CAF50',
+    CYAN: '#00BCD4',
+    YELLOW: '#FFEB3B',
+    VIOLET: '#7E57C2',
+    GRAY: '#9E9E9E',
+    MAGENTA: '#F06292',
+    BROWN: '#795548',
+    RED: '#F44336',
 };
 
 const MATERIAL_DARK_STROKES = {
-    BLUE: '#4ed2ff',
-    CYAN: '#52e5fe',
-    DARK_CYAN: '#47bdae',
-    GREEN: '#75d877',
-    RED: '#ff705e',
-    PINK: '#ff5588',
-    MAGENTA: '#c554d9',
-    VIOLET: '#8a62e1',
-    DARK_BLUE: '#6077df',
-    VIVID_BLUE: '#53beff',
+    BLUE: '#90CAF9',
+    ORANGE: '#FFCC80',
+    GREEN: '#A5D6A7',
+    CYAN: '#80DEEA',
+    YELLOW: '#FFF9C4',
+    VIOLET: '#B39DDB',
+    GRAY: '#E0E0E0',
+    MAGENTA: '#F48FB1',
+    BROWN: '#A1887F',
+    RED: '#EF9A9A',
 };
 
 const palette: AgChartThemePalette = {
@@ -56,8 +56,8 @@ export class MaterialDark extends DarkTheme {
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: MATERIAL_DARK_FILLS.DARK_CYAN,
-            stroke: MATERIAL_DARK_STROKES.DARK_CYAN,
+            fill: MATERIAL_DARK_FILLS.GRAY,
+            stroke: MATERIAL_DARK_STROKES.GRAY,
         };
     }
 

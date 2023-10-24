@@ -34,6 +34,9 @@ const POLYCHROMA_DARK_STROKES = {
     MODERATE_BLUE: '#4fd7ff',
 };
 
+const POLYCHROMA_DARK_FILL_GRAY = '#bbbbbb';
+const POLYCHROMA_DARK_STROKE_GRAY = '#eeeeee';
+
 const palette: AgChartThemePalette = {
     fills: Array.from(Object.values(POLYCHROMA_DARK_FILLS)),
     strokes: Array.from(Object.values(POLYCHROMA_DARK_STROKES)),
@@ -56,8 +59,8 @@ export class PolychromaDark extends DarkTheme {
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: POLYCHROMA_DARK_FILLS.YELLOW,
-            stroke: POLYCHROMA_DARK_STROKES.YELLOW,
+            fill: POLYCHROMA_DARK_FILL_GRAY,
+            stroke: POLYCHROMA_DARK_STROKE_GRAY,
         };
     }
 

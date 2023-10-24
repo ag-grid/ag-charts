@@ -34,6 +34,9 @@ const POLYCHROMA_LIGHT_STROKES = {
     MODERATE_BLUE: '#0087bb',
 };
 
+const POLYCHROMA_LIGHT_FILL_GRAY = '#bbbbbb';
+const POLYCHROMA_LIGHT_STROKE_GRAY = '#888888';
+
 const palette: AgChartThemePalette = {
     fills: Array.from(Object.values(POLYCHROMA_LIGHT_FILLS)),
     strokes: Array.from(Object.values(POLYCHROMA_LIGHT_STROKES)),
@@ -56,8 +59,8 @@ export class PolychromaLight extends ChartTheme {
 
     protected static override getWaterfallSeriesDefaultTotalColors() {
         return {
-            fill: POLYCHROMA_LIGHT_FILLS.YELLOW,
-            stroke: POLYCHROMA_LIGHT_STROKES.YELLOW,
+            fill: POLYCHROMA_LIGHT_FILL_GRAY,
+            stroke: POLYCHROMA_LIGHT_STROKE_GRAY,
         };
     }
 
