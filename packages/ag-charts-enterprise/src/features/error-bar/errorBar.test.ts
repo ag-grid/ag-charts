@@ -469,6 +469,22 @@ describe('ErrorBars', () => {
         await compare();
     });
 
+    it('should use marker strokeWidth for cap lengthRatio', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_BOYLESLAW,
+                    marker: { size: 80, strokeWidth: 60 },
+                    data: [
+                        { volume: 2, volumeLower: 1, volumeUpper: 3, pressure: 2, pressureLower: 1, pressureUpper: 3 },
+                    ],
+                },
+            ],
+        });
+        await compare();
+    });
+
     it('should render caps over highlight', async () => {
         chart = deproxy(
             AgEnterpriseCharts.create({

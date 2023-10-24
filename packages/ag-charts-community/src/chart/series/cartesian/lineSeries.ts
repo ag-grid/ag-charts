@@ -240,7 +240,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     midPoint: { x, y },
                     yValue: yDatum,
                     xValue: xDatum,
-                    capDefaults: { lengthRatioMultiplier: this.marker.size, lengthMax: Infinity },
+                    capDefaults: { lengthRatioMultiplier: this.marker.getDiameter(), lengthMax: Infinity },
                     label: labelText
                         ? {
                               text: labelText,

@@ -71,4 +71,8 @@ export class SeriesMarker<TParams = never, TDatum = any>
         const { size, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this;
         return { size, fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
     }
+
+    getDiameter(): number {
+        return this.size + this.strokeWidth;
+    }
 }
