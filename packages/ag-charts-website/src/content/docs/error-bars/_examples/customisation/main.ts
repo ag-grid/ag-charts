@@ -17,11 +17,11 @@ const options: AgChartOptions = {
                 xUpperKey: 'volUpper',
                 yLowerKey: 'presLower',
                 yUpperKey: 'presUpper',
-                stroke: '#4A4A93',
-                strokeWidth: 1,
+                stroke: 'pink',
+                strokeWidth: 2,
                 cap: {
-                    stroke: '#FF9E4A', // otherwise inherits `#4A4A93` from whisker
-                    strokeWidth: 3, // otherwise inherits `1` from whisker
+                    stroke: 'red', // otherwise inherits `pink` from whisker
+                    strokeWidth: 5, // otherwise inherits `2` from whisker
                     length: 25,
                 },
             },
