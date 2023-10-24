@@ -43,6 +43,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type { RectConfig } from './barUtil';
 import {
     checkCrisp,
@@ -56,7 +57,6 @@ import type {
     CartesianAnimationData,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-    ErrorBoundSeriesNodeDatum,
 } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';

@@ -20,28 +20,16 @@ import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
-import type {
-    Series,
-    SeriesNodeDataContext,
-    SeriesNodeDatum,
-    SeriesNodeEventTypes,
-    SeriesNodePickMatch,
-} from '../series';
+import type { Series, SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
 import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
+import type { SeriesNodeDatum } from '../seriesTypes';
 
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly xKey: string;
     readonly yKey?: string;
     readonly xValue?: any;
     readonly yValue?: any;
-}
-
-export interface ErrorBoundSeriesNodeDatum {
-    // Caps can appear on bar, line and scatter series. The length is determined
-    // by the size of the marker (line, scatter), width of the bar (vertical
-    // bars), or height of the bar (horizontal bars).
-    readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
 }
 
 interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = TDatum> {

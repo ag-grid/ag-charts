@@ -52,12 +52,11 @@ import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
-import type { Series, SeriesNodeDatum } from './series/series';
+import type { Series } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { SeriesStateManager } from './series/seriesStateManager';
-import type { ISeries } from './series/seriesTypes';
-import type { TooltipMeta as PointerMeta } from './tooltip/tooltip';
+import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
 import { UpdateService } from './updateService';
 
@@ -1135,7 +1134,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     ) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
-        const { pageX, pageY, offsetX, offsetY } = event;
+        const { offsetX, offsetY } = event;
 
         let pixelRange;
         if (typeof range === 'number' && Number.isFinite(range)) {
@@ -1144,7 +1143,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
 
         if (!pick) {
-            this.tooltipManager.updateTooltip(this.id);
+            this.tooltipManager.removeTooltip(this.id);
             if (this.highlight.range === 'tooltip') disablePointer(true);
             return;
         }
@@ -1168,24 +1167,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
         const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
 
-        const position = {
-            xOffset: pick.datum.series.tooltip.position.xOffset,
-            yOffset: pick.datum.series.tooltip.position.yOffset,
-        };
-
-        const meta = this.mergePointerDatum(
-            {
-                pageX,
-                pageY,
-                offsetX,
-                offsetY,
-                event: event,
-                showArrow: pick.series.tooltip.showArrow,
-                position,
-            },
-            pick.datum
-        );
-        meta.enableInteraction = pick.series.tooltip.interaction?.enabled ?? false;
+        const meta = TooltipManager.makeTooltipMeta(event, this.scene.canvas, pick.datum, this.specialOverrides.window);
 
         if (shouldUpdateTooltip) {
             this.tooltipManager.updateTooltip(this.id, meta, html);
@@ -1310,27 +1292,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         };
         this.fireEvent(seriesNodeDoubleClick);
     };
-
-    private mergePointerDatum(meta: PointerMeta, datum: SeriesNodeDatum): PointerMeta {
-        const { type } = datum.series.tooltip.position;
-
-        if (type === 'node' && datum.midPoint) {
-            const { window } = this.specialOverrides;
-            const { x, y } = datum.midPoint;
-            const { canvas } = this.scene;
-            const point = datum.series.contentGroup.inverseTransformPoint(x, y);
-            const canvasRect = canvas.element.getBoundingClientRect();
-            return {
-                ...meta,
-                pageX: Math.round(canvasRect.left + window.scrollX + point.x),
-                pageY: Math.round(canvasRect.top + window.scrollY + point.y),
-                offsetX: Math.round(point.x),
-                offsetY: Math.round(point.y),
-            };
-        }
-
-        return meta;
-    }
 
     changeHighlightDatum(event: HighlightChangeEvent) {
         const seriesToUpdate: Set<ISeries<any>> = new Set();

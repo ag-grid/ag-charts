@@ -2,8 +2,9 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
-import type { SeriesNodeDataContext, SeriesNodeDatum } from './series';
+import type { SeriesNodeDataContext } from './series';
 import { Series } from './series';
+import type { SeriesNodeDatum } from './seriesTypes';
 
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum,

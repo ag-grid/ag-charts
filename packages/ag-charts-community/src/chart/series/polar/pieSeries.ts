@@ -44,7 +44,7 @@ import { Label } from '../../label';
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
-import type { SeriesNodeDatum, SeriesNodeEventTypes } from '../series';
+import type { SeriesNodeEventTypes } from '../series';
 import {
     HighlightStyle,
     SeriesNodeClickEvent,
@@ -55,6 +55,7 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { SeriesNodeDatum } from '../seriesTypes';
 import { preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 

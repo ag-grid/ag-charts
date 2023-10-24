@@ -1,23 +1,30 @@
 import type { AgErrorBarCapLengthOptions, AgErrorBarThemeableOptions, _ModuleSupport } from 'ag-charts-community';
 import { _Scene } from 'ag-charts-community';
+import type { InteractionRange } from 'ag-charts-community';
 
-export type ErrorBoundSeriesNodeDatum = _ModuleSupport.ErrorBoundSeriesNodeDatum;
+export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 
-interface ErrorBarPoint {
-    readonly lowerPoint: _Scene.Point;
-    readonly upperPoint: _Scene.Point;
-}
-
-export interface ErrorBarPoints {
-    readonly xBar?: ErrorBarPoint;
-    readonly yBar?: ErrorBarPoint;
-}
-
-type CapDefaults = ErrorBoundSeriesNodeDatum['capDefaults'];
+type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 
 export class ErrorBarNode extends _Scene.Group {
     private whiskerPath: _Scene.Path;
     private capsPath: _Scene.Path;
+
+    private bboxes: {
+        // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
+        // testing, therefore we'll use a hierachial bbox structure: `union` is the bbox that includes
+        // all the components.
+        union: _Scene.BBox;
+        components: _Scene.BBox[];
+    } = { union: this.computeBBox(), components: [] };
+
+    protected override _datum?: ErrorBarNodeDatum;
+    public override get datum(): ErrorBarNodeDatum | undefined {
+        return this._datum;
+    }
+    public override set datum(datum: ErrorBarNodeDatum | undefined) {
+        this._datum = datum;
+    }
 
     constructor() {
         super();
@@ -47,10 +54,13 @@ export class ErrorBarNode extends _Scene.Group {
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
     }
 
-    updateTranslation(points: ErrorBarPoints, cap: AgErrorBarCapLengthOptions, capDefaults: CapDefaults) {
+    updateTranslation(cap: AgErrorBarCapLengthOptions, range: InteractionRange) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
-        const { xBar, yBar } = points;
+        if (this.datum === undefined) {
+            return;
+        }
+        const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
         whisker.path.clear();
@@ -85,5 +95,52 @@ export class ErrorBarNode extends _Scene.Group {
         }
         caps.path.closePath();
         caps.markDirtyTransform();
+
+        const { components } = this.bboxes;
+        components.length = 0;
+        if (yBar !== undefined) {
+            const whiskerHeight = yBar.lowerPoint.y - yBar.upperPoint.y;
+            components.push(
+                new _Scene.BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight),
+                new _Scene.BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth),
+                new _Scene.BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth)
+            );
+        }
+        if (xBar !== undefined) {
+            const whiskerWidth = xBar.upperPoint.x - xBar.lowerPoint.x;
+            components.push(
+                new _Scene.BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth),
+                new _Scene.BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength),
+                new _Scene.BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength)
+            );
+        }
+        const expansion = typeof range === 'string' ? 0 : range;
+        if (expansion > 0) {
+            for (const bbox of components) {
+                bbox.grow({ top: expansion, bottom: expansion, left: expansion, right: expansion });
+            }
+        }
+        this.bboxes.union = _Scene.BBox.merge(components);
+    }
+
+    override pickNode(x: number, y: number): _Scene.Node | undefined {
+        const point = this.transformPoint(x, y);
+        if (this.containsPoint(point.x, point.y)) {
+            return this;
+        }
+    }
+
+    override containsPoint(x: number, y: number): boolean {
+        if (!this.bboxes.union.containsPoint(x, y)) {
+            return false;
+        }
+
+        for (const bbox of this.bboxes.components) {
+            if (bbox.containsPoint(x, y)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

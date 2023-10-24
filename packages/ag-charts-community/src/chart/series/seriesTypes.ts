@@ -41,3 +41,12 @@ export interface SeriesNodeDatum {
     readonly point?: Readonly<SizedPoint>;
     midPoint?: Readonly<Point>;
 }
+
+export interface ErrorBoundSeriesNodeDatum {
+    // Caps can appear on bar, line and scatter series. The length is determined
+    // by the size of the marker (line, scatter), width of the bar (vertical
+    // bars), or height of the bar (horizontal bars).
+    readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
+    xBar?: { lowerPoint: Point; upperPoint: Point };
+    yBar?: { lowerPoint: Point; upperPoint: Point };
+}

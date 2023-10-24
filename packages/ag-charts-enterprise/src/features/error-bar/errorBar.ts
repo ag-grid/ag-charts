@@ -1,7 +1,7 @@
 import type { AgErrorBarCapOptions, AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { ErrorBarPoints } from './errorBarNode';
+import type { ErrorBarNodeDatum } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 
 const {
@@ -18,10 +18,7 @@ const {
 } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
-    _ModuleSupport.CartesianSeries<
-        _Scene.Node,
-        _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum
-    >,
+    _ModuleSupport.CartesianSeries<_Scene.Node, ErrorBarNodeDatum>,
     'highlightSelection'
 >;
 
@@ -127,7 +124,7 @@ export class ErrorBars
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: _Scene.Group;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
-    private nodeData: (ErrorBarPoints | undefined)[] = [];
+    private readonly ctx: _ModuleSupport.SeriesContext;
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
@@ -136,6 +133,7 @@ export class ErrorBars
         super();
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
+        this.ctx = ctx;
         const { annotationGroup } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
@@ -154,6 +152,7 @@ export class ErrorBars
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
+            ctx.interactionManager.addListener('hover', (event) => this.onHoverEvent(event)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode)
         );
@@ -214,14 +213,12 @@ export class ErrorBars
     }
 
     private createNodeData() {
-        const { nodeData } = this;
+        const nodeData = this.cartesianSeries.contextNodeData[0].nodeData;
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
         if (!xScale || !yScale) {
             return;
         }
-
-        nodeData.length = this.cartesianSeries.contextNodeData[0].nodeData.length;
 
         for (let i = 0; i < nodeData.length; i++) {
             const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(i);
@@ -240,7 +237,8 @@ export class ErrorBars
                         upperPoint: { x: midPoint.x, y: this.convert(yScale, yUpper) },
                     };
                 }
-                nodeData[i] = { xBar, yBar };
+                nodeData[i].xBar = xBar;
+                nodeData[i].yBar = yBar;
             }
         }
     }
@@ -276,18 +274,30 @@ export class ErrorBars
     }
 
     private update() {
-        this.selection.update(this.nodeData, undefined, undefined);
-        this.selection.each((node, _datum, i) => this.updateNode(node, i));
+        this.selection.update(this.cartesianSeries.contextNodeData[0].nodeData, undefined, undefined);
+        this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
     }
 
-    private updateNode(node: ErrorBarNode, index: number) {
-        const { nodeData } = this;
-        const points = nodeData[index];
-        if (points) {
-            const style = this.getDefaultStyle();
-            const capDefaults = this.cartesianSeries.contextNodeData[0].nodeData[index].capDefaults;
-            node.updateStyle(style);
-            node.updateTranslation(points, this.cap, capDefaults);
+    private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
+        const style = this.getDefaultStyle();
+        node.datum = datum;
+        node.updateStyle(style);
+        node.updateTranslation(this.cap, this.ctx.tooltipManager.getRange());
+    }
+
+    private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {
+        const { scene, highlightManager, tooltipManager, window } = this.ctx;
+        const { id } = this.groupNode;
+
+        const node = this.groupNode.pickNode(event.offsetX, event.offsetY);
+        if (node?.datum !== undefined) {
+            const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, node.datum, window);
+            const html = this.cartesianSeries.getTooltipHtml(node.datum);
+            highlightManager.updateHighlight(id, node.datum);
+            tooltipManager.updateTooltip(id, meta, html);
+        } else {
+            highlightManager.updateHighlight(id, undefined);
+            tooltipManager.removeTooltip(id);
         }
     }
 
@@ -315,13 +325,13 @@ export class ErrorBars
         this.groupNode.visible = event.enabled;
     }
 
-    private getDefaultStyle() {
+    private getDefaultStyle(): AgErrorBarThemeableOptions {
         const whiskerStyle = this.getWhiskerProperties();
         const capStyle = mergeDefaults(this.cap, whiskerStyle);
         return { ...whiskerStyle, cap: capStyle };
     }
 
-    private getHighlightStyle() {
+    private getHighlightStyle(): AgErrorBarThemeableOptions {
         const style = this.cartesianSeries.highlightStyle.item;
         const { length, lengthRatio } = this.cap;
         return { ...style, cap: { ...style, length, lengthRatio } };
@@ -333,8 +343,9 @@ export class ErrorBars
         // that the typical use case for error bars includes few data points
         // (because the chart will get cluttered very quickly if there are many
         // data points with error bars).
-        for (let i = 0; i < this.nodeData.length; i++) {
-            if (highlightChange === this.cartesianSeries.contextNodeData[0].nodeData[i]) {
+        const { nodeData } = this.cartesianSeries.contextNodeData[0];
+        for (let i = 0; i < nodeData.length; i++) {
+            if (highlightChange === nodeData[i]) {
                 this.selection.nodes()[i].updateStyle(style);
                 break;
             }

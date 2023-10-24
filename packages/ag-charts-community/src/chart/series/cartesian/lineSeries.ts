@@ -33,11 +33,11 @@ import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type {
     CartesianAnimationData,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-    ErrorBoundSeriesNodeDatum,
 } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { prepareLinePathAnimation } from './lineUtil';
