@@ -1,4 +1,10 @@
-import type { AgErrorBarCapOptions, AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
+import type {
+    AgErrorBarCapOptions,
+    AgErrorBarOptions,
+    AgErrorBarStylingOptions,
+    AgErrorBarThemeableOptions,
+    _Scale,
+} from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ErrorBarCapFormatter, ErrorBarFormatter, ErrorBarNodeDatum } from './errorBarNode';
@@ -332,16 +338,24 @@ export class ErrorBars
         this.groupNode.visible = event.enabled;
     }
 
+    private makeStyle(baseStyle: AgErrorBarStylingOptions): AgErrorBarThemeableOptions {
+        return {
+            visible: baseStyle.visible,
+            lineDash: baseStyle.lineDash,
+            lineDashOffset: baseStyle.lineDashOffset,
+            stroke: baseStyle.stroke,
+            strokeWidth: baseStyle.strokeWidth,
+            strokeOpacity: baseStyle.strokeOpacity,
+            cap: mergeDefaults(this.cap, baseStyle),
+        };
+    }
+
     private getDefaultStyle(): AgErrorBarThemeableOptions {
-        const whiskerStyle = this.getWhiskerProperties();
-        const capStyle = mergeDefaults(this.cap, whiskerStyle);
-        return { ...whiskerStyle, cap: capStyle };
+        return this.makeStyle(this.getWhiskerProperties());
     }
 
     private getHighlightStyle(): AgErrorBarThemeableOptions {
-        const style = this.cartesianSeries.highlightStyle.item;
-        const { length, lengthRatio } = this.cap;
-        return { ...style, cap: { ...style, length, lengthRatio } };
+        return this.makeStyle(this.cartesianSeries.highlightStyle.item);
     }
 
     private restyleHightlightChange(highlightChange: HighlightNodeDatum, style: AgErrorBarThemeableOptions) {

@@ -87,13 +87,13 @@ export class ErrorBarNode extends _Scene.Group {
         };
     }
 
-    private applyStyling(path: _Scene.Path, style: object) {
+    private applyStyling(target: AgErrorBarStylingOptions, source: AgErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
         _ModuleSupport.partialAssign(
             ['visible', 'stroke', 'strokeWidth', 'strokeOpacity', 'lineDash', 'lineDashOffset'],
-            path,
-            style
+            target,
+            source
         );
     }
 
