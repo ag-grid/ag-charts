@@ -4,10 +4,10 @@ import type {
     AgErrorBarDataOptions,
     AgErrorBarFormatterParams,
     AgErrorBarOptions,
+    AgErrorBarStylingOptions,
     AgErrorBarThemeableOptions,
-    _ModuleSupport,
 } from 'ag-charts-community';
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { InteractionRange } from 'ag-charts-community';
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
@@ -69,7 +69,7 @@ export class ErrorBarNode extends _Scene.Group {
         formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
     ): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
-        if (datum === undefined) {
+        if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
             return undefined;
         }
         const { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName } =
@@ -87,6 +87,16 @@ export class ErrorBarNode extends _Scene.Group {
         };
     }
 
+    private applyStyling(path: _Scene.Path, style: object) {
+        // Style can be any object, including user data (e.g. formatter
+        // result). So filter out anything that isn't styling options:
+        _ModuleSupport.partialAssign(
+            ['visible', 'stroke', 'strokeWidth', 'strokeOpacity', 'lineDash', 'lineDashOffset'],
+            path,
+            style
+        );
+    }
+
     updateStyle(
         style: AgErrorBarThemeableOptions,
         formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
@@ -94,8 +104,8 @@ export class ErrorBarNode extends _Scene.Group {
         const { whiskerPath, capsPath } = this;
         const { cap, ...whiskerStyle } = style;
         const { length, lengthRatio, ...capsStyle } = cap ?? {};
-        Object.assign(whiskerPath, whiskerStyle);
-        Object.assign(capsPath, capsStyle);
+        this.applyStyling(whiskerPath, whiskerStyle);
+        this.applyStyling(capsPath, capsStyle);
         whiskerPath.markDirty(whiskerPath, _Scene.RedrawType.MINOR);
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
 
@@ -105,18 +115,16 @@ export class ErrorBarNode extends _Scene.Group {
                 const result = formatters.formatter(params);
                 const cap = result.cap;
                 delete result.cap;
-                // TODO(olegat) filter out unknown keys like result['blabla']
-                Object.assign(whiskerPath, result);
-                Object.assign(capsPath, result);
+                this.applyStyling(whiskerPath, result);
+                this.applyStyling(capsPath, result);
                 if (cap !== undefined) {
-                    Object.assign(capsPath, cap);
+                    this.applyStyling(capsPath, cap);
                 }
             }
 
             if (formatters.cap.formatter !== undefined) {
                 const result = formatters.cap.formatter(params);
-                // TODO(olegat) filter out unknown keys like result['blabla']
-                Object.assign(capsPath, result);
+                this.applyStyling(capsPath, result);
             }
         }
     }
