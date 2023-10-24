@@ -141,7 +141,6 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                     <PropertyName
                         isRequired={definition.isRequired}
                         style={definition.strikeThrough ? { textDecoration: 'line-through' } : {}}
-                        onClick={toggleExpanded}
                     >
                         {name}
                     </PropertyName>
@@ -149,11 +148,7 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
                 </h6>
 
                 <div className={styles.metaList}>
-                    <div
-                        title={typeUrl && isObject ? capitalize(name) : propertyType}
-                        className={styles.metaItem}
-                        onClick={toggleExpanded}
-                    >
+                    <div title={typeUrl && isObject ? capitalize(name) : propertyType} className={styles.metaItem}>
                         <span className={styles.metaLabel}>Type</span>
                         {typeUrl ? (
                             <PropertyName
@@ -179,7 +174,6 @@ export const Property: FunctionComponent<PropertyCall> = ({ framework, id, name,
             </td>
             <td className={styles.rightColumn}>
                 <div
-                    onClick={toggleExpanded}
                     role="presentation"
                     className={styles.description}
                     dangerouslySetInnerHTML={{ __html: removeDefaultValue(description) }}
