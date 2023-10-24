@@ -443,13 +443,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.updateAxisLine();
 
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
+        const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
         this.updateSelections(tickData.ticks);
 
         if (this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
         } else {
-            const previous = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
-            const diff = this.calculateUpdateDiff(previous, tickData);
+            const diff = this.calculateUpdateDiff(previousTicks, tickData);
             this.animationState.transition('update', diff);
         }
 
