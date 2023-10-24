@@ -138,9 +138,9 @@ export function prepareAreaPathAnimation(
 
     const prepareMarkerPairs = () => {
         if (isCategoryBased && diff) {
-            return pairCategoryData(newData, oldData, diff);
+            return pairCategoryData(newData, oldData, diff, { backfillSplitMode: 'static' });
         }
-        return pairContinuousData(newData, oldData);
+        return pairContinuousData(newData, oldData, { backfillSplitMode: 'static' });
     };
 
     const prepareFillPairs = () => {

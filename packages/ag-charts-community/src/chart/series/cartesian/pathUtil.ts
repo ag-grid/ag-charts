@@ -77,13 +77,15 @@ function backfillPathPoint(
     }
 }
 
-export function backfillPathPointData(result: PathPoint[]) {
+export type BackfillSplitMode = 'intersect' | 'static';
+export type BackfillAddMode = 'fan-out' | 'static';
+export function backfillPathPointData(result: PathPoint[], splitMode: BackfillSplitMode) {
     backfillPathPoint(result, 'out', 'in', (toProcess, sIdx, eIdx) => {
         if (sIdx === -1 && result[eIdx]) {
             toProcess.forEach((d) => (d.to = result[eIdx].from));
         } else if (eIdx === result.length && result[sIdx]) {
             toProcess.forEach((d) => (d.to = result[sIdx].from));
-        } else if (result[sIdx]?.from && result[eIdx]?.from) {
+        } else if (splitMode === 'intersect' && result[sIdx]?.from && result[eIdx]?.from) {
             toProcess.forEach((d) => (d.to = intersectionOnLine(result[sIdx].from!, result[eIdx].from!, d.from!.x)));
         } else {
             toProcess.forEach((d) => (d.to = d.from));
@@ -95,7 +97,7 @@ export function backfillPathPointData(result: PathPoint[]) {
             toProcess.forEach((d) => (d.from = result[eIdx].to));
         } else if (eIdx === result.length && result[sIdx]) {
             toProcess.forEach((d) => (d.from = result[sIdx].to));
-        } else if (result[sIdx]?.to && result[eIdx]?.to) {
+        } else if (splitMode === 'intersect' && result[sIdx]?.to && result[eIdx]?.to) {
             toProcess.forEach((d) => (d.from = intersectionOnLine(result[sIdx].to!, result[eIdx].to!, d.to!.x)));
         } else {
             toProcess.forEach((d) => (d.from = d.to));

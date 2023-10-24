@@ -3,7 +3,7 @@ import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext, Scaling } from './cartesianSeries';
 import { prepareMarkerAnimation } from './markerUtil';
-import type { PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
+import type { BackfillSplitMode, PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
 import { backfillPathPointData, minMax } from './pathUtil';
 
 function scale(val: number | string | Date, scaling?: Scaling) {
@@ -49,7 +49,14 @@ type LineContextLike = {
     nodeData: PathNodeDatumLike[];
 };
 
-export function pairContinuousData(newData: LineContextLike, oldData: LineContextLike) {
+export function pairContinuousData(
+    newData: LineContextLike,
+    oldData: LineContextLike,
+    opts: {
+        backfillSplitMode?: BackfillSplitMode;
+    } = {}
+) {
+    const { backfillSplitMode = 'intersect' } = opts;
     const toNewScale = (oldDatum: { xValue?: number; yValue?: number }) => {
         return {
             x: scale(oldDatum.xValue ?? NaN, newData.scales.x),
@@ -134,11 +141,19 @@ export function pairContinuousData(newData: LineContextLike, oldData: LineContex
         }
     }
 
-    backfillPathPointData(result);
+    backfillPathPointData(result, backfillSplitMode);
     return { result, resultMap };
 }
 
-export function pairCategoryData(newData: LineContextLike, oldData: LineContextLike, diff: ProcessedOutputDiff) {
+export function pairCategoryData(
+    newData: LineContextLike,
+    oldData: LineContextLike,
+    diff: ProcessedOutputDiff,
+    opts: {
+        backfillSplitMode?: BackfillSplitMode;
+    } = {}
+) {
+    const { backfillSplitMode = 'intersect' } = opts;
     const result: PathPoint[] = [];
     const resultMap: PathPointMap = {
         added: {},
@@ -198,7 +213,7 @@ export function pairCategoryData(newData: LineContextLike, oldData: LineContextL
         return { result: undefined, resultMap: undefined };
     }
 
-    backfillPathPointData(result);
+    backfillPathPointData(result, backfillSplitMode);
 
     return { result, resultMap };
 }
