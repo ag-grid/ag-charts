@@ -19,7 +19,7 @@ const options: AgChartOptions = {
             .join(' ')}`,
         strokeWidth: 0,
         marker: {
-            fillOpacity: 0.8,
+            fillOpacity: 0.9,
         },
     })),
     axes: [
