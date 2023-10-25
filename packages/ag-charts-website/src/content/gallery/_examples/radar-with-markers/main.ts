@@ -5,7 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'KPIs by Department',
+        text: 'Social Circle',
     },
     series: Object.entries(getData()).map(([relationship, data]) => ({
         data,
