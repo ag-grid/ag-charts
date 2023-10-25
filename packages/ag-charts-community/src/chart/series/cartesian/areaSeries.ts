@@ -46,7 +46,7 @@ import {
 import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { pathFadeInAnimation, pathSwipeInAnimation, resetPathFn } from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -96,7 +96,7 @@ export class AreaSeries extends CartesianSeries<
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
             animationResetFns: {
-                path: resetPathFn,
+                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
@@ -415,7 +415,7 @@ export class AreaSeries extends CartesianSeries<
         return new MarkerShape();
     }
 
-    protected override async updatePaths(opts: { paths: Path[] }) {
+    protected override async updatePathNodes(opts: { paths: Path[] }) {
         const [fill, stroke] = opts.paths;
         const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
@@ -599,6 +599,10 @@ export class AreaSeries extends CartesianSeries<
                 },
             },
         ];
+    }
+
+    protected override async updatePaths(opts: { contextData: AreaSeriesNodeDataContext; paths: Path[] }) {
+        this.updateAreaPaths([opts.paths], [opts.contextData]);
     }
 
     private updateAreaPaths(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {

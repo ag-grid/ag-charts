@@ -138,6 +138,8 @@ export function pathFadeOutAnimation<T>(
     staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, LABEL_PHASE);
 }
 
-export function resetPathFn(_node: Path) {
-    return { opacity: 1, clipScalingX: 1, clipMode: undefined };
+export function buildResetPathFn(opts: { getOpacity(): number }) {
+    return (_node: Path) => {
+        return { opacity: opts.getOpacity(), clipScalingX: 1, clipMode: undefined };
+    };
 }

@@ -42,7 +42,7 @@ import type {
 import { CartesianSeries } from './cartesianSeries';
 import { prepareLinePathAnimation } from './lineUtil';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { pathSwipeInAnimation, resetPathFn } from './pathUtil';
+import { buildResetPathFn, pathSwipeInAnimation } from './pathUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -99,7 +99,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             ],
             markerSelectionGarbageCollection: false,
             animationResetFns: {
-                path: resetPathFn,
+                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
@@ -280,11 +280,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return new MarkerShape();
     }
 
-    protected override async updatePaths(opts: {
-        seriesHighlighted?: boolean;
-        contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
-        paths: Path[];
-    }) {
+    protected override async updatePathNodes(opts: { seriesHighlighted?: boolean; paths: Path[] }) {
         const {
             paths: [lineNode],
         } = opts;
@@ -455,10 +451,14 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         ];
     }
 
-    private updateLinePaths(
-        paths: Path[][],
-        contextData: CartesianSeriesNodeDataContext<LineNodeDatum, LineNodeDatum>[]
-    ) {
+    protected override async updatePaths(opts: {
+        contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
+        paths: Path[];
+    }) {
+        this.updateLinePaths([opts.paths], [opts.contextData]);
+    }
+
+    private updateLinePaths(paths: Path[][], contextData: CartesianSeriesNodeDataContext<LineNodeDatum>[]) {
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
 

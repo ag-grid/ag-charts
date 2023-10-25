@@ -614,7 +614,7 @@ export abstract class Series<
     // Produce data joins and update selection's nodes using node data.
     abstract update(opts: { seriesRect?: BBox }): Promise<void>;
 
-    protected getOpacity(): number {
+    public getOpacity(): number {
         const defaultOpacity = 1;
         const { dimOpacity = 1, enabled = true } = this.highlightStyle.series;
 

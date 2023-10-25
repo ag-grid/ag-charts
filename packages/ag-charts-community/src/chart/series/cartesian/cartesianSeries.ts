@@ -427,10 +427,7 @@ export abstract class CartesianSeries<
         this.contentGroup.visible = visible;
         this.highlightGroup.visible = visible && !!seriesHighlighted;
 
-        const subGroupOpacities = this.subGroups.map(() => {
-            return this.getOpacity();
-        });
-
+        const subGroupOpacity = this.getOpacity();
         if (hasMarkers) {
             await this.updateMarkerNodes({
                 markerSelection: highlightSelection as any,
@@ -465,7 +462,6 @@ export abstract class CartesianSeries<
                 const { itemId } = this.contextNodeData[seriesIdx];
 
                 const subGroupVisible = visible;
-                const subGroupOpacity = subGroupOpacities[seriesIdx];
 
                 dataNodeGroup.opacity = subGroupOpacity;
                 dataNodeGroup.visible = animationEnabled || subGroupVisible;
