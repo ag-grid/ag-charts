@@ -3,6 +3,7 @@ import type { AgChartCallbackParams } from './callbackOptions';
 export interface AgContextMenuOptions {
     enabled?: boolean;
     extraActions?: Array<AgContextMenuAction>;
+    extraNodeActions?: Array<AgContextMenuAction>;
 }
 
 export type AgContextMenuAction = {

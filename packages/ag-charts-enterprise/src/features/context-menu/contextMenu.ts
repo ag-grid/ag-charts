@@ -7,6 +7,7 @@ type ContextMenuGroups = {
     default: Array<ContextMenuItem>;
     node: Array<ContextMenuItem>;
     extra: Array<ContextMenuItem>;
+    extraNode: Array<ContextMenuItem>;
 };
 type ContextMenuItem = 'download' | ContextMenuAction;
 type ContextMenuAction = {
@@ -33,6 +34,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
      * Extra menu actions with a label and callback.
      */
     public extraActions: Array<ContextMenuAction> = [];
+
+    /**
+     * Extra menu actions that only appear when clicking on a node.
+     */
+    public extraNodeActions: Array<ContextMenuAction> = [];
 
     // Module context
     private scene: _Scene.Scene;
@@ -74,7 +80,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event)));
 
         // State
-        this.groups = { default: [], node: [], extra: [] };
+        this.groups = { default: [], node: [], extra: [], extraNode: [] };
 
         // HTML elements
         this.canvasElement = ctx.scene.canvas.element;
@@ -177,7 +183,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.groups.default = [...ContextMenu.defaultActions];
 
-        // TODO: detect clicked on marker
         this.pickedNode = this.highlightManager.getActivePicked();
         if (this.pickedNode) {
             this.groups.node = [...ContextMenu.nodeActions];
@@ -187,8 +192,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.groups.extra = [...this.extraActions];
         }
 
-        const { default: def, extra, node } = this.groups;
-        const groupCount = def.length + node.length + extra.length;
+        if (this.extraNodeActions.length > 0 && this.pickedNode) {
+            this.groups.extraNode = [...this.extraNodeActions];
+        }
+
+        const { default: def, node, extra, extraNode } = this.groups;
+        const groupCount = def.length + node.length + extra.length + extraNode.length;
 
         if (groupCount === 0) return;
 
@@ -245,8 +254,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             if (item) menuElement.appendChild(item);
         });
 
-        (['node', 'extra'] as Array<keyof ContextMenuGroups>).forEach((group) => {
-            if (this.groups[group].length === 0) return;
+        (['node', 'extra', 'extraNode'] as Array<keyof ContextMenuGroups>).forEach((group) => {
+            if (this.groups[group].length === 0 || (['node', 'extraNode'].includes(group) && !this.pickedNode)) return;
             menuElement.appendChild(this.createDividerElement());
             this.groups[group].forEach((i) => {
                 const item = this.renderItem(i);
