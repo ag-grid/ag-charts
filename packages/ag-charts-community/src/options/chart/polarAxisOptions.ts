@@ -41,6 +41,8 @@ export interface AgAngleNumberAxisOptions extends AgBaseAxisOptions<AgAngleAxisL
     endAngle?: number;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions[];
+    /** If 'true', the range will be rounded up to ensure nice equal spacing between the ticks. */
+    nice?: boolean;
 }
 
 export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
