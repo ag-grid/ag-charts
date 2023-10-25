@@ -37,10 +37,12 @@ const options: AgChartOptions = {
                 {
                     type: 'range',
                     range: [1, 2],
+                    strokeWidth: 0,
                 },
                 {
                     type: 'range',
                     range: [6, 10],
+                    strokeWidth: 0
                 },
             ],
         },

@@ -22,6 +22,7 @@ const options: AgChartOptions = {
         sizeName: 'Commits',
         marker: {
             strokeWidth: 0,
+            size: 0,
             maxSize: 40
         }
     })),
