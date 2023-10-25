@@ -26,6 +26,9 @@ const options: AgChartOptions = {
         {
             type: 'angle-number',
             shape: 'circle',
+            label: {
+                enabled: false,
+            },
             gridLine: {
                 enabled: false,
             },
