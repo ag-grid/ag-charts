@@ -1,10 +1,9 @@
 import { LABEL_PHASE } from '../../motion/animation';
 import { staticFromToMotion } from '../../motion/fromToMotion';
-import type { Node } from '../../scene/node';
+import type { NodeWithOpacity } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import type { AnimationManager } from '../interaction/animationManager';
 
-type NodeWithOpacity = Node & { opacity: number };
 export function seriesLabelFadeInAnimation<T>(
     { id }: { id: string },
     subId: string,

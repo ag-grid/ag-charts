@@ -477,7 +477,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
-        const { markerSelections, labelSelections, contextData, paths } = animationData;
+        const { markerSelections, labelSelections, annotationSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
         const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
@@ -486,6 +486,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         resetMotion(markerSelections, resetMarkerPositionFn);
         markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, annotationSelections);
     }
 
     protected override animateReadyResize(animationData: LineAnimationData): void {
@@ -497,7 +498,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
     protected override animateWaitingUpdateReady(animationData: LineAnimationData) {
         const { animationManager } = this.ctx;
-        const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
+        const { markerSelections, labelSelections, annotationSelections, contextData, paths, previousContextData } =
+            animationData;
 
         super.resetAllAnimation(animationData);
 
@@ -526,6 +528,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, annotationSelections);
     }
 
     private getDatumId(datum: LineNodeDatum) {

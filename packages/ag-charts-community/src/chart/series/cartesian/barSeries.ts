@@ -618,16 +618,17 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections }: BarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
         );
 
         fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
     }
 
-    override animateWaitingUpdateReady(data: BarAnimationData) {
+    override animateWaitingUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
         const diff = this.processedData?.reduced?.diff;
         const fns = prepareBarAnimationFunctions(
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
@@ -637,13 +638,14 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             this.id,
             'waiting-update-ready',
             this.ctx.animationManager,
-            data.datumSelections,
+            datumSelections,
             fns,
             (_, datum) => String(datum.xValue),
             diff
         );
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
     }
 
     protected isLabelEnabled() {

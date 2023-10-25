@@ -60,6 +60,8 @@ export interface LayerManager {
     removeLayer(canvas: Layer): void;
 }
 
+export type NodeWithOpacity = Node & { opacity: number };
+
 /**
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
