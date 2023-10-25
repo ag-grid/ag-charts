@@ -79,20 +79,39 @@ export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number):
 export function scaleZoomAxisWithAnchor(
     newState: _ModuleSupport.ZoomState,
     oldState: _ModuleSupport.ZoomState,
-    anchor: AgZoomAnchorPoint
+    anchor: AgZoomAnchorPoint,
+    origin?: number
 ): _ModuleSupport.ZoomState {
     let { min, max } = oldState;
-    const center = (UNIT.max - UNIT.min) / 2;
+    const center = min + (max - min) / 2;
     const diff = newState.max - newState.min;
 
     if (anchor === 'start') {
         max = oldState.min + diff;
+    } else if (anchor === 'end') {
+        min = oldState.max - diff;
     } else if (anchor === 'middle') {
         min = center - diff / 2;
         max = center + diff / 2;
-    } else if (anchor === 'end') {
-        min = oldState.max - diff;
+    } else if (anchor === 'pointer') {
+        const point = scaleZoomAxisWithPoint(newState, oldState, origin ?? center);
+        min = point.min;
+        max = point.max;
     }
+
+    return { min, max };
+}
+
+export function scaleZoomAxisWithPoint(
+    newState: _ModuleSupport.ZoomState,
+    oldState: _ModuleSupport.ZoomState,
+    origin: number
+) {
+    const scaledOrigin = origin * (1 - (oldState.max - oldState.min - (newState.max - newState.min)));
+
+    const translation = origin - scaledOrigin;
+    const min = newState.min + translation;
+    const max = newState.max + translation;
 
     return { min, max };
 }
