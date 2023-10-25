@@ -653,4 +653,29 @@ describe('ErrorBars', () => {
         });
         await compare();
     });
+
+    it('should use correct cursor', async () => {
+        const getCursor = () => {
+            return chart.getModuleContext().cursorManager.getCursor();
+        };
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                tooltip: { range: 2 },
+                series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],
+            })
+        );
+        await waitForChartStability(chart);
+        const { x, y } = getItemCoords(4);
+
+        // Hover over an error bar
+        await hoverAction(x, y - 20)(chart);
+        await waitForChartStability(chart);
+        expect(getCursor()).toBe('grab');
+
+        // Hover over nothing
+        await hoverAction(x, y - 100)(chart);
+        await waitForChartStability(chart);
+        expect(getCursor()).toBe('default');
+    });
 });
