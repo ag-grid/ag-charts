@@ -21,15 +21,13 @@ A user will now be able to use the context menu by right clicking anywhere on th
 
 You can add extra actions to the context menu which can run any arbitrary function.
 
-In the example below, there is one extra action called "Say hello" that will output the value at the datum if one was clicked, otherwise falling back to a default.
-
 ```ts
 contextMenu: {
     extraActions: [
-        { label: 'Say hello', action: () => console.log('Hello world') },
+        { label: 'Say hello', action: () => window.alert('Hello world') },
     ],
     extraNodeActions: [
-        { label: 'Say hello to a node', action: ({ datum }) => console.log(`Hello ${datum?.value ?? 'world'}`) }
+        { label: 'Say hello to a node', action: ({ datum }) => window.alert(`Hello ${datum?.month ?? 'world'}`) }
     ];
 }
 ```
@@ -37,24 +35,5 @@ contextMenu: {
 {% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-actions" type="generated" options="{ \"enterprise\": true }" /%}
 
 ## API Reference
-
-{/_ TODO: replace with usual api reference component _/}
-
-```ts
-interface AgContextMenuOptions {
-    enabled?: boolean;
-    extraActions?: Array<AgContextMenuAction>;
-}
-
-type AgContextMenuAction = {
-    label: string;
-    action: (params: AgContextMenuActionParams) => void;
-};
-
-type AgContextMenuActionParams = {
-    datum?: any;
-    event: MouseEvent;
-};
-```
 
 {% interfaceDocumentation interfaceName="AgContextMenuOptions" config="{ \"showSnippets\": false }" /%}
