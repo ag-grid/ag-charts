@@ -234,6 +234,11 @@ export class AreaSeries extends CartesianSeries<
             `yValueCumulative`,
         ]);
 
+        const createMovePoint = (plainPoint: AreaPathPoint) => {
+            const { point, ...stroke } = plainPoint;
+            return { ...stroke, point: { ...point, moveTo: true } };
+        };
+
         const createPathCoordinates = (xValue: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
             const x = xScale.convert(xValue) + xOffset;
 
@@ -366,8 +371,6 @@ export class AreaSeries extends CartesianSeries<
                 }
 
                 // fill data
-                // Handle data in pairs of current and next x and y values
-
                 if (lastYDatum == null || yDatum == null) {
                     // Reset all coordinates to 'zero' value.
                     yValueStart = yValueStart ?? 0;
@@ -389,9 +392,8 @@ export class AreaSeries extends CartesianSeries<
 
                 // stroke data
                 if (validPoint && lastYDatum != null && datumIdx > 0) {
-                    const { point, ...stroke } = prevCoordinates[0];
-                    strokePoints.push({ ...stroke, point: { ...point, moveTo: true } });
-                    strokePoints.push({ ...nextCoordinates[0] });
+                    strokePoints.push(createMovePoint(prevCoordinates[0]));
+                    strokePoints.push(nextCoordinates[0]);
                 }
 
                 lastXDatum = xDatum;
@@ -456,6 +458,48 @@ export class AreaSeries extends CartesianSeries<
         };
         updateClipPath(stroke);
         updateClipPath(fill);
+    }
+
+    protected override async updatePaths(opts: { contextData: AreaSeriesNodeDataContext; paths: Path[] }) {
+        this.updateAreaPaths([opts.paths], [opts.contextData]);
+    }
+
+    private updateAreaPaths(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
+        this.updateFillPath(paths, contextData);
+        this.updateStrokePath(paths, contextData);
+    }
+
+    private updateFillPath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
+        contextData.forEach(({ fillData }, contextDataIndex) => {
+            const [fill] = paths[contextDataIndex];
+            const { path: fillPath } = fill;
+            fillPath.clear({ trackChanges: true });
+            for (const { point } of fillData.points) {
+                if (point.moveTo) {
+                    fillPath.moveTo(point.x, point.y);
+                } else {
+                    fillPath.lineTo(point.x, point.y);
+                }
+            }
+            fillPath.closePath();
+            fill.checkPathDirty();
+        });
+    }
+
+    private updateStrokePath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
+        contextData.forEach(({ strokeData }, contextDataIndex) => {
+            const [, stroke] = paths[contextDataIndex];
+            const { path: strokePath } = stroke;
+            strokePath.clear({ trackChanges: true });
+            for (const { point } of strokeData.points) {
+                if (point.moveTo === true) {
+                    strokePath.moveTo(point.x, point.y);
+                } else {
+                    strokePath.lineTo(point.x, point.y);
+                }
+            }
+            stroke.checkPathDirty();
+        });
     }
 
     protected override async updateMarkerSelection(opts: {
@@ -599,50 +643,6 @@ export class AreaSeries extends CartesianSeries<
                 },
             },
         ];
-    }
-
-    protected override async updatePaths(opts: { contextData: AreaSeriesNodeDataContext; paths: Path[] }) {
-        this.updateAreaPaths([opts.paths], [opts.contextData]);
-    }
-
-    private updateAreaPaths(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
-        this.updateFillPath(paths, contextData);
-        this.updateStrokePath(paths, contextData);
-    }
-
-    private updateFillPath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
-        contextData.forEach(({ fillData }, contextDataIndex) => {
-            const [fill] = paths[contextDataIndex];
-            const { path: fillPath } = fill;
-            fillPath.clear({ trackChanges: true });
-            let moveTo = true;
-            for (const { point } of fillData.points) {
-                if (moveTo) {
-                    fillPath.moveTo(point.x, point.y);
-                    moveTo = false;
-                } else {
-                    fillPath.lineTo(point.x, point.y);
-                }
-            }
-            fillPath.closePath();
-            fill.checkPathDirty();
-        });
-    }
-
-    private updateStrokePath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
-        contextData.forEach(({ strokeData }, contextDataIndex) => {
-            const [, stroke] = paths[contextDataIndex];
-            const { path: strokePath } = stroke;
-            strokePath.clear({ trackChanges: true });
-            for (const { point } of strokeData.points) {
-                if (point.moveTo === true) {
-                    strokePath.moveTo(point.x, point.y);
-                } else {
-                    strokePath.lineTo(point.x, point.y);
-                }
-            }
-            stroke.checkPathDirty();
-        });
     }
 
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
