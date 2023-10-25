@@ -2,6 +2,7 @@ import classnames from 'classnames';
 import type { FunctionComponent, ReactElement, ReactNode } from 'react';
 import { useState } from 'react';
 
+import { TabItem } from './TabItem';
 import styles from './Tabs.module.scss';
 
 const TAB_LABEL_PROP = 'tab-label'; // NOTE: kebab case to match markdown html props
@@ -21,25 +22,9 @@ export const Tabs: FunctionComponent<Props> = ({ children }) => {
         <div className={classnames('tabs-outer', styles.tabsOuter)}>
             <header className={'tabs-header'}>
                 <ul className="tabs-nav-list" role="tablist">
-                    {contentChildren.map(({ props }, idx) => {
+                    {contentChildren.map(({ props }: ReactElement) => {
                         const label = props[TAB_LABEL_PROP];
-                        return (
-                            <li key={label} className="tabs-nav-item" role="presentation">
-                                <button
-                                    className={classnames('button-style-none', 'tabs-nav-link', {
-                                        active: label === selected,
-                                    })}
-                                    onClick={(e) => {
-                                        setSelected(label);
-                                        e.preventDefault();
-                                    }}
-                                    role="tab"
-                                    disabled={label === selected}
-                                >
-                                    {label}
-                                </button>
-                            </li>
-                        );
+                        return <TabItem label={label} selected={selected} setSelected={setSelected} />;
                     })}
                 </ul>
 
