@@ -374,10 +374,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lastYLowDatum = yLowValue;
         });
 
-        fillHighPoints[0] = createMovePoint(fillHighPoints[0]);
+        if (fillHighPoints.length > 0) {
+            fillHighPoints[0] = createMovePoint(fillHighPoints[0]);
+        }
         fillHighPoints.push(...fillLowPoints.reverse());
 
-        strokeLowPoints[0] = createMovePoint(strokeLowPoints[0]);
+        if (strokeLowPoints.length > 0) {
+            strokeLowPoints[0] = createMovePoint(strokeLowPoints[0]);
+        }
         strokeHighPoints.push(...strokeLowPoints);
 
         return [context];

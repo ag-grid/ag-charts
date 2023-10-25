@@ -4,7 +4,7 @@ import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext, Scaling } from './cartesianSeries';
 import { prepareMarkerAnimation } from './markerUtil';
 import type { BackfillSplitMode, PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
-import { backfillPathPointData, minMax } from './pathUtil';
+import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
 
 function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
@@ -274,33 +274,6 @@ export function prepareLinePathAnimationFns(
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
 
-export function renderPartialLine(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) {
-    const { path: linePath } = path;
-    let previousTo: PathPoint['to'];
-    for (const data of pairData) {
-        const ratio = ratios[data.change];
-        if (ratio == null) continue;
-
-        const { from, to } = data;
-        if (from == null || to == null) continue;
-
-        const x = from.x + (to.x - from.x) * ratio;
-        const y = from.y + (to.y - from.y) * ratio;
-        if (data.moveTo === false) {
-            linePath.lineTo(x, y);
-        } else if (data.moveTo === true || !previousTo) {
-            linePath.moveTo(x, y);
-        } else if (previousTo) {
-            const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
-            const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
-            const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
-            linePath.lineTo(midPointX, midPointY);
-            linePath.moveTo(x, y);
-        }
-        previousTo = to;
-    }
-}
-
 export function prepareLinePathAnimation(
     newData: LineContextLike,
     oldData: LineContextLike,
@@ -314,7 +287,7 @@ export function prepareLinePathAnimation(
         return;
     }
 
-    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialLine);
+    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap);
     return { ...pathFns, marker };
 }

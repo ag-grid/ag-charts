@@ -1,12 +1,11 @@
 import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
-import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { pairCategoryData, pairContinuousData, prepareLinePathAnimationFns } from './lineUtil';
 import { prepareMarkerAnimation } from './markerUtil';
-import type { PathPoint, PathPointChange } from './pathUtil';
+import { renderPartialPath } from './pathUtil';
 
 export enum AreaSeriesTag {
     Fill,
@@ -59,34 +58,6 @@ export interface AreaSeriesNodeDataContext
     extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
-}
-
-function renderPartialArea(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) {
-    const { path: areaPath } = path;
-    let previousTo: PathPoint['to'];
-    for (const data of pairData) {
-        const ratio = ratios[data.change];
-        if (ratio == null) continue;
-
-        const { from, to } = data;
-        if (from == null || to == null) continue;
-
-        const x = from.x + (to.x - from.x) * ratio;
-        const y = from.y + (to.y - from.y) * ratio;
-
-        if (data.moveTo === false) {
-            areaPath.lineTo(x, y);
-        } else if (data.moveTo === true || !previousTo) {
-            areaPath.moveTo(x, y);
-        } else if (previousTo) {
-            const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
-            const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
-            const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
-            areaPath.lineTo(midPointX, midPointY);
-            areaPath.moveTo(x, y);
-        }
-        previousTo = to;
-    }
 }
 
 function splitFillPoints(context: AreaSeriesNodeDataContext) {
@@ -158,7 +129,7 @@ export function prepareAreaPathAnimation(
     }
 
     const pairData = [...top.result, ...bottom.result.reverse()];
-    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialArea);
+    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialPath);
     const marker = prepareMarkerAnimation(markerPairMap);
     return { fill, marker };
 }

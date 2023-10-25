@@ -379,27 +379,31 @@ export class AreaSeries extends CartesianSeries<
                     yValuePreviousEnd = yValuePreviousStart ?? 0;
                 }
 
-                const prevCoordinates = createPathCoordinates(lastXDatum, yValuePreviousStart, yValuePreviousEnd);
-                const nextCoordinates = createPathCoordinates(xDatum, yValueStart, yValueEnd);
+                const [prevTop, prevBottom] = createPathCoordinates(lastXDatum, yValuePreviousStart, yValuePreviousEnd);
+                const [top, bottom] = createPathCoordinates(xDatum, yValueStart, yValueEnd);
 
                 const xValid = lastXDatum != null && xDatum != null;
                 if (xValid) {
-                    fillPoints.push(prevCoordinates[0]);
-                    fillPhantomPoints.push(prevCoordinates[1]);
-                    fillPoints.push(nextCoordinates[0]);
-                    fillPhantomPoints.push(nextCoordinates[1]);
+                    fillPoints.push(prevTop);
+                    fillPhantomPoints.push(prevBottom);
+                    fillPoints.push(top);
+                    fillPhantomPoints.push(bottom);
                 }
 
                 // stroke data
                 if (validPoint && lastYDatum != null && datumIdx > 0) {
-                    strokePoints.push(createMovePoint(prevCoordinates[0]));
-                    strokePoints.push(nextCoordinates[0]);
+                    strokePoints.push(createMovePoint(prevTop));
+                    strokePoints.push(top);
                 }
 
                 lastXDatum = xDatum;
                 lastYDatum = yDatum;
             });
         });
+
+        if (strokePoints.length > 0) {
+            strokePoints[0] = createMovePoint(strokePoints[0]);
+        }
 
         fillPhantomPoints.reverse();
         fillPoints.push(...fillPhantomPoints);
@@ -492,7 +496,7 @@ export class AreaSeries extends CartesianSeries<
             const { path: strokePath } = stroke;
             strokePath.clear({ trackChanges: true });
             for (const { point } of strokeData.points) {
-                if (point.moveTo === true) {
+                if (point.moveTo) {
                     strokePath.moveTo(point.x, point.y);
                 } else {
                     strokePath.lineTo(point.x, point.y);

@@ -105,6 +105,33 @@ export function backfillPathPointData(result: PathPoint[], splitMode: BackfillSp
     });
 }
 
+export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) {
+    const { path: linePath } = path;
+    let previousTo: PathPoint['to'];
+    for (const data of pairData) {
+        const ratio = ratios[data.change];
+        if (ratio == null) continue;
+
+        const { from, to } = data;
+        if (from == null || to == null) continue;
+
+        const x = from.x + (to.x - from.x) * ratio;
+        const y = from.y + (to.y - from.y) * ratio;
+        if (data.moveTo === false) {
+            linePath.lineTo(x, y);
+        } else if (data.moveTo === true || !previousTo) {
+            linePath.moveTo(x, y);
+        } else if (previousTo) {
+            const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
+            const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
+            const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
+            linePath.lineTo(midPointX, midPointY);
+            linePath.moveTo(x, y);
+        }
+        previousTo = to;
+    }
+}
+
 export function pathSwipeInAnimation({ id }: { id: string }, animationManager: AnimationManager, paths: Path[]) {
     staticFromToMotion(
         id,
