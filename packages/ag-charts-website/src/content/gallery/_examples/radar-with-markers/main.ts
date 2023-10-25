@@ -5,7 +5,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Social Circle',
+        text: 'SOCIAL CIRCLE',
     },
     series: Object.entries(getData()).map(([relationship, data]) => ({
         data,
@@ -13,8 +13,14 @@ const options: AgChartOptions = {
         angleKey: 'recognitionTime',
         angleName: 'Recognition Time',
         radiusKey: 'closeness',
-        radiusName: `${relationship[0].toUpperCase()}${relationship.slice(1)}`,
+        radiusName: `${relationship
+            .split(' ')
+            .map((word) => `${word[0].toUpperCase()}${word.substring(1)}`)
+            .join(' ')}`,
         strokeWidth: 0,
+        marker: {
+            fillOpacity: 0.8,
+        },
     })),
     axes: [
         {
@@ -24,25 +30,57 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             line: {
-                width: 0
-            }
+                width: 0,
+            },
         },
         {
             type: 'radius-number',
             shape: 'circle',
+            label: {
+                enabled: false,
+            },
             gridLine: {
                 enabled: false,
             },
             crossLines: [
                 {
-                    type: 'range',
-                    range: [1, 2],
-                    strokeWidth: 0,
+                    type: 'line',
+                    value: 1,
+                    strokeWidth: 1,
+                    strokeOpacity: 0.5,
+                    label: {
+                        text: 'INTIMATE',
+                        padding: -30,
+                    },
                 },
                 {
-                    type: 'range',
-                    range: [6, 10],
-                    strokeWidth: 0
+                    type: 'line',
+                    value: 2,
+                    strokeWidth: 1,
+                    strokeOpacity: 0.5,
+                    label: {
+                        text: 'BEST FRIENDS',
+                        padding: -30,
+                    },
+                },
+                {
+                    type: 'line',
+                    value: 6,
+                    strokeWidth: 1,
+                    strokeOpacity: 0.5,
+                    label: {
+                        text: 'FRIENDS',
+                        padding: -30,
+                    },
+                },
+                {
+                    type: 'line',
+                    value: 10,
+                    strokeWidth: 0,
+                    label: {
+                        text: 'ACQUAINTANCES',
+                        padding: -30,
+                    },
                 },
             ],
         },

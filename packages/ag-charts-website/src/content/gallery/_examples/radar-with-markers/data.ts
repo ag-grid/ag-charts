@@ -10,7 +10,7 @@ export function getData() {
     const socialCircle: SocialCircle = {
       acquaintance: [],
       friends: [],
-      bestFriends: [],
+      'best friends': [],
       intimate: [],
     };
   
@@ -28,7 +28,7 @@ export function getData() {
       } else if (i % 35 === 0) {
         person.closeness = 1 + Math.random();
         person.recognitionTime = 0;
-        socialCircle.bestFriends.push(person);
+        socialCircle['best friends'].push(person);
       } else if (i % 7 === 0) {
         person.closeness = 2 + Math.random() * 4;
         person.recognitionTime = Math.floor(Math.random() * 400);
