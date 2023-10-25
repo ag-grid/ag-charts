@@ -85,6 +85,9 @@ const options: AgChartOptions = {
             ],
         },
     ],
+    legend: {
+        position: 'top'
+    }
 };
 
 AgEnterpriseCharts.create(options);
