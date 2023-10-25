@@ -7,8 +7,14 @@ import { Icon } from '../icon/Icon';
 import styles from './DarkModeToggle.module.scss';
 import headerStyles from './SiteHeader.module.scss';
 
-export const DarkModeToggle = () => {
+const useDarkmode = () => {
     const darkmode = useStore($darkmode);
+
+    return darkmode === 'true' || darkmode === true;
+};
+
+export const DarkModeToggle = () => {
+    const darkmode = useDarkmode();
 
     return (
         <li className={classNames(headerStyles.navItem, styles.navItem)}>

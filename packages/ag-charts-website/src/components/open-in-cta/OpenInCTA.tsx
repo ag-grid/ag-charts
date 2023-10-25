@@ -52,7 +52,7 @@ export const OpenInCTA: FunctionComponent<Props> = (props) => {
         const { onClick } = props as ButtonProps;
         return (
             <button
-                className={classnames('button-style-none', styles.cta)}
+                className={classnames('button-as-link', styles.cta)}
                 onClick={(event) => {
                     onClick(event);
                     tracking && tracking();
