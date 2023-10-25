@@ -1,12 +1,4 @@
-import type {
-    AgErrorBarCapLengthOptions,
-    AgErrorBarCapOptions,
-    AgErrorBarDataOptions,
-    AgErrorBarFormatterParams,
-    AgErrorBarOptions,
-    AgErrorBarStylingOptions,
-    AgErrorBarThemeableOptions,
-} from 'ag-charts-community';
+import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { InteractionRange } from 'ag-charts-community';
 
@@ -24,10 +16,17 @@ export interface ErrorBarPoints {
     readonly yBar?: ErrorBarPoint;
 }
 
+export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 export type ErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
-export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarCapOptions | undefined;
+export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
+export type ErrorBarDataOptions = Pick<
+    AgErrorBarOptions,
+    'xLowerKey' | 'xLowerName' | 'xUpperKey' | 'xUpperName' | 'yLowerKey' | 'yLowerName' | 'yUpperKey' | 'yUpperName'
+>;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
+type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
+type CapLengthOptions = Pick<CapOptions, 'length' | 'lengthRatio'>;
 
 export class ErrorBarNode extends _Scene.Group {
     private whiskerPath: _Scene.Path;
@@ -56,7 +55,7 @@ export class ErrorBarNode extends _Scene.Group {
         this.append([this.whiskerPath, this.capsPath]);
     }
 
-    private calculateCapLength(capsTheme: AgErrorBarCapLengthOptions, capDefaults: CapDefaults): number {
+    private calculateCapLength(capsTheme: CapLengthOptions, capDefaults: CapDefaults): number {
         // Order of priorities for determining the length of the cap:
         // 1.  User-defined length (pixels).
         // 2.  User-defined lengthRatio.
@@ -68,7 +67,7 @@ export class ErrorBarNode extends _Scene.Group {
     }
 
     private getFormatterParams(
-        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
+        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & ErrorBarDataOptions
     ): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
         if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
@@ -77,7 +76,10 @@ export class ErrorBarNode extends _Scene.Group {
         const { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName } =
             formatters;
         return {
-            ...datum,
+            datum: datum.datum,
+            seriesId: datum.datum.seriesId,
+            xKey: datum.xKey,
+            yKey: datum.yKey,
             xLowerKey,
             xLowerName,
             xUpperKey,
@@ -89,7 +91,7 @@ export class ErrorBarNode extends _Scene.Group {
         };
     }
 
-    private applyStyling(target: AgErrorBarStylingOptions, source?: AgErrorBarStylingOptions) {
+    private applyStyling(target: ErrorBarStylingOptions, source?: ErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
         partialAssign(
@@ -101,7 +103,7 @@ export class ErrorBarNode extends _Scene.Group {
 
     updateStyle(
         style: AgErrorBarThemeableOptions,
-        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
+        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } }
     ) {
         const { cap, ...whiskerStyleOptions } = style;
         const { length, lengthRatio, ...capsStyleOptions } = cap ?? {};
@@ -129,7 +131,7 @@ export class ErrorBarNode extends _Scene.Group {
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
     }
 
-    updateTranslation(cap: AgErrorBarCapLengthOptions, range: InteractionRange) {
+    updateTranslation(cap: CapLengthOptions, range: InteractionRange) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
