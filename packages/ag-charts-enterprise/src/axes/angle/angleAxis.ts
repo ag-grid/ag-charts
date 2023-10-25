@@ -15,7 +15,7 @@ const {
     Validate,
 } = _ModuleSupport;
 const { Path, Text } = _Scene;
-const { isNumberEqual, toRadians, normalizeAngle360 } = _Util;
+const { angleBetween, isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
 export interface AngleAxisLabelDatum {
     text: string;
@@ -96,6 +96,11 @@ export abstract class AngleAxis<
         }
         this.range = [startAngle, endAngle];
     };
+
+    protected override calculateAvailableRange(): number {
+        const { range, gridLength: radius } = this;
+        return angleBetween(range[0], range[1]) * radius;
+    }
 
     protected abstract generateAngleTicks(): AngleAxisTickDatum<TDomain>[];
 
