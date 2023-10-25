@@ -1,7 +1,8 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { ContextMenu, ContextMenuActionParams } from '../context-menu/main';
+import type { ContextMenuActionParams } from '../context-menu/main';
+import { ContextMenu } from '../context-menu/main';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
