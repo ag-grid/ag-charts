@@ -9,8 +9,17 @@ type ContextMenuGroups = {
     extra: Array<ContextMenuItem>;
 };
 type ContextMenuItem = 'download' | ContextMenuAction;
-type ContextMenuAction = { id?: string; label: string; action: (params: ContextMenuActionParams) => void };
-export type ContextMenuActionParams = { datum?: any; event: MouseEvent };
+type ContextMenuAction = {
+    id?: string;
+    label: string;
+    action: (params: ContextMenuActionParams) => void;
+};
+export type ContextMenuActionParams = {
+    datum?: any;
+    itemId?: string;
+    seriesId?: string;
+    event: MouseEvent;
+};
 
 const { BOOLEAN, Validate } = _ModuleSupport;
 const TOOLTIP_ID = 'context-menu';
@@ -27,11 +36,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     // Module context
     private scene: _Scene.Scene;
+    private highlightManager: _ModuleSupport.HighlightManager;
     private interactionManager: _ModuleSupport.InteractionManager;
     private tooltipManager: _ModuleSupport.TooltipManager;
 
     // State
     private groups: ContextMenuGroups;
+    private pickedNode?: _ModuleSupport.SeriesNodeDatum;
     private showEvent?: MouseEvent;
     private x: number = 0;
     private y: number = 0;
@@ -55,6 +66,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         super();
 
         // Module context
+        this.highlightManager = ctx.highlightManager;
         this.interactionManager = ctx.interactionManager;
         this.tooltipManager = ctx.tooltipManager;
         this.scene = ctx.scene;
@@ -166,8 +178,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.groups.default = [...ContextMenu.defaultActions];
 
         // TODO: detect clicked on marker
-        const hasClickedOnMarker = true;
-        if (hasClickedOnMarker) {
+        this.pickedNode = this.highlightManager.getActivePicked();
+        if (this.pickedNode) {
             this.groups.node = [...ContextMenu.nodeActions];
         }
 
@@ -271,6 +283,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.onclick = () => {
             const params: ContextMenuActionParams = {
                 event: this.showEvent!,
+                datum: this.pickedNode?.datum,
+                itemId: this.pickedNode?.itemId,
+                seriesId: this.pickedNode?.series.id,
             };
             callback(params);
             this.hide();
