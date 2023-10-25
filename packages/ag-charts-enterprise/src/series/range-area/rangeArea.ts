@@ -272,20 +272,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             return { ...stroke, point: { ...point, moveTo: true } };
         };
 
-        const reversePoints = (points: RadarAreaPoint[]) => {
-            let newPoints = [...points].reverse();
-
-            // Need to move `moveTo` forward one place since the
-            // LTR order is reversed to RTL.
-            for (let i = points.length - 1; i > 0; i--) {
-                const { point, ...other } = newPoints[i];
-                const moveTo = newPoints[i - 1].point.moveTo;
-                newPoints[i] = { ...other, point: { ...point, moveTo } };
-            }
-
-            return newPoints;
-        };
-
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
         const strokeData: RadarAreaPathDatum = { itemId, points: [] };
@@ -310,8 +296,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         let lastYLowDatum: any = -Infinity;
         processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
             const dataValues = dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
-            const { xValue } = dataValues;
-            let { yHighValue, yLowValue } = dataValues;
+            const { xValue, yHighValue, yLowValue } = dataValues;
 
             const invalidRange = yHighValue == null || yLowValue == null;
             const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue);
