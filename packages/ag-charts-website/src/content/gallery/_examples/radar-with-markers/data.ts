@@ -9,7 +9,7 @@ type SocialCircle = {
 
 export function getData() {
     const socialCircle: SocialCircle = {
-        acquaintance: [],
+        acquaintances: [],
         friends: [],
         'best friends': [],
         intimate: [],
@@ -37,7 +37,7 @@ export function getData() {
         } else {
             person.closeness = 6 + Math.random() * 4;
             person.recognitionTime = Math.floor(Math.random() * 400);
-            socialCircle.acquaintance.push(person);
+            socialCircle.acquaintances.push(person);
         }
     }
 
