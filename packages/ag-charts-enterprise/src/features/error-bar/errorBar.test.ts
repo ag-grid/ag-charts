@@ -656,7 +656,7 @@ describe('ErrorBars', () => {
 
     it('should use correct cursor', async () => {
         const getCursor = () => {
-            return chart['cursorManager']['element'].style.cursor;
+            return chart.getModuleContext().cursorManager.getCursor();
         };
         chart = deproxy(
             AgEnterpriseCharts.create({
