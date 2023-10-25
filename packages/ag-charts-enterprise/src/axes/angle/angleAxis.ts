@@ -89,9 +89,11 @@ export abstract class AngleAxis<
     }
 
     override computeRange = () => {
-        const startAngle = -Math.PI / 2 + toRadians(this.startAngle);
-        const endAngle =
-            this.endAngle == undefined ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
+        const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
+        let endAngle = this.endAngle == null ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
+        if (endAngle < startAngle) {
+            endAngle += 2 * Math.PI;
+        }
         this.range = [startAngle, endAngle];
     };
 
