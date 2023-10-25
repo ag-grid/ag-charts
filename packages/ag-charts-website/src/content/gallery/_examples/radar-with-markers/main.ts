@@ -46,8 +46,7 @@ const options: AgChartOptions = {
                 {
                     type: 'line',
                     value: 1,
-                    strokeWidth: 1,
-                    strokeOpacity: 0.5,
+                    strokeOpacity: 0.3,
                     label: {
                         text: 'INTIMATE',
                         padding: -30,
@@ -56,8 +55,7 @@ const options: AgChartOptions = {
                 {
                     type: 'line',
                     value: 2,
-                    strokeWidth: 1,
-                    strokeOpacity: 0.5,
+                    strokeOpacity: 0.3,
                     label: {
                         text: 'BEST FRIENDS',
                         padding: -30,
@@ -66,8 +64,7 @@ const options: AgChartOptions = {
                 {
                     type: 'line',
                     value: 6,
-                    strokeWidth: 1,
-                    strokeOpacity: 0.5,
+                    strokeOpacity: 0.3,
                     label: {
                         text: 'FRIENDS',
                         padding: -30,
