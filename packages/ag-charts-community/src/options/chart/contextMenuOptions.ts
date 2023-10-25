@@ -1,3 +1,5 @@
+import type { AgChartCallbackParams } from './callbackOptions';
+
 export interface AgContextMenuOptions {
     enabled?: boolean;
     extraActions?: Array<AgContextMenuAction>;
@@ -8,7 +10,6 @@ export type AgContextMenuAction = {
     action: (params: AgContextMenuActionParams) => void;
 };
 
-export type AgContextMenuActionParams = {
-    datum?: any;
+export interface AgContextMenuActionParams<TDatum = any> extends AgChartCallbackParams<TDatum> {
     event: MouseEvent;
-};
+}

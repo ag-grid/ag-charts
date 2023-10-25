@@ -1,6 +1,6 @@
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
-import type { AgContextMenuOptions } from './contextOptions';
+import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgBaseChartListeners } from './eventOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
