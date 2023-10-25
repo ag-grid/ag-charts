@@ -35,4 +35,8 @@ export class CursorManager {
 
         this.element.style.cursor = styleToApply;
     }
+
+    public getCursor(): string {
+        return this.element.style.cursor;
+    }
 }

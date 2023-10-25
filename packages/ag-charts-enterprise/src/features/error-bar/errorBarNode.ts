@@ -1,8 +1,31 @@
-import type { AgErrorBarCapLengthOptions, AgErrorBarThemeableOptions, _ModuleSupport } from 'ag-charts-community';
-import { _Scene } from 'ag-charts-community';
+import type {
+    AgErrorBarCapLengthOptions,
+    AgErrorBarCapOptions,
+    AgErrorBarDataOptions,
+    AgErrorBarFormatterParams,
+    AgErrorBarOptions,
+    AgErrorBarStylingOptions,
+    AgErrorBarThemeableOptions,
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { InteractionRange } from 'ag-charts-community';
 
+const { partialAssign, mergeDefaults } = _ModuleSupport;
+
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
+
+interface ErrorBarPoint {
+    readonly lowerPoint: _Scene.Point;
+    readonly upperPoint: _Scene.Point;
+}
+
+export interface ErrorBarPoints {
+    readonly xBar?: ErrorBarPoint;
+    readonly yBar?: ErrorBarPoint;
+}
+
+export type ErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
+export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarCapOptions | undefined;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 
@@ -44,12 +67,64 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    updateStyle(style: AgErrorBarThemeableOptions) {
+    private getFormatterParams(
+        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
+    ): AgErrorBarFormatterParams | undefined {
+        const { datum } = this;
+        if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
+            return undefined;
+        }
+        const { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName } =
+            formatters;
+        return {
+            ...datum,
+            xLowerKey,
+            xLowerName,
+            xUpperKey,
+            xUpperName,
+            yLowerKey,
+            yLowerName,
+            yUpperKey,
+            yUpperName,
+        };
+    }
+
+    private applyStyling(target: AgErrorBarStylingOptions, source?: AgErrorBarStylingOptions) {
+        // Style can be any object, including user data (e.g. formatter
+        // result). So filter out anything that isn't styling options:
+        partialAssign(
+            ['visible', 'stroke', 'strokeWidth', 'strokeOpacity', 'lineDash', 'lineDashOffset'],
+            target,
+            source
+        );
+    }
+
+    updateStyle(
+        style: AgErrorBarThemeableOptions,
+        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
+    ) {
+        const { cap, ...whiskerStyleOptions } = style;
+        const { length, lengthRatio, ...capsStyleOptions } = cap ?? {};
+        let whiskerStyle = whiskerStyleOptions;
+        let capsStyle = capsStyleOptions;
+
+        const params = this.getFormatterParams(formatters);
+        if (params !== undefined) {
+            if (formatters.formatter !== undefined) {
+                const result = formatters.formatter(params);
+                whiskerStyle = mergeDefaults(result, whiskerStyle);
+                capsStyle = mergeDefaults(result, capsStyle);
+            }
+
+            if (formatters.cap.formatter !== undefined) {
+                const result = formatters.cap.formatter(params);
+                capsStyle = mergeDefaults(result, capsStyle);
+            }
+        }
+
         const { whiskerPath, capsPath } = this;
-        const { cap, ...whiskerStyle } = style;
-        const { length, lengthRatio, ...capsStyle } = cap ?? {};
-        Object.assign(whiskerPath, whiskerStyle);
-        Object.assign(capsPath, capsStyle);
+        this.applyStyling(whiskerPath, whiskerStyle);
+        this.applyStyling(capsPath, capsStyle);
         whiskerPath.markDirty(whiskerPath, _Scene.RedrawType.MINOR);
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
     }

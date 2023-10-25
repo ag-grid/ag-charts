@@ -7,11 +7,13 @@ import type {
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
+    AND,
     Validate,
     SeriesNodePickMode,
     valueProperty,
     ChartAxisDirection,
     COLOR_STRING_ARRAY,
+    NON_EMPTY_ARRAY,
     OPT_NUMBER,
     OPT_STRING,
     OPT_FUNCTION,
@@ -69,7 +71,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     @Validate(OPT_STRING)
     colorName?: string = 'Color';
 
-    @Validate(COLOR_STRING_ARRAY)
+    @Validate(AND(COLOR_STRING_ARRAY, NON_EMPTY_ARRAY))
     colorRange: string[] = ['#cb4b3f', '#6acb64'];
 
     @Validate(OPT_COLOR_STRING)

@@ -1,7 +1,13 @@
-import type { AgErrorBarCapOptions, AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
+import type {
+    AgErrorBarCapOptions,
+    AgErrorBarOptions,
+    AgErrorBarStylingOptions,
+    AgErrorBarThemeableOptions,
+    _Scale,
+} from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { ErrorBarNodeDatum } from './errorBarNode';
+import type { ErrorBarCapFormatter, ErrorBarFormatter, ErrorBarNodeDatum } from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 
 const {
@@ -12,6 +18,7 @@ const {
     Validate,
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
+    OPT_FUNCTION,
     OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
@@ -71,6 +78,9 @@ class ErrorBarCapConfig implements AgErrorBarCapOptions {
 
     @Validate(OPT_NUMBER(0, 1))
     lengthRatio?: number = undefined;
+
+    @Validate(OPT_FUNCTION)
+    formatter?: ErrorBarCapFormatter = undefined;
 }
 
 export class ErrorBars
@@ -118,6 +128,9 @@ export class ErrorBars
 
     @Validate(OPT_NUMBER(0))
     lineDashOffset?: number;
+
+    @Validate(OPT_FUNCTION)
+    formatter?: ErrorBarFormatter = undefined;
 
     cap: ErrorBarCapConfig = new ErrorBarCapConfig();
 
@@ -281,7 +294,7 @@ export class ErrorBars
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
         const style = this.getDefaultStyle();
         node.datum = datum;
-        node.updateStyle(style);
+        node.updateStyle(style, this);
         node.updateTranslation(this.cap, this.ctx.tooltipManager.getRange());
     }
 
@@ -325,16 +338,24 @@ export class ErrorBars
         this.groupNode.visible = event.enabled;
     }
 
+    private makeStyle(baseStyle: AgErrorBarStylingOptions): AgErrorBarThemeableOptions {
+        return {
+            visible: baseStyle.visible,
+            lineDash: baseStyle.lineDash,
+            lineDashOffset: baseStyle.lineDashOffset,
+            stroke: baseStyle.stroke,
+            strokeWidth: baseStyle.strokeWidth,
+            strokeOpacity: baseStyle.strokeOpacity,
+            cap: mergeDefaults(this.cap, baseStyle),
+        };
+    }
+
     private getDefaultStyle(): AgErrorBarThemeableOptions {
-        const whiskerStyle = this.getWhiskerProperties();
-        const capStyle = mergeDefaults(this.cap, whiskerStyle);
-        return { ...whiskerStyle, cap: capStyle };
+        return this.makeStyle(this.getWhiskerProperties());
     }
 
     private getHighlightStyle(): AgErrorBarThemeableOptions {
-        const style = this.cartesianSeries.highlightStyle.item;
-        const { length, lengthRatio } = this.cap;
-        return { ...style, cap: { ...style, length, lengthRatio } };
+        return this.makeStyle(this.cartesianSeries.highlightStyle.item);
     }
 
     private restyleHightlightChange(highlightChange: HighlightNodeDatum, style: AgErrorBarThemeableOptions) {
@@ -346,7 +367,7 @@ export class ErrorBars
         const { nodeData } = this.cartesianSeries.contextNodeData[0];
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection.nodes()[i].updateStyle(style);
+                this.selection.nodes()[i].updateStyle(style, this);
                 break;
             }
         }

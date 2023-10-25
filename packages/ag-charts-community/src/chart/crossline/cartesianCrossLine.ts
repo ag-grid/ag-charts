@@ -93,7 +93,7 @@ class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
     /**
      * The padding between the label and the line.
      */
-    @Validate(NUMBER(0))
+    @Validate(NUMBER())
     padding: number = 5;
 
     /**

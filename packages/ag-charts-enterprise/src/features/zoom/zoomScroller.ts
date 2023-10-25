@@ -5,7 +5,7 @@ import {
     definedZoomState,
     pointToRatio,
     scaleZoomAxisWithAnchor,
-    translateZoom,
+    scaleZoomAxisWithPoint,
 } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
 
@@ -62,12 +62,9 @@ export class ZoomScroller {
         );
 
         // Translate the zoom bounding box such that the cursor remains over the same position as before
-        const scaledOriginX = origin.x * (1 - (oldZoom.x.max - oldZoom.x.min - (newZoom.x.max - newZoom.x.min)));
-        const scaledOriginY = origin.y * (1 - (oldZoom.y.max - oldZoom.y.min - (newZoom.y.max - newZoom.y.min)));
+        newZoom.x = isScalingX ? scaleZoomAxisWithPoint(newZoom.x, oldZoom.x, origin.x) : newZoom.x;
+        newZoom.y = isScalingY ? scaleZoomAxisWithPoint(newZoom.y, oldZoom.y, origin.y) : newZoom.y;
 
-        const translateX = isScalingX ? origin.x - scaledOriginX : 0;
-        const translateY = isScalingY ? origin.y - scaledOriginY : 0;
-
-        return translateZoom(newZoom, translateX, translateY);
+        return newZoom;
     }
 }

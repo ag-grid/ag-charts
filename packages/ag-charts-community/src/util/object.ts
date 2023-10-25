@@ -59,3 +59,19 @@ export function mergeDefaults<TSource extends Record<string, any>, TArgs extends
 
     return target as Intersection<Exclude<TArgs[number], FalsyType>>;
 }
+
+// Similar to Object.assign, but only copy an explicit set of keys.
+export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source?: Partial<T>): T {
+    if (source === undefined) {
+        return target;
+    }
+
+    for (const key of keysToCopy) {
+        const value: T[keyof T] | undefined = source[key];
+        if (value !== undefined) {
+            target[key] = value;
+        }
+    }
+
+    return target;
+}

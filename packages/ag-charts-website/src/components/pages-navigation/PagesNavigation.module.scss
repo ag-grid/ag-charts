@@ -237,7 +237,7 @@ a.sectionHeader {
         height: 0.375em;
         transform: translate(-0.625em, 0.45em);
         border-radius: 50%;
-        background-color: var(--white);
+        background-color: var(--default-background-color);
         transition: background-color $default-transition-timing;
 
         .seriesTypesNav & {
@@ -276,15 +276,15 @@ a.sectionHeader {
 
     &.activeMenuItem {
         pointer-events: none;
-        color: var(--text-color);
+        color: var(--default-text-color);
 
         &::before {
-            background-color: var(--text-color);
+            background-color: var(--default-text-color);
         }
 
         .menuIcon {
             opacity: 1;
-            fill: var(--dark-gunmetal-gray); // This should be updated after colors refactor
+            fill: var(--default-text-color);
         }
     }
 }

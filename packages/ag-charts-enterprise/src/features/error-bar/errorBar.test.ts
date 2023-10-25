@@ -14,6 +14,7 @@ import {
 
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import type { ErrorBarCapFormatter, ErrorBarFormatter } from './errorBarNode';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -601,5 +602,80 @@ describe('ErrorBars', () => {
         // Hide Australia
         await clickAction(x + width - 1, y)(chart);
         await compare();
+    });
+
+    it('should apply formatter as expected', async () => {
+        const whisker_formatter: ErrorBarFormatter = (params) => {
+            let color = undefined;
+            switch (params.datum[params.xKey]) {
+                case 'Apr':
+                case 'May':
+                case 'Jun':
+                    color = 'blue';
+                    break;
+                case 'Jul':
+                case 'Aug':
+                case 'Sep':
+                    color = 'green';
+                    break;
+                case 'Oct':
+                case 'Nov':
+                case 'Dec':
+                    color = 'gold';
+                    break;
+            }
+            return { stroke: color };
+        };
+        const cap_formatter: ErrorBarCapFormatter = (params) => {
+            switch (params.datum[params.xKey]) {
+                case 'Jan':
+                case 'Feb':
+                case 'Mar':
+                case 'Apr':
+                case 'May':
+                case 'Jun':
+                    return { strokeWidth: 10 };
+            }
+        };
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    errorBar: {
+                        ...SERIES_CANADA.errorBar,
+                        strokeWidth: 3,
+                        formatter: whisker_formatter,
+                        cap: { formatter: cap_formatter },
+                    },
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should use correct cursor', async () => {
+        const getCursor = () => {
+            return chart.getModuleContext().cursorManager.getCursor();
+        };
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                tooltip: { range: 2 },
+                series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],
+            })
+        );
+        await waitForChartStability(chart);
+        const { x, y } = getItemCoords(4);
+
+        // Hover over an error bar
+        await hoverAction(x, y - 20)(chart);
+        await waitForChartStability(chart);
+        expect(getCursor()).toBe('grab');
+
+        // Hover over nothing
+        await hoverAction(x, y - 100)(chart);
+        await waitForChartStability(chart);
+        expect(getCursor()).toBe('default');
     });
 });

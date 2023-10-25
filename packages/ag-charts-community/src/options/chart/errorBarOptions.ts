@@ -1,7 +1,7 @@
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { PixelSize, Ratio } from './types';
 
-interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
+export interface AgErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
     /** Whether to display the error bars. */
     visible?: boolean;
 }
@@ -33,9 +33,9 @@ export interface AgErrorBarDataOptions {
     yUpperName?: string;
 }
 
-export interface AgErrorBarCapOptions extends AgErrorBarCapLengthOptions, ErrorBarStylingOptions {}
+export interface AgErrorBarCapOptions extends AgErrorBarCapLengthOptions, AgErrorBarStylingOptions {}
 
-export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
+export interface AgErrorBarThemeableOptions extends AgErrorBarStylingOptions {
     /** Options to style error bars' caps */
     cap?: AgErrorBarCapOptions;
 }
@@ -43,3 +43,5 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 export interface AgErrorBarOptions extends AgErrorBarDataOptions, AgErrorBarThemeableOptions {}
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
+
+export interface AgErrorBarFormatterParams extends AgErrorBarDataOptions {}
