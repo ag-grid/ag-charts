@@ -34,7 +34,7 @@ export class LinearAngleScale extends LinearScale {
             }
         }
 
-        const step = this.nice ? this.niceTickStep : this.getTickStep(d0, d1);
+        const step = this.nice && this.niceTickStep ? this.niceTickStep : this.getTickStep(d0, d1);
         return range(d0, d1, step);
     }
 
