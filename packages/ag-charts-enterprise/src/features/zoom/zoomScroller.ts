@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
     constrainZoom,
@@ -7,14 +7,14 @@ import {
     scaleZoomAxisWithAnchor,
     translateZoom,
 } from './zoomTransformers';
-import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
+import type { DefinedZoomState } from './zoomTypes';
 
 export class ZoomScroller {
     update(
         event: _ModuleSupport.InteractionEvent<'wheel'>,
         step: number,
-        anchorPointX: AnchorPoint,
-        anchorPointY: AnchorPoint,
+        anchorPointX: AgZoomAnchorPoint,
+        anchorPointY: AgZoomAnchorPoint,
         isScalingX: boolean,
         isScalingY: boolean,
         bbox: _Scene.BBox,
@@ -26,8 +26,8 @@ export class ZoomScroller {
         // Scale the zoom bounding box
         const dir = sourceEvent.deltaY < 0 ? -1 : 1;
         let newZoom = definedZoomState(oldZoom);
-        newZoom.x.max += isScalingX ? step * dir : 0;
-        newZoom.y.max += isScalingY ? step * dir : 0;
+        newZoom.x.max += isScalingX ? step * dir * (oldZoom.x.max - oldZoom.x.min) : 0;
+        newZoom.y.max += isScalingY ? step * dir * (oldZoom.y.max - oldZoom.y.min) : 0;
 
         if ((anchorPointX === 'pointer' && isScalingX) || (anchorPointY === 'pointer' && isScalingY)) {
             newZoom = this.scaleZoomToPointer(sourceEvent, isScalingX, isScalingY, bbox, oldZoom, newZoom);

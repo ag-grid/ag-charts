@@ -824,4 +824,8 @@ export abstract class Series<
             markerNode.checkPathDirty();
         }
     }
+
+    getMinRect(): BBox | undefined {
+        return undefined;
+    }
 }

@@ -1,8 +1,8 @@
-import type { _Scene } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomTransformers';
-import type { AnchorPoint, DefinedZoomState, ZoomCoords } from './zoomTypes';
+import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
 
 export class ZoomAxisDragger {
     public isAxisDragging: boolean = false;
@@ -13,7 +13,7 @@ export class ZoomAxisDragger {
     update(
         event: _ModuleSupport.InteractionEvent<'drag'>,
         direction: _ModuleSupport.ChartAxisDirection,
-        anchor: AnchorPoint,
+        anchor: AgZoomAnchorPoint,
         bbox: _Scene.BBox,
         zoom?: _ModuleSupport.AxisZoomState,
         axisZoom?: _ModuleSupport.ZoomState
@@ -50,7 +50,7 @@ export class ZoomAxisDragger {
 
     private updateZoom(
         direction: _ModuleSupport.ChartAxisDirection,
-        anchor: AnchorPoint,
+        anchor: AgZoomAnchorPoint,
         bbox: _Scene.BBox
     ): _ModuleSupport.ZoomState {
         const { coords, oldZoom } = this;

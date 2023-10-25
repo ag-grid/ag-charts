@@ -1,14 +1,14 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnchorPoint, DefinedZoomState } from './zoomTypes';
+import type { DefinedZoomState } from './zoomTypes';
 
 export const UNIT = { min: 0, max: 1 };
+
+const constrain = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
 export function unitZoomState(): DefinedZoomState {
     return { x: { ...UNIT }, y: { ...UNIT } };
 }
-
-const constrain = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
 export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
     return {
@@ -73,10 +73,13 @@ export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number):
     };
 }
 
+/**
+ * Scale a single zoom axis about its anchor, ignoring `pointer` anchors.
+ */
 export function scaleZoomAxisWithAnchor(
     newState: _ModuleSupport.ZoomState,
     oldState: _ModuleSupport.ZoomState,
-    anchor: AnchorPoint
+    anchor: AgZoomAnchorPoint
 ): _ModuleSupport.ZoomState {
     let { min, max } = oldState;
     const center = (UNIT.max - UNIT.min) / 2;

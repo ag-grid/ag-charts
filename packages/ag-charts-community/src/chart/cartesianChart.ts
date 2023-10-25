@@ -1,5 +1,5 @@
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
-import type { BBox } from '../scene/bbox';
+import { BBox } from '../scene/bbox';
 import { toRadians } from '../util/angle';
 import { Logger } from '../util/logger';
 import { CategoryAxis } from './axis/categoryAxis';
@@ -47,6 +47,17 @@ export class CartesianChart extends Chart {
 
         this.hoverRect = seriesPaddedRect;
 
+        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
+        let minRect;
+        if (minRects.length > 0) {
+            minRect = new BBox(
+                0,
+                0,
+                minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
+                minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
+            );
+        }
+
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
@@ -54,6 +65,7 @@ export class CartesianChart extends Chart {
             series: {
                 rect: seriesRect,
                 paddedRect: seriesPaddedRect,
+                minRect,
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
             },
@@ -473,6 +485,6 @@ export class CartesianChart extends Chart {
 
     private shouldFlipXY() {
         // Only flip the xy axes if all the series agree on flipping
-        return !this.series.map((series) => series instanceof CartesianSeries && series.shouldFlipXY()).includes(false);
+        return !this.series.some((series) => !(series instanceof CartesianSeries && series.shouldFlipXY()));
     }
 }
