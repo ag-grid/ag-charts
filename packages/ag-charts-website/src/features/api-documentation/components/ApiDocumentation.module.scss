@@ -11,10 +11,8 @@
 
 .required {
     color: red;
-
-    &:before {
-        content: ' ';
-    }
+    font-size: 0.7em;
+    vertical-align: text-top;
 }
 
 .apiReferenceOuter {

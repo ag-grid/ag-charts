@@ -2,10 +2,15 @@ import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianO
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
 import type { AgBaseChartOptions } from './chartOptions';
-import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './themeOptions';
+import type {
+    AgBaseChartThemeOptions,
+    AgBaseChartThemeOverrides,
+    AgChartTheme,
+    AgChartThemeName,
+} from './themeOptions';
 
 export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
-export type AgChartThemeOverrides = NonNullable<AgChartThemeOptions['overrides']>;
+export type AgChartThemeOverrides = AgBaseChartThemeOverrides;
 
 export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;

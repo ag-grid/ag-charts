@@ -109,5 +109,17 @@ export default defineMarkdocConfig({
                 config: { type: String },
             },
         },
+        apiReference: {
+            render: component('./src/features/api-documentation/ApiReference.astro'),
+            attributes: {
+                id: { type: 'String' },
+                test: { type: 'Boolean' },
+                // framework: { type: String },
+                // names: { type: String },
+                // exclude: { type: String },
+                // wrapNamesAt: { type: String },
+                config: { type: 'Object' },
+            },
+        },
     },
 });

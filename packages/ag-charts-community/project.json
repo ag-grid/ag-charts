@@ -39,22 +39,42 @@
     },
     "interface-metadata": {
       "executor": "ag-charts-build-tools:generate-code-reference-files",
-      "inputs": ["{projectRoot}/src"],
+      "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
       "options": {
         "mode": "interfaces",
-        "inputs": ["packages/ag-charts-community/src"],
+        "inputs": ["packages/ag-charts-community/src/options"],
         "output": "dist/packages/ag-charts-community/interfaces.AUTO.json"
       }
     },
     "interface-docs": {
       "executor": "ag-charts-build-tools:generate-code-reference-files",
-      "inputs": ["{projectRoot}/src"],
+      "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
       "options": {
         "mode": "docs",
-        "inputs": ["packages/ag-charts-community/src"],
+        "inputs": ["packages/ag-charts-community/src/options"],
         "output": "dist/packages/ag-charts-community/doc-interfaces.AUTO.json"
+      }
+    },
+    "interface-metadata-new": {
+      "executor": "ag-charts-build-tools:generate-code-reference-files-new",
+      "inputs": ["{projectRoot}/src/options"],
+      "outputPath": "{options.output}",
+      "options": {
+        "mode": "interfaces",
+        "inputs": ["packages/ag-charts-community/src/options"],
+        "output": "dist/packages/ag-charts-community/interfaces.AUTO-new.json"
+      }
+    },
+    "docs-resolved-interfaces": {
+      "executor": "ag-charts-build-tools:generate-code-reference-files-new",
+      "inputs": ["{projectRoot}/src/options"],
+      "outputPath": "{options.output}",
+      "options": {
+        "mode": "docs",
+        "inputs": ["packages/ag-charts-community/src/options"],
+        "output": "dist/packages/ag-charts-community/resolved-interfaces.AUTO.json"
       }
     },
     "lint-eslint": {

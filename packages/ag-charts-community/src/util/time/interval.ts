@@ -18,15 +18,11 @@ type RangeFn = (start: Date, end: Date) => () => void;
  * The interval methods don't mutate Date parameters.
  */
 export class TimeInterval {
-    protected readonly _encode: EncodeFn;
-    protected readonly _decode: DecodeFn;
-    protected readonly _rangeCallback?: RangeFn;
-
-    constructor(encode: EncodeFn, decode: DecodeFn, rangeCallback?: RangeFn) {
-        this._encode = encode;
-        this._decode = decode;
-        this._rangeCallback = rangeCallback;
-    }
+    constructor(
+        protected readonly _encode: EncodeFn,
+        protected readonly _decode: DecodeFn,
+        protected readonly _rangeCallback?: RangeFn
+    ) {}
 
     /**
      * Returns a new date representing the latest interval boundary date before or equal to date.
