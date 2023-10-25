@@ -16,6 +16,9 @@ function scale(val: number | string | Date, scaling?: Scaling) {
         const domainRatio = (val - scaling.domain[0]) / (scaling.domain[1] - scaling.domain[0]);
         return domainRatio * (scaling.range[1] - scaling.range[0]) + scaling.range[0];
     }
+    if (scaling.type === 'log' && typeof val === 'number') {
+        return scaling.convert(val);
+    }
 
     // Category axis case.
     const matchingIndex = scaling.domain.findIndex((d) => d === val);

@@ -2,6 +2,7 @@ import { ContinuousScale } from '../../../integrated-charts-scene';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
+import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import type { Node, ZIndexSubOrder } from '../../../scene/node';
@@ -105,12 +106,16 @@ export interface CartesianAnimationData<
     duration?: number;
 }
 
-export type Scaling = ContinuousScaling | CategoryScaling;
+export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
 
-export interface ContinuousScaling {
-    type: 'continuous';
+export interface ContinuousScaling<T = 'continuous'> {
+    type: T;
     domain: [number, number];
     range: [number, number];
+}
+
+export interface LogScaling extends ContinuousScaling<'log'> {
+    convert(domain: number): number;
 }
 
 export interface CategoryScaling {
@@ -923,7 +928,16 @@ export abstract class CartesianSeries<
             const axis = this.axes[direction];
             if (!axis) return;
 
-            if (axis.scale instanceof ContinuousScale) {
+            if (axis.scale instanceof LogScale) {
+                const { range, domain } = axis.scale;
+
+                result[direction] = {
+                    type: 'log',
+                    convert: (domain) => axis.scale.convert(domain),
+                    domain: [domain[0], domain[1]],
+                    range: [range[0], range[1]],
+                };
+            } else if (axis.scale instanceof ContinuousScale) {
                 const { range } = axis.scale;
                 const domain = axis.scale.getDomain();
 

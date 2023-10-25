@@ -191,7 +191,7 @@ export class AreaSeries extends CartesianSeries<
 
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yExtent = dataModel.getDomain(this, /yValue(Previous)?End/, 'value', processedData);
+        const yExtent = dataModel.getDomain(this, `yValueEnd`, 'value', processedData);
 
         if (direction === ChartAxisDirection.X) {
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
