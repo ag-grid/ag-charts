@@ -4,9 +4,7 @@ import { Children, useState } from 'react';
 
 import { TabItem } from './TabItem';
 import styles from './Tabs.module.scss';
-
-const TAB_LABEL_PROP = 'tab-label'; // NOTE: kebab case to match markdown html props
-const TABS_LINKS_PROP = 'tabs-links';
+import { TABS_LINKS_PROP, TAB_LABEL_PROP } from './constants';
 
 interface Props {
     children: ReactElement[];
