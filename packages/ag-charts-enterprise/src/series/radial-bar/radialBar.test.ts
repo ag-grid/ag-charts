@@ -106,10 +106,7 @@ describe('Radial Bar Chart', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [
-                { type: 'angle-number', nice: false },
-                { type: 'radius-category' },
-            ],
+            axes: [{ type: 'angle-number', nice: false }, { type: 'radius-category' }],
         };
         prepareEnterpriseTestOptions(options as any);
 
