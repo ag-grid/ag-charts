@@ -398,6 +398,11 @@
                     "name": "simple-radar-line"
                 },
                 {
+                    "title": "Radar With Markers",
+                    "description": "A Radar Line Series is typically used to contrast different datasets across shared categories for easy visual comparison.",
+                    "name": "radar-with-markers"
+                },
+                {
                     "title": "Simple Radar Area",
                     "description": "A Radar Area Series shows the magnitude of various datasets within shared categories, making it easier to gauge area-based trends.",
                     "name": "simple-radar-area"
