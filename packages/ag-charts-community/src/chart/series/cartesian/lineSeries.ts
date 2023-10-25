@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type {
@@ -42,6 +42,7 @@ import type {
 import { CartesianSeries } from './cartesianSeries';
 import { prepareLinePathAnimation } from './lineUtil';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import { buildResetPathFn, pathSwipeInAnimation } from './pathUtil';
 
 interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -98,7 +99,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             ],
             markerSelectionGarbageCollection: false,
             animationResetFns: {
-                path: () => ({ clipScalingX: 1, clipScalingY: 1 }),
+                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
@@ -279,11 +280,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return new MarkerShape();
     }
 
-    protected override async updatePaths(opts: {
-        seriesHighlighted?: boolean;
-        contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
-        paths: Path[];
-    }) {
+    protected override async updatePathNodes(opts: { seriesHighlighted?: boolean; paths: Path[] }) {
         const {
             paths: [lineNode],
         } = opts;
@@ -454,10 +451,14 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         ];
     }
 
-    private updateLinePaths(
-        paths: Path[][],
-        contextData: CartesianSeriesNodeDataContext<LineNodeDatum, LineNodeDatum>[]
-    ) {
+    protected override async updatePaths(opts: {
+        contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
+        paths: Path[];
+    }) {
+        this.updateLinePaths([opts.paths], [opts.contextData]);
+    }
+
+    private updateLinePaths(paths: Path[][], contextData: CartesianSeriesNodeDataContext<LineNodeDatum>[]) {
         contextData.forEach(({ nodeData }, contextDataIndex) => {
             const [lineNode] = paths[contextDataIndex];
 
@@ -481,18 +482,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateLinePaths(paths, contextData);
-        staticFromToMotion(
-            this.id,
-            'path_properties',
-            animationManager,
-            paths.map((p) => p[0]),
-            { clipScalingX: 0 },
-            { clipScalingX: 1 },
-            {
-                start: { clipMode: 'normal' },
-                finish: { clipMode: undefined },
-            }
-        );
+        pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
         markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);

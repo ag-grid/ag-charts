@@ -2,6 +2,7 @@ import { ContinuousScale } from '../../../integrated-charts-scene';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
+import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import type { Node, ZIndexSubOrder } from '../../../scene/node';
@@ -51,7 +52,7 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationResetFns?: {
-        path?: (path: Path) => AnimationValue & Partial<Path>;
+        path?: (path: Path) => Partial<Path>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
         marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
@@ -105,12 +106,16 @@ export interface CartesianAnimationData<
     duration?: number;
 }
 
-export type Scaling = ContinuousScaling | CategoryScaling;
+export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
 
-export interface ContinuousScaling {
-    type: 'continuous';
+export interface ContinuousScaling<T = 'continuous'> {
+    type: T;
     domain: [number, number];
     range: [number, number];
+}
+
+export interface LogScaling extends ContinuousScaling<'log'> {
+    convert(domain: number): number;
 }
 
 export interface CategoryScaling {
@@ -427,10 +432,7 @@ export abstract class CartesianSeries<
         this.contentGroup.visible = visible;
         this.highlightGroup.visible = visible && !!seriesHighlighted;
 
-        const subGroupOpacities = this.subGroups.map(() => {
-            return this.getOpacity();
-        });
-
+        const subGroupOpacity = this.getOpacity();
         if (hasMarkers) {
             await this.updateMarkerNodes({
                 markerSelection: highlightSelection as any,
@@ -465,7 +467,6 @@ export abstract class CartesianSeries<
                 const { itemId } = this.contextNodeData[seriesIdx];
 
                 const subGroupVisible = visible;
-                const subGroupOpacity = subGroupOpacities[seriesIdx];
 
                 dataNodeGroup.opacity = subGroupOpacity;
                 dataNodeGroup.visible = animationEnabled || subGroupVisible;
@@ -927,7 +928,16 @@ export abstract class CartesianSeries<
             const axis = this.axes[direction];
             if (!axis) return;
 
-            if (axis.scale instanceof ContinuousScale) {
+            if (axis.scale instanceof LogScale) {
+                const { range, domain } = axis.scale;
+
+                result[direction] = {
+                    type: 'log',
+                    convert: (domain) => axis.scale.convert(domain),
+                    domain: [domain[0], domain[1]],
+                    range: [range[0], range[1]],
+                };
+            } else if (axis.scale instanceof ContinuousScale) {
                 const { range } = axis.scale;
                 const domain = axis.scale.getDomain();
 

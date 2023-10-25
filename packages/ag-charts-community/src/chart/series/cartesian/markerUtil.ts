@@ -4,8 +4,10 @@ import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motio
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { AnimationManager } from '../../interaction/animationManager';
+import type { Marker } from '../../marker/marker';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { PathNodeDatumLike, PathPoint, PathPointMap } from './pathUtil';
 
 type NodeWithOpacity = Node & { opacity: number };
 export function markerFadeInAnimation<T>(
@@ -68,4 +70,52 @@ export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node:
         translationX: datum.point?.x ?? NaN,
         translationY: datum.point?.y ?? NaN,
     };
+}
+
+export function prepareMarkerAnimation(pairMap: PathPointMap) {
+    const markerStatus = (datum: PathNodeDatumLike): { point?: PathPoint; status: NodeUpdateState } => {
+        const { xValue } = datum;
+
+        if (pairMap.moved[xValue]) {
+            return { point: pairMap.moved[xValue], status: 'updated' };
+        } else if (pairMap.removed[xValue]) {
+            return { point: pairMap.removed[xValue], status: 'removed' };
+        } else if (pairMap.added[xValue]) {
+            return { point: pairMap.added[xValue], status: 'added' };
+        }
+
+        return { status: 'unknown' };
+    };
+    const fromFn = (marker: Marker, datum: PathNodeDatumLike) => {
+        const { status, point } = markerStatus(datum);
+        if (status === 'unknown') return { opacity: 0 };
+
+        const defaults = {
+            translationX: point?.from?.x ?? marker.translationX,
+            translationY: point?.from?.y ?? marker.translationY,
+            opacity: marker.opacity,
+            ...FROM_TO_MIXINS[status],
+        };
+
+        if (status === 'added') {
+            return { ...defaults, opacity: 0 };
+        }
+
+        return defaults;
+    };
+
+    const toFn = (_marker: Marker, datum: PathNodeDatumLike) => {
+        const { status, point } = markerStatus(datum);
+        if (status === 'unknown') return { opacity: 0 };
+
+        const defaults = { translationX: datum.point.x, translationY: datum.point.y, opacity: 1 };
+
+        if (status === 'removed') {
+            return { ...defaults, translationX: point?.to?.x, translationY: point?.to?.y, opacity: 0 };
+        }
+
+        return defaults;
+    };
+
+    return { fromFn, toFn };
 }
