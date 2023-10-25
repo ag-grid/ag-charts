@@ -1,7 +1,8 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import * as ContextMenu from '../context-menu/main';
+import type { ContextMenuActionParams } from '../context-menu/main';
+import { ContextMenu } from '../context-menu/main';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
@@ -125,17 +126,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.destroyFns.push(() => this.scene.root?.removeChild(selectionRect));
 
         // Add context menu zoom actions
-        ContextMenu._registerDefaultAction(
-            CONTEXT_ZOOM_ACTION_ID,
-            'Zoom to here',
-            (params: ContextMenu.ContextMenuActionParams) => this.onContextMenuZoomToHere(params)
-        );
-        ContextMenu._registerDefaultAction(
-            CONTEXT_PAN_ACTION_ID,
-            'Pan to here',
-            (params: ContextMenu.ContextMenuActionParams) => this.onContextMenuPanToHere(params)
-        );
-        ContextMenu._disableAction(CONTEXT_PAN_ACTION_ID);
+        ContextMenu.registerDefaultAction({
+            id: CONTEXT_ZOOM_ACTION_ID,
+            label: 'Zoom to here',
+            action: (params) => this.onContextMenuZoomToHere(params),
+        });
+        ContextMenu.registerDefaultAction({
+            id: CONTEXT_PAN_ACTION_ID,
+            label: 'Pan to here',
+            action: (params) => this.onContextMenuPanToHere(params),
+        });
+        ContextMenu.disableAction(CONTEXT_PAN_ACTION_ID);
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
@@ -317,7 +318,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.minRatioY ||= this.minRatioX || 0;
     }
 
-    private onContextMenuZoomToHere({ event }: ContextMenu.ContextMenuActionParams) {
+    private onContextMenuZoomToHere({ event }: ContextMenuActionParams) {
         if (!this.enabled || !this.seriesRect || !event || !event.target) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
@@ -344,7 +345,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onContextMenuPanToHere({ event }: ContextMenu.ContextMenuActionParams) {
+    private onContextMenuPanToHere({ event }: ContextMenuActionParams) {
         if (!this.enabled || !this.seriesRect || !event || !event.target) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
@@ -425,21 +426,21 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // Discard the zoom update if it would take us below either min ratio
         if (dx < this.minRatioX || dy < this.minRatioY) {
-            ContextMenu._disableAction(CONTEXT_ZOOM_ACTION_ID);
-            ContextMenu._enableAction(CONTEXT_PAN_ACTION_ID);
+            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
+            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
             return;
         }
 
         if (this.isMinZoom(zoom)) {
-            ContextMenu._disableAction(CONTEXT_ZOOM_ACTION_ID);
+            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
         } else {
-            ContextMenu._enableAction(CONTEXT_ZOOM_ACTION_ID);
+            ContextMenu.enableAction(CONTEXT_ZOOM_ACTION_ID);
         }
 
         if (this.isMaxZoom(zoom)) {
-            ContextMenu._disableAction(CONTEXT_PAN_ACTION_ID);
+            ContextMenu.disableAction(CONTEXT_PAN_ACTION_ID);
         } else {
-            ContextMenu._enableAction(CONTEXT_PAN_ACTION_ID);
+            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
         }
 
         this.zoomManager.updateZoom(ZOOM_ID, zoom);

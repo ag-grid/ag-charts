@@ -26,12 +26,10 @@ In the example below, there is one extra action called "Say hello" that will out
 ```ts
 contextMenu: {
     extraActions: [
-        {
-            label: 'Say hello',
-            action: ({ datum, event }: AgContextMenuActionParams) => {
-                console.log(`Hello ${datum?.value ?? 'world'}`);
-            },
-        },
+        { label: 'Say hello', action: () => console.log('Hello world') },
+    ],
+    extraNodeActions: [
+        { label: 'Say hello to a node', action: ({ datum }) => console.log(`Hello ${datum?.value ?? 'world'}`) }
     ];
 }
 ```
