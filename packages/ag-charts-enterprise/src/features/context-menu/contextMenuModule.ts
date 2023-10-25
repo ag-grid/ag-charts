@@ -1,9 +1,8 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
-import type { ContextMenuActionParams } from './contextMenu';
 import { ContextMenu } from './contextMenu';
 
-export type { ContextMenuActionParams } from './contextMenu';
+export { ContextMenu, ContextMenuActionParams } from './contextMenu';
 
 export const ContextMenuModule: _ModuleSupport.Module = {
     type: 'root',
@@ -17,27 +16,3 @@ export const ContextMenuModule: _ModuleSupport.Module = {
         },
     },
 };
-
-export function _registerDefaultAction(
-    id: string,
-    label: string,
-    action: (params: ContextMenuActionParams) => void
-): void {
-    ContextMenu.registerDefaultAction({ id, label, action });
-}
-
-export function _registerNodeAction(
-    id: string,
-    label: string,
-    action: (params: ContextMenuActionParams) => void
-): void {
-    ContextMenu.registerNodeAction({ id, label, action });
-}
-
-export function _disableAction(actionId: string) {
-    ContextMenu.disableAction(actionId);
-}
-
-export function _enableAction(actionId: string) {
-    ContextMenu.enableAction(actionId);
-}
