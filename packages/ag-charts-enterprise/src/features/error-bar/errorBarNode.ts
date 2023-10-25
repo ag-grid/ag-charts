@@ -103,8 +103,10 @@ export class ErrorBarNode extends _Scene.Group {
         style: AgErrorBarThemeableOptions,
         formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & AgErrorBarDataOptions
     ) {
-        let { cap, ...whiskerStyle } = style;
-        let { length, lengthRatio, ...capsStyle } = cap ?? {};
+        const { cap, ...whiskerStyleOptions } = style;
+        const { length, lengthRatio, ...capsStyleOptions } = cap ?? {};
+        let whiskerStyle = whiskerStyleOptions;
+        let capsStyle = capsStyleOptions;
 
         const params = this.getFormatterParams(formatters);
         if (params !== undefined) {
