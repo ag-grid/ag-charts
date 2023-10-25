@@ -1,6 +1,6 @@
 import classnames from 'classnames';
-import type { FunctionComponent, ReactElement, ReactNode } from 'react';
-import { useState } from 'react';
+import type { FunctionComponent, ReactElement } from 'react';
+import { Children, useState } from 'react';
 
 import { TabItem } from './TabItem';
 import styles from './Tabs.module.scss';
@@ -9,12 +9,16 @@ const TAB_LABEL_PROP = 'tab-label'; // NOTE: kebab case to match markdown html p
 const TABS_LINKS_PROP = 'tabs-links';
 
 interface Props {
-    children: ReactNode;
+    children: ReactElement[];
 }
 
 export const Tabs: FunctionComponent<Props> = ({ children }) => {
-    const contentChildren = (children as ReactElement[])?.filter((child) => child.props && child.props[TAB_LABEL_PROP]);
-    const linksChildren = (children as ReactElement[])?.filter((child) => child.props && child.props[TABS_LINKS_PROP]);
+    const contentChildren = Children.map(children, (child) => {
+        return child.props[TAB_LABEL_PROP] ? child : null;
+    }).filter(Boolean);
+    const headerLinks = Children.map(children, (child) => {
+        return child.props[TABS_LINKS_PROP] ? child : null;
+    }).filter(Boolean);
 
     const [selected, setSelected] = useState(contentChildren[0]?.props[TAB_LABEL_PROP]);
 
@@ -28,7 +32,7 @@ export const Tabs: FunctionComponent<Props> = ({ children }) => {
                     })}
                 </ul>
 
-                {linksChildren && <div className={styles.externalLinks}>{linksChildren}</div>}
+                {headerLinks && <div className={styles.externalLinks}>{headerLinks}</div>}
             </header>
             <div className="tabs-content" role="tabpanel" aria-labelledby={`${selected} tab`}>
                 {contentChildren.find(({ props }: ReactElement) => props[TAB_LABEL_PROP] === selected)}
