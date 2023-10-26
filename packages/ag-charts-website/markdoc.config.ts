@@ -96,5 +96,14 @@ export default defineMarkdocConfig({
                 displayFirst: { type: 'Array' },
             },
         },
+        tabs: {
+            render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
+        },
+        tabItem: {
+            render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),
+            attributes: {
+                label: { type: String },
+            },
+        },
     },
 });

@@ -813,18 +813,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
             const radius = this.radiusScale.convert(datum.radius);
-            // Bring highlighted sector's parent group to front.
-            const sectorParent = sector.parent;
-            const sectorGrandParent = sectorParent?.parent;
-            if (isDatumHighlighted && sectorParent && sectorGrandParent) {
-                sectorGrandParent.removeChild(sectorParent);
-                sectorGrandParent.appendChild(sectorParent);
-            }
 
             sector.innerRadius = Math.max(0, innerRadius);
             sector.outerRadius = Math.max(0, radius);
 
-            if (isDatumHighlighted || this.ctx.animationManager.isSkipped()) {
+            if (this.ctx.animationManager.isSkipped()) {
                 sector.startAngle = datum.startAngle;
                 sector.endAngle = datum.endAngle;
             }
@@ -846,12 +839,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             const isDatumHighlighted =
                 highlightedDatum?.series === this && node.datum.itemId === highlightedDatum.itemId;
 
-            if (isDatumHighlighted) {
-                updateSectorFn(node, datum, index, isDatumHighlighted);
-                node.visible = true;
-            } else {
-                node.visible = false;
-            }
+            updateSectorFn(node, datum, index, isDatumHighlighted);
+            node.visible = isDatumHighlighted;
         });
 
         this.updateCalloutLineNodes();
@@ -1500,7 +1489,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     override animateWaitingUpdateReady() {
-        const { itemSelection, processedData } = this;
+        const { itemSelection, highlightSelection, processedData } = this;
         const { animationManager } = this.ctx;
         const diff = processedData?.reduced?.diff;
 
@@ -1509,7 +1498,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             this.id,
             'waiting-update-ready',
             animationManager,
-            [itemSelection],
+            [itemSelection, highlightSelection],
             fns,
             (_, datum) => this.getDatumId(datum),
             diff
@@ -1521,11 +1510,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     override animateClearingUpdateEmpty() {
-        const { itemSelection } = this;
+        const { itemSelection, highlightSelection } = this;
         const { animationManager } = this.ctx;
 
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
-        fromToMotion(this.id, 'clearing-update-empty', animationManager, [itemSelection], fns);
+        fromToMotion(this.id, 'clearing-update-empty', animationManager, [itemSelection, highlightSelection], fns);
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);

@@ -1,19 +1,22 @@
 import classnames from 'classnames';
-import type { FunctionComponent, ReactNode } from 'react';
-import { useState } from 'react';
+import type { FunctionComponent, ReactElement } from 'react';
+import { Children, useState } from 'react';
 
+import { TabNavItem } from './TabNavItem';
 import styles from './Tabs.module.scss';
-
-const TAB_LABEL_PROP = 'tab-label'; // NOTE: kebab case to match markdown html props
-const TABS_LINKS_PROP = 'tabs-links';
+import { TABS_LINKS_PROP, TAB_LABEL_PROP } from './constants';
 
 interface Props {
-    children: ReactNode;
+    children: ReactElement[];
 }
 
 export const Tabs: FunctionComponent<Props> = ({ children }) => {
-    const contentChildren = children?.filter((child) => child.props && child.props[TAB_LABEL_PROP]);
-    const linksChildren = children?.filter((child) => child.props && child.props[TABS_LINKS_PROP]);
+    const contentChildren = Children.map(children, (child) => {
+        return child.props[TAB_LABEL_PROP] ? child : null;
+    }).filter(Boolean);
+    const headerLinks = Children.map(children, (child) => {
+        return child.props[TABS_LINKS_PROP] ? child : null;
+    }).filter(Boolean);
 
     const [selected, setSelected] = useState(contentChildren[0]?.props[TAB_LABEL_PROP]);
 
@@ -21,32 +24,16 @@ export const Tabs: FunctionComponent<Props> = ({ children }) => {
         <div className={classnames('tabs-outer', styles.tabsOuter)}>
             <header className={'tabs-header'}>
                 <ul className="tabs-nav-list" role="tablist">
-                    {contentChildren.map(({ props }, idx) => {
+                    {contentChildren.map(({ props }: ReactElement) => {
                         const label = props[TAB_LABEL_PROP];
-                        return (
-                            <li key={label} className="tabs-nav-item" role="presentation">
-                                <button
-                                    className={classnames('button-style-none', 'tabs-nav-link', {
-                                        active: label === selected,
-                                    })}
-                                    onClick={(e) => {
-                                        setSelected(label);
-                                        e.preventDefault();
-                                    }}
-                                    role="tab"
-                                    disabled={label === selected}
-                                >
-                                    {label}
-                                </button>
-                            </li>
-                        );
+                        return <TabNavItem key={label} label={label} selected={selected} setSelected={setSelected} />;
                     })}
                 </ul>
 
-                {linksChildren && <div className={styles.externalLinks}>{linksChildren}</div>}
+                {headerLinks && <div className={styles.externalLinks}>{headerLinks}</div>}
             </header>
             <div className="tabs-content" role="tabpanel" aria-labelledby={`${selected} tab`}>
-                {contentChildren.find(({ props }) => props[TAB_LABEL_PROP] === selected)}
+                {contentChildren.find(({ props }: ReactElement) => props[TAB_LABEL_PROP] === selected)}
             </div>
         </div>
     );
