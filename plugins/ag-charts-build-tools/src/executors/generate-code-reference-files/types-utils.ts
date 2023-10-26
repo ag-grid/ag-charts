@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as ts from 'typescript';
 
 import { inputGlob, parseFile } from './executors-utils';
@@ -104,7 +105,6 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
         } else if (h.kind === 'typeLiteral') {
             node.members.push(...h.members);
         } else {
-            // eslint-disable-next-line no-console
             console.warn(`Unhandled type "${h.type}" on ${typeName}`, h);
         }
         // remove to ensure we only run once
@@ -278,7 +278,6 @@ export function formatNode(node: ts.Node) {
 
         case ts.SyntaxKind.MappedType:
             const output = printNode(node);
-            // eslint-disable-next-line no-console
             console.warn('Avoid using MappedType in user facing typings.', output);
             return output;
 
