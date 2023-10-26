@@ -116,6 +116,11 @@
                 {
                     "title": "Multiple Line Series",
                     "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
+                    "name": "multiple-line-series"
+                },
+                {
+                    "title": "Multiple With Time Axis",
+                    "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
                     "name": "line-legend-pagination"
                 },
                 {
