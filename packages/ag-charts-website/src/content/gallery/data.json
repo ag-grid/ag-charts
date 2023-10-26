@@ -119,17 +119,17 @@
                     "name": "multiple-line-series"
                 },
                 {
-                    "title": "Line Series With Time Axis",
+                    "title": "Line With Time Axis",
                     "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
                     "name": "line-legend-pagination"
                 },
                 {
-                    "title": "Multiple Line Series With Large Data",
+                    "title": "Line With Large Data",
                     "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
                     "name": "multiple-line-series-large-data"
                 },
                 {
-                    "title": "Line Series With Labels",
+                    "title": "Line With Labels",
                     "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
                     "name": "line-with-labels"
                 }
