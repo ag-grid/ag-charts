@@ -109,5 +109,14 @@ export default defineMarkdocConfig({
                 config: { type: String },
             },
         },
+        tabs: {
+            render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
+        },
+        tabItem: {
+            render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),
+            attributes: {
+                label: { type: String },
+            },
+        },
     },
 });
