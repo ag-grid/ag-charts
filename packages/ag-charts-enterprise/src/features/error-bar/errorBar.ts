@@ -302,8 +302,15 @@ export class ErrorBars
     }
 
     private pickDatum(event: _ModuleSupport.InteractionEvent): ErrorBarNodeDatum | undefined {
-        const node = this.groupNode.pickNode(event.offsetX, event.offsetY);
-        return node?.datum;
+        // The error bars cover part of series datum node (marker/bar). If this part is clicked on, then
+        // that triggers the event twice (once in the Series class, and once in this ErrorBars class).
+        // We don't want that, so check whether the event hits a series node datum:
+        const seriesNode = this.cartesianSeries.contentGroup.pickNode(event.offsetX, event.offsetY);
+        if (seriesNode !== undefined) {
+            return undefined; // Ignore this event, it's already being handled by the series.
+        }
+        const errorBarNode = this.groupNode.pickNode(event.offsetX, event.offsetY);
+        return errorBarNode?.datum;
     }
 
     private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {
