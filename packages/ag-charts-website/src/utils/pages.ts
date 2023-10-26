@@ -33,7 +33,6 @@ export interface DevFileRoute {
  * NOTE: File path is after `getRootUrl()`
  */
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
-    'interfaces.json': 'dist/packages/ag-charts-community/interfaces.AUTO-new.json',
     'resolved-interfaces.json': 'dist/packages/ag-charts-community/resolved-interfaces.AUTO.json',
 
     'ag-charts-community/interfaces.AUTO.json': 'dist/packages/ag-charts-community/interfaces.AUTO.json',
