@@ -166,6 +166,8 @@ export class ErrorBars
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
             ctx.interactionManager.addListener('hover', (event) => this.onHoverEvent(event)),
+            ctx.interactionManager.addListener('click', (event) => this.onClickEvent(event)),
+            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClickEvent(event)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode),
             () => annotationSelections.delete(this.selection)
@@ -299,19 +301,38 @@ export class ErrorBars
         node.updateTranslation(this.cap, this.ctx.tooltipManager.getRange());
     }
 
+    private pickDatum(event: _ModuleSupport.InteractionEvent): ErrorBarNodeDatum | undefined {
+        const node = this.groupNode.pickNode(event.offsetX, event.offsetY);
+        return node?.datum;
+    }
+
     private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {
         const { scene, highlightManager, tooltipManager, window } = this.ctx;
         const { id } = this.groupNode;
 
-        const node = this.groupNode.pickNode(event.offsetX, event.offsetY);
-        if (node?.datum !== undefined) {
-            const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, node.datum, window);
-            const html = this.cartesianSeries.getTooltipHtml(node.datum);
-            highlightManager.updateHighlight(id, node.datum);
+        const datum = this.pickDatum(event);
+        if (datum !== undefined) {
+            const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, datum, window);
+            const html = this.cartesianSeries.getTooltipHtml(datum);
+            highlightManager.updateHighlight(id, datum);
             tooltipManager.updateTooltip(id, meta, html);
         } else {
             highlightManager.updateHighlight(id, undefined);
             tooltipManager.removeTooltip(id);
+        }
+    }
+
+    private onClickEvent(event: _ModuleSupport.InteractionEvent<'click'>) {
+        const datum = this.pickDatum(event);
+        if (datum !== undefined) {
+            this.cartesianSeries.fireNodeClickEvent(event.sourceEvent as MouseEvent, datum);
+        }
+    }
+
+    private onDoubleClickEvent(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
+        const datum = this.pickDatum(event);
+        if (datum !== undefined) {
+            this.cartesianSeries.fireNodeDoubleClickEvent(event.sourceEvent as MouseEvent, datum);
         }
     }
 
