@@ -1,4 +1,4 @@
-import {getIsDev, getIsStaging} from '@utils/env';
+import { getIsDev, getIsStaging } from '@utils/env';
 import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
 import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';
@@ -43,7 +43,7 @@ const Search = ({ currentFramework }) => {
         [algoliaClient]
     );
 
-    const indices = [{ name: `ag-charts${(getIsDev() || getIsStaging()) ? '-dev' : ''}_${currentFramework}` }];
+    const indices = [{ name: `ag-charts${getIsDev() || getIsStaging() ? '-dev' : ''}_${currentFramework}` }];
 
     return (
         <InstantSearch

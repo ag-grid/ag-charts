@@ -6,28 +6,37 @@
 require('dotenv').config();
 
 const fs = require('fs-extra');
-const {JSDOM} = require('jsdom');
+const { JSDOM } = require('jsdom');
 const algoliasearch = require('algoliasearch');
-const commander = require("commander");
+const commander = require('commander');
 
 const menu = require('./src/content/menu/data.json');
 const supportedFrameworks = ['javascript', 'react', 'angular', 'vue'];
-const puppeteer = require("puppeteer-core");
+const puppeteer = require('puppeteer-core');
 
 const options = commander
-    .option('-d, --debug', 'if debug = true (not provided - it\'ll default to true), the script writes the records it would upload into JSON files for inspection', true)
-    .option("-i, --indexNamePrefix <prefix>", 'if indexNamePrefix = "ag-charts-dev" we\'ll update development indices, and for "ag-charts" production', 'ag-charts-dev')
+    .option(
+        '-d, --debug',
+        "if debug = true (not provided - it'll default to true), the script writes the records it would upload into JSON files for inspection",
+        true
+    )
+    .option(
+        '-i, --indexNamePrefix <prefix>',
+        'if indexNamePrefix = "ag-charts-dev" we\'ll update development indices, and for "ag-charts" production',
+        'ag-charts-dev'
+    )
     .parse(process.argv)
     .opts();
-
 
 const clearIndices = true; // to ensure a clean index, you should clear existing records before inserting new ones
 const debug = options.debug === true;
 const indexNamePrefix = options.indexNamePrefix;
 
-console.log("Updating Algolia Indices");
+console.log('Updating Algolia Indices');
 console.log(`debug: ${debug}, indexNamePrefix: ${indexNamePrefix}`);
-console.log(`Updating Algolia using App ID ${process.env.ASTRO_ALGOLIA_APP_ID} and admin key ${process.env.ALGOLIA_ADMIN_KEY}`);
+console.log(
+    `Updating Algolia using App ID ${process.env.ASTRO_ALGOLIA_APP_ID} and admin key ${process.env.ALGOLIA_ADMIN_KEY}`
+);
 
 let algoliaClient;
 if (!debug) {
@@ -38,29 +47,35 @@ if (!debug) {
 const disallowedTags = ['style', 'pre', 'astro-island'];
 const disallowedClasses = ['container', 'apiReference']; // examples
 
-const cleanContents = contents => {
+const cleanContents = (contents) => {
     // remove all content from disallowed tags
-    disallowedTags.forEach(tag => contents = contents.replace(new RegExp(`<${tag}(\\s.*?)?>.*?</${tag}>`, 'gs'), ''));
+    disallowedTags.forEach(
+        (tag) => (contents = contents.replace(new RegExp(`<${tag}(\\s.*?)?>.*?</${tag}>`, 'gs'), ''))
+    );
 
     return contents
         .replace(/<.*?>/gs, ' ') // remove tags
-        .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&.*?;/g, '') // remove HTML characters
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&.*?;/g, '') // remove HTML characters
         .replace(/\s+/g, ' ') // compress whitespace
-        .replace(/\s+([.,?!:)])/g, '$1').replace(/\(\s+/g, '(')  // neaten punctuation
+        .replace(/\s+([.,?!:)])/g, '$1')
+        .replace(/\(\s+/g, '(') // neaten punctuation
         .trim();
 };
 
-const extractTitle = titleTag => {
+const extractTitle = (titleTag) => {
     let title = titleTag.firstChild.textContent;
 
     let sibling = titleTag.firstChild.nextSibling;
-    while(sibling) {
+    while (sibling) {
         title += ` ${sibling.textContent}`;
         sibling = sibling.nextSibling;
     }
 
     return title;
-}
+};
 
 const convertToFrameworkUrl = (url, framework) => `${framework}/${url}/`;
 
@@ -73,10 +88,10 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
         const prodUrl = `https://www.ag-charts.com${path}`;
 
         const page = await browser.newPage();
-        await page.setViewport({width: 800, height: 570});
+        await page.setViewport({ width: 800, height: 570 });
 
-        await page.goto(prodUrl, {waitUntil: 'networkidle2'});
-        await page.waitForFunction(() => document.querySelectorAll("[id^='reference-']").length > 5)
+        await page.goto(prodUrl, { waitUntil: 'networkidle2' });
+        await page.waitForFunction(() => document.querySelectorAll("[id^='reference-']").length > 5);
 
         const content = await page.content();
         dom = await new JSDOM(content);
@@ -112,8 +127,8 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
             return;
         }
 
-        if(cleanText.length > 50000) {
-            console.log(url)
+        if (cleanText.length > 50000) {
+            console.log(url);
         }
         const hashPath = `${path}${key ? `#${key}` : ''}`;
 
@@ -138,11 +153,18 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
      * We split the page into sections based on H2 and H3 tags, which keeps the record size manageable and returns
      * more accurate results for users, as they will be taken to specific parts of a page.
      */
-    const parseContent = startingElement => {
+    const parseContent = (startingElement) => {
         for (let currentTag = startingElement; currentTag != null; currentTag = currentTag.nextElementSibling) {
             try {
-                if (disallowedTags.includes(currentTag.nodeName.toLowerCase()) ||
-                    (typeof currentTag.className === 'string' && currentTag.className.split(' ').some(className => disallowedClasses.some(disallowed => className.includes(disallowed))))) {
+                if (
+                    disallowedTags.includes(currentTag.nodeName.toLowerCase()) ||
+                    (typeof currentTag.className === 'string' &&
+                        currentTag.className
+                            .split(' ')
+                            .some((className) =>
+                                disallowedClasses.some((disallowed) => className.includes(disallowed))
+                            ))
+                ) {
                     // ignore this tag
                     continue;
                 }
@@ -199,9 +221,9 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
 // we read these pages from ag-charts.com and parse them as these pages no longer have
 // the page content statically - they're loaded via JS
 // we'll run this after we deploy to ag-charts.com so the indices will be accurate
-const readFromAgCharts = url => false;
+const readFromAgCharts = (url) => false;
 
-const processIndexForFramework = async framework => {
+const processIndexForFramework = async (framework) => {
     let rank = 10000; // using this rank ensures that pages that are earlier in the menu will rank higher in results
     const records = [];
     const indexName = `${indexNamePrefix}_${framework}`;
@@ -211,8 +233,11 @@ const processIndexForFramework = async framework => {
     const filter = (item) => false;
 
     const browser = await puppeteer.launch({
-        executablePath: indexNamePrefix === 'ag-charts-dev' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : '/usr/bin/google-chrome',
-        ignoreHTTPSErrors: true
+        executablePath:
+            indexNamePrefix === 'ag-charts-dev'
+                ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+                : '/usr/bin/google-chrome',
+        ignoreHTTPSErrors: true,
     });
 
     // console.log(`Generating records for ${indexName}...`);
@@ -230,8 +255,15 @@ const processIndexForFramework = async framework => {
             const breadcrumb = breadcrumbPrefix + item.title;
             // console.log(`=== Walking ${breadcrumb}...`);
 
-            if (item.path && !exclusions.some(exclusion => exclusion === item.path.replace(/\//g, ''))) {
-                const newRecords = await createRecords(browser, item.path, framework, breadcrumb, rank, readFromAgCharts(item.path));
+            if (item.path && !exclusions.some((exclusion) => exclusion === item.path.replace(/\//g, ''))) {
+                const newRecords = await createRecords(
+                    browser,
+                    item.path,
+                    framework,
+                    breadcrumb,
+                    rank,
+                    readFromAgCharts(item.path)
+                );
                 // console.log(`Created ${newRecords.length} new records`)
                 records.push(...newRecords);
 
@@ -294,4 +326,3 @@ const run = async () => {
 };
 
 run();
-
