@@ -92,7 +92,7 @@ export default defineMarkdocConfig({
                 id: { type: 'String' },
                 include: { type: 'Array' },
                 exclude: { type: 'Array' },
-                noHeader: { type: 'Boolean' },
+                hideHeader: { type: 'Boolean' },
                 displayFirst: { type: 'Array' },
             },
         },

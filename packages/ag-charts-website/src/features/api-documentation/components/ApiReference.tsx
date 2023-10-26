@@ -28,11 +28,11 @@ interface ApiReferenceOptions {
     reference: ApiReferenceType;
     include?: string[];
     exclude?: string[];
-    noHeader?: boolean;
+    hideHeader?: boolean;
     displayFirst?: string[];
 }
 
-export function ApiReference({ id, reference, displayFirst, include, exclude, noHeader }: ApiReferenceOptions) {
+export function ApiReference({ id, reference, displayFirst, include, exclude, hideHeader }: ApiReferenceOptions) {
     if (!reference.has(id)) {
         return null;
     }
@@ -43,7 +43,7 @@ export function ApiReference({ id, reference, displayFirst, include, exclude, no
     return (
         <ApiReferenceContext.Provider value={reference}>
             <div className={styles.apiReferenceOuter}>
-                {!noHeader &&
+                {!hideHeader &&
                     (interfaceRef.docs?.join('\n') ?? (
                         <p>
                             Properties available on the <code>{id}</code> interface.
@@ -270,7 +270,7 @@ function processMembers(
         displayFirst,
         include,
         exclude,
-    }: { displayFirst?: string[]; include?: string[]; exclude?: string[]; noHeader?: boolean }
+    }: { displayFirst?: string[]; include?: string[]; exclude?: string[]; hideHeader?: boolean }
 ) {
     if (include?.length || exclude?.length) {
         members = members.filter(

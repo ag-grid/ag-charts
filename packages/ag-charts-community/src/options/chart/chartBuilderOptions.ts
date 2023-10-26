@@ -34,7 +34,7 @@ export interface AgChartInterface {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    create(options: AgChartOptions & AgChartSpecialOverrides): AgChartInstance;
+    create(options: AgChartOptions): AgChartInstance;
 
     /**
      * Update an existing `AgChartInstance`. Options provided should be complete and not
@@ -45,7 +45,7 @@ export interface AgChartInterface {
      * quick succession could result in undesirable flickering, so callers should batch up and/or
      * debounce changes to avoid unintended partial update renderings.
      */
-    update(chart: AgChartInstance, options: AgChartOptions & AgChartSpecialOverrides): void;
+    update(chart: AgChartInstance, options: AgChartOptions): void;
 
     /**
      * Update an existing `AgChartInstance` by applying a partial set of option changes.
