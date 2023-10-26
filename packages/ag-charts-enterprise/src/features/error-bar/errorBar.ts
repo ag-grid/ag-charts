@@ -147,7 +147,7 @@ export class ErrorBars
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
         this.ctx = ctx;
-        const { annotationGroup } = this.cartesianSeries;
+        const { annotationGroup, annotationSelections } = this.cartesianSeries;
 
         this.groupNode = new _Scene.Group({
             name: `${annotationGroup.id}-errorBars`,
@@ -156,6 +156,7 @@ export class ErrorBars
         });
         annotationGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
+        annotationSelections.add(this.selection);
 
         const series = this.cartesianSeries;
         this.destroyFns.push(
@@ -167,7 +168,8 @@ export class ErrorBars
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
             ctx.interactionManager.addListener('hover', (event) => this.onHoverEvent(event)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
-            () => annotationGroup.removeChild(this.groupNode)
+            () => annotationGroup.removeChild(this.groupNode),
+            () => annotationSelections.delete(this.selection)
         );
     }
 
