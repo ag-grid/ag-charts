@@ -181,9 +181,18 @@ function TypeAdditionalDetails({ interfaceRef }) {
 }
 
 function formatTypeCode(interfaceRef, reference) {
-    if (interfaceRef.kind === 'interface') {
+    if (interfaceRef.members?.length) {
         return `interface ${interfaceRef.name} {\n    ${interfaceRef.members
-            .map((member) => `${member.name}: ${normalizeType(member.type)};`)
+            .map((member) => {
+                const memberString = `${member.name}: ${normalizeType(member.type)};`;
+                if (member.docs) {
+                    return member.docs
+                        .map((docsLine: string) => `// ${docsLine}`)
+                        .concat(memberString)
+                        .join('\n    ');
+                }
+                return memberString;
+            })
             .join('\n    ')}\n}`;
     }
     if (interfaceRef.type.kind === 'union') {
@@ -201,7 +210,7 @@ function formatTypeCode(interfaceRef, reference) {
                 if (type.kind === 'typeRef') {
                     return reference.get(type.type);
                 }
-                if (type.kind === 'union') {
+                if (type.kind === 'union' || type.kind === 'intersection') {
                     return type.type.map(mapAdditionalType);
                 }
                 console.warn('Unknown type', type);

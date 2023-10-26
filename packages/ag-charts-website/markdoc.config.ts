@@ -86,18 +86,6 @@ export default defineMarkdocConfig({
                 },
             },
         },
-        apiDocumentation: {
-            render: component('./src/features/api-documentation/components/ApiDocumentation.astro'),
-            attributes: {
-                interfaceName: { type: String },
-                framework: { type: String },
-                section: { type: String },
-                names: { type: String },
-                exclude: { type: String },
-                wrapNamesAt: { type: String },
-                config: { type: String },
-            },
-        },
         apiReference: {
             render: component('./src/features/api-documentation/ApiReference.astro'),
             attributes: {

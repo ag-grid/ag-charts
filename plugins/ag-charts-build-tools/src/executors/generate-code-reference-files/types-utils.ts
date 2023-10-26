@@ -60,6 +60,11 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
                 } else {
                     return resolveType(typesMap, node.type.type);
                 }
+            case 'typeLiteral':
+                // node = { ...node.type, name: typeName };
+                return resolveType(typesMap, node.type);
+                break;
+            // return resolveType(typesMap, node.type);
             case 'intersection':
                 heritage = node.type.type.filter((typeName) => {
                     if (typeName.kind === 'typeLiteral') {
@@ -83,7 +88,11 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
         node.members ??= [];
         if (typeof h === 'string' || typesMap.has(h.type)) {
             const n = resolveType(typesMap, typeof h === 'string' ? h : h.type);
-            node.members.push(...n.members);
+            if (Array.isArray(n.members)) {
+                node.members.push(...n.members);
+            } else {
+                console.warn('Node without members found', h, n);
+            }
         } else if (h.type === 'Omit' || h.type === 'Pick') {
             const [typeRef, typeKeys] = h.typeParams;
             const matchType =

@@ -1,10 +1,10 @@
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
+import type { AgCartesianAxisPosition, AgChartSpecialOverrides } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { toRadians } from '../util/angle';
 import { Logger } from '../util/logger';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
-import type { SpecialOverrides, TransferableResources } from './chart';
+import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
@@ -20,7 +20,7 @@ export class CartesianChart extends Chart {
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
-    constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
+    constructor(specialOverrides: AgChartSpecialOverrides, resources?: TransferableResources) {
         super(specialOverrides, resources);
     }
 
