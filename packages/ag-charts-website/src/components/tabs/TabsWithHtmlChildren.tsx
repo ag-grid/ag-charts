@@ -8,7 +8,6 @@ import styles from './Tabs.module.scss';
 import { TAB_LABEL_PROP } from './constants';
 
 interface Props {
-    tabLabels: string[];
     children: ReactElement;
 }
 
@@ -17,11 +16,26 @@ interface Props {
  *
  * Children content is parsed to determine what the tab content is
  */
-export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ tabLabels = [], children }) => {
+export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ children }) => {
     const $ = useMemo(() => load(children?.props.value, null, false), [children]);
 
-    const [selected, setSelected] = useState<string>(tabLabels[0]);
+    const [selected, setSelected] = useState<string>();
     const [tabContent, setTabContent] = useState<string>('');
+    const [tabLabels, setTabLabels] = useState<string[]>([]);
+
+    useEffect(() => {
+        const childrenTabLabels = $(`[${TAB_LABEL_PROP}]`)
+            .map((_index: number, node: any) => {
+                return node.attribs[TAB_LABEL_PROP];
+            })
+            .toArray();
+
+        setTabLabels(childrenTabLabels);
+
+        if (selected === undefined) {
+            setSelected(childrenTabLabels[0]);
+        }
+    }, []);
 
     useEffect(() => {
         const childrenContent = $(`[${TAB_LABEL_PROP}="${selected}"]`).html() || '';

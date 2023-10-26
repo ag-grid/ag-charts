@@ -111,9 +111,6 @@ export default defineMarkdocConfig({
         },
         tabs: {
             render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
-            attributes: {
-                tabLabels: { type: Array },
-            },
         },
         tabItem: {
             render: component('./src/components/tabs/TabHtmlItem', 'TabHtmlItem'),
