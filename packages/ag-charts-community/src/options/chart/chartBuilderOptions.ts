@@ -1,4 +1,3 @@
-import type { DeepPartial } from '../../util/types';
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
@@ -57,7 +56,7 @@ export interface AgChartInterface {
      * quick succession could result in undesirable flickering, so callers should batch up and/or
      * debounce changes to avoid unintended partial update renderings.
      */
-    updateDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>): void;
+    updateDelta(chart: AgChartInstance, deltaOptions: AgChartOptions): void;
 
     /**
      * Starts a browser-based image download for the given `AgChartInstance`.
