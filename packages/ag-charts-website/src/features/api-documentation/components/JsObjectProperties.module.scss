@@ -24,6 +24,7 @@ $header-nav-height: 56px;
 
     header {
         --parent-properties-color: var(--text-color);
+        --parent-properties-font-weight: var(--font-weight-bold);
 
         padding-top: $size-4;
         padding-bottom: $size-4;
