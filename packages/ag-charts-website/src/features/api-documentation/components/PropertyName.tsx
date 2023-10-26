@@ -28,7 +28,7 @@ export function PropertyName({
             {wbrInject(children, splitRegex)}
             {isRequired && (
                 <span title="Required" className={styles.required}>
-                    &ast;
+                    *
                 </span>
             )}
         </Component>

@@ -37,12 +37,6 @@ const SelectionContext = createContext<SelectionContextData>({} as SelectionCont
 const DEFAULT_JSON_NODES_EXPANDED = false;
 const HIDE_TYPES = true;
 
-export interface ExpandableSnippetParams {
-    interfacename: string;
-    overridesrc?: string;
-    breadcrumbs?: string[];
-}
-
 interface ModelSnippetWithBreadcrumbsParams {
     breadcrumbs?: string[];
     model: JsonModel;

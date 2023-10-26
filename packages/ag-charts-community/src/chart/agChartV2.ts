@@ -7,6 +7,9 @@ import type {
     AgBaseSeriesOptions,
     AgChartInstance,
     AgChartOptions,
+    AgChartSpecialOverrides,
+    DownloadOptions,
+    ImageDataUrlOptions,
 } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
@@ -14,7 +17,7 @@ import { Logger } from '../util/logger';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
 import { CartesianChart } from './cartesianChart';
-import type { Chart, SpecialOverrides } from './chart';
+import type { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { getJsonApplyOptions } from './chartOptions';
 import { AgChartInstanceProxy } from './chartProxy';
@@ -41,21 +44,7 @@ import type { Series } from './series/series';
 const debug = Debug.create(true, 'opts');
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
-type AgChartExtendedOptions = AgChartOptions & SpecialOverrides;
-
-export interface DownloadOptions extends ImageDataUrlOptions {
-    /** Name of downloaded image file. Defaults to `image`.  */
-    fileName?: string;
-}
-
-export interface ImageDataUrlOptions {
-    /** Width of downloaded chart image in pixels. Defaults to current chart width. */
-    width?: number;
-    /** Height of downloaded chart image in pixels. Defaults to current chart height. */
-    height?: number;
-    /** A MIME-type string indicating the image format. The default format type is `image/png`. Options: `image/png`, `image/jpeg`.  */
-    fileFormat?: string;
-}
+type AgChartExtendedOptions = AgChartOptions & AgChartSpecialOverrides;
 
 function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
     if (isAgCartesianChartOptions(options)) {
@@ -113,7 +102,7 @@ export abstract class AgChart {
         if (!AgChartInstanceProxy.isInstance(chart)) {
             throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
-        return AgChartInternal.updateUserDelta(chart, deltaOptions);
+        AgChartInternal.updateUserDelta(chart, deltaOptions);
     }
 
     /**
@@ -123,7 +112,7 @@ export abstract class AgChart {
         if (!(chart instanceof AgChartInstanceProxy)) {
             throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
-        return AgChartInternal.download(chart, options);
+        AgChartInternal.download(chart, options);
     }
 
     /**
@@ -288,7 +277,7 @@ abstract class AgChartInternal {
 
     private static createChartInstance(
         options: AgChartOptions,
-        specialOverrides: SpecialOverrides,
+        specialOverrides: AgChartSpecialOverrides,
         oldChart?: Chart
     ): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
