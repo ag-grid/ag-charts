@@ -112,7 +112,15 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
 function cleanupMembers(members) {
     // remove duplicates and push required members to the top of the list
     return members
-        .filter(({ name }, index) => members.findIndex((item) => item.name === name) === index)
+        .filter(({ name, ...data }, index) => {
+            const firstMatchIndex = members.findIndex((item) => item.name === name);
+            const isFirstAppearance = firstMatchIndex === index;
+            if (!isFirstAppearance) {
+                const existingMember = members[firstMatchIndex];
+                existingMember.docs ??= data.docs;
+            }
+            return isFirstAppearance;
+        })
         .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0));
 }
 
@@ -184,12 +192,22 @@ export function formatNode(node: ts.Node) {
         return {
             kind: 'interface',
             name: formatNode(node.name),
-            members: node.members.map((node) => ({
-                docs: getJsDoc(node),
-                name: formatNode(node.name),
-                type: formatNode(node),
-                optional: !!node.questionToken,
-            })),
+            members: node.members.map((node) => {
+                const memberDocs = getJsDoc(node);
+                const matchDefault = memberDocs?.[memberDocs.length - 1].match(/^\s*Default:\s*`([^`]+)`\s*$/);
+                let defaultValue: string | undefined;
+                if (matchDefault) {
+                    defaultValue = matchDefault[1];
+                    memberDocs.pop();
+                }
+                return {
+                    docs: memberDocs,
+                    name: formatNode(node.name),
+                    type: formatNode(node),
+                    optional: !!node.questionToken,
+                    defaultValue,
+                };
+            }),
             typeParams: node.typeParameters?.map(formatNode),
         };
     }

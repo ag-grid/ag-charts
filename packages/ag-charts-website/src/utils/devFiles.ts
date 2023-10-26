@@ -1,4 +1,4 @@
-import type { ApiReferenceNode, ApiReferenceType } from '@features/api-documentation/api-reference-types';
+import type { ApiReferenceType } from '@features/api-documentation/api-reference-types';
 import { readFileSync } from 'node:fs';
 
 import { DEV_FILE_PATH_MAP } from './pages';
