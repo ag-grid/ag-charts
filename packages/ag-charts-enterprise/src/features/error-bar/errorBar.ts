@@ -1,4 +1,4 @@
-import type { AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
+import type { AgErrorBarOptions, AgErrorBarThemeableOptions, InteractionRange, _Scale } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type {
@@ -14,6 +14,7 @@ const {
     mergeDefaults,
     valueProperty,
     ChartAxisDirection,
+    SeriesNodePickMode,
     Validate,
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
@@ -45,6 +46,8 @@ type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
+type InteractionEvent<T extends _ModuleSupport.InteractionEvent['type'] = _ModuleSupport.InteractionEvent['type']> =
+    _ModuleSupport.InteractionEvent<T>;
 
 type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
@@ -298,26 +301,64 @@ export class ErrorBars
         const style = this.getDefaultStyle();
         node.datum = datum;
         node.updateStyle(style, this);
-        node.updateTranslation(this.cap, this.ctx.tooltipManager.getRange());
+        node.updateTranslation(this.cap);
+        node.updateBBoxes();
     }
 
-    private pickDatum(event: _ModuleSupport.InteractionEvent): ErrorBarNodeDatum | undefined {
+    private getHighlightRange() {
+        return this.ctx.tooltipManager.getRange();
+    }
+
+    private getNodeClickRange() {
+        return this.cartesianSeries.nodeClickRange;
+    }
+
+    private checkInteractionEventOverlap(event: InteractionEvent, range: InteractionRange): boolean {
+        if (range === 'nearest') {
+            return false;
+        }
         // The error bars cover part of series datum node (marker/bar). If this part is clicked on, then
         // that triggers the event twice (once in the Series class, and once in this ErrorBars class).
-        // We don't want that, so check whether the event hits a series node datum:
-        const seriesNode = this.cartesianSeries.contentGroup.pickNode(event.offsetX, event.offsetY);
-        if (seriesNode !== undefined) {
-            return undefined; // Ignore this event, it's already being handled by the series.
+        // We don't want that because there is an API for adding listeners to 'nodeClick' and
+        // 'nodeDoubleClick' events. Therefore, check whether the event hits a series node datum:
+        if (range === 'exact' || range === 0) {
+            const seriesNode = this.cartesianSeries.contentGroup.pickNode(event.offsetX, event.offsetY);
+            if (seriesNode !== undefined) {
+                return false;
+            }
         }
-        const errorBarNode = this.groupNode.pickNode(event.offsetX, event.offsetY);
-        return errorBarNode?.datum;
+        // The same concept applies again: the clickable interaction ranges of the datum node and error
+        // bars could overlap.
+        const { distance } =
+            this.cartesianSeries.pickNode({ x: event.offsetX, y: event.offsetY }, [
+                SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST,
+                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
+                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
+            ]) ?? {};
+        return distance !== undefined && distance <= range;
     }
 
-    private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {
+    private pickDatum(event: InteractionEvent, range: InteractionRange, skipOverlapCheck: boolean = false) {
+        // For highlighting events, it doesn't matter if there in an overlap because there is no API to
+        // listen for these events. Therefore, we can avoid unnessary hit-testing in the series class.
+        if (!skipOverlapCheck && this.checkInteractionEventOverlap(event, range)) {
+            return undefined;
+        }
+
+        const point = this.groupNode.transformPoint(event.offsetX, event.offsetY);
+        for (const errorBarNode of this.selection.nodes()) {
+            if (errorBarNode.containsPointWithinRange(point.x, point.y, range)) {
+                return errorBarNode.datum;
+            }
+        }
+        return undefined;
+    }
+
+    private onHoverEvent(event: InteractionEvent<'hover'>) {
         const { scene, highlightManager, tooltipManager, window } = this.ctx;
         const { id } = this.groupNode;
 
-        const datum = this.pickDatum(event);
+        const datum = this.pickDatum(event, this.getHighlightRange(), true);
         if (datum !== undefined) {
             const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, datum, window);
             const html = this.cartesianSeries.getTooltipHtml(datum);
@@ -329,15 +370,15 @@ export class ErrorBars
         }
     }
 
-    private onClickEvent(event: _ModuleSupport.InteractionEvent<'click'>) {
-        const datum = this.pickDatum(event);
+    private onClickEvent(event: InteractionEvent<'click'>) {
+        const datum = this.pickDatum(event, this.getNodeClickRange());
         if (datum !== undefined) {
             this.cartesianSeries.fireNodeClickEvent(event.sourceEvent as MouseEvent, datum);
         }
     }
 
-    private onDoubleClickEvent(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
-        const datum = this.pickDatum(event);
+    private onDoubleClickEvent(event: InteractionEvent<'dblclick'>) {
+        const datum = this.pickDatum(event, this.getNodeClickRange());
         if (datum !== undefined) {
             this.cartesianSeries.fireNodeDoubleClickEvent(event.sourceEvent as MouseEvent, datum);
         }
