@@ -5,7 +5,7 @@ import { StateMachine } from '../../../motion/states';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import type { Node, ZIndexSubOrder } from '../../../scene/node';
+import type { Node, NodeWithOpacity, ZIndexSubOrder } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
@@ -99,6 +99,7 @@ export interface CartesianAnimationData<
     datumSelections: Selection<TNode, TDatum>[];
     markerSelections: Selection<Marker, TDatum>[];
     labelSelections: Selection<Text, TLabel>[];
+    annotationSelections: Selection<NodeWithOpacity, TDatum>[];
     contextData: TContext[];
     previousContextData?: TContext[];
     paths: Path[][];
@@ -154,6 +155,8 @@ export abstract class CartesianSeries<
         this.opts.hasMarkers ? this.markerFactory() : this.nodeFactory()
     ) as Selection<TNode, TDatum>;
     private highlightLabelSelection = Selection.select<Text, TLabel>(this.highlightLabel, Text);
+
+    public annotationSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
 
     private subGroups: SubGroup<any, TDatum, TLabel>[] = [];
     private subGroupId: number = 0;
@@ -899,6 +902,7 @@ export abstract class CartesianSeries<
                 .filter(({ markerSelection }) => markerSelection !== undefined)
                 .map(({ markerSelection }) => markerSelection!),
             labelSelections: this.subGroups.map(({ labelSelection }) => labelSelection),
+            annotationSelections: [...this.annotationSelections],
             contextData: this._contextNodeData,
             previousContextData,
             paths: this.subGroups.map(({ paths }) => paths),
