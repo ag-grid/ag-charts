@@ -14,7 +14,6 @@ const options: AgChartOptions = {
         overrides: {
             line: {
                 series: {
-                    strokeWidth: 2,
                     lineDash: [12, 3],
                     marker: {
                         enabled: false,

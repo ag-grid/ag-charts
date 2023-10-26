@@ -30,12 +30,20 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'petrol',
             tooltip,
+            errorBar: {
+                yLowerKey: 'lowerPetrol',
+                yUpperKey: 'upperPetrol',
+            },
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'diesel',
             tooltip,
+            errorBar: {
+                yLowerKey: 'lowerDiesel',
+                yUpperKey: 'upperDiesel',
+            },
         },
     ],
     axes: [
