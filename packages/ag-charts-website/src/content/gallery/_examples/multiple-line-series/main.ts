@@ -31,7 +31,7 @@ const options: AgChartOptions = {
         text: 'Average hours spent per day socialising on the weekend',
     },
     footnote: {
-        text: 'Source: American Time Use Survey (2003-2022)',
+        text: 'Source: American Time Use Survey 2022',
     },
     series: [
         {
