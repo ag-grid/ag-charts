@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import type { FunctionComponent, ReactElement } from 'react';
 import { Children, useState } from 'react';
 
-import { TabItem } from './TabItem';
+import { TabNavItem } from './TabNavItem';
 import styles from './Tabs.module.scss';
 import { TABS_LINKS_PROP, TAB_LABEL_PROP } from './constants';
 
@@ -26,7 +26,7 @@ export const Tabs: FunctionComponent<Props> = ({ children }) => {
                 <ul className="tabs-nav-list" role="tablist">
                     {contentChildren.map(({ props }: ReactElement) => {
                         const label = props[TAB_LABEL_PROP];
-                        return <TabItem key={label} label={label} selected={selected} setSelected={setSelected} />;
+                        return <TabNavItem key={label} label={label} selected={selected} setSelected={setSelected} />;
                     })}
                 </ul>
 

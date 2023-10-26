@@ -5,6 +5,6 @@ interface Props {
     children: ReactElement;
 }
 
-export const TabHtmlItem = ({ label, children }: Props) => {
+export const TabHtmlContent = ({ label, children }: Props) => {
     return <div tab-label={label}>{children}</div>;
 };

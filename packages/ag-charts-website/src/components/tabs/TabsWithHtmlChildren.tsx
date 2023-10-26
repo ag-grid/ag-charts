@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import type { FunctionComponent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { TabItem } from './TabItem';
+import { TabNavItem } from './TabNavItem';
 import styles from './Tabs.module.scss';
 import { TAB_LABEL_PROP } from './constants';
 
@@ -47,7 +47,7 @@ export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ children }) => 
             <header className={'tabs-header'}>
                 <ul className="tabs-nav-list" role="tablist">
                     {tabLabels.map((label) => {
-                        return <TabItem key={label} label={label} selected={selected} setSelected={setSelected} />;
+                        return <TabNavItem key={label} label={label} selected={selected} setSelected={setSelected} />;
                     })}
                 </ul>
             </header>

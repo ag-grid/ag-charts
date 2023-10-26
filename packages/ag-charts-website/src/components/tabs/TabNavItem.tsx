@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 
-export const TabItem = ({
+export const TabNavItem = ({
     label,
     selected,
     setSelected,
