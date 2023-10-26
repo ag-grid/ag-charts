@@ -61,10 +61,7 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
                     return resolveType(typesMap, node.type.type);
                 }
             case 'typeLiteral':
-                // node = { ...node.type, name: typeName };
                 return resolveType(typesMap, node.type);
-                break;
-            // return resolveType(typesMap, node.type);
             case 'intersection':
                 heritage = node.type.type.filter((typeName) => {
                     if (typeName.kind === 'typeLiteral') {
