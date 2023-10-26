@@ -195,9 +195,12 @@ function formatTypeCode(interfaceRef, reference) {
             })
             .join('\n    ')}\n}`;
     }
+    if (interfaceRef.kind === 'typeAlias') {
+        return `type ${interfaceRef.name} = ${normalizeType(interfaceRef.type)};`;
+    }
+
     if (interfaceRef.type.kind === 'union') {
-        const codeSample = `type ${interfaceRef.name} = ${interfaceRef.type.type.map(normalizeType).join(' | ')};`;
-        return codeSample;
+        return `type ${interfaceRef.name} = ${interfaceRef.type.type.map(normalizeType).join(' | ')};`;
     }
     if (interfaceRef.type.kind === 'function') {
         const additionalTypes = interfaceRef.type.params
@@ -219,7 +222,7 @@ function formatTypeCode(interfaceRef, reference) {
         const codeSample = `function ${interfaceRef.name}(${interfaceRef.type.params
             .map((param) => `${param.name}: ${normalizeType(param.type)}`)
             .join(', ')}): ${normalizeType(interfaceRef.type.returnType)};`;
-        console.log(additionalTypes);
+        // console.log(additionalTypes);
         return additionalTypes
             ? [codeSample].concat(additionalTypes.map((type) => formatTypeCode(type, reference))).join('\n\n')
             : codeSample;

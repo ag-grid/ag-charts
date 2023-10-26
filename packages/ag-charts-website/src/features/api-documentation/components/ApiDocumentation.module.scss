@@ -145,6 +145,10 @@
     flex-wrap: wrap;
     gap: $size-2 $size-4;
     margin-top: $size-1;
+
+    pre {
+        min-width: 100%;
+    }
 }
 
 .seeMore {
