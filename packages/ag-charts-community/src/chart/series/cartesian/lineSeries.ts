@@ -486,7 +486,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         resetMotion(markerSelections, resetMarkerPositionFn);
         markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, annotationSelections);
+        seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
     }
 
     protected override animateReadyResize(animationData: LineAnimationData): void {
@@ -528,7 +528,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, annotationSelections);
+        seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
     }
 
     private getDatumId(datum: LineNodeDatum) {

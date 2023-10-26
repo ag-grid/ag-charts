@@ -15,21 +15,15 @@ const options: AgChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'petrol',
-            stroke: '#01c185',
-            marker: {
-                stroke: '#01c185',
-                fill: '#01c185',
-            },
+            marker: {},
+            label: {},
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'diesel',
-            stroke: '#000000',
-            marker: {
-                stroke: '#000000',
-                fill: '#000000',
-            },
+            marker: {},
+            label: {},
         },
     ],
     axes: [
