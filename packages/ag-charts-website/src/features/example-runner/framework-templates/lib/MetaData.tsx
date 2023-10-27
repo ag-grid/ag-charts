@@ -2,7 +2,6 @@ interface Props {
     isDev: boolean;
     title: string;
     modifiedTimeMs: number;
-    isExecuting: boolean;
     addMetaCSP?: boolean;
 }
 
@@ -13,12 +12,12 @@ const DEVELOPMENT_CSP =
  * This metadata is used across all examples. In development, we insert a timestamp to force the example to
  * hot-reload when a change is made.
  */
-export const MetaData = ({ isDev, title, modifiedTimeMs, isExecuting, addMetaCSP }: Props) => (
+export const MetaData = ({ isDev, title, modifiedTimeMs, addMetaCSP }: Props) => (
     <>
         <title>{title}</title>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {isExecuting && <meta name="robots" content="noindex" />}
+        <meta name="robots" content="noindex" />
         {isDev && <meta httpEquiv="last-modified" content={new Date(modifiedTimeMs).toString()} />}
         {addMetaCSP && <meta httpEquiv="content-security-policy" content={DEVELOPMENT_CSP} />}
     </>

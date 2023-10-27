@@ -5,7 +5,6 @@ interface Props {
     exampleName: string;
 
     modifiedTimeMs: number;
-    isExecuting: boolean;
     isEnterprise: boolean;
 
     /**
@@ -22,7 +21,6 @@ const {
     pageName,
     exampleName,
     modifiedTimeMs,
-    isExecuting,
     isEnterprise,
     styleFiles,
     scriptFiles,
@@ -50,7 +48,6 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
             isDev={isDev}
             title={`${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
-            isExecuting={isExecuting}
         />
         <ExampleStyle />
         <Styles

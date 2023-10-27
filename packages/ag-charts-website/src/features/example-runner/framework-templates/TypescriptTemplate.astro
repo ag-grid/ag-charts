@@ -13,7 +13,6 @@ interface Props {
     exampleName: string;
 
     modifiedTimeMs: number;
-    isExecuting: boolean;
     isEnterprise: boolean;
     entryFileName: string;
 
@@ -29,7 +28,6 @@ const {
     exampleName,
     isDev,
     modifiedTimeMs,
-    isExecuting,
     isEnterprise,
     appLocation,
     entryFileName,
@@ -48,7 +46,6 @@ const startFile = pathJoin(appLocation, entryFileName);
             isDev={isDev}
             title={`Typescript - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
-            isExecuting={isExecuting}
         />
         <ExampleStyle />
         <Styles
