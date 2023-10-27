@@ -3,8 +3,8 @@ import type { AgTreemapSeriesOptions } from './treemapOptions';
 
 export type AgHierarchySeriesOptions = AgTreemapSeriesOptions;
 
-export interface AgBaseHierarchyChartOptions {
-    data?: any;
+export interface AgBaseHierarchyChartOptions<TDatum = any> {
+    data?: TDatum[];
     /** Series configurations. */
     series?: AgHierarchySeriesOptions[];
 }

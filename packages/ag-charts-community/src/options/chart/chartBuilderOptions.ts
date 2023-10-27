@@ -18,7 +18,7 @@ export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, Ag
 export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
-export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions<any> {
+export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
 export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
