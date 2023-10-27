@@ -1,16 +1,17 @@
 import Code from '@components/Code';
-import { LinkIcon } from '@components/link-icon/LinkIcon';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import { createContext, useContext } from 'react';
 import Markdown from 'react-markdown';
 
-import type { ApiReferenceType } from '../api-reference-types';
+import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from '../api-reference-types';
+import { formatTypeToCode } from '../utils/apiReferenceHelpers';
 import styles from './ApiDocumentation.module.scss';
-import { PropertyName } from './PropertyName';
+import { PropertyTitle, PropertyType } from './Properies';
 import { ToggleDetails } from './ToggleDetails';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | null>(null);
+export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 
 const hiddenInterfaces = [
     'CssColor',
@@ -23,58 +24,78 @@ const hiddenInterfaces = [
     'Ratio',
 ];
 
-interface ApiReferenceOptions {
-    id: string;
-    reference: ApiReferenceType;
+interface ApiReferenceConfig {
+    prioritise?: string[];
     include?: string[];
     exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
-    displayFirst?: string[];
 }
 
-export function ApiReference({
-    id,
+interface ApiReferenceOptions {
+    id: string;
+}
+
+interface ApiReferenceRowOptions {
+    member: MemberNode;
+    parentId: string;
+    prefixPath?: string[];
+    isExpanded?: boolean;
+    onDetailsToggle?: () => void;
+}
+
+export function ApiReferenceWithContext({
     reference,
-    displayFirst,
+    prioritise,
     include,
     exclude,
     hideHeader,
     hideRequired,
-}: ApiReferenceOptions) {
-    if (!reference.has(id)) {
-        return null;
-    }
-
-    const interfaceRef = reference.get(id)!;
-    const interfaceMembers = processMembers(interfaceRef.members, { displayFirst, include, exclude });
-
+    ...props
+}: ApiReferenceOptions & ApiReferenceConfig & { reference: ApiReferenceType }) {
     return (
         <ApiReferenceContext.Provider value={reference}>
-            <div className={styles.apiReferenceOuter}>
-                {!hideHeader &&
-                    (interfaceRef.docs?.join('\n') ?? (
-                        <p>
-                            Properties available on the <code>{id}</code> interface.
-                        </p>
-                    ))}
-                <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                    <tbody>
-                        {interfaceMembers.map((member) => (
-                            <NodeFactory key={member.name} member={member} parentId={id} hideRequired={hideRequired} />
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <ApiReferenceConfigContext.Provider value={{ prioritise, include, exclude, hideHeader, hideRequired }}>
+                <ApiReference {...props} />
+            </ApiReferenceConfigContext.Provider>
         </ApiReferenceContext.Provider>
     );
 }
 
-function NodeFactory({ member, parentId, prefixPath = [], hideRequired }) {
-    const reference = useContext(ApiReferenceContext)!;
-    const [isExpanded, toggleExpanded] = useToggle();
+export function ApiReference({ id }: ApiReferenceOptions) {
+    const reference = useContext(ApiReferenceContext);
+    const config = useContext(ApiReferenceConfigContext);
 
-    const interfaceRef = getMemberAdditionalDetails(reference, member);
+    if (!reference?.has(id)) {
+        return null;
+    }
+
+    const interfaceRef = reference.get(id) as InterfaceNode;
+    const interfaceMembers = processMembers(interfaceRef.members, config);
+
+    return (
+        <div className={styles.apiReferenceOuter}>
+            {!config.hideHeader &&
+                (interfaceRef.docs?.join('\n') ?? (
+                    <p>
+                        Properties available on the <code>{id}</code> interface.
+                    </p>
+                ))}
+            <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
+                <tbody>
+                    {interfaceMembers.map((member) => (
+                        <NodeFactory key={member.name} member={member} parentId={id} />
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+function NodeFactory({ member, parentId, prefixPath = [] }: ApiReferenceRowOptions) {
+    const [isExpanded, toggleExpanded] = useToggle();
+    const interfaceRef = useMemberAdditionalDetails(member);
+    const shouldExpand = isExpanded && interfaceRef && 'members' in interfaceRef;
 
     return (
         <>
@@ -83,217 +104,117 @@ function NodeFactory({ member, parentId, prefixPath = [], hideRequired }) {
                 parentId={parentId}
                 prefixPath={prefixPath}
                 isExpanded={isExpanded}
-                toggleExpanded={toggleExpanded}
-                hideRequired={hideRequired}
+                onDetailsToggle={toggleExpanded}
             />
-            {isExpanded &&
-                interfaceRef?.members?.map((childMember) => (
+            {shouldExpand &&
+                interfaceRef.members.map((childMember) => (
                     <NodeFactory
                         key={childMember.name}
                         member={childMember}
                         parentId={parentId}
                         prefixPath={prefixPath.concat(member.name)}
-                        hideRequired={hideRequired}
                     />
                 ))}
         </>
     );
 }
 
-function ApiReferenceRow({ member, parentId, prefixPath, isExpanded, toggleExpanded, hideRequired }) {
+function ApiReferenceRow({ member, parentId, prefixPath, isExpanded, onDetailsToggle }: ApiReferenceRowOptions) {
+    const config = useContext(ApiReferenceConfigContext);
+
     return (
         <tr>
             <td role="presentation" className={styles.leftColumn}>
-                <MemberName member={member} parentId={parentId} prefixPath={prefixPath} hideRequired={hideRequired} />
-                <MemberType member={member} />
+                <PropertyTitle
+                    name={member.name}
+                    parentId={parentId}
+                    prefixPath={prefixPath}
+                    required={!config.hideRequired && !member.optional}
+                />
+                <PropertyType type={member.type} defaultValue={member.defaultValue} />
             </td>
             <td className={styles.rightColumn}>
-                <MemberDescription member={member} />
-                <MemberActions member={member} isExpanded={isExpanded} toggleExpanded={toggleExpanded} />
+                <div role="presentation" className={styles.description}>
+                    <Markdown>{member.docs?.join('\n')}</Markdown>
+                </div>
+                <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
             </td>
         </tr>
     );
 }
 
-function MemberName({
+function MemberActions({
     member,
-    parentId,
-    prefixPath,
-    hideRequired,
+    isExpanded,
+    onDetailsToggle,
 }: {
-    member: { name: string; optional: boolean };
-    parentId: string;
-    prefixPath: string[];
-    hideRequired?: boolean;
+    member: MemberNode;
+    isExpanded?: boolean;
+    onDetailsToggle?: () => void;
 }) {
-    const anchorId = `reference-${parentId}-${member.name}`;
-    return (
-        <h6 id={anchorId} className={classnames(styles.name, 'side-menu-exclude')}>
-            {prefixPath?.length > 0 && (
-                <PropertyName className={styles.parentProperties}>{`${prefixPath.join('.')}.`}</PropertyName>
-            )}
-            <PropertyName isRequired={!member.optional && !hideRequired}>{member.name}</PropertyName>
-            <LinkIcon href={`#${anchorId}`} />
-        </h6>
-    );
-}
+    const additionalDetails = useMemberAdditionalDetails(member);
+    const shouldExpand = isExpanded && additionalDetails && !('members' in additionalDetails);
 
-function MemberType({ member }: { member: { type: string | object } }) {
-    return (
-        <div className={styles.metaList}>
-            <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Type</span>
-                <PropertyName className={styles.metaValue}>{normalizeType(member.type)}</PropertyName>
-            </div>
-            {member.defaultValue && (
-                <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Default</span>
-                    <span className={styles.metaValue}>{member.defaultValue}</span>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function MemberDescription({ member }: { member: { type: string | object; docs?: string[] } }) {
-    return (
-        <div role="presentation" className={styles.description}>
-            <Markdown>{member.docs?.join('\n')}</Markdown>
-        </div>
-    );
-}
-
-function MemberActions({ member, isExpanded, toggleExpanded }: { member: { type: string | object; docs?: string[] } }) {
-    const reference = useContext(ApiReferenceContext);
-
-    if (reference === null) {
-        return null;
-    }
-
-    const additionalDetails = getMemberAdditionalDetails(reference, member);
+    // if (additionalDetails == null) {
+    //     return null;
+    // }
 
     return (
         <div className={styles.actions}>
-            {additionalDetails && <ToggleDetails isOpen={isExpanded} onToggle={toggleExpanded} />}
-            {additionalDetails && !additionalDetails.members && isExpanded && (
-                <TypeAdditionalDetails interfaceRef={additionalDetails} />
-            )}
+            {additionalDetails && <ToggleDetails isOpen={isExpanded} onToggle={onDetailsToggle} />}
+            {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} />}
         </div>
     );
 }
 
-function TypeAdditionalDetails({ interfaceRef }) {
+export function TypeCodeBlock({ apiNode }: { apiNode: ApiReferenceNode | MemberNode }) {
     const reference = useContext(ApiReferenceContext);
-    const codeSample = formatTypeCode(interfaceRef, reference);
 
-    if (!codeSample) {
-        console.warn('Unknown interface', interfaceRef);
+    if (!reference) {
         return null;
     }
+
+    const codeSample = formatTypeToCode(apiNode, reference);
+
+    if (!codeSample) {
+        // eslint-disable-next-line no-console
+        console.warn('Unknown API node', apiNode);
+        return null;
+    }
+
     return <Code code={codeSample} keepMarkup />;
 }
 
-function formatTypeCode(interfaceRef, reference) {
-    if (interfaceRef.members?.length) {
-        return `interface ${interfaceRef.name} {\n    ${interfaceRef.members
-            .map((member) => {
-                const memberString = `${member.name}: ${normalizeType(member.type)};`;
-                if (member.docs) {
-                    return member.docs
-                        .map((docsLine: string) => `// ${docsLine}`)
-                        .concat(memberString)
-                        .join('\n    ');
-                }
-                return memberString;
-            })
-            .join('\n    ')}\n}`;
-    }
-
-    if (interfaceRef.kind === 'typeAlias') {
-        return `type ${interfaceRef.name} = ${normalizeType(interfaceRef.type)};`;
-    }
-
-    if (interfaceRef.type.kind === 'union') {
-        return `type ${interfaceRef.name} = ${interfaceRef.type.type.map(normalizeType).join(' | ')};`;
-    }
-
-    if (interfaceRef.type.kind === 'function') {
-        const additionalTypes = interfaceRef.type.params
-            .map((param) => param.type)
-            .concat(interfaceRef.type.returnType)
-            .flatMap(function mapAdditionalType(type) {
-                if (typeof type === 'string') {
-                    return reference.get(type);
-                }
-                if (type.kind === 'typeRef') {
-                    return reference.get(type.type);
-                }
-                if (type.kind === 'union' || type.kind === 'intersection') {
-                    return type.type.map(mapAdditionalType);
-                }
-                console.warn('Unknown type', type);
-            })
-            .filter(Boolean);
-        const codeSample = `function ${interfaceRef.name}(${interfaceRef.type.params
-            .map((param) => `${param.name}: ${normalizeType(param.type)}`)
-            .join(', ')}): ${normalizeType(interfaceRef.type.returnType)};`;
-        // console.log(additionalTypes);
-        return additionalTypes
-            ? [codeSample].concat(additionalTypes.map((type) => formatTypeCode(type, reference))).join('\n\n')
-            : codeSample;
-    }
-}
-
-function normalizeType(refType, includeGenerics?: boolean): string {
-    if (typeof refType === 'string') {
-        return refType;
-    }
-    switch (refType.kind) {
-        case 'array':
-            return `${normalizeType(refType.type, includeGenerics)}[]`;
-        case 'typeRef':
-            return refType.type;
-        case 'union':
-            return refType.type.map((subType) => normalizeType(subType)).join(' | ');
-        case 'intersection':
-            return refType.type.map((subType) => normalizeType(subType)).join(' & ');
-        case 'function':
-            return 'Function';
-        default:
-            console.log(refType);
-            return '';
-    }
-}
-
-function getMemberType(member) {
-    return typeof member.type === 'object' ? member.type.type ?? member.type.kind : member.type;
-}
-
-function getMemberAdditionalDetails(reference: ApiReferenceType, member) {
+function useMemberAdditionalDetails(member: MemberNode) {
     const memberType = getMemberType(member);
     if (memberType === 'function') {
         return member;
     }
+    const reference = useContext(ApiReferenceContext);
     if (reference?.has(memberType) && !hiddenInterfaces.includes(memberType)) {
         return reference.get(memberType);
     }
 }
 
-function processMembers(
-    members,
-    {
-        displayFirst,
-        include,
-        exclude,
-    }: { displayFirst?: string[]; include?: string[]; exclude?: string[]; hideHeader?: boolean }
-) {
+function getMemberType(member: MemberNode): string {
+    if (typeof member.type === 'object') {
+        if ('type' in member.type && typeof member.type.type === 'string') {
+            return member.type.type;
+        }
+        return member.type.kind;
+    }
+    return member.type;
+}
+
+function processMembers(members: MemberNode[], config: ApiReferenceConfig) {
+    const { prioritise, include, exclude } = config;
     if (include?.length || exclude?.length) {
         members = members.filter(
             (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
         );
     }
-    if (displayFirst) {
-        return members.sort((a, b) => (displayFirst.includes(a.name) ? -1 : displayFirst.includes(b.name) ? 1 : 0));
+    if (prioritise) {
+        return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }
     return members;
 }

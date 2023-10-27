@@ -1,11 +1,10 @@
 ---
-import { ApiReference } from './components/ApiReference';
+import { ApiReferenceWithContext } from './components/ApiReference';
 import { getInterfacesReference } from '@utils/devFiles';
 
 const reference = getInterfacesReference()
-
 ---
-<ApiReference
+<ApiReferenceWithContext
     client:load
     {...Astro.props}
     reference={reference}

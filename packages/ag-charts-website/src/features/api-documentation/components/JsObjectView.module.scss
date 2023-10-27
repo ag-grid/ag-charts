@@ -10,6 +10,41 @@ $indent: 24px;
 
 .navContainer {
     user-select: none;
+
+    &:global(.code) > code {
+        padding: 8px 0 105px;
+    }
+
+    div[role="presentation"] {
+        padding-right: 16px;
+
+        &:before {
+            content: '';
+            padding-left: calc(attr(data-indent) * 16px);
+        }
+    }
+}
+
+.highlight {
+    --highlight-color: var(--primary-600);
+    --highlight-opacity: 0.15;
+
+    &::before {
+        content: '';
+        position: absolute;
+        right: -$size-2;
+        left: -100vw;
+        height: calc(1em * var(--code-line-height));
+        background-color: var(--highlight-color);
+        opacity: var(--highlight-opacity);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    #{$darkmode-selector} & {
+        --highlight-color: var(--property-color);
+        --highlight-opacity: 0.16;
+    }
 }
 
 .topBreadcrumb {

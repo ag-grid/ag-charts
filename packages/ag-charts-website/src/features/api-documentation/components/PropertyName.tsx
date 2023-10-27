@@ -21,6 +21,8 @@ export function PropertyName({
     ...props
 }: AllHTMLAttributes<Element> & { as?: string; isRequired?: boolean; splitRegex?: RegExp }) {
     if (typeof children !== 'string') {
+        // eslint-disable-next-line no-console
+        console.warn('PropertyName children must be of type string', children);
         return <Component {...props} />;
     }
     return (

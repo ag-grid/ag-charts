@@ -147,6 +147,7 @@ export function formatNode(node: ts.Node) {
 
     if (ts.isTypeParameterDeclaration(node)) {
         return {
+            kind: 'typeParam',
             name: printNode(node.name),
             constraint: printNode(node.constraint),
             default: printNode(node.default),
@@ -165,9 +166,11 @@ export function formatNode(node: ts.Node) {
     if (ts.isEnumDeclaration(node)) {
         return {
             kind: 'enum',
-            name: formatNode(node.name),
+            name: printNode(node.name),
             members: node.members.map((node) => ({
+                kind: 'member',
                 docs: getJsDoc(node),
+                name: printNode(node.name),
                 type: formatNode(node),
             })),
         };
@@ -176,7 +179,7 @@ export function formatNode(node: ts.Node) {
     if (ts.isTypeAliasDeclaration(node)) {
         return {
             kind: 'typeAlias',
-            name: formatNode(node.name),
+            name: printNode(node.name),
             type: formatNode(node.type),
             typeParams: node.typeParameters?.map(formatNode),
         };
@@ -186,8 +189,9 @@ export function formatNode(node: ts.Node) {
         return {
             kind: 'typeLiteral',
             members: node.members.map((node) => ({
+                kind: 'member',
                 docs: getJsDoc(node),
-                name: formatNode(node.name),
+                name: printNode(node.name),
                 type: formatNode(node),
                 optional: !!node.questionToken,
             })),
@@ -197,6 +201,7 @@ export function formatNode(node: ts.Node) {
     if (ts.isInterfaceDeclaration(node)) {
         return {
             kind: 'interface',
+            docs: getJsDoc(node),
             name: formatNode(node.name),
             members: node.members.map((node) => {
                 const memberDocs = getJsDoc(node);
@@ -207,6 +212,7 @@ export function formatNode(node: ts.Node) {
                     memberDocs.pop();
                 }
                 return {
+                    kind: 'member',
                     docs: memberDocs,
                     name: formatNode(node.name),
                     type: formatNode(node),
@@ -238,7 +244,8 @@ export function formatNode(node: ts.Node) {
 
     if (ts.isParameter(node)) {
         return {
-            name: formatNode(node.name),
+            kind: 'param',
+            name: printNode(node.name),
             type: formatNode(node.type),
         };
     }
@@ -257,7 +264,7 @@ export function formatNode(node: ts.Node) {
         return {
             kind: 'indexAccess',
             type: formatNode(node.objectType),
-            index: formatNode(node.indexType),
+            index: printNode(node.indexType),
         };
     }
 
