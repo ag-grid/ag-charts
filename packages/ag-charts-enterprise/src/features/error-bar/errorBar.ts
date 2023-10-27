@@ -294,8 +294,7 @@ export class ErrorBars
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
         const style = this.getDefaultStyle();
         node.datum = datum;
-        node.updateStyle(style, this);
-        node.updateTranslation(this.cap);
+        node.update(style, this);
         node.updateBBoxes();
     }
 
@@ -368,7 +367,7 @@ export class ErrorBars
         const { nodeData } = this.cartesianSeries.contextNodeData[0];
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection.nodes()[i].updateStyle(style, this);
+                this.selection.nodes()[i].update(style, this);
                 break;
             }
         }

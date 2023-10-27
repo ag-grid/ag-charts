@@ -630,6 +630,10 @@ describe('ErrorBars', () => {
         const whisker_formatter: ErrorBarFormatter = (params) => {
             let color = undefined;
             switch (params.datum[params.xKey]) {
+                case 'Jan':
+                    return { cap: { length: 40 } };
+                case 'Feb':
+                    return { cap: { lengthRatio: 0.5 } };
                 case 'Apr':
                 case 'May':
                 case 'Jun':
@@ -657,6 +661,10 @@ describe('ErrorBars', () => {
                 case 'May':
                 case 'Jun':
                     return { strokeWidth: 10 };
+                case 'Nov':
+                    return { length: 50 };
+                case 'Dec':
+                    return { lengthRatio: 0.5 };
             }
         };
         chart = AgEnterpriseCharts.create({
@@ -664,6 +672,7 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_CANADA,
+                    marker: { size: 25 },
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
                         strokeWidth: 3,
