@@ -47,7 +47,9 @@ export interface ErrorBoundSeriesNodeDatum {
     // Caps can appear on bar, line and scatter series. The length is determined
     // by the size of the marker (line, scatter), width of the bar (vertical
     // bars), or height of the bar (horizontal bars).
+    // TODO(olegat) create capDefaults object once in line / bar / scatter series to save memory
     readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
     xBar?: { lowerPoint: Point; upperPoint: Point };
     yBar?: { lowerPoint: Point; upperPoint: Point };
+    //capLength?: number;
 }
