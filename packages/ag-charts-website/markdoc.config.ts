@@ -45,7 +45,7 @@ export default defineMarkdocConfig({
                 title: { type: String, required: true },
                 name: { type: String, required: true },
                 type: { type: String },
-                options: { type: String },
+                options: { type: Object },
             },
         },
         note: {
