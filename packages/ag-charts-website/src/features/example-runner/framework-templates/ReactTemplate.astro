@@ -13,7 +13,7 @@ interface Props {
 
     modifiedTimeMs: number;
     isExecuting: boolean;
-    options: any;
+    isEnterprise: boolean;
     entryFileName: string;
     /**
      * Extra script file names (not including entry file)
@@ -31,7 +31,7 @@ const {
     isDev,
     modifiedTimeMs,
     isExecuting,
-    options,
+    isEnterprise,
     appLocation,
     entryFileName,
     scriptFiles,
@@ -50,7 +50,6 @@ const startFile = pathJoin(appLocation, entryFileName);
             title={`React example - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
             isExecuting={isExecuting}
-            options={options}
         />
         <ExampleStyle rootId="root" />
         <Styles baseUrl={appLocation} files={styleFiles} />
@@ -65,7 +64,7 @@ const startFile = pathJoin(appLocation, entryFileName);
             appLocation={appLocation}
             startFile={startFile}
             framework={'react'}
-            options={options}
+            isEnterprise={isEnterprise}
         />
     </body>
 </html>

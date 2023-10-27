@@ -269,8 +269,7 @@ function getRelevantConfig(configuration, framework) {
  * Our framework examples use SystemJS to load the various dependencies. This component is used to insert the required
  * code to load SystemJS and the relevant modules depending on the framework.
  */
-export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, options, framework, isDev }) => {
-    const { enterprise: isEnterprise } = options;
+export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, isEnterprise, framework, isDev }) => {
     const systemJsPath = pathJoin(boilerplatePath, `systemjs.config${isDev ? '.dev' : ''}.js`);
     let configuration = isUsingPublishedPackages()
         ? publishedConfiguration
@@ -330,7 +329,7 @@ export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, opt
 
     let systemJsMap;
     let systemJsPaths;
-    if (library === 'charts' || options.enableChartApi) {
+    if (library === 'charts') {
         systemJsMap = configuration.chartMap;
         systemJsPaths = configuration.chartPaths;
     }

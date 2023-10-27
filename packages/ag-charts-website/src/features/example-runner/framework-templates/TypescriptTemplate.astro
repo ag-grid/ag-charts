@@ -13,7 +13,7 @@ interface Props {
 
     modifiedTimeMs: number;
     isExecuting: boolean;
-    options: any;
+    isEnterprise: boolean;
     entryFileName: string;
 
     styleFiles?: string[];
@@ -29,7 +29,7 @@ const {
     isDev,
     modifiedTimeMs,
     isExecuting,
-    options,
+    isEnterprise,
     appLocation,
     entryFileName,
     styleFiles,
@@ -48,7 +48,6 @@ const startFile = pathJoin(appLocation, entryFileName);
             title={`Typescript - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
             isExecuting={isExecuting}
-            options={options}
         />
         <ExampleStyle />
         <Styles
@@ -79,7 +78,7 @@ const startFile = pathJoin(appLocation, entryFileName);
             appLocation={appLocation}
             startFile={startFile}
             framework={'typescript'}
-            options={options}
+            isEnterprise={isEnterprise}
         />
         <Styles
             baseUrl={appLocation}

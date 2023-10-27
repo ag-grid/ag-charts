@@ -6,7 +6,7 @@ interface Props {
 
     modifiedTimeMs: number;
     isExecuting: boolean;
-    options: any;
+    isEnterprise: boolean;
 
     /**
      * All script file names
@@ -23,7 +23,7 @@ const {
     exampleName,
     modifiedTimeMs,
     isExecuting,
-    options,
+    isEnterprise,
     styleFiles,
     scriptFiles,
     indexFragment,
@@ -40,7 +40,6 @@ import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } 
 
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 
-const isEnterprise = options.enterprise;
 const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
 const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
 ---
@@ -52,7 +51,6 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
             title={`${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
             isExecuting={isExecuting}
-            options={options}
         />
         <ExampleStyle />
         <Styles

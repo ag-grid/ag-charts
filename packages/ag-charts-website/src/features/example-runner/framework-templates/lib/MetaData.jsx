@@ -7,13 +7,13 @@ const DEVELOPMENT_CSP =
  * This metadata is used across all examples. In development, we insert a timestamp to force the example to
  * hot-reload when a change is made.
  */
-export const MetaData = ({ isDev, title, modifiedTimeMs, isExecuting, options: { metaCSP } = {} }) => (
+export const MetaData = ({ isDev, title, modifiedTimeMs, isExecuting, addMetaCSP } = {}) => (
     <>
         <title>{title}</title>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {isExecuting && <meta name="robots" content="noindex" />}
         {isDev && <meta httpEquiv="last-modified" content={new Date(modifiedTimeMs).toString()} />}
-        {metaCSP && <meta httpEquiv="content-security-policy" content={DEVELOPMENT_CSP} />}
+        {addMetaCSP && <meta httpEquiv="content-security-policy" content={DEVELOPMENT_CSP} />}
     </>
 );

@@ -13,7 +13,7 @@ interface Props {
 
     modifiedTimeMs: number;
     isExecuting: boolean;
-    options: any;
+    isEnterprise: boolean;
     entryFileName: string;
     /**
      * Extra script file names (not including entry file)
@@ -36,7 +36,7 @@ const {
     library,
     boilerplatePath,
     appLocation,
-    options,
+    isEnterprise,
     entryFileName,
     scriptFiles,
     styleFiles,
@@ -54,7 +54,6 @@ const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
             title={`${vueFrameworkTitle} example - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
             isExecuting={isExecuting}
-            options={options}
         />
         <ExampleStyle rootId="app" />
         <Styles baseUrl={appLocation} files={styleFiles} />
@@ -70,7 +69,7 @@ const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
             appLocation={appLocation}
             startFile={startFile}
             framework={vueFramework}
-            options={options}
+            isEnterprise={isEnterprise}
         />
     </body>
 </html>
