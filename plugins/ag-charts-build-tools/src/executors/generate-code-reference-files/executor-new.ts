@@ -4,7 +4,7 @@ import * as ts from 'typescript';
 import { writeFile } from './executors-utils';
 import { mapTyping, resolveType } from './types-utils';
 
-type OptionsMode = 'interfaces' | 'docs';
+type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
 type ExecutorOptions = { mode: OptionsMode; inputs: string[]; output: string };
 
 export default async function (options: ExecutorOptions) {
@@ -30,14 +30,14 @@ function generateFile(options: ExecutorOptions) {
     const typeEntries = Array.from(typesMap.entries()).sort();
 
     switch (options.mode) {
-        case 'interfaces':
+        // flat version of the interfaces file, without resolving
+        case 'debug-interfaces':
             return writeFile(
                 options.output,
                 typeEntries.map(([_, { node, heritage }]) => ({ ...node, heritage }))
             );
 
-        case 'docs':
-            // return writeFile(options.output, resolveType(typesMap, 'AgBarSeriesOptions'));
+        case 'docs-interfaces':
             return writeFile(options.output, typeEntries.map(([name]) => resolveType(typesMap, name)).filter(Boolean));
 
         default:

@@ -62,7 +62,7 @@
       "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
       "options": {
-        "mode": "docs",
+        "mode": "docs-interfaces",
         "inputs": ["packages/ag-charts-community/src/options"],
         "output": "dist/packages/ag-charts-community/resolved-interfaces.AUTO.json"
       }

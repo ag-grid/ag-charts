@@ -29,10 +29,19 @@ interface ApiReferenceOptions {
     include?: string[];
     exclude?: string[];
     hideHeader?: boolean;
+    hideRequired?: boolean;
     displayFirst?: string[];
 }
 
-export function ApiReference({ id, reference, displayFirst, include, exclude, hideHeader }: ApiReferenceOptions) {
+export function ApiReference({
+    id,
+    reference,
+    displayFirst,
+    include,
+    exclude,
+    hideHeader,
+    hideRequired,
+}: ApiReferenceOptions) {
     if (!reference.has(id)) {
         return null;
     }
@@ -52,7 +61,7 @@ export function ApiReference({ id, reference, displayFirst, include, exclude, hi
                 <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                     <tbody>
                         {interfaceMembers.map((member) => (
-                            <NodeFactory key={member.name} member={member} parentId={id} />
+                            <NodeFactory key={member.name} member={member} parentId={id} hideRequired={hideRequired} />
                         ))}
                     </tbody>
                 </table>
@@ -61,7 +70,7 @@ export function ApiReference({ id, reference, displayFirst, include, exclude, hi
     );
 }
 
-function NodeFactory({ member, parentId, prefixPath = [] }) {
+function NodeFactory({ member, parentId, prefixPath = [], hideRequired }) {
     const reference = useContext(ApiReferenceContext)!;
     const [isExpanded, toggleExpanded] = useToggle();
 
@@ -75,6 +84,7 @@ function NodeFactory({ member, parentId, prefixPath = [] }) {
                 prefixPath={prefixPath}
                 isExpanded={isExpanded}
                 toggleExpanded={toggleExpanded}
+                hideRequired={hideRequired}
             />
             {isExpanded &&
                 interfaceRef?.members?.map((childMember) => (
@@ -83,17 +93,18 @@ function NodeFactory({ member, parentId, prefixPath = [] }) {
                         member={childMember}
                         parentId={parentId}
                         prefixPath={prefixPath.concat(member.name)}
+                        hideRequired={hideRequired}
                     />
                 ))}
         </>
     );
 }
 
-function ApiReferenceRow({ member, parentId, prefixPath, isExpanded, toggleExpanded }) {
+function ApiReferenceRow({ member, parentId, prefixPath, isExpanded, toggleExpanded, hideRequired }) {
     return (
         <tr>
             <td role="presentation" className={styles.leftColumn}>
-                <MemberName member={member} parentId={parentId} prefixPath={prefixPath} />
+                <MemberName member={member} parentId={parentId} prefixPath={prefixPath} hideRequired={hideRequired} />
                 <MemberType member={member} />
             </td>
             <td className={styles.rightColumn}>
@@ -108,10 +119,12 @@ function MemberName({
     member,
     parentId,
     prefixPath,
+    hideRequired,
 }: {
     member: { name: string; optional: boolean };
     parentId: string;
     prefixPath: string[];
+    hideRequired?: boolean;
 }) {
     const anchorId = `reference-${parentId}-${member.name}`;
     return (
@@ -119,7 +132,7 @@ function MemberName({
             {prefixPath?.length > 0 && (
                 <PropertyName className={styles.parentProperties}>{`${prefixPath.join('.')}.`}</PropertyName>
             )}
-            <PropertyName isRequired={!member.optional}>{member.name}</PropertyName>
+            <PropertyName isRequired={!member.optional && !hideRequired}>{member.name}</PropertyName>
             <LinkIcon href={`#${anchorId}`} />
         </h6>
     );
@@ -195,6 +208,7 @@ function formatTypeCode(interfaceRef, reference) {
             })
             .join('\n    ')}\n}`;
     }
+
     if (interfaceRef.kind === 'typeAlias') {
         return `type ${interfaceRef.name} = ${normalizeType(interfaceRef.type)};`;
     }
@@ -202,6 +216,7 @@ function formatTypeCode(interfaceRef, reference) {
     if (interfaceRef.type.kind === 'union') {
         return `type ${interfaceRef.name} = ${interfaceRef.type.type.map(normalizeType).join(' | ')};`;
     }
+
     if (interfaceRef.type.kind === 'function') {
         const additionalTypes = interfaceRef.type.params
             .map((param) => param.type)

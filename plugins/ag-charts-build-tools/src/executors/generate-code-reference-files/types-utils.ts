@@ -34,7 +34,11 @@ export function mapTyping(inputs: string[]) {
     return typesMap;
 }
 
-export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: string | TypingMapItem['node']) {
+export function resolveType(
+    typesMap: Map<string, TypingMapItem>,
+    typeName: string | TypingMapItem['node'],
+    typeParams?: string | TypingMapItem['node']
+) {
     let node, heritage;
     if (typeof typeName === 'object') {
         node = typeName;
@@ -44,6 +48,7 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
     } else {
         ({ node, heritage } = typesMap.get(typeName));
     }
+
     // console.log({ typeName, node, heritage });
 
     if (node.kind === 'indexAccess') {
@@ -59,7 +64,7 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
                 if (node.type.type === 'NonNullable') {
                     return resolveType(typesMap, node.type.typeParams[0]);
                 } else {
-                    return resolveType(typesMap, node.type.type);
+                    return resolveType(typesMap, node.type.type, node.typeParams ?? node.type.typeParams);
                 }
             case 'typeLiteral':
                 return resolveType(typesMap, node.type);
@@ -81,11 +86,20 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
         }
     }
 
+    if (node.name === 'Testing2') {
+        console.log(heritage);
+    }
+    if (node.name === 'Testing') {
+        console.log(node.name, typeParams);
+    }
     const heritageClone = heritage?.slice() ?? [];
     for (const h of heritageClone) {
         node.members ??= [];
         if (typeof h === 'string' || typesMap.has(h.type)) {
-            const n = resolveType(typesMap, typeof h === 'string' ? h : h.type);
+            if (node.name === 'Testing2') {
+                console.log(h);
+            }
+            const n = resolveType(typesMap, typeof h === 'string' ? h : h.type, h.typeParams);
             if (Array.isArray(n.members)) {
                 node.members.push(...n.members);
             } else {
@@ -110,6 +124,40 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
         // remove to ensure we only run once
         heritage.splice(heritage.indexOf(h), 1);
         node.members = cleanupMembers(node.members);
+    }
+
+    // if (node.name === 'Testing2') {
+    //     console.log(node);
+    // }
+    node = resolveGenerics(node, typeParams);
+    return node;
+}
+
+function resolveGenerics(node, typeParams) {
+    // if (node.name === 'Testing2') {
+    //     console.log(node);
+    // }
+    if (!node.typeParams) {
+        return node;
+    }
+
+    const generics = new Map();
+
+    node.typeParams?.forEach((param, index) => {
+        generics.set(param.name, typeParams?.[index] ?? param.default);
+    });
+
+    switch (node.kind) {
+        case 'interface':
+            if (node.name === 'Testing2') {
+                console.log(node, generics);
+            }
+        // node.members?.forEach((member, index) => {
+        //     if (generics.has(member.type)) {
+        //         console.log(member.type, typeParams, generics);
+        //         node.members[index] = { ...member, type: generics.get(member.type) };
+        //     }
+        // });
     }
 
     return node;
