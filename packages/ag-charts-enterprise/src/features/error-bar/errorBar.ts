@@ -14,7 +14,6 @@ const {
     mergeDefaults,
     valueProperty,
     ChartAxisDirection,
-    SeriesNodePickMode,
     Validate,
     OPT_BOOLEAN,
     OPT_COLOR_STRING,
@@ -313,35 +312,12 @@ export class ErrorBars
         return this.cartesianSeries.nodeClickRange;
     }
 
-    private checkInteractionEventOverlap(event: InteractionEvent, range: InteractionRange): boolean {
-        if (range === 'nearest') {
-            return false;
-        }
+    private pickDatum(event: InteractionEvent, range: InteractionRange) {
         // The error bars cover part of series datum node (marker/bar). If this part is clicked on, then
         // that triggers the event twice (once in the Series class, and once in this ErrorBars class).
         // We don't want that because there is an API for adding listeners to 'nodeClick' and
-        // 'nodeDoubleClick' events. Therefore, check whether the event hits a series node datum:
-        if (range === 'exact' || range === 0) {
-            const seriesNode = this.cartesianSeries.contentGroup.pickNode(event.offsetX, event.offsetY);
-            if (seriesNode !== undefined) {
-                return false;
-            }
-        }
-        // The same concept applies again: the clickable interaction ranges of the datum node and error
-        // bars could overlap.
-        const { distance } =
-            this.cartesianSeries.pickNode({ x: event.offsetX, y: event.offsetY }, [
-                SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST,
-                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
-                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
-            ]) ?? {};
-        return distance !== undefined && distance <= range;
-    }
-
-    private pickDatum(event: InteractionEvent, range: InteractionRange, skipOverlapCheck: boolean = false) {
-        // For highlighting events, it doesn't matter if there in an overlap because there is no API to
-        // listen for these events. Therefore, we can avoid unnessary hit-testing in the series class.
-        if (!skipOverlapCheck && this.checkInteractionEventOverlap(event, range)) {
+        // 'nodeDoubleClick' events. Therefore, check for this before hit-testing:
+        if (event.callbackComplete) {
             return undefined;
         }
 
@@ -358,7 +334,7 @@ export class ErrorBars
         const { scene, highlightManager, tooltipManager, window } = this.ctx;
         const { id } = this.groupNode;
 
-        const datum = this.pickDatum(event, this.getHighlightRange(), true);
+        const datum = this.pickDatum(event, this.getHighlightRange());
         if (datum !== undefined) {
             const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, datum, window);
             const html = this.cartesianSeries.getTooltipHtml(datum);

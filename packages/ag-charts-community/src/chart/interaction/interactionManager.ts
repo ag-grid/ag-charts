@@ -52,6 +52,7 @@ export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = {
     pageY: number;
     sourceEvent: Event;
     pauses: PauseTypes[];
+    callbackComplete: boolean;
     /** Consume the event, don't notify other listeners! */
     consume(): void;
     consumed?: boolean;
@@ -345,6 +346,7 @@ export class InteractionManager extends BaseManager<
             sourceEvent: event,
             consumed: false,
             pauses,
+            callbackComplete: false,
             consume() {
                 builtEvent.consumed = true;
             },

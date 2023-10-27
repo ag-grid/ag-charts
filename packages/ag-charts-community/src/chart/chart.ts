@@ -1264,6 +1264,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // First check if we should trigger the callback based on nearest node
         if (datum && nodeClickRange === 'nearest') {
             callback(datum.series, datum);
+            event.callbackComplete = true;
             return true;
         }
 
@@ -1275,6 +1276,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (isPixelRange || exactlyMatched) {
             callback(pickedNode.series, pickedNode.datum);
+            event.callbackComplete = true;
             return true;
         }
 
