@@ -5,6 +5,7 @@ import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
+import type { Library } from '@ag-grid-types';
 
 interface Props {
     isDev: boolean;
@@ -19,7 +20,7 @@ interface Props {
     styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
-    library: string;
+    library: Library;
     boilerplatePath: string;
 }
 
@@ -77,7 +78,7 @@ const startFile = pathJoin(appLocation, entryFileName);
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
-            framework={'typescript'}
+            internalFramework={'typescript'}
             isEnterprise={isEnterprise}
         />
         <Styles
