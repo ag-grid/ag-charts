@@ -2,28 +2,17 @@
 title: 'Scatter Series'
 ---
 
-A Scatter Series displays data points as individual markers on a chart, where the position of each marker corresponds to
-its values on the horizontal and vertical axes.
+A Scatter Series identifies the correlation between values across two categories, and can highlight outliers and gaps in the data.
 
 ## Simple Scatter
 
 {% chartExampleRunner title="Scatter Chart" name="scatter-chart" type="generated" /%}
 
-Scatter plots are great for identifying the relationship between plotted values, as well as outliers and gaps in the data.
-
-To create a simple scatter chart we need to use series type `'scatter'`. We also have to provide the `xKey` and `yKey` properties. A minimal `'scatter'` series config would therefore look like this:
+To create a Scatter Series use the `'scatter'` series type.
 
 ```js
-series: [
-    {
-        type: 'scatter',
-        xKey: 'time',
-        yKey: 'mm',
-    },
-];
+series: [{ type: 'scatter', xKey: 'time', yKey: 'mm' }];
 ```
-
-Using this simple series config, we can produce the following chart which plots the mean sea level measured over a few years. The measurements may have a certain degree of variability and error to them, but the overall trend is clear &mdash; the sea level is rising.
 
 ## API Reference
 

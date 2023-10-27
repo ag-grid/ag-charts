@@ -2,44 +2,71 @@
 title: 'Bubble Series'
 ---
 
-A Bubble Series represents data points as individual circles, with the position, size, and colour of each circle
-typically corresponding to different variables.
+A Bubble Series extends the Scatter Series by using the size of each marker to represent a third variable.
 
 ## Simple Bubble
 
 {% chartExampleRunner title="Simple Bubble" name="simple-bubble" type="generated" /%}
 
-A bubble chart is simply a scatter plot where each point has another associated variable that determines the size of a
-bubble. Instead of having pairs of variables, we now have triples.
-
-To turn a scatter plot into a bubble chart you must provide the `sizeKey` that will be used to fetch the value that will determine the size of each bubble. For the example below we are using the following key configs:
+To create a Bubble Series use the `'bubble'` series type, and provide a `sizeKey` for the variable that will determine the size of each bubble or marker.
 
 ```js
-type: 'bubble',
-xKey: 'height',
-yKey: 'weight',
-sizeKey: 'age'
+series: [
+    {
+        type: 'bubble',
+        xKey: 'height',
+        yKey: 'weight',
+        sizeKey: 'age',
+        xName: 'Height',
+        yName: 'Weight',
+        sizeName: 'Age',
+        title: 'Male',
+    },
+];
 ```
 
-Another config we should provide is the `size` of the marker. When the `sizeKey` is specified, the value of `marker.size` config takes on a different meaning &mdash; instead of determining the actual marker size, the `size` config now determines the minimum marker size. The marker also has the `maxSize` config, which only applies when the `sizeKey` is set.
+In this configuration:
+
+-   `xKey` defines the numerical values for the x axis, and is mapped by default to a [Number](./axes-types/#number).
+-   `yKey` provides the numerical values for the y axis, and is mapped by default to a [Number Axis](./axes-types/#number).
+-   `xName`, `yName` and `sizeName` are optional and configure display names, reflected in [Tooltips](./tooltips).
+-   `title` is optional and is used in the [Tooltip Titles](./tooltips) and [Legend Items](./legend).
+
+## Markers
+
+### Size
+
+The values in the variable specified by the `sizeKey` are used to calculate the marker sizes for that series.
+
+The lowest value is represented by the smallest marker size, the highest value by the largest marker size, and all the other values are sized proportionally between the two.
+
+To specify the range of marker sizes, use `marker.size` to set the minimum size, and `marker.maxSize` to set the maximum size.
+
+To manually set the value domain used to calculate the size, use `marker.domain`. This is particularly useful when using multiple Bubble Series in the same chart.
 
 ```js
 marker: {
-    size: 8,       // defaults to 8
-    maxSize: 30    // defaults to 30
+    size: 10, //defaults to 7
+    maxSize: 20, //defaults to 30
+    domain: [0, 100], //defaults to the series data domain
 }
 ```
 
-So for example, if the `sizeKey` data ranges from `-100` to `200`, the above config means that `-100` will correspond to marker of size `8` (the `size`), `200` to a marker of size `30` (the `maxSize`), and any value between `-100` and `200` will be interpolated to a value between `8` and `30`.
+Using the above configuration
 
+-   The value domain is set to between 0 and 100.
+-   A value of 0 will be represented by a marker of size 10
+-   A value of 100 will be represented by a marker of size 20
+-   A value of 50 will be represented by a marker the size of 15
+
+````
+
+### Customisation
 Finally, the bubble chart is so called because the circle is the most common marker `shape` used for this kind of scatter plot, but with AG Charts any other marker `shape` can be used as well.
 
 The example below uses both `'circle'` and `'square'` markers to represent the age of females and males respectively.
 
--   We provide the names of all keys (`xName`, `yName` and `sizeName`) to get nice looking tooltips.
--   The series `title` is also provided which is reflected in the legend and displayed as the title in the tooltips.
-
-## Bubble Chart with Labels
+## Labels
 
 Scatter series can be configured to use labels. Unlike other series types where a label is placed
 for every data point, scatter series label placement is constrained so that:
@@ -60,7 +87,7 @@ labelKey: 'name',
 label: {
     enabled: true
 }
-```
+````
 
 The example below has the above config applied to both series. The label placement algorithm is aware
 of all the scatter series in a chart, so labels don't overlap markers and other labels within a single
