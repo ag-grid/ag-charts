@@ -54,7 +54,7 @@ type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
-class ErrorBarCapConfig implements AgErrorBarCapOptions {
+class ErrorBarCap implements AgErrorBarCapOptions {
     @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
@@ -117,7 +117,7 @@ export class ErrorBars
     @Validate(OPT_COLOR_STRING)
     stroke? = 'black';
 
-    @Validate(OPT_NUMBER(1))
+    @Validate(OPT_NUMBER(0))
     strokeWidth?: number = 1;
 
     @Validate(OPT_NUMBER(0, 1))
@@ -132,7 +132,7 @@ export class ErrorBars
     @Validate(OPT_FUNCTION)
     formatter?: ErrorBarFormatter = undefined;
 
-    cap: ErrorBarCapConfig = new ErrorBarCapConfig();
+    cap: ErrorBarCap = new ErrorBarCap();
 
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: _Scene.Group;

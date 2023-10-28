@@ -18,7 +18,7 @@ series: [{
 }]
 ```
 
-{% chartExampleRunner title="Simple Histogram" name="simple" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Simple Histogram" name="simple" type="generated" /%}
 
 ## Bin Count
 
@@ -36,7 +36,7 @@ series: [{
 }]
 ```
 
-{% chartExampleRunner title="Larger Bin Count" name="larger-bin-count" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Larger Bin Count" name="larger-bin-count" type="generated" /%}
 
 ## Irregular Intervals
 
@@ -61,7 +61,7 @@ series: [{
 Note that if you give the `bins` property you should not also give `binCount`, but if both are present `binCount` takes precedence.
 {% /warning %}
 
-{% chartExampleRunner title="Irregular Intervals" name="irregular-intervals" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Irregular Intervals" name="irregular-intervals" type="generated" /%}
 
 ## XY Histogram
 
@@ -84,7 +84,7 @@ series: [{
 }]
 ```
 
-{% chartExampleRunner title="XY Histogram with Sum Aggregation" name="sum-histogram" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="XY Histogram with Sum Aggregation" name="sum-histogram" type="generated" /%}
 
 ### Mean Bins
 
@@ -104,8 +104,14 @@ series: [{
 }]
 ```
 
-{% chartExampleRunner title="XY Histogram with Mean Aggregation" name="mean-histogram" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="XY Histogram with Mean Aggregation" name="mean-histogram" type="generated" /%}
 
 ## API Reference
 
+{% tabs %}
+
+{% tabItem label="Histogram Series" %}
 {% apiReference id="AgHistogramSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

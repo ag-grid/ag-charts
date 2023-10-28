@@ -8,7 +8,7 @@ falling bars to create a cascading waterfall effect.
 
 ## Simple Waterfall
 
-{% chartExampleRunner title="Simple Waterfall" name="simple-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Simple Waterfall" name="simple-waterfall" type="generated" /%}
 
 The Waterfall Series is designed to display a single series and is created using the `waterfall` series type.
 
@@ -37,7 +37,7 @@ These values are automatically calculated based on the following criteria:
 -   **Total**: Accumulates all values from the starting point (zero) up to the current point.
 -   **Subtotal**: Begins at the last Total or Subtotal and sums up to the current point.
 
-{% chartExampleRunner title="Total Subtotal Values" name="total-subtotal-values" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Total Subtotal Values" name="total-subtotal-values" type="generated" /%}
 
 Total and Subtotal values are added to the `totals` array within the `series` options object.
 
@@ -66,7 +66,7 @@ In this configuration:
 
 ### Series Items
 
-{% chartExampleRunner title="Customising Series Items" name="customising-series-items" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Customising Series Items" name="customising-series-items" type="generated" /%}
 
 Series items are be customised via the `item` configuration object.
 
@@ -105,7 +105,7 @@ Total legend item and tooltips.
 
 ### Connector Lines
 
-{% chartExampleRunner title="Customising Connector Lines" name="customising-connector-lines" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Customising Connector Lines" name="customising-connector-lines" type="generated" /%}
 
 Connector lines between the bars can be customised using the `line` property.
 
@@ -127,7 +127,7 @@ To remove the connector lines, set `line.enabled` to `false`.
 
 ## Horizontal Waterfall
 
-{% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Horizontal Waterfall" name="horizontal-waterfall" type="generated" /%}
 
 To show a Horizontal Waterfall Series, set `direction: 'horizontal'`.
 
@@ -147,4 +147,10 @@ values along the x-axis.
 
 ## API Reference
 
+{% tabs %}
+
+{% tabItem label="Waterfall Series" %}
 {% apiReference id="AgWaterfallSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

@@ -24,7 +24,7 @@ The `xKey` is used to extract x-axis values from the data, while the `yLowKey` a
 
 The following example shows a Simple Range Bar Series using default options.
 
-{% chartExampleRunner title="Simple Range Bar" name="simple-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Simple Range Bar" name="simple-range-bar" type="generated" /%}
 
 ## Labels
 
@@ -53,7 +53,7 @@ In the snippet:
 
 This configuration generates labels as shown in the example below.
 
-{% chartExampleRunner title="Range Column Label" name="range-bar-labels" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Range Column Label" name="range-bar-labels" type="generated" /%}
 
 ## Multiple Range Bar Series
 
@@ -65,7 +65,7 @@ Note the example below:
 -   Uses `yName` to control the text displayed in the legend.
 -   Uses `yLowName` and `yHighName` to control the text displayed in the tooltip.
 
-{% chartExampleRunner title="Multiple Range Bar Series" name="multiple-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Multiple Range Bar Series" name="multiple-range-bars" type="generated" /%}
 
 ## Missing Data
 
@@ -86,7 +86,7 @@ The following example demonstrates how missing data is handled in the context of
 -   Click the **Missing Y values** button and note that if either of the Y low or high values are missing, the data point is rendered as a gap in the series.
 -   Click the **Missing X value** button and note that a missing X value on a continuous x-axis is skipped.
 
-{% chartExampleRunner title="Range Column Missing Data" name="range-bar-missing-data" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Range Column Missing Data" name="range-bar-missing-data" type="generated" /%}
 
 ## Horizontal Range Bar
 
@@ -106,7 +106,7 @@ series: [
 
 When the `direction` is `'horizontal'` the `xKey` will determine categories on the y-axis, while the `yLowKey` and `yHighKey` will be used to provide numerical values along the x-axis.
 
-{% chartExampleRunner title="Horizontal Range Bar" name="horizontal-range-bar" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Horizontal Range Bar" name="horizontal-range-bar" type="generated" /%}
 
 ## Multiple Horizontal Range Bar Series
 
@@ -118,8 +118,14 @@ Note the example below:
 -   Uses `yName` to control the text displayed in the legend.
 -   Uses `yLowName` and `yHighName` to control the text displayed in the tooltip.
 
-{% chartExampleRunner title="Multiple Horizontal Range Bar Series" name="multiple-horizontal-range-bars" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Multiple Horizontal Range Bar Series" name="multiple-horizontal-range-bars" type="generated" /%}
 
 ## API Reference
 
+{% tabs %}
+
+{% tabItem label="Range Bar Series" %}
 {% apiReference id="AgRangeBarSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

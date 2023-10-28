@@ -1,4 +1,4 @@
-import { getIsDev } from '@utils/env';
+import { getIsDev, getIsStaging } from '@utils/env';
 import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
 import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';
@@ -18,7 +18,7 @@ const Search = ({ currentFramework }) => {
     // It is important to memoise the client, otherwise we end up creating a new one on every re-render, resulting in
     // no caching and multiple repeated queries!
     const algoliaClient = useMemo(
-        () => algoliasearch(process.env.GATSBY_ALGOLIA_APP_ID, process.env.GATSBY_ALGOLIA_SEARCH_KEY),
+        () => algoliasearch(process.env.ASTRO_ALGOLIA_APP_ID, process.env.ASTRO_ALGOLIA_SEARCH_KEY),
         []
     );
     const searchClient = useMemo(
@@ -43,7 +43,7 @@ const Search = ({ currentFramework }) => {
         [algoliaClient]
     );
 
-    const indices = [{ name: `ag-grid${getIsDev() ? '-dev' : ''}_${currentFramework}` }];
+    const indices = [{ name: `ag-charts${getIsDev() || getIsStaging() ? '-dev' : ''}_${currentFramework}` }];
 
     return (
         <InstantSearch

@@ -7,7 +7,7 @@ A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a d
 
 ## Simple Box Plot
 
-{% chartExampleRunner title="Simple Box Plot" name="simple-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Simple Box Plot" name="simple-box-plot" type="generated" /%}
 
 To create a Box Plot Series, use the `box-plot` series type.
 
@@ -40,7 +40,7 @@ Note the default orientation of a Box Plot is vertical.
 
 ## Horizontal Box Plot
 
-{% chartExampleRunner title="Horizontal Box Plot" name="horizontal-box-plot" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Horizontal Box Plot" name="horizontal-box-plot" type="generated" /%}
 
 To show a Horizontal Box Plot, set `direction: 'horizontal'`.
 
@@ -59,7 +59,7 @@ Note that the `xKey` specifies the category values, regardless of series orienta
 
 ## Customisation
 
-{% chartExampleRunner title="Box Plot Customisations" name="box-plot-customisations" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Box Plot Customisations" name="box-plot-customisations" type="generated" /%}
 
 Box Plot whiskers and caps typically inherit series styles but can be individually customised. Here, the `whisker` and
 `cap` properties are used to customise whisker line styles and cap length.
@@ -83,7 +83,7 @@ series: [
 
 ## Box Plot With Outliers
 
-{% chartExampleRunner title="Box Plot Outliers" name="box-plot-outliers" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Box Plot Outliers" name="box-plot-outliers" type="generated" /%}
 
 Box plots are commonly paired with outliers to offer a more comprehensive view of the data. This is easily achieved by
 combining a Box Plot Series with a [Scatter Series](./scatter-series/), as shown below:
@@ -105,4 +105,10 @@ series: [
 
 ## API Reference
 
+{% tabs %}
+
+{% tabItem label="Box Plot Series" %}
 {% apiReference id="AgBoxPlotSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

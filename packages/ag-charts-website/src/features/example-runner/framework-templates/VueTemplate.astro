@@ -1,4 +1,5 @@
 ---
+import type { Library } from '@ag-grid-types';
 import { ExampleStyle } from './lib/ExampleStyle';
 import { MetaData } from './lib/MetaData';
 import { Scripts } from './lib/Scripts';
@@ -12,8 +13,7 @@ interface Props {
     exampleName: string;
 
     modifiedTimeMs: number;
-    isExecuting: boolean;
-    options: any;
+    isEnterprise: boolean;
     entryFileName: string;
     /**
      * Extra script file names (not including entry file)
@@ -21,7 +21,7 @@ interface Props {
     scriptFiles?: string[];
     styleFiles?: string[];
     appLocation: string;
-    library: string;
+    library: Library;
     boilerplatePath: string;
 
     vueFramework: 'vue' | 'vue3';
@@ -31,15 +31,14 @@ const {
     isDev,
     pageName,
     exampleName,
-    isExecuting,
     modifiedTimeMs,
     library,
     boilerplatePath,
     appLocation,
-    options,
+    isEnterprise,
     entryFileName,
-    scriptFiles,
-    styleFiles,
+    scriptFiles = [],
+    styleFiles = [],
     vueFramework,
 } = Astro.props as Props;
 
@@ -53,8 +52,6 @@ const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
             isDev={isDev}
             title={`${vueFrameworkTitle} example - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
-            isExecuting={isExecuting}
-            options={options}
         />
         <ExampleStyle rootId="app" />
         <Styles baseUrl={appLocation} files={styleFiles} />
@@ -69,8 +66,8 @@ const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
-            framework={vueFramework}
-            options={options}
+            internalFramework={vueFramework}
+            isEnterprise={isEnterprise}
         />
     </body>
 </html>
