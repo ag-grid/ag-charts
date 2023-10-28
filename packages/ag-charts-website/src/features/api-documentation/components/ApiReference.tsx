@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import { createContext, useContext } from 'react';
 import Markdown from 'react-markdown';
 
-import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from '../api-reference-types';
+import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
 import { formatTypeToCode, getMemberType } from '../utils/apiReferenceHelpers';
 import styles from './ApiDocumentation.module.scss';
 import { PropertyTitle, PropertyType } from './Properies';

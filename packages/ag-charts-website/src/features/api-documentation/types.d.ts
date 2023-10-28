@@ -1,6 +1,6 @@
 import type { Framework } from '@ag-grid-types';
 
-import type { JsonModel, JsonProperty } from './utils/model';
+import type { JsonModel } from './utils/model';
 
 interface MetaTag {
     displayName: string;

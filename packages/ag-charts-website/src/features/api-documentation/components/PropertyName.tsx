@@ -1,4 +1,4 @@
-import type { AllHTMLAttributes, ReactElement, ReactNode } from 'react';
+import type { AllHTMLAttributes, ReactNode } from 'react';
 
 import styles from './ApiDocumentation.module.scss';
 
