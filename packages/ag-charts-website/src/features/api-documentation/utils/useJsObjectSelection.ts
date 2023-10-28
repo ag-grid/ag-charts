@@ -131,6 +131,12 @@ export function useJsObjectSelection({ model, config }: { model: JsonModel; conf
         [topLevelSelection, selection]
     );
 
+    console.log({
+        selection,
+        topLevelSelection,
+        topLevelHeader,
+    });
+
     return {
         selection,
         topLevelSelection,

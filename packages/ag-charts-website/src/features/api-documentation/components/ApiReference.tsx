@@ -5,7 +5,7 @@ import { createContext, useContext } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from '../api-reference-types';
-import { formatTypeToCode } from '../utils/apiReferenceHelpers';
+import { formatTypeToCode, getMemberType } from '../utils/apiReferenceHelpers';
 import styles from './ApiDocumentation.module.scss';
 import { PropertyTitle, PropertyType } from './Properies';
 import { ToggleDetails } from './ToggleDetails';
@@ -34,6 +34,7 @@ interface ApiReferenceConfig {
 
 interface ApiReferenceOptions {
     id: string;
+    className?: string;
 }
 
 interface ApiReferenceRowOptions {
@@ -62,19 +63,19 @@ export function ApiReferenceWithContext({
     );
 }
 
-export function ApiReference({ id }: ApiReferenceOptions) {
+export function ApiReference({ id, className }: ApiReferenceOptions) {
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
+    const interfaceRef = reference?.get(id);
 
-    if (!reference?.has(id)) {
+    if (interfaceRef?.kind !== 'interface') {
         return null;
     }
 
-    const interfaceRef = reference.get(id) as InterfaceNode;
     const interfaceMembers = processMembers(interfaceRef.members, config);
 
     return (
-        <div className={styles.apiReferenceOuter}>
+        <div className={classnames(styles.apiReferenceOuter, className)}>
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
                     <p>
@@ -194,16 +195,6 @@ function useMemberAdditionalDetails(member: MemberNode) {
     if (reference?.has(memberType) && !hiddenInterfaces.includes(memberType)) {
         return reference.get(memberType);
     }
-}
-
-function getMemberType(member: MemberNode): string {
-    if (typeof member.type === 'object') {
-        if ('type' in member.type && typeof member.type.type === 'string') {
-            return member.type.type;
-        }
-        return member.type.kind;
-    }
-    return member.type;
 }
 
 function processMembers(members: MemberNode[], config: ApiReferenceConfig) {

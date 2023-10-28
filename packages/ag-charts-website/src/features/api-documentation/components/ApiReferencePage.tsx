@@ -40,11 +40,13 @@ export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiR
                 <SelectionContext.Provider value={{ selection, setSelection }}>
                     <div className={styles.container}>
                         <div className={styles.objectViewOuter}>
-                            <OptionsNavigation breadcrumbs={breadcrumbs} />
+                            <OptionsNavigation breadcrumbs={breadcrumbs} rootInterface={rootInterface} />
                         </div>
                         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
                             <PageHeader selection={selection.root} />
-                            <ApiReference id={rootInterface} />
+                            <div className={styles.referenceInner}>
+                                <ApiReference id={rootInterface} className={styles.referenceContainer} />
+                            </div>
                         </div>
                     </div>
                 </SelectionContext.Provider>
@@ -61,9 +63,7 @@ function PageHeader({ selection, prefixPath }: { selection: InterfaceNode; prefi
                 {parentPrefix && <span className={styles.parentProperties}>{`${parentPrefix}.`}</span>}
                 {selection.name}
             </h1>
-            <p>
-                <Markdown>{selection.docs?.join('\n')}</Markdown>
-            </p>
+            <Markdown>{selection.docs?.join('\n')}</Markdown>
             <PropertyType type={selection.name} />
         </header>
     );

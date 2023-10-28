@@ -114,6 +114,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: $size-1 $size-3;
+
+    h1 + & {
+        margin-top: 16px;
+    }
 }
 
 .metaItem {

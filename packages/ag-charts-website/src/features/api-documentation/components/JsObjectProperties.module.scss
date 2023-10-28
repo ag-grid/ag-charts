@@ -20,7 +20,8 @@ $header-nav-height: 56px;
 
 .referenceOuter {
     width: 100%;
-    margin-bottom: calc(100vh - $header-nav-height);
+    margin-bottom: 105px;
+    //margin-bottom: calc(100vh - $header-nav-height);
 
     header {
         --parent-properties-color: var(--text-color);
@@ -41,4 +42,13 @@ $header-nav-height: 56px;
     tr:first-child {
         border-top: none;
     }
+}
+
+.referenceInner {
+    position: relative;
+}
+
+.referenceContainer {
+    position: sticky;
+    bottom: 0;
 }

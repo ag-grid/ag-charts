@@ -2,6 +2,16 @@ import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeNode } from '.
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
+export function getMemberType(member: MemberNode): string {
+    if (typeof member.type === 'object') {
+        if ('type' in member.type && typeof member.type.type === 'string') {
+            return member.type.type;
+        }
+        return member.type.kind;
+    }
+    return member.type;
+}
+
 export function normalizeType(refType: TypeNode, includeGenerics?: boolean): string {
     if (typeof refType === 'string') {
         return refType;
@@ -43,7 +53,11 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
     }
 
     if (apiNode.kind === 'typeAlias') {
-        return `type ${apiNode.name} = ${normalizeType(apiNode.type)};`;
+        let nodeType = normalizeType(apiNode.type);
+        if (typeof apiNode.type === 'object' && apiNode.type.kind === 'union') {
+            nodeType = '\n    ' + nodeType.replaceAll('|', '\n  |');
+        }
+        return `type ${apiNode.name} = ${nodeType};`;
     }
 
     if (apiNode.kind === 'member' && typeof apiNode.type === 'object') {

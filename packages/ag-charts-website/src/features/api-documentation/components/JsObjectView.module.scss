@@ -14,14 +14,11 @@ $indent: 24px;
     &:global(.code) > code {
         padding: 8px 0 105px;
     }
+}
 
-    div[role="presentation"] {
-        padding-right: 16px;
-
-        &:before {
-            content: '';
-            padding-left: calc(attr(data-indent) * 16px);
-        }
+.navGroup {
+    > * {
+        padding: 0 16px 0 calc(16px + $indent * var(--options-nav-depth, 0));
     }
 }
 
@@ -29,15 +26,14 @@ $indent: 24px;
     --highlight-color: var(--primary-600);
     --highlight-opacity: 0.15;
 
+    position: relative;
+
     &::before {
         content: '';
         position: absolute;
-        right: -$size-2;
-        left: -100vw;
-        height: calc(1em * var(--code-line-height));
+        inset: 0;
         background-color: var(--highlight-color);
         opacity: var(--highlight-opacity);
-        z-index: 1;
         pointer-events: none;
     }
 
@@ -54,7 +50,6 @@ $indent: 24px;
 
 .expandableSnippet {
     --sticky-offset: 56px; // top bar height
-    --header-height: 160px;
 }
 
 .expandableSnippet header {
@@ -62,7 +57,6 @@ $indent: 24px;
     top: 0;
     left: 0;
     width: 100%;
-    height: var(--header-height);
     padding: $size-2;
     background-color: var(--default-background-color);
     z-index: 3;
@@ -99,18 +93,23 @@ input[type='search'].searchInput {
     width: 100%;
 }
 
-.expandableSnippet,
-.expandableSnippet pre,
-.expandableSnippet pre > code {
-    min-height: calc(100vh - var(--sticky-offset) - var(--header-height));
-}
-
 .expandableSnippet {
     position: sticky;
     top: var(--sticky-offset);
+    display: flex;
+    flex-direction: column;
     width: 100%;
     height: calc(100vh - var(--sticky-offset));
     overflow-y: auto;
+
+    > pre {
+        flex: 1 0 auto;
+        overflow-y: hidden;
+
+        > code {
+            min-height: 100%;
+        }
+    }
 }
 
 .expandableSnippet pre {
@@ -205,8 +204,14 @@ input[type='search'].searchInput {
 
     .expander {
         position: absolute;
+        top: 0;
         left: -18px;
-        top: 3px;
+        padding: 3px 3px 1px 0;
+        box-sizing: content-box;
+    }
+
+    .punctuation {
+        color: var(--punctuation-color);
     }
 }
 
