@@ -1,4 +1,5 @@
 import Code from '@components/Code';
+import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import { createContext, useContext } from 'react';
@@ -6,9 +7,8 @@ import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
 import { formatTypeToCode, getMemberType } from '../utils/apiReferenceHelpers';
-import styles from './ApiDocumentation.module.scss';
+import styles from './ApiReference.module.scss';
 import { PropertyTitle, PropertyType } from './Properies';
-import { ToggleDetails } from './ToggleDetails';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | null>(null);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
@@ -184,6 +184,14 @@ export function TypeCodeBlock({ apiNode }: { apiNode: ApiReferenceNode | MemberN
     }
 
     return <Code code={codeSample} keepMarkup />;
+}
+
+function ToggleDetails({ isOpen, onToggle }: { isOpen?: boolean; onToggle?: () => void }) {
+    return (
+        <button className={classnames(styles.seeMore, 'button-as-link')} role="presentation" onClick={onToggle}>
+            {!isOpen ? 'More' : 'Hide'} details <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} />
+        </button>
+    );
 }
 
 function useMemberAdditionalDetails(member: MemberNode) {

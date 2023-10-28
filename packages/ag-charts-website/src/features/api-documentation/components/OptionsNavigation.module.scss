@@ -10,10 +10,6 @@ $indent: 24px;
 
 .navContainer {
     user-select: none;
-
-    &:global(.code) > code {
-        padding: 8px 0 105px;
-    }
 }
 
 .navGroup {
@@ -104,70 +100,20 @@ input[type='search'].searchInput {
 
     > pre {
         flex: 1 0 auto;
+        margin-bottom: 0;
+        border: none;
+        border-radius: 0;
         overflow-y: hidden;
 
         > code {
+            --code-line-height: 1.75;
+
             min-height: 100%;
+            padding: 8px 0 105px;
+            line-height: var(--code-line-height);
+            background-size: 1px calc(1em * var(--code-line-height) * 2);
         }
     }
-}
-
-.expandableSnippet pre {
-    margin-bottom: 0;
-    border-radius: 0;
-    border: none;
-}
-
-.expandableSnippet pre > code {
-    --code-line-height: calc(28 / 16);
-
-    padding-bottom: calc(var(--code-line-height) * 4 * 1em);
-    line-height: var(--code-line-height);
-    background-size: 1px calc(1em * var(--code-line-height) * 2);
-}
-
-.jsonProperty {
-    position: relative;
-}
-
-.jsonProperty .jsonProperty::before {
-    content: '';
-    position: absolute;
-    width: 24px;
-    height: 2px;
-    top: 12px;
-    left: -34px;
-    background-color: var(--neutral-300);
-
-    #{$darkmode-selector} & {
-        background-color: var(--neutral-600);
-    }
-}
-
-.type-nested-object::before,
-.expandable::before {
-    width: 12px !important;
-}
-
-.type-nested-object > .jsonProperty {
-    padding-left: $indent;
-}
-
-.jsonObjectUnion,
-.jsonObject {
-    padding-left: $indent;
-}
-
-.deprecated {
-    text-decoration: line-through;
-}
-
-.expandable {
-    cursor: pointer;
-}
-
-.unexpandable {
-    cursor: default;
 }
 
 .expander {
@@ -180,23 +126,6 @@ input[type='search'].searchInput {
     }
 }
 
-.expanderBar {
-    position: absolute;
-    width: 8px;
-    bottom: 12px;
-    left: -12px;
-    top: 19px;
-    border-width: 2px;
-    border-style: solid;
-    border-color: var(--neutral-300);
-    border-top-width: 0;
-    border-right-width: 0;
-
-    #{$darkmode-selector} & {
-        border-color: var(--neutral-600);
-    }
-}
-
 .propertyName {
     position: relative;
     color: var(--property-color);
@@ -205,7 +134,7 @@ input[type='search'].searchInput {
     .expander {
         position: absolute;
         top: 0;
-        left: -18px;
+        right: 100%;
         padding: 3px 3px 1px 0;
         box-sizing: content-box;
     }
@@ -215,29 +144,28 @@ input[type='search'].searchInput {
     }
 }
 
-.jsonUnionItem {
-    position: relative;
+.searchDropdown {
+    position: absolute;
+    inset: calc(100% - 1px) 0 auto;
+    max-height: 168px;
+    border-radius: 4px;
+    border: 1px solid var(--input-border-color);
+    background-color: var(--default-background-color);
+    overflow: auto;
+}
 
-    .expander {
-        position: absolute;
-        left: -18px;
-        top: 3px;
-        font-weight: normal;
+.searchOptions {
+    display: flex;
+    flex-direction: column;
+    min-width: fit-content;
+    white-space: nowrap;
+}
+
+.searchOption {
+    padding: 2px 4px;
+    cursor: pointer;
+
+    &.selected {
+        background-color: var(--bright-blue-gray);
     }
-}
-
-.unionTypeProperty {
-    color: var(--property-color);
-}
-
-.jsdocExpandable {
-    font-size: var(--font-size-medium);
-    font-family: $font-family;
-    padding: $size-half 10px $size-half;
-    white-space: normal;
-    cursor: text;
-}
-
-.unionDiscriminator {
-    color: var(--code-text-color);
 }

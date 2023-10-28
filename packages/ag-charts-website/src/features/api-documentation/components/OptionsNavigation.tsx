@@ -7,7 +7,7 @@ import { Fragment, useContext } from 'react';
 import type { MemberNode } from '../api-reference-types';
 import { getMemberType } from '../utils/apiReferenceHelpers';
 import { ApiReferenceContext } from './ApiReference';
-import styles from './JsObjectView.module.scss';
+import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
 
 export function OptionsNavigation({ breadcrumbs, rootInterface }: { breadcrumbs: string[]; rootInterface: string }) {
@@ -21,7 +21,7 @@ export function OptionsNavigation({ breadcrumbs, rootInterface }: { breadcrumbs:
                 <p className="text-secondary font-size-small">
                     A comprehensive interactive explorer for the <b>AgChartOptions</b> structure.
                 </p>
-                <SearchBox />
+                <SearchBox searchData={[]} />
             </header>
 
             <pre className={classnames('code', 'language-ts', styles.navContainer)}>

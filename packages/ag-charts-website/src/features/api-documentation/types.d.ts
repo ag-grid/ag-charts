@@ -1,7 +1,3 @@
-import type { Framework } from '@ag-grid-types';
-
-import type { JsonModel } from './utils/model';
-
 interface MetaTag {
     displayName: string;
     description: string;
@@ -54,12 +50,7 @@ export interface PropertyType {
     /** True if property is defined with ? i.e pinned?: boolean Currently only applied to doc-interfaces.AUTO */
     optional?: boolean;
 }
-export interface ObjectCode {
-    framework: Framework;
-    id?: string;
-    breadcrumbs?: Record<string, string>;
-    properties: DocEntryMap;
-}
+
 interface CodeEntry {
     description?: string;
     type: PropertyType;
@@ -173,42 +164,6 @@ export interface Config {
     hideName?: boolean;
     description?: string;
 }
-export type SectionProps = {
-    framework: Framework;
-    title: string;
-    properties: DocEntryMap | DocEntry | ChildDocEntry;
-    config: Config;
-    breadcrumbs?: Record<string, string>;
-    names?: string[];
-};
-export type PropertyCall = {
-    framework: Framework;
-    id: string;
-    name: string;
-    definition: DocEntry | ChildDocEntry;
-    config: Config;
-};
-export type FunctionCode = {
-    framework: Framework;
-    name: string;
-    type: PropertyType | string;
-    config: Config;
-};
-
-type InterfaceLookup = Record<string, { meta: any; type: any; docs: any }>;
-type CodeLookup = Record<string, any>;
-
-export interface ApiDocumentationProps {
-    pageName?: string;
-    framework: Framework;
-    section?: string;
-    names?: string[];
-    interfaceLookup: InterfaceLookup;
-    codeLookup: CodeLookup;
-    config?: Config;
-}
-
-type OptionsData = CollectionEntry<'options-reference'>['data'];
 
 interface JsSelectionBase {
     path: string[];
@@ -235,32 +190,6 @@ export type JsObjectSelection =
     | JsModelSelectionProperty
     | JsObjectSelectionProperty
     | JsObjectSelectionUnionNestedObject;
-
-export interface TopLevelHeaderData {
-    path: string[];
-    heading: string;
-    propertyType: string;
-    description: string;
-    descriptionWithoutDefault: string;
-}
-
-export interface JsObjectViewProps {
-    model: JsonModel;
-    breadcrumbs?: string[];
-    config?: Config;
-    handleSelection: (value: JsObjectSelection) => void;
-}
-
-export interface JsObjectPropertiesViewProps {
-    interfaceName: string;
-    framework: Framework;
-    breadcrumbs?: string[];
-    interfaceLookup: InterfaceLookup;
-    codeLookup: CodeLookup;
-    config?: JsObjectPropertiesViewConfig;
-    framework: Framework;
-    optionsData: OptionsData;
-}
 
 export interface JsObjectPropertiesViewConfig {
     includeDeprecated?: boolean;
@@ -293,20 +222,4 @@ export interface JsObjectPropertiesViewConfig {
         interfaces: Record<string, InterfaceEntry>;
         codeLookup: Record<string, CodeEntry>;
     };
-}
-
-export interface InterfaceDocumentationProps {
-    interfaceName: string;
-    framework: Framework;
-    /**
-     * Property names to include
-     */
-    names?: string[];
-    /**
-     * Property names to exclude
-     */
-    exclude?: string[];
-    interfaceLookup: InterfaceLookup;
-    codeLookup: CodeLookup;
-    config: Config;
 }

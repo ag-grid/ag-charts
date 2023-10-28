@@ -1,10 +1,5 @@
 const HEADER_OFFSET = 65;
 
-export function createLink(url: string, content: string) {
-    const target = url.startsWith('http') ? '_blank' : '_self';
-    return `<a href="${url}" target="${target}" rel="noreferrer">${content}</a>`;
-}
-
 export function scrollToId(id: string, { offset = HEADER_OFFSET }: { offset?: number } = {}) {
     // Scroll to top to reset scroll position
     window.scrollTo({ behavior: 'smooth', top: 0 });

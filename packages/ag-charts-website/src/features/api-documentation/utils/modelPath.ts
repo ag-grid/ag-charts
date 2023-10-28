@@ -248,22 +248,6 @@ export function getTopLevelSelection({
     return topLevelSelection;
 }
 
-export function getTopSelection({
-    model,
-    hideChildren,
-}: {
-    model: JsonModel;
-    hideChildren?: boolean;
-}): JsObjectSelection {
-    return {
-        type: model.type,
-        path: [],
-        model,
-        onlyShowToDepth: hideChildren ? 0 : undefined,
-        isRoot: true,
-    };
-}
-
 export function getFullPath(selection: JsObjectSelection) {
     return selection.type === 'property' ? selection.path.concat(selection.propName) : selection.path;
 }

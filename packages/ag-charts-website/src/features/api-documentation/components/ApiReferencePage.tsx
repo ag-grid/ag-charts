@@ -5,9 +5,9 @@ import Markdown from 'react-markdown';
 
 import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
-import styles from './JsObjectProperties.module.scss';
+import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation } from './OptionsNavigation';
-import { PropertyType } from './Properies';
+import { PropertyNamePrefix, PropertyType } from './Properies';
 
 const SelectionContext = createContext<{
     selection: Selection;
@@ -44,9 +44,7 @@ export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiR
                         </div>
                         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
                             <PageHeader selection={selection.root} />
-                            <div className={styles.referenceInner}>
-                                <ApiReference id={rootInterface} className={styles.referenceContainer} />
-                            </div>
+                            <ApiReference id={rootInterface} />
                         </div>
                     </div>
                 </SelectionContext.Provider>
@@ -56,11 +54,10 @@ export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiR
 }
 
 function PageHeader({ selection, prefixPath }: { selection: InterfaceNode; prefixPath?: string[] }) {
-    const parentPrefix = prefixPath?.join('.');
     return (
         <header>
             <h1 className="font-size-gigantic">
-                {parentPrefix && <span className={styles.parentProperties}>{`${parentPrefix}.`}</span>}
+                <PropertyNamePrefix as="span" prefixPath={prefixPath} />
                 {selection.name}
             </h1>
             <Markdown>{selection.docs?.join('\n')}</Markdown>
