@@ -15,3 +15,9 @@ export function getInterfacesReference(): ApiReferenceType {
     const jsonContent = getJsonFromDevFile('resolved-interfaces.json');
     return new Map(jsonContent.map((item: { name: string }) => [item.name, item]));
 }
+
+export function getDeprecateLookupFiles() {
+    const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
+    const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+    return { interfaceLookup, codeLookup };
+}
