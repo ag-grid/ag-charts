@@ -2,7 +2,7 @@ import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
-import { createContext, useContext } from 'react';
+import { AllHTMLAttributes, createContext, useContext, useLayoutEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
@@ -39,7 +39,7 @@ interface ApiReferenceOptions {
 
 interface ApiReferenceRowOptions {
     member: MemberNode;
-    parentId: string;
+    anchorId: string;
     prefixPath?: string[];
     isExpanded?: boolean;
     onDetailsToggle?: () => void;
@@ -63,7 +63,7 @@ export function ApiReferenceWithContext({
     );
 }
 
-export function ApiReference({ id, className }: ApiReferenceOptions) {
+export function ApiReference({ id, className, ...props }: ApiReferenceOptions & AllHTMLAttributes<Element>) {
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const interfaceRef = reference?.get(id);
@@ -75,7 +75,7 @@ export function ApiReference({ id, className }: ApiReferenceOptions) {
     const interfaceMembers = processMembers(interfaceRef.members, config);
 
     return (
-        <div className={classnames(styles.apiReferenceOuter, className)}>
+        <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
                     <p>
@@ -85,7 +85,7 @@ export function ApiReference({ id, className }: ApiReferenceOptions) {
             <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <tbody>
                     {interfaceMembers.map((member) => (
-                        <NodeFactory key={member.name} member={member} parentId={id} />
+                        <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
                     ))}
                 </tbody>
             </table>
@@ -93,16 +93,25 @@ export function ApiReference({ id, className }: ApiReferenceOptions) {
     );
 }
 
-function NodeFactory({ member, parentId, prefixPath = [] }: ApiReferenceRowOptions) {
-    const [isExpanded, toggleExpanded] = useToggle();
+function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptions) {
+    const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const shouldExpand = isExpanded && interfaceRef && 'members' in interfaceRef;
+
+    useLayoutEffect(() => {
+        const initialState = location.hash.substring(1).startsWith(anchorId);
+        if (initialState) {
+            setExpanded(true);
+            const element = document.getElementById(anchorId);
+            requestAnimationFrame(() => element?.scrollIntoView({ behavior: 'smooth' }));
+        }
+    }, []);
 
     return (
         <>
             <ApiReferenceRow
                 member={member}
-                parentId={parentId}
+                anchorId={anchorId}
                 prefixPath={prefixPath}
                 isExpanded={isExpanded}
                 onDetailsToggle={toggleExpanded}
@@ -112,7 +121,7 @@ function NodeFactory({ member, parentId, prefixPath = [] }: ApiReferenceRowOptio
                     <NodeFactory
                         key={childMember.name}
                         member={childMember}
-                        parentId={parentId}
+                        anchorId={`${anchorId}-${member.name}`}
                         prefixPath={prefixPath.concat(member.name)}
                     />
                 ))}
@@ -120,7 +129,7 @@ function NodeFactory({ member, parentId, prefixPath = [] }: ApiReferenceRowOptio
     );
 }
 
-function ApiReferenceRow({ member, parentId, prefixPath, isExpanded, onDetailsToggle }: ApiReferenceRowOptions) {
+function ApiReferenceRow({ member, anchorId, prefixPath, isExpanded, onDetailsToggle }: ApiReferenceRowOptions) {
     const config = useContext(ApiReferenceConfigContext);
 
     return (
@@ -128,7 +137,7 @@ function ApiReferenceRow({ member, parentId, prefixPath, isExpanded, onDetailsTo
             <td role="presentation" className={styles.leftColumn}>
                 <PropertyTitle
                     name={member.name}
-                    parentId={parentId}
+                    anchorId={anchorId}
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
                 />

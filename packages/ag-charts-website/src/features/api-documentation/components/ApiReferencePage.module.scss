@@ -40,6 +40,11 @@ $header-nav-height: 56px;
         }
     }
 
+    a[id]:not(a[href]) {
+        position: relative;
+        top: var(--anchor-offset, 0);
+    }
+
     tr:first-child {
         border-top: none;
     }

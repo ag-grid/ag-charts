@@ -1,95 +1,14 @@
 @use '../../../design-system/' as *;
 
-$indent: 24px;
-
 // Ignore padding & remove border if within tabbed container
 :global(.tabs-outer) .expandableSnippet pre:global(.code) {
     margin: -$size-2;
     border: none;
 }
 
-.navContainer {
-    user-select: none;
-}
-
-.navGroup {
-    > * {
-        padding: 0 16px 0 calc(16px + $indent * var(--options-nav-depth, 0));
-    }
-}
-
-.highlight {
-    --highlight-color: var(--primary-600);
-    --highlight-opacity: 0.15;
-
-    position: relative;
-
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-color: var(--highlight-color);
-        opacity: var(--highlight-opacity);
-        pointer-events: none;
-    }
-
-    #{$darkmode-selector} & {
-        --highlight-color: var(--property-color);
-        --highlight-opacity: 0.16;
-    }
-}
-
-.topBreadcrumb {
-    color: var(--property-color);
-    cursor: pointer;
-}
-
 .expandableSnippet {
     --sticky-offset: 56px; // top bar height
-}
 
-.expandableSnippet header {
-    position: sticky;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: $size-2;
-    background-color: var(--default-background-color);
-    z-index: 3;
-    border-bottom: 1px solid var(--neutral-200);
-
-    h3 {
-        margin-bottom: 0;
-    }
-
-    p {
-        line-height: var(--line-height-tight);
-    }
-}
-
-.searchOuter {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-input[type='search'].searchInput {
-    padding-left: 2em;
-}
-
-.searchIcon {
-    --icon-size: 1.25em;
-    --text-color: var(--secondary-text-color);
-
-    position: absolute;
-    left: 0.625em;
-}
-
-.expandableSnippet input[type='search'] {
-    width: 100%;
-}
-
-.expandableSnippet {
     position: sticky;
     top: var(--sticky-offset);
     display: flex;
@@ -97,6 +16,25 @@ input[type='search'].searchInput {
     width: 100%;
     height: calc(100vh - var(--sticky-offset));
     overflow-y: auto;
+
+    > header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: $size-2;
+        background-color: var(--default-background-color);
+        z-index: 3;
+        border-bottom: 1px solid var(--neutral-200);
+
+        h3 {
+            margin-bottom: 0;
+        }
+
+        p {
+            line-height: var(--line-height-tight);
+        }
+    }
 
     > pre {
         flex: 1 0 auto;
@@ -114,11 +52,83 @@ input[type='search'].searchInput {
             background-size: 1px calc(1em * var(--code-line-height) * 2);
         }
     }
+
+    input[type='search'] {
+        width: 100%;
+
+        &.searchInput {
+            padding-left: 2em;
+        }
+    }
 }
 
-.expander {
+.navContainer {
+    --nav-options-indent: 24px;
+    user-select: none;
+}
+
+.navGroup {
+    position: relative;
+
+    &.groupWhiskers::before,
+    &.groupWhiskers::after {
+        content: '';
+        position: absolute;
+        left: calc(4px + var(--nav-options-indent) * (var(--options-nav-depth, 0) - 1));
+        background-color: var(--neutral-300);
+        pointer-events: none;
+
+        #{$darkmode-selector} & {
+            background-color: var(--neutral-600);
+        }
+    }
+
+    &.groupWhiskers::before {
+        top: -7px;
+        bottom: -14px;
+        width: 2px;
+    }
+
+    &.groupWhiskers::after {
+        bottom: -14px;
+        height: 2px;
+        width: 8px;
+    }
+}
+
+.navItem {
+    padding: 0 16px 0 calc(16px + var(--nav-options-indent) * var(--options-nav-depth, 0));
+
+    &.highlight {
+        --highlight-color: var(--primary-600);
+        --highlight-opacity: 0.15;
+
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: var(--highlight-color);
+            opacity: var(--highlight-opacity);
+            pointer-events: none;
+        }
+
+        #{$darkmode-selector} & {
+            --highlight-color: var(--property-color);
+            --highlight-opacity: 0.16;
+        }
+    }
+}
+
+.propertyExpander {
     --icon-size: 1em;
 
+    position: absolute;
+    top: 0;
+    right: 100%;
+    padding: 3px;
+    box-sizing: content-box;
     transition: transform $default-transition-timing;
 
     &.active {
@@ -131,17 +141,48 @@ input[type='search'].searchInput {
     color: var(--property-color);
     cursor: pointer;
 
-    .expander {
-        position: absolute;
-        top: 0;
-        right: 100%;
-        padding: 3px 3px 1px 0;
-        box-sizing: content-box;
-    }
-
     .punctuation {
         color: var(--punctuation-color);
     }
+}
+
+.propertyWhisker {
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 8.5px;
+        right: calc(100% + 10px);
+        width: var(--nav-options-indent);
+        height: 2px;
+        background-color: var(--neutral-300);
+
+        #{$darkmode-selector} & {
+            background-color: var(--neutral-600);
+        }
+    }
+}
+
+.propertyExpandable {
+    &.propertyWhisker::before {
+        right: calc(100% + 22px);
+        width: calc(var(--nav-options-indent) - 12px);
+    }
+}
+
+.searchOuter {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.searchIcon {
+    --icon-size: 1.25em;
+    --text-color: var(--secondary-text-color);
+
+    position: absolute;
+    left: 0.625em;
 }
 
 .searchDropdown {

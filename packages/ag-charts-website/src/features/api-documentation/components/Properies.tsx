@@ -8,13 +8,12 @@ import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
     name: string;
-    parentId: string;
+    anchorId: string;
     prefixPath?: string[];
     required?: boolean;
 }
 
-export function PropertyTitle({ name, parentId, prefixPath, required }: PropertyTitleOptions) {
-    const anchorId = `reference-${parentId}-${name}`;
+export function PropertyTitle({ name, anchorId, prefixPath, required }: PropertyTitleOptions) {
     return (
         <h6 className={classnames(styles.name, 'side-menu-exclude')}>
             <a id={anchorId} />

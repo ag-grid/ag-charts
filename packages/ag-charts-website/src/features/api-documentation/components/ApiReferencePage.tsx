@@ -1,9 +1,9 @@
 import classNames from 'classnames';
-import type { Dispatch, SetStateAction } from 'react';
+import type { CSSProperties, Dispatch, SetStateAction } from 'react';
 import { createContext, useState } from 'react';
 import Markdown from 'react-markdown';
 
-import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
+import type { ApiReferenceType, InterfaceNode, MemberNode } from '../api-reference-types';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation } from './OptionsNavigation';
@@ -26,13 +26,10 @@ interface ApiReferencePageOptions {
 }
 
 export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiReferencePageOptions) {
+    const [headerHeight, setHeaderHeight] = useState(0);
     const [selection, setSelection] = useState({
         root: reference.get(rootInterface) as InterfaceNode,
     });
-
-    if (rootInterface === 'AgChartOptions') {
-        rootInterface = 'AgCartesianChartOptions';
-    }
 
     return (
         <ApiReferenceContext.Provider value={reference}>
@@ -43,25 +40,23 @@ export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiR
                             <OptionsNavigation breadcrumbs={breadcrumbs} rootInterface={rootInterface} />
                         </div>
                         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
-                            <PageHeader selection={selection.root} />
-                            <ApiReference id={rootInterface} />
+                            <header ref={(ref) => setHeaderHeight(ref?.offsetHeight ?? 0)}>
+                                <h1 className="font-size-gigantic">
+                                    {/*<PropertyNamePrefix as="span" prefixPath={prefixPath} />*/}
+                                    {selection.root.name}
+                                </h1>
+                                <Markdown>{selection.root.docs?.join('\n')}</Markdown>
+                                <PropertyType type={selection.root.name} />
+                            </header>
+
+                            <ApiReference
+                                id={rootInterface}
+                                style={{ '--anchor-offset': `${-headerHeight}px` } as CSSProperties}
+                            />
                         </div>
                     </div>
                 </SelectionContext.Provider>
             </ApiReferenceConfigContext.Provider>
         </ApiReferenceContext.Provider>
-    );
-}
-
-function PageHeader({ selection, prefixPath }: { selection: InterfaceNode; prefixPath?: string[] }) {
-    return (
-        <header>
-            <h1 className="font-size-gigantic">
-                <PropertyNamePrefix as="span" prefixPath={prefixPath} />
-                {selection.name}
-            </h1>
-            <Markdown>{selection.docs?.join('\n')}</Markdown>
-            <PropertyType type={selection.name} />
-        </header>
     );
 }

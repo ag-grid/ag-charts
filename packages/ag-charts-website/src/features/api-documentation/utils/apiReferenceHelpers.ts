@@ -1,4 +1,4 @@
-import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeNode } from '../api-reference-types';
+import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, TypeNode } from '../api-reference-types';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
@@ -62,7 +62,13 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
 
     if (apiNode.kind === 'member' && typeof apiNode.type === 'object') {
         if (apiNode.type.kind === 'union') {
-            return `type ${apiNode.name} = ${apiNode.type.type.map((type) => normalizeType(type)).join(' | ')};`;
+            const nodeType =
+                '\n    ' +
+                apiNode.type.type
+                    .map((type) => normalizeType(type))
+                    .join(' | ')
+                    .replaceAll('|', '\n  |');
+            return `type ${apiNode.name} = ${nodeType};`;
         }
 
         if (apiNode.type.kind === 'function') {
@@ -99,4 +105,83 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
     // eslint-disable-next-line no-console
     console.warn('Unknown API node', apiNode);
     return '';
+}
+
+export function patchAgChartOptionsReference(reference: ApiReferenceType) {
+    const interfaceRef = reference.get('AgChartOptions');
+    const getTypeUnion = (typeRef: ApiReferenceNode | undefined): string[] => {
+        if (typeRef?.kind === 'typeAlias' && typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
+            return typeRef.type.type.filter((type): type is string => typeof type === 'string');
+        }
+        return [];
+    };
+
+    const axisOptions: string[] = [];
+    const seriesOptions: string[] = [];
+
+    let altInterface: InterfaceNode | null = null;
+
+    for (const typeName of getTypeUnion(interfaceRef)) {
+        const typeRef = reference.get(typeName);
+
+        if (typeRef?.kind !== 'interface') {
+            throw Error('Unexpected AgChartOptions union type');
+        }
+
+        altInterface ??= typeRef;
+
+        for (const member of typeRef.members) {
+            if (
+                typeof member.type !== 'object' ||
+                member.type.kind !== 'array' ||
+                typeof member.type.type !== 'string'
+            ) {
+                continue;
+            }
+
+            if (member.name === 'axes') {
+                axisOptions.push(...getTypeUnion(reference.get(member.type.type)));
+            } else if (member.name === 'series') {
+                seriesOptions.push(...getTypeUnion(reference.get(member.type.type)));
+            }
+        }
+    }
+
+    if (altInterface === null) {
+        return;
+    }
+
+    reference.set('AgChartAxisOptions', {
+        kind: 'typeAlias',
+        name: 'AgChartAxisOptions',
+        type: { kind: 'union', type: axisOptions },
+    });
+    reference.set('AgChartSeriesOptions', {
+        kind: 'typeAlias',
+        name: 'AgChartSeriesOptions',
+        type: { kind: 'union', type: seriesOptions },
+    });
+
+    altInterface = {
+        ...altInterface,
+        name: 'AgChartOptions',
+        members: altInterface.members.map((member) => {
+            if (typeof member.type !== 'object') {
+                return member;
+            }
+            if (member.name === 'axes') {
+                return Object.assign({}, member, {
+                    type: Object.assign({}, member.type, { type: 'AgChartAxisOptions' }),
+                });
+            }
+            if (member.name === 'series') {
+                return Object.assign({}, member, {
+                    type: Object.assign({}, member.type, { type: 'AgChartSeriesOptions' }),
+                });
+            }
+            return member;
+        }),
+    };
+
+    reference.set('AgChartOptions', altInterface);
 }
