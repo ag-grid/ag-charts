@@ -179,9 +179,8 @@ const pieOptions: AgChartOptions = {
 
 let chart = AgEnterpriseCharts.create(barOptions);
 
-function reload(options) {
-    chart.destroy();
-    chart = AgEnterpriseCharts.create(options);
+function reload(options: AgChartOptions) {
+    AgEnterpriseCharts.update(chart, options)
 }
 
 function changeSeriesBar() {
