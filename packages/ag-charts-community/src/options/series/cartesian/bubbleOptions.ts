@@ -50,11 +50,11 @@ export interface AgBubbleSeriesOptionsNames {
     labelName?: string;
 }
 
-/** Configuration for Bubble/bubble series. */
 export interface AgBubbleSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgBubbleSeriesThemeableOptions<TDatum>,
         AgBubbleSeriesOptionsKeys,
         AgBubbleSeriesOptionsNames {
+    /** Configuration for Bubble series. */
     type: 'bubble';
 }

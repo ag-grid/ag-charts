@@ -1,15 +1,3 @@
-const HEADER_OFFSET = 65;
-
-export function scrollToId(id: string, { offset = HEADER_OFFSET }: { offset?: number } = {}) {
-    // Scroll to top to reset scroll position
-    window.scrollTo({ behavior: 'smooth', top: 0 });
-
-    // Wait for one render cycle before scrolling to position
-    setTimeout(() => {
-        scrollIntoView(id, { offset, skipReplaceUrl: true });
-    });
-}
-
 export function scrollIntoView(id: string, { offset = 0, skipReplaceUrl = false } = {}) {
     const element = document.getElementById(id);
     if (!element) {

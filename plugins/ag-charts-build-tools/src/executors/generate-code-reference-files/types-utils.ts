@@ -44,7 +44,6 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
     } else {
         ({ node, heritage } = typesMap.get(typeName));
     }
-    // console.log({ typeName, node, heritage });
 
     if (node.kind === 'indexAccess') {
         const memberName = node.index.replace(/^'(.*)'$/, '$1');
@@ -62,7 +61,7 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
                     return resolveType(typesMap, node.type.type);
                 }
             case 'typeLiteral':
-                return resolveType(typesMap, node.type);
+                return resolveType(typesMap, { name: typeName, ...node.type });
             case 'intersection':
                 heritage = node.type.type.filter((typeName) => {
                     if (typeName.kind === 'typeLiteral') {
@@ -74,10 +73,6 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
                     return !typeName.match(/^['{].*['}]$/);
                 });
                 break;
-            // case 'union':
-            //     break;
-            // default:
-            //     console.log(node);
         }
     }
 
@@ -118,7 +113,7 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
 function cleanupMembers(members) {
     // remove duplicates and push required members to the top of the list
     return members
-        .filter(({ name, ...data }, index) => {
+        .filter(({ name, ...data }, index: number) => {
             const firstMatchIndex = members.findIndex((item) => item.name === name);
             const isFirstAppearance = firstMatchIndex === index;
             if (!isFirstAppearance) {
@@ -213,7 +208,7 @@ export function formatNode(node: ts.Node) {
                 }
                 return {
                     kind: 'member',
-                    docs: memberDocs,
+                    docs: trimArray(memberDocs),
                     name: formatNode(node.name),
                     type: formatNode(node),
                     optional: !!node.questionToken,
@@ -251,13 +246,23 @@ export function formatNode(node: ts.Node) {
     }
 
     if (ts.isTypeReferenceNode(node)) {
+        const nodeType = formatNode(node.typeName);
+        if (nodeType === 'Array') {
+            return {
+                kind: 'array',
+                type:
+                    node.typeArguments.length === 1
+                        ? formatNode(node.typeArguments[0])
+                        : node.typeArguments.map(formatNode),
+            };
+        }
         return node.typeArguments
             ? {
                   kind: 'typeRef',
-                  type: formatNode(node.typeName),
+                  type: nodeType,
                   typeParams: node.typeArguments.map(formatNode),
               }
-            : formatNode(node.typeName);
+            : nodeType;
     }
 
     if (ts.isIndexedAccessTypeNode(node)) {
@@ -295,17 +300,18 @@ export function formatNode(node: ts.Node) {
 }
 
 function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
-    return node.jsDoc?.flatMap((doc) =>
-        doc
-            .getFullText()
-            .split('\n')
-            .map((line) =>
-                line
-                    .replace(/\*\/\s*$/, '')
-                    .replace(/^\s*(\/\*{1,2}|\*)/, '')
-                    .trim()
-            )
-            .filter(Boolean)
+    return trimArray(
+        node.jsDoc?.flatMap((doc) =>
+            doc
+                .getFullText()
+                .split('\n')
+                .map((line) =>
+                    line
+                        .replace(/\*\/\s*$/, '')
+                        .replace(/^\s*(\/\*{1,2}|\*)/, '')
+                        .trim()
+                )
+        )
     );
 }
 
@@ -315,4 +321,8 @@ export function printNode(node: ts.Node) {
     } catch (e) {
         return null;
     }
+}
+
+function trimArray(array?: string[]): string[] {
+    return array?.join('\n').trim().split('\n');
 }

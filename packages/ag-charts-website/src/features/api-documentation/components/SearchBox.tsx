@@ -4,11 +4,10 @@ import classnames from 'classnames';
 import type { AllHTMLAttributes, FormEventHandler, KeyboardEventHandler } from 'react';
 import { useState } from 'react';
 
-import type { JsObjectSelection } from '../types';
 import styles from './OptionsNavigation.module.scss';
 
-type SearchDatum = { id: string; selection: JsObjectSelection };
-type SelectionHandler = (selection: JsObjectSelection) => void;
+type SearchDatum = { id: string; selection: object };
+type SelectionHandler = (selection: object) => void;
 
 export function SearchBox({
     className,

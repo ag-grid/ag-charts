@@ -43,7 +43,6 @@ export interface AgLineSeriesOptionsNames {
     yName?: string;
 }
 
-/** Configuration for line series. */
 export interface AgLineSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgLineSeriesOptionsKeys,

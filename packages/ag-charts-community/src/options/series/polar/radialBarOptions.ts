@@ -7,14 +7,13 @@ import type {
 
 export type AgRadialBarSeriesThemeableOptions<TDatum = any> = AgBaseRadialSeriesThemeableOptions<TDatum>;
 
-/** Configuration for Radial Bar series. */
 export interface AgRadialBarSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum> {
+    /** Configuration for Radial Bar series. */
     type: 'radial-bar';
-
     /** Whether to group together (adjacently) separate sectors. */
     grouped?: boolean;
     /** An option indicating if the sectors should be stacked. */

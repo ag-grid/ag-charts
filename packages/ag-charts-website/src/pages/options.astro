@@ -5,22 +5,14 @@ import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/devFiles';
 import { getEntry } from 'astro:content';
 
-const { data } = await getEntry('options-reference', 'data');
 const reference = getInterfacesReference();
 
 patchAgChartOptionsReference(reference);
-
-const override = {
-    axes: {},
-    series: {},
-};
-
 ---
 <APIViewLayout>
     <ApiReferencePage
         client:only
         {...Astro.props}
-        additionalData={data}
         rootInterface="AgChartOptions"
         breadcrumbs={['options']}
         reference={reference}

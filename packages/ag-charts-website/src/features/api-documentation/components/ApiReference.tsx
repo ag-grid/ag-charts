@@ -2,11 +2,13 @@ import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
-import { AllHTMLAttributes, createContext, useContext, useLayoutEffect } from 'react';
+import type { AllHTMLAttributes } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
-import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
-import { formatTypeToCode, getMemberType } from '../utils/apiReferenceHelpers';
+import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
+import { formatTypeToCode, getMemberType, isInterfaceHidden } from '../utils/apiReferenceHelpers';
+import { useLocation } from '../utils/useHistory';
 import styles from './ApiReference.module.scss';
 import { PropertyTitle, PropertyType } from './Properies';
 
@@ -97,13 +99,15 @@ function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptio
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const shouldExpand = isExpanded && interfaceRef && 'members' in interfaceRef;
+    const location = useLocation();
 
-    useLayoutEffect(() => {
-        const initialState = location.hash.substring(1).startsWith(anchorId);
-        if (initialState) {
-            setExpanded(true);
+    useEffect(() => {
+        const hash = location?.hash.substring(1);
+        if (hash === anchorId) {
             const element = document.getElementById(anchorId);
             requestAnimationFrame(() => element?.scrollIntoView({ behavior: 'smooth' }));
+        } else if (hash?.startsWith(anchorId)) {
+            setExpanded(true);
         }
     }, []);
 
@@ -121,7 +125,7 @@ function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptio
                     <NodeFactory
                         key={childMember.name}
                         member={childMember}
-                        anchorId={`${anchorId}-${member.name}`}
+                        anchorId={`${anchorId}-${childMember.name}`}
                         prefixPath={prefixPath.concat(member.name)}
                     />
                 ))}
@@ -135,6 +139,7 @@ function ApiReferenceRow({ member, anchorId, prefixPath, isExpanded, onDetailsTo
     return (
         <tr>
             <td role="presentation" className={styles.leftColumn}>
+                <a id={anchorId} />
                 <PropertyTitle
                     name={member.name}
                     anchorId={anchorId}
@@ -163,7 +168,8 @@ function MemberActions({
     onDetailsToggle?: () => void;
 }) {
     const additionalDetails = useMemberAdditionalDetails(member);
-    const shouldExpand = isExpanded && additionalDetails && !('members' in additionalDetails);
+    const hasMembers = additionalDetails && 'members' in additionalDetails;
+    const shouldExpand = isExpanded && additionalDetails && !hasMembers;
 
     // if (additionalDetails == null) {
     //     return null;
@@ -171,34 +177,55 @@ function MemberActions({
 
     return (
         <div className={styles.actions}>
-            {additionalDetails && <ToggleDetails isOpen={isExpanded} onToggle={onDetailsToggle} />}
+            {additionalDetails && (
+                <ToggleDetails
+                    isOpen={isExpanded}
+                    moreText={hasMembers ? 'Expand interface' : 'More details'}
+                    lessText={hasMembers ? 'Collapse interface' : 'Hide details'}
+                    onToggle={onDetailsToggle}
+                />
+            )}
             {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} />}
         </div>
     );
 }
 
-export function TypeCodeBlock({ apiNode }: { apiNode: ApiReferenceNode | MemberNode }) {
+type ApiNode = ApiReferenceNode | MemberNode;
+
+export function TypeCodeBlock({ apiNode }: { apiNode: ApiNode | ApiNode[] }) {
     const reference = useContext(ApiReferenceContext);
 
     if (!reference) {
         return null;
     }
 
-    const codeSample = formatTypeToCode(apiNode, reference);
+    const codeSample = Array.isArray(apiNode)
+        ? apiNode.map((apiNode) => formatTypeToCode(apiNode, reference))
+        : formatTypeToCode(apiNode, reference);
 
-    if (!codeSample) {
+    if (!codeSample?.length) {
         // eslint-disable-next-line no-console
         console.warn('Unknown API node', apiNode);
         return null;
     }
 
-    return <Code code={codeSample} keepMarkup />;
+    return <Code code={codeSample} />;
 }
 
-function ToggleDetails({ isOpen, onToggle }: { isOpen?: boolean; onToggle?: () => void }) {
+function ToggleDetails({
+    isOpen,
+    moreText = 'More details',
+    lessText = 'Hide details',
+    onToggle,
+}: {
+    isOpen?: boolean;
+    moreText?: string;
+    lessText?: string;
+    onToggle?: () => void;
+}) {
     return (
         <button className={classnames(styles.seeMore, 'button-as-link')} role="presentation" onClick={onToggle}>
-            {!isOpen ? 'More' : 'Hide'} details <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} />
+            {!isOpen ? moreText : lessText} <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} />
         </button>
     );
 }
@@ -209,8 +236,16 @@ function useMemberAdditionalDetails(member: MemberNode) {
         return member;
     }
     const reference = useContext(ApiReferenceContext);
-    if (reference?.has(memberType) && !hiddenInterfaces.includes(memberType)) {
+    if (reference?.has(memberType) && !isInterfaceHidden(memberType)) {
         return reference.get(memberType);
+    }
+    if (typeof member.type === 'object' && member.type.kind === 'union') {
+        const unionTypes = member.type.type
+            .map((unionType) => typeof unionType === 'string' && reference?.get(unionType))
+            .filter((apiNode): apiNode is TypeAliasNode => typeof apiNode === 'object' && apiNode.kind === 'typeAlias');
+        if (unionTypes.length) {
+            return unionTypes;
+        }
     }
 }
 

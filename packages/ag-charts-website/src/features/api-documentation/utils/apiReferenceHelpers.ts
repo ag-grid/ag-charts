@@ -2,6 +2,23 @@ import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, Typ
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
+type SearchDatum = { id: string; selection: object };
+
+const hiddenInterfaces = [
+    'CssColor',
+    'FontStyle',
+    'FontWeight',
+    'FontSize',
+    'FontFamily',
+    'Opacity',
+    'PixelSize',
+    'Ratio',
+];
+
+export function isInterfaceHidden(name: string) {
+    return hiddenInterfaces.includes(name);
+}
+
 export function getMemberType(member: MemberNode): string {
     if (typeof member.type === 'object') {
         if ('type' in member.type && typeof member.type.type === 'string') {
@@ -105,6 +122,59 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
     // eslint-disable-next-line no-console
     console.warn('Unknown API node', apiNode);
     return '';
+}
+
+export function extractSearchData(
+    reference: ApiReferenceType,
+    interfaceRef: ApiReferenceNode,
+    idPrefix = ''
+): SearchDatum[] {
+    if (interfaceRef.kind === 'interface' || (interfaceRef.kind === 'typeLiteral' && interfaceRef.name)) {
+        return interfaceRef.members.flatMap((member) => {
+            const results = [{ id: idPrefix + member.name, selection: {} }];
+            if (typeof member.type === 'string' && reference.has(member.type)) {
+                results.push(
+                    ...extractSearchData(reference, reference.get(member.type)!, `${idPrefix}${member.name}.`)
+                );
+            } else if (
+                typeof member.type === 'object' &&
+                member.type.kind === 'array' &&
+                typeof member.type.type === 'string' &&
+                reference.has(member.type.type)
+            ) {
+                results.push(
+                    ...extractSearchData(reference, reference.get(member.type.type)!, `${idPrefix}${member.name}.`)
+                );
+            }
+            return results;
+        });
+    }
+
+    if (
+        interfaceRef.kind === 'typeAlias' &&
+        typeof interfaceRef.type === 'object' &&
+        interfaceRef.type.kind === 'union'
+    ) {
+        return interfaceRef.type.type
+            .flatMap((typeName) => {
+                if (typeof typeName === 'string' && !isInterfaceHidden(typeName) && reference.has(typeName)) {
+                    const subtypeRef = reference.get(typeName)!;
+                    if (subtypeRef.kind === 'interface') {
+                        const typeMember = subtypeRef.members.find((member) => member.name === 'type');
+                        if (typeMember) {
+                            return extractSearchData(
+                                reference,
+                                subtypeRef,
+                                `${idPrefix.replace(/\.$/, '')}[type=${typeMember.type}].`
+                            );
+                        }
+                    }
+                }
+            })
+            .filter((item): item is SearchDatum => Boolean(item));
+    }
+
+    return [];
 }
 
 export function patchAgChartOptionsReference(reference: ApiReferenceType) {

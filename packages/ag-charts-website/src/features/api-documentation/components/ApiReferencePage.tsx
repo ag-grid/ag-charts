@@ -3,11 +3,11 @@ import type { CSSProperties, Dispatch, SetStateAction } from 'react';
 import { createContext, useState } from 'react';
 import Markdown from 'react-markdown';
 
-import type { ApiReferenceType, InterfaceNode, MemberNode } from '../api-reference-types';
+import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation } from './OptionsNavigation';
-import { PropertyNamePrefix, PropertyType } from './Properies';
+import { PropertyType } from './Properies';
 
 const SelectionContext = createContext<{
     selection: Selection;
@@ -22,7 +22,6 @@ interface ApiReferencePageOptions {
     reference: ApiReferenceType;
     rootInterface: string;
     breadcrumbs: string[];
-    additionalData: object;
 }
 
 export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiReferencePageOptions) {

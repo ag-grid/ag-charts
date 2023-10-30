@@ -16,7 +16,6 @@ interface PropertyTitleOptions {
 export function PropertyTitle({ name, anchorId, prefixPath, required }: PropertyTitleOptions) {
     return (
         <h6 className={classnames(styles.name, 'side-menu-exclude')}>
-            <a id={anchorId} />
             <PropertyNamePrefix prefixPath={prefixPath} />
             <PropertyName isRequired={required}>{name}</PropertyName>
             <LinkIcon href={`#${anchorId}`} />

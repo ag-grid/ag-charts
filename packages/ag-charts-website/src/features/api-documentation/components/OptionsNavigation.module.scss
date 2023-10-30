@@ -144,6 +144,10 @@
     .punctuation {
         color: var(--punctuation-color);
     }
+
+    .unionDiscriminator {
+        color: var(--code-text-color);
+    }
 }
 
 .propertyWhisker {

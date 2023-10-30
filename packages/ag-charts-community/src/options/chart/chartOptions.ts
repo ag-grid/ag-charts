@@ -104,7 +104,15 @@ export interface AgBaseThemeableChartOptions {
     width?: PixelSize;
     /** The height of the chart in pixels. */
     height?: PixelSize;
-    /** By default, the chart will resize automatically to fill the container element. Set this to `false` to disable this behaviour. If `width` or `height` are specified, auto-sizing will be active for the other unspecified dimension.<br/><strong>Important:</strong> if this config is set to `true`, make sure to give the chart's `container` element an explicit size, otherwise you will run into a chicken and egg situation where the container expects to size itself according to the content and the chart expects to size itself according to the container. */
+    /**
+     * By default, the chart will resize automatically to fill the container element. Set this to `false` to disable
+     * this behaviour. If `width` or `height` are specified, auto-sizing will be active for the other unspecified
+     * dimension.
+     *
+     * __Important:__ if this config is set to `true`, make sure to give the chart's `container` element an explicit
+     * size, otherwise you will run into a chicken and egg situation where the container expects to size itself
+     * according to the content and the chart expects to size itself according to the container.
+     */
     autoSize?: boolean;
     /** Configuration for the padding shown around the chart. */
     padding?: AgChartPaddingOptions;
@@ -140,7 +148,11 @@ export interface AgBaseThemeableChartOptions {
 export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
-    /** The element to place the rendered chart into.<br/><strong>Important:</strong> make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default). */
+    /**
+     * The element to place the rendered chart into.
+     *
+     * __Important:__ make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default).
+     */
     container?: HTMLElement | null;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners;

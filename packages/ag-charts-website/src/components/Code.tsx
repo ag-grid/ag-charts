@@ -37,7 +37,7 @@ function Code({
     lineNumbers = false,
     ...props
 }: {
-    code: string;
+    code: string | string[];
     language?: Language;
     className?: string;
     keepMarkup?: boolean;

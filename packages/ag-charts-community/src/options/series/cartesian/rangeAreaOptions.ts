@@ -94,7 +94,6 @@ export interface AgRangeAreaSeriesOptionsNames {
     yName?: string;
 }
 
-/** Configuration for RangeArea series. */
 export interface AgRangeAreaSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgRangeAreaSeriesOptionsKeys,

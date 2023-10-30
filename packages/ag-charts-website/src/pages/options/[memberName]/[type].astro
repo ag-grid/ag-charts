@@ -1,0 +1,50 @@
+---
+import { patchAgChartOptionsReference } from '@features/api-documentation/utils/apiReferenceHelpers';
+import { ApiReferencePage } from '@features/api-documentation/components/ApiReferencePage';
+import { ApiReferenceNode } from '@features/api-documentation/api-reference-types';
+import APIViewLayout from '@layouts/APIViewLayout.astro';
+import { getInterfacesReference } from '@utils/devFiles';
+
+const reference = getInterfacesReference();
+
+export async function getStaticPaths() {
+    const reference = getInterfacesReference();
+    patchAgChartOptionsReference(reference);
+
+    const getSubTypes = (ref: ApiReferenceNode) =>
+        ref.kind === 'typeAlias' && typeof ref.type === 'object' && ref.type.kind === 'union' ? ref.type.type : [];
+
+    const extractTypeValue = (refName: string) => {
+        const ref = reference.get(refName);
+        if (ref.kind === 'interface') {
+            const { type } = ref.members.find(member => member.name === 'type');
+            if (typeof type === 'string') {
+                return type.replaceAll("'", '');
+            }
+        }
+        return refName;
+    };
+
+    const axesRef = reference.get('AgChartAxisOptions');
+    const seriesRef = reference.get('AgChartSeriesOptions');
+
+    return [
+        ...getSubTypes(axesRef).map((rootInterface) => ({
+            params: { memberName: 'axes', type: extractTypeValue(rootInterface) },
+            props: { rootInterface },
+        })),
+        ...getSubTypes(seriesRef).map((rootInterface) => ({
+            params: { memberName: 'series', type: extractTypeValue(rootInterface) },
+            props: { rootInterface, pageTitle: '' },
+        })),
+    ];
+}
+---
+<APIViewLayout>
+    <ApiReferencePage
+        client:only
+        {...Astro.props}
+        breadcrumbs={['options']}
+        reference={reference}
+    />
+</APIViewLayout>

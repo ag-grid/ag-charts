@@ -4,7 +4,6 @@ import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/devFiles';
 import { getEntry } from 'astro:content';
 
-const { data } = await getEntry('options-reference', 'data');
 const reference = getInterfacesReference();
 ---
 
@@ -12,7 +11,6 @@ const reference = getInterfacesReference();
     <ApiReferencePage
         client:only
         {...Astro.props}
-        additionalData={data}
         rootInterface="AgChartTheme"
         breadcrumbs={['options', 'theme']}
         reference={reference}

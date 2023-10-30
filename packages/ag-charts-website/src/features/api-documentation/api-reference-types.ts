@@ -39,6 +39,7 @@ export interface TypeAliasNode {
 
 export interface TypeLiteralNode {
     kind: 'typeLiteral';
+    name?: string;
     members: MemberNode[];
 }
 
