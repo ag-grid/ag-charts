@@ -126,7 +126,7 @@ export class AreaSeries extends CartesianSeries<
     override async processData(dataController: DataController) {
         const { xKey, yKey, normalizedTo, data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
 
-        if (!xKey || !yKey || !data) return;
+        if (xKey == null || yKey == null || data == null) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const ids = [

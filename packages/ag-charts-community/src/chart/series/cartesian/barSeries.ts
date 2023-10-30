@@ -184,6 +184,9 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     override async processData(dataController: DataController) {
         const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
+
+        if (xKey == null || yKey == null || data == null) return;
+
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 

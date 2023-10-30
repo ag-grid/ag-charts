@@ -143,8 +143,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
     override async processData(dataController: DataController) {
         const {
-            xKey = '',
-            yKey = '',
+            xKey,
+            yKey,
             sizeKey = '',
             labelKey,
             colorScale,
@@ -155,6 +155,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             data,
             ctx: { animationManager },
         } = this;
+
+        if (xKey == null || yKey == null || data == null) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 

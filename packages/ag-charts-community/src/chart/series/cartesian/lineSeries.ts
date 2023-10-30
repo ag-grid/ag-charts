@@ -119,8 +119,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     yName?: string = undefined;
 
     override async processData(dataController: DataController) {
-        const { xKey = '', yKey = '' } = this;
-        const data = xKey && yKey && this.data ? this.data : [];
+        const { xKey, yKey, data } = this;
+
+        if (xKey == null || yKey == null || data == null) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
