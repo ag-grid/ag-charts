@@ -7,6 +7,7 @@ import { Footer } from '@components/footer/Footer';
 import { TopBar } from '@components/top-bar/TopBar';
 import { FRAMEWORKS } from '@constants';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
+import { getIsDev, getIsStaging } from '@utils/env';
 
 export interface Props {
     title?: string;
@@ -21,6 +22,9 @@ const path = Astro.url.pathname;
 
 const frameworks = FRAMEWORKS;
 const framework = getFrameworkFromPath(path);
+
+const isDev = getIsDev();
+const isStaging = getIsStaging();
 ---
 
 <!DOCTYPE html>
@@ -56,7 +60,7 @@ const framework = getFrameworkFromPath(path);
     <body>
         <div class="mainContainer">
             <SiteHeader />
-            {showTopBar && <TopBar client:load frameworks={frameworks} currentFramework={framework} path={path} />}
+            {showTopBar && <TopBar client:load frameworks={frameworks} currentFramework={framework} path={path} isDev={isDev || isStaging} />}
 
             <div class="contentViewport">
                 <slot name="aside" />
