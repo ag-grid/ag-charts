@@ -1,3 +1,4 @@
+import { ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY } from '@constants';
 import { getIsDev, getIsStaging } from '@utils/env';
 import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
@@ -17,10 +18,7 @@ const Search = ({ currentFramework }) => {
 
     // It is important to memoise the client, otherwise we end up creating a new one on every re-render, resulting in
     // no caching and multiple repeated queries!
-    const algoliaClient = useMemo(
-        () => algoliasearch(process.env.ASTRO_ALGOLIA_APP_ID, process.env.ASTRO_ALGOLIA_SEARCH_KEY),
-        []
-    );
+    const algoliaClient = useMemo(() => algoliasearch(ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY), []);
     const searchClient = useMemo(
         () => ({
             ...algoliaClient,
