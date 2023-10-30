@@ -1,6 +1,5 @@
 import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
-import { convertMarkdown, formatJsDocString, inferType } from '@features/api-documentation/utils/documentationHelpers';
 import {
     type JsonFunction,
     type JsonModel,
@@ -9,12 +8,12 @@ import {
     type JsonProperty,
     type JsonUnionType,
     buildModel,
-} from '@features/api-documentation/utils/model';
+} from '@features/api-explorer/utils/model';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { type ReactNode, useState } from 'react';
 
-import { deepClone, formatJson, isXAxisNumeric } from '../utils/utils';
+import { convertMarkdown, deepClone, formatJsDocString, formatJson, inferType, isXAxisNumeric } from '../utils/utils';
 import { PresetEditor, getPrimitiveEditor, getPrimitivePropertyEditor } from './Editors';
 import styles from './Options.module.scss';
 

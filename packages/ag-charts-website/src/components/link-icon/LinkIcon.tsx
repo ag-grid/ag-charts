@@ -1,16 +1,13 @@
 import { Icon } from '@components/icon/Icon';
-import type { FunctionComponent } from 'react';
+import classnames from 'classnames';
+import type { AllHTMLAttributes } from 'react';
 
 import './LinkIcon.module.scss';
 
-interface Props {
-    href: string;
-}
-
-export const LinkIcon: FunctionComponent<Props> = ({ href }) => {
+export function LinkIcon({ className, ...props }: AllHTMLAttributes<HTMLAnchorElement> & { children?: never }) {
     return (
-        <a href={href} className="docs-header-icon">
+        <a {...props} className={classnames('docs-header-icon', className)}>
             <Icon name="link" />
         </a>
     );
-};
+}

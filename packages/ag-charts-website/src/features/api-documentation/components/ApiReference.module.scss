@@ -20,13 +20,8 @@
     position: relative;
     table-layout: fixed;
 
-    td {
-        position: relative;
-
-        a[id]:not(a[href]) {
-            position: absolute;
-            top: var(--anchor-offset, 0);
-        }
+    tr {
+        scroll-margin-top: var(--anchor-offset, 0);
     }
 
     @container (max-width: #{$breakpoint-table-small}) {

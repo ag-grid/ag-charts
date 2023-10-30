@@ -39,7 +39,7 @@ export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiR
                             <OptionsNavigation breadcrumbs={breadcrumbs} rootInterface={rootInterface} />
                         </div>
                         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
-                            <header ref={(ref) => setHeaderHeight(ref?.offsetHeight ?? 0)}>
+                            <header ref={(ref) => setHeaderHeight(ref?.clientHeight ?? 0)}>
                                 <h1 className="font-size-gigantic">
                                     {/*<PropertyNamePrefix as="span" prefixPath={prefixPath} />*/}
                                     {selection.root.name}
@@ -50,7 +50,7 @@ export function ApiReferencePage({ rootInterface, breadcrumbs, reference }: ApiR
 
                             <ApiReference
                                 id={rootInterface}
-                                style={{ '--anchor-offset': `${-headerHeight}px` } as CSSProperties}
+                                style={{ '--anchor-offset': `${headerHeight}px` } as CSSProperties}
                             />
                         </div>
                     </div>

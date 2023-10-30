@@ -1,4 +1,4 @@
-import { buildModel } from '@features/api-documentation/utils/model';
+import { buildModel } from '@features/api-explorer/utils/model';
 import { getDeprecateLookupFiles } from '@utils/devFiles';
 import { getModelInterfaces } from '@utils/pages';
 

@@ -8,23 +8,12 @@ import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
 import { formatTypeToCode, getMemberType, isInterfaceHidden } from '../utils/apiReferenceHelpers';
-import { useLocation } from '../utils/useHistory';
+import { scrollIntoView, useLocation } from '../utils/navigation';
 import styles from './ApiReference.module.scss';
 import { PropertyTitle, PropertyType } from './Properies';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | null>(null);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
-
-const hiddenInterfaces = [
-    'CssColor',
-    'FontStyle',
-    'FontWeight',
-    'FontSize',
-    'FontFamily',
-    'Opacity',
-    'PixelSize',
-    'Ratio',
-];
 
 interface ApiReferenceConfig {
     prioritise?: string[];
@@ -104,8 +93,7 @@ function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptio
     useEffect(() => {
         const hash = location?.hash.substring(1);
         if (hash === anchorId) {
-            const element = document.getElementById(anchorId);
-            requestAnimationFrame(() => element?.scrollIntoView({ behavior: 'smooth' }));
+            scrollIntoView(anchorId);
         } else if (hash?.startsWith(anchorId)) {
             setExpanded(true);
         }
@@ -137,9 +125,8 @@ function ApiReferenceRow({ member, anchorId, prefixPath, isExpanded, onDetailsTo
     const config = useContext(ApiReferenceConfigContext);
 
     return (
-        <tr>
-            <td role="presentation" className={styles.leftColumn}>
-                <a id={anchorId} />
+        <tr id={anchorId}>
+            <td className={styles.leftColumn}>
                 <PropertyTitle
                     name={member.name}
                     anchorId={anchorId}
@@ -171,9 +158,9 @@ function MemberActions({
     const hasMembers = additionalDetails && 'members' in additionalDetails;
     const shouldExpand = isExpanded && additionalDetails && !hasMembers;
 
-    // if (additionalDetails == null) {
-    //     return null;
-    // }
+    if (additionalDetails == null) {
+        return null;
+    }
 
     return (
         <div className={styles.actions}>

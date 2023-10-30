@@ -1,9 +1,10 @@
 import { LinkIcon } from '@components/link-icon/LinkIcon';
 import classnames from 'classnames';
-import type { AllHTMLAttributes, FunctionComponent, ReactNode } from 'react';
+import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
 
 import type { TypeNode } from '../api-reference-types';
 import { normalizeType } from '../utils/apiReferenceHelpers';
+import { scrollIntoView, useNavigate } from '../utils/navigation';
 import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
@@ -14,11 +15,20 @@ interface PropertyTitleOptions {
 }
 
 export function PropertyTitle({ name, anchorId, prefixPath, required }: PropertyTitleOptions) {
+    const navigate = useNavigate();
+    const handleClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
+        event.preventDefault();
+        navigate(event.currentTarget.href);
+        const href = event.currentTarget.getAttribute('href');
+        if (href?.startsWith('#')) {
+            scrollIntoView(href.substring(1));
+        }
+    };
     return (
         <h6 className={classnames(styles.name, 'side-menu-exclude')}>
             <PropertyNamePrefix prefixPath={prefixPath} />
             <PropertyName isRequired={required}>{name}</PropertyName>
-            <LinkIcon href={`#${anchorId}`} />
+            <LinkIcon href={`#${anchorId}`} onClick={handleClick} />
         </h6>
     );
 }
