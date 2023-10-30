@@ -283,6 +283,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fillData,
             strokeData,
             scales: super.calculateScaling(),
+            visible: this.visible,
         };
 
         const fillHighPoints = fillData.points;

@@ -283,6 +283,7 @@ export class AreaSeries extends CartesianSeries<
             nodeData: markerData,
             scales: super.calculateScaling(),
             animationValid: true,
+            visible: this.visible,
         };
 
         const fillPoints = context.fillData.points;

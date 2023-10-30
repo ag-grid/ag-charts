@@ -446,6 +446,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
                 labelData: [],
                 pointData: [],
                 scales: super.calculateScaling(),
+                visible: this.visible,
             };
 
             const rect = {

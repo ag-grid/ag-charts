@@ -231,7 +231,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             });
         }
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
+        return [
+            {
+                itemId: this.yKey ?? this.id,
+                nodeData,
+                labelData: nodeData,
+                scales: super.calculateScaling(),
+                visible: this.visible,
+            },
+        ];
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {

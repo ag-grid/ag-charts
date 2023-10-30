@@ -131,6 +131,7 @@ export interface CartesianSeriesNodeDataContext<
 > extends SeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
+    visible: boolean;
 }
 
 export abstract class CartesianSeries<

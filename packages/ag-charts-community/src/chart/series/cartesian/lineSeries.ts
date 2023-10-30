@@ -267,6 +267,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 labelData: nodeData,
                 scales: super.calculateScaling(),
                 animationValid: isXUniqueAndOrdered,
+                visible: this.visible,
             },
         ];
     }

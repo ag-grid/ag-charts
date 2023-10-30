@@ -321,6 +321,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
             nodeData: [],
             labelData: [],
             scales: super.calculateScaling(),
+            visible: this.visible,
         };
 
         const domain = [];
