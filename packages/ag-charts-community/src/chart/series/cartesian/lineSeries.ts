@@ -400,7 +400,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { datum, xValue, yValue } = nodeDatum;
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(this.title ?? yName);
+        let title = this.title ?? yName;
+        title = title != null ? sanitizeHtml(title) : undefined;
         const content = sanitizeHtml(xString + ': ' + yString);
 
         const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth: this.strokeWidth });

@@ -509,7 +509,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
         const angleString = xAxis.formatDatum(angleValue);
         const radiusString = yAxis.formatDatum(radiusValue);
-        const title = sanitizeHtml(angleName);
+        const title = angleName != null ? sanitizeHtml(angleName) : undefined;
         const content = sanitizeHtml(`${radiusString}: ${angleString}`);
 
         const { fill: color } = (formatter &&

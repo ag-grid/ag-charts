@@ -727,7 +727,7 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
         const isSubtotal = this.isSubtotal(itemId);
         const ySubheading = isTotal ? 'Total' : isSubtotal ? 'Subtotal' : name ?? yName ?? yKey;
 
-        const title = sanitizeHtml(yName);
+        const title = yName != null ? sanitizeHtml(yName) : undefined;
         const content =
             `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
             `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;

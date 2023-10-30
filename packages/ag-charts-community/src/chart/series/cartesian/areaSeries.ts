@@ -596,7 +596,7 @@ export class AreaSeries extends CartesianSeries<
 
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(yName);
+        const title = yName != null ? sanitizeHtml(yName) : undefined;
         const content = sanitizeHtml(xString + ': ' + yString);
 
         const baseStyle = mergeDefaults({ fill: this.fill }, marker.getStyle(), {
