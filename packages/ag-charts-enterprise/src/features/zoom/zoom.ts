@@ -154,7 +154,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.seriesRect) return;
 
         const sourceEvent = event.sourceEvent as DragEvent;
 
@@ -166,7 +166,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
-        if (this.enableAxisDragging && this.seriesRect && this.hoveredAxis) {
+        if (this.enableAxisDragging && this.hoveredAxis) {
             const { id: axisId, direction } = this.hoveredAxis;
             const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
             const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { ...UNIT };
@@ -175,8 +175,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return;
         }
 
+        // Prevent the user from dragging outside the series rect (if not on an axis)
+        if (!this.seriesRect.containsPoint(event.offsetX, event.offsetY)) {
+            return;
+        }
+
         // Allow panning if either selection is disabled or the panning key is pressed.
-        if (this.enablePanning && this.seriesRect && (!this.enableSelecting || this.isPanningKeyPressed(sourceEvent))) {
+        if (this.enablePanning && (!this.enableSelecting || this.isPanningKeyPressed(sourceEvent))) {
             const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
                 this.updateAxisZoom(axisId, direction, newZoom);
