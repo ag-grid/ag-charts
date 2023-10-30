@@ -1535,9 +1535,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     getDatumId(datum: PieNodeDatum) {
-        const { legendItemValue, index } = datum;
+        const { index } = datum;
 
-        return this.getDatumIdFromData(datum.datum) ?? legendItemValue ?? `${index}`;
+        return this.getDatumIdFromData(datum.datum) ?? `${index}`;
     }
 
     protected override onDataChange() {
