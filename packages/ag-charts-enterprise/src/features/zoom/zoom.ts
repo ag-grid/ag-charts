@@ -35,7 +35,7 @@ const round = (value: number, decimals: number) => {
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
-    public enabled = true;
+    public enabled = false;
 
     @Validate(BOOLEAN)
     public enableAxisDragging = true;
