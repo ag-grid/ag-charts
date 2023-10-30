@@ -97,6 +97,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private minRatioX = 0;
     private minRatioY = 0;
 
+    // TODO: This will become an option soon, and I don't want to delete my code in the meantime
+    private enableSecondaryAxis = false;
+
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -457,6 +460,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         partialZoom: _ModuleSupport.ZoomState | undefined
     ) {
         if (!partialZoom) return;
+
+        if (!this.enableSecondaryAxis) {
+            const fullZoom = definedZoomState(this.zoomManager.getZoom());
+            if (direction === ChartAxisDirection.X) {
+                fullZoom.x = partialZoom;
+            } else {
+                fullZoom.y = partialZoom;
+            }
+            this.updateZoom(fullZoom);
+            return;
+        }
 
         const d = round(partialZoom.max - partialZoom.min, DECIMALS);
 
