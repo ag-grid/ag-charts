@@ -325,7 +325,9 @@ describe('Chart', () => {
             getHighlightNode: (series) => {
                 // Returns a highlighted sector
                 const highlightedDatum = series.chart.highlightManager.getActiveHighlight();
-                return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum);
+                return series.highlightGroup.children.find(
+                    (child: any) => child?.datum?.itemId === highlightedDatum.itemId
+                );
             },
         });
     });

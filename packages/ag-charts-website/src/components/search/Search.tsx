@@ -1,4 +1,4 @@
-import { getIsDev, getIsStaging } from '@utils/env';
+import { ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY } from '@constants';
 import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
 import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';
@@ -12,15 +12,12 @@ import { useClickOutside } from './useClickOutside';
  * The website uses Algolia to power its search functionality. This component builds on components provided by Algolia
  * to render the search box and results.
  */
-const Search = ({ currentFramework }) => {
+const Search = ({ currentFramework, isDev }) => {
     const [query, setQuery] = useState();
 
     // It is important to memoise the client, otherwise we end up creating a new one on every re-render, resulting in
     // no caching and multiple repeated queries!
-    const algoliaClient = useMemo(
-        () => algoliasearch(process.env.ASTRO_ALGOLIA_APP_ID, process.env.ASTRO_ALGOLIA_SEARCH_KEY),
-        []
-    );
+    const algoliaClient = useMemo(() => algoliasearch(ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY), []);
     const searchClient = useMemo(
         () => ({
             ...algoliaClient,
@@ -43,7 +40,7 @@ const Search = ({ currentFramework }) => {
         [algoliaClient]
     );
 
-    const indices = [{ name: `ag-charts${getIsDev() || getIsStaging() ? '-dev' : ''}_${currentFramework}` }];
+    const indices = [{ name: `ag-charts${isDev ? '-dev' : ''}_${currentFramework}` }];
 
     return (
         <InstantSearch

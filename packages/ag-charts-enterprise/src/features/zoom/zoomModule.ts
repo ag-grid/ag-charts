@@ -9,6 +9,6 @@ export const ZoomModule: _ModuleSupport.Module = {
     chartTypes: ['cartesian'],
     instanceConstructor: Zoom,
     themeTemplate: {
-        zoom: { enabled: true },
+        zoom: { enabled: false },
     },
 };

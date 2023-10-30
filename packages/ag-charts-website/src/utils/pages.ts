@@ -100,18 +100,6 @@ export const isTypescriptInternalFramework = (internalFramework: InternalFramewo
     return TYPESCRIPT_INTERNAL_FRAMEWORKS.includes(internalFramework);
 };
 
-export function getNewFrameworkPath({
-    path,
-    currentFramework,
-    newFramework,
-}: {
-    path: string;
-    currentFramework: string;
-    newFramework: string;
-}) {
-    return path.replace(`/${currentFramework}`, `/${newFramework}`);
-}
-
 /**
  * Get Dev File URL for referencing on the front end
  */

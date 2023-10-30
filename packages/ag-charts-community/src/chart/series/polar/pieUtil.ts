@@ -3,7 +3,8 @@ import type { Sector } from '../../../scene/shape/sector';
 import { toRadians } from '../../../util/angle';
 
 type AnimatableSectorDatum = {
-    radius: number;
+    innerRadius: number;
+    outerRadius: number;
     startAngle: number;
     endAngle: number;
 };
@@ -14,26 +15,29 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
 
     const fromFn = (
         sect: Sector,
-        _datum: AnimatableSectorDatum,
+        datum: AnimatableSectorDatum,
         status: NodeUpdateState,
         { prevFromProps, last }: FromToMotionPropFnContext<Sector>
     ) => {
         // Default to starting from current state.
-        let startAngle = sect.startAngle;
-        let endAngle = sect.endAngle;
+        let { startAngle, endAngle, innerRadius, outerRadius } = sect;
 
         if (status === 'unknown' || (status === 'added' && !prevFromProps)) {
             // Start of animation (full new data) - sweep in.
             startAngle = rotation;
             endAngle = rotation;
+            innerRadius = datum.innerRadius;
+            outerRadius = datum.outerRadius;
         } else if (status === 'added' && prevFromProps) {
             startAngle = prevFromProps.endAngle ?? rotation;
             endAngle = prevFromProps.endAngle ?? rotation;
+            innerRadius = prevFromProps.innerRadius ?? datum.innerRadius;
+            outerRadius = prevFromProps.outerRadius ?? datum.outerRadius;
         } else if (last) {
             endAngle = fullRotation;
         }
 
-        return { startAngle, endAngle };
+        return { startAngle, endAngle, innerRadius, outerRadius };
     };
     const toFn = (
         _sect: Sector,
@@ -42,8 +46,8 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
         { prevLive }: FromToMotionPropFnContext<Sector>
     ) => {
         // Default to moving to target state.
-        let startAngle = datum.startAngle;
-        let endAngle = datum.endAngle;
+        let { startAngle, endAngle } = datum;
+        const { innerRadius, outerRadius } = datum;
 
         if (status === 'removed' && prevLive) {
             startAngle = prevLive.datum?.endAngle;
@@ -53,7 +57,7 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
             endAngle = rotation;
         }
 
-        return { startAngle, endAngle };
+        return { startAngle, endAngle, outerRadius, innerRadius };
     };
 
     return { toFn, fromFn };
@@ -63,5 +67,7 @@ export function resetPieSelectionsFn(_node: Sector, datum: AnimatableSectorDatum
     return {
         startAngle: datum.startAngle,
         endAngle: datum.endAngle,
+        innerRadius: datum.innerRadius,
+        outerRadius: datum.outerRadius,
     };
 }

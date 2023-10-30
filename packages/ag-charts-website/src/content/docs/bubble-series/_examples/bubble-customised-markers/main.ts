@@ -1,13 +1,13 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
-import {maleHeightWeight, femaleHeightWeight} from './height-weight-data'
+import { AgChartOptions, AgChart } from 'ag-charts-community'
+import { maleHeightWeight, femaleHeightWeight } from './height-weight-data'
 
 const options: AgChartOptions = {
   container: document.getElementById('myChart'),
   title: {
-    text: 'Weight vs Height)',
+    text: 'Weight vs Height',
   },
   subtitle: {
-    text: 'With Name Labels',
+    text: 'by Gender',
   },
   series: [
     {
@@ -20,14 +20,10 @@ const options: AgChartOptions = {
       yName: 'Weight',
       sizeKey: 'age',
       sizeName: 'Age',
-      labelKey: 'name',
       marker: {
         shape: 'square',
         fill: '#e36f6ab5',
         stroke: '#9f4e4a',
-      },
-      label: {
-        enabled: true,
       },
     },
     {
@@ -40,13 +36,9 @@ const options: AgChartOptions = {
       yName: 'Weight',
       sizeKey: 'age',
       sizeName: 'Age',
-      labelKey: 'name',
       marker: {
         fill: '#7b91deb5',
         stroke: '#56659b',
-      },
-      label: {
-        enabled: true,
       },
     },
   ],
@@ -78,14 +70,4 @@ const options: AgChartOptions = {
   ],
 }
 
-var chart = AgChart.create(options)
-
-function updateFontSize(event: any) {
-  var value = +event.target.value
-
-  options.series![0].label!.fontSize = value
-  options.series![1].label!.fontSize = value
-  AgChart.update(chart, options)
-
-  document.getElementById('fontSizeSliderValue')!.innerHTML = String(value)
-}
+AgChart.create(options)

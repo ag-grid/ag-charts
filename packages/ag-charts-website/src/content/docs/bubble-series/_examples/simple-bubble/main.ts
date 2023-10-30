@@ -20,13 +20,6 @@ const options: AgChartOptions = {
       yName: 'Weight',
       sizeKey: 'age',
       sizeName: 'Age',
-      marker: {
-        shape: 'square',
-        size: 6,
-        maxSize: 30,
-        fill: 'rgba(227,111,106,0.71)',
-        stroke: '#9f4e4a',
-      },
     },
     {
       type: 'bubble',
@@ -38,12 +31,6 @@ const options: AgChartOptions = {
       yName: 'Weight',
       sizeKey: 'age',
       sizeName: 'Age',
-      marker: {
-        size: 6,
-        maxSize: 30,
-        fill: 'rgba(123,145,222,0.71)',
-        stroke: '#56659b',
-      },
     },
   ],
   axes: [
@@ -54,7 +41,6 @@ const options: AgChartOptions = {
         text: 'Height',
       },
       label: {
-        rotation: 45,
         formatter: (params) => {
           return params.value + 'cm'
         },

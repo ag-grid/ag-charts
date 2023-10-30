@@ -131,7 +131,7 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
     protected resetAllAnimation() {
         const { item, label } = this.animationResetFns ?? {};
         if (item) {
-            resetMotion([this.itemSelection], item);
+            resetMotion([this.itemSelection, this.highlightSelection], item);
         }
         if (label) {
             resetMotion([this.labelSelection], label);
