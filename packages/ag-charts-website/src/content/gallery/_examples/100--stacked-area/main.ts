@@ -76,6 +76,9 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
+            gridLine: {
+                enabled: false
+            },
             label: {
                 format: '#{.0f}%',
             },
