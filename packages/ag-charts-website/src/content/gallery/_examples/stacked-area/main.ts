@@ -72,6 +72,7 @@ const options: AgChartOptions = {
                 {
                     type: 'range',
                     range: [new Date(2019, 5, 1), new Date(2019, 8, 1)],
+                    strokeWidth: 0,
                     label: {
                         text: 'Peak Season\nJun - Sep',
                         position: 'insideTop',
