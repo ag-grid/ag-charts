@@ -1,7 +1,5 @@
 @use '../../../design-system' as *;
 
-$header-nav-height: 56px;
-
 .container {
     --jsObjectWidth: 420px;
 
@@ -21,7 +19,6 @@ $header-nav-height: 56px;
 .referenceOuter {
     width: 100%;
     margin-bottom: 105px;
-    //margin-bottom: calc(100vh - $header-nav-height);
 
     header {
         --parent-properties-color: var(--text-color);
@@ -36,7 +33,7 @@ $header-nav-height: 56px;
         border-bottom: 1px solid var(--border-color);
 
         @media screen and (min-width: $breakpoint-docs-nav-medium) {
-            top: $header-nav-height;
+            top: var(--header-nav-height);
         }
     }
 

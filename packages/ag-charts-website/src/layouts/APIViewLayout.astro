@@ -56,16 +56,11 @@ const dummySeries = [
         <div class="topBarInner page-margin">
             <nav>
                 <ul class="list-style-none">
-                    {
-                        menuItems.map(({ name, url }) => {
-                            const active = pagePath === url;
-                            return (
-                                <li class={active ? 'active' : ''}>
-                                    <a href={urlWithBaseUrl(url)}>{name}</a>
-                                </li>
-                            );
-                        })
-                    }
+                    {menuItems.map(({ name, url }) => (
+                        <li class={pagePath === url ? 'active' : ''}>
+                            <a href={urlWithBaseUrl(url)}>{name}</a>
+                        </li>
+                    ))}
                 </ul>
             </nav>
             <label>
@@ -114,6 +109,7 @@ const dummySeries = [
         display: flex;
         justify-content: space-between;
         align-items: center;
+        height: 58px;
         padding-top: $size-1;
         padding-bottom: $size-1;
     }

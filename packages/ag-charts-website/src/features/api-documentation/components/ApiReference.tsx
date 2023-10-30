@@ -109,7 +109,7 @@ function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptio
         } else if (hash?.startsWith(anchorId)) {
             setExpanded(true);
         }
-    }, []);
+    }, [location?.hash]);
 
     return (
         <>
