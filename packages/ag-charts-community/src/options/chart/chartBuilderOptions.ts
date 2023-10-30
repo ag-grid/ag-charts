@@ -39,7 +39,7 @@ export interface AgChartInterface {
     /**
      * Update an existing `AgChartInstance`. Options provided should be complete and not
      * partial.
-     * 
+     *
      * **NOTE**: As each call could trigger a chart redraw, multiple calls to update options in
      * quick succession could result in undesirable flickering, so callers should batch up and/or
      * debounce changes to avoid unintended partial update renderings.

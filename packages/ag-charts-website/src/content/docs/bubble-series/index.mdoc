@@ -70,10 +70,10 @@ marker: {
     stroke: '#9f4e4a',
   },
 ```
-In the above example, the 'females' series uses  `'circle'` markers and the 'male' series uses `'square'` markers.
+
+In the above example, the 'females' series uses `'circle'` markers and the 'male' series uses `'square'` markers.
 
 Please see the [Series Markers](./markers/) page for more information or the [API Reference](./bubble-series/#reference-AgScatterSeriesOptions-marker) for a list of all available marker options.
-
 
 ## Labels
 
@@ -91,7 +91,6 @@ If these constraints are not satisfied, a label is not placed.
 Try opening the above example in a larger window to see that more labels are placed as the chart gets bigger.
 You can also try changing the size of the markers and the font size of the labels to see how that affects
 label placement.
-
 
 {% note %}
 Satisfying these constraints is computationally intensive and the complexity rises exponentially with increasing number of data points. Given that label placement might have to happen in real time, for example, when resizing a chart window, it is advised not to enable Bubble Series labels for data sets with more than a few hundred points.
