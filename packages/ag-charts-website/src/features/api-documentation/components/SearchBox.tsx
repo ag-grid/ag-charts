@@ -99,33 +99,3 @@ function useSearch(searchData: SearchDatum[], onItemClick?: SelectionHandler, in
 
     return { data, searchQuery, selectedIndex, setSearchQuery, setSelectedIndex, handleInput, handleKeyDown };
 }
-
-// export function extractSearchDataFromJsonModel(model: JsonModel, idPrefix = '') {
-//     return Object.keys(model.properties).flatMap(function walker(property) {
-//         const results = [
-//             {
-//                 id: idPrefix + property,
-//                 selection: {
-//                     type: 'property',
-//                     propName: property,
-//                     path: idPrefix.split(/\.|(?=\[[^\]]+])/g).filter(Boolean),
-//                     model,
-//                 },
-//             },
-//         ];
-//         const { desc } = model.properties[property];
-//         if ('model' in desc) {
-//             results.push(...extractSearchDataFromJsonModel(desc.model, `${idPrefix}${property}.`));
-//         } else if ('elements' in desc && 'options' in desc.elements && Array.isArray(desc.elements.options)) {
-//             results.push(
-//                 ...desc.elements.options.flatMap((option) =>
-//                     extractSearchDataFromJsonModel(
-//                         option.model,
-//                         `${idPrefix}${property}[type = ${option.model.properties.type.desc.tsType}].`
-//                     )
-//                 )
-//             );
-//         }
-//         return results;
-//     });
-// }

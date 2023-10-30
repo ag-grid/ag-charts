@@ -7,48 +7,39 @@ const { pathname } = Astro.url;
 const pagePath = pathJoin('/', getPathFromUrlPathname(pathname));
 
 const menuItems = [
-    {
-        name: 'Options API',
-        url: '/options',
-    },
-    {
-        name: 'Themes API',
-        url: '/themes-api',
-    },
-    {
-        name: 'API Explorer',
-        url: '/explorer',
-    },
+    { name: 'Options API', url: '/options' },
+    { name: 'Themes API', url: '/themes-api' },
+    // { name: 'API Explorer', url: '/explorer' },
 ];
 
-const dummySeries = [
-    'All',
-    'Bar',
-    'Column',
-    'Line',
-    'Area',
-    'Scatter',
-    'Bubble',
-    'Pie',
-    'Doughnut',
-    'Combination',
-    'Histogram',
-    'Heatmap',
-    'Range',
-    'Box Plot',
-    'Error Bar',
-    'Waterfall',
-    'Radar',
-    'Nightingale',
-    'Radial Column',
-    'Radial Bar',
-    'Treemap',
-    'Sunburst',
-    'Icicle',
-    'Funnel',
-    'Pyramid',
-    'Bullet',
-];
+// const dummySeries = [
+//     'All',
+//     'Bar',
+//     'Column',
+//     'Line',
+//     'Area',
+//     'Scatter',
+//     'Bubble',
+//     'Pie',
+//     'Doughnut',
+//     'Combination',
+//     'Histogram',
+//     'Heatmap',
+//     'Range',
+//     'Box Plot',
+//     'Error Bar',
+//     'Waterfall',
+//     'Radar',
+//     'Nightingale',
+//     'Radial Column',
+//     'Radial Bar',
+//     'Treemap',
+//     'Sunburst',
+//     'Icicle',
+//     'Funnel',
+//     'Pyramid',
+//     'Bullet',
+// ];
 ---
 
 <Layout>
@@ -63,17 +54,12 @@ const dummySeries = [
                     ))}
                 </ul>
             </nav>
-            <label>
-                <span class="text-secondary">Series:</span>
-
-                <select>
-                    {
-                        dummySeries.map((series) => {
-                            return <option>{series}</option>;
-                        })
-                    };
-                </select>
-            </label>
+            <!--<label>-->
+            <!--    <span class="text-secondary">Series:</span>-->
+            <!--    <select>-->
+            <!--        {dummySeries.map((series) => <option>{series}</option>)}-->
+            <!--    </select>-->
+            <!--</label>-->
         </div>
     </div>
     <div id="top" class="container">

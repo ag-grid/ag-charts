@@ -4,7 +4,7 @@ import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode
 
 import type { TypeNode } from '../api-reference-types';
 import { normalizeType } from '../utils/apiReferenceHelpers';
-import { scrollIntoView, useNavigate } from '../utils/navigation';
+import { navigate, scrollIntoView } from '../utils/navigation';
 import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
@@ -15,7 +15,6 @@ interface PropertyTitleOptions {
 }
 
 export function PropertyTitle({ name, anchorId, prefixPath, required }: PropertyTitleOptions) {
-    const navigate = useNavigate();
     const handleClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
         event.preventDefault();
         navigate(event.currentTarget.href);

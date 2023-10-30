@@ -10,10 +10,6 @@ export function useLocation() {
     return location;
 }
 
-export function useNavigate() {
-    return navigate;
-}
-
 export function navigate(to: To, options?: { state?: any; replace?: boolean }) {
     if (options?.replace) {
         browserHistory?.replace(to, options?.state);
