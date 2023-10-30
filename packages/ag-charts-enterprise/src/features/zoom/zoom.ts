@@ -309,22 +309,27 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
-        const { seriesRect } = this;
-
-        if (!this.enabled || !seriesRect || !minRect) return;
+        if (!this.enabled || !this.seriesRect || !minRect) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
+        const minVisibleItemsWidth = this.shouldFlipXY ? this.minVisibleItemsY : this.minVisibleItemsX;
+        const minVisibleItemsHeight = this.shouldFlipXY ? this.minVisibleItemsX : this.minVisibleItemsY;
+
+        const widthRatio = (minRect.width * minVisibleItemsWidth) / this.seriesRect.width;
+        const heightRatio = (minRect.height * minVisibleItemsHeight) / this.seriesRect.height;
+
+        // We don't need to check flipping here again, as it is already built into the width & height ratios and the
+        // zoom.x/y values themselves do not flip and are bound to width/height respectively.
+        const ratioX = widthRatio * (zoom.x.max - zoom.x.min);
+        const ratioY = heightRatio * (zoom.y.max - zoom.y.min);
+
         if (this.isScalingX()) {
-            const widthRatio = (minRect.width * this.minVisibleItemsX) / seriesRect.width;
-            const normalisedWidthRatio = widthRatio * (zoom.x.max - zoom.x.min);
-            this.minRatioX ||= Math.min(1, round(normalisedWidthRatio, DECIMALS));
+            this.minRatioX ||= Math.min(1, round(ratioX, DECIMALS));
         }
 
         if (this.isScalingY()) {
-            const heightRatio = (minRect.height * this.minVisibleItemsY) / seriesRect.height;
-            const normalisedHeightRatio = heightRatio * (zoom.y.max - zoom.y.min);
-            this.minRatioY ||= Math.min(1, round(normalisedHeightRatio, DECIMALS));
+            this.minRatioY ||= Math.min(1, round(ratioY, DECIMALS));
         }
 
         this.minRatioX ||= this.minRatioY || 0;
