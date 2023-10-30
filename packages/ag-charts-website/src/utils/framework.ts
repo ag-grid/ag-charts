@@ -5,6 +5,18 @@ export const getFrameworkDisplayText = (framework: Framework): string => {
     return FRAMEWORK_DISPLAY_TEXT[framework];
 };
 
+export function getNewFrameworkPath({
+    path,
+    currentFramework,
+    newFramework,
+}: {
+    path: string;
+    currentFramework: string;
+    newFramework: string;
+}) {
+    return path.replace(`/${currentFramework}`, `/${newFramework}`);
+}
+
 export const getFrameworkFromInternalFramework = (internalFramework: InternalFramework): Framework => {
     switch (internalFramework) {
         case 'typescript':

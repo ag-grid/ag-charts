@@ -1,4 +1,4 @@
-import { getNewFrameworkPath } from '@utils/pages';
+import { getNewFrameworkPath } from '@utils/framework';
 import classNames from 'classnames';
 
 import { FrameworkSelector } from '../framework-selector/FrameworkSelector';
