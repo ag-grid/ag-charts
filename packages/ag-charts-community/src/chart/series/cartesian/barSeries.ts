@@ -545,7 +545,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const strokeWidth = this.getStrokeWidth(this.strokeWidth);
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
-        const title = yName != null ? sanitizeHtml(yName) : undefined;
+        const title = sanitizeHtml(yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
         let format: AgBarSeriesStyle | undefined;

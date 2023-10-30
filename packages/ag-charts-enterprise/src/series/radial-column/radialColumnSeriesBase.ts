@@ -543,7 +543,7 @@ export abstract class RadialColumnSeriesBase<
 
         const angleString = xAxis.formatDatum(angleValue);
         const radiusString = yAxis.formatDatum(radiusValue);
-        const title = radiusName != null ? sanitizeHtml(radiusName) : undefined;
+        const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${angleString}: ${radiusString}`);
 
         const { fill: color } = (formatter &&

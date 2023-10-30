@@ -1365,8 +1365,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             calloutLabel: { text: labelText } = {},
         } = nodeDatum;
 
-        let title = this.title?.text;
-        title = title != null ? sanitizeHtml(title) : undefined;
+        const title = sanitizeHtml(this.title?.text);
         const content = isNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
 
         return this.tooltip.toTooltipHtml(

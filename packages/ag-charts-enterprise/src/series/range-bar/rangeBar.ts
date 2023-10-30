@@ -629,7 +629,7 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const yLowSubheading = yLowName ?? yLowKey;
         const yHighSubheading = yHighName ?? yHighKey;
 
-        const title = yName != null ? sanitizeHtml(yName) : undefined;
+        const title = sanitizeHtml(yName);
 
         const content = yName
             ? `<b>${sanitizeHtml(xSubheading)}</b>: ${xString}<br>` +
