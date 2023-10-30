@@ -10,7 +10,7 @@ describe('getEntryFileName', () => {
         ${'react'}             | ${'index.jsx'}
         ${'reactFunctional'}   | ${'index.jsx'}
         ${'reactFunctionalTs'} | ${'index.tsx'}
-        ${'angular'}           | ${'main.js'}
+        ${'angular'}           | ${'main.ts'}
         ${'vue'}               | ${'main.js'}
         ${'vue3'}              | ${'main.js'}
     `('$internalFramework is $expected', ({ internalFramework, expected }) => {

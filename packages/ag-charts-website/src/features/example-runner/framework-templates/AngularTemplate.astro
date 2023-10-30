@@ -1,0 +1,87 @@
+---
+import { MetaData } from './lib/MetaData';
+import { ExampleStyle } from './lib/ExampleStyle';
+import { Styles } from './lib/Styles';
+import { SystemJs } from './lib/SystemJs';
+import { pathJoin } from '@utils/pathJoin';
+import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
+import type { Library } from '@ag-grid-types';
+import { Scripts } from './lib/Scripts';
+
+interface Props {
+    isDev: boolean;
+    pageName: string;
+    exampleName: string;
+
+    modifiedTimeMs: number;
+    isEnterprise: boolean;
+    entryFileName: string;
+
+    styleFiles?: string[];
+    scriptFiles: string[];
+    appLocation: string;
+    library: Library;
+    boilerplatePath: string;
+}
+
+const {
+    pageName,
+    exampleName,
+    isDev,
+    modifiedTimeMs,
+    isEnterprise,
+    appLocation,
+    entryFileName,
+    styleFiles,
+    scriptFiles,
+    library,
+    boilerplatePath,
+} = Astro.props as Props;
+
+const startFile = pathJoin(appLocation, entryFileName);
+---
+
+<html lang="en">
+    <head>
+        <MetaData
+            isDev={isDev}
+            title={`Angular - ${pageName} - ${exampleName}`}
+            modifiedTimeMs={modifiedTimeMs}
+        />
+        <ExampleStyle rootId="app"/>
+        <Styles
+            baseUrl={appLocation}
+            files={isDev && styleFiles
+                ? styleFiles
+                      .filter((file: string) => !file.includes('style.css') && !file.includes('styles.css'))
+                      .map((file: string) => getCacheBustingUrl(file, modifiedTimeMs))
+                : []}
+        />
+    </head>
+    <body>
+        <div id="app"><my-app></my-app></div>
+
+        <script is:inline>
+            document.write('<base href="' + document.location + '" />');
+        </script>
+        <script is:inline src="https://cdn.jsdelivr.net/npm/core-js-bundle@3.6.5/minified.js"></script>
+        <script is:inline src="https://cdn.jsdelivr.net/npm/zone.js@0.11.2/dist/zone.min.js"></script>
+
+        {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
+        <SystemJs
+            isDev={isDev}
+            library={library}
+            boilerplatePath={boilerplatePath}
+            appLocation={appLocation}
+            startFile={startFile}
+            internalFramework={'angular'}
+            isEnterprise={isEnterprise}
+        />
+        <Styles
+            baseUrl={appLocation}
+            files={styleFiles
+                ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
+                : []}
+        />
+    </body>
+</html>

@@ -99,6 +99,7 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
 export const getEntryFileName = (internalFramework: InternalFramework) => {
     switch (internalFramework) {
         case 'typescript':
+        case 'angular':
             return 'main.ts';
         case 'react':
         case 'reactFunctional':
@@ -106,7 +107,6 @@ export const getEntryFileName = (internalFramework: InternalFramework) => {
         case 'reactFunctionalTs':
             return 'index.tsx';
         case 'vanilla':
-        case 'angular':
         case 'vue':
         case 'vue3':
             return 'main.js';

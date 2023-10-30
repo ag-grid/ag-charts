@@ -1,5 +1,7 @@
 import type { InternalFramework } from '@ag-grid-types';
 
+import { appModuleAngular } from '../transformation-scripts/chart-packages-angular-app-module';
+import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
 import { vanillaToReact } from '../transformation-scripts/chart-vanilla-to-react';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
 import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
@@ -179,7 +181,30 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             entryFileName,
         };
     },
-    angular: () => ({ files: {}, scriptFiles: [], entryFileName: '' }),
+    angular: async ({ typedBindings, otherScriptFiles }) => {
+        const internalFramework: InternalFramework = 'angular';
+        const entryFileName = getEntryFileName(internalFramework)!;
+        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+
+        // TODO: Need component file names and stylesheets?
+        // const getSource = vanillaToAngular(deepCloneObject(typedBindings), angularComponentFileNames, allStylesheets);
+        const getSource = vanillaToAngular(deepCloneObject(typedBindings), []);
+        const appComponent = getSource();
+        // NOTE: No component file names yet
+        const componentFileNames: string[] = [];
+
+        return {
+            files: {
+                ...otherScriptFiles,
+                // NOTE: Note `entryFileName` is not used here, as it is generated as part of the boilerPlateFiles
+                'app.component.ts': appComponent,
+                'app.module.ts': appModuleAngular(componentFileNames),
+                // NOTE: No `index.html` as the contents are generated in the `app.component` file
+            },
+            boilerPlateFiles,
+            entryFileName,
+        };
+    },
     vue: createVueFilesGenerator({
         sourceGenerator: vanillaToVue,
         internalFramework: 'vue',
