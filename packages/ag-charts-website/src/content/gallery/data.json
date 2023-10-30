@@ -157,6 +157,11 @@
                     "name": "stacked-area"
                 },
                 {
+                    "title": "Area With Markers",
+                    "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                    "name": "area-with-markers"
+                },
+                {
                     "title": "100% Stacked Area",
                     "description": "100% stacked area charts show the relative percentage of multiple series in <a href='./stacked-area/'>stacked areas</a>, where the cumulative area always totals to 100%.",
                     "name": "100--stacked-area"
