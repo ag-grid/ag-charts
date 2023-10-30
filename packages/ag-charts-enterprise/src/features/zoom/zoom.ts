@@ -118,7 +118,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), interactionOpts),
             ctx.interactionManager.addListener('hover', () => this.onHover(), interactionOpts),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
-            ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event))
+            ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
+            ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
         );
 
         // Add selection zoom method and attach selection rect to root scene
@@ -300,24 +301,28 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.enabled) return;
 
         const {
-            series: { paddedRect, shouldFlipXY, minRect },
+            series: { paddedRect, shouldFlipXY },
         } = event;
 
         this.seriesRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
+    }
 
-        if (!paddedRect || !minRect) return;
+    private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
+        const { seriesRect } = this;
+
+        if (!this.enabled || !seriesRect || !minRect) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
         if (this.isScalingX()) {
-            const widthRatio = (minRect.width * this.minVisibleItemsX) / paddedRect.width;
+            const widthRatio = (minRect.width * this.minVisibleItemsX) / seriesRect.width;
             const normalisedWidthRatio = widthRatio * (zoom.x.max - zoom.x.min);
             this.minRatioX ||= Math.min(1, round(normalisedWidthRatio, DECIMALS));
         }
 
         if (this.isScalingY()) {
-            const heightRatio = (minRect.height * this.minVisibleItemsY) / paddedRect.height;
+            const heightRatio = (minRect.height * this.minVisibleItemsY) / seriesRect.height;
             const normalisedHeightRatio = heightRatio * (zoom.y.max - zoom.y.min);
             this.minRatioY ||= Math.min(1, round(normalisedHeightRatio, DECIMALS));
         }
