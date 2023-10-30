@@ -92,7 +92,7 @@ const options: AgChartOptions = {
             },
             nice: false,
             min: 15,
-            max: 90,
+            max: 85,
         },
         {
             position: 'left',
