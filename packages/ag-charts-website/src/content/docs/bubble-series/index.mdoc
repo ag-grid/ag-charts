@@ -34,15 +34,15 @@ In this configuration:
 
 ## Markers
 
+{% chartExampleRunner title="Bubble Markers" name="bubble-customised-markers" type="generated" /%}
+
 ### Size
 
-The values in the variable specified by the `sizeKey` are used to calculate the marker sizes for that series.
+The values defined by `sizeKey` are used to calculate the marker size domain for each series. Markers are sized proportionally between the lowest and highest values.
 
-The lowest value is represented by the smallest marker size, the highest value by the largest marker size, and all the other values are sized proportionally between the two.
+It is possible to use `marker.size` to set the minimum possible marker size, and `marker.maxSize` to set the maximum possible marker size.
 
-To specify the range of marker sizes, use `marker.size` to set the minimum size, and `marker.maxSize` to set the maximum size.
-
-To manually set the value domain used to calculate the size, use `marker.domain`. This is particularly useful when using multiple Bubble Series in the same chart.
+To manually set the value domain used to calculate the size, use `marker.domain`. This is particularly useful when showing multiple Bubble Series in the same chart.
 
 ```js
 marker: {
@@ -54,57 +54,54 @@ marker: {
 
 Using the above configuration
 
--   The value domain is set to between 0 and 100.
--   A value of 0 will be represented by a marker of size 10
--   A value of 100 will be represented by a marker of size 20
--   A value of 50 will be represented by a marker the size of 15
-
-````
+-   The size domain is set to between 0 and 100.
+-   A value of 0 will be represented by a marker of size 10.
+-   A value of 100 will be represented by a marker of size 20.
+-   A value of 50 will be represented by a marker the size of 15.
 
 ### Customisation
-Finally, the bubble chart is so called because the circle is the most common marker `shape` used for this kind of scatter plot, but with AG Charts any other marker `shape` can be used as well.
 
-The example below uses both `'circle'` and `'square'` markers to represent the age of females and males respectively.
+It is possible to customise the fill, stroke and shape of the markers used in the Bubble Series.
+
+```js
+marker: {
+    shape: 'square',
+    fill: '#e36f6ab5',
+    stroke: '#9f4e4a',
+  },
+```
+
+In the above example, the 'females' series uses `'circle'` markers and the 'male' series uses `'square'` markers.
+
+Please see the [Series Markers](./markers/) page for more information or the [API Reference](./bubble-series/#reference-AgScatterSeriesOptions-marker) for a list of all available marker options.
 
 ## Labels
 
-Scatter series can be configured to use labels. Unlike other series types where a label is placed
-for every data point, scatter series label placement is constrained so that:
+To show labels for a Bubble Series set the `label.enabled` config of a series to `true` and specify which key should be used to fetch the label values.
+
+{% chartExampleRunner title="Bubble Chart with Labels" name="bubble-chart-labels" type="generated" /%}
+
+Bubble Series label placement is constrained so that:
 
 -   labels don't overlap any markers
 -   labels don't overlap other labels
 
 If these constraints are not satisfied, a label is not placed.
 
-{% note %}
-Satisfying these constraints is computationally intensive and the complexity rises exponentially with increasing number of data points. Given that label placement might have to happen in real time, for example, when resizing a chart window, it is advised not to enable scatter series labels for data sets with more than a few hundred points.
-{% /note %}
-
-To enable scatter series labels we have to set the `label.enabled` config of a series to `true` and specify which key should be used to fetch the label values.
-
-```js
-labelKey: 'name',
-label: {
-    enabled: true
-}
-````
-
-The example below has the above config applied to both series. The label placement algorithm is aware
-of all the scatter series in a chart, so labels don't overlap markers and other labels within a single
-series nor between different series.
-
-Try opening this example in a larger window to see that more labels are placed as the chart gets bigger.
+Try opening the above example in a larger window to see that more labels are placed as the chart gets bigger.
 You can also try changing the size of the markers and the font size of the labels to see how that affects
 label placement.
 
-{% chartExampleRunner title="Bubble Chart with Labels" name="bubble-chart-labels" type="generated" /%}
+{% note %}
+Satisfying these constraints is computationally intensive and the complexity rises exponentially with increasing number of data points. Given that label placement might have to happen in real time, for example, when resizing a chart window, it is advised not to enable Bubble Series labels for data sets with more than a few hundred points.
+{% /note %}
 
 ## API Reference
 
 {% tabs %}
 
-{% tabItem label="Scatter Series" %}
-{% apiReference id="AgScatterSeriesOptions" /%}
+{% tabItem label="Bubble Series" %}
+{% apiReference id="AgBubbleSeriesOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}
