@@ -15,7 +15,7 @@ const tooltip = {
     }),
 };
 
-const barOptions: AgChartOptions = {
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: {
@@ -177,14 +177,14 @@ const pieOptions: AgChartOptions = {
     ],
 };
 
-let chart = AgEnterpriseCharts.create(barOptions);
+let chart = AgEnterpriseCharts.create(options);
 
-function reload(options: AgChartOptions) {
-    AgEnterpriseCharts.update(chart, options)
+function reload(reloadOptions: AgChartOptions) {
+    AgEnterpriseCharts.update(chart, reloadOptions);
 }
 
 function changeSeriesBar() {
-    reload(barOptions);
+    reload(options);
 }
 
 function changeSeriesArea() {
