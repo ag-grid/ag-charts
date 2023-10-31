@@ -388,6 +388,8 @@ export class ErrorBars
             // Unhighlight this node:
             this.restyleHightlightChange(previousHighlight, this.getDefaultStyle());
         }
+
+        this.groupNode.opacity = this.cartesianSeries.getOpacity();
     }
 
     private errorBarFactory(): ErrorBarNode {

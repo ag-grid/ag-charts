@@ -507,6 +507,28 @@ describe('ErrorBars', () => {
         await compare();
     });
 
+    it('should dim opacity on highlight', async () => {
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [
+                    { ...SERIES_CANADA },
+                    { ...SERIES_AUSTRALIA, highlightStyle: { series: { dimOpacity: 0.3 } } },
+                ],
+            })
+        );
+        await waitForChartStability(chart);
+
+        // Highlight Canada (Australia should be dimmed)
+        const { x, y } = getItemCoords(2);
+        await hoverAction(x, y)(chart);
+        await compare();
+
+        // Unhighlight Canada (Australia opacity to should be restored)
+        await hoverAction(0, 0)(chart);
+        await compare();
+    });
+
     it('should provide tooltip params', async () => {
         const expectedParams = {
             xLowerKey: 'volumeLower',
