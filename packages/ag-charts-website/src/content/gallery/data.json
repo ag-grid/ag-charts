@@ -183,6 +183,11 @@
                     "title": "Simple Scatter",
                     "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
                     "name": "simple-scatter"
+                },
+                {
+                    "title": "Scatter With Multiple Axes",
+                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                    "name": "scatter-with-multiple-axes"
                 }
             ]
         },
