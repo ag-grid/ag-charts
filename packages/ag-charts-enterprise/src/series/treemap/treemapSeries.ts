@@ -15,7 +15,6 @@ import {
 const {
     Validate,
     OPT_FUNCTION,
-    BOOLEAN,
     NUMBER,
     OPT_COLOR_STRING,
     OPT_NUMBER,
@@ -29,7 +28,7 @@ const {
     COLOR_STRING_ARRAY,
     OPT_BOOLEAN,
 } = _ModuleSupport;
-const { Rect, Label, Group, DropShadow, BBox, Selection, Text } = _Scene;
+const { Rect, Label, Group, BBox, Selection, Text } = _Scene;
 const { ColorScale } = _Scale;
 const { Color, Logger, toFixed, isEqual } = _Util;
 
@@ -233,9 +232,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
     @Validate(OPT_NUMBER(0))
     tileStrokeWidth: number = 1;
 
-    @Validate(BOOLEAN)
-    gradient: boolean = true;
-
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle = undefined;
 
@@ -247,10 +243,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
     @Validate(OPT_BOOLEAN)
     highlightGroups: boolean = true;
-
-    tileShadow = new DropShadow();
-
-    labelShadow = new DropShadow();
 
     readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
@@ -526,8 +518,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             return {};
         }
 
-        const { gradient, colorKey, labelKey, sizeKey, tileStroke, tileStrokeWidth, groupStroke, groupStrokeWidth } =
-            this;
+        const { colorKey, labelKey, sizeKey, tileStroke, tileStrokeWidth, groupStroke, groupStrokeWidth } = this;
 
         const stroke = datum.isLeaf ? tileStroke : groupStroke;
         const strokeWidth = datum.isLeaf ? tileStrokeWidth : groupStrokeWidth;
@@ -543,7 +534,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             fill: datum.fill,
             stroke,
             strokeWidth,
-            gradient,
             highlighted: isHighlighted,
         });
 
@@ -554,7 +544,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         if (!this.chart) return;
 
         const {
-            gradient,
             highlightStyle: {
                 item: {
                     fill: highlightedFill,
@@ -568,8 +557,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             tileStrokeWidth,
             groupStroke,
             groupStrokeWidth,
-            tileShadow,
-            labelShadow,
             dataRoot,
         } = this;
 
@@ -605,18 +592,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             }
             const format = this.getTileFormat(datum, isDatumHighlighted);
 
-            const fillColor = validateColor(format?.fill ?? fill);
-            if (format?.gradient ?? gradient) {
-                const start = Color.tryParseFromString(fill).brighter().toString();
-                const end = Color.tryParseFromString(fill).darker().toString();
-                rect.fill = `linear-gradient(180deg, ${start}, ${end})`;
-            } else {
-                rect.fill = fillColor;
-            }
+            rect.fill = validateColor(format?.fill ?? fill);
             rect.fillOpacity = format?.fillOpacity ?? fillOpacity;
             rect.stroke = validateColor(format?.stroke ?? stroke);
             rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            rect.fillShadow = tileShadow;
             rect.crisp = true;
 
             rect.x = box.x;
@@ -653,7 +632,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             text.fontSize = label.style.fontSize;
             text.fontWeight = label.style.fontWeight;
             text.fill = highlighted ? highlightedTextColor ?? label.style.color : label.style.color;
-            text.fillShadow = highlighted ? undefined : labelShadow;
 
             text.textAlign = label.hAlign;
             text.textBaseline = label.vAlign;

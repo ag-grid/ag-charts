@@ -104,8 +104,6 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any> extends AgBaseSer
      * Default: `0`
      */
     nodeGap?: PixelSize;
-    /** Whether to use gradients for treemap tiles. */
-    gradient?: boolean;
     /** Configuration for the shadow used behind the treemap tiles. */
     tileShadow?: AgDropShadowOptions;
     /** Configuration for the shadow used behind the treemap labels. */

@@ -32,7 +32,6 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
         groupStrokeWidth: 1,
         tileStroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
         tileStrokeWidth: 1,
-        gradient: true,
         tileShadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
