@@ -611,6 +611,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.updateRequestors = {};
         }
 
+        this.updateService.dispatchUpdateComplete(this.getMinRect());
+
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {
             chart: this,
@@ -1354,5 +1356,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         } else {
             this.overlays.noData.hide();
         }
+    }
+
+    protected getMinRect() {
+        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
+        if (!minRects.length) return undefined;
+        return new BBox(
+            0,
+            0,
+            minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
+            minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
+        );
     }
 }
