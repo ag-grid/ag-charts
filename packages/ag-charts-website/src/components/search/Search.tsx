@@ -17,6 +17,7 @@ const Search = ({ currentFramework, isDev }) => {
 
     // It is important to memoise the client, otherwise we end up creating a new one on every re-render, resulting in
     // no caching and multiple repeated queries!
+    console.log(ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY);
     const algoliaClient = useMemo(() => algoliasearch(ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY), []);
     const searchClient = useMemo(
         () => ({
