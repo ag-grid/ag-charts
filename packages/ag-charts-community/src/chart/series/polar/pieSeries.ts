@@ -354,10 +354,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     override async processData(dataController: DataController) {
-        let { data = [] } = this;
+        let { data } = this;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, seriesItemEnabled } = this;
 
-        if (!angleKey) return;
+        if (angleKey == null || data == null) return;
 
         const extraKeyProps = [];
         const extraProps = [];
