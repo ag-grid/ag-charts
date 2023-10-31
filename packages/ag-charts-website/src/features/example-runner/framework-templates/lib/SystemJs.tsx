@@ -36,7 +36,7 @@ interface Configuration {
     chartPaths: Paths;
 }
 
-const localPrefix = pathJoin(import.meta.env?.SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
+const localPrefix = pathJoin(import.meta.env?.PUBLIC_SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
 
 const localConfiguration: Configuration = {
     gridMap: {

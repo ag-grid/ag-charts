@@ -1,6 +1,7 @@
 import type { FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Sector } from '../../../scene/shape/sector';
 import { toRadians } from '../../../util/angle';
+import type { Circle } from '../../marker/circle';
 
 type AnimatableSectorDatum = {
     innerRadius: number;
@@ -60,7 +61,16 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
         return { startAngle, endAngle, outerRadius, innerRadius };
     };
 
-    return { toFn, fromFn };
+    const innerCircle = {
+        fromFn: (node: Circle, _datum: { radius: number }) => {
+            return { size: node.previousDatum?.radius ?? node.size ?? 0 };
+        },
+        toFn: (_node: Circle, datum: { radius: number }) => {
+            return { size: datum.radius ?? 0 };
+        },
+    };
+
+    return { nodes: { toFn, fromFn }, innerCircle };
 }
 
 export function resetPieSelectionsFn(_node: Sector, datum: AnimatableSectorDatum) {

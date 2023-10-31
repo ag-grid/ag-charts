@@ -1,3 +1,4 @@
+import type { AgChartOptions } from '../options/agChartOptions';
 import type { ModuleInstance } from './baseModule';
 import type { AxisModule, LegendModule, RootModule, SeriesModule } from './coreModules';
 import type { AxisOptionModule, SeriesOptionModule } from './optionModules';
@@ -46,4 +47,9 @@ export function registerModule(module: Module) {
 
 export function hasRegisteredEnterpriseModules() {
     return REGISTERED_MODULES.some((m) => m.packageType === 'enterprise');
+}
+
+export const MODULE_CONFLICTS: Map<keyof AgChartOptions, Array<keyof AgChartOptions>> = new Map();
+export function registerModuleConflicts(source: keyof AgChartOptions, targets: Array<keyof AgChartOptions>) {
+    MODULE_CONFLICTS.set(source, targets);
 }
