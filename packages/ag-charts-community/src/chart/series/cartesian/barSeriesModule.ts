@@ -1,5 +1,4 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import type { AgBarSeriesOptions } from '../../../options/agChartOptions';
 import { singleSeriesPaletteFactory } from '../../../util/theme';
 import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES, NORMAL } from '../../themes/constants';
 import {
@@ -10,7 +9,7 @@ import {
 } from '../../themes/symbols';
 import { BarSeries } from './barSeries';
 
-export const BarSeriesModule: SeriesModule<'bar', AgBarSeriesOptions> = {
+export const BarSeriesModule: SeriesModule<'bar'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',
