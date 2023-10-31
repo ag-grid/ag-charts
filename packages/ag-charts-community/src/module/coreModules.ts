@@ -62,8 +62,9 @@ export interface LegendModule extends BaseModule {
     themeTemplate?: {};
 }
 
-type RequiredSeriesType = NonNullable<NonNullable<AgChartOptions['series']>[number]['type']>;
-type RequiredSeriesOptions<Type> = NonNullable<NonNullable<AgChartOptions['series']>[number]> & { type: Type };
+type AgSeriesOptions = NonNullable<AgChartOptions['series']>[number];
+
+type RequiredSeriesType = NonNullable<AgSeriesOptions['type']>;
 type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Extensible<T[K]> : T[K] } & {
     __extends__?: string;
 };
@@ -75,10 +76,9 @@ export type ExtensibleDefaults<
     ChartOptions = AgChartOptions & { series?: { type: SeriesType } },
 > = Extensible<ChartOptions>;
 
-export interface SeriesModule<
-    SeriesType extends RequiredSeriesType = RequiredSeriesType,
-    SeriesOptions extends RequiredSeriesOptions<SeriesType> = RequiredSeriesOptions<SeriesType>,
-> extends BaseModule {
+export type SeriesOptions<SeriesType extends RequiredSeriesType> = Extract<AgSeriesOptions, { type: SeriesType }>;
+
+export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType> extends BaseModule {
     type: 'series';
 
     identifier: SeriesType;
@@ -91,5 +91,5 @@ export interface SeriesModule<
     stackable?: boolean;
     groupable?: boolean;
     stackedByDefault?: boolean;
-    swapDefaultAxesCondition?: (opts: SeriesOptions) => boolean;
+    swapDefaultAxesCondition?: (opts: SeriesOptions<SeriesType>) => boolean;
 }
