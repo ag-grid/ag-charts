@@ -50,6 +50,7 @@ function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
 type LineContextLike = {
     scales: CartesianSeriesNodeDataContext['scales'];
     nodeData: PathNodeDatumLike[];
+    visible: boolean;
 };
 
 export function pairContinuousData(
@@ -88,6 +89,10 @@ export function pairContinuousData(
         xValue?: any,
         change: PathPointChange = 'move'
     ) => {
+        if (from && (isNaN(from.point.x) || isNaN(from.point.y))) {
+            // Default to 'to' position if 'from' is invalid.
+            from = to;
+        }
         const resultPoint = {
             from: from?.point,
             to: to?.point,
@@ -223,9 +228,14 @@ export function pairCategoryData(
 
 export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike) {
     let status: NodeUpdateState = 'updated';
-    if (oldData.nodeData.length === 0 && newData.nodeData.length > 0) {
+
+    const visible = (data: LineContextLike) => {
+        return data.visible;
+    };
+
+    if (!visible(oldData) && visible(newData)) {
         status = 'added';
-    } else if (oldData.nodeData.length > 0 && newData.nodeData.length === 0) {
+    } else if (visible(oldData) && !visible(newData)) {
         status = 'removed';
     }
     return status;
@@ -234,18 +244,12 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
 function prepareLinePathPropertyAnimation(status: NodeUpdateState) {
     return {
         fromFn: (path: Path) => {
-            if (status === 'added') {
-                return { opacity: 0, ...FROM_TO_MIXINS['added'] };
-            }
-
-            return { opacity: path.opacity, ...FROM_TO_MIXINS[status] };
+            const opacity = status === 'added' ? 0 : path.opacity;
+            return { opacity, ...FROM_TO_MIXINS[status] };
         },
-        toFn: (path: Path) => {
-            if (status === 'added') {
-                return { opacity: 1, ...FROM_TO_MIXINS['added'] };
-            }
-
-            return { opacity: status === 'removed' ? 0 : path.opacity, ...FROM_TO_MIXINS[status] };
+        toFn: (_path: Path) => {
+            const opacity = status === 'removed' ? 0 : 1;
+            return { opacity, ...FROM_TO_MIXINS[status] };
         },
     };
 }
@@ -286,11 +290,18 @@ export function prepareLinePathAnimation(
     const { result: pairData, resultMap: pairMap } =
         isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
 
+    let status: NodeUpdateState = 'updated';
+    if (oldData.visible && !newData.visible) {
+        status = 'removed';
+    } else if (!oldData.visible && newData.visible) {
+        status = 'added';
+    }
+
     if (pairData === undefined || pairMap === undefined) {
         return;
     }
 
     const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialPath);
-    const marker = prepareMarkerAnimation(pairMap);
+    const marker = prepareMarkerAnimation(pairMap, status);
     return { ...pathFns, marker };
 }

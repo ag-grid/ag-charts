@@ -72,7 +72,7 @@ export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node:
     };
 }
 
-export function prepareMarkerAnimation(pairMap: PathPointMap) {
+export function prepareMarkerAnimation(pairMap: PathPointMap, parentStatus: NodeUpdateState) {
     const markerStatus = (datum: PathNodeDatumLike): { point?: PathPoint; status: NodeUpdateState } => {
         const { xValue } = datum;
 
@@ -97,7 +97,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap) {
             ...FROM_TO_MIXINS[status],
         };
 
-        if (status === 'added') {
+        if (status === 'added' || parentStatus === 'added') {
             return { ...defaults, opacity: 0 };
         }
 
@@ -110,7 +110,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap) {
 
         const defaults = { translationX: datum.point.x, translationY: datum.point.y, opacity: 1 };
 
-        if (status === 'removed') {
+        if (status === 'removed' || parentStatus === 'removed') {
             return { ...defaults, translationX: point?.to?.x, translationY: point?.to?.y, opacity: 0 };
         }
 

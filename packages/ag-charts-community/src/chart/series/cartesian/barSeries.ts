@@ -346,6 +346,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             nodeData: [],
             labelData: [],
             scales: super.calculateScaling(),
+            visible: this.visible,
         };
         processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
             const xValue = keys[xIndex];

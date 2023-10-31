@@ -393,7 +393,15 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             });
         });
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
+        return [
+            {
+                itemId: this.yKey ?? this.id,
+                nodeData,
+                labelData: nodeData,
+                scales: super.calculateScaling(),
+                visible: this.visible,
+            },
+        ];
     }
 
     protected override nodeFactory() {
