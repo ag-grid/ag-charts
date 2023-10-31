@@ -6,7 +6,7 @@ import { Icon } from '../icon/Icon';
 import Search from '../search/Search';
 import styles from './TopBar.module.scss';
 
-export const TopBar = ({ frameworks, currentFramework, path }) => {
+export const TopBar = ({ frameworks, currentFramework, path, isDev }) => {
     const frameworksData = frameworks.map((framework) => ({
         name: framework,
         url: getNewFrameworkPath({
@@ -34,7 +34,7 @@ export const TopBar = ({ frameworks, currentFramework, path }) => {
                         <Icon name="collapseCategories" />
                     </button>
 
-                    <Search currentFramework={currentFramework} />
+                    <Search currentFramework={currentFramework} isDev={isDev} />
 
                     {currentFramework && (
                         <FrameworkSelector

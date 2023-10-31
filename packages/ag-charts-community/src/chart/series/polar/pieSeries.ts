@@ -18,6 +18,7 @@ import { Text } from '../../../scene/shape/text';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { mod, toFixed } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
+import { sanitizeHtml } from '../../../util/sanitize';
 import { boxCollidesSector, isPointInSector } from '../../../util/sector';
 import type { Has } from '../../../util/types';
 import {
@@ -1359,7 +1360,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             calloutLabel: { text: labelText } = {},
         } = nodeDatum;
 
-        const title = this.title?.text;
+        const title = sanitizeHtml(this.title?.text);
         const content = isNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
 
         return this.tooltip.toTooltipHtml(

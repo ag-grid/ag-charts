@@ -141,13 +141,11 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
         return input;
     }
 
-    defaults = defaults ?? {};
-
     const {
-        content = defaults.content ?? '',
-        title = defaults.title ?? undefined,
-        color = defaults.color ?? 'white',
-        backgroundColor = defaults.backgroundColor ?? '#888',
+        content = defaults?.content ?? '',
+        title = defaults?.title,
+        color = defaults?.color ?? 'white',
+        backgroundColor = defaults?.backgroundColor ?? '#888',
     } = input;
 
     const titleHtml = title

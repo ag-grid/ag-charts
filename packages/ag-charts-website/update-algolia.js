@@ -35,13 +35,13 @@ const indexNamePrefix = options.indexNamePrefix;
 console.log('Updating Algolia Indices');
 console.log(`debug: ${debug}, indexNamePrefix: ${indexNamePrefix}`);
 console.log(
-    `Updating Algolia using App ID ${process.env.ASTRO_ALGOLIA_APP_ID} and admin key ${process.env.ALGOLIA_ADMIN_KEY}`
+    `Updating Algolia using App ID ${process.env.PUBLIC_ASTRO_ALGOLIA_APP_ID} and admin key ${process.env.ALGOLIA_ADMIN_KEY}`
 );
 
 let algoliaClient;
 if (!debug) {
     console.log('Creating Algolia client');
-    algoliaClient = algoliasearch(process.env.ASTRO_ALGOLIA_APP_ID, process.env.ALGOLIA_ADMIN_KEY);
+    algoliaClient = algoliasearch(process.env.PUBLIC_ASTRO_ALGOLIA_APP_ID, process.env.ALGOLIA_ADMIN_KEY);
 }
 
 const disallowedTags = ['style', 'pre', 'astro-island'];
@@ -77,7 +77,7 @@ const extractTitle = (titleTag) => {
     return title;
 };
 
-const convertToFrameworkUrl = (url, framework) => `${framework}/${url}/`;
+const convertToFrameworkUrl = (url, framework) => `/${framework}/${url}/`;
 
 const createRecords = async (browser, url, framework, breadcrumb, rank, loadFromAgGrid) => {
     const records = [];
@@ -96,7 +96,7 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
         const content = await page.content();
         dom = await new JSDOM(content);
     } else {
-        const filePath = `../../dist/packages/ag-charts-website/${path}index.html`;
+        const filePath = `../../dist/packages/ag-charts-website${path}index.html`;
 
         if (!fs.existsSync(filePath)) {
             return records;
@@ -127,17 +127,14 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
             return;
         }
 
-        if (cleanText.length > 50000) {
-            console.log(url);
-        }
         const hashPath = `${path}${key ? `#${key}` : ''}`;
 
         records.push({
             objectID: hashPath,
             breadcrumb,
             title,
-            heading,
-            subHeading,
+            heading: heading ? heading.replaceAll('\n    ', '').replaceAll('\n', '') : undefined,
+            subHeading: subHeading ? subHeading.replaceAll('\n    ', '').replaceAll('\n', '') : undefined,
             path: hashPath,
             text: cleanText,
             rank,
