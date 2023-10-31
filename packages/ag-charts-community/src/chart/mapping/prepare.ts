@@ -117,9 +117,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     const checkAxisType = (type?: string) => {
         const isAxisType = isAxisOptionType(type);
         if (!isAxisType) {
-            Logger.warnOnce(
-                `AG Charts - unknown axis type: ${type}; expected one of: ${AXIS_TYPES.axesTypes}, ignoring.`
-            );
+            Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${AXIS_TYPES.axesTypes}, ignoring.`);
         }
 
         return isAxisType;
