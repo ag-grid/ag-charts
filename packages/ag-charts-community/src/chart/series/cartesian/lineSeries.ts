@@ -282,23 +282,33 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return new MarkerShape();
     }
 
-    protected override async updatePathNodes(opts: { seriesHighlighted?: boolean; paths: Path[] }) {
+    protected override async updatePathNodes(opts: {
+        seriesHighlighted?: boolean;
+        paths: Path[];
+        opacity: number;
+        visible: boolean;
+        animationEnabled: boolean;
+    }) {
         const {
             paths: [lineNode],
+            opacity,
+            visible,
+            animationEnabled,
         } = opts;
         const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
-        lineNode.fill = undefined;
-        lineNode.lineJoin = 'round';
-        lineNode.pointerEvents = PointerEvents.None;
-        lineNode.opacity = 1;
-
-        lineNode.stroke = this.stroke;
-        lineNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
-        lineNode.strokeOpacity = this.strokeOpacity;
-
-        lineNode.lineDash = this.lineDash;
-        lineNode.lineDashOffset = this.lineDashOffset;
+        lineNode.setProperties({
+            fill: undefined,
+            lineJoin: 'round',
+            pointerEvents: PointerEvents.None,
+            opacity,
+            stroke: this.stroke,
+            strokeWidth: this.getStrokeWidth(this.strokeWidth),
+            strokeOpacity: this.strokeOpacity,
+            lineDash: this.lineDash,
+            lineDashOffset: this.lineDashOffset,
+            visible: visible || animationEnabled,
+        });
 
         if (lineNode.clipPath == null) {
             lineNode.clipPath = new Path2D();

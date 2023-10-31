@@ -25,6 +25,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
+import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
@@ -144,39 +145,42 @@ export class AreaSeries extends CartesianSeries<
             extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normaliseTo, 'range'));
         }
 
+        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
+        if (!visible) {
+            common.forceValue = 0;
+        }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValueRaw`, invalidValue: null }),
+                valueProperty(this, yKey, isContinuousY, { id: `yValueRaw`, ...common }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window', 'current', {
                     id: `yValueEnd`,
-                    invalidValue: null,
+                    ...common,
                     groupId: ids[0],
                 }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window-trailing', 'current', {
                     id: `yValueStart`,
-                    invalidValue: null,
+                    ...common,
                     groupId: ids[1],
                 }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window', 'last', {
                     id: `yValuePreviousEnd`,
-                    invalidValue: null,
+                    ...common,
                     groupId: ids[2],
                 }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window-trailing', 'last', {
                     id: `yValuePreviousStart`,
-                    invalidValue: null,
+                    ...common,
                     groupId: ids[3],
                 }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
                     id: `yValueCumulative`,
-                    invalidValue: null,
+                    ...common,
                     groupId: ids[4],
                 }),
                 ...extraProps,
             ],
             groupByKeys: true,
-            dataVisible: visible,
         });
 
         this.animationState.transition('updateData');
@@ -422,7 +426,13 @@ export class AreaSeries extends CartesianSeries<
         return new MarkerShape();
     }
 
-    protected override async updatePathNodes(opts: { paths: Path[] }) {
+    protected override async updatePathNodes(opts: {
+        paths: Path[];
+        opacity: number;
+        visible: boolean;
+        animationEnabled: boolean;
+    }) {
+        const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
         const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
@@ -437,6 +447,8 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity: this.strokeOpacity,
             lineDash: this.lineDash,
             lineDashOffset: this.lineDashOffset,
+            opacity,
+            visible,
         });
         fill.setProperties({
             tag: AreaSeriesTag.Fill,
@@ -449,6 +461,8 @@ export class AreaSeries extends CartesianSeries<
             lineDashOffset: this.lineDashOffset,
             strokeOpacity: this.strokeOpacity,
             fillShadow: this.shadow,
+            opacity,
+            visible: visible || animationEnabled,
             strokeWidth,
         });
 
@@ -566,7 +580,7 @@ export class AreaSeries extends CartesianSeries<
         labelSelection.each((text, datum) => {
             const { x, y, label } = datum;
 
-            if (label && labelEnabled) {
+            if (label && labelEnabled && this.visible) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;

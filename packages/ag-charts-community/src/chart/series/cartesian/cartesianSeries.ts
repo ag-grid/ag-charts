@@ -432,9 +432,9 @@ export abstract class CartesianSeries<
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
-        this.rootGroup.visible = visible;
-        this.contentGroup.visible = visible;
-        this.highlightGroup.visible = visible && !!seriesHighlighted;
+        this.rootGroup.visible = animationEnabled || visible;
+        this.contentGroup.visible = animationEnabled || visible;
+        this.highlightGroup.visible = (animationEnabled || visible) && !!seriesHighlighted;
 
         const subGroupOpacity = this.getOpacity();
         if (hasMarkers) {
@@ -489,16 +489,20 @@ export abstract class CartesianSeries<
                     labelGroup.opacity = subGroupOpacity;
                 }
 
-                for (const path of paths) {
-                    path.opacity = subGroupOpacity;
-                    path.visible = subGroupVisible;
-                }
+                await this.updatePathNodes({
+                    seriesHighlighted,
+                    itemId,
+                    paths,
+                    seriesIdx,
+                    opacity: subGroupOpacity,
+                    visible: subGroupVisible,
+                    animationEnabled,
+                });
 
                 if (!dataNodeGroup.visible) {
                     return;
                 }
 
-                await this.updatePathNodes({ seriesHighlighted, itemId, paths, seriesIdx });
                 await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false, seriesIdx });
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
@@ -827,13 +831,20 @@ export abstract class CartesianSeries<
         opts.paths.forEach((p) => (p.visible = false));
     }
 
-    protected async updatePathNodes(_opts: {
+    protected async updatePathNodes(opts: {
         seriesHighlighted?: boolean;
         itemId?: string;
         paths: Path[];
         seriesIdx: number;
+        opacity: number;
+        visible: boolean;
+        animationEnabled: boolean;
     }): Promise<void> {
-        // Override point for sub-classes.
+        const { paths, opacity, visible } = opts;
+        for (const path of paths) {
+            path.opacity = opacity;
+            path.visible = visible;
+        }
     }
 
     protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {

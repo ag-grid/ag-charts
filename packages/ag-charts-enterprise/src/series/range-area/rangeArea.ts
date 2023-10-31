@@ -450,7 +450,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return new MarkerShape();
     }
 
-    protected override async updatePathNodes(opts: { paths: _Scene.Path[] }) {
+    protected override async updatePathNodes(opts: { paths: _Scene.Path[]; opacity: number; visible: boolean }) {
+        const { opacity, visible } = opts;
         const [fill, stroke] = opts.paths;
         const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
@@ -465,6 +466,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity: this.strokeOpacity,
             lineDash: this.lineDash,
             lineDashOffset: this.lineDashOffset,
+            opacity,
+            visible,
         });
         fill.setProperties({
             tag: AreaSeriesTag.Fill,
@@ -478,6 +481,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity: this.strokeOpacity,
             fillShadow: this.shadow,
             strokeWidth,
+            opacity,
+            visible,
         });
 
         const updateClipPath = (path: _Scene.Path) => {

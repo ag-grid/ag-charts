@@ -9,8 +9,8 @@ import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 export type PathPointChange = 'move' | 'in' | 'out';
 
 export type PathPoint = {
-    from?: { x: number; y: number };
-    to?: { x: number; y: number };
+    from?: Point;
+    to?: Point;
     change: PathPointChange;
     moveTo: true | false | 'in' | 'out';
 };
@@ -105,6 +105,19 @@ export function backfillPathPointData(result: PathPoint[], splitMode: BackfillSp
     });
 }
 
+function calculatePoint(from: Point, to: Point, ratio: number): Point {
+    const x1 = isNaN(from.x) ? to.x : from.x;
+    const y1 = isNaN(from.y) ? to.y : from.y;
+    const xd = to.x - from.x;
+    const yd = to.y - from.y;
+    const xr = isNaN(xd) ? 0 : xd * ratio;
+    const yr = isNaN(yd) ? 0 : yd * ratio;
+    return {
+        x: x1 + xr,
+        y: y1 + yr,
+    };
+}
+
 export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) {
     const { path: linePath } = path;
     let previousTo: PathPoint['to'];
@@ -115,16 +128,14 @@ export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<
         const { from, to } = data;
         if (from == null || to == null) continue;
 
-        const x = from.x + (to.x - from.x) * ratio;
-        const y = from.y + (to.y - from.y) * ratio;
+        const { x, y } = calculatePoint(from, to, ratio);
         if (data.moveTo === false) {
             linePath.lineTo(x, y);
         } else if (data.moveTo === true || !previousTo) {
             linePath.moveTo(x, y);
         } else if (previousTo) {
             const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
-            const midPointX = previousTo.x + (x - previousTo.x) * moveToRatio;
-            const midPointY = previousTo.y + (y - previousTo.y) * moveToRatio;
+            const { x: midPointX, y: midPointY } = calculatePoint(previousTo, { x, y }, moveToRatio);
             linePath.lineTo(midPointX, midPointY);
             linePath.moveTo(x, y);
         }
