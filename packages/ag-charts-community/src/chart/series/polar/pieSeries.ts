@@ -178,6 +178,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     private readonly calloutLabelSelection: Selection<Group, PieNodeDatum>;
     private readonly sectorLabelSelection: Selection<Text, PieNodeDatum>;
     private readonly innerLabelsSelection: Selection<Text, DoughnutInnerLabel>;
+    private readonly innerCircleSelection: Selection<Circle, { radius: number }>;
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
@@ -187,6 +188,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             zIndex: Layers.SERIES_BACKGROUND_ZINDEX,
         })
     );
+    readonly innertCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
 
     private nodeData: PieNodeDatum[] = [];
     private angleScale: LinearScale;
@@ -218,8 +220,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     readonly innerLabels: DoughnutInnerLabel[] = [];
 
     innerCircle?: DoughnutInnerCircle = undefined;
-    private oldInnerCircle?: DoughnutInnerCircle;
-    private innerCircleNode?: Circle;
 
     /**
      * The key of the numeric field to use to determine the radii of pie sectors.
@@ -326,6 +326,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         this.calloutLabelSelection = Selection.select(pieCalloutLabels, Group);
         this.sectorLabelSelection = Selection.select(pieSectorLabels, Text);
         this.innerLabelsSelection = Selection.select(innerLabels, Text);
+        this.innerCircleSelection = Selection.select(this.innertCircleGroup, Circle);
     }
 
     override addChartEventListeners(): void {
@@ -695,7 +696,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         await this.maybeRefreshNodeData();
         this.updateTitleNodes();
         this.updateRadiusScale();
-        this.updateInnerCircleNodes();
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
@@ -739,26 +739,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         }
     }
 
-    private updateInnerCircleNodes() {
-        const { innerCircle, oldInnerCircle, innerCircleNode: oldNode } = this;
-        if (oldInnerCircle !== innerCircle) {
-            let circle: Circle | undefined;
-            if (oldNode) {
-                this.backgroundGroup.removeChild(oldNode);
-            }
-
-            if (innerCircle) {
-                circle = new Circle();
-                circle.fill = innerCircle.fill;
-                circle.fillOpacity = innerCircle.fillOpacity ?? 1;
-                this.backgroundGroup.appendChild(circle);
-            }
-
-            this.oldInnerCircle = innerCircle;
-            this.innerCircleNode = circle;
-        }
-    }
-
     private updateNodeMidPoint() {
         this.nodeData.forEach((d) => {
             const radius = d.innerRadius + (d.outerRadius - d.innerRadius) / 2;
@@ -771,6 +751,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     private async updateSelections() {
         await this.updateGroupSelection();
+        this.updateInnerCircleSelection();
     }
 
     private async updateGroupSelection() {
@@ -808,6 +789,21 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         });
     }
 
+    private updateInnerCircleSelection() {
+        const { innerCircle } = this;
+
+        let radius = 0;
+        const innerRadius = this.getInnerRadius();
+        if (innerRadius > 0) {
+            const circleRadius = Math.min(innerRadius, this.getOuterRadius());
+            const antiAliasingPadding = 1;
+            radius = Math.ceil(circleRadius * 2 + antiAliasingPadding);
+        }
+
+        const datums = innerCircle ? [{ radius }] : [];
+        this.innerCircleSelection.update(datums);
+    }
+
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const isVisible = this.seriesItemEnabled.indexOf(true) >= 0;
@@ -821,7 +817,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         this.contentGroup.opacity = this.getOpacity();
 
-        this.updateInnerCircle();
+        this.innerCircleSelection.each((node, { radius }) => {
+            node.setProperties({
+                fill: this.innerCircle?.fill,
+                opacity: this.innerCircle?.fillOpacity,
+                size: radius,
+            });
+        });
 
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
             if (this.ctx.animationManager.isSkipped()) {
@@ -1290,21 +1292,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         });
     }
 
-    private updateInnerCircle() {
-        const circle = this.innerCircleNode;
-        if (!circle) {
-            return;
-        }
-        const innerRadius = this.getInnerRadius();
-        if (innerRadius === 0) {
-            circle.size = 0;
-        } else {
-            const circleRadius = Math.min(innerRadius, this.getOuterRadius());
-            const antiAliasingPadding = 1;
-            circle.size = Math.ceil(circleRadius * 2 + antiAliasingPadding);
-        }
-    }
-
     private updateInnerLabelNodes() {
         const textBBoxes: BBox[] = [];
         const margins: number[] = [];
@@ -1476,18 +1463,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     override animateEmptyUpdateReady(_data?: PolarAnimationData) {
-        const fns = preparePieSeriesAnimationFunctions(this.rotation);
-        fromToMotion(
-            this.id,
-            'empty-update-ready',
-            this.ctx.animationManager,
-            [this.itemSelection, this.highlightSelection],
-            fns
-        );
+        const { animationManager } = this.ctx;
 
-        seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
+        const fns = preparePieSeriesAnimationFunctions(this.rotation);
+        fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
+        fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
+
+        seriesLabelFadeInAnimation(this, 'callout', animationManager, [this.calloutLabelSelection]);
+        seriesLabelFadeInAnimation(this, 'sector', animationManager, [this.sectorLabelSelection]);
+        seriesLabelFadeInAnimation(this, 'inner', animationManager, [this.innerLabelsSelection]);
     }
 
     override animateWaitingUpdateReady() {
@@ -1498,13 +1482,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
         fromToMotion(
             this.id,
-            'waiting-update-ready',
+            'nodes',
             animationManager,
             [itemSelection, highlightSelection],
-            fns,
+            fns.nodes,
             (_, datum) => this.getDatumId(datum),
             diff
         );
+        fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
         seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
@@ -1516,7 +1501,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { animationManager } = this.ctx;
 
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
-        fromToMotion(this.id, 'clearing-update-empty', animationManager, [itemSelection, highlightSelection], fns);
+        fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
+        fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
