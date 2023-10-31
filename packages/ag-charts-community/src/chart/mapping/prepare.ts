@@ -12,7 +12,7 @@ import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
 import type { ChartTheme } from '../themes/chartTheme';
-import { swapAxes } from './defaults';
+import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
 import { getChartTheme } from './themes';
@@ -82,6 +82,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     if (isDefaultAxisSwapNeeded(options)) {
         defaultOverrides = swapAxes(defaultOverrides);
     }
+    defaultOverrides = resolveModuleConflicts(options, defaultOverrides);
 
     removeDisabledOptions<T>(options);
 
