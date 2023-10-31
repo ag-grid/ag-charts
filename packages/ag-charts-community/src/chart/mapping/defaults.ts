@@ -32,21 +32,22 @@ export function swapAxes<T extends AgChartOptions>(opts: T): T {
     };
 }
 
-export function resolveModuleConflicts<T extends AgChartOptions>(opts: T, defaultOverrides: T): T {
+export function resolveModuleConflicts<T extends AgChartOptions>(opts: T): Partial<T> {
+    const conflictOverrides: Partial<T> = {};
     for (const [source, conflicts] of MODULE_CONFLICTS.entries()) {
         if (opts[source] == null) continue;
         conflicts.forEach((conflict) => {
-            defaultOverrides[source] ??= {};
+            conflictOverrides[source] ??= {} as any;
             if (opts[source]?.enabled && opts[conflict]?.enabled) {
                 Logger.warnOnce(
                     `the [${source}] module can not be used at the same time as [${conflict}], it will be disabled.`
                 );
-                defaultOverrides[source].enabled = false;
+                conflictOverrides[source].enabled = false;
             } else {
-                defaultOverrides[source].enabled = opts[source]?.enabled;
+                conflictOverrides[source].enabled = opts[source]?.enabled;
             }
         });
     }
 
-    return defaultOverrides;
+    return conflictOverrides;
 }
