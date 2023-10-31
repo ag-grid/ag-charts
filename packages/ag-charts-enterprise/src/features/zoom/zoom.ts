@@ -19,7 +19,7 @@ import {
 } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
 
-const { BOOLEAN, NUMBER, STRING_UNION, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
+const { BOOLEAN, NUMBER, STRING_UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
 
 const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
@@ -34,6 +34,13 @@ const round = (value: number, decimals: number) => {
 };
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    @ActionOnSet<Zoom>({
+        changeValue(newValue) {
+            if (newValue) {
+                this.updateZoom(unitZoomState());
+            }
+        },
+    })
     @Validate(BOOLEAN)
     public enabled = false;
 
