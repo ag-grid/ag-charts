@@ -4,7 +4,7 @@ import { pathJoin } from '@utils/pathJoin';
 
 export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string; isFullPath?: boolean }) => {
     const path = pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName);
-    const fullPath = pathJoin(import.meta.env?.SITE_URL, path);
+    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, path);
     return isFullPath ? fullPath : path;
 };
 
@@ -24,7 +24,7 @@ export const getPlainExampleUrl = ({
 }) => {
     const plainExamplePath = pathJoin('gallery', 'examples', exampleName, 'plain');
     const fullPlainExamplePath = excludeSiteBaseUrl ? plainExamplePath : pathJoin(SITE_BASE_URL, plainExamplePath);
-    const fullPath = pathJoin(import.meta.env?.SITE_URL, fullPlainExamplePath);
+    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, fullPlainExamplePath);
     return isFullPath ? fullPath : fullPlainExamplePath;
 };
 
