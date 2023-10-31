@@ -1,13 +1,12 @@
-import type {
-    AgErrorBarCapOptions,
-    AgErrorBarOptions,
-    AgErrorBarStylingOptions,
-    AgErrorBarThemeableOptions,
-    _Scale,
-} from 'ag-charts-community';
+import type { AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { ErrorBarCapFormatter, ErrorBarFormatter, ErrorBarNodeDatum } from './errorBarNode';
+import type {
+    ErrorBarCapFormatter,
+    ErrorBarFormatter,
+    ErrorBarNodeDatum,
+    ErrorBarStylingOptions,
+} from './errorBarNode';
 import { ErrorBarNode } from './errorBarNode';
 
 const {
@@ -54,7 +53,7 @@ type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
-class ErrorBarCap implements AgErrorBarCapOptions {
+class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
     @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
@@ -340,7 +339,7 @@ export class ErrorBars
         this.groupNode.visible = event.enabled;
     }
 
-    private makeStyle(baseStyle: AgErrorBarStylingOptions): AgErrorBarThemeableOptions {
+    private makeStyle(baseStyle: ErrorBarStylingOptions): AgErrorBarThemeableOptions {
         return {
             visible: baseStyle.visible,
             lineDash: baseStyle.lineDash,
