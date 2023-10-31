@@ -39,7 +39,9 @@ export const agChartsVueVersion = '8.0.0';
  *
  * NOTE: Includes trailing slash (`/`)
  */
-export const SITE_BASE_URL = import.meta.env?.BASE_URL || process.env.SITE_BASE_URL;
+export const SITE_BASE_URL =
+    import.meta.env.BASE_URL || // Astro default env var (for build time)
+    import.meta.env.PUBLIC_BASE_URL.replace(/\/?$/, '/'); // `.env.*` override (for client side)
 
 /**
  * Number of URL segments in `SITE_BASE_URL`
