@@ -74,7 +74,8 @@ export type ExtensibleDefaults<
     ChartOptions = AgChartOptions & { series?: { type: SeriesType } },
 > = Extensible<ChartOptions>;
 
-export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType> extends BaseModule {
+export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType, SeriesOptions = any>
+    extends BaseModule {
     type: 'series';
 
     identifier: SeriesType;
@@ -87,5 +88,5 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     stackable?: boolean;
     groupable?: boolean;
     stackedByDefault?: boolean;
-    swapDefaultAxesCondition?: (opts: AgChartOptions) => boolean;
+    swapDefaultAxesCondition?: (opts: SeriesOptions) => boolean;
 }

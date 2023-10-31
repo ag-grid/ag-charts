@@ -10,7 +10,7 @@ import {
 } from '../../themes/symbols';
 import { BarSeries } from './barSeries';
 
-export const BarSeriesModule: SeriesModule<'bar'> = {
+export const BarSeriesModule: SeriesModule<'bar', AgBarSeriesOptions> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',
@@ -32,7 +32,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             },
         ],
     },
-    swapDefaultAxesCondition: (opts) => (opts.series?.[0] as AgBarSeriesOptions)?.direction !== 'horizontal',
+    swapDefaultAxesCondition: (series) => series?.direction !== 'horizontal',
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         fillOpacity: 1,
