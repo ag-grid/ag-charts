@@ -82,13 +82,14 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     if (isDefaultAxisSwapNeeded(options)) {
         defaultOverrides = swapAxes(defaultOverrides);
     }
-    defaultOverrides = resolveModuleConflicts(options, defaultOverrides);
+    const conflictOverrides = resolveModuleConflicts(options);
 
     removeDisabledOptions<T>(options);
 
     const { context, mergedOptions, axesThemes, seriesThemes, theme } = prepareMainOptions<T>(
         defaultOverrides as T,
-        options
+        options,
+        conflictOverrides
     );
 
     // Special cases where we have arrays of elements which need their own defaults.
@@ -186,13 +187,16 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
     );
 }
 
-function prepareMainOptions<T extends AgChartOptions>(defaultOverrides: T, options: T) {
+function prepareMainOptions<T extends AgChartOptions>(defaultOverrides: T, options: T, conflictOverrides: Partial<T>) {
     const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette } = prepareTheme(options);
 
     const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
 
     defaultOverrides = theme.templateTheme(defaultOverrides);
-    const mergedOptions: T = jsonMerge([defaultOverrides, cleanedTheme, options], noDataCloneMergeOptions);
+    const mergedOptions: T = jsonMerge(
+        [defaultOverrides, cleanedTheme, options, conflictOverrides],
+        noDataCloneMergeOptions
+    );
 
     return { context, mergedOptions, axesThemes, seriesThemes, theme };
 }
