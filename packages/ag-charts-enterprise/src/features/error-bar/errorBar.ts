@@ -1,4 +1,4 @@
-import type { AgErrorBarOptions, AgErrorBarThemeableOptions, InteractionRange, _Scale } from 'ag-charts-community';
+import type { AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type {
@@ -7,7 +7,7 @@ import type {
     ErrorBarNodeDatum,
     ErrorBarStylingOptions,
 } from './errorBarNode';
-import { ErrorBarNode } from './errorBarNode';
+import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 
 const {
     fixNumericExtent,
@@ -45,8 +45,8 @@ type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
-type InteractionEvent<T extends _ModuleSupport.InteractionEvent['type'] = _ModuleSupport.InteractionEvent['type']> =
-    _ModuleSupport.InteractionEvent<T>;
+type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
+type Point = _Scene.Point;
 
 type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
@@ -136,9 +136,8 @@ export class ErrorBars
     cap: ErrorBarCap = new ErrorBarCap();
 
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
-    private readonly groupNode: _Scene.Group;
+    private readonly groupNode: ErrorBarGroup;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
-    private readonly ctx: _ModuleSupport.SeriesContext;
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
@@ -147,10 +146,9 @@ export class ErrorBars
         super();
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
-        this.ctx = ctx;
         const { annotationGroup, annotationSelections } = this.cartesianSeries;
 
-        this.groupNode = new _Scene.Group({
+        this.groupNode = new ErrorBarGroup({
             name: `${annotationGroup.id}-errorBars`,
             zIndex: _ModuleSupport.Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('annotation'),
@@ -167,9 +165,6 @@ export class ErrorBars
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
-            ctx.interactionManager.addListener('hover', (event) => this.onHoverEvent(event)),
-            ctx.interactionManager.addListener('click', (event) => this.onClickEvent(event)),
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClickEvent(event)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode),
             () => annotationSelections.delete(this.selection)
@@ -304,60 +299,20 @@ export class ErrorBars
         node.updateBBoxes();
     }
 
-    private getHighlightRange() {
-        return this.ctx.tooltipManager.getRange();
-    }
-
-    private getNodeClickRange() {
-        return this.cartesianSeries.nodeClickRange;
-    }
-
-    private pickDatum(event: InteractionEvent, range: InteractionRange) {
-        // The error bars cover part of series datum node (marker/bar). If this part is clicked on, then
-        // that triggers the event twice (once in the Series class, and once in this ErrorBars class).
-        // We don't want that because there is an API for adding listeners to 'nodeClick' and
-        // 'nodeDoubleClick' events. Therefore, check for this before hit-testing:
-        if (event.callbackComplete) {
-            return undefined;
-        }
-
-        const point = this.groupNode.transformPoint(event.offsetX, event.offsetY);
-        for (const errorBarNode of this.selection.nodes()) {
-            if (errorBarNode.containsPointWithinRange(point.x, point.y, range)) {
-                return errorBarNode.datum;
-            }
-        }
-        return undefined;
-    }
-
-    private onHoverEvent(event: InteractionEvent<'hover'>) {
-        const { scene, highlightManager, tooltipManager, window } = this.ctx;
-        const { id } = this.groupNode;
-
-        const datum = this.pickDatum(event, this.getHighlightRange());
-        if (datum !== undefined) {
-            const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, datum, window);
-            const html = this.cartesianSeries.getTooltipHtml(datum);
-            highlightManager.updateHighlight(id, datum);
-            tooltipManager.updateTooltip(id, meta, html);
-        } else {
-            highlightManager.updateHighlight(id, undefined);
-            tooltipManager.removeTooltip(id);
+    pickNodeExact(point: Point): PickNodeDatumResult {
+        // TODO(olegat) optimise: distanceSquared isn't required, contains() check is sufficient
+        const { datum, distanceSquared } = this.groupNode.nearestSquared(point) ?? {};
+        if (distanceSquared === 0 && datum !== undefined) {
+            return { datum, distanceSquared };
         }
     }
 
-    private onClickEvent(event: InteractionEvent<'click'>) {
-        const datum = this.pickDatum(event, this.getNodeClickRange());
-        if (datum !== undefined) {
-            this.cartesianSeries.fireNodeClickEvent(event.sourceEvent as MouseEvent, datum);
-        }
+    pickNodeNearest(point: Point): PickNodeDatumResult {
+        return this.groupNode.nearestSquared(point);
     }
 
-    private onDoubleClickEvent(event: InteractionEvent<'dblclick'>) {
-        const datum = this.pickDatum(event, this.getNodeClickRange());
-        if (datum !== undefined) {
-            this.cartesianSeries.fireNodeDoubleClickEvent(event.sourceEvent as MouseEvent, datum);
-        }
+    pickNodeMainAxisFirst(point: Point): PickNodeDatumResult {
+        return this.groupNode.nearestSquared(point);
     }
 
     private onTooltipGetParams(_event: SeriesTooltipGetParamsEvent) {
