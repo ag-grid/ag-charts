@@ -44,8 +44,6 @@ console.log(
     `Updating Algolia using App ID ${process.env.PUBLIC_ASTRO_ALGOLIA_APP_ID} and admin key ${process.env.ALGOLIA_ADMIN_KEY}`
 );
 
-process.exit()
-
 let algoliaClient;
 if (!debug) {
     console.log('Creating Algolia client');

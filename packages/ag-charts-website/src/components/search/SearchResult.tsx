@@ -1,8 +1,8 @@
+import { PUBLIC_BASE_URL, PUBLIC_SITE_URL } from '@constants';
 import classnames from 'classnames';
 import { Highlight, Index, InfiniteHits, Snippet, connectStateResults } from 'react-instantsearch-dom';
 
 import styles from './SearchResult.module.scss';
-import {PUBLIC_BASE_URL, PUBLIC_SITE_URL} from "@constants";
 
 const HitCount = connectStateResults(({ searchResults, hasResults }) => {
     const hitCount = searchResults && searchResults.nbHits;
@@ -15,7 +15,7 @@ const HitCount = connectStateResults(({ searchResults, hasResults }) => {
 });
 
 const PageHit = ({ hit, onResultClicked }) => {
-    const url = `${PUBLIC_SITE_URL}${PUBLIC_BASE_URL ?? ""}${hit.path}`
+    const url = `${PUBLIC_SITE_URL}${PUBLIC_BASE_URL ?? ''}${hit.path}`;
     return (
         <a href={url} onClick={onResultClicked}>
             <div className={classnames(styles.breadcrumb, 'font-size-small')}>{hit.breadcrumb}</div>
@@ -31,7 +31,7 @@ const PageHit = ({ hit, onResultClicked }) => {
             <Snippet className="font-size-small" attribute="text" hit={hit} tagName="mark" />
         </a>
     );
-}
+};
 
 const Results = connectStateResults(({ searchState, searchResults, children, isSearchStalled }) => {
     if (searchResults && searchResults.nbHits > 0) {
