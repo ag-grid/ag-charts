@@ -38,7 +38,7 @@ export const getBoilerPlateName = (internalFramework: InternalFramework) => {
 };
 
 export const getTransformTsFileExt = (internalFramework: InternalFramework): TransformTsFileExt => {
-    let transformTsFileExt;
+    let transformTsFileExt: TransformTsFileExt;
     if (internalFramework === 'reactFunctionalTs') {
         transformTsFileExt = '.tsx';
     } else if (!isTypescriptInternalFramework(internalFramework)) {

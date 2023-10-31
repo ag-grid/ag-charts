@@ -18,12 +18,12 @@ const exampleUrl = getExampleUrl({
     exampleName,
 });
 const generatedContents =
-    (await getGeneratedDocsContents({
+    await getGeneratedDocsContents({
         internalFramework,
         pageName,
         exampleName,
-    })) || {};
-const { scriptFiles, styleFiles, files } = generatedContents;
+    });
+const { scriptFiles, styleFiles, files } = generatedContents!;
 const indexFragment = files && files['index.html'];
 const appLocation = exampleUrl;
 ---
