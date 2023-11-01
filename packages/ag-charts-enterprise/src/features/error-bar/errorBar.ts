@@ -300,10 +300,10 @@ export class ErrorBars
     }
 
     pickNodeExact(point: Point): PickNodeDatumResult {
-        // TODO(olegat) optimise: distanceSquared isn't required, contains() check is sufficient
-        const { datum, distanceSquared } = this.groupNode.nearestSquared(point) ?? {};
-        if (distanceSquared === 0 && datum !== undefined) {
-            return { datum, distanceSquared };
+        const { x, y } = this.groupNode.transformPoint(point.x, point.y);
+        const node = this.groupNode.pickNode(x, y);
+        if (node !== undefined) {
+            return { datum: node.datum, distanceSquared: 0 };
         }
     }
 

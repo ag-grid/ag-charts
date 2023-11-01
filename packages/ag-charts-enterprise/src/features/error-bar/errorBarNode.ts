@@ -231,6 +231,10 @@ export class ErrorBarNode extends _Scene.Group {
         return this.bboxes.containsPoint(x, y);
     }
 
+    override pickNode(x: number, y: number): _Scene.Node | undefined {
+        return this.containsPoint(x, y) ? this : undefined;
+    }
+
     nearestSquared(point: Point, maxDistance: number): NearestResult<_Scene.Node> {
         const { bboxes } = this;
         if (bboxes.union.distanceSquared(point) > maxDistance) {
@@ -243,21 +247,6 @@ export class ErrorBarNode extends _Scene.Group {
 }
 
 export class ErrorBarGroup extends _Scene.Group {
-    override containsPoint(x: number, y: number): boolean {
-        const children = this.children;
-        if (children.length === 0) {
-            return false;
-        } else {
-            const point = this.transformPoint(x, y);
-            for (const child of children) {
-                if (child.containsPoint(point.x, point.y)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     override get children(): ErrorBarNode[] {
         return super.children as ErrorBarNode[];
     }
