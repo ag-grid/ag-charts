@@ -63,9 +63,9 @@ export interface LegendModule extends BaseModule {
     themeTemplate?: {};
 }
 
-type AgSeriesOptions = NonNullable<AgChartOptions['series']>[number];
+type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
-type RequiredSeriesType = NonNullable<AgSeriesOptions['type']>;
+type RequiredSeriesType = NonNullable<SeriesOptionsTypes['type']>;
 type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Extensible<T[K]> : T[K] } & {
     __extends__?: string;
 };
@@ -77,7 +77,7 @@ export type ExtensibleDefaults<
     ChartOptions = AgChartOptions & { series?: { type: SeriesType } },
 > = Extensible<ChartOptions>;
 
-export type SeriesOptions<SeriesType extends RequiredSeriesType> = Extract<AgSeriesOptions, { type: SeriesType }>;
+export type SeriesOptions<SeriesType extends RequiredSeriesType> = Extract<SeriesOptionsTypes, { type: SeriesType }>;
 
 export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType> extends BaseModule {
     type: 'series';

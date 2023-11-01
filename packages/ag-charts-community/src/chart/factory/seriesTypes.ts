@@ -29,7 +29,7 @@ export function registerSeries(
     stackable: boolean | undefined,
     groupable: boolean | undefined,
     stackedByDefault: boolean | undefined,
-    swapDefaultAxesCondition: ((opts: unknown) => boolean) | undefined
+    swapDefaultAxesCondition: ((opts: any) => boolean) | undefined
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
@@ -131,8 +131,7 @@ export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
     for (const series of opts.series ?? []) {
         const { type } = series;
 
-        const isDefaultAxisSwapped =
-            type != null && SWAP_DEFAULT_AXES_CONDITIONS[type] ? SWAP_DEFAULT_AXES_CONDITIONS[type](series) : undefined;
+        const isDefaultAxisSwapped = type != null ? SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series) : undefined;
 
         if (result != null && isDefaultAxisSwapped != null && result != isDefaultAxisSwapped) {
             throw new Error('AG Charts - the series have incompatible axes');
