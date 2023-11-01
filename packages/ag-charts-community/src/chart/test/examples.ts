@@ -117,7 +117,7 @@ export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgChartOptions = {};
     Object.assign(GROUPED_CATEGORY_AXIS_EXAMPLE, {
         data: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
         axes: [
-            { type: 'groupedCategory', position: 'bottom' },
+            { type: 'grouped-category', position: 'bottom' },
             { type: 'number', position: 'left', label: { formatter: usdFormatter } },
         ],
         series: [

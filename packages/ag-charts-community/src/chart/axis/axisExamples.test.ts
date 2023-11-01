@@ -72,7 +72,7 @@ const EXAMPLES: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['groupedCategory', 'number'],
+                axisTypes: ['grouped-category', 'number'],
                 seriesTypes: ['bar'],
             }),
         },
@@ -215,7 +215,7 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
         GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: {
             options: axesExamples.GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['groupedCategory', 'number'],
+                axisTypes: ['grouped-category', 'number'],
                 seriesTypes: ['bar'],
             }),
         },

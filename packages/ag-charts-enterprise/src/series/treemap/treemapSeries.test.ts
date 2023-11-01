@@ -53,10 +53,12 @@ describe('HierarchyChart', () => {
 
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options,
-            data: {
-                ...GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data,
-                children: GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data.children.slice(0, 1),
-            },
+            data: [
+                {
+                    ...GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data[0],
+                    children: GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data[0].children.slice(0, 1),
+                },
+            ],
         };
 
         it('should render a complex chart', async () => {
@@ -278,22 +280,24 @@ describe('HierarchyChart', () => {
                 categoryKey: 'year',
             },
             food: {
-                data: {
-                    name: 'Food',
-                    children: [
-                        {
-                            name: 'Fruits',
-                            children: [
-                                { name: 'Banana', count: 10 },
-                                { name: 'Apple', count: 5 },
-                            ],
-                        },
-                        {
-                            name: 'Vegetables',
-                            children: [{ name: 'Cucumber', count: 2 }],
-                        },
-                    ],
-                },
+                data: [
+                    {
+                        name: 'Food',
+                        children: [
+                            {
+                                name: 'Fruits',
+                                children: [
+                                    { name: 'Banana', count: 10 },
+                                    { name: 'Apple', count: 5 },
+                                ],
+                            },
+                            {
+                                name: 'Vegetables',
+                                children: [{ name: 'Cucumber', count: 2 }],
+                            },
+                        ],
+                    },
+                ],
                 valueKey: 'count',
                 labelKey: 'name',
             },

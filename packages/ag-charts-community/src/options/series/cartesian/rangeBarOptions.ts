@@ -96,7 +96,6 @@ export interface AgRangeBarSeriesOptionsNames {
     yName?: string;
 }
 
-/** Configuration for RangeBar series. */
 export interface AgRangeBarSeriesOptions<TDatum = any>
     extends AgRangeBarSeriesOptionsKeys,
         AgRangeBarSeriesOptionsNames,

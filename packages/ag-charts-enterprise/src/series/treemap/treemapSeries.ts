@@ -248,6 +248,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
     override readonly highlightStyle = new TreemapHighlightStyle();
 
+    override get data() {
+        return this._data?.[0] ?? this._chartData?.[0];
+    }
+
     private getNodePaddingTop(nodeDatum: TreemapNodeDatum, bbox: _Scene.BBox) {
         const { title, subtitle, nodePadding } = this;
         const label = nodeDatum.label;

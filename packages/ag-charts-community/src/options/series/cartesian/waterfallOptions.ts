@@ -74,7 +74,6 @@ export interface AgWaterfallSeriesOptionsNames {
     yName?: string;
 }
 
-/** Configuration for Waterfall series. */
 export interface AgWaterfallSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgWaterfallSeriesOptionsKeys,

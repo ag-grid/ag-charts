@@ -3,10 +3,10 @@ import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 
 export type AgNightingaleSeriesThemeableOptions<TDatum = any> = AgBaseRadialSeriesThemeableOptions<TDatum>;
 
-/** Configuration for Nightingale series. */
 export interface AgNightingaleSeriesOptions<TDatum = any>
     extends AgNightingaleSeriesThemeableOptions<TDatum>,
         AgBaseRadialColumnSeriesOptions<TDatum> {
+    /** Configuration for Nightingale series. */
     type: 'nightingale';
 }
 

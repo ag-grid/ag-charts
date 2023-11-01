@@ -111,11 +111,11 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any> extends AgBaseSer
     formatter?: (params: AgTreemapSeriesFormatterParams<TDatum>) => AgTreemapSeriesStyle;
 }
 
-/** Configuration for the treemap series. */
 export interface AgTreemapSeriesOptions<TDatum = any>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesThemeableOptions<TDatum> {
+    /** Configuration for the treemap series. */
     type: 'treemap';
 }
 

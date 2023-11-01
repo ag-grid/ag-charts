@@ -37,12 +37,12 @@ export interface AgAreaSeriesOptionsNames {
     yName?: string;
 }
 
-/** Configuration for area series. */
 export interface AgAreaSeriesOptions<DatumType = any>
     extends AgBaseSeriesOptions<DatumType>,
         AgAreaSeriesOptionsKeys,
         AgAreaSeriesOptionsNames,
         AgAreaSeriesThemeableOptions<DatumType> {
+    /** Configuration for area series. */
     type: 'area';
     /** The number to normalise the area stacks to. For example, if `normalizedTo` is set to `100`, the stacks will all be scaled proportionally so that their total height is always 100. */
     normalizedTo?: number;
