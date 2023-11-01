@@ -44,7 +44,7 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'wheel',
 ];
 
-export type InteractionEvent<T extends InteractionTypes> = {
+export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = {
     type: T;
     offsetX: number;
     offsetY: number;

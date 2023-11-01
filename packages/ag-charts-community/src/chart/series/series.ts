@@ -1,7 +1,7 @@
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import type { ModuleContextInitialiser } from '../../module/moduleMap';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionModule } from '../../module/optionModules';
+import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/optionModules';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/chart/labelOptions';
 import type { InteractionRange } from '../../options/chart/types';
 import type {
@@ -283,7 +283,7 @@ enum SeriesHighlight {
     Other,
 }
 
-export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext>;
+export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext, SeriesOptionInstance>;
 
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
@@ -757,7 +757,7 @@ export abstract class Series<
 
     readonly highlightStyle = new HighlightStyle();
 
-    private readonly moduleMap: SeriesModuleMap = new ModuleMap(this);
+    protected readonly moduleMap: SeriesModuleMap = new ModuleMap(this);
 
     getModuleMap(): SeriesModuleMap {
         return this.moduleMap;

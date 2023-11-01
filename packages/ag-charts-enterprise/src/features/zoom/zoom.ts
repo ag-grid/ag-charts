@@ -222,7 +222,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             zoom
         );
 
-        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
+        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onDragEnd() {
