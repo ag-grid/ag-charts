@@ -79,20 +79,14 @@
             tslib: 'npm:tslib@2.3.1/tslib.js',
             typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
-            // our app is within the app folder, appLocation comes from index.html
-            app: appLocation + 'app',
+            // appLocation comes from index.html
+            app: appLocation,
             ...systemJsMap,
         },
         // packages tells the System loader how to load when no filename and/or no extension
         packages: {
             app: {
-                main: './main.ts',
                 defaultExtension: 'ts',
-                meta: {
-                    './*.ts': {
-                        loader: boilerplatePath + 'systemjs-angular-loader.js',
-                    },
-                },
             },
             'ag-charts-angular': {
                 main: './fesm2015/ag-charts-angular.js',

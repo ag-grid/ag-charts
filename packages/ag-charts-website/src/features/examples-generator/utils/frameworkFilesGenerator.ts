@@ -1,6 +1,6 @@
 import type { InternalFramework } from '@ag-grid-types';
 
-import { appModuleAngular } from '../transformation-scripts/chart-packages-angular-app-module';
+import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
 import { vanillaToReact } from '../transformation-scripts/chart-vanilla-to-react';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
@@ -186,20 +186,18 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const entryFileName = getEntryFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
 
-        // TODO: Need component file names and stylesheets?
-        // const getSource = vanillaToAngular(deepCloneObject(typedBindings), angularComponentFileNames, allStylesheets);
         const getSource = vanillaToAngular(deepCloneObject(typedBindings), []);
         const appComponent = getSource();
-        // NOTE: No component file names yet
-        const componentFileNames: string[] = [];
 
         return {
             files: {
                 ...otherScriptFiles,
-                // NOTE: Note `entryFileName` is not used here, as it is generated as part of the boilerPlateFiles
-                'app.component.ts': appComponent,
-                'app.module.ts': appModuleAngular(componentFileNames),
                 // NOTE: No `index.html` as the contents are generated in the `app.component` file
+                // NOTE: Duplicating entrypoint boilerplate file here, so examples
+                // load from the same directory as these files, rather than
+                // boilerplate files
+                [entryFileName]: boilerPlateFiles[entryFileName],
+                [ANGULAR_GENERATED_MAIN_FILE_NAME]: appComponent,
             },
             boilerPlateFiles,
             entryFileName,
