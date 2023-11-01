@@ -67,12 +67,6 @@ export interface AgChartInterface {
     getImageDataURL(chart: AgChartInstance, options?: ImageDataUrlOptions): Promise<string>;
 }
 
-export interface AgChartSpecialOverrides {
-    document?: Document;
-    window?: Window;
-    overrideDevicePixelRatio?: number;
-}
-
 export interface DownloadOptions extends ImageDataUrlOptions {
     /** Name of downloaded image file. Defaults to `image`.  */
     fileName?: string;
