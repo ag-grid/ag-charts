@@ -296,3 +296,16 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
         ...getSubTypes(seriesRef).map(createPageMapper('series')),
     ];
 }
+
+export function getThemesApiStaticPaths(reference: ApiReferenceType) {
+    const interfaceRef = reference.get('AgBaseChartThemeOverrides');
+
+    if (interfaceRef?.kind !== 'interface') {
+        return [];
+    }
+
+    return interfaceRef.members.map((member) => ({
+        params: { memberName: member.name },
+        props: { pageInterface: member.type, pageTitle: { memberName: member.name } },
+    }));
+}

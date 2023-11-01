@@ -99,7 +99,7 @@
 .navItem {
     padding: 0 16px 0 calc(16px + var(--nav-options-indent) * var(--options-nav-depth, 0));
 
-    &.highlight {
+    &:global(.highlight) {
         --highlight-color: var(--primary-600);
         --highlight-opacity: 0.15;
 

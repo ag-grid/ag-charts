@@ -4,7 +4,7 @@ import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode
 
 import type { TypeNode } from '../api-reference-types';
 import { normalizeType } from '../utils/apiReferenceHelpers';
-import { navigate, scrollIntoView } from '../utils/navigation';
+import { navigate, scrollIntoViewById } from '../utils/navigation';
 import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
@@ -20,7 +20,7 @@ export function PropertyTitle({ name, anchorId, prefixPath, required }: Property
         navigate(event.currentTarget.href);
         const href = event.currentTarget.getAttribute('href');
         if (href?.startsWith('#')) {
-            scrollIntoView(href.substring(1));
+            scrollIntoViewById(href.substring(1));
         }
     };
     return (

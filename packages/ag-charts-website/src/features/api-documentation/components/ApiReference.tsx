@@ -8,7 +8,7 @@ import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
 import { formatTypeToCode, getMemberType, isInterfaceHidden } from '../utils/apiReferenceHelpers';
-import { scrollIntoView, useLocation } from '../utils/navigation';
+import { scrollIntoViewById, useLocation } from '../utils/navigation';
 import styles from './ApiReference.module.scss';
 import { PropertyTitle, PropertyType } from './Properies';
 
@@ -93,7 +93,7 @@ function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptio
     useEffect(() => {
         const hash = location?.hash.substring(1);
         if (hash === anchorId) {
-            scrollIntoView(anchorId);
+            scrollIntoViewById(anchorId);
         } else if (hash?.startsWith(anchorId)) {
             setExpanded(true);
         }

@@ -79,13 +79,13 @@ function ApiReferencePageContent({
         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
             <header ref={(ref) => setHeaderHeight(ref?.clientHeight ?? 0)}>
                 <h1 className="font-size-gigantic">
-                    {pageTitle ? (
+                    {pageTitle?.type ? (
                         <>
                             {pageTitle.memberName}[type = '
                             <span className={styles.unionDiscriminator}>{pageTitle.type}</span>']
                         </>
                     ) : (
-                        pageRef.name
+                        pageTitle?.memberName ?? pageRef.name
                     )}
                 </h1>
                 <Markdown>{pageRef.docs?.join('\n')}</Markdown>

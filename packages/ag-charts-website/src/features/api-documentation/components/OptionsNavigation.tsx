@@ -4,11 +4,11 @@ import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import type { To } from 'history';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useRef } from 'react';
 
 import type { MemberNode } from '../api-reference-types';
 import { extractSearchData, getMemberType } from '../utils/apiReferenceHelpers';
-import { navigate } from '../utils/navigation';
+import { navigate, scrollIntoView } from '../utils/navigation';
 import { ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
@@ -38,24 +38,26 @@ export function OptionsNavigation({
     breadcrumbs: string[];
     rootInterface: string;
 }) {
+    const elementRef = useRef<HTMLDivElement>(null);
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
     const interfaceRef = reference?.get(rootInterface);
 
-    console.log(selection?.selection);
-
     const handleClick = (navigateTo: To, newSelection: Selection) => {
         selection?.setSelection(newSelection);
-        // console.log(navigateTo, newSelection);
         navigate(navigateTo);
     };
+
+    useEffect(() => {
+        scrollIntoView(elementRef.current?.querySelector('.highlight'), { behavior: 'auto', block: 'center' });
+    }, []);
 
     if (!reference || !interfaceRef) {
         return null;
     }
 
     return (
-        <div className={styles.expandableSnippet} role="presentation">
+        <div ref={elementRef} className={styles.expandableSnippet} role="presentation">
             <header>
                 <h3>Options Reference</h3>
                 <p className="text-secondary font-size-small">
@@ -158,7 +160,7 @@ function NavProperty({
 
     return (
         <>
-            <div className={classnames(styles.navItem, isSelected && styles.highlight)} onDoubleClick={toggleExpanded}>
+            <div className={classnames(styles.navItem, isSelected && 'highlight')} onDoubleClick={toggleExpanded}>
                 <span
                     className={classnames(
                         styles.propertyName,
@@ -168,7 +170,7 @@ function NavProperty({
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
                     <span onClick={handleClick}>
-                        {member.name === 'type' ? (
+                        {member.name === 'type' && anchorId.split('-').length === 3 ? (
                             <>
                                 type <span className={styles.punctuation}>= '</span>
                                 <span className={styles.unionDiscriminator}>
@@ -266,7 +268,7 @@ function NavTypedUnionProperty({
 
     return (
         <>
-            <div className={classnames(styles.navItem, isSelected && styles.highlight)} onDoubleClick={toggleExpanded}>
+            <div className={classnames(styles.navItem, isSelected && 'highlight')} onDoubleClick={toggleExpanded}>
                 <span
                     className={classnames(
                         styles.propertyName,
@@ -342,7 +344,12 @@ function NavBreadcrumb({
             {breadcrumbs?.map((breadcrumb, index) => (
                 <NavGroup key={index} depth={index}>
                     {index > 0 && <div className={styles.navItem}>...</div>}
-                    <div className={classnames(styles.navItem, isSelected && styles.highlight)}>
+                    <div
+                        className={classnames(
+                            styles.navItem,
+                            isSelected && index + 1 === breadcrumbs.length && 'highlight'
+                        )}
+                    >
                         <span className={classnames(styles.propertyName)} onClick={handleClick}>
                             {index > 0 && <PropertyExpander isExpanded />}
                             {breadcrumb}
