@@ -6,6 +6,9 @@
 // rather than become enticed by the much slower:
 // `ctx.strokeRect(...bbox);`
 // https://jsperf.com/array-vs-object-create-access
+import type { DistantObject, NearestResult } from './nearest';
+import { nearestSquared } from './nearest';
+import type { Point } from './point';
 
 type Padding = {
     top: number;
@@ -16,7 +19,7 @@ type Padding = {
 
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
-export class BBox {
+export class BBox implements DistantObject {
     x: number;
     y: number;
     width: number;
@@ -58,6 +61,20 @@ export class BBox {
             Math.abs(this.width) === Infinity ||
             Math.abs(this.height) === Infinity
         );
+    }
+
+    distanceSquared(point: Point): number {
+        if (this.containsPoint(point.x, point.y)) {
+            return 0;
+        }
+
+        const dx = point.x - Math.max(this.x, Math.min(point.x, this.x + this.width));
+        const dy = point.y - Math.max(this.y, Math.min(point.y, this.y + this.height));
+        return dx * dx + dy * dy;
+    }
+
+    static nearestBox(point: Point, boxes: BBox[]): NearestResult<BBox> {
+        return nearestSquared(point, boxes);
     }
 
     shrink(amounts: Partial<Padding>): this;

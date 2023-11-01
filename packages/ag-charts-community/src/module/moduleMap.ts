@@ -55,4 +55,10 @@ export class ModuleMap<M extends Module<C, I>, C, I extends ModuleInstance = Mod
     isModuleEnabled(module: M) {
         return this.modules[module.optionsKey] != null;
     }
+
+    *[Symbol.iterator](): IterableIterator<I> {
+        for (const { instance } of Object.values(this.modules)) {
+            yield instance;
+        }
+    }
 }

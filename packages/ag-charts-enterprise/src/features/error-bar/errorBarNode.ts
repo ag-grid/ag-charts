@@ -1,8 +1,11 @@
 import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
-import type { InteractionRange } from 'ag-charts-community';
 
 const { partialAssign, mergeDefaults } = _ModuleSupport;
+const { BBox } = _Scene;
+type BBox = _Scene.BBox;
+type Point = _Scene.Point;
+type NearestResult<T> = _Scene.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 
@@ -28,17 +31,42 @@ type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
 type CapLengthOptions = Pick<CapOptions, 'length' | 'lengthRatio'>;
 
+class HierarchialBBox {
+    // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
+    // testing, therefore we'll use a hierachial bbox structure: `union` is the bbox that includes
+    // all the components.
+    public union: BBox;
+    public components: BBox[];
+
+    constructor(components: BBox[]) {
+        this.components = components;
+        this.union = BBox.merge(components);
+    }
+
+    public containsPoint(x: number, y: number) {
+        if (!this.union.containsPoint(x, y)) {
+            return false;
+        }
+
+        for (const bbox of this.components) {
+            if (bbox.containsPoint(x, y)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 export class ErrorBarNode extends _Scene.Group {
     private whiskerPath: _Scene.Path;
     private capsPath: _Scene.Path;
+    private capLength: number = NaN;
 
-    private bboxes: {
-        // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
-        // testing, therefore we'll use a hierachial bbox structure: `union` is the bbox that includes
-        // all the components.
-        union: _Scene.BBox;
-        components: _Scene.BBox[];
-    } = { union: this.computeBBox(), components: [] };
+    // The ErrorBarNode does not need to handle the 'nearest' interaction range type, we can let the
+    // series class handle that for us. The 'exact' interaction range is the same as having a distance
+    // of 0. Therefore, we only need bounding boxes for number based ranges.
+    private bboxes: HierarchialBBox;
 
     protected override _datum?: ErrorBarNodeDatum;
     public override get datum(): ErrorBarNodeDatum | undefined {
@@ -52,6 +80,7 @@ export class ErrorBarNode extends _Scene.Group {
         super();
         this.whiskerPath = new _Scene.Path();
         this.capsPath = new _Scene.Path();
+        this.bboxes = new HierarchialBBox([]);
         this.append([this.whiskerPath, this.capsPath]);
     }
 
@@ -131,7 +160,7 @@ export class ErrorBarNode extends _Scene.Group {
         capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
     }
 
-    updateTranslation(cap: CapLengthOptions, range: InteractionRange) {
+    updateTranslation(cap: CapLengthOptions) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
@@ -154,8 +183,8 @@ export class ErrorBarNode extends _Scene.Group {
 
         // Errorbar caps stretch out pendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
-        const capLength = this.calculateCapLength(cap, capDefaults);
-        const capOffset = capLength / 2;
+        this.capLength = this.calculateCapLength(cap, capDefaults);
+        const capOffset = this.capLength / 2;
         const caps = this.capsPath;
         caps.path.clear();
         if (yBar !== undefined) {
@@ -172,52 +201,71 @@ export class ErrorBarNode extends _Scene.Group {
         }
         caps.path.closePath();
         caps.markDirtyTransform();
+    }
 
+    updateBBoxes(): void {
+        const { capLength, whiskerPath: whisker, capsPath: caps } = this;
         const { components } = this.bboxes;
-        components.length = 0;
+        const { yBar, xBar } = this.datum ?? {};
+        const capOffset = capLength / 2;
+
+        components.length = (xBar === undefined ? 0 : 3) + (yBar === undefined ? 0 : 3);
+        let i = 0;
         if (yBar !== undefined) {
             const whiskerHeight = yBar.lowerPoint.y - yBar.upperPoint.y;
-            components.push(
-                new _Scene.BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight),
-                new _Scene.BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth),
-                new _Scene.BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth)
-            );
+            components[i++] = new BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight);
+            components[i++] = new BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth);
+            components[i++] = new BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth);
         }
         if (xBar !== undefined) {
             const whiskerWidth = xBar.upperPoint.x - xBar.lowerPoint.x;
-            components.push(
-                new _Scene.BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth),
-                new _Scene.BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength),
-                new _Scene.BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength)
-            );
+            components[i++] = new BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth);
+            components[i++] = new BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength);
+            components[i++] = new BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength);
         }
-        const expansion = typeof range === 'string' ? 0 : range;
-        if (expansion > 0) {
-            for (const bbox of components) {
-                bbox.grow({ top: expansion, bottom: expansion, left: expansion, right: expansion });
-            }
-        }
-        this.bboxes.union = _Scene.BBox.merge(components);
-    }
 
-    override pickNode(x: number, y: number): _Scene.Node | undefined {
-        const point = this.transformPoint(x, y);
-        if (this.containsPoint(point.x, point.y)) {
-            return this;
-        }
+        this.bboxes.union = BBox.merge(components);
     }
 
     override containsPoint(x: number, y: number): boolean {
-        if (!this.bboxes.union.containsPoint(x, y)) {
-            return false;
+        return this.bboxes.containsPoint(x, y);
+    }
+
+    nearestSquared(point: Point, maxDistance: number): NearestResult<_Scene.Node> {
+        const { bboxes } = this;
+        if (bboxes.union.distanceSquared(point) > maxDistance) {
+            return { nearest: undefined, distanceSquared: Infinity };
         }
 
-        for (const bbox of this.bboxes.components) {
-            if (bbox.containsPoint(x, y)) {
-                return true;
+        const { distanceSquared } = BBox.nearestBox(point, bboxes.components);
+        return { nearest: this, distanceSquared };
+    }
+}
+
+export class ErrorBarGroup extends _Scene.Group {
+    override containsPoint(x: number, y: number): boolean {
+        const children = this.children;
+        if (children.length === 0) {
+            return false;
+        } else {
+            const point = this.transformPoint(x, y);
+            for (const child of children) {
+                if (child.containsPoint(point.x, point.y)) {
+                    return true;
+                }
             }
         }
-
         return false;
+    }
+
+    override get children(): ErrorBarNode[] {
+        return super.children as ErrorBarNode[];
+    }
+
+    nearestSquared(point: Point): _ModuleSupport.PickNodeDatumResult {
+        const { nearest, distanceSquared } = _Scene.nearestSquaredInContainer(point, this);
+        if (nearest !== undefined && !isNaN(distanceSquared)) {
+            return { datum: nearest.datum, distanceSquared };
+        }
     }
 }
