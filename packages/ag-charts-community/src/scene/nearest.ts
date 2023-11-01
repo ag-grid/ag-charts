@@ -20,7 +20,7 @@ export function nearestSquared<TObject extends DistantObject>(
     objects: TObject[],
     maxDistanceSquared = Infinity
 ): NearestResult<TObject> {
-    let result: NearestResult<TObject> = { nearest: undefined, distanceSquared: maxDistanceSquared };
+    const result: NearestResult<TObject> = { nearest: undefined, distanceSquared: maxDistanceSquared };
     for (const obj of objects) {
         const thisDistance = obj.distanceSquared(point);
         if (thisDistance === 0) {
@@ -39,7 +39,7 @@ export function nearestSquaredInContainer<TChild extends NodeWithDistanceCalcula
     maxDistanceSquared = Infinity
 ): NearestResult<Node> {
     const tpoint = container.transformPoint(point.x, point.y);
-    let result: NearestResult<Node> = { nearest: undefined, distanceSquared: maxDistanceSquared };
+    const result: NearestResult<Node> = { nearest: undefined, distanceSquared: maxDistanceSquared };
     for (const child of container.children) {
         const { nearest, distanceSquared } = child.nearestSquared(tpoint, result.distanceSquared);
         if (distanceSquared === 0) {

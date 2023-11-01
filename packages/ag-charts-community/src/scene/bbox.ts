@@ -6,7 +6,8 @@
 // rather than become enticed by the much slower:
 // `ctx.strokeRect(...bbox);`
 // https://jsperf.com/array-vs-object-create-access
-import { DistantObject, NearestResult, nearestSquared } from './nearest';
+import type { DistantObject, NearestResult } from './nearest';
+import { nearestSquared } from './nearest';
 import type { Point } from './point';
 
 type Padding = {
