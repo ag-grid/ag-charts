@@ -13,6 +13,11 @@ export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
 export type AgChartThemeOverrides = AgBaseChartThemeOverrides;
 
 export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, AgBaseChartOptions {
+    /**
+     * A predefined theme name or an object containing theme overrides.
+     *
+     * See: [Themes Reference](./themes-api/)
+     */
     theme?: AgChartTheme | AgChartThemeName;
 }
 export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChartOptions {

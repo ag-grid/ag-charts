@@ -72,7 +72,7 @@ function convertGridTreeData(ds: any[]) {
         insert(root, row, 'orgHierarchy');
     });
 
-    return root;
+    return [root];
 }
 
 function insert(root: any, row: any, pathFieldName: string) {
