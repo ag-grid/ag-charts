@@ -81,7 +81,10 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.rs.visible = visible;
 
         if (visible) {
-            this.ctx.zoomManager.updateZoom('navigator', { x: { min: this.rs.min, max: this.rs.max } });
+            this.ctx.zoomManager.updateZoom('navigator', {
+                x: { min: this.rs.min, max: this.rs.max },
+                y: { min: 0, max: 1 },
+            });
         } else {
             this.ctx.zoomManager.updateZoom('navigator');
         }
@@ -91,7 +94,10 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         super();
 
         this.rs.onRangeChange = () =>
-            ctx.zoomManager.updateZoom('navigator', { x: { min: this.rs.min, max: this.rs.max } });
+            ctx.zoomManager.updateZoom('navigator', {
+                x: { min: this.rs.min, max: this.rs.max },
+                y: { min: 0, max: 1 },
+            });
 
         ctx.scene.root?.appendChild(this.rs);
 
