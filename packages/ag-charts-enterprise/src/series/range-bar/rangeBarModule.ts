@@ -1,4 +1,4 @@
-import type { AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 
 import { RangeBarSeries } from './rangeBar';
 import { RANGE_BAR_DEFAULTS } from './rangeBarDefaults';
@@ -28,5 +28,5 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
 
     groupable: true,
 
-    swapDefaultAxesCondition: (opts) => (opts.series?.[0] as AgRangeBarSeriesOptions)?.direction !== 'horizontal',
+    swapDefaultAxesCondition: ({ direction }) => direction !== 'horizontal',
 };

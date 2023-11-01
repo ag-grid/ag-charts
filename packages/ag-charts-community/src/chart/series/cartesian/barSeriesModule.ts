@@ -1,5 +1,4 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import type { AgBarSeriesOptions } from '../../../options/agChartOptions';
 import { singleSeriesPaletteFactory } from '../../../util/theme';
 import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES, NORMAL } from '../../themes/constants';
 import {
@@ -32,7 +31,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             },
         ],
     },
-    swapDefaultAxesCondition: (opts) => (opts.series?.[0] as AgBarSeriesOptions)?.direction !== 'horizontal',
+    swapDefaultAxesCondition: (series) => series?.direction !== 'horizontal',
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         fillOpacity: 1,

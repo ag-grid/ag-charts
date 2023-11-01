@@ -1,4 +1,4 @@
-import type { AgWaterfallSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { _Theme } from 'ag-charts-community';
 
 import { WATERFALL_DEFAULTS } from './waterfallDefaults';
@@ -15,7 +15,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     instanceConstructor: WaterfallSeries,
     seriesDefaults: WATERFALL_DEFAULTS,
     themeTemplate: WATERFALL_SERIES_THEME,
-    swapDefaultAxesCondition: (opts) => (opts.series?.[0] as AgWaterfallSeriesOptions)?.direction !== 'horizontal',
+    swapDefaultAxesCondition: ({ direction }) => direction !== 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
         const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);

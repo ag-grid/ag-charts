@@ -16,7 +16,7 @@ const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
 const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
-const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: AgChartOptions) => boolean> = {};
+const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: unknown) => boolean> = {};
 
 export function registerSeries(
     seriesType: NonNullable<SeriesOptionsTypes['type']>,
@@ -29,7 +29,7 @@ export function registerSeries(
     stackable: boolean | undefined,
     groupable: boolean | undefined,
     stackedByDefault: boolean | undefined,
-    swapDefaultAxesCondition: ((opts: AgChartOptions) => boolean) | undefined
+    swapDefaultAxesCondition: ((opts: any) => boolean) | undefined
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
@@ -121,16 +121,24 @@ export function addStackedByDefaultSeriesType(seriesType: string) {
     STACKED_BY_DEFAULT_SERIES_TYPES.add(seriesType);
 }
 
-export function addSwapDefaultAxesCondition(seriesType: string, predicate: (opts: AgChartOptions) => boolean) {
+export function addSwapDefaultAxesCondition(seriesType: string, predicate: (opts: unknown) => boolean) {
     SWAP_DEFAULT_AXES_CONDITIONS[seriesType] = predicate;
 }
 
 export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
-    const { type } = opts.series?.[0] ?? {};
+    let result: boolean | undefined;
 
-    if (type != null && SWAP_DEFAULT_AXES_CONDITIONS[type]) {
-        return SWAP_DEFAULT_AXES_CONDITIONS[type](opts);
+    for (const series of opts.series ?? []) {
+        const { type } = series;
+
+        const isDefaultAxisSwapped = type != null ? SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series) : undefined;
+
+        if (result != null && isDefaultAxisSwapped != null && result != isDefaultAxisSwapped) {
+            throw new Error('AG Charts - the series have incompatible axes');
+        }
+
+        result = isDefaultAxisSwapped;
     }
 
-    return false;
+    return result ?? false;
 }
