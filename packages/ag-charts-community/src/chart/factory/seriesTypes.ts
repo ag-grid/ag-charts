@@ -134,7 +134,7 @@ export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
         const isDefaultAxisSwapped = type != null ? SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series) : undefined;
 
         if (result != null && isDefaultAxisSwapped != null && result != isDefaultAxisSwapped) {
-            throw new Error('AG Charts - the series have incompatible axes');
+            throw new Error('AG Charts - The provided series have incompatible directions');
         }
 
         result = isDefaultAxisSwapped;
