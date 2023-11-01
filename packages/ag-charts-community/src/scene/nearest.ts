@@ -1,4 +1,3 @@
-import type { Node } from './node';
 import type { Point } from './point';
 
 export type NearestResult<T> = { nearest: T | undefined; distanceSquared: number };
@@ -7,12 +6,13 @@ export interface DistantObject {
     distanceSquared(point: Point): number;
 }
 
-type NodeWithDistanceCalculator = Node & {
-    nearestSquared(point: Point, maxDistance: number): NearestResult<Node>;
+type NearestCalculator<TNearest> = {
+    nearestSquared(point: Point, maxDistance: number): NearestResult<TNearest>;
 };
 
-type DistantContainer<TChild extends NodeWithDistanceCalculator = NodeWithDistanceCalculator> = Node & {
-    get children(): TChild[];
+type DistantContainer<TNearest> = {
+    get children(): NearestCalculator<TNearest>[];
+    transformPoint(x: number, y: number): Point;
 };
 
 export function nearestSquared<TObject extends DistantObject>(
@@ -33,13 +33,13 @@ export function nearestSquared<TObject extends DistantObject>(
     return result;
 }
 
-export function nearestSquaredInContainer<TChild extends NodeWithDistanceCalculator = NodeWithDistanceCalculator>(
+export function nearestSquaredInContainer<TNearest>(
     point: Point,
-    container: DistantContainer<TChild>,
+    container: DistantContainer<TNearest>,
     maxDistanceSquared = Infinity
-): NearestResult<Node> {
+): NearestResult<TNearest> {
     const tpoint = container.transformPoint(point.x, point.y);
-    const result: NearestResult<Node> = { nearest: undefined, distanceSquared: maxDistanceSquared };
+    const result: NearestResult<TNearest> = { nearest: undefined, distanceSquared: maxDistanceSquared };
     for (const child of container.children) {
         const { nearest, distanceSquared } = child.nearestSquared(tpoint, result.distanceSquared);
         if (distanceSquared === 0) {
