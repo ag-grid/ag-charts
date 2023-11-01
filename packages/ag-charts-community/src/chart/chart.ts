@@ -514,7 +514,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private seriesToUpdate: Set<ISeries<any>> = new Set();
     private updateMutex = new Mutex();
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private updateAnimationIsSkipping?: boolean;
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this._destroyed) return;
 
@@ -547,8 +546,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         if (skipAnimations) {
-            this.updateAnimationIsSkipping ??= this.animationManager.isSkipped();
-            this.animationManager.skip();
+            this.animationManager.skipCurrentBatch();
         }
 
         if (Debug.check(true)) {
@@ -624,11 +622,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         this.updateService.dispatchUpdateComplete(this.getMinRect());
-
-        if (this.updateAnimationIsSkipping !== undefined) {
-            this.animationManager.skip(this.updateAnimationIsSkipping);
-            this.updateAnimationIsSkipping = undefined;
-        }
 
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {
