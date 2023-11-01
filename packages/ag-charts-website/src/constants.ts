@@ -37,6 +37,8 @@ export const agChartsVueVersion = '8.0.0';
 /**
  * Site base URL
  *
+ * ie undefined for dev, /ag-charts for staging
+ *
  * NOTE: Includes trailing slash (`/`)
  */
 export const SITE_BASE_URL =
@@ -46,9 +48,9 @@ export const SITE_BASE_URL =
 /*
  * Site URL
  *
- * ie https://testing.ag-grid.com
+ * ie http://localhost:4600 for dev, https://testing.ag-grid.com for staging
  */
-export const SITE_URL = import.meta.env?.SITE_URL;
+export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env.PUBLIC_SITE_URL;
 
 /**
  * Number of URL segments in `SITE_BASE_URL`
@@ -63,9 +65,3 @@ export const DEV_FILE_BASE_PATH = '/dev';
 export const ASTRO_ALGOLIA_APP_ID = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_APP_ID;
 
 export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SEARCH_KEY;
-
-// ie http://localhost:4600 for dev, https://testing.ag-grid.com for staging
-export const PUBLIC_SITE_URL = import.meta.env.PUBLIC_SITE_URL;
-
-// ie undefined for dev, /ag-charts for staging
-export const PUBLIC_BASE_URL = import.meta.env.PUBLIC_BASE_URL;

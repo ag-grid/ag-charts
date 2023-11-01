@@ -1,4 +1,4 @@
-import { PUBLIC_BASE_URL, PUBLIC_SITE_URL } from '@constants';
+import { PUBLIC_BASE_URL, PUBLIC_SITE_URL, SITE_BASE_URL, SITE_URL } from '@constants';
 import classnames from 'classnames';
 import { Highlight, Index, InfiniteHits, Snippet, connectStateResults } from 'react-instantsearch-dom';
 
@@ -15,7 +15,8 @@ const HitCount = connectStateResults(({ searchResults, hasResults }) => {
 });
 
 const PageHit = ({ hit, onResultClicked }) => {
-    const url = `${PUBLIC_SITE_URL}${PUBLIC_BASE_URL ?? ''}${hit.path}`;
+    const path = `${SITE_BASE_URL ?? ''}${hit.path}`.replaceAll('//', '/');
+    const url = `${SITE_URL}${path}`;
     return (
         <a href={url} onClick={onResultClicked}>
             <div className={classnames(styles.breadcrumb, 'font-size-small')}>{hit.breadcrumb}</div>
