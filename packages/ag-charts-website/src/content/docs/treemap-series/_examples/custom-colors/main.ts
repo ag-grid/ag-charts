@@ -14,9 +14,6 @@ const options: AgChartOptions = {
             sizeKey: 'exports',
             tileStroke: 'white',
             tileStrokeWidth: 2,
-            labelShadow: {
-                enabled: false,
-            },
             groupFill: 'transparent',
             title: {
                 color: 'black',
