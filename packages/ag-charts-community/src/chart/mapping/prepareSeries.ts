@@ -65,13 +65,6 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
         return result;
     }
 
-    for (const group of Object.values(groupMap)) {
-        const type = group.opts[0]?.type ?? 'line';
-        if (anyStacked[type] !== true) continue;
-
-        group.type = 'stack' as any;
-    }
-
     return result;
 }
 

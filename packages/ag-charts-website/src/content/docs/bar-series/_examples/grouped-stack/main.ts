@@ -37,12 +37,14 @@ const options: AgChartOptions = {
       xKey: 'quarter',
       yKey: 'wearables',
       yName: 'Wearables',
+      stackGroup: 'Other'
     },
     {
       type: 'bar',
       xKey: 'quarter',
       yKey: 'services',
       yName: 'Services',
+      stackGroup: 'Other'
     },
   ],
 }
