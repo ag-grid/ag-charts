@@ -32,22 +32,36 @@ export function swapAxes<T extends AgChartOptions>(opts: T): T {
     };
 }
 
-export function resolveModuleConflicts<T extends AgChartOptions>(opts: T): Partial<T> {
-    const conflictOverrides: Partial<T> = {};
+export function resolveModuleConflicts<T extends AgChartOptions>(opts: T) {
+    const conflictOverrides = {} as Record<keyof T, { enabled?: boolean }>;
     for (const [source, conflicts] of MODULE_CONFLICTS.entries()) {
-        if (opts[source] == null) continue;
-        conflicts.forEach((conflict) => {
-            conflictOverrides[source] ??= {} as any;
-            if (opts[source]?.enabled && opts[conflict]?.enabled) {
+        const sourceOpt = opts[source];
+
+        if (sourceOpt == null || typeof sourceOpt !== 'object' || !conflicts.length) {
+            continue;
+        }
+
+        conflictOverrides[source] ??= {};
+
+        for (const conflict of conflicts) {
+            const conflictOpt = opts[conflict];
+            if (
+                conflictOpt != null &&
+                typeof conflictOpt === 'object' &&
+                'enabled' in sourceOpt &&
+                'enabled' in conflictOpt &&
+                sourceOpt.enabled &&
+                conflictOpt.enabled
+            ) {
                 Logger.warnOnce(
                     `the [${source}] module can not be used at the same time as [${conflict}], it will be disabled.`
                 );
                 conflictOverrides[source].enabled = false;
             } else {
-                conflictOverrides[source].enabled = opts[source]?.enabled;
+                conflictOverrides[source].enabled = 'enabled' in sourceOpt ? sourceOpt.enabled : undefined;
             }
-        });
+        }
     }
 
-    return conflictOverrides;
+    return conflictOverrides as Partial<T>;
 }

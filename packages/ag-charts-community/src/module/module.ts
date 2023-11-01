@@ -49,7 +49,8 @@ export function hasRegisteredEnterpriseModules() {
     return REGISTERED_MODULES.some((m) => m.packageType === 'enterprise');
 }
 
-export const MODULE_CONFLICTS: Map<keyof AgChartOptions, Array<keyof AgChartOptions>> = new Map();
-export function registerModuleConflicts(source: keyof AgChartOptions, targets: Array<keyof AgChartOptions>) {
+type AgChartOptionsKeys = keyof AgChartOptions;
+export const MODULE_CONFLICTS: Map<AgChartOptionsKeys, AgChartOptionsKeys[]> = new Map();
+export function registerModuleConflicts(source: AgChartOptionsKeys, targets: AgChartOptionsKeys[]) {
     MODULE_CONFLICTS.set(source, targets);
 }
