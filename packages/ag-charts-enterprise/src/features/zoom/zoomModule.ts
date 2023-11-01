@@ -8,7 +8,8 @@ export const ZoomModule: _ModuleSupport.Module = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     instanceConstructor: Zoom,
+    conflicts: ['navigator'],
     themeTemplate: {
-        zoom: { enabled: true },
+        zoom: { enabled: false },
     },
 };

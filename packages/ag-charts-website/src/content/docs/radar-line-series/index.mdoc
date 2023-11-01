@@ -8,7 +8,7 @@ for easy visual comparison.
 
 ## Simple Radar Line
 
-{% chartExampleRunner title="Simple Radar Line" name="simple-radar-line" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Simple Radar Line" name="simple-radar-line" type="generated" /%}
 
 To create a Radar Line Series, use the `radar-line` series type.
 
@@ -29,7 +29,7 @@ In this configuration:
 
 ### Axis Shape
 
-{% chartExampleRunner title="Axis Shape" name="axis-shape" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Axis Shape" name="axis-shape" type="generated" /%}
 
 For Polar Axes, there are two shape options:
 
@@ -47,7 +47,7 @@ axes: [
 
 ### Axis Label Orientation
 
-{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Axis Label Orientation" name="axis-label-orientation" type="generated" /%}
 
 To change Angle Axis Label orientation, use the `label.orientation` property with these options:
 
@@ -71,7 +71,7 @@ axes: [
 
 ### Radius Axis Position
 
-{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Radius Axis Position" name="radius-axis-position" type="generated" /%}
 
 Customise the Radius Axis Line position via `positionAngle` and Axis Label rotation using `label.rotation`:
 
@@ -90,10 +90,22 @@ axes: [
 
 ## API Reference
 
-{% interfaceDocumentation interfaceName="AgRadarLineSeriesOptions" config="{ \"showSnippets\": false }" /%}
+{% tabs %}
 
-{% interfaceDocumentation interfaceName="AgAngleCategoryAxisOptions" config="{ \"showSnippets\": false }" /%}
+{% tabItem label="Radar Line Series" %}
+{% apiReference id="AgRadarLineSeriesOptions" /%}
+{% /tabItem %}
 
-{% interfaceDocumentation interfaceName="AgAngleAxisLabelOptions" config="{ \"showSnippets\": false }" /%}
+{% tabItem label="Angle Category Axis" %}
+{% apiReference id="AgAngleCategoryAxisOptions" /%}
+{% /tabItem %}
 
-{% interfaceDocumentation interfaceName="AgRadiusNumberAxisOptions" config="{ \"showSnippets\": false }" /%}
+{% tabItem label="Angle Axis Label" %}
+{% apiReference id="AgAngleAxisLabelOptions" /%}
+{% /tabItem %}
+
+{% tabItem label="Radius Number Axis" %}
+{% apiReference id="AgRadiusNumberAxisOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

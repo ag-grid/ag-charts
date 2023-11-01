@@ -4,7 +4,7 @@ import { getData } from "./data";
 const options: AgChartOptions = {
   container: document.getElementById('myChart'),
   title: {
-    text: "Apple's revenue by product category",
+    text: "Apple's Revenue by Product Category",
   },
   subtitle: {
     text: 'In Billion U.S. Dollars',
@@ -37,12 +37,14 @@ const options: AgChartOptions = {
       xKey: 'quarter',
       yKey: 'wearables',
       yName: 'Wearables',
+      stackGroup: 'Other'
     },
     {
       type: 'bar',
       xKey: 'quarter',
       yKey: 'services',
       yName: 'Services',
+      stackGroup: 'Other'
     },
   ],
 }

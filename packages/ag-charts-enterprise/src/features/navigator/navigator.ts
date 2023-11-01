@@ -5,7 +5,7 @@ import { NavigatorMask } from './navigatorMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
 const { BBox } = _Scene;
-const { BOOLEAN, NUMBER, Validate } = _ModuleSupport;
+const { BOOLEAN, NUMBER, ActionOnSet, Validate } = _ModuleSupport;
 
 interface Offset {
     offsetX: number;
@@ -24,16 +24,17 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
     private maxHandleDragging = false;
     private panHandleOffset = NaN;
 
+    @ActionOnSet<Navigator>({
+        changeValue(newValue) {
+            if (newValue) {
+                this.min = 0;
+                this.max = 1;
+            }
+            this.updateGroupVisibility();
+        },
+    })
     @Validate(BOOLEAN)
-    private _enabled = false;
-    set enabled(value: boolean) {
-        this._enabled = value;
-
-        this.updateGroupVisibility();
-    }
-    get enabled() {
-        return this._enabled;
-    }
+    private enabled = false;
 
     set width(value: number) {
         this.rs.width = value;
@@ -80,7 +81,10 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.rs.visible = visible;
 
         if (visible) {
-            this.ctx.zoomManager.updateZoom('navigator', { x: { min: this.rs.min, max: this.rs.max } });
+            this.ctx.zoomManager.updateZoom('navigator', {
+                x: { min: this.rs.min, max: this.rs.max },
+                y: { min: 0, max: 1 },
+            });
         } else {
             this.ctx.zoomManager.updateZoom('navigator');
         }
@@ -90,7 +94,10 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         super();
 
         this.rs.onRangeChange = () =>
-            ctx.zoomManager.updateZoom('navigator', { x: { min: this.rs.min, max: this.rs.max } });
+            ctx.zoomManager.updateZoom('navigator', {
+                x: { min: this.rs.min, max: this.rs.max },
+                y: { min: 0, max: 1 },
+            });
 
         ctx.scene.root?.appendChild(this.rs);
 

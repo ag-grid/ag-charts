@@ -131,6 +131,7 @@ export interface CartesianSeriesNodeDataContext<
 > extends SeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
+    visible: boolean;
 }
 
 export abstract class CartesianSeries<
@@ -431,9 +432,9 @@ export abstract class CartesianSeries<
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
-        this.rootGroup.visible = visible;
-        this.contentGroup.visible = visible;
-        this.highlightGroup.visible = visible && !!seriesHighlighted;
+        this.rootGroup.visible = animationEnabled || visible;
+        this.contentGroup.visible = animationEnabled || visible;
+        this.highlightGroup.visible = (animationEnabled || visible) && !!seriesHighlighted;
 
         const subGroupOpacity = this.getOpacity();
         if (hasMarkers) {
@@ -488,16 +489,20 @@ export abstract class CartesianSeries<
                     labelGroup.opacity = subGroupOpacity;
                 }
 
-                for (const path of paths) {
-                    path.opacity = subGroupOpacity;
-                    path.visible = subGroupVisible;
-                }
+                await this.updatePathNodes({
+                    seriesHighlighted,
+                    itemId,
+                    paths,
+                    seriesIdx,
+                    opacity: subGroupOpacity,
+                    visible: subGroupVisible,
+                    animationEnabled,
+                });
 
                 if (!dataNodeGroup.visible) {
                     return;
                 }
 
-                await this.updatePathNodes({ seriesHighlighted, itemId, paths, seriesIdx });
                 await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false, seriesIdx });
                 await this.updateLabelNodes({ labelSelection, seriesIdx });
                 if (hasMarkers && markerSelection) {
@@ -562,6 +567,7 @@ export abstract class CartesianSeries<
             opts: { hasMarkers },
         } = this;
 
+        let match: Node | undefined;
         for (const { dataNodeGroup, markerGroup } of this.subGroups) {
             let match = dataNodeGroup.pickNode(x, y);
 
@@ -570,7 +576,18 @@ export abstract class CartesianSeries<
             }
 
             if (match) {
-                return { datum: match.datum, distance: 0 };
+                break;
+            }
+        }
+
+        if (match) {
+            return { datum: match.datum, distance: 0 };
+        } else {
+            for (const mod of this.moduleMap) {
+                const { datum } = mod.pickNodeExact(point) ?? {};
+                if (datum !== undefined) {
+                    return { datum, distance: 0 };
+                }
             }
         }
     }
@@ -585,7 +602,7 @@ export abstract class CartesianSeries<
         const hitPoint = rootGroup.transformPoint(x, y);
 
         let minDistance = Infinity;
-        let closestDatum: TDatum | undefined;
+        let closestDatum: SeriesNodeDatum | undefined;
 
         for (const context of contextNodeData) {
             for (const datum of context.nodeData) {
@@ -608,6 +625,14 @@ export abstract class CartesianSeries<
                 }
             }
         }
+        for (const mod of this.moduleMap) {
+            const modPick = mod.pickNodeNearest(point);
+            if (modPick !== undefined && modPick.distanceSquared < minDistance) {
+                minDistance = modPick.distanceSquared;
+                closestDatum = modPick.datum;
+                break;
+            }
+        }
 
         if (closestDatum) {
             const distance = Math.max(Math.sqrt(minDistance) - (closestDatum.point?.size ?? 0), 0);
@@ -618,7 +643,7 @@ export abstract class CartesianSeries<
     protected override pickNodeMainAxisFirst(
         point: Point,
         requireCategoryAxis: boolean
-    ): { datum: TDatum; distance: number } | undefined {
+    ): SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
 
@@ -641,7 +666,7 @@ export abstract class CartesianSeries<
             primaryDirection === ChartAxisDirection.X ? [hitPoint.x, hitPoint.y] : [hitPoint.y, hitPoint.x];
 
         const minDistance = [Infinity, Infinity];
-        let closestDatum: TDatum | undefined;
+        let closestDatum: SeriesNodeDatum | undefined;
 
         for (const context of contextNodeData) {
             for (const datum of context.nodeData) {
@@ -676,13 +701,22 @@ export abstract class CartesianSeries<
                 }
             }
         }
-
         if (closestDatum) {
-            const distance = Math.max(
-                Math.sqrt(minDistance[0] ** 2 + minDistance[1] ** 2) - (closestDatum.point?.size ?? 0),
+            let closestDistanceSquared = Math.max(
+                minDistance[0] ** 2 + minDistance[1] ** 2 - (closestDatum.point?.size ?? 0),
                 0
             );
-            return { datum: closestDatum, distance };
+
+            for (const mod of this.moduleMap) {
+                const modPick = mod.pickNodeMainAxisFirst(point);
+                if (modPick !== undefined && modPick.distanceSquared < closestDistanceSquared) {
+                    closestDatum = modPick.datum;
+                    closestDistanceSquared = modPick.distanceSquared;
+                    break;
+                }
+            }
+
+            return { datum: closestDatum, distance: Math.sqrt(closestDistanceSquared) };
         }
     }
 
@@ -826,13 +860,20 @@ export abstract class CartesianSeries<
         opts.paths.forEach((p) => (p.visible = false));
     }
 
-    protected async updatePathNodes(_opts: {
+    protected async updatePathNodes(opts: {
         seriesHighlighted?: boolean;
         itemId?: string;
         paths: Path[];
         seriesIdx: number;
+        opacity: number;
+        visible: boolean;
+        animationEnabled: boolean;
     }): Promise<void> {
-        // Override point for sub-classes.
+        const { paths, opacity, visible } = opts;
+        for (const path of paths) {
+            path.opacity = opacity;
+            path.visible = visible;
+        }
     }
 
     protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {

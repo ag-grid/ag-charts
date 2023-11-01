@@ -342,7 +342,7 @@ export class ChartTheme {
                 enabled: false,
             },
         },
-        groupedCategory: {
+        'grouped-category': {
             ...ChartTheme.getAxisDefaults(),
         },
         time: {

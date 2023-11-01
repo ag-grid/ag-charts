@@ -1,6 +1,7 @@
 ---
 import { SITE_BASE_URL } from '@constants';
+import { pathJoin } from '@utils/pathJoin';
 ---
 
 <!-- Redirect to overview -->
-<meta http-equiv="refresh" content={`0;url=${SITE_BASE_URL}javascript/overview`} />
+<meta http-equiv="refresh" content={`0;url=${pathJoin(SITE_BASE_URL, 'javascript/overview')}`} />

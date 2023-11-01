@@ -1,14 +1,13 @@
-import type {
-    AgErrorBarCapOptions,
-    AgErrorBarOptions,
-    AgErrorBarStylingOptions,
-    AgErrorBarThemeableOptions,
-    _Scale,
-} from 'ag-charts-community';
+import type { AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { ErrorBarCapFormatter, ErrorBarFormatter, ErrorBarNodeDatum } from './errorBarNode';
-import { ErrorBarNode } from './errorBarNode';
+import type {
+    ErrorBarCapFormatter,
+    ErrorBarFormatter,
+    ErrorBarNodeDatum,
+    ErrorBarStylingOptions,
+} from './errorBarNode';
+import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 
 const {
     fixNumericExtent,
@@ -46,6 +45,8 @@ type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _Scale.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
+type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
+type Point = _Scene.Point;
 
 type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
@@ -54,7 +55,7 @@ type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
-class ErrorBarCapConfig implements AgErrorBarCapOptions {
+class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
     @Validate(OPT_BOOLEAN)
     visible?: boolean = undefined;
 
@@ -117,7 +118,7 @@ export class ErrorBars
     @Validate(OPT_COLOR_STRING)
     stroke? = 'black';
 
-    @Validate(OPT_NUMBER(1))
+    @Validate(OPT_NUMBER(0))
     strokeWidth?: number = 1;
 
     @Validate(OPT_NUMBER(0, 1))
@@ -132,12 +133,11 @@ export class ErrorBars
     @Validate(OPT_FUNCTION)
     formatter?: ErrorBarFormatter = undefined;
 
-    cap: ErrorBarCapConfig = new ErrorBarCapConfig();
+    cap: ErrorBarCap = new ErrorBarCap();
 
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
-    private readonly groupNode: _Scene.Group;
+    private readonly groupNode: ErrorBarGroup;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
-    private readonly ctx: _ModuleSupport.SeriesContext;
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
@@ -146,10 +146,9 @@ export class ErrorBars
         super();
 
         this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
-        this.ctx = ctx;
         const { annotationGroup, annotationSelections } = this.cartesianSeries;
 
-        this.groupNode = new _Scene.Group({
+        this.groupNode = new ErrorBarGroup({
             name: `${annotationGroup.id}-errorBars`,
             zIndex: _ModuleSupport.Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('annotation'),
@@ -166,7 +165,6 @@ export class ErrorBars
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
-            ctx.interactionManager.addListener('hover', (event) => this.onHoverEvent(event)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode),
             () => annotationSelections.delete(this.selection)
@@ -297,23 +295,24 @@ export class ErrorBars
         const style = this.getDefaultStyle();
         node.datum = datum;
         node.updateStyle(style, this);
-        node.updateTranslation(this.cap, this.ctx.tooltipManager.getRange());
+        node.updateTranslation(this.cap);
+        node.updateBBoxes();
     }
 
-    private onHoverEvent(event: _ModuleSupport.InteractionEvent<'hover'>) {
-        const { scene, highlightManager, tooltipManager, window } = this.ctx;
-        const { id } = this.groupNode;
-
-        const node = this.groupNode.pickNode(event.offsetX, event.offsetY);
-        if (node?.datum !== undefined) {
-            const meta = _ModuleSupport.TooltipManager.makeTooltipMeta(event, scene.canvas, node.datum, window);
-            const html = this.cartesianSeries.getTooltipHtml(node.datum);
-            highlightManager.updateHighlight(id, node.datum);
-            tooltipManager.updateTooltip(id, meta, html);
-        } else {
-            highlightManager.updateHighlight(id, undefined);
-            tooltipManager.removeTooltip(id);
+    pickNodeExact(point: Point): PickNodeDatumResult {
+        // TODO(olegat) optimise: distanceSquared isn't required, contains() check is sufficient
+        const { datum, distanceSquared } = this.groupNode.nearestSquared(point) ?? {};
+        if (distanceSquared === 0 && datum !== undefined) {
+            return { datum, distanceSquared };
         }
+    }
+
+    pickNodeNearest(point: Point): PickNodeDatumResult {
+        return this.groupNode.nearestSquared(point);
+    }
+
+    pickNodeMainAxisFirst(point: Point): PickNodeDatumResult {
+        return this.groupNode.nearestSquared(point);
     }
 
     private onTooltipGetParams(_event: SeriesTooltipGetParamsEvent) {
@@ -340,7 +339,7 @@ export class ErrorBars
         this.groupNode.visible = event.enabled;
     }
 
-    private makeStyle(baseStyle: AgErrorBarStylingOptions): AgErrorBarThemeableOptions {
+    private makeStyle(baseStyle: ErrorBarStylingOptions): AgErrorBarThemeableOptions {
         return {
             visible: baseStyle.visible,
             lineDash: baseStyle.lineDash,
@@ -388,6 +387,8 @@ export class ErrorBars
             // Unhighlight this node:
             this.restyleHightlightChange(previousHighlight, this.getDefaultStyle());
         }
+
+        this.groupNode.opacity = this.cartesianSeries.getOpacity();
     }
 
     private errorBarFactory(): ErrorBarNode {

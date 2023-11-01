@@ -1,4 +1,4 @@
-export const data = {
+export const data = [{
     "name": "Root",
     "children": [
         {
@@ -4439,4 +4439,4 @@ export const data = {
         }
     ],
     "change": 0.5
-};
+}];

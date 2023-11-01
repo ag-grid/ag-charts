@@ -63,11 +63,6 @@ import { UpdateService } from './updateService';
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
 export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
-export type SpecialOverrides = {
-    overrideDevicePixelRatio?: number;
-    document?: Document;
-    window?: Window & typeof globalThis;
-};
 
 type PickedNode = {
     series: Series<any>;
@@ -75,7 +70,9 @@ type PickedNode = {
     distance: number;
 };
 
-function initialiseSpecialOverrides(opts: SpecialOverrides): PickRequired<SpecialOverrides, 'document' | 'window'> {
+function initialiseSpecialOverrides(
+    opts: ChartExtendedOptions
+): PickRequired<ChartExtendedOptions, 'document' | 'window'> {
     let globalWindow;
     if (opts.window != null) {
         globalWindow = opts.window;
@@ -100,8 +97,18 @@ function initialiseSpecialOverrides(opts: SpecialOverrides): PickRequired<Specia
         document: globalDocument,
         window: globalWindow,
         overrideDevicePixelRatio: opts.overrideDevicePixelRatio,
+        sceneMode: opts.sceneMode,
     };
 }
+
+export interface ChartSpecialOverrides {
+    document?: Document;
+    window?: Window;
+    overrideDevicePixelRatio?: number;
+    sceneMode?: 'simple';
+}
+
+export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 class SeriesArea {
     @Validate(OPT_BOOLEAN)
@@ -263,9 +270,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
-    private readonly specialOverrides: PickRequired<SpecialOverrides, 'document' | 'window'>;
+    private readonly specialOverrides: PickRequired<ChartExtendedOptions, 'document' | 'window'>;
 
-    protected constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
+    protected constructor(specialOverrides: ChartExtendedOptions, resources?: TransferableResources) {
         super();
 
         this.specialOverrides = initialiseSpecialOverrides(specialOverrides);
@@ -303,8 +310,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.zoomManager = new ZoomManager();
         this.dataService = new DataService<Series<any>>(() => this.series);
         this.layoutService = new LayoutService();
-        this.updateService = new UpdateService((type = ChartUpdateType.FULL, { forceNodeDataRefresh }) =>
-            this.update(type, { forceNodeDataRefresh })
+        this.updateService = new UpdateService(
+            (type = ChartUpdateType.FULL, { forceNodeDataRefresh, skipAnimations }) =>
+                this.update(type, { forceNodeDataRefresh, skipAnimations })
         );
         this.seriesStateManager = new SeriesStateManager();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
@@ -342,7 +350,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.zoomManager.addListener('zoom-change', (_) =>
-                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true })
+                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
             )
         );
 
@@ -529,9 +537,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
     });
     public update(
         type = ChartUpdateType.FULL,
-        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<ISeries<any>>; backOffMs?: number }
+        opts?: {
+            forceNodeDataRefresh?: boolean;
+            skipAnimations?: boolean;
+            seriesToUpdate?: Iterable<ISeries<any>>;
+            backOffMs?: number;
+        }
     ) {
-        const { forceNodeDataRefresh = false, seriesToUpdate = this.series } = opts ?? {};
+        const { forceNodeDataRefresh = false, skipAnimations, seriesToUpdate = this.series } = opts ?? {};
 
         if (forceNodeDataRefresh) {
             this.series.forEach((series) => series.markNodeDataDirty());
@@ -539,6 +552,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         for (const series of seriesToUpdate) {
             this.seriesToUpdate.add(series);
+        }
+
+        if (skipAnimations) {
+            this.animationManager.skipCurrentBatch();
         }
 
         if (Debug.check(true)) {
@@ -612,6 +629,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.updateShortcutCount = 0;
                 this.updateRequestors = {};
         }
+
+        this.updateService.dispatchUpdateComplete(this.getMinRect());
 
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {
@@ -1356,5 +1375,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         } else {
             this.overlays.noData.hide();
         }
+    }
+
+    protected getMinRect() {
+        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
+        if (!minRects.length) return undefined;
+        return new BBox(
+            0,
+            0,
+            minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
+            minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
+        );
     }
 }

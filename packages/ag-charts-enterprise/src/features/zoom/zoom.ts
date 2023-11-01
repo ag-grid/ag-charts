@@ -19,7 +19,7 @@ import {
 } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
 
-const { BOOLEAN, NUMBER, STRING_UNION, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
+const { BOOLEAN, NUMBER, STRING_UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
 
 const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
@@ -34,8 +34,15 @@ const round = (value: number, decimals: number) => {
 };
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    @ActionOnSet<Zoom>({
+        changeValue(newValue) {
+            if (newValue) {
+                this.updateZoom(unitZoomState());
+            }
+        },
+    })
     @Validate(BOOLEAN)
-    public enabled = true;
+    public enabled = false;
 
     @Validate(BOOLEAN)
     public enableAxisDragging = true;
@@ -97,6 +104,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private minRatioX = 0;
     private minRatioY = 0;
 
+    // TODO: This will become an option soon, and I don't want to delete my code in the meantime
+    private enableSecondaryAxis = false;
+
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -115,7 +125,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), interactionOpts),
             ctx.interactionManager.addListener('hover', () => this.onHover(), interactionOpts),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
-            ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event))
+            ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
+            ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
         );
 
         // Add selection zoom method and attach selection rect to root scene
@@ -154,7 +165,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.seriesRect) return;
 
         const sourceEvent = event.sourceEvent as DragEvent;
 
@@ -166,7 +177,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
-        if (this.enableAxisDragging && this.seriesRect && this.hoveredAxis) {
+        if (this.enableAxisDragging && this.hoveredAxis) {
             const { id: axisId, direction } = this.hoveredAxis;
             const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
             const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { ...UNIT };
@@ -175,8 +186,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return;
         }
 
+        // Prevent the user from dragging outside the series rect (if not on an axis)
+        if (!this.seriesRect.containsPoint(event.offsetX, event.offsetY)) {
+            return;
+        }
+
         // Allow panning if either selection is disabled or the panning key is pressed.
-        if (this.enablePanning && this.seriesRect && (!this.enableSelecting || this.isPanningKeyPressed(sourceEvent))) {
+        if (this.enablePanning && (!this.enableSelecting || this.isPanningKeyPressed(sourceEvent))) {
             const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
                 this.updateAxisZoom(axisId, direction, newZoom);
@@ -206,7 +222,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             zoom
         );
 
-        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
+        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onDragEnd() {
@@ -292,26 +308,35 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.enabled) return;
 
         const {
-            series: { paddedRect, shouldFlipXY, minRect },
+            series: { paddedRect, shouldFlipXY },
         } = event;
 
         this.seriesRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
+    }
 
-        if (!paddedRect || !minRect) return;
+    private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
+        if (!this.enabled || !this.seriesRect || !minRect) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
+        const minVisibleItemsWidth = this.shouldFlipXY ? this.minVisibleItemsY : this.minVisibleItemsX;
+        const minVisibleItemsHeight = this.shouldFlipXY ? this.minVisibleItemsX : this.minVisibleItemsY;
+
+        const widthRatio = (minRect.width * minVisibleItemsWidth) / this.seriesRect.width;
+        const heightRatio = (minRect.height * minVisibleItemsHeight) / this.seriesRect.height;
+
+        // We don't need to check flipping here again, as it is already built into the width & height ratios and the
+        // zoom.x/y values themselves do not flip and are bound to width/height respectively.
+        const ratioX = widthRatio * (zoom.x.max - zoom.x.min);
+        const ratioY = heightRatio * (zoom.y.max - zoom.y.min);
+
         if (this.isScalingX()) {
-            const widthRatio = (minRect.width * this.minVisibleItemsX) / paddedRect.width;
-            const normalisedWidthRatio = widthRatio * (zoom.x.max - zoom.x.min);
-            this.minRatioX ||= Math.min(1, round(normalisedWidthRatio, DECIMALS));
+            this.minRatioX ||= Math.min(1, round(ratioX, DECIMALS));
         }
 
         if (this.isScalingY()) {
-            const heightRatio = (minRect.height * this.minVisibleItemsY) / paddedRect.height;
-            const normalisedHeightRatio = heightRatio * (zoom.y.max - zoom.y.min);
-            this.minRatioY ||= Math.min(1, round(normalisedHeightRatio, DECIMALS));
+            this.minRatioY ||= Math.min(1, round(ratioY, DECIMALS));
         }
 
         this.minRatioX ||= this.minRatioY || 0;
@@ -452,6 +477,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         partialZoom: _ModuleSupport.ZoomState | undefined
     ) {
         if (!partialZoom) return;
+
+        if (!this.enableSecondaryAxis) {
+            const fullZoom = definedZoomState(this.zoomManager.getZoom());
+            if (direction === ChartAxisDirection.X) {
+                fullZoom.x = partialZoom;
+            } else {
+                fullZoom.y = partialZoom;
+            }
+            this.updateZoom(fullZoom);
+            return;
+        }
 
         const d = round(partialZoom.max - partialZoom.min, DECIMALS);
 

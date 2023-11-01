@@ -50,9 +50,9 @@ export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineD
 export interface AgBoxPlotSeriesThemeableOptions<DatumType = any>
     extends AgBaseSeriesThemeableOptions,
         AgBoxPlotSeriesStyles {
-    /** Bar rendering direction.
-     * <br/>
-     * **NOTE**: This option affects the layout direction of X and Y data values.
+    /**
+     * Bar rendering direction.
+     * __NOTE__: This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */

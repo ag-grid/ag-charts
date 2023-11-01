@@ -33,9 +33,9 @@ export interface AgTooltipRendererResult {
     /** Content text for the tooltip body. */
     content?: string;
     /** Tooltip title text color. */
-    color?: string;
+    color?: CssColor;
     /** Tooltip title background color. */
-    backgroundColor?: string;
+    backgroundColor?: CssColor;
 }
 
 export interface AgSeriesTooltipRendererParams<TDatum = any> extends AgChartCallbackParams<TDatum> {
@@ -45,7 +45,7 @@ export interface AgSeriesTooltipRendererParams<TDatum = any> extends AgChartCall
     readonly color?: CssColor;
 }
 
-export interface AgSeriesTooltip<P extends AgSeriesTooltipRendererParams> {
+export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams> {
     /** Whether to show tooltips when the series are hovered over. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
@@ -55,7 +55,7 @@ export interface AgSeriesTooltip<P extends AgSeriesTooltipRendererParams> {
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
     /** Function used to create the content for tooltips. */
-    renderer?: (params: P) => string | AgTooltipRendererResult;
+    renderer?: (params: TParams) => string | AgTooltipRendererResult;
     /** String used to format the tooltip content. */
     format?: string;
 }

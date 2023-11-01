@@ -24,7 +24,7 @@ axes: [
 ];
 ```
 
-{% chartExampleRunner title="Enabling Crosshairs" name="enabling-crosshairs" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Enabling Crosshairs" name="enabling-crosshairs" type="generated" /%}
 
 ## Crosshair Snap
 
@@ -44,7 +44,7 @@ axes: [
 ];
 ```
 
-{% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" /%}
 
 ## Crosshair Styles
 
@@ -58,7 +58,7 @@ crosshair: {
 },
 ```
 
-{% chartExampleRunner title="Crosshair Styles" name="crosshair-styles" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Crosshair Styles" name="crosshair-styles" type="generated" /%}
 
 ## Crosshair Label
 
@@ -85,7 +85,7 @@ crosshair: {
 }
 ```
 
-{% chartExampleRunner title="Crosshair Label Offset" name="crosshair-label-offset" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Crosshair Label Offset" name="crosshair-label-offset" type="generated" /%}
 
 ## Crosshair Label Format
 
@@ -99,7 +99,7 @@ The example below demonstrates this behaviour.
 
 Notice how when you click on one of the buttons in the example to change the provided configuration, the crosshair label format changes.
 
-{% chartExampleRunner title="Crosshair Label Format" name="crosshair-label-format" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Crosshair Label Format" name="crosshair-label-format" type="generated" /%}
 
 ## Crosshair Label Renderer
 
@@ -129,7 +129,7 @@ const labelRenderer = ({ value, fractionDigits }) => {
 };
 ```
 
-{% chartExampleRunner title="Crosshair Default Label With Custom Renderer" name="crosshair-default-label-custom-renderer" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Crosshair Default Label With Custom Renderer" name="crosshair-default-label-custom-renderer" type="generated" /%}
 
 The default label HTML element uses CSS class name `ag-crosshair-label`. Custom CSS styling can be applied by providing a class name via the `crosshair.label.className` config. This class name will be added to the class list of the label's element.
 
@@ -155,7 +155,7 @@ This is shown in the example below. Note that:
 
 -   The default label template is used and the style definitions are overriden in the styles.css file.
 
-{% chartExampleRunner title="Crosshair Default Label With Custom CSS" name="crosshair-default-label-custom-css" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Crosshair Default Label With Custom CSS" name="crosshair-default-label-custom-css" type="generated" /%}
 
 ### Custom Label
 
@@ -178,64 +178,14 @@ Note that:
 -   The elements have custom CSS class attributes, but the default class names can also be used so that the label gets the default styling.
 -   The styles for the elements are defined in the external styles.css file.
 
-{% chartExampleRunner title="Crosshair Custom Label" name="crosshair-custom-label" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Crosshair Custom Label" name="crosshair-custom-label" type="generated" /%}
 
 ## API Reference
 
-{/_ TODO: replace with api reference component _/}
+{% tabs %}
 
-```ts
-interface AgCrosshairOptions {
-    /** Whether or not to show the crosshair. */
-    enabled?: boolean;
-    /** When true, the crosshair snaps to the highlighted data point. By default this property is false and the crosshair is rendered at the mouse pointer position. */
-    snap?: boolean;
-    /** The colour of the stroke for the lines. */
-    stroke?: CssColor;
-    /** The width in pixels of the stroke for the lines. */
-    strokeWidth?: PixelSize;
-    /** The opacity of the stroke for the lines. */
-    strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
-    /** The initial offset of the dashed line in pixels. */
-    lineDashOffset?: PixelSize;
-    /** The crosshair label configuration */
-    label?: AgCrosshairLabel;
-}
+{% tabItem label="Crosshair" %}
+{% apiReference id="AgCrosshairOptions" /%}
+{% /tabItem %}
 
-interface AgCrosshairLabel {
-    /** Whether or not to show label when the crosshair is visible. */
-    enabled?: boolean;
-    /** A class name to be added to the crosshair label element. */
-    className?: string;
-    /** The horizontal offset in pixels for the label. */
-    xOffset?: PixelSize;
-    /** The vertical offset in pixels for the label. */
-    yOffset?: PixelSize;
-    /** Format string used when rendering the crosshair label. */
-    format?: string;
-    /** Function used to create the content for the label. */
-    renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult;
-}
-
-interface AgCrosshairLabelRendererParams {
-    /** Axis value that the label is being rendered for. */
-    readonly value: any;
-    /** If the axis value is a number, the fractional digits used to format the value. */
-    readonly fractionDigits?: number;
-}
-
-interface AgCrosshairLabelRendererResult {
-    /** Text for the label. */
-    text?: string;
-    /** Label text color. */
-    color?: CssColor;
-    /** Label background color. */
-    backgroundColor?: CssColor;
-    /** Opacity of the label. */
-    opacity?: Opacity;
-}
-```
-
-{% interfaceDocumentation interfaceName="AgCrosshairOptions" config="{ \"showSnippets\": false }" /%}
+{% /tabs %}

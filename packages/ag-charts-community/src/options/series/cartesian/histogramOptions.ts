@@ -44,12 +44,12 @@ export interface AgHistogramSeriesOptionsNames {
     yName?: string;
 }
 
-/** Configuration for histogram series. */
 export interface AgHistogramSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgHistogramSeriesOptionsKeys,
         AgHistogramSeriesOptionsNames,
         AgHistogramSeriesThemeableOptions<TDatum> {
+    /** Configuration for histogram series. */
     type: 'histogram';
     /** For variable width bins, if true the histogram will represent the aggregated `yKey` values using the area of the bar. Otherwise, the height of the var represents the value as per a normal bar chart. This is useful for keeping an undistorted curve displayed when using variable-width bins. */
     areaPlot?: boolean;

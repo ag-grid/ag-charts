@@ -20,7 +20,7 @@ to, not a partial configuration. Use `AgChart.updateDelta()` to apply partial up
 
 `AgChart` has the following API:
 
-{% apiDocumentation section="AgChart" names="[\"create\", \"update\"]" config="{ \"showSnippets\": false, \"lookupRoot\": \"charts-api\", \"suppressTypes\": [\"AgChartInstance\", \"AgChartOptions\", \"DeepPartial\"] }" /%}
+{% apiReference id="AgChartInterface" include=["create", "update"] hideHeader=true /%}
 
 {% /if %}
 
@@ -28,7 +28,7 @@ to, not a partial configuration. Use `AgChart.updateDelta()` to apply partial up
 `AgChartOptions` are supplied to the AG Charts component, and mutations of the options trigger an update of the chart configuration.
 {% /if %}
 
-See the [Options Reference](./api/) for more detail about the `AgChartOptions` structure.
+See the [Options Reference](/options) for more detail about the `AgChartOptions` structure.
 
 The following example demonstrates both create and update cases:
 
@@ -43,11 +43,11 @@ The following example demonstrates both create and update cases:
 
 `AgChart` exposes an `updateDelta()` static method to allow partial updates to a charts options.
 
-{% apiDocumentation section="AgChart" names="[\"updateDelta\"]" config="{ \"showSnippets\": false, \"suppressTypes\": [\"AgChartInstance\", \"AgChartOptions\", \"DeepPartial\"] }" /%}
+{% apiReference id="AgChartInterface" include=["updateDelta"] hideHeader=true /%}
 
 To assist with state management, the complete applied options state can be retrieved by calling `getOptions()` on `AgChartInstance`:
 
-{% apiDocumentation section="AgChartInstance" names="[\"getOptions\"]" config="{ \"showSnippets\": false, \"suppressTypes\": [\"AgChartInstance\", \"AgChartOptions\", \"DeepPartial\"] }" /%}
+{% apiReference id="AgChartInstance" include=["getOptions"] hideHeader=true /%}
 
 The following example demonstrates:
 
@@ -56,7 +56,7 @@ The following example demonstrates:
 
 {% chartExampleRunner title="Update with Partial AgChartOptions" name="update-partial" type="typescript" /%}
 
-{% apiDocumentation section="AgChart" names="[\"updateDelta\"]" config="{ \"showSnippets\": false, \"suppressTypes\": [\"AgChartInstance\", \"AgChartOptions\", \"DeepPartial\"] }" /%}
+{% apiReference id="AgChartInterface" include=["updateDelta"] hideHeader=true /%}
 
 {% /if %}
 
@@ -65,7 +65,7 @@ The following example demonstrates:
 {% if isFramework("javascript") %}
 Charts can be destroyed by using the `AgChartInstance.destroy()` method:
 
-{% apiDocumentation section="AgChartInstance" names="[\"destroy\"]" config="{ \"showSnippets\": false, \"suppressTypes\": [\"AgChartInstance\", \"AgChartOptions\", \"DeepPartial\"] }" /%}
+{% apiReference id="AgChartInstance" include=["destroy"] hideHeader=true /%}
 {% /if %}
 
 {% if isNotJavascriptFramework() %}

@@ -1,13 +1,13 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgChart, AgChartOptions } from 'ag-charts-community';
 import {maleHeightWeight, femaleHeightWeight} from './height-weight-data'
 
-const options: AgCartesianChartOptions = {
+const options: AgChartOptions = {
   container: document.getElementById('myChart'),
   title: {
-    text: 'Weight vs Height (by gender)',
+    text: 'Weight vs Height)',
   },
   subtitle: {
-    text: 'with name labels',
+    text: 'With Name Labels',
   },
   series: [
     {
@@ -23,9 +23,7 @@ const options: AgCartesianChartOptions = {
       labelKey: 'name',
       marker: {
         shape: 'square',
-        size: 6,
-        maxSize: 30,
-        fill: 'rgba(227,111,106,0.71)',
+        fill: '#e36f6ab5',
         stroke: '#9f4e4a',
       },
       label: {
@@ -44,9 +42,7 @@ const options: AgCartesianChartOptions = {
       sizeName: 'Age',
       labelKey: 'name',
       marker: {
-        size: 6,
-        maxSize: 30,
-        fill: 'rgba(123,145,222,0.71)',
+        fill: '#7b91deb5',
         stroke: '#56659b',
       },
       label: {
@@ -62,7 +58,6 @@ const options: AgCartesianChartOptions = {
         text: 'Height',
       },
       label: {
-        rotation: 45,
         formatter: (params) => {
           return params.value + 'cm'
         },

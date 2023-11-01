@@ -113,10 +113,12 @@ export function normaliseGroupTo(
 
 function normalisePropertyFnBuilder({
     normaliseTo,
+    zeroDomain,
     rangeMin,
     rangeMax,
 }: {
     normaliseTo: [number, number];
+    zeroDomain: number;
     rangeMin?: number;
     rangeMax?: number;
 }) {
@@ -124,7 +126,7 @@ function normalisePropertyFnBuilder({
     const normalise = (val: number, start: number, span: number) => {
         const result = normaliseTo[0] + ((val - start) / span) * normaliseSpan;
 
-        if (span === 0) return normaliseTo[1];
+        if (span === 0) return zeroDomain;
         if (result >= normaliseTo[1]) return normaliseTo[1];
         if (result < normaliseTo[0]) return normaliseTo[0];
         return result;
@@ -154,6 +156,7 @@ export function normalisePropertyTo(
     scope: ScopeProvider,
     property: PropertyId<any>,
     normaliseTo: [number, number],
+    zeroDomain: number,
     rangeMin?: number,
     rangeMax?: number
 ): PropertyValueProcessorDefinition<any> {
@@ -161,7 +164,7 @@ export function normalisePropertyTo(
         scopes: [scope.id],
         type: 'property-value-processor',
         property,
-        adjust: memo({ normaliseTo, rangeMin, rangeMax }, normalisePropertyFnBuilder),
+        adjust: memo({ normaliseTo, rangeMin, rangeMax, zeroDomain }, normalisePropertyFnBuilder),
     };
 }
 

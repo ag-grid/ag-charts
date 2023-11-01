@@ -111,12 +111,12 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     formatter?: (params: AgPieSeriesFormatterParams<TDatum>) => AgPieSeriesFormat;
 }
 
-/** Configuration for pie/doughnut series. */
 export interface AgPieSeriesOptions<TDatum = any>
     extends Omit<AgPieSeriesThemeableOptions<TDatum>, 'innerLabels'>,
         AgPieSeriesOptionsKeys,
         AgPieSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum> {
+    /** Configuration for pie/doughnut series. */
     type: 'pie';
     /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
     innerLabels?: AgDoughnutInnerLabel[];

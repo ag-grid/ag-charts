@@ -45,7 +45,7 @@ export default defineMarkdocConfig({
                 title: { type: String, required: true },
                 name: { type: String, required: true },
                 type: { type: String },
-                options: { type: String },
+                options: { type: Object },
             },
         },
         note: {
@@ -86,27 +86,23 @@ export default defineMarkdocConfig({
                 },
             },
         },
-        apiDocumentation: {
-            render: component('./src/features/api-documentation/components/ApiDocumentation.astro'),
+        apiReference: {
+            render: component('./src/features/api-documentation/ApiReference.astro'),
             attributes: {
-                interfaceName: { type: String },
-                framework: { type: String },
-                section: { type: String },
-                names: { type: String },
-                exclude: { type: String },
-                wrapNamesAt: { type: String },
-                config: { type: String },
+                id: { type: 'String' },
+                include: { type: 'Array' },
+                exclude: { type: 'Array' },
+                hideHeader: { type: 'Boolean' },
+                displayFirst: { type: 'Array' },
             },
         },
-        interfaceDocumentation: {
-            render: component('./src/features/api-documentation/components/InterfaceDocumentation.astro'),
+        tabs: {
+            render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
+        },
+        tabItem: {
+            render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),
             attributes: {
-                interfaceName: { type: String },
-                framework: { type: String },
-                names: { type: String },
-                exclude: { type: String },
-                wrapNamesAt: { type: String },
-                config: { type: String },
+                label: { type: String },
             },
         },
     },

@@ -33,6 +33,8 @@ export interface DevFileRoute {
  * NOTE: File path is after `getRootUrl()`
  */
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
+    'resolved-interfaces.json': 'dist/packages/ag-charts-community/resolved-interfaces.AUTO.json',
+
     'ag-charts-community/interfaces.AUTO.json': 'dist/packages/ag-charts-community/interfaces.AUTO.json',
     'ag-charts-community/doc-interfaces.AUTO.json': 'dist/packages/ag-charts-community/doc-interfaces.AUTO.json',
 
@@ -98,18 +100,6 @@ export const isTypescriptInternalFramework = (internalFramework: InternalFramewo
     return TYPESCRIPT_INTERNAL_FRAMEWORKS.includes(internalFramework);
 };
 
-export function getNewFrameworkPath({
-    path,
-    currentFramework,
-    newFramework,
-}: {
-    path: string;
-    currentFramework: string;
-    newFramework: string;
-}) {
-    return path.replace(`/${currentFramework}`, `/${newFramework}`);
-}
-
 /**
  * Get Dev File URL for referencing on the front end
  */
@@ -160,15 +150,6 @@ export const getBoilerPlateUrl = ({
  * Get dev files for local development
  */
 export function getDevFiles(): DevFileRoute[] {
-    const files = Object.entries(DEV_FILE_PATH_MAP).map(([filePath, sourceFilePath]) => {
-        const fullFilePath = pathJoin(getRootUrl().pathname, sourceFilePath);
-
-        return {
-            filePath,
-            fullFilePath,
-        };
-    });
-
     const result = [];
 
     for (const [filePath, sourceFilePath] of Object.entries(DEV_FILE_PATH_MAP)) {
@@ -191,32 +172,14 @@ export function getDevFiles(): DevFileRoute[] {
             continue;
         }
 
-        result.push({
-            params: {
-                filePath,
-            },
-            props: {
-                fullFilePath,
-            },
-        });
+        result.push({ params: { filePath }, props: { fullFilePath } });
     }
 
     return result;
 }
 
 export function getModelInterfaces() {
-    return [
-        {
-            params: {
-                interfaceName: 'AgCartesianChartOptions',
-            },
-        },
-        {
-            params: {
-                interfaceName: 'AgChartTheme',
-            },
-        },
-    ];
+    return [{ params: { interfaceName: 'AgCartesianChartOptions' } }, { params: { interfaceName: 'AgChartTheme' } }];
 }
 
 export const getModelInterfaceUrl = ({ interfaceName }: { interfaceName: string }) => {

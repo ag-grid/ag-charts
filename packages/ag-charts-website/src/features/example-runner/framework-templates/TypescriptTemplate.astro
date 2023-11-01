@@ -5,6 +5,7 @@ import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
+import type { Library } from '@ag-grid-types';
 
 interface Props {
     isDev: boolean;
@@ -12,14 +13,13 @@ interface Props {
     exampleName: string;
 
     modifiedTimeMs: number;
-    isExecuting: boolean;
-    options: any;
+    isEnterprise: boolean;
     entryFileName: string;
 
     styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
-    library: string;
+    library: Library;
     boilerplatePath: string;
 }
 
@@ -28,8 +28,7 @@ const {
     exampleName,
     isDev,
     modifiedTimeMs,
-    isExecuting,
-    options,
+    isEnterprise,
     appLocation,
     entryFileName,
     styleFiles,
@@ -47,8 +46,6 @@ const startFile = pathJoin(appLocation, entryFileName);
             isDev={isDev}
             title={`Typescript - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
-            isExecuting={isExecuting}
-            options={options}
         />
         <ExampleStyle />
         <Styles
@@ -78,8 +75,8 @@ const startFile = pathJoin(appLocation, entryFileName);
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
-            framework={'typescript'}
-            options={options}
+            internalFramework={'typescript'}
+            isEnterprise={isEnterprise}
         />
         <Styles
             baseUrl={appLocation}

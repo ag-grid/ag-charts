@@ -1,3 +1,4 @@
+import type { InternalFramework, Library } from '@ag-grid-types';
 import {
     DEV_FILE_BASE_PATH,
     SITE_BASE_URL,
@@ -14,11 +15,30 @@ import {
 } from '@constants';
 import { isBuildServerBuild, isPreProductionBuild, isUsingPublishedPackages } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
-import React from 'react';
 
-const localPrefix = pathJoin(import.meta.env?.SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
+interface Props {
+    isDev: boolean;
+    library: Library;
+    boilerplatePath: string;
+    appLocation: string;
+    startFile: string;
+    isEnterprise: boolean;
+    internalFramework: InternalFramework;
+}
 
-const localConfiguration = {
+type Paths = Record<string, string>;
+
+interface Configuration {
+    gridMap: Paths;
+    gridCommunityPaths: Paths;
+    gridEnterprisePaths: Paths;
+    chartMap: Paths;
+    chartPaths: Paths;
+}
+
+const localPrefix = pathJoin(import.meta.env?.PUBLIC_SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
+
+const localConfiguration: Configuration = {
     gridMap: {
         '@ag-grid-community/styles': `${localPrefix}/@ag-grid-community/styles`,
         '@ag-grid-community/react': `${localPrefix}/@ag-grid-community/react`,
@@ -85,7 +105,7 @@ const localConfiguration = {
     },
 };
 
-const buildAndArchivesConfiguration = {
+const buildAndArchivesConfiguration: Configuration = {
     gridMap: {
         '@ag-grid-community/styles': `${localPrefix}/@ag-grid-community/styles`,
         '@ag-grid-community/react': `${localPrefix}/@ag-grid-community/react`,
@@ -213,9 +233,9 @@ const publishedConfiguration = {
     chartPaths: {},
 };
 
-function getRelevantConfig(configuration, framework) {
-    const filterByFramework = ([k]) => {
-        const inverseFrameworks = {
+function getRelevantConfig(configuration: Configuration, framework: InternalFramework) {
+    const filterByFramework = ([k]: string[]) => {
+        const inverseFrameworks: Record<string, string[]> = {
             react: ['angular', 'vue', 'vue3'],
             angular: ['react', 'vue', 'vue3'],
             vue: ['angular', 'react', 'vue3'],
@@ -225,7 +245,7 @@ function getRelevantConfig(configuration, framework) {
         return !inverseFrameworks[framework].some((f) => k.endsWith(f));
     };
 
-    const filterOutChartWrapper = ([k]) => {
+    const filterOutChartWrapper = ([k]: string[]) => {
         // integrated does not need the charts framework wrapper
         if (k.includes('ag-charts')) {
             return k !== `ag-charts-${framework}`;
@@ -233,8 +253,8 @@ function getRelevantConfig(configuration, framework) {
         return true;
     };
 
-    const buildCopy = (config) => {
-        let valid = {};
+    const buildCopy = (config: Paths) => {
+        const valid = {} as Paths;
         Object.entries(config)
             .filter(filterOutChartWrapper)
             .filter(filterByFramework)
@@ -245,8 +265,8 @@ function getRelevantConfig(configuration, framework) {
         return valid;
     };
 
-    const buildChartCopy = (config) => {
-        let valid = {};
+    const buildChartCopy = (config: Paths) => {
+        const valid = {} as Paths;
         Object.entries(config)
             .filter(filterByFramework)
             .sort(([k1], [k2]) => (k1 < k2 ? -1 : 1))
@@ -269,8 +289,15 @@ function getRelevantConfig(configuration, framework) {
  * Our framework examples use SystemJS to load the various dependencies. This component is used to insert the required
  * code to load SystemJS and the relevant modules depending on the framework.
  */
-export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, options, framework, isDev }) => {
-    const { enterprise: isEnterprise } = options;
+export const SystemJs = ({
+    library,
+    boilerplatePath,
+    appLocation,
+    startFile,
+    isEnterprise,
+    internalFramework,
+    isDev,
+}: Props) => {
     const systemJsPath = pathJoin(boilerplatePath, `systemjs.config${isDev ? '.dev' : ''}.js`);
     let configuration = isUsingPublishedPackages()
         ? publishedConfiguration
@@ -326,11 +353,11 @@ export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, opt
             'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise`,
         };
     }
-    configuration = getRelevantConfig(configuration, framework);
+    configuration = getRelevantConfig(configuration, internalFramework);
 
     let systemJsMap;
-    let systemJsPaths;
-    if (library === 'charts' || options.enableChartApi) {
+    let systemJsPaths: Paths = {};
+    if (library === 'charts') {
         systemJsMap = configuration.chartMap;
         systemJsPaths = configuration.chartPaths;
     }
@@ -344,7 +371,7 @@ export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, opt
     }
 
     let systemJsVersion = `${NPM_CDN}/systemjs@0.19.47/dist/system.js`;
-    if (framework === 'angular') {
+    if (internalFramework === 'angular') {
         // Angular needs a later version to be able to import @esm-bundle/angular__compiler which
         // it requires to correctly renderer dynamic components.
         systemJsVersion = `${NPM_CDN}/systemjs@0.21.6/dist/system.js`;
@@ -357,7 +384,7 @@ export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, opt
                     __html: `
             var appLocation = '${appLocation}';
             var boilerplatePath = '${boilerplatePath}';
-            var systemJsMap = ${format(systemJsMap)};
+            var systemJsMap = ${format(systemJsMap!)};
             ${Object.keys(systemJsPaths).length > 0 ? `var systemJsPaths = ${format(systemJsPaths)};` : ''}
         `,
                 }}
@@ -373,4 +400,4 @@ export const SystemJs = ({ library, boilerplatePath, appLocation, startFile, opt
     );
 };
 
-const format = (value) => JSON.stringify(value, null, 4).replace(/\n/g, '\n            ');
+const format = (value: object) => JSON.stringify(value, null, 4).replace(/\n/g, '\n            ');

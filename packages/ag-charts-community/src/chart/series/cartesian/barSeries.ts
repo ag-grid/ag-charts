@@ -184,6 +184,9 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     override async processData(dataController: DataController) {
         const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
+
+        if (xKey == null || yKey == null || data == null) return;
+
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
@@ -343,6 +346,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             nodeData: [],
             labelData: [],
             scales: super.calculateScaling(),
+            visible: this.visible,
         };
         processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
             const xValue = keys[xIndex];

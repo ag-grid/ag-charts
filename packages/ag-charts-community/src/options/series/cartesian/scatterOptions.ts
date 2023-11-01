@@ -44,7 +44,6 @@ export interface AgScatterSeriesOptionsNames {
     labelName?: string;
 }
 
-/** Configuration for scatter/bubble series. */
 export interface AgScatterSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgScatterSeriesOptionsKeys,

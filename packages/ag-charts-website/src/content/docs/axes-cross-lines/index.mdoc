@@ -8,7 +8,7 @@ Cross lines are lines or shaded areas in a chart that can highlight important in
 
 To add a cross line at a specific data value on an axis, you need to specify the `crossLines` property on the `axis` options object:
 
-{% interfaceDocumentation interfaceName="AgBaseCartesianAxisOptions" names="[\"crossLines\"]" config="{\"description\":\"\", \"overrideBottomMargin\":\"1rem\", \"suppressTypes\": [\"DataValue\", \"CssColor\", \"CssColor\", \"Opacity\", \"PixelSize\", \"FontStyle\", \"FontWeight\", \"FontSize\", \"FontFamily\", \"AgCrossLineLabelPosition\"]}" /%}
+{% apiReference id="AgBaseCartesianAxisOptions" include=["crossLines"] hideHeader=true /%}
 
 The following snippet shows how to add a horizontal cross line:
 
@@ -109,7 +109,7 @@ axes: [
 ];
 ```
 
-{% chartExampleRunner title="Polar Axis Angle Crosslines" name="polar-axes-crosslines-angle" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Polar Axis Angle Crosslines" name="polar-axes-crosslines-angle" type="generated" /%}
 
 The following snippet shows how to add a cross line and range for Radius Axis:
 
@@ -137,4 +137,4 @@ axes: [
 ];
 ```
 
-{% chartExampleRunner title="Polar Axis Radius Crosslines" name="polar-axes-crosslines-radius" type="generated" options="{ \"enterprise\": true }" /%}
+{% chartExampleRunner title="Polar Axis Radius Crosslines" name="polar-axes-crosslines-radius" type="generated" /%}

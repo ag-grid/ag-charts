@@ -5,6 +5,7 @@ import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { Scripts } from './lib/Scripts';
 import { pathJoin } from '@utils/pathJoin';
+import type { Library } from '@ag-grid-types';
 
 interface Props {
     isDev: boolean;
@@ -12,8 +13,7 @@ interface Props {
     exampleName: string;
 
     modifiedTimeMs: number;
-    isExecuting: boolean;
-    options: any;
+    isEnterprise: boolean;
     entryFileName: string;
     /**
      * Extra script file names (not including entry file)
@@ -21,7 +21,7 @@ interface Props {
     scriptFiles?: string[];
     styleFiles?: string[];
     appLocation: string;
-    library: string;
+    library: Library;
     boilerplatePath: string;
 }
 
@@ -30,12 +30,11 @@ const {
     exampleName,
     isDev,
     modifiedTimeMs,
-    isExecuting,
-    options,
+    isEnterprise,
     appLocation,
     entryFileName,
-    scriptFiles,
-    styleFiles,
+    scriptFiles = [],
+    styleFiles = [],
     library,
     boilerplatePath,
 } = Astro.props as Props;
@@ -49,8 +48,6 @@ const startFile = pathJoin(appLocation, entryFileName);
             isDev={isDev}
             title={`React example - ${pageName} - ${exampleName}`}
             modifiedTimeMs={modifiedTimeMs}
-            isExecuting={isExecuting}
-            options={options}
         />
         <ExampleStyle rootId="root" />
         <Styles baseUrl={appLocation} files={styleFiles} />
@@ -64,8 +61,8 @@ const startFile = pathJoin(appLocation, entryFileName);
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
-            framework={'react'}
-            options={options}
+            internalFramework={'react'}
+            isEnterprise={isEnterprise}
         />
     </body>
 </html>

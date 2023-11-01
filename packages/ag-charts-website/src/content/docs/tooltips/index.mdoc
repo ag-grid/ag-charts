@@ -240,32 +240,34 @@ By default, you can not hover over a tooltip or select its text. Set the `series
 
 ## API Reference
 
-### Tooltips
+{% tabs %}
 
-{% interfaceDocumentation interfaceName="AgSeriesTooltip" config="{ \"showSnippets\": false }" /%}
+{% tabItem label="Tooltips" %}
+{% apiReference id="AgSeriesTooltip" /%}
+{% /tabItem %}
 
-## All Tooltip Renderer Params
+{% tabItem label="Bar/Column" %}
+{% apiReference id="AgBarSeriesTooltipRendererParams" /%}
+{% /tabItem %}
 
-### Bar/Column Tooltips
+{% tabItem label="Area" %}
+{% apiReference id="AgCartesianSeriesTooltipRendererParams" /%}
+{% /tabItem %}
 
-{% interfaceDocumentation interfaceName="AgBarSeriesTooltipRendererParams" config="{ \"showSnippets\": false }" /%}
+{% tabItem label="Line" %}
+{% apiReference id="AgCartesianSeriesTooltipRendererParams" /%}
+{% /tabItem %}
 
-### Area Tooltips
+{% tabItem label="Scatter/Bubble" %}
+{% apiReference id="AgScatterSeriesTooltipRendererParams" /%}
+{% /tabItem %}
 
-{% interfaceDocumentation interfaceName="AgCartesianSeriesTooltipRendererParams" config="{ \"showSnippets\": false }" /%}
+{% tabItem label="Pie/Doughnut" %}
+{% apiReference id="AgPieSeriesTooltipRendererParams" /%}
+{% /tabItem %}
 
-### Line Tooltips
+{% tabItem label="Histogram" %}
+{% apiReference id="AgHistogramSeriesTooltipRendererParams" /%}
+{% /tabItem %}
 
-{% interfaceDocumentation interfaceName="AgCartesianSeriesTooltipRendererParams" config="{ \"showSnippets\": false }" /%}
-
-### Scatter/Bubble Tooltips
-
-{% interfaceDocumentation interfaceName="AgScatterSeriesTooltipRendererParams" config="{ \"showSnippets\": false }" /%}
-
-### Pie/Doughnut Tooltips
-
-{% interfaceDocumentation interfaceName="AgPieSeriesTooltipRendererParams" config="{ \"showSnippets\": false }" /%}
-
-### Histogram Tooltips
-
-{% interfaceDocumentation interfaceName="AgHistogramSeriesTooltipRendererParams" config="{ \"showSnippets\": false }" /%}
+{% /tabs %}

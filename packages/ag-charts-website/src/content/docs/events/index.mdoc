@@ -125,18 +125,20 @@ This example shows the three different types of interaction range that are possi
 
 ## API Reference
 
-### Series Events
+{% tabs %}
 
+{% tabItem label="Series Events" %}
 All series event options have similar interface contracts. See the series-specific documentation for variations.
+{% apiReference id="AgSeriesListeners" include=["nodeClick", "nodeDoubleClick"] /%}
+{% apiReference id="AgBaseSeriesOptions" include=["nodeClickRange"] /%}
+{% /tabItem %}
 
-{% interfaceDocumentation interfaceName="AgSeriesListeners" names="[\"nodeClick\", \"nodeDoubleClick\"]" /%}
+{% tabItem label="Legend Events" %}
+{% apiReference id="AgChartLegendListeners" /%}
+{% /tabItem %}
 
-{% interfaceDocumentation interfaceName="AgBaseSeriesOptions" names="[\"nodeClickRange\"]" /%}
+{% tabItem label="Chart Events" %}
+{% apiReference id="AgBaseChartListeners" /%}
+{% /tabItem %}
 
-### Legend Events
-
-{% interfaceDocumentation interfaceName="AgChartLegendListeners" names="[\"legendItemClick\", \"legendItemDoubleClick\"]" /%}
-
-### Chart Events
-
-{% interfaceDocumentation interfaceName="AgBaseChartListeners" names="[\"click\", \"doubleClick\", \"seriesNodeClick\"]" /%}
+{% /tabs %}

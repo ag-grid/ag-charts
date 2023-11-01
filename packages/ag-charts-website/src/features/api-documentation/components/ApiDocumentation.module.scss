@@ -11,10 +11,8 @@
 
 .required {
     color: red;
-
-    &:before {
-        content: ' ';
-    }
+    font-size: 0.7em;
+    vertical-align: text-top;
 }
 
 .apiReferenceOuter {
@@ -79,6 +77,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     --parent-properties-color: var(--secondary-text-color);
+    --parent-properties-font-weight: var(--font-weight-normal);
 
     position: relative;
     display: inline-block;
@@ -103,7 +102,7 @@
 }
 
 .parentProperties {
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--parent-properties-font-weight);
     color: var(--parent-properties-color);
     line-break: anywhere;
 }
@@ -147,6 +146,10 @@
     flex-wrap: wrap;
     gap: $size-2 $size-4;
     margin-top: $size-1;
+
+    pre {
+        min-width: 100%;
+    }
 }
 
 .seeMore {

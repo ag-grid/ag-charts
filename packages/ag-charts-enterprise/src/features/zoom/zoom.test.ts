@@ -34,16 +34,18 @@ describe('Zoom', () => {
             enabled: true,
             axes: 'xy',
             scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
+            minVisibleItemsX: 1,
+            minVisibleItemsY: 1,
         },
     };
 
     let cx: number = 0;
     let cy: number = 0;
 
-    async function prepareChart(zoomOptions?: AgChartOptions['zoom']) {
+    async function prepareChart(zoomOptions?: AgChartOptions['zoom'], baseOptions = EXAMPLE_OPTIONS) {
         const options: AgChartOptions = {
-            ...EXAMPLE_OPTIONS,
-            zoom: { ...EXAMPLE_OPTIONS.zoom, ...(zoomOptions ?? {}) },
+            ...baseOptions,
+            zoom: { ...baseOptions.zoom, ...(zoomOptions ?? {}) },
         };
         prepareEnterpriseTestOptions(options);
         cx = options.width! / 2;
@@ -55,6 +57,13 @@ describe('Zoom', () => {
         // event is triggered.
         await waitForChartStability(chart);
         await clickAction(cx, cy)(chart);
+    }
+
+    async function prepareHorizontalBarChart(zoomOptions?: AgChartOptions['zoom']) {
+        await prepareChart(zoomOptions, {
+            ...EXAMPLE_OPTIONS,
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal' }],
+        } as AgChartOptions);
     }
 
     beforeEach(async () => {
@@ -119,11 +128,46 @@ describe('Zoom', () => {
         });
     });
 
+    describe('min visible items', () => {
+        it('should not zoom past the minimum visible items', async () => {
+            await prepareChart({ minVisibleItemsX: 3, scrollingStep: 0.1 });
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart); // This is the limit
+            await scrollAction(cx, cy, -1)(chart);
+            await compare();
+        });
+    });
+
     describe('double click', () => {
         it('should reset the zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(cx, cy)(chart);
+            await compare();
+        });
+    });
+
+    describe('flipped axes', () => {
+        it('should zoom on the flipped axis', async () => {
+            await prepareHorizontalBarChart({ axes: 'x' });
+            await scrollAction(cx, cy, -1)(chart);
+            await compare();
+        });
+
+        it('should zoom to minimum visible items', async () => {
+            await prepareHorizontalBarChart({ axes: 'x', minVisibleItemsX: 3, scrollingStep: 0.1 });
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart);
+            await scrollAction(cx, cy, -1)(chart); // This is the limit
+            await scrollAction(cx, cy, -1)(chart);
             await compare();
         });
     });

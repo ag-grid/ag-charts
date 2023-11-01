@@ -1,10 +1,10 @@
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
-import { BBox } from '../scene/bbox';
+import type { BBox } from '../scene/bbox';
 import { toRadians } from '../util/angle';
 import { Logger } from '../util/logger';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
-import type { SpecialOverrides, TransferableResources } from './chart';
+import type { ChartSpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
@@ -20,7 +20,7 @@ export class CartesianChart extends Chart {
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
-    constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
+    constructor(specialOverrides: ChartSpecialOverrides, resources?: TransferableResources) {
         super(specialOverrides, resources);
     }
 
@@ -47,17 +47,6 @@ export class CartesianChart extends Chart {
 
         this.hoverRect = seriesPaddedRect;
 
-        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
-        let minRect;
-        if (minRects.length > 0) {
-            minRect = new BBox(
-                0,
-                0,
-                minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
-                minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
-            );
-        }
-
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
@@ -65,7 +54,6 @@ export class CartesianChart extends Chart {
             series: {
                 rect: seriesRect,
                 paddedRect: seriesPaddedRect,
-                minRect,
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
             },

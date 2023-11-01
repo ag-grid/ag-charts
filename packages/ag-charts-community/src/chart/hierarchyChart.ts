@@ -1,12 +1,12 @@
 import { BBox } from '../scene/bbox';
-import type { SpecialOverrides, TransferableResources } from './chart';
+import type { ChartSpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 
 export class HierarchyChart extends Chart {
     static className = 'HierarchyChart';
     static type = 'hierarchy' as const;
 
-    constructor(specialOverrides: SpecialOverrides, resources?: TransferableResources) {
+    constructor(specialOverrides: ChartSpecialOverrides, resources?: TransferableResources) {
         super(specialOverrides, resources);
     }
 

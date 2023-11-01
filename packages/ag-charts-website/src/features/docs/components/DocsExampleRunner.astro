@@ -1,15 +1,15 @@
 ---
 import { DocsExampleRunner } from './DocsExampleRunner';
-import { getExampleOptionsFromString } from '@features/example-runner/utils/getExampleOptionsFromString';
 import type { ExampleType } from '@features/examples-generator/types';
 import ExampleRunnerContainer from '@features/example-runner/components/ExampleRunnerContainer.astro';
 import { DOCS_FRAMEWORK_PATH_INDEX, DOCS_PAGE_NAME_PATH_INDEX } from '../constants';
+import type { ExampleOptions } from '@features/example-runner/types';
 
 interface Props {
     title: string;
     name: string;
     type: ExampleType;
-    options: string;
+    options: ExampleOptions;
 }
 
 const { title, name, type, options } = Astro.props as Props;
@@ -18,12 +18,6 @@ const pathSegments = Astro.url.pathname.split('/');
 const framework = pathSegments[DOCS_FRAMEWORK_PATH_INDEX];
 const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
 
-let exampleOptions;
-try {
-    exampleOptions = getExampleOptionsFromString(options);
-} catch (error) {
-    throw new Error(`${error} - options: ${options}\n${JSON.stringify({ name, title, pageName, framework }, null, 2)}`);
-}
 ---
 
 <ExampleRunnerContainer>
@@ -32,7 +26,7 @@ try {
         title={title}
         name={name}
         exampleType={type}
-        options={exampleOptions}
+        options={options}
         framework={framework}
         pageName={pageName}
     />

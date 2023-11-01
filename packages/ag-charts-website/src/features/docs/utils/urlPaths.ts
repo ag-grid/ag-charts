@@ -1,6 +1,6 @@
 import type { InternalFramework } from '@ag-grid-types';
 import type { Framework } from '@ag-grid-types';
-import { SITE_BASE_URL, SITE_BASE_URL_SEGMENTS } from '@constants';
+import { SITE_BASE_URL } from '@constants';
 import { pathJoin } from '@utils/pathJoin';
 
 import { DOCS_FRAMEWORK_PATH_INDEX } from '../constants';
