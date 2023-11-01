@@ -1,20 +1,54 @@
 import { Icon } from '@components/icon/Icon';
+import { SITE_BASE_URL } from '@constants';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import type { To } from 'history';
-import type { AllHTMLAttributes, CSSProperties, MouseEventHandler, ReactNode } from 'react';
-import { useContext } from 'react';
-import { navigate } from 'src/features/api-documentation/utils/navigation';
+import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
+import { createContext, useContext } from 'react';
 
 import type { MemberNode } from '../api-reference-types';
 import { extractSearchData, getMemberType } from '../utils/apiReferenceHelpers';
+import { navigate } from '../utils/navigation';
 import { ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
 
-export function OptionsNavigation({ breadcrumbs, rootInterface }: { breadcrumbs: string[]; rootInterface: string }) {
+export const SelectionContext = createContext<{
+    selection: Selection;
+    setSelection: Dispatch<SetStateAction<Selection>>;
+} | null>(null);
+
+export interface NavPageTitle {
+    memberName: string;
+    type: string;
+}
+
+export interface Selection {
+    pageInterface?: string;
+    pageTitle?: NavPageTitle;
+    anchorId?: string;
+}
+
+export function OptionsNavigation({
+    basePath,
+    breadcrumbs,
+    rootInterface,
+}: {
+    basePath: string;
+    breadcrumbs: string[];
+    rootInterface: string;
+}) {
+    const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
     const interfaceRef = reference?.get(rootInterface);
+
+    console.log(selection?.selection);
+
+    const handleClick = (navigateTo: To, newSelection: Selection) => {
+        selection?.setSelection(newSelection);
+        // console.log(navigateTo, newSelection);
+        navigate(navigateTo);
+    };
 
     if (!reference || !interfaceRef) {
         return null;
@@ -32,7 +66,7 @@ export function OptionsNavigation({ breadcrumbs, rootInterface }: { breadcrumbs:
 
             <pre className={classnames('code', styles.navContainer)}>
                 <code className="language-ts">
-                    <NavBreadcrumb breadcrumbs={breadcrumbs}>
+                    <NavBreadcrumb breadcrumbs={breadcrumbs} rootInterface={rootInterface} basePath={basePath}>
                         {interfaceRef.kind === 'interface' && (
                             <NavGroup depth={breadcrumbs?.length ?? 0}>
                                 {interfaceRef.members.map((member) => (
@@ -40,12 +74,10 @@ export function OptionsNavigation({ breadcrumbs, rootInterface }: { breadcrumbs:
                                         key={member.name}
                                         member={member}
                                         depth={breadcrumbs?.length ?? 0}
-                                        pathname="/options"
+                                        pageInterface={rootInterface}
+                                        pathname={`${SITE_BASE_URL}${basePath}`}
                                         anchorId={`reference-${rootInterface}-${member.name}`}
-                                        onClick={(navigateTo) => {
-                                            console.log(navigateTo);
-                                            navigate(navigateTo);
-                                        }}
+                                        onClick={handleClick}
                                     />
                                 ))}
                             </NavGroup>
@@ -72,20 +104,22 @@ function NavProperty({
     depth = 0,
     pathname,
     anchorId,
+    pageTitle,
+    pageInterface,
     onClick,
 }: {
     member: MemberNode;
     depth?: number;
     pathname: string;
     anchorId: string;
-    onClick?: (uri: To) => void;
+    pageTitle?: NavPageTitle;
+    pageInterface?: string;
+    onClick?: (uri: To, selection: Selection) => void;
 }) {
+    const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
-    const [isExpanded, toggleExpanded] = useToggle();
+
     const memberType = getMemberType(member);
-
-    const handleClick = () => onClick?.({ pathname, hash: anchorId });
-
     const interfaceRef = reference?.get(memberType);
     const isInterface = interfaceRef?.kind === 'interface';
     const isInterfaceArray =
@@ -96,6 +130,19 @@ function NavProperty({
         interfaceRef.type.kind === 'union' &&
         interfaceRef.type.type.every((type): type is string => typeof type === 'string');
     const expandable = isInterface || isInterfaceArray;
+
+    const [isExpanded, toggleExpanded] = useToggle(
+        isInterfaceArray
+            ? typeof selection?.selection.pageInterface === 'string' &&
+                  getInterfaceArrayTypes().includes(selection?.selection.pageInterface)
+            : selection?.selection.pageInterface === pageInterface &&
+                  selection?.selection.anchorId?.startsWith(anchorId) &&
+                  selection?.selection.anchorId !== anchorId
+    );
+
+    const isSelected =
+        selection?.selection.pageInterface === pageInterface && selection?.selection.anchorId === anchorId;
+    const handleClick = () => onClick?.({ pathname, hash: anchorId }, { pageInterface, pageTitle, anchorId });
 
     function getInterfaceArrayTypes(): string[] {
         if (
@@ -111,7 +158,7 @@ function NavProperty({
 
     return (
         <>
-            <div className={styles.navItem} onDoubleClick={toggleExpanded}>
+            <div className={classnames(styles.navItem, isSelected && styles.highlight)} onDoubleClick={toggleExpanded}>
                 <span
                     className={classnames(
                         styles.propertyName,
@@ -120,7 +167,19 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <span onClick={handleClick}>{member.name}</span>
+                    <span onClick={handleClick}>
+                        {member.name === 'type' ? (
+                            <>
+                                type <span className={styles.punctuation}>= '</span>
+                                <span className={styles.unionDiscriminator}>
+                                    {getMemberType(member).replaceAll("'", '')}
+                                </span>
+                                '
+                            </>
+                        ) : (
+                            member.name
+                        )}
+                    </span>
                     {expandable && (
                         <OpeningBrackets isOpen={isExpanded} isArray={isInterfaceArray} onClick={toggleExpanded} />
                     )}
@@ -137,6 +196,8 @@ function NavProperty({
                                       member={member}
                                       pathname={pathname}
                                       anchorId={`${anchorId}-${member.name}`}
+                                      pageInterface={pageInterface}
+                                      pageTitle={pageTitle}
                                       onClick={onClick}
                                   />
                               ))
@@ -145,7 +206,8 @@ function NavProperty({
                                       key={typeName}
                                       depth={depth + 1}
                                       pathname={`${pathname}/${member.name}`}
-                                      interfaceName={typeName}
+                                      pageInterface={typeName}
+                                      memberName={member.name}
                                       onClick={onClick}
                                   />
                               ))}
@@ -158,36 +220,53 @@ function NavProperty({
 }
 
 function NavTypedUnionProperty({
-    interfaceName,
+    pageInterface,
     depth = 0,
     pathname,
+    memberName,
     onClick,
 }: {
-    interfaceName: string;
+    pageInterface: string;
     depth?: number;
     pathname: string;
-    onClick?: (uri: To) => void;
+    memberName: string;
+    onClick?: (uri: To, selection: Selection) => void;
 }) {
+    const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
-    const interfaceRef = reference?.get(interfaceName);
+    const interfaceRef = reference?.get(pageInterface);
+    const defaultAnchorId = `reference-${pageInterface}-type`;
 
     if (interfaceRef?.kind !== 'interface') {
         return null;
     }
 
-    const [isExpanded, toggleExpanded] = useToggle();
+    const [isExpanded, toggleExpanded] = useToggle(
+        selection?.selection.pageInterface === pageInterface &&
+            Boolean(selection?.selection.anchorId) &&
+            selection?.selection.anchorId !== defaultAnchorId
+    );
     const typeMember = interfaceRef.members.find((member) => member.name === 'type');
+    const isSelected =
+        !isExpanded &&
+        selection?.selection.pageInterface === pageInterface &&
+        selection?.selection.anchorId === defaultAnchorId;
 
     if (typeof typeMember?.type !== 'string') {
         return null;
     }
 
-    pathname = `${pathname}/${typeMember.type.replaceAll("'", '')}`;
-    const handleClick = () => onClick?.({ pathname });
+    const normalizedType = typeMember.type.replaceAll("'", '');
+    const pageTitle = { memberName, type: normalizedType };
+    const handleClick = () =>
+        onClick?.(
+            { pathname: `${pathname}/${normalizedType}`, hash: defaultAnchorId },
+            { pageInterface, pageTitle, anchorId: defaultAnchorId }
+        );
 
     return (
         <>
-            <div className={styles.navItem} onDoubleClick={toggleExpanded}>
+            <div className={classnames(styles.navItem, isSelected && styles.highlight)} onDoubleClick={toggleExpanded}>
                 <span
                     className={classnames(
                         styles.propertyName,
@@ -204,8 +283,9 @@ function NavTypedUnionProperty({
                                 <span onClick={handleClick}>
                                     <span className={styles.punctuation}>{'{ '}</span>
                                     type
-                                    <span className={styles.punctuation}>{' = '}</span>
-                                    <span className={styles.unionDiscriminator}>{typeMember.type}</span>
+                                    <span className={styles.punctuation}> = '</span>
+                                    <span className={styles.unionDiscriminator}>{normalizedType}</span>
+                                    <span className={styles.punctuation}>'</span>
                                 </span>
                                 <span className={styles.punctuation} onClick={toggleExpanded}>
                                     {' ... }'}
@@ -223,8 +303,10 @@ function NavTypedUnionProperty({
                                 key={member.name}
                                 member={member}
                                 depth={depth + 1}
-                                pathname={pathname}
-                                anchorId={`reference-${interfaceName}-${member.name}`}
+                                pathname={`${pathname}/${normalizedType}`}
+                                anchorId={`reference-${pageInterface}-${member.name}`}
+                                pageInterface={pageInterface}
+                                pageTitle={pageTitle}
                                 onClick={onClick}
                             />
                         ))}
@@ -236,14 +318,32 @@ function NavTypedUnionProperty({
     );
 }
 
-function NavBreadcrumb({ breadcrumbs, children }: { depth?: number; breadcrumbs?: string[]; children: ReactNode }) {
+function NavBreadcrumb({
+    breadcrumbs,
+    rootInterface,
+    basePath,
+    children,
+}: {
+    breadcrumbs?: string[];
+    rootInterface: string;
+    basePath: string;
+    children: ReactNode;
+}) {
+    const selection = useContext(SelectionContext);
+    const isSelected = selection?.selection.pageInterface === rootInterface && !selection?.selection.anchorId;
+    const handleClick = () => {
+        selection?.setSelection({ pageInterface: rootInterface });
+        window.scrollTo({ behavior: 'smooth', top: 0 });
+        navigate(`${SITE_BASE_URL}${basePath}`);
+    };
+
     return (
         <>
             {breadcrumbs?.map((breadcrumb, index) => (
                 <NavGroup key={index} depth={index}>
                     {index > 0 && <div className={styles.navItem}>...</div>}
-                    <div className={classnames(styles.navItem, !index && styles.highlight)}>
-                        <span className={classnames(styles.propertyName)}>
+                    <div className={classnames(styles.navItem, isSelected && styles.highlight)}>
+                        <span className={classnames(styles.propertyName)} onClick={handleClick}>
                             {index > 0 && <PropertyExpander isExpanded />}
                             {breadcrumb}
                         </span>
