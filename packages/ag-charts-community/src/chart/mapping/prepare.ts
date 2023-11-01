@@ -12,7 +12,7 @@ import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
 import type { ChartTheme } from '../themes/chartTheme';
-import { swapAxes } from './defaults';
+import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
 import { getChartTheme } from './themes';
@@ -82,12 +82,14 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     if (isDefaultAxisSwapNeeded(options)) {
         defaultOverrides = swapAxes(defaultOverrides);
     }
+    const conflictOverrides = resolveModuleConflicts(options);
 
     removeDisabledOptions<T>(options);
 
     const { context, mergedOptions, axesThemes, seriesThemes, theme } = prepareMainOptions<T>(
         defaultOverrides as T,
-        options
+        options,
+        conflictOverrides
     );
 
     // Special cases where we have arrays of elements which need their own defaults.
@@ -116,9 +118,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     const checkAxisType = (type?: string) => {
         const isAxisType = isAxisOptionType(type);
         if (!isAxisType) {
-            Logger.warnOnce(
-                `AG Charts - unknown axis type: ${type}; expected one of: ${AXIS_TYPES.axesTypes}, ignoring.`
-            );
+            Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${AXIS_TYPES.axesTypes}, ignoring.`);
         }
 
         return isAxisType;
@@ -187,13 +187,16 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
     );
 }
 
-function prepareMainOptions<T extends AgChartOptions>(defaultOverrides: T, options: T) {
+function prepareMainOptions<T extends AgChartOptions>(defaultOverrides: T, options: T, conflictOverrides: Partial<T>) {
     const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette } = prepareTheme(options);
 
     const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
 
     defaultOverrides = theme.templateTheme(defaultOverrides);
-    const mergedOptions: T = jsonMerge([defaultOverrides, cleanedTheme, options], noDataCloneMergeOptions);
+    const mergedOptions: T = jsonMerge(
+        [defaultOverrides, cleanedTheme, options, conflictOverrides],
+        noDataCloneMergeOptions
+    );
 
     return { context, mergedOptions, axesThemes, seriesThemes, theme };
 }

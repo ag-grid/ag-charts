@@ -7,7 +7,6 @@ import type {
     AgChartDoubleClickEvent,
     AgChartInstance,
     AgChartOptions,
-    AgChartSpecialOverrides,
 } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
@@ -72,8 +71,8 @@ type PickedNode = {
 };
 
 function initialiseSpecialOverrides(
-    opts: AgChartSpecialOverrides
-): PickRequired<AgChartSpecialOverrides, 'document' | 'window'> {
+    opts: ChartExtendedOptions
+): PickRequired<ChartExtendedOptions, 'document' | 'window'> {
     let globalWindow;
     if (opts.window != null) {
         globalWindow = opts.window;
@@ -98,8 +97,18 @@ function initialiseSpecialOverrides(
         document: globalDocument,
         window: globalWindow,
         overrideDevicePixelRatio: opts.overrideDevicePixelRatio,
+        sceneMode: opts.sceneMode,
     };
 }
+
+export interface ChartSpecialOverrides {
+    document?: Document;
+    window?: Window;
+    overrideDevicePixelRatio?: number;
+    sceneMode?: 'simple';
+}
+
+export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 class SeriesArea {
     @Validate(OPT_BOOLEAN)
@@ -261,9 +270,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
-    private readonly specialOverrides: PickRequired<AgChartSpecialOverrides, 'document' | 'window'>;
+    private readonly specialOverrides: PickRequired<ChartExtendedOptions, 'document' | 'window'>;
 
-    protected constructor(specialOverrides: AgChartSpecialOverrides, resources?: TransferableResources) {
+    protected constructor(specialOverrides: ChartExtendedOptions, resources?: TransferableResources) {
         super();
 
         this.specialOverrides = initialiseSpecialOverrides(specialOverrides);
@@ -610,6 +619,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.updateShortcutCount = 0;
                 this.updateRequestors = {};
         }
+
+        this.updateService.dispatchUpdateComplete(this.getMinRect());
 
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {
@@ -1354,5 +1365,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         } else {
             this.overlays.noData.hide();
         }
+    }
+
+    protected getMinRect() {
+        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
+        if (!minRects.length) return undefined;
+        return new BBox(
+            0,
+            0,
+            minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
+            minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
+        );
     }
 }

@@ -580,7 +580,6 @@ export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions = {
             type: 'treemap',
             labelKey: 'orgHierarchy',
             groupFill: undefined,
-            gradient: false,
             nodePadding: 5,
             sizeKey: undefined, // make all siblings within a parent the same size
             colorKey: undefined, // if undefined, depth will be used an the value, where root has 0 depth

@@ -1,8 +1,7 @@
-import type { AgChartSpecialOverrides } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
-import type { TransferableResources } from './chart';
+import type { ChartSpecialOverrides, TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { Layers } from './layers';
@@ -15,7 +14,7 @@ export class PolarChart extends Chart {
 
     override padding = new Padding(40);
 
-    constructor(specialOverrides: AgChartSpecialOverrides, resources?: TransferableResources) {
+    constructor(specialOverrides: ChartSpecialOverrides, resources?: TransferableResources) {
         super(specialOverrides, resources);
         this.axisGroup.zIndex = Layers.AXIS_FOREGROUND_ZINDEX;
     }

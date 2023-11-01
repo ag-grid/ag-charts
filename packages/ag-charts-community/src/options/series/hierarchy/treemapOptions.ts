@@ -1,5 +1,4 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, TextWrap } from '../../chart/types';
@@ -104,13 +103,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any> extends AgBaseSer
      * Default: `0`
      */
     nodeGap?: PixelSize;
-    /** Whether to use gradients for treemap tiles. */
-    gradient?: boolean;
     /** Configuration for the shadow used behind the treemap tiles. */
-    tileShadow?: AgDropShadowOptions;
-    /** Configuration for the shadow used behind the treemap labels. */
-    labelShadow?: AgDropShadowOptions;
-    /** Determines whether the groups will be highlighted by cursor. */
     highlightGroups?: boolean;
     /** Configuration for treemap tiles when they are hovered over. */
     highlightStyle?: AgTreemapSeriesHighlightStyle;

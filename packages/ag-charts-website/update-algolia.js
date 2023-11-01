@@ -3,6 +3,12 @@
  * it into records, and pushes these records to Algolia. It should be run whenever the website is deployed.
  */
 
+/*
+ * node update-algolia.js -d to write indices content to local files (no algolia update)
+ * node update-algolia.js -i ag-charts-dev to update dev indices
+ * node update-algolia.js -i ag-charts to update production indices
+ */
+
 require('dotenv').config();
 
 const fs = require('fs-extra');

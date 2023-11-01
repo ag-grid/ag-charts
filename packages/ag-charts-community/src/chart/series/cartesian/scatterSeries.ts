@@ -103,12 +103,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
     override async processData(dataController: DataController) {
         const {
-            xKey = '',
-            yKey = '',
+            xKey,
+            yKey,
             labelKey,
             data,
             ctx: { animationManager },
         } = this;
+
+        if (xKey == null || yKey == null || data == null) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const { colorScale, colorDomain, colorRange, colorKey } = this;
@@ -208,7 +210,15 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             });
         }
 
-        return [{ itemId: this.yKey ?? this.id, nodeData, labelData: nodeData, scales: super.calculateScaling() }];
+        return [
+            {
+                itemId: this.yKey ?? this.id,
+                nodeData,
+                labelData: nodeData,
+                scales: super.calculateScaling(),
+                visible: this.visible,
+            },
+        ];
     }
 
     protected override isPathOrSelectionDirty(): boolean {

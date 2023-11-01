@@ -1,3 +1,4 @@
+import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
@@ -69,6 +70,7 @@ function prepPoints(key: 'top' | 'bottom', ctx: AreaSeriesNodeDataContext, point
     return {
         scales: ctx.scales,
         nodeData: points[key],
+        visible: ctx.visible,
     };
 }
 
@@ -106,6 +108,12 @@ export function prepareAreaPathAnimation(
     diff?: ProcessedOutputDiff
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
+    let status: NodeUpdateState = 'updated';
+    if (oldData.visible && !newData.visible) {
+        status = 'removed';
+    } else if (!oldData.visible && newData.visible) {
+        status = 'added';
+    }
 
     const prepareMarkerPairs = () => {
         if (isCategoryBased && diff) {
@@ -130,6 +138,6 @@ export function prepareAreaPathAnimation(
 
     const pairData = [...top.result, ...bottom.result.reverse()];
     const fill = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialPath);
-    const marker = prepareMarkerAnimation(markerPairMap);
+    const marker = prepareMarkerAnimation(markerPairMap, status);
     return { fill, marker };
 }

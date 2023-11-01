@@ -20,7 +20,7 @@ export interface AxisLayout {
 export interface LayoutCompleteEvent {
     type: 'layout-complete';
     chart: { width: number; height: number };
-    series: { rect: BBox; paddedRect: BBox; minRect?: BBox; visible: boolean; shouldFlipXY?: boolean };
+    series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
     clipSeries: boolean;
     axes?: Array<AxisLayout & { id: string }>;
 }

@@ -42,6 +42,7 @@ export interface RootModule<M extends ModuleInstance = ModuleInstance> extends B
     instanceConstructor: new (ctx: ModuleContext) => M;
 
     themeTemplate?: {};
+    conflicts?: Array<keyof AgChartOptions>;
 }
 
 export interface AxisModule extends BaseModule {

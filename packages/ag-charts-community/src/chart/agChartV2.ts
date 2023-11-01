@@ -7,7 +7,6 @@ import type {
     AgBaseSeriesOptions,
     AgChartInstance,
     AgChartOptions,
-    AgChartSpecialOverrides,
     DownloadOptions,
     ImageDataUrlOptions,
 } from '../options/agChartOptions';
@@ -17,7 +16,7 @@ import { Logger } from '../util/logger';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
 import { CartesianChart } from './cartesianChart';
-import type { Chart } from './chart';
+import type { Chart, ChartExtendedOptions, ChartSpecialOverrides } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { getJsonApplyOptions } from './chartOptions';
 import { AgChartInstanceProxy } from './chartProxy';
@@ -44,7 +43,6 @@ import type { Series } from './series/series';
 const debug = Debug.create(true, 'opts');
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
-type AgChartExtendedOptions = AgChartOptions & AgChartSpecialOverrides;
 
 function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
     if (isAgCartesianChartOptions(options)) {
@@ -69,7 +67,7 @@ export abstract class AgChart {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create(options: AgChartExtendedOptions): AgChartInstance {
+    public static create(options: AgChartOptions): AgChartInstance {
         return AgChartInternal.createOrUpdate(options);
     }
 
@@ -81,7 +79,7 @@ export abstract class AgChart {
      * quick succession could result in undesirable flickering, so callers should batch up and/or
      * debounce changes to avoid unintended partial update renderings.
      */
-    public static update(chart: AgChartInstance, options: AgChartExtendedOptions) {
+    public static update(chart: AgChartInstance, options: AgChartOptions) {
         if (!AgChartInstanceProxy.isInstance(chart)) {
             throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
         }
@@ -135,7 +133,7 @@ abstract class AgChartInternal {
         AgChartInternal.initialised = true;
     }
 
-    static createOrUpdate(userOptions: AgChartExtendedOptions, proxy?: AgChartInstanceProxy) {
+    static createOrUpdate(userOptions: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
         AgChartInternal.initialiseModules();
 
         debug('>>> AgChartV2.createOrUpdate() user options', userOptions);
@@ -252,7 +250,7 @@ abstract class AgChartInternal {
         width ??= currentWidth;
         height ??= currentHeight;
 
-        const options: AgChartExtendedOptions = {
+        const options: ChartExtendedOptions = {
             ...chart.userOptions,
             container: document.createElement('div'),
             width,
@@ -275,7 +273,7 @@ abstract class AgChartInternal {
 
     private static createChartInstance(
         options: AgChartOptions,
-        specialOverrides: AgChartSpecialOverrides,
+        specialOverrides: ChartSpecialOverrides,
         oldChart?: Chart
     ): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
