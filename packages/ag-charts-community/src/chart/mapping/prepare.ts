@@ -8,6 +8,7 @@ import type {
 import type { JsonMergeOptions } from '../../util/json';
 import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
+import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
@@ -187,7 +188,11 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
     );
 }
 
-function prepareMainOptions<T extends AgChartOptions>(defaultOverrides: T, options: T, conflictOverrides: Partial<T>) {
+function prepareMainOptions<T extends AgChartOptions>(
+    defaultOverrides: T,
+    options: T,
+    conflictOverrides: DeepPartial<T>
+) {
     const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette } = prepareTheme(options);
 
     const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
