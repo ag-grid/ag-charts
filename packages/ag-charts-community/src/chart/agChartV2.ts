@@ -542,15 +542,15 @@ function applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
 }
 
 type ObservableLike = {
-    addEventListener(key: string, cb: TypedEventListener): void;
-    clearEventListeners(): void;
+    addListener(key: string, cb: TypedEventListener): void;
+    clearListeners(): void;
 };
 function registerListeners<T>(source: ObservableLike, listeners?: T) {
-    source.clearEventListeners();
+    source.clearListeners();
     const entries: [string, TypedEventListener][] = Object.entries(listeners ?? {});
     for (const [property, listener] of entries) {
         if (typeof listener !== 'function') continue;
-        source.addEventListener(property, listener);
+        source.addListener(property, listener);
     }
 }
 

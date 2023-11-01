@@ -1,13 +1,19 @@
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataModel, ProcessedData } from '../data/dataModel';
 
-export type SeriesEventType =
+// These events are used internally for sychronising series and series-option modules:
+export type InternalSeriesEventType =
     | 'data-update'
     | 'data-prerequest'
     | 'data-processed'
     | 'data-getDomain'
     | 'tooltip-getParams'
     | 'visibility-changed';
+
+// These are events that are broadcast externally to the user (i.e. there's an API for these).
+export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
+
+export type SeriesEventType = InternalSeriesEventType | SeriesNodeEventTypes;
 
 export interface BaseSeriesEvent<_T extends SeriesEventType> {}
 

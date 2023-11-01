@@ -18,7 +18,6 @@ import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Listeners } from '../../util/listeners';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
-import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import {
     BOOLEAN,
@@ -40,7 +39,7 @@ import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
-import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
+import type { SeriesEventType, SeriesNodeEventTypes } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
@@ -192,8 +191,6 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
-
 interface INodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
     readonly event: MouseEvent;
@@ -290,7 +287,7 @@ export abstract class Series<
         TLabel = TDatum,
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
-    extends Observable
+    extends Listeners<SeriesEventType, (e: any) => any>
     implements ISeries<TDatum>, ModuleContextInitialiser<SeriesContext>
 {
     protected static readonly highlightedZIndex = 1000000000000;
@@ -524,19 +521,6 @@ export abstract class Series<
         return [main, subIndex];
     }
 
-    private seriesListeners = new Listeners<SeriesEventType, (event: any) => any>();
-
-    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
-        type: T,
-        listener: (event: E) => R
-    ) {
-        return this.seriesListeners.addListener(type, listener);
-    }
-
-    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R>(type: T, event: E): R[] | undefined {
-        return this.seriesListeners.dispatch(type, event);
-    }
-
     addChartEventListeners(): void {
         return;
     }
@@ -735,11 +719,11 @@ export abstract class Series<
     abstract getLabelData(): PointLabelDatum[];
 
     fireNodeClickEvent(event: MouseEvent, datum: TDatum): void {
-        this.fireEvent(new this.NodeClickEvent('nodeClick', event, datum, this));
+        this.dispatch('nodeClick', new this.NodeClickEvent('nodeClick', event, datum, this));
     }
 
     fireNodeDoubleClickEvent(event: MouseEvent, datum: TDatum): void {
-        this.fireEvent(new this.NodeClickEvent('nodeDoubleClick', event, datum, this));
+        this.dispatch('nodeClick', new this.NodeClickEvent('nodeDoubleClick', event, datum, this));
     }
 
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];

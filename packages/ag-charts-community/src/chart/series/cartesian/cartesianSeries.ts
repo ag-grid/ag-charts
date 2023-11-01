@@ -21,8 +21,9 @@ import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
-import type { Series, SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
+import type { Series, SeriesNodeDataContext, SeriesNodePickMatch } from '../series';
 import { SeriesNodeClickEvent } from '../series';
+import type { SeriesNodeEventTypes } from '../seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import type { SeriesNodeDatum } from '../seriesTypes';
 

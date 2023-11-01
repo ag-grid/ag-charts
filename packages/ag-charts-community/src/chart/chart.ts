@@ -2,12 +2,7 @@ import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import type { Module } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
-import type {
-    AgChartClickEvent,
-    AgChartDoubleClickEvent,
-    AgChartInstance,
-    AgChartOptions,
-} from '../options/agChartOptions';
+import type { AgChartInstance, AgChartOptions } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
@@ -20,10 +15,10 @@ import { createId } from '../util/id';
 import { jsonMerge } from '../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
+import { Listeners } from '../util/listeners';
 import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
-import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
@@ -54,6 +49,7 @@ import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
 import type { Series } from './series/series';
 import { SeriesNodePickMode } from './series/series';
+import type { SeriesNodeEventTypes } from './series/seriesEvents';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
@@ -117,7 +113,10 @@ class SeriesArea {
     padding = new Padding(0);
 }
 
-export abstract class Chart extends Observable implements AgChartInstance {
+export abstract class Chart
+    extends Listeners<'seriesNodeClick' | 'seriesNodeDoubleClick' | SeriesNodeEventTypes, (e: any) => void>
+    implements AgChartInstance
+{
     readonly id = createId(this);
 
     className?: string;
@@ -746,6 +745,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this._series;
     }
 
+    private seriesListenerDestroyFns: (() => void)[] = [];
+
     private addSeries(series: Series<any>): boolean {
         const { series: allSeries } = this;
         const canAdd = allSeries.indexOf(series) < 0;
@@ -772,10 +773,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         series.addChartEventListeners();
     }
 
+    private removeAllListeners(): void {
+        for (const destroyFn of this.seriesListenerDestroyFns) {
+            destroyFn();
+        }
+        this.seriesListenerDestroyFns.length = 0;
+    }
+
     private removeAllSeries(): void {
+        this.removeAllListeners();
         this.series.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.destroy();
 
             series.chart = undefined;
@@ -784,20 +791,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private addSeriesListeners(series: Series<any>) {
-        if (this.hasEventListener('seriesNodeClick')) {
-            series.addEventListener('nodeClick', this.onSeriesNodeClick);
+        if (this.hasListener('seriesNodeClick')) {
+            this.seriesListenerDestroyFns.push(series.addListener('nodeClick', this.onSeriesNodeClick));
         }
 
-        if (this.hasEventListener('seriesNodeDoubleClick')) {
-            series.addEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
+        if (this.hasListener('seriesNodeDoubleClick')) {
+            this.seriesListenerDestroyFns.push(series.addListener('nodeDoubleClick', this.onSeriesNodeDoubleClick));
         }
     }
 
     updateAllSeriesListeners(): void {
+        this.removeAllListeners();
         this.series.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
-
             this.addSeriesListeners(series);
         });
     }
@@ -1222,7 +1227,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected handlePointerNode(event: InteractionEvent<'hover'>) {
         const found = this.checkSeriesNodeRange(event, (series, datum) => {
-            if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
+            if (series.hasListener('nodeClick') || series.hasListener('nodeDoubleClick')) {
                 this.cursorManager.updateCursor('chart', 'pointer');
             }
 
@@ -1245,7 +1250,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
         }
-        this.fireEvent<AgChartClickEvent>({
+        this.dispatch('nodeClick', {
             type: 'click',
             event: event.sourceEvent,
         });
@@ -1256,7 +1261,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
         }
-        this.fireEvent<AgChartDoubleClickEvent>({
+        this.dispatch('nodeDoubleClick', {
             type: 'doubleClick',
             event: event.sourceEvent,
         });
@@ -1328,7 +1333,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             // Should display the deprecation warning
             get: () => (event as any).series,
         });
-        this.fireEvent(seriesNodeClickEvent);
+        this.dispatch('nodeClick', seriesNodeClickEvent);
     };
 
     private onSeriesNodeDoubleClick = (event: TypedEvent) => {
@@ -1336,7 +1341,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             ...event,
             type: 'seriesNodeDoubleClick',
         };
-        this.fireEvent(seriesNodeDoubleClick);
+        this.dispatch('nodeDoubleClick', seriesNodeDoubleClick);
     };
 
     changeHighlightDatum(event: HighlightChangeEvent) {

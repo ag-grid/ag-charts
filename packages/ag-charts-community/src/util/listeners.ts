@@ -36,6 +36,14 @@ export class Listeners<EventType extends string, EventHandler extends Handler, M
         }
     }
 
+    public hasListener(eventType: EventType) {
+        return this.registeredListeners.has(eventType);
+    }
+
+    public clearListeners() {
+        this.registeredListeners.clear();
+    }
+
     public dispatch<R = never>(eventType: EventType, ...params: Parameters<EventHandler>): R[] | undefined {
         // This is a utility class to store all the results of Listeners (or do nothing
         // if R = void).

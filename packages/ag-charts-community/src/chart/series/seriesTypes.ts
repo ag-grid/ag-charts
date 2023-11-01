@@ -14,7 +14,7 @@ export interface ISeries<TDatum> {
     contentGroup: Group;
     tooltip: SeriesTooltip<any>;
     nodeClickRange: InteractionRange;
-    hasEventListener(type: string): boolean;
+    hasListener(type: string): boolean;
     update(opts: { seriesRect?: BBox }): Promise<void>;
     fireNodeClickEvent(event: Event, datum: TDatum): void;
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): void;
