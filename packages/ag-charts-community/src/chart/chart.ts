@@ -310,8 +310,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.zoomManager = new ZoomManager();
         this.dataService = new DataService<Series<any>>(() => this.series);
         this.layoutService = new LayoutService();
-        this.updateService = new UpdateService((type = ChartUpdateType.FULL, { forceNodeDataRefresh }) =>
-            this.update(type, { forceNodeDataRefresh })
+        this.updateService = new UpdateService(
+            (type = ChartUpdateType.FULL, { forceNodeDataRefresh, skipAnimations }) =>
+                this.update(type, { forceNodeDataRefresh, skipAnimations })
         );
         this.seriesStateManager = new SeriesStateManager();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
@@ -349,7 +350,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.zoomManager.addListener('zoom-change', (_) =>
-                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true })
+                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
             )
         );
 
@@ -536,9 +537,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
     });
     public update(
         type = ChartUpdateType.FULL,
-        opts?: { forceNodeDataRefresh?: boolean; seriesToUpdate?: Iterable<ISeries<any>>; backOffMs?: number }
+        opts?: {
+            forceNodeDataRefresh?: boolean;
+            skipAnimations?: boolean;
+            seriesToUpdate?: Iterable<ISeries<any>>;
+            backOffMs?: number;
+        }
     ) {
-        const { forceNodeDataRefresh = false, seriesToUpdate = this.series } = opts ?? {};
+        const { forceNodeDataRefresh = false, skipAnimations, seriesToUpdate = this.series } = opts ?? {};
 
         if (forceNodeDataRefresh) {
             this.series.forEach((series) => series.markNodeDataDirty());
@@ -546,6 +552,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         for (const series of seriesToUpdate) {
             this.seriesToUpdate.add(series);
+        }
+
+        if (skipAnimations) {
+            this.animationManager.skipCurrentBatch();
         }
 
         if (Debug.check(true)) {
