@@ -379,7 +379,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                     max: this.radiusMax,
                 }),
                 valueProperty(this, radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
-                normalisePropertyTo(this, { id: 'radiusValue' }, [0, 1], this.radiusMin ?? 0, this.radiusMax)
+                normalisePropertyTo(this, { id: 'radiusValue' }, [0, 1], 1, this.radiusMin ?? 0, this.radiusMax)
             );
         }
         if (calloutLabelKey) {
@@ -424,7 +424,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 ...extraKeyProps,
                 accumulativeValueProperty(this, angleKey, true, { id: `angleValue` }),
                 valueProperty(this, angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
-                normalisePropertyTo(this, { id: 'angleValue' }, [0, 1], 0),
+                normalisePropertyTo(this, { id: 'angleValue' }, [0, 1], 0, 0),
                 ...extraProps,
             ],
         });
