@@ -329,7 +329,7 @@ export const GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: AgCartesianChartO
     ...(examples.GROUPED_CATEGORY_AXIS_EXAMPLE as AgCartesianChartOptions),
     axes: [
         {
-            type: 'groupedCategory',
+            type: 'grouped-category',
             position: 'bottom',
             ...extremeAxisConfig,
         },

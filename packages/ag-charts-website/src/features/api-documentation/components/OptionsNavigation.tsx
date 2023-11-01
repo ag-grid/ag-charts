@@ -1,10 +1,12 @@
 import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
+import type { To } from 'history';
 import type { AllHTMLAttributes, CSSProperties, MouseEventHandler, ReactNode } from 'react';
 import { useContext } from 'react';
+import { navigate } from 'src/features/api-documentation/utils/navigation';
 
-import type { ApiReferenceNode, MemberNode } from '../api-reference-types';
+import type { MemberNode } from '../api-reference-types';
 import { extractSearchData, getMemberType } from '../utils/apiReferenceHelpers';
 import { ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
@@ -34,7 +36,17 @@ export function OptionsNavigation({ breadcrumbs, rootInterface }: { breadcrumbs:
                         {interfaceRef.kind === 'interface' && (
                             <NavGroup depth={breadcrumbs?.length ?? 0}>
                                 {interfaceRef.members.map((member) => (
-                                    <NavProperty key={member.name} member={member} depth={breadcrumbs?.length ?? 0} />
+                                    <NavProperty
+                                        key={member.name}
+                                        member={member}
+                                        depth={breadcrumbs?.length ?? 0}
+                                        pathname="/options"
+                                        anchorId={`reference-${rootInterface}-${member.name}`}
+                                        onClick={(navigateTo) => {
+                                            console.log(navigateTo);
+                                            navigate(navigateTo);
+                                        }}
+                                    />
                                 ))}
                             </NavGroup>
                         )}
@@ -58,15 +70,21 @@ function NavGroup({ depth = 0, className, ...props }: { depth?: number } & AllHT
 function NavProperty({
     member,
     depth = 0,
+    pathname,
+    anchorId,
     onClick,
 }: {
     member: MemberNode;
     depth?: number;
-    onClick?: MouseEventHandler;
+    pathname: string;
+    anchorId: string;
+    onClick?: (uri: To) => void;
 }) {
     const reference = useContext(ApiReferenceContext);
     const [isExpanded, toggleExpanded] = useToggle();
     const memberType = getMemberType(member);
+
+    const handleClick = () => onClick?.({ pathname, hash: anchorId });
 
     const interfaceRef = reference?.get(memberType);
     const isInterface = interfaceRef?.kind === 'interface';
@@ -102,13 +120,9 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <span onClick={onClick}>{member.name}</span>
+                    <span onClick={handleClick}>{member.name}</span>
                     {expandable && (
-                        <OpeningBrackets
-                            isOpen={isExpanded}
-                            isArray={isInterfaceArray}
-                            onClick={!isExpanded ? toggleExpanded : undefined}
-                        />
+                        <OpeningBrackets isOpen={isExpanded} isArray={isInterfaceArray} onClick={toggleExpanded} />
                     )}
                 </span>
             </div>
@@ -117,13 +131,22 @@ function NavProperty({
                     <NavGroup depth={depth + 1}>
                         {isInterface
                             ? interfaceRef.members.map((member) => (
-                                  <NavProperty key={member.name} depth={depth + 1} member={member} />
+                                  <NavProperty
+                                      key={member.name}
+                                      depth={depth + 1}
+                                      member={member}
+                                      pathname={pathname}
+                                      anchorId={`${anchorId}-${member.name}`}
+                                      onClick={onClick}
+                                  />
                               ))
                             : getInterfaceArrayTypes().map((typeName) => (
                                   <NavTypedUnionProperty
                                       key={typeName}
                                       depth={depth + 1}
-                                      interfaceRef={reference?.get(typeName)}
+                                      pathname={`${pathname}/${member.name}`}
+                                      interfaceName={typeName}
+                                      onClick={onClick}
                                   />
                               ))}
                     </NavGroup>
@@ -135,21 +158,32 @@ function NavProperty({
 }
 
 function NavTypedUnionProperty({
-    interfaceRef,
+    interfaceName,
     depth = 0,
+    pathname,
     onClick,
 }: {
-    interfaceRef?: ApiReferenceNode;
+    interfaceName: string;
     depth?: number;
-    onClick?: MouseEventHandler;
+    pathname: string;
+    onClick?: (uri: To) => void;
 }) {
+    const reference = useContext(ApiReferenceContext);
+    const interfaceRef = reference?.get(interfaceName);
+
     if (interfaceRef?.kind !== 'interface') {
         return null;
     }
 
     const [isExpanded, toggleExpanded] = useToggle();
     const typeMember = interfaceRef.members.find((member) => member.name === 'type');
-    const interfaceTypeValue = typeof typeMember?.type === 'string' ? typeMember.type : null;
+
+    if (typeof typeMember?.type !== 'string') {
+        return null;
+    }
+
+    pathname = `${pathname}/${typeMember.type.replaceAll("'", '')}`;
+    const handleClick = () => onClick?.({ pathname });
 
     return (
         <>
@@ -162,27 +196,37 @@ function NavTypedUnionProperty({
                     )}
                 >
                     <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />
-                    <span onClick={onClick}>
+                    <>
                         {isExpanded ? (
                             <span className={styles.punctuation}>{'{'}</span>
                         ) : (
-                            <span onClick={onClick}>
-                                <span className={styles.punctuation}>{'{'}</span>
-                                {' type = '}
-                                <span className={styles.unionDiscriminator}>{interfaceTypeValue}</span>
+                            <>
+                                <span onClick={handleClick}>
+                                    <span className={styles.punctuation}>{'{ '}</span>
+                                    type
+                                    <span className={styles.punctuation}>{' = '}</span>
+                                    <span className={styles.unionDiscriminator}>{typeMember.type}</span>
+                                </span>
                                 <span className={styles.punctuation} onClick={toggleExpanded}>
                                     {' ... }'}
                                 </span>
-                            </span>
+                            </>
                         )}
-                    </span>
+                    </>
                 </span>
             </div>
             {isExpanded && (
                 <>
                     <NavGroup depth={depth + 1}>
                         {interfaceRef.members.map((member) => (
-                            <NavProperty key={member.name} member={member} depth={depth + 1} />
+                            <NavProperty
+                                key={member.name}
+                                member={member}
+                                depth={depth + 1}
+                                pathname={pathname}
+                                anchorId={`reference-${interfaceName}-${member.name}`}
+                                onClick={onClick}
+                            />
                         ))}
                     </NavGroup>
                     <ClosingBrackets depth={depth} />
@@ -233,7 +277,7 @@ function OpeningBrackets({
         bracketString += isArray ? '[ ... ]' : '{ ... }';
     }
     return (
-        <span className={styles.punctuation} onClick={onClick}>
+        <span className={styles.punctuation} onClick={!isOpen ? onClick : undefined}>
             {bracketString}
         </span>
     );

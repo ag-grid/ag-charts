@@ -255,3 +255,44 @@ export function patchAgChartOptionsReference(reference: ApiReferenceType) {
 
     reference.set('AgChartOptions', altInterface);
 }
+
+export function getOptionsStaticPaths(reference: ApiReferenceType) {
+    patchAgChartOptionsReference(reference);
+
+    const getSubTypes = (ref: ApiReferenceNode): string[] =>
+        ref.kind === 'typeAlias' &&
+        typeof ref.type === 'object' &&
+        ref.type.kind === 'union' &&
+        ref.type.type.every((type): type is string => typeof type === 'string')
+            ? ref.type.type
+            : [];
+
+    const extractTypeValue = (refName: string) => {
+        const ref = reference.get(refName);
+        if (ref?.kind === 'interface') {
+            const typeMember = ref.members.find((member) => member.name === 'type');
+            if (typeof typeMember?.type === 'string') {
+                return typeMember.type.replaceAll("'", '');
+            }
+        }
+        return refName;
+    };
+
+    const createPageMapper = (memberName: string) => {
+        return (pageInterface: string) => {
+            const type = extractTypeValue(pageInterface);
+            return {
+                params: { memberName, type },
+                props: { pageInterface, pageTitle: { memberName, type } },
+            };
+        };
+    };
+
+    const axesRef = reference.get('AgChartAxisOptions')!;
+    const seriesRef = reference.get('AgChartSeriesOptions')!;
+
+    return [
+        ...getSubTypes(axesRef).map(createPageMapper('axes')),
+        ...getSubTypes(seriesRef).map(createPageMapper('series')),
+    ];
+}
