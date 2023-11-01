@@ -12,10 +12,6 @@ const LEGEND_KEYS: Partial<Record<ChartLegendType, string>> = {
 };
 
 export function registerLegend(type: ChartLegendType, key: string, ctr: LegendConstructor, theme: {} | undefined) {
-    if (LEGEND_FACTORIES[type]) {
-        throw new Error(`AG Charts - already registered legend type: ${type}`);
-    }
-
     LEGEND_FACTORIES[type] = ctr;
     LEGEND_KEYS[type] = key;
     LEGEND_THEME_TEMPLATES[key] = theme;
