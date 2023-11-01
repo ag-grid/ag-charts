@@ -74,9 +74,8 @@ export abstract class AgChart {
     /**
      * Update an existing `AgChartInstance`. Options provided should be complete and not
      * partial.
-     * <br/>
-     * <br/>
-     * **NOTE**: As each call could trigger a chart redraw, multiple calls to update options in
+     *
+     * __NOTE__: As each call could trigger a chart redraw, multiple calls to update options in
      * quick succession could result in undesirable flickering, so callers should batch up and/or
      * debounce changes to avoid unintended partial update renderings.
      */
@@ -89,9 +88,8 @@ export abstract class AgChart {
 
     /**
      * Update an existing `AgChartInstance` by applying a partial set of option changes.
-     * <br/>
-     * <br/>
-     * **NOTE**: As each call could trigger a chart redraw, each individual delta options update
+     *
+     * __NOTE__: As each call could trigger a chart redraw, each individual delta options update
      * should leave the chart in a valid options state. Also, multiple calls to update options in
      * quick succession could result in undesirable flickering, so callers should batch up and/or
      * debounce changes to avoid unintended partial update renderings.

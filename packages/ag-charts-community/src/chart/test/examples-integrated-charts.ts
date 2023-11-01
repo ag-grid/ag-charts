@@ -24,7 +24,7 @@ const BASE_THEME: AgChartTheme = {
                                 _enabledFromTheme: true,
                             },
                         },
-                        groupedCategory: {
+                        'grouped-category': {
                             title: {
                                 _enabledFromTheme: true,
                             },
@@ -1188,7 +1188,7 @@ const CROSSFILTER_THEME = {
                                 _enabledFromTheme: true,
                             },
                         },
-                        groupedCategory: {
+                        'grouped-category': {
                             title: {
                                 _enabledFromTheme: true,
                             },

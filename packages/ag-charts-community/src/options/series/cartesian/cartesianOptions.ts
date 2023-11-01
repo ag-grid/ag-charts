@@ -85,7 +85,7 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
 }
 
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions {
-    type: 'groupedCategory';
+    type: 'grouped-category';
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
 }
@@ -104,7 +104,7 @@ export interface AgTimeAxisOptions extends AgBaseCartesianAxisOptions {
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
-export type AgCartesianAxisType = 'category' | 'groupedCategory' | 'number' | 'log' | 'time';
+export type AgCartesianAxisType = 'category' | 'grouped-category' | 'number' | 'log' | 'time';
 
 export type AgCartesianAxisOptions =
     | AgNumberAxisOptions

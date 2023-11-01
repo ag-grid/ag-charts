@@ -6,12 +6,12 @@ import type {
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
 
-/** Base configuration for Radial Column series. */
 export interface AgBaseRadialColumnSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum> {
+    /** Base configuration for Radial Column series. */
     type: 'radial-column' | 'nightingale';
 
     /** Whether to group together (adjacently) separate sectors. */
@@ -29,10 +29,10 @@ export interface AgRadialColumnSeriesThemeableOptions<TDatum = any> extends AgBa
     maxColumnWidthRatio?: Ratio;
 }
 
-/** Configuration for Radial Column series. */
 export interface AgRadialColumnSeriesOptions<TDatum = any>
     extends AgRadialColumnSeriesThemeableOptions<TDatum>,
         AgBaseRadialColumnSeriesOptions<TDatum> {
+    /** Configuration for Radial Column series. */
     type: 'radial-column';
 }
 

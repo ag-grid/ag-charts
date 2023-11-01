@@ -65,12 +65,12 @@ export interface AgBarSeriesOptionsNames {
     yName?: string;
 }
 
-/** Configuration for bar series. */
 export interface AgBarSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
         AgBarSeriesThemeableOptions<TDatum> {
+    /** Configuration for bar series. */
     type: 'bar';
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
