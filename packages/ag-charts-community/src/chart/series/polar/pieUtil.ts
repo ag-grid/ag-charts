@@ -12,13 +12,12 @@ type AnimatableSectorDatum = {
 
 export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
     const rotation = Math.PI / -2 + toRadians(rotationDegrees);
-    const fullRotation = Math.PI / -2 + toRadians(rotationDegrees + 360);
 
     const fromFn = (
         sect: Sector,
         datum: AnimatableSectorDatum,
         status: NodeUpdateState,
-        { prevFromProps, last }: FromToMotionPropFnContext<Sector>
+        { prevFromProps }: FromToMotionPropFnContext<Sector>
     ) => {
         // Default to starting from current state.
         let { startAngle, endAngle, innerRadius, outerRadius } = sect;
@@ -34,8 +33,6 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
             endAngle = prevFromProps.endAngle ?? rotation;
             innerRadius = prevFromProps.innerRadius ?? datum.innerRadius;
             outerRadius = prevFromProps.outerRadius ?? datum.outerRadius;
-        } else if (last) {
-            endAngle = fullRotation;
         }
 
         return { startAngle, endAngle, innerRadius, outerRadius };
