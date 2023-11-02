@@ -166,7 +166,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
             from: 0,
             to: 1,
             ease: easing.easeOut,
-            onComplete() {
+            onStop() {
                 selection.cleanup();
             },
         });

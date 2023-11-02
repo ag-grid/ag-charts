@@ -1435,7 +1435,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         fromToMotion(
             this.id,
-            'ready-update',
+            'line-paths',
             animationManager,
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
             fns,
@@ -1444,7 +1444,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         );
         fromToMotion(
             this.id,
-            'ready-update',
+            'tick-labels',
             animationManager,
             [this.tickLabelGroupSelection],
             fns,
