@@ -1,4 +1,4 @@
-import { getBoilerPlateName, getEntryFileName, getTransformTsFileExt } from './fileUtils';
+import { getBoilerPlateName, getEntryFileName, getMainFileName, getTransformTsFileExt } from './fileUtils';
 
 describe('getEntryFileName', () => {
     test.each`
@@ -10,11 +10,29 @@ describe('getEntryFileName', () => {
         ${'react'}             | ${'index.jsx'}
         ${'reactFunctional'}   | ${'index.jsx'}
         ${'reactFunctionalTs'} | ${'index.tsx'}
-        ${'angular'}           | ${'main.js'}
+        ${'angular'}           | ${'main.ts'}
         ${'vue'}               | ${'main.js'}
         ${'vue3'}              | ${'main.js'}
     `('$internalFramework is $expected', ({ internalFramework, expected }) => {
         expect(getEntryFileName(internalFramework)).toEqual(expected);
+    });
+});
+
+describe('getMainFileName', () => {
+    test.each`
+        internalFramework      | expected
+        ${undefined}           | ${undefined}
+        ${'other'}             | ${undefined}
+        ${'vanilla'}           | ${'main.js'}
+        ${'typescript'}        | ${'main.ts'}
+        ${'react'}             | ${'index.jsx'}
+        ${'reactFunctional'}   | ${'index.jsx'}
+        ${'reactFunctionalTs'} | ${'index.tsx'}
+        ${'angular'}           | ${'app.component.ts'}
+        ${'vue'}               | ${'main.js'}
+        ${'vue3'}              | ${'main.js'}
+    `('$internalFramework is $expected', ({ internalFramework, expected }) => {
+        expect(getMainFileName(internalFramework)).toEqual(expected);
     });
 });
 

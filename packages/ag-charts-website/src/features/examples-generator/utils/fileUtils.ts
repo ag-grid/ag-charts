@@ -38,7 +38,7 @@ export const getBoilerPlateName = (internalFramework: InternalFramework) => {
 };
 
 export const getTransformTsFileExt = (internalFramework: InternalFramework): TransformTsFileExt => {
-    let transformTsFileExt;
+    let transformTsFileExt: TransformTsFileExt;
     if (internalFramework === 'reactFunctionalTs') {
         transformTsFileExt = '.tsx';
     } else if (!isTypescriptInternalFramework(internalFramework)) {
@@ -96,9 +96,13 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
     }
 };
 
+/**
+ * Entry filename to execute code
+ */
 export const getEntryFileName = (internalFramework: InternalFramework) => {
     switch (internalFramework) {
         case 'typescript':
+        case 'angular':
             return 'main.ts';
         case 'react':
         case 'reactFunctional':
@@ -106,12 +110,23 @@ export const getEntryFileName = (internalFramework: InternalFramework) => {
         case 'reactFunctionalTs':
             return 'index.tsx';
         case 'vanilla':
-        case 'angular':
         case 'vue':
         case 'vue3':
             return 'main.js';
         default:
             return;
+    }
+};
+
+/**
+ * Main filename showing code that is run
+ */
+export const getMainFileName = (internalFramework: InternalFramework) => {
+    switch (internalFramework) {
+        case 'angular':
+            return 'app.component.ts';
+        default:
+            return getEntryFileName(internalFramework);
     }
 };
 

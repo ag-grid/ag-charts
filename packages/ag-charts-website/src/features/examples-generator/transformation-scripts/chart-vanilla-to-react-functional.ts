@@ -128,7 +128,3 @@ root.render(<ChartExample />);
         return indexFile;
     };
 }
-
-if (typeof window !== 'undefined') {
-    (<any>window).vanillaToReactFunctional = vanillaToReactFunctional;
-}

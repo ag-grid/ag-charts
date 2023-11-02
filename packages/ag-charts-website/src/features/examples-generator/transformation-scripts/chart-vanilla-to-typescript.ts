@@ -41,7 +41,3 @@ export function vanillaToTypescript(bindings: any, mainFilePath: string): (impor
         return `${formattedImports}${tsFile} ${toAttach || ''}`;
     };
 }
-
-if (typeof window !== 'undefined') {
-    (<any>window).vanillaToTypescript = vanillaToTypescript;
-}

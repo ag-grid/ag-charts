@@ -130,7 +130,3 @@ createApp(ChartExample).mount("#app");
         return mainFile;
     };
 }
-
-if (typeof window !== 'undefined') {
-    (<any>window).vanillaToVue3 = vanillaToVue3;
-}

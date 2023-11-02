@@ -58,17 +58,6 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     const exampleName = name;
     const id = `example-${name}`;
 
-    // NOTE: Plunkr only works for these internal frameworks for now
-    const supportsPlunkr = [
-        'vanilla',
-        'typescript',
-        'react',
-        'reactFunctional',
-        'reactFunctionalTs',
-        'vue',
-        'vue3',
-    ].includes(internalFramework);
-
     const {
         isLoading: exampleFilesIsLoading,
         isError: exampleFilesIsError,
@@ -113,7 +102,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         if (!data || exampleFilesIsLoading || exampleFilesIsError) {
             return;
         }
-        setInitialSelectedFile(data?.entryFileName);
+        setInitialSelectedFile(data?.mainFileName);
     }, [data, exampleFilesIsLoading, exampleFilesIsError]);
 
     useEffect(() => {
@@ -144,7 +133,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     useUpdateInternalFrameworkFromFramework(framework);
 
     const externalLinkButton =
-        !options?.noPlunker && supportsPlunkr && plunkrHtmlUrl && exampleFiles ? (
+        !options?.noPlunker && plunkrHtmlUrl && exampleFiles ? (
             <OpenInPlunkr
                 title={title}
                 files={exampleFiles}

@@ -1,7 +1,7 @@
 import type { InternalFramework } from '@ag-grid-types';
 import fs from 'node:fs/promises';
 
-import { SOURCE_ENTRY_FILE_NAME } from './constants';
+import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import type { GeneratedContents } from './types.d';
 import { getEntryFileName, getFileContents, getIsEnterprise, getTransformTsFileExt } from './utils/fileUtils';
@@ -32,8 +32,14 @@ export const getGeneratedContentsFileList = async ({
         folderUrl,
         sourceFileList,
     });
+    // Angular is a special case where the `main.ts` entry file is a boilerplate file
+    // and another file is generated from the source file `main.ts`.
+    // Both the boilerplate entry file and the generated file need to
+    // be added to the generated file list
+    const angularFiles = internalFramework === 'angular' ? [ANGULAR_GENERATED_MAIN_FILE_NAME] : [];
 
     const generatedFileList = ['index.html', entryFileName]
+        .concat(angularFiles)
         .concat(Object.keys(scriptFiles))
         .concat(Object.keys(styleFiles));
 
@@ -95,7 +101,7 @@ export const getGeneratedContents = async ({
         throw new Error(`No entry file config generator for '${internalFramework}'`);
     }
 
-    const { files, boilerPlateFiles, scriptFiles, entryFileName } = await getFrameworkFiles({
+    const { files, boilerPlateFiles, scriptFiles, entryFileName, mainFileName } = await getFrameworkFiles({
         entryFile,
         indexHtml,
         isEnterprise,
@@ -111,6 +117,7 @@ export const getGeneratedContents = async ({
         files: Object.assign(styleFiles, files),
         boilerPlateFiles: boilerPlateFiles!,
         entryFileName,
+        mainFileName,
     };
 
     return contents;

@@ -7,6 +7,7 @@ import { getIsDev } from '@utils/env';
 import ReactTemplate from '../framework-templates/ReactTemplate.astro';
 import VueTemplate from '../framework-templates/VueTemplate.astro';
 import type { GeneratedContents } from '@features/examples-generator/types';
+import AngularTemplate from '../framework-templates/AngularTemplate.astro';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -35,17 +36,6 @@ const boilerPlateUrl = relativePath
           library,
           internalFramework,
       });
-
-// TODO: Can remove, once we support all frameworks
-const supportedInternalFrameworks: InternalFramework[] = [
-    'vanilla',
-    'typescript',
-    'react',
-    'reactFunctional',
-    'reactFunctionalTs',
-    'vue',
-    'vue3',
-];
 
 const timeNow = Date.now();
 ---
@@ -111,6 +101,24 @@ const timeNow = Date.now();
 }
 
 {
+    internalFramework === 'angular' && (
+        <AngularTemplate
+            isDev={isDev}
+            pageName={pageName}
+            exampleName={exampleName}
+            modifiedTimeMs={timeNow}
+            isEnterprise={isEnterprise}
+            entryFileName={entryFileName!}
+            styleFiles={styleFiles}
+            scriptFiles={scriptFiles}
+            appLocation={appLocation}
+            library={library}
+            boilerplatePath={boilerPlateUrl}
+        />
+    )
+}
+
+{
     (internalFramework === 'vue' || internalFramework === 'vue3') && (
         <VueTemplate
             isDev={isDev}
@@ -126,13 +134,5 @@ const timeNow = Date.now();
             boilerplatePath={boilerPlateUrl}
             vueFramework={internalFramework}
         />
-    )
-}
-
-{
-    !supportedInternalFrameworks.includes(internalFramework) && (
-        <h1>
-            TODO: [{internalFramework}] {pageName} - {exampleName}
-        </h1>
     )
 }
