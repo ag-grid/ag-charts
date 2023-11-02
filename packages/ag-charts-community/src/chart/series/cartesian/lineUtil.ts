@@ -241,8 +241,8 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
     return status;
 }
 
-function prepareLinePathPropertyAnimation(status: NodeUpdateState) {
-    return {
+function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+    const result = {
         fromFn: (_path: Path) => {
             return { ...FROM_TO_MIXINS[status] };
         },
@@ -250,12 +250,28 @@ function prepareLinePathPropertyAnimation(status: NodeUpdateState) {
             return { ...FROM_TO_MIXINS[status] };
         },
     };
+
+    if (visibleToggleMode === 'fade') {
+        return {
+            fromFn: (path: Path) => {
+                const opacity = status === 'added' ? 0 : path.opacity;
+                return { opacity, ...result.fromFn(path) };
+            },
+            toFn: (path: Path) => {
+                const opacity = status === 'removed' ? 0 : 1;
+                return { opacity, ...result.toFn(path) };
+            },
+        };
+    }
+
+    return result;
 }
 
 export function prepareLinePathAnimationFns(
     newData: LineContextLike,
     oldData: LineContextLike,
     pairData: PathPoint[],
+    visibleToggleMode: 'fade' | 'none',
     render: (pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) => void
 ) {
     const status = determinePathStatus(newData, oldData);
@@ -268,7 +284,7 @@ export function prepareLinePathAnimationFns(
     const addPhaseFn = (ratio: number, path: Path) => {
         render(pairData, { move: 1, in: ratio }, path);
     };
-    const pathProperties = prepareLinePathPropertyAnimation(status);
+    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
@@ -293,7 +309,7 @@ export function prepareLinePathAnimation(
         return;
     }
 
-    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialPath);
+    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap, status);
     return { ...pathFns, marker };
 }
