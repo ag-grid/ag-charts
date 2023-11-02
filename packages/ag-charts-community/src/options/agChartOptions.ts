@@ -21,6 +21,7 @@ export * from './series/cartesian/areaOptions';
 export * from './series/cartesian/barOptions';
 export * from './series/cartesian/boxPlotOptions';
 export * from './series/cartesian/bubbleOptions';
+export * from './series/cartesian/bulletOptions';
 export * from './series/cartesian/commonOptions';
 export * from './series/cartesian/lineOptions';
 export * from './series/cartesian/heatmapOptions';
