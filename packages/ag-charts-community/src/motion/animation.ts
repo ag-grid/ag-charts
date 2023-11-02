@@ -63,7 +63,6 @@ export interface AdditionalAnimationOptions {
     id?: string;
     disableInteractions?: boolean;
     immutable?: boolean;
-    shortCircuitId?: string;
 }
 
 export type ResetAnimationOptions<T extends AnimationValue> = Pick<
