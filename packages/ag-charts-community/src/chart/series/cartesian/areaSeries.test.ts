@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
+import { jsonMerge } from '../../../sparklines-util';
 import { AgChart } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
@@ -196,6 +197,106 @@ describe('AreaSeries', () => {
                 await compare();
             });
         }
+    });
+
+    describe('add/update/remove animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const EXAMPLE = jsonMerge([{ ...examples.STACKED_AREA_GRAPH_EXAMPLE }]);
+        EXAMPLE.axes![0].label!.format = '%b %Y';
+
+        const mutateData = (count: number) => {
+            return ({ date, ...d }: any) => {
+                return { date: new Date(date.getTime() + count * (24 * 3600_000)), ...d };
+            };
+        };
+
+        const updatedData = [...EXAMPLE.data!];
+        updatedData.splice(0, 0, ...EXAMPLE.data!.map(mutateData(-365)));
+        updatedData.push(...EXAMPLE.data!.map(mutateData(+365)));
+
+        describe('add', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = { ...EXAMPLE };
+                    prepareTestOptions(options);
+
+                    chart = AgChart.create(options) as Chart;
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    AgChart.update(chart, { ...options, data: updatedData });
+
+                    await compare();
+                });
+            }
+        });
+
+        describe('remove', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = { ...EXAMPLE, data: updatedData };
+                    prepareTestOptions(options);
+
+                    chart = AgChart.create(options) as Chart;
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    AgChart.update(chart, { ...EXAMPLE });
+
+                    await compare();
+                });
+            }
+        });
+    });
+
+    describe('legend toggle animation', () => {
+        const animate = spyOnAnimationManager();
+
+        describe('hide', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = jsonMerge([examples.STACKED_AREA_GRAPH_EXAMPLE]);
+                    prepareTestOptions(options);
+
+                    chart = AgChart.create(options) as Chart;
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    options.series![0].visible = false;
+                    AgChart.update(chart, { ...options });
+
+                    await compare();
+                });
+            }
+        });
+
+        describe('show', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = jsonMerge([examples.STACKED_AREA_GRAPH_EXAMPLE]);
+                    options.series![1].visible = false;
+                    prepareTestOptions(options);
+
+                    chart = AgChart.create(options) as Chart;
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    options.series![1].visible = true;
+                    AgChart.update(chart, options);
+
+                    await compare();
+                });
+            }
+        });
     });
 
     describe('invalid data domain', () => {
