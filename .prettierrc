@@ -25,7 +25,13 @@
             "options": {
                 "importOrderParserPlugins": ["typescript", "decorators-legacy", "jsx"]
             }
+        },
+        {
+            "files": "*.astro",
+            "options": {
+                "parser": "astro"
+            }
         }
     ],
-    "plugins": ["@trivago/prettier-plugin-sort-imports"]
+    "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-astro"]
 }
