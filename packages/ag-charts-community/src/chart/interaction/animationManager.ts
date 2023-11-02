@@ -22,7 +22,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     private batch = new AnimationBatch();
 
-    private readonly shortCircuits: Map<string, number> = new Map();
     private readonly debug = Debug.create(true, 'animation');
 
     private isPlaying = false;
@@ -53,6 +52,9 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                     return batch.controllers.get(opts.id)!.reset(opts);
                 }
                 batch.controllers.get(opts.id)!.stop();
+
+                this.debug(`Skipping animation batch due to update of existing animation: ${opts.id}`);
+                this.batch.skip();
             }
         } catch (error: unknown) {
             this.failsafeOnError(error);
@@ -60,18 +62,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
 
         const id = opts.id ?? Math.random().toString();
-
-        if (opts.shortCircuitId) {
-            const shortCircuitTime = this.shortCircuits.get(opts.shortCircuitId);
-            const isShortCircuited = shortCircuitTime && opts.duration && Date.now() - shortCircuitTime < opts.duration;
-
-            if (isShortCircuited) {
-                opts.delay = 0;
-                opts.duration = 1;
-            }
-
-            this.shortCircuits.set(opts.shortCircuitId, Date.now());
-        }
 
         return new Animation({
             ...opts,
@@ -188,7 +178,12 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         return this.skipAnimations || this.batch.isSkipped();
     }
 
+    public isActive() {
+        return this.isPlaying && this.batch.isActive();
+    }
+
     public skipCurrentBatch() {
+        this.debug(`AnimationManager - skipCurrentBatch()`);
         this.batch.skip();
     }
 
@@ -250,7 +245,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.requestId === null) return;
         cancelAnimationFrame(this.requestId);
         this.requestId = null;
-        this.createBatch();
+        this.startBatch();
     }
 
     private failsafeOnError(error: unknown, cancelAnimation = true) {
@@ -260,9 +255,26 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         }
     }
 
-    private createBatch() {
+    public startBatch(skipAnimations?: boolean) {
+        this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
+        this.reset();
         this.batch.destroy();
         this.batch = new AnimationBatch();
+        if (skipAnimations === true) {
+            this.batch.skip();
+        }
+    }
+
+    public endBatch() {
+        this.debug(
+            `AnimationManager - endBatch() with ${
+                this.batch.controllers.size
+            } animations; skipped: ${this.batch.isSkipped()}.`
+        );
+
+        if (this.batch.isSkipped() && !this.batch.isActive()) {
+            this.batch.skip(false);
+        }
     }
 }
 
@@ -280,17 +292,13 @@ class AnimationBatch {
         return this.controllers.size > 0;
     }
 
-    skip() {
-        if (this.isActive()) {
-            this.skipAnimations = true;
-        }
+    skip(skip = true) {
+        this.skipAnimations = skip;
     }
 
     isSkipped() {
         return this.skipAnimations;
     }
 
-    destroy() {
-        //
-    }
+    destroy() {}
 }

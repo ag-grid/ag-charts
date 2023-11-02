@@ -365,7 +365,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     const majorChange = forceNodeDataRefresh || modulesChanged;
     const updateType = majorChange ? ChartUpdateType.PROCESS_DATA : ChartUpdateType.PERFORM_LAYOUT;
     debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType]);
-    chart.update(updateType, { forceNodeDataRefresh });
+    chart.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 }
 
 function applyModules(chart: Chart, options: AgChartOptions) {

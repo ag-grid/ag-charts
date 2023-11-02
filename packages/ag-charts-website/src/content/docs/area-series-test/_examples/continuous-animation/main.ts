@@ -1,6 +1,8 @@
 import { AgChart, AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
 import { getData } from './data';
 
+(window as any).agChartsDebug = 'animation';
+
 const data = getData();
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -190,7 +192,13 @@ let tick: NodeJS.Timer;
 function actionTickStart() {
     if (tick) clearInterval(tick);
 
-    tick = setInterval(() => actionAddPointsAfter(1), 1000)
+    tick = setInterval(() => actionAddPointsAfter(1), 1500);
+}
+
+function actionTickStartFast() {
+    if (tick) clearInterval(tick);
+
+    tick = setInterval(() => actionAddPointsAfter(1), 900);
 }
 
 function actionTickStop() {

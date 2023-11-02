@@ -511,6 +511,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateNoRenderCount = 0;
     private _performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
+    private _performUpdateSkipAnimations?: boolean = false;
     get performUpdateType() {
         return this._performUpdateType;
     }
@@ -540,11 +541,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
         opts?: {
             forceNodeDataRefresh?: boolean;
             skipAnimations?: boolean;
+            newAnimationBatch?: boolean;
             seriesToUpdate?: Iterable<ISeries<any>>;
             backOffMs?: number;
         }
     ) {
-        const { forceNodeDataRefresh = false, skipAnimations, seriesToUpdate = this.series } = opts ?? {};
+        const {
+            forceNodeDataRefresh = false,
+            skipAnimations,
+            seriesToUpdate = this.series,
+            newAnimationBatch,
+        } = opts ?? {};
 
         if (forceNodeDataRefresh) {
             this.series.forEach((series) => series.markNodeDataDirty());
@@ -556,6 +563,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (skipAnimations) {
             this.animationManager.skipCurrentBatch();
+            this._performUpdateSkipAnimations = true;
+        }
+
+        if (newAnimationBatch) {
+            if (this.animationManager.isActive()) {
+                this._performUpdateSkipAnimations = true;
+            } else {
+                this._performUpdateSkipAnimations ??= false;
+            }
         }
 
         if (Debug.check(true)) {
@@ -576,6 +592,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // Clear state immediately so that side-effects can be detected prior to SCENE_RENDER.
         this._performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
+
+        let endBatch = false;
+        if (this._performUpdateSkipAnimations != null) {
+            this.animationManager.startBatch(this._performUpdateSkipAnimations);
+        }
 
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
         const splits: Record<string, number> = { start: performance.now() };
@@ -628,6 +649,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 // Do nothing.
                 this.updateShortcutCount = 0;
                 this.updateRequestors = {};
+                endBatch = this._performUpdateSkipAnimations != null;
+                this._performUpdateSkipAnimations = undefined;
+        }
+
+        if (endBatch) {
+            this.animationManager.endBatch();
         }
 
         this.updateService.dispatchUpdateComplete(this.getMinRect());
@@ -869,7 +896,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (this.scene.resize(width, height)) {
             this.disablePointer();
             this.animationManager.reset();
-            this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true });
+            this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations: true });
         }
     }
 

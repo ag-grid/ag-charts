@@ -1,3 +1,4 @@
+import { Debug } from '../util/debug';
 import { Node } from './node';
 
 type NodeConstructor<TNode extends Node> = new () => TNode;
@@ -40,6 +41,8 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     protected _nodes: TChild[] = [];
     protected data: TDatum[] = [];
 
+    private debug = Debug.create(true, 'scene', 'scene:selections');
+
     constructor(
         private readonly parentNode: Node,
         classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
@@ -69,6 +72,10 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
      * of the array.
      */
     update(data: TDatum[], initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => string | number) {
+        if (this.garbageBin.size > 0) {
+            this.debug(`Selection - update() called with pending garbage: ${data}`);
+        }
+
         if (getDatumId) {
             const dataMap = new Map<string | number, [TDatum, number]>(
                 data.map((datum, idx) => [getDatumId(datum), [datum, idx]])
