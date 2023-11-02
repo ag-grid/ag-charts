@@ -1,13 +1,12 @@
 ---
 import type { Framework } from '@ag-grid-types';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
-import { getJsonFromDevFile } from '@utils/getJsonFromDevFile';
+import { getDeprecatedLookupFiles } from '@utils/devFiles';
 import { ChartsApiExplorer } from '@features/api-explorer/components/ChartsApiExplorer';
 import { pathJoin } from '@utils/pathJoin';
 import { SITE_BASE_URL } from '@constants';
 
-const interfaceLookup = getJsonFromDevFile('ag-charts-community/interfaces.AUTO.json');
-const codeLookup = getJsonFromDevFile('ag-charts-community/doc-interfaces.AUTO.json');
+const { interfaceLookup, codeLookup } = getDeprecatedLookupFiles();
 
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 // TODO: Figure out framework
@@ -19,10 +18,9 @@ const framework: Framework = 'javascript';
         <h1>API Explorer</h1>
 
         <p>
-            The API explorer can be used to gain familiarity with the AG Charts API and see in real-time how different <code
-                >options</code
-            > affect charts. A code snippet showing the use of the API is produced based on the point and click configurations
-            specified in the explorer.
+            The API explorer can be used to gain familiarity with the AG Charts API and see in real-time how different
+            <code>options</code> affect charts. A code snippet showing the use of the API is produced based on the point
+            and click configurations specified in the explorer.
         </p>
 
         <ChartsApiExplorer

@@ -7,48 +7,39 @@ const { pathname } = Astro.url;
 const pagePath = pathJoin('/', getPathFromUrlPathname(pathname));
 
 const menuItems = [
-    {
-        name: 'Options API',
-        url: '/options',
-    },
-    {
-        name: 'Themes API',
-        url: '/themes-api',
-    },
-    {
-        name: 'API Explorer',
-        url: '/explorer',
-    },
+    { name: 'Options API', url: '/options' },
+    { name: 'Themes API', url: '/themes-api' },
+    // { name: 'API Explorer', url: '/explorer' },
 ];
 
-const dummySeries = [
-    'All',
-    'Bar',
-    'Column',
-    'Line',
-    'Area',
-    'Scatter',
-    'Bubble',
-    'Pie',
-    'Doughnut',
-    'Combination',
-    'Histogram',
-    'Heatmap',
-    'Range',
-    'Box Plot',
-    'Error Bar',
-    'Waterfall',
-    'Radar',
-    'Nightingale',
-    'Radial Column',
-    'Radial Bar',
-    'Treemap',
-    'Sunburst',
-    'Icicle',
-    'Funnel',
-    'Pyramid',
-    'Bullet',
-];
+// const dummySeries = [
+//     'All',
+//     'Bar',
+//     'Column',
+//     'Line',
+//     'Area',
+//     'Scatter',
+//     'Bubble',
+//     'Pie',
+//     'Doughnut',
+//     'Combination',
+//     'Histogram',
+//     'Heatmap',
+//     'Range',
+//     'Box Plot',
+//     'Error Bar',
+//     'Waterfall',
+//     'Radar',
+//     'Nightingale',
+//     'Radial Column',
+//     'Radial Bar',
+//     'Treemap',
+//     'Sunburst',
+//     'Icicle',
+//     'Funnel',
+//     'Pyramid',
+//     'Bullet',
+// ];
 ---
 
 <Layout>
@@ -56,29 +47,19 @@ const dummySeries = [
         <div class="topBarInner page-margin">
             <nav>
                 <ul class="list-style-none">
-                    {
-                        menuItems.map(({ name, url }) => {
-                            const active = pagePath === url;
-                            return (
-                                <li class={active ? 'active' : ''}>
-                                    <a href={urlWithBaseUrl(url)}>{name}</a>
-                                </li>
-                            );
-                        })
-                    }
+                    {menuItems.map(({ name, url }) => (
+                        <li class={pagePath === url ? 'active' : ''}>
+                            <a href={urlWithBaseUrl(url)}>{name}</a>
+                        </li>
+                    ))}
                 </ul>
             </nav>
-            <label>
-                <span class="text-secondary">Series:</span>
-
-                <select>
-                    {
-                        dummySeries.map((series) => {
-                            return <option>{series}</option>;
-                        })
-                    };
-                </select>
-            </label>
+            <!--<label>-->
+            <!--    <span class="text-secondary">Series:</span>-->
+            <!--    <select>-->
+            <!--        {dummySeries.map((series) => <option>{series}</option>)}-->
+            <!--    </select>-->
+            <!--</label>-->
         </div>
     </div>
     <div id="top" class="container">
@@ -114,6 +95,7 @@ const dummySeries = [
         display: flex;
         justify-content: space-between;
         align-items: center;
+        height: 58px;
         padding-top: $size-1;
         padding-bottom: $size-1;
     }

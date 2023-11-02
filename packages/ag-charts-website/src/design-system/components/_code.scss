@@ -50,7 +50,7 @@ pre.code {
     padding: 0;
     border: 2px solid var(--secondary-border-color);
     overflow: visible;
-    overflow-y: auto !important;
+    overflow-y: auto;
 
     #{$darkmode-selector} & {
         color-scheme: dark;

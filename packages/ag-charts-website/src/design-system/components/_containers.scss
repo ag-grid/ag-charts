@@ -135,6 +135,15 @@
             border-bottom: 1px solid #0d161e;
             border-left: 1px solid #0d161e;
         }
+
+        table:first-child tr:first-child {
+            border-top: 0;
+        }
+
+        table:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
     }
 
     pre.code {

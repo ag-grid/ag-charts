@@ -1,14 +1,6 @@
 @use 'sass:map';
 @use '../../../design-system' as *;
 
-.breadcrumbs {
-    margin-bottom: 1rem;
-
-    a {
-        color: var(--link-primary);
-    }
-}
-
 .required {
     color: red;
     font-size: 0.7em;
@@ -22,10 +14,23 @@
     + .apiReferenceOuter {
         margin-top: -1px;
     }
+
+    > a[id] {
+        scroll-margin-top: var(--anchor-offset, 0);
+    }
 }
 
 .apiReference {
+    position: relative;
     table-layout: fixed;
+
+    tr {
+        scroll-margin-top: var(--anchor-offset, 0);
+
+        &:hover a:global(.docs-header-icon) {
+            opacity: 1;
+        }
+    }
 
     @container (max-width: #{$breakpoint-table-small}) {
         display: block;
@@ -107,14 +112,14 @@
     line-break: anywhere;
 }
 
-.unionDiscriminator {
-    color: var(--code-text-color);
-}
-
 .metaList {
     display: flex;
     flex-wrap: wrap;
     gap: $size-1 $size-3;
+
+    h1 + & {
+        margin-top: 16px;
+    }
 }
 
 .metaItem {
@@ -168,8 +173,4 @@
         margin: -0.1em 0 0;
         transition: fill $default-transition-timing;
     }
-}
-
-.noWrap {
-    white-space: nowrap;
 }

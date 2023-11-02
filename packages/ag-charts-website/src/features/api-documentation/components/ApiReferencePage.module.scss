@@ -16,30 +16,32 @@
     margin-right: var(--right-margin);
 }
 
-$header-nav-height: 56px;
-
 .referenceOuter {
     width: 100%;
-    margin-bottom: calc(100vh - $header-nav-height);
+    margin-bottom: 105px;
 
     header {
         --parent-properties-color: var(--text-color);
         --parent-properties-font-weight: var(--font-weight-bold);
 
-        padding-top: $size-4;
-        padding-bottom: $size-4;
         position: sticky;
         top: 0;
         z-index: 1;
+        padding-top: $size-4;
+        padding-bottom: $size-4;
         background-color: var(--default-background-color);
         border-bottom: 1px solid var(--border-color);
 
         @media screen and (min-width: $breakpoint-docs-nav-medium) {
-            top: $header-nav-height;
+            top: var(--header-nav-height);
         }
     }
 
     tr:first-child {
         border-top: none;
     }
+}
+
+.unionDiscriminator {
+    color: var(--code-text-color);
 }

@@ -92,8 +92,10 @@ export default defineMarkdocConfig({
                 id: { type: 'String' },
                 include: { type: 'Array' },
                 exclude: { type: 'Array' },
+                prioritise: { type: 'Array' },
                 hideHeader: { type: 'Boolean' },
-                displayFirst: { type: 'Array' },
+                hideRequired: { type: 'Boolean' },
+                specialTypes: { type: 'Object' },
             },
         },
         tabs: {
@@ -102,6 +104,7 @@ export default defineMarkdocConfig({
         tabItem: {
             render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),
             attributes: {
+                id: { type: String },
                 label: { type: String },
             },
         },

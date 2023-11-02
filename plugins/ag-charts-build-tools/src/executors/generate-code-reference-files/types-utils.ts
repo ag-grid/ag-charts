@@ -8,6 +8,8 @@ type TypingMapItem = { node: any; heritage?: HeritageType[] };
 
 const tsPrinter = ts.createPrinter({ removeComments: true, omitTrailingSemicolon: true });
 
+const prioritisedMembers = ['type'];
+
 export function mapTyping(inputs: string[]) {
     const typesMap: Map<string, TypingMapItem> = new Map();
     for (const file of inputs.flatMap(inputGlob)) {
@@ -44,7 +46,6 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
     } else {
         ({ node, heritage } = typesMap.get(typeName));
     }
-    // console.log({ typeName, node, heritage });
 
     if (node.kind === 'indexAccess') {
         const memberName = node.index.replace(/^'(.*)'$/, '$1');
@@ -62,7 +63,7 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
                     return resolveType(typesMap, node.type.type);
                 }
             case 'typeLiteral':
-                return resolveType(typesMap, node.type);
+                return resolveType(typesMap, { name: typeName, ...node.type });
             case 'intersection':
                 heritage = node.type.type.filter((typeName) => {
                     if (typeName.kind === 'typeLiteral') {
@@ -74,10 +75,6 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
                     return !typeName.match(/^['{].*['}]$/);
                 });
                 break;
-            // case 'union':
-            //     break;
-            // default:
-            //     console.log(node);
         }
     }
 
@@ -118,7 +115,7 @@ export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: stri
 function cleanupMembers(members) {
     // remove duplicates and push required members to the top of the list
     return members
-        .filter(({ name, ...data }, index) => {
+        .filter(({ name, ...data }, index: number) => {
             const firstMatchIndex = members.findIndex((item) => item.name === name);
             const isFirstAppearance = firstMatchIndex === index;
             if (!isFirstAppearance) {
@@ -127,7 +124,8 @@ function cleanupMembers(members) {
             }
             return isFirstAppearance;
         })
-        .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0));
+        .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0))
+        .sort((a, b) => (prioritisedMembers.includes(a.name) ? -1 : prioritisedMembers.includes(b.name) ? 1 : 0));
 }
 
 export function formatNode(node: ts.Node) {
@@ -147,6 +145,7 @@ export function formatNode(node: ts.Node) {
 
     if (ts.isTypeParameterDeclaration(node)) {
         return {
+            kind: 'typeParam',
             name: printNode(node.name),
             constraint: printNode(node.constraint),
             default: printNode(node.default),
@@ -165,9 +164,11 @@ export function formatNode(node: ts.Node) {
     if (ts.isEnumDeclaration(node)) {
         return {
             kind: 'enum',
-            name: formatNode(node.name),
+            name: printNode(node.name),
             members: node.members.map((node) => ({
+                kind: 'member',
                 docs: getJsDoc(node),
+                name: printNode(node.name),
                 type: formatNode(node),
             })),
         };
@@ -176,7 +177,7 @@ export function formatNode(node: ts.Node) {
     if (ts.isTypeAliasDeclaration(node)) {
         return {
             kind: 'typeAlias',
-            name: formatNode(node.name),
+            name: printNode(node.name),
             type: formatNode(node.type),
             typeParams: node.typeParameters?.map(formatNode),
         };
@@ -186,8 +187,9 @@ export function formatNode(node: ts.Node) {
         return {
             kind: 'typeLiteral',
             members: node.members.map((node) => ({
+                kind: 'member',
                 docs: getJsDoc(node),
-                name: formatNode(node.name),
+                name: printNode(node.name),
                 type: formatNode(node),
                 optional: !!node.questionToken,
             })),
@@ -197,6 +199,7 @@ export function formatNode(node: ts.Node) {
     if (ts.isInterfaceDeclaration(node)) {
         return {
             kind: 'interface',
+            docs: getJsDoc(node),
             name: formatNode(node.name),
             members: node.members.map((node) => {
                 const memberDocs = getJsDoc(node);
@@ -207,7 +210,8 @@ export function formatNode(node: ts.Node) {
                     memberDocs.pop();
                 }
                 return {
-                    docs: memberDocs,
+                    kind: 'member',
+                    docs: trimArray(memberDocs),
                     name: formatNode(node.name),
                     type: formatNode(node),
                     optional: !!node.questionToken,
@@ -238,26 +242,37 @@ export function formatNode(node: ts.Node) {
 
     if (ts.isParameter(node)) {
         return {
-            name: formatNode(node.name),
+            kind: 'param',
+            name: printNode(node.name),
             type: formatNode(node.type),
         };
     }
 
     if (ts.isTypeReferenceNode(node)) {
+        const nodeType = formatNode(node.typeName);
+        if (nodeType === 'Array') {
+            return {
+                kind: 'array',
+                type:
+                    node.typeArguments.length === 1
+                        ? formatNode(node.typeArguments[0])
+                        : node.typeArguments.map(formatNode),
+            };
+        }
         return node.typeArguments
             ? {
                   kind: 'typeRef',
-                  type: formatNode(node.typeName),
+                  type: nodeType,
                   typeParams: node.typeArguments.map(formatNode),
               }
-            : formatNode(node.typeName);
+            : nodeType;
     }
 
     if (ts.isIndexedAccessTypeNode(node)) {
         return {
             kind: 'indexAccess',
             type: formatNode(node.objectType),
-            index: formatNode(node.indexType),
+            index: printNode(node.indexType),
         };
     }
 
@@ -288,17 +303,18 @@ export function formatNode(node: ts.Node) {
 }
 
 function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
-    return node.jsDoc?.flatMap((doc) =>
-        doc
-            .getFullText()
-            .split('\n')
-            .map((line) =>
-                line
-                    .replace(/\*\/\s*$/, '')
-                    .replace(/^\s*(\/\*{1,2}|\*)/, '')
-                    .trim()
-            )
-            .filter(Boolean)
+    return trimArray(
+        node.jsDoc?.flatMap((doc) =>
+            doc
+                .getFullText()
+                .split('\n')
+                .map((line) =>
+                    line
+                        .replace(/\*\/\s*$/, '')
+                        .replace(/^\s*(\/\*{1,2}|\*)/, '')
+                        .trim()
+                )
+        )
     );
 }
 
@@ -308,4 +324,8 @@ export function printNode(node: ts.Node) {
     } catch (e) {
         return null;
     }
+}
+
+function trimArray(array?: string[]): string[] {
+    return array?.join('\n').trim().split('\n');
 }

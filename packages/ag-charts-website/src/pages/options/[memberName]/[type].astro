@@ -1,8 +1,13 @@
 ---
-import { patchAgChartOptionsReference } from '@features/api-documentation/apiReferenceHelpers';
+import { getOptionsStaticPaths, patchAgChartOptionsReference } from '@features/api-documentation/apiReferenceHelpers';
 import { ApiReferencePage } from '@features/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/devFiles';
+
+export async function getStaticPaths() {
+    const reference = getInterfacesReference();
+    return getOptionsStaticPaths(reference);
+}
 
 const reference = getInterfacesReference();
 patchAgChartOptionsReference(reference);

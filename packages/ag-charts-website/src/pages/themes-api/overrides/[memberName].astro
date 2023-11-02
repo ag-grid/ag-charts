@@ -1,23 +1,27 @@
 ---
-import { patchAgChartOptionsReference } from '@features/api-documentation/apiReferenceHelpers';
+import { getThemesApiStaticPaths } from '@features/api-documentation/apiReferenceHelpers';
 import { ApiReferencePage } from '@features/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/devFiles';
 
+export async function getStaticPaths() {
+    const reference = getInterfacesReference();
+    return getThemesApiStaticPaths(reference);
+}
+
 const reference = getInterfacesReference();
-patchAgChartOptionsReference(reference);
 ---
 <APIViewLayout>
     <ApiReferencePage
         client:only
         {...Astro.props}
-        rootInterface="AgChartOptions"
-        breadcrumbs={['options']}
-        basePath="options"
+        rootInterface="AgChartTheme"
+        breadcrumbs={['options', 'theme']}
+        nestedPages={['overrides']}
+        basePath="themes-api"
         reference={reference}
         specialTypes={{
-            AgChartAxisOptions: 'InterfaceArray',
-            AgChartSeriesOptions: 'InterfaceArray',
+            AgBaseChartThemeOverrides: 'NestedPage',
         }}
     />
 </APIViewLayout>
