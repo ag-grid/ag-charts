@@ -28,7 +28,7 @@ const TOOLTIP_ID = 'zoom-tooltip';
 const ZOOM_ID = 'zoom';
 const DECIMALS = 3;
 
-const round = (value: number, decimals: number) => {
+const round = (value: number, decimals: number = DECIMALS) => {
     const pow = Math.pow(10, decimals);
     return Math.round(value * pow) / pow;
 };
@@ -332,11 +332,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const ratioY = heightRatio * (zoom.y.max - zoom.y.min);
 
         if (this.isScalingX()) {
-            this.minRatioX ||= Math.min(1, round(ratioX, DECIMALS));
+            this.minRatioX ||= Math.min(1, round(ratioX));
         }
 
         if (this.isScalingY()) {
-            this.minRatioY ||= Math.min(1, round(ratioY, DECIMALS));
+            this.minRatioY ||= Math.min(1, round(ratioY));
         }
 
         this.minRatioX ||= this.minRatioY || 0;
@@ -429,11 +429,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private isMinZoom(zoom: DefinedZoomState): boolean {
         const minXCheckValue = this.enableScrolling
             ? (zoom.x.max - zoom.x.min) * (1 - this.scrollingStep)
-            : round(zoom.x.max - zoom.x.min, DECIMALS);
+            : round(zoom.x.max - zoom.x.min);
 
         const minYCheckValue = this.enableScrolling
             ? (zoom.y.max - zoom.y.min) * (1 - this.scrollingStep)
-            : round(zoom.y.max - zoom.y.min, DECIMALS);
+            : round(zoom.y.max - zoom.y.min);
 
         const isMinXZoom = !this.isScalingX() || minXCheckValue <= this.minRatioX;
         const isMinYZoom = !this.isScalingY() || minYCheckValue <= this.minRatioX;
@@ -446,8 +446,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateZoom(zoom: DefinedZoomState) {
-        const dx = round(zoom.x.max - zoom.x.min, DECIMALS);
-        const dy = round(zoom.y.max - zoom.y.min, DECIMALS);
+        const dx = round(zoom.x.max - zoom.x.min);
+        const dy = round(zoom.y.max - zoom.y.min);
 
         // Discard the zoom update if it would take us below either min ratio
         if (dx < this.minRatioX || dy < this.minRatioY) {
@@ -489,7 +489,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return;
         }
 
-        const d = round(partialZoom.max - partialZoom.min, DECIMALS);
+        const d = round(partialZoom.max - partialZoom.min);
 
         // Discard the zoom update if it would take us below either min ratio
         if (
