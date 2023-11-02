@@ -7,14 +7,11 @@ const options: AgChartOptions = {
   title: {
     text: 'Portfolio Composition',
   },
-  subtitle: {
-    text: 'Showing Annual Yield',
-  },
   series: [
     {
       type: 'pie',
       angleKey: 'amount',
-      radiusKey: 'yield',
+      legendItemKey: 'asset',
     },
   ],
 }

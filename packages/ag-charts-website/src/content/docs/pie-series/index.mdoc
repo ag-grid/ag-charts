@@ -4,100 +4,73 @@ title: 'Pie Series'
 
 A Pie Series displays categorical data as proportional slices within a circle.
 
-## Basic Configuration
+## Simple Pie
 
-To plot a basic pie all we need is an array of values that will determine the angle of each pie sector. The total of all values will correspond to the full pie.
+{% chartExampleRunner title="Basic Pie Chart" name="simple-pie" type="generated" /%}
 
-A minimal pie series configuration is shown below:
+To create a Pie Series, use the `pie` series type.
 
 ```js
-series: [
-    {
-        type: 'pie',
-        angleKey: 'value',
-    },
-];
+series: [{ type: 'pie', angleKey: 'amount', legendItemKey: 'amount' }];
 ```
 
-This results in the chart shown below. Note that [tooltips](./tooltips/) show the absolute value of each pie sector.
+In this configuration:
 
-{% chartExampleRunner title="Basic Pie Chart" name="basic-pie" type="generated" /%}
+-   `angleKey` determines the angle of each pie sector. The total of all values will correspond to the full pie.
+-   `legendItemKey` configures the names to be used in the legend for each sector.
 
 ## Labels
 
-We support two types of label related to individual sectors:
+The Pie Series supports two types of label related to individual sectors.
 
--   Call-out labels: displayed adjacent to each sector with a joining line (configured via `calloutLabelKey`, `calloutLabel` and `calloutLabelLine` options).
--   Sector labels: displayed inside each sector (configured via `sectorLabelKey` and `sectorLabel` options).
-
-Additionally legend labels and tooltips are derived from the call-out label options.
-
-```diff
-series: [{
-    type: 'pie',
-    angleKey: 'value',
-
-+   calloutLabelKey: 'label',
-+   legendItemKey: 'label',
-+   sectorLabelKey: 'value',
-+   sectorLabel: {
-+       color: 'white',
-+       fontWeight: 'bold'
-+   }
-}]
-```
-
-This example demonstrates:
-
--   Use of `legendItemKey`, enabling:
-    -   Labels for use in the legend.
--   Use of `calloutLabelKey`, enabling:
-    -   Display of a per-sector callout label.
-    -   A fallback label for use in the legend if `legendItemKey` is not provided.
-    -   Tooltips on segment hover including the callout label and sector value.
--   Use of `sectorLabelKey` and `sectorLabel`, enabling:
-    -   Display of a per-sector inside label.
-    -   Some sector labels are not displayed, where the sector is too small to fit the label text.
--   Individual sectors can be toggled on and off via the legend.
+-   Callout labels are displayed adjacent to each sector, connected with callout line.
+-   Sector labels are displayed inside each sector.
 
 {% chartExampleRunner title="Pie Chart with Labels" name="pie-labels" type="generated" /%}
-
-The `calloutLabel.formatter` and `sectorLabel.formatter` functions can be used to change the text value displayed in the labels. They receive a single object as a parameter containing values associated with a pie sector. Please see the [API reference](#api-reference) for the full list of available properties.
-
-For example, to display the numeric values for a given pie sector in the callout label,
-you can use the following label formatter function:
-
-```js
-series: [{
-    ...
-    calloutLabel: {
-        formatter: ({ datum, calloutLabelKey, angleKey }) => {
-            return `${datum[calloutLabelKey]}: ${datum[angleKey]}`;
-        }
-    }
-}]
-```
-
-Please check the [API reference](#api-reference) below to learn more about `calloutLabel`, `calloutLine` and `sectorLabel`, as well as other series configuration.
-
-## Variable Sector Radius
-
-Let's say we have the data for both the market share of mobile operating systems and the level of user satisfaction with each OS. We could represent the satisfaction level as the radius of a sector using the `radiusKey` config like so:
 
 ```js
 series: [
     {
         type: 'pie',
-        calloutLabelKey: 'os',
-        angleKey: 'share',
-        radiusKey: 'satisfaction',
+        angleKey: 'amount',
+        calloutLabelKey: 'asset',
+        sectorLabelKey: 'amount',
+        sectorLabel: {
+            color: 'white',
+            fontWeight: 'bold',
+        },
     },
 ];
 ```
 
-A pie chart where sectors have different radii is also known as a **rose chart**.
+In this configuration:
+
+-   `calloutLabelKey` defines the variable used for the callout labels. This is also used in the [Legend](./legend) if no `legendItemKey` is provided, and in the [Tooltips](./tooltips/).
+-   `sectorLabelKey` defines the variable used for the sector labels.
+
+Both sector and callout labels implement collision avoidance by default. This means that sector labels are not displayed where the sector is too small to fit the label text. Similarly, callout labels are positioned to fit if possible, otherwise they too are hidden.
+
+It is possible to customise the text displayed in these labels by using the `calloutLabel.formatter` and `sectorLabel.formatter`.
+These functions receive a single object as a parameter containing the options and datum associated with a pie sector, and should return a string.
+
+Please see the [API reference](#api-reference) for options to customise `calloutLabel`, `calloutLine` and `sectorLabel`, as well as other series customisations.
+
+## Variable Sector Radius
+
+It is possible to visualise a second variable in the Pie Series by using the `radiusKey` to vary the radius of a sector based on the values. This is also known as a **Rose Chart**.
 
 {% chartExampleRunner title="Sectors with Different Radii" name="sector-radius" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'pie',
+        radiusKey: 'yield',
+        angleKey: 'amount',
+        calloutLabelKey: 'asset',
+    },
+];
+```
 
 ## API Reference
 

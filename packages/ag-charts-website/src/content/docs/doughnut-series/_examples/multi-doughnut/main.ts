@@ -1,36 +1,37 @@
-import { AgChart, AgChartOptions } from "ag-charts-community"
+import { AgChart, AgChartOptions } from 'ag-charts-community'
+import { getData } from './data';
 
 const options: AgChartOptions = {
-  container: document.getElementById("myChart"),
-  data: [
-    { os: "Android", share: 56.9, satisfaction: 10 },
-    { os: "iOS", share: 22.5, satisfaction: 15 },
-    { os: "BlackBerry", share: 6.8, satisfaction: 5 },
-    { os: "Symbian", share: 8.5, satisfaction: 1 },
-    { os: "Bada", share: 2.6, satisfaction: 2 },
-    { os: "Windows", share: 1.9, satisfaction: 12 },
-  ],
+  container: document.getElementById('myChart'),
+  data: getData(),
+  title: {
+    text: 'Portfolio Composition',
+  },
+  subtitle: {
+    text: 'Versus Previous Year'
+  },
   series: [
     {
-      type: "pie",
+      type: 'pie',
       title: {
-        text: "Market Share",
+        text: 'Previous Year',
         showInLegend: true,
       },
-      calloutLabelKey: "os",
-      angleKey: "share",
-      innerRadiusRatio: 0.8,
+      calloutLabelKey: 'asset',
+      angleKey: 'previousYear',
+      outerRadiusRatio: 1,
+      innerRadiusRatio: 0.9,
     },
     {
-      type: "pie",
+      type: 'pie',
       title: {
-        text: "Satisfaction",
+        text: 'Current Year',
         showInLegend: true,
       },
-      calloutLabelKey: "os",
-      angleKey: "satisfaction",
-      outerRadiusRatio: 0.5,
-      innerRadiusRatio: 0.3,
+      calloutLabelKey: 'asset',
+      angleKey: 'currentYear',
+      outerRadiusRatio: 0.6,
+      innerRadiusRatio: 0.2,
     },
   ],
 }

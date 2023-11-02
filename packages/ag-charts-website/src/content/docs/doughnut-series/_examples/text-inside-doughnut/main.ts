@@ -1,36 +1,34 @@
 import { AgChartOptions, AgChart } from 'ag-charts-community';
 import {getData} from './data';
 
-const data = getData();
-const total = data.reduce((sum, d) => sum + d.count, 0);
-const percentage = (value: number) => `${(value / total * 100).toFixed()}%`
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data,
+    data: getData(),
+    title: {
+      text: 'Portfolio Composition',
+    },
     series: [
         {
             type: 'pie',
-            angleKey: 'count',
-            fills: ['#35ab7c', '#dff3ea'],
-            strokeWidth: 0,
-            innerRadiusOffset: -20,
+            calloutLabelKey: 'asset',
+            angleKey: 'amount',
+            innerRadiusRatio: 0.9,
             innerLabels: [
-                {
-                    text: percentage(data[0].count),
-                    color: '#35ab7c',
-                    fontSize: 72,
-                },
-                {
-                    text: 'Coverage',
-                    fontSize: 24,
-                    margin: 4,
-                },
+              {
+                text: 'Total Investment',
+                fontWeight: 'bold',
+              },
+              {
+                text: '$100,000',
+                margin: 4,
+                 fontSize: 48,
+                color: 'green',
+              },
             ],
             innerCircle: {
-                fill: '#dff3ea',
-            }
-        },
+              fill: '#c9fdc9',
+            },
+          },
     ],
 }
 
