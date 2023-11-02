@@ -32,7 +32,8 @@ The `innerLabels` property can be used to put several lines of text in the space
 The colour of the centre area can be changed by using `innerCircle`.
 
 ```js
-series: [{
+series: [
+    {
         ...
         innerLabels: [
             {
@@ -49,7 +50,8 @@ series: [{
         innerCircle: {
             fill: '#c9fdc9',
         },
-    }]
+    },
+];
 ```
 
 ## Multiple Doughnuts
@@ -59,20 +61,22 @@ series: [{
 To render multiple pie series in a single chart without overlapping, set an `outerRadiusRatio` in conjunction with an `innerRadiusRatio`.
 
 ```js
-series: [{
+series: [
+    {
         // outer series
         ...
         outerRadiusRatio: 1, //the default
         innerRadiusRatio: 0.9,
-        title: { text: "Previous Year", showInLegend: true, },
+        title: { text: 'Previous Year', showInLegend: true },
     },
     {
         // inner series
         ...
         outerRadiusRatio: 0.6,
         innerRadiusRatio: 0.2,
-        title: { text: "Current Year", showInLegend: true, },
-     }]
+        title: { text: 'Current Year', showInLegend: true },
+    },
+];
 ```
 
 In the above configuration:
@@ -90,8 +94,8 @@ Providing a matching `legendItemKey` allows synchronising of legend items across
 
 ```js
 series: [
-    { ... calloutLabelKey: 'asset', legendItemKey: 'asset', },
-    { ... legendItemKey: 'asset', showInLegend: false, },
+    { ... calloutLabelKey: 'asset', legendItemKey: 'asset' },
+    { ... legendItemKey: 'asset', showInLegend: false },
 ];
 ```
 
