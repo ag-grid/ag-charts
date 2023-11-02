@@ -102,7 +102,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         if (!data || exampleFilesIsLoading || exampleFilesIsError) {
             return;
         }
-        setInitialSelectedFile(data?.entryFileName);
+        setInitialSelectedFile(data?.mainFileName);
     }, [data, exampleFilesIsLoading, exampleFilesIsError]);
 
     useEffect(() => {

@@ -10,13 +10,20 @@ import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import type { FileContents } from '../types';
 import { deepCloneObject } from './deepCloneObject';
-import { getBoilerPlateFiles, getEntryFileName } from './fileUtils';
+import { getBoilerPlateFiles, getEntryFileName, getMainFileName } from './fileUtils';
 
 interface FrameworkFiles {
     files: FileContents;
     boilerPlateFiles?: FileContents;
     scriptFiles?: string[];
+    /**
+     * Filename to execute code
+     */
     entryFileName: string;
+    /**
+     * Filename of main code that is run
+     */
+    mainFileName: string;
 }
 
 type ConfigGenerator = ({
@@ -45,6 +52,7 @@ const createReactFilesGenerator =
     }): ConfigGenerator =>
     async ({ bindings, indexHtml, otherScriptFiles }) => {
         const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
 
         const getSource = sourceGenerator(deepCloneObject(bindings), []);
@@ -60,6 +68,7 @@ const createReactFilesGenerator =
             // Other files, not including entry file
             scriptFiles: Object.keys(otherScriptFiles),
             entryFileName,
+            mainFileName,
         };
     };
 
@@ -76,6 +85,7 @@ const createVueFilesGenerator =
 
         const getSource = sourceGenerator(deepCloneObject(bindings), []);
         const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
         const mainJs = getSource();
 
         return {
@@ -88,12 +98,14 @@ const createVueFilesGenerator =
             // Other files, not including entry file
             scriptFiles: Object.keys(otherScriptFiles),
             entryFileName,
+            mainFileName,
         };
     };
 
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
     vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise, otherScriptFiles }) => {
         const entryFileName = getEntryFileName('vanilla')!;
+        const mainFileName = getMainFileName('vanilla')!;
         let mainJs = readAsJsFile(entryFile);
 
         // replace Typescript new Grid( with Javascript new agGrid.Grid(
@@ -119,11 +131,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             },
             scriptFiles: Object.keys(otherScriptFiles).concat(entryFileName),
             entryFileName,
+            mainFileName,
         };
     },
     typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
 
         const { externalEventHandlers } = bindings;
         const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
@@ -152,6 +166,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             boilerPlateFiles,
             // NOTE: `scriptFiles` not required, as system js handles import
             entryFileName,
+            mainFileName,
         };
     },
     react: createReactFilesGenerator({
@@ -165,6 +180,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
     reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
 
         const getSource = vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
@@ -179,11 +195,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             boilerPlateFiles,
             // NOTE: `scriptFiles` not required, as system js handles import
             entryFileName,
+            mainFileName,
         };
     },
     angular: async ({ typedBindings, otherScriptFiles }) => {
         const internalFramework: InternalFramework = 'angular';
         const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
 
         const getSource = vanillaToAngular(deepCloneObject(typedBindings), []);
@@ -201,6 +219,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             },
             boilerPlateFiles,
             entryFileName,
+            mainFileName,
         };
     },
     vue: createVueFilesGenerator({

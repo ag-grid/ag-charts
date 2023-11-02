@@ -96,6 +96,9 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
     }
 };
 
+/**
+ * Entry filename to execute code
+ */
 export const getEntryFileName = (internalFramework: InternalFramework) => {
     switch (internalFramework) {
         case 'typescript':
@@ -112,6 +115,18 @@ export const getEntryFileName = (internalFramework: InternalFramework) => {
             return 'main.js';
         default:
             return;
+    }
+};
+
+/**
+ * Main filename showing code that is run
+ */
+export const getMainFileName = (internalFramework: InternalFramework) => {
+    switch (internalFramework) {
+        case 'angular':
+            return 'app.component.ts';
+        default:
+            return getEntryFileName(internalFramework);
     }
 };
 

@@ -101,7 +101,7 @@ export const getGeneratedContents = async ({
         throw new Error(`No entry file config generator for '${internalFramework}'`);
     }
 
-    const { files, boilerPlateFiles, scriptFiles, entryFileName } = await getFrameworkFiles({
+    const { files, boilerPlateFiles, scriptFiles, entryFileName, mainFileName } = await getFrameworkFiles({
         entryFile,
         indexHtml,
         isEnterprise,
@@ -117,6 +117,7 @@ export const getGeneratedContents = async ({
         files: Object.assign(styleFiles, files),
         boilerPlateFiles: boilerPlateFiles!,
         entryFileName,
+        mainFileName,
     };
 
     return contents;
