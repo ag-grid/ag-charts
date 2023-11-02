@@ -333,10 +333,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             markerSelection.clear();
         }
 
-        const idFn = this.ctx.animationManager.isSkipped()
-            ? undefined
-            : (datum: LineNodeDatum) => this.getDatumId(datum);
-        return markerSelection.update(nodeData, undefined, idFn);
+        return markerSelection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -536,7 +533,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             return;
         }
 
-        fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
+        fromToMotion(this.id, 'marker', animationManager, markerSelections, fns.marker as any);
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
@@ -544,7 +541,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     }
 
     private getDatumId(datum: LineNodeDatum) {
-        if (this.ctx.animationManager.isSkipped()) return '';
         return createDatumId([`${datum.xValue}`]);
     }
 
