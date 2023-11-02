@@ -241,42 +241,50 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
     return status;
 }
 
-function prepareLinePathPropertyAnimation(status: NodeUpdateState) {
-    return {
-        fromFn: (path: Path) => {
-            const opacity = status === 'added' ? 0 : path.opacity;
-            return { opacity, ...FROM_TO_MIXINS[status] };
+function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+    const result = {
+        fromFn: (_path: Path) => {
+            return { ...FROM_TO_MIXINS[status] };
         },
         toFn: (_path: Path) => {
-            const opacity = status === 'removed' ? 0 : 1;
-            return { opacity, ...FROM_TO_MIXINS[status] };
+            return { ...FROM_TO_MIXINS[status] };
         },
     };
+
+    if (visibleToggleMode === 'fade') {
+        return {
+            fromFn: (path: Path) => {
+                const opacity = status === 'added' ? 0 : path.opacity;
+                return { opacity, ...result.fromFn(path) };
+            },
+            toFn: (path: Path) => {
+                const opacity = status === 'removed' ? 0 : 1;
+                return { opacity, ...result.toFn(path) };
+            },
+        };
+    }
+
+    return result;
 }
 
 export function prepareLinePathAnimationFns(
     newData: LineContextLike,
     oldData: LineContextLike,
     pairData: PathPoint[],
+    visibleToggleMode: 'fade' | 'none',
     render: (pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) => void
 ) {
     const status = determinePathStatus(newData, oldData);
     const removePhaseFn = (ratio: number, path: Path) => {
-        if (status === 'added') addPhaseFn(1, path);
-        if (status === 'removed') render(pairData, { move: 0, out: 0 }, path);
-        if (status === 'updated') render(pairData, { move: 0, out: ratio }, path);
+        render(pairData, { move: 0, out: ratio }, path);
     };
     const updatePhaseFn = (ratio: number, path: Path) => {
-        if (status === 'added') addPhaseFn(1, path);
-        if (status === 'removed') removePhaseFn(0, path);
-        if (status === 'updated') render(pairData, { move: ratio }, path);
+        render(pairData, { move: ratio }, path);
     };
     const addPhaseFn = (ratio: number, path: Path) => {
-        if (status === 'added') render(pairData, { move: 1, in: 1 }, path);
-        if (status === 'removed') removePhaseFn(0, path);
-        if (status === 'updated') render(pairData, { move: 1, in: ratio }, path);
+        render(pairData, { move: 1, in: ratio }, path);
     };
-    const pathProperties = prepareLinePathPropertyAnimation(status);
+    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
@@ -301,7 +309,7 @@ export function prepareLinePathAnimation(
         return;
     }
 
-    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialPath);
+    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap, status);
     return { ...pathFns, marker };
 }

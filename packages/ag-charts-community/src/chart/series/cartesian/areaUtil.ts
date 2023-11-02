@@ -137,7 +137,7 @@ export function prepareAreaPathAnimation(
     }
 
     const pairData = [...top.result, ...bottom.result.reverse()];
-    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, renderPartialPath);
+    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, 'none', renderPartialPath);
     const marker = prepareMarkerAnimation(markerPairMap, status);
     return { fill, marker };
 }

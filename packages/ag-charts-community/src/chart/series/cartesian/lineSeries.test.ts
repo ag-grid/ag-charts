@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
+import { jsonMerge } from '../../../util/json';
 import { AgChart } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
@@ -162,21 +163,21 @@ describe('LineSeries', () => {
         }
     });
 
+    const ANIMATION_CATEGORY_DATA = [
+        { quarter: 'week 3', iphone: 60, macos: 31 },
+        { quarter: 'week 4', iphone: 185, macos: 43 },
+        { quarter: 'week 5', iphone: 148, macos: 35 },
+        { quarter: 'week 6', iphone: 130, macos: 42 },
+        { quarter: 'week 9', iphone: 62, macos: 45 },
+        { quarter: 'week 10', iphone: 137, macos: 24 },
+        { quarter: 'week 11', iphone: 121, macos: 57 },
+    ];
+
     describe('category animation', () => {
         const animate = spyOnAnimationManager();
 
-        const data = [
-            { quarter: 'week 3', iphone: 60 },
-            { quarter: 'week 4', iphone: 185 },
-            { quarter: 'week 5', iphone: 148 },
-            { quarter: 'week 6', iphone: 130 },
-            { quarter: 'week 9', iphone: 62 },
-            { quarter: 'week 10', iphone: 137 },
-            { quarter: 'week 11', iphone: 121 },
-        ];
-
-        const options: AgChartOptions = {
-            data,
+        const OPTIONS: AgChartOptions = {
+            data: ANIMATION_CATEGORY_DATA,
             series: [
                 {
                     type: 'line',
@@ -201,32 +202,42 @@ describe('LineSeries', () => {
         };
 
         const animationTestCases: Array<[string, any] | [string, any, number]> = [
-            ['removing points', [...data.slice(0, 2), ...data.slice(4)]],
-            ['removing the first point', [...data.slice(1)]],
-            ['removing the last point', [...data.slice(0, -1)]],
+            ['removing points', [...ANIMATION_CATEGORY_DATA.slice(0, 2), ...ANIMATION_CATEGORY_DATA.slice(4)]],
+            ['removing the first point', [...ANIMATION_CATEGORY_DATA.slice(1)]],
+            ['removing the last point', [...ANIMATION_CATEGORY_DATA.slice(0, -1)]],
             [
                 'adding points',
                 [
-                    ...data.slice(0, 4),
+                    ...ANIMATION_CATEGORY_DATA.slice(0, 4),
                     { quarter: 'week 7', iphone: 142 },
                     { quarter: 'week 8', iphone: 87 },
-                    ...data.slice(4),
+                    ...ANIMATION_CATEGORY_DATA.slice(4),
                 ],
             ],
-            ['adding points before', [{ quarter: 'week 1', iphone: 89 }, { quarter: 'week 2', iphone: 110 }, ...data]],
-            ['adding points after', [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }]],
+            [
+                'adding points before',
+                [{ quarter: 'week 1', iphone: 89 }, { quarter: 'week 2', iphone: 110 }, ...ANIMATION_CATEGORY_DATA],
+            ],
+            [
+                'adding points after',
+                [...ANIMATION_CATEGORY_DATA, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
+            ],
             [
                 'updating points',
                 [
-                    ...data.slice(0, 2),
+                    ...ANIMATION_CATEGORY_DATA.slice(0, 2),
                     { quarter: 'week 5', iphone: 190 },
                     { quarter: 'week 6', iphone: 38 },
-                    ...data.slice(4),
+                    ...ANIMATION_CATEGORY_DATA.slice(4),
                 ],
             ],
             [
                 'updating points to undefined',
-                [...data.slice(0, 2), { quarter: 'week 5', iphone: undefined }, ...data.slice(3)],
+                [
+                    ...ANIMATION_CATEGORY_DATA.slice(0, 2),
+                    { quarter: 'week 5', iphone: undefined },
+                    ...ANIMATION_CATEGORY_DATA.slice(3),
+                ],
             ],
             [
                 'adding, removing and updating simultaneously',
@@ -249,8 +260,8 @@ describe('LineSeries', () => {
             for (const ratio of [0, 0.5, 1]) {
                 it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
-                    prepareTestOptions(options);
-                    chart = AgChart.create(options) as Chart;
+                    prepareTestOptions(OPTIONS);
+                    chart = AgChart.create(OPTIONS) as Chart;
                     await waitForChartStability(chart);
 
                     animate(duration, ratio);
@@ -260,6 +271,83 @@ describe('LineSeries', () => {
                 });
             }
         }
+    });
+
+    describe('legend toggle animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const OPTIONS: AgChartOptions = {
+            data: ANIMATION_CATEGORY_DATA,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'quarter',
+                    yKey: 'iphone',
+                    label: {
+                        formatter: ({ value }) => String(value),
+                    },
+                },
+                {
+                    type: 'line',
+                    xKey: 'quarter',
+                    yKey: 'macos',
+                    label: {
+                        formatter: ({ value }) => String(value),
+                    },
+                },
+            ],
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'category',
+                },
+            ],
+        };
+
+        describe('hide', () => {
+            for (const ratio of [0, 0.1, 0.2, 0.3, 1]) {
+                it(`should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = jsonMerge([OPTIONS]);
+                    prepareTestOptions(options);
+
+                    chart = AgChart.create(options) as Chart;
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    options.series![0].visible = false;
+                    AgChart.update(chart, { ...options });
+
+                    await compare();
+                });
+            }
+        });
+
+        describe('show', () => {
+            for (const ratio of [0, 0.7, 0.8, 0.9, 1]) {
+                it(`should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = jsonMerge([OPTIONS]);
+                    options.series![1].visible = false;
+                    prepareTestOptions(options);
+
+                    chart = AgChart.create(options) as Chart;
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    options.series![1].visible = true;
+                    AgChart.update(chart, options);
+
+                    await compare();
+                });
+            }
+        });
     });
 
     describe('invalid data domain', () => {
