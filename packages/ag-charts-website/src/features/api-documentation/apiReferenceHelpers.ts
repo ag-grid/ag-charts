@@ -1,4 +1,4 @@
-import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, TypeNode } from '../api-reference-types';
+import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, TypeNode } from './api-reference-types';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 

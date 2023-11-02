@@ -1,12 +1,12 @@
 ---
 import type { Framework } from '@ag-grid-types';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
-import { getDeprecateLookupFiles } from '@utils/devFiles';
+import { getDeprecatedLookupFiles } from '@utils/devFiles';
 import { ChartsApiExplorer } from '@features/api-explorer/components/ChartsApiExplorer';
 import { pathJoin } from '@utils/pathJoin';
 import { SITE_BASE_URL } from '@constants';
 
-const { interfaceLookup, codeLookup } = getDeprecateLookupFiles();
+const { interfaceLookup, codeLookup } = getDeprecatedLookupFiles();
 
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 // TODO: Figure out framework

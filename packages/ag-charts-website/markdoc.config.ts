@@ -104,6 +104,7 @@ export default defineMarkdocConfig({
         tabItem: {
             render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),
             attributes: {
+                id: { type: String },
                 label: { type: String },
             },
         },

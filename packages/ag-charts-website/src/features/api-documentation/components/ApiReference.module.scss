@@ -26,6 +26,10 @@
 
     tr {
         scroll-margin-top: var(--anchor-offset, 0);
+
+        &:hover a:global(.docs-header-icon) {
+            opacity: 1;
+        }
     }
 
     @container (max-width: #{$breakpoint-table-small}) {

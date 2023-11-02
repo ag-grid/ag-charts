@@ -1,27 +1,27 @@
 import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
+import { scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
-import { formatTypeToCode, getMemberType, isInterfaceHidden } from '../utils/apiReferenceHelpers';
-import { scrollIntoViewById, useLocation } from '../utils/navigation';
+import { formatTypeToCode, getMemberType, isInterfaceHidden } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 import { PropertyTitle, PropertyType } from './Properies';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | null>(null);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 
-interface ApiReferenceConfig {
+export interface ApiReferenceConfig {
     prioritise?: string[];
     include?: string[];
     exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
-    specialTypes?: Record<string, string>;
+    specialTypes?: Record<string, 'InterfaceArray' | 'NestedPage'>;
 }
 
 interface ApiReferenceOptions {

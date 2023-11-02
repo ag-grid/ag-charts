@@ -3,24 +3,23 @@ import classnames from 'classnames';
 export const TabNavItem = ({
     label,
     selected,
-    setSelected,
+    onSelect,
 }: {
+    tabId?: string;
     label: string;
-    selected: string;
-    setSelected: (label: string) => void;
+    selected: boolean;
+    onSelect: (label: string) => void;
 }) => {
     return (
         <li key={label} className="tabs-nav-item" role="presentation">
             <button
-                className={classnames('button-style-none', 'tabs-nav-link', {
-                    active: label === selected,
-                })}
+                className={classnames('button-style-none', 'tabs-nav-link', { active: selected })}
                 onClick={(e) => {
-                    setSelected(label);
                     e.preventDefault();
+                    onSelect(label);
                 }}
                 role="tab"
-                disabled={label === selected}
+                disabled={selected}
             >
                 {label}
             </button>

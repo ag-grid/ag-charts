@@ -1,3 +1,4 @@
+import { useLocation } from '@utils/navigation';
 import { load } from 'cheerio';
 import classnames from 'classnames';
 import type { FunctionComponent, ReactElement } from 'react';
@@ -5,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { TabNavItem } from './TabNavItem';
 import styles from './Tabs.module.scss';
-import { TAB_LABEL_PROP } from './constants';
+import { TAB_ID_PROP, TAB_LABEL_PROP } from './constants';
 
 interface Props {
     children: ReactElement;
@@ -19,21 +20,28 @@ interface Props {
 export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ children }) => {
     const $ = useMemo(() => load(children?.props.value, null, false), [children]);
 
+    const location = useLocation();
     const [selected, setSelected] = useState<string>();
     const [tabContent, setTabContent] = useState<string>('');
-    const [tabLabels, setTabLabels] = useState<string[]>([]);
+    const [tabsData, setTabsData] = useState<{ id?: string; label: string }[]>([]);
 
     useEffect(() => {
         const childrenTabLabels = $(`[${TAB_LABEL_PROP}]`)
             .map((_index: number, node: any) => {
-                return node.attribs[TAB_LABEL_PROP];
+                return {
+                    id: node.attribs[TAB_ID_PROP],
+                    label: node.attribs[TAB_LABEL_PROP],
+                };
             })
             .toArray();
 
-        setTabLabels(childrenTabLabels);
+        setTabsData(childrenTabLabels);
 
         if (selected === undefined) {
-            setSelected(childrenTabLabels[0]);
+            const initialTab =
+                childrenTabLabels.find((child) => child.id && location?.hash.startsWith(`#reference-${child.id}`)) ??
+                childrenTabLabels[0];
+            setSelected(initialTab.label);
         }
     }, []);
 
@@ -46,8 +54,15 @@ export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ children }) => 
         <div className={classnames('tabs-outer', styles.tabsOuter)}>
             <header className={'tabs-header'}>
                 <ul className="tabs-nav-list" role="tablist">
-                    {tabLabels.map((label) => {
-                        return <TabNavItem key={label} label={label} selected={selected} setSelected={setSelected} />;
+                    {tabsData.map(({ label }) => {
+                        return (
+                            <TabNavItem
+                                key={label}
+                                label={label}
+                                selected={label === selected}
+                                onSelect={setSelected}
+                            />
+                        );
                     })}
                 </ul>
             </header>

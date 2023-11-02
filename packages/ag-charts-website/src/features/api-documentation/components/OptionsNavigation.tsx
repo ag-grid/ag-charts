@@ -1,14 +1,14 @@
 import { Icon } from '@components/icon/Icon';
 import { SITE_BASE_URL } from '@constants';
 import { useToggle } from '@utils/hooks/useToggle';
+import { navigate, scrollIntoView, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
 import type { To } from 'history';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
 import { createContext, useContext, useEffect, useRef } from 'react';
 
 import type { ApiReferenceNode, MemberNode } from '../api-reference-types';
-import { extractSearchData, getMemberType } from '../utils/apiReferenceHelpers';
-import { navigate, scrollIntoView, useLocation } from '../utils/navigation';
+import { extractSearchData, getMemberType } from '../apiReferenceHelpers';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';

@@ -1,10 +1,11 @@
+import { useLocation } from '@utils/navigation';
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
 import { useContext, useState } from 'react';
 import Markdown from 'react-markdown';
-import { useLocation } from 'src/features/api-documentation/utils/navigation';
 
 import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
+import type { ApiReferenceConfig } from './ApiReference';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
 import type { NavPageTitle, Selection } from './OptionsNavigation';
@@ -18,7 +19,7 @@ interface ApiReferencePageOptions {
     breadcrumbs: string[];
     pageTitle?: NavPageTitle;
     basePath: string;
-    specialTypes?: Record<string, string>;
+    specialTypes?: ApiReferenceConfig['specialTypes'];
 }
 
 export function ApiReferencePage({

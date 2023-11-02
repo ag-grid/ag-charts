@@ -26,7 +26,14 @@ export const Tabs: FunctionComponent<Props> = ({ children }) => {
                 <ul className="tabs-nav-list" role="tablist">
                     {contentChildren.map(({ props }: ReactElement) => {
                         const label = props[TAB_LABEL_PROP];
-                        return <TabNavItem key={label} label={label} selected={selected} setSelected={setSelected} />;
+                        return (
+                            <TabNavItem
+                                key={label}
+                                label={label}
+                                selected={selected === label}
+                                onSelect={setSelected}
+                            />
+                        );
                     })}
                 </ul>
 

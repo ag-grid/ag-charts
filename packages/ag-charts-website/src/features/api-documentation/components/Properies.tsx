@@ -1,10 +1,10 @@
 import { LinkIcon } from '@components/link-icon/LinkIcon';
+import { navigate, scrollIntoViewById } from '@utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
 
 import type { TypeNode } from '../api-reference-types';
-import { normalizeType } from '../utils/apiReferenceHelpers';
-import { navigate, scrollIntoViewById } from '../utils/navigation';
+import { normalizeType } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
