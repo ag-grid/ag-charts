@@ -8,6 +8,8 @@ type TypingMapItem = { node: any; heritage?: HeritageType[] };
 
 const tsPrinter = ts.createPrinter({ removeComments: true, omitTrailingSemicolon: true });
 
+const prioritisedMembers = ['type'];
+
 export function mapTyping(inputs: string[]) {
     const typesMap: Map<string, TypingMapItem> = new Map();
     for (const file of inputs.flatMap(inputGlob)) {
@@ -122,7 +124,8 @@ function cleanupMembers(members) {
             }
             return isFirstAppearance;
         })
-        .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0));
+        .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0))
+        .sort((a, b) => (prioritisedMembers.includes(a.name) ? -1 : prioritisedMembers.includes(b.name) ? 1 : 0));
 }
 
 export function formatNode(node: ts.Node) {

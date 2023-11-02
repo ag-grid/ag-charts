@@ -21,10 +21,12 @@ interface ApiReferenceConfig {
     exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
+    specialTypes?: Record<string, string>;
 }
 
 interface ApiReferenceOptions {
     id: string;
+    anchorId?: string;
     className?: string;
 }
 
@@ -54,10 +56,18 @@ export function ApiReferenceWithContext({
     );
 }
 
-export function ApiReference({ id, className, ...props }: ApiReferenceOptions & AllHTMLAttributes<Element>) {
+export function ApiReference({ id, anchorId, className, ...props }: ApiReferenceOptions & AllHTMLAttributes<Element>) {
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const interfaceRef = reference?.get(id);
+    const location = useLocation();
+
+    useEffect(() => {
+        const hash = location?.hash.substring(1);
+        if (typeof anchorId === 'string' && hash === anchorId) {
+            scrollIntoViewById(anchorId);
+        }
+    }, [location?.hash]);
 
     if (interfaceRef?.kind !== 'interface') {
         return null;
@@ -67,6 +77,7 @@ export function ApiReference({ id, className, ...props }: ApiReferenceOptions & 
 
     return (
         <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
+            {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
                     <p>

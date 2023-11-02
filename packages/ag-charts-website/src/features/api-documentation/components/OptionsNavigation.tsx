@@ -6,10 +6,10 @@ import type { To } from 'history';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
 import { createContext, useContext, useEffect, useRef } from 'react';
 
-import type { MemberNode } from '../api-reference-types';
+import type { ApiReferenceNode, MemberNode } from '../api-reference-types';
 import { extractSearchData, getMemberType } from '../utils/apiReferenceHelpers';
-import { navigate, scrollIntoView } from '../utils/navigation';
-import { ApiReferenceContext } from './ApiReference';
+import { navigate, scrollIntoView, useLocation } from '../utils/navigation';
+import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
 
@@ -20,7 +20,7 @@ export const SelectionContext = createContext<{
 
 export interface NavPageTitle {
     memberName: string;
-    type: string;
+    type?: string;
 }
 
 export interface Selection {
@@ -120,43 +120,35 @@ function NavProperty({
 }) {
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
+    const config = useContext(ApiReferenceConfigContext);
+    const location = useLocation();
 
     const memberType = getMemberType(member);
     const interfaceRef = reference?.get(memberType);
     const isInterface = interfaceRef?.kind === 'interface';
-    const isInterfaceArray =
-        typeof member.type === 'object' &&
-        member.type.kind === 'array' &&
-        interfaceRef?.kind === 'typeAlias' &&
-        typeof interfaceRef.type === 'object' &&
-        interfaceRef.type.kind === 'union' &&
-        interfaceRef.type.type.every((type): type is string => typeof type === 'string');
+    const isInterfaceArray = config?.specialTypes?.[memberType] === 'InterfaceArray';
+    const hasNestedPages = config?.specialTypes?.[memberType] === 'NestedPage';
     const expandable = isInterface || isInterfaceArray;
 
-    const [isExpanded, toggleExpanded] = useToggle(
+    const [isExpanded, toggleExpanded] = useToggle(() =>
         isInterfaceArray
             ? typeof selection?.selection.pageInterface === 'string' &&
-                  getInterfaceArrayTypes().includes(selection?.selection.pageInterface)
-            : selection?.selection.pageInterface === pageInterface &&
+              getInterfaceArrayTypes(interfaceRef).includes(selection?.selection.pageInterface)
+            : hasNestedPages
+            ? interfaceRef?.kind === 'interface' &&
+              interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
+            : (selection?.selection.pageInterface === pageInterface &&
                   selection?.selection.anchorId?.startsWith(anchorId) &&
-                  selection?.selection.anchorId !== anchorId
+                  selection?.selection.anchorId !== anchorId) ??
+              false
     );
 
     const isSelected =
-        selection?.selection.pageInterface === pageInterface && selection?.selection.anchorId === anchorId;
-    const handleClick = () => onClick?.({ pathname, hash: anchorId }, { pageInterface, pageTitle, anchorId });
+        pathname === location?.pathname &&
+        selection?.selection.pageInterface === pageInterface &&
+        selection?.selection.anchorId === anchorId;
 
-    function getInterfaceArrayTypes(): string[] {
-        if (
-            interfaceRef?.kind === 'typeAlias' &&
-            typeof interfaceRef.type === 'object' &&
-            interfaceRef.type.kind === 'union' &&
-            interfaceRef.type.type.every((type): type is string => typeof type === 'string')
-        ) {
-            return interfaceRef.type.type;
-        }
-        return [];
-    }
+    const handleClick = () => onClick?.({ pathname, hash: anchorId }, { pageInterface, pageTitle, anchorId });
 
     return (
         <>
@@ -170,16 +162,13 @@ function NavProperty({
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
                     <span onClick={handleClick}>
-                        {member.name === 'type' && anchorId.split('-').length === 3 ? (
+                        {member.name === 'type' && memberType.match(/^'\S+'$/) ? (
                             <>
                                 type <span className={styles.punctuation}>= '</span>
-                                <span className={styles.unionDiscriminator}>
-                                    {getMemberType(member).replaceAll("'", '')}
-                                </span>
-                                '
+                                <span className={styles.unionDiscriminator}>{cleanupName(memberType)}</span>'
                             </>
                         ) : (
-                            member.name
+                            cleanupName(member.name)
                         )}
                     </span>
                     {expandable && (
@@ -191,19 +180,29 @@ function NavProperty({
                 <>
                     <NavGroup depth={depth + 1}>
                         {isInterface
-                            ? interfaceRef.members.map((member) => (
+                            ? interfaceRef.members.map((childMember) => (
                                   <NavProperty
-                                      key={member.name}
+                                      key={childMember.name}
                                       depth={depth + 1}
-                                      member={member}
-                                      pathname={pathname}
-                                      anchorId={`${anchorId}-${member.name}`}
-                                      pageInterface={pageInterface}
-                                      pageTitle={pageTitle}
+                                      member={childMember}
+                                      pathname={
+                                          hasNestedPages
+                                              ? `${pathname}/${member.name}/${cleanupName(childMember.name)}`
+                                              : pathname
+                                      }
+                                      anchorId={
+                                          hasNestedPages
+                                              ? `reference-${cleanupName(getMemberType(childMember))}`
+                                              : `${anchorId}-${childMember.name}`
+                                      }
+                                      pageInterface={hasNestedPages ? getMemberType(childMember) : pageInterface}
+                                      pageTitle={
+                                          hasNestedPages ? { memberName: cleanupName(childMember.name) } : pageTitle
+                                      }
                                       onClick={onClick}
                                   />
                               ))
-                            : getInterfaceArrayTypes().map((typeName) => (
+                            : getInterfaceArrayTypes(interfaceRef).map((typeName) => (
                                   <NavTypedUnionProperty
                                       key={typeName}
                                       depth={depth + 1}
@@ -258,7 +257,7 @@ function NavTypedUnionProperty({
         return null;
     }
 
-    const normalizedType = typeMember.type.replaceAll("'", '');
+    const normalizedType = cleanupName(typeMember.type);
     const pageTitle = { memberName, type: normalizedType };
     const handleClick = () =>
         onClick?.(
@@ -406,4 +405,20 @@ function PropertyExpander({ isExpanded, onClick }: { isExpanded?: boolean; onCli
             onClick={onClick}
         />
     );
+}
+
+function getInterfaceArrayTypes(interfaceRef?: ApiReferenceNode): string[] {
+    if (
+        interfaceRef?.kind === 'typeAlias' &&
+        typeof interfaceRef.type === 'object' &&
+        interfaceRef.type.kind === 'union' &&
+        interfaceRef.type.type.every((type): type is string => typeof type === 'string')
+    ) {
+        return interfaceRef.type.type;
+    }
+    return [];
+}
+
+function cleanupName(name: string) {
+    return name.replaceAll("'", '');
 }

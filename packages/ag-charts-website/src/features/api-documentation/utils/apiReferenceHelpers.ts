@@ -305,7 +305,7 @@ export function getThemesApiStaticPaths(reference: ApiReferenceType) {
     }
 
     return interfaceRef.members.map((member) => ({
-        params: { memberName: member.name },
-        props: { pageInterface: member.type, pageTitle: { memberName: member.name } },
+        params: { memberName: member.name.replaceAll("'", '') },
+        props: { pageInterface: member.type, pageTitle: { memberName: member.name.replaceAll("'", '') } },
     }));
 }

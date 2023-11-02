@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import Markdown from 'react-markdown';
 import { useLocation } from 'src/features/api-documentation/utils/navigation';
 
@@ -18,6 +18,7 @@ interface ApiReferencePageOptions {
     breadcrumbs: string[];
     pageTitle?: NavPageTitle;
     basePath: string;
+    specialTypes?: Record<string, string>;
 }
 
 export function ApiReferencePage({
@@ -27,6 +28,7 @@ export function ApiReferencePage({
     pageTitle,
     basePath,
     reference,
+    specialTypes,
 }: ApiReferencePageOptions) {
     const location = useLocation();
     const [selection, setSelection] = useState<Selection>({
@@ -43,7 +45,7 @@ export function ApiReferencePage({
 
     return (
         <ApiReferenceContext.Provider value={reference}>
-            <ApiReferenceConfigContext.Provider value={{ hideHeader: true }}>
+            <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes }}>
                 <SelectionContext.Provider value={{ selection, setSelection }}>
                     <div className={styles.container}>
                         <div className={styles.objectViewOuter}>
@@ -74,6 +76,7 @@ function ApiReferencePageContent({
     pageRef: InterfaceNode;
     pageTitle?: NavPageTitle;
 }) {
+    const selection = useContext(SelectionContext);
     const [headerHeight, setHeaderHeight] = useState(0);
     return (
         <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
@@ -91,7 +94,11 @@ function ApiReferencePageContent({
                 <Markdown>{pageRef.docs?.join('\n')}</Markdown>
                 <PropertyType type={pageRef.name} />
             </header>
-            <ApiReference id={pageId} style={{ '--anchor-offset': `${headerHeight}px` } as CSSProperties} />
+            <ApiReference
+                id={pageId}
+                anchorId={`reference-${selection?.selection.pageInterface ?? pageRef.name}`}
+                style={{ '--anchor-offset': `${headerHeight}px` } as CSSProperties}
+            />
         </div>
     );
 }

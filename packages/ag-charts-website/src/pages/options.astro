@@ -3,7 +3,6 @@ import { patchAgChartOptionsReference } from '@features/api-documentation/utils/
 import { ApiReferencePage } from '@features/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/devFiles';
-import { getEntry } from 'astro:content';
 
 const reference = getInterfacesReference();
 patchAgChartOptionsReference(reference);
@@ -16,5 +15,9 @@ patchAgChartOptionsReference(reference);
         breadcrumbs={['options']}
         basePath="options"
         reference={reference}
+        specialTypes={{
+            AgChartAxisOptions: 'InterfaceArray',
+            AgChartSeriesOptions: 'InterfaceArray',
+        }}
     />
 </APIViewLayout>

@@ -7,24 +7,22 @@
 }
 
 .expandableSnippet {
-    --sticky-offset: 56px; // top bar height
-
     position: sticky;
-    top: var(--sticky-offset);
+    top: var(--header-nav-height);
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: calc(100vh - var(--sticky-offset));
+    height: calc(100vh - var(--header-nav-height));
     overflow-y: auto;
 
     > header {
         position: sticky;
         top: 0;
         left: 0;
+        z-index: 3;
         width: 100%;
         padding: $size-2;
         background-color: var(--default-background-color);
-        z-index: 3;
         border-bottom: 1px solid var(--neutral-200);
 
         h3 {

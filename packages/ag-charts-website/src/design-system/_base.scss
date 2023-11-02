@@ -13,16 +13,18 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
+    color: var(--default-text-color);
     font-family: var(--font-family);
     font-size: var(--font-size);
     line-height: var(--line-height);
     font-weight: var(--font-weight);
     background-color: var(--default-background-color);
-    color: var(--default-text-color);
+    scroll-padding-top: var(--header-nav-height);
+
+    --header-nav-height: 0;
 
     @media (min-width: $breakpoint-docs-nav-medium) {
         --header-nav-height: 59px;
-        scroll-padding-top: var(--header-nav-height);
     }
 }
 

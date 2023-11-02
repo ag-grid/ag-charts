@@ -95,6 +95,7 @@ export default defineMarkdocConfig({
                 prioritise: { type: 'Array' },
                 hideHeader: { type: 'Boolean' },
                 hideRequired: { type: 'Boolean' },
+                specialTypes: { type: 'Object' },
             },
         },
         tabs: {
