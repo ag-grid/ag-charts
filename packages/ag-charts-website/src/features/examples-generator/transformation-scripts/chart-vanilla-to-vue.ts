@@ -136,7 +136,3 @@ new Vue({
         return mainFile;
     };
 }
-
-if (typeof window !== 'undefined') {
-    (<any>window).vanillaToVue = vanillaToVue;
-}

@@ -122,7 +122,3 @@ ${bindings.globals.join('\n')}
         return appComponent;
     };
 }
-
-if (typeof window !== 'undefined') {
-    (<any>window).vanillaToAngular = vanillaToAngular;
-}

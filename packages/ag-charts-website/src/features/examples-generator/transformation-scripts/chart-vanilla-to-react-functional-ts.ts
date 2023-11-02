@@ -144,7 +144,3 @@ root.render(<ChartExample />);
         return indexFile;
     };
 }
-
-if (typeof window !== 'undefined') {
-    (<any>window).vanillaToReactFunctionalTs = vanillaToReactFunctionalTs;
-}
