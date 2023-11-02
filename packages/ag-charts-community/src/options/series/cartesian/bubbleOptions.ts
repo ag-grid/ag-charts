@@ -11,7 +11,7 @@ export type AgBubbleSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipR
 export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBubbleSeriesOptionsKeys, TDatum> {
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
-    /** Explicitly specifies the extent of the domain for series sizeKey. */
+    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     domain?: [number, number];
 }
 
