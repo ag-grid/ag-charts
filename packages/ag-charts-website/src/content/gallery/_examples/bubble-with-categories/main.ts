@@ -30,7 +30,9 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'category',
-            autoRotate: false,
+            label: {
+                autoRotate: false,
+            },
             gridLine: {
                 enabled: true,
             },

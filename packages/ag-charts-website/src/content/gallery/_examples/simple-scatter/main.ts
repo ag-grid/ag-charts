@@ -15,25 +15,52 @@ const options: AgChartOptions = {
             type: 'scatter',
             xKey: 'weight',
             yKey: 'height',
-            marker: {
-                size: 12,
-            },
         },
     ],
     axes: [
         {
             position: 'bottom',
             type: 'number',
-            title: {
-                text: 'Weight (Pounds)',
+            nice: false,
+            gridLine: {
+                enabled: false
             },
+            label: {
+                enabled: false
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 210,
+                    lineDash: [5, 4],
+                    label: {
+                        text: 'Height (Inches)',
+                        position: 'topLeft',
+                    }
+                }
+            ]
         },
         {
             position: 'left',
             type: 'number',
-            title: {
-                text: 'Height (Inches)',
+            nice: false,
+            gridLine: {
+                enabled: false
             },
+            label:{
+                enabled: false
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 75,
+                    lineDash: [5, 4],
+                    label: {
+                        text: 'Weight (Pounds)',
+                        position: 'insideTopRight',
+                    }
+                }
+            ]
         },
     ],
 };

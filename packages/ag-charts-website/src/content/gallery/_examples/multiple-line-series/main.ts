@@ -88,11 +88,11 @@ const options: AgChartOptions = {
             position: 'bottom',
             type: 'number',
             title: {
-                text: 'Year',
+                text: 'Age',
             },
             nice: false,
             min: 15,
-            max: 90,
+            max: 85,
         },
         {
             position: 'left',

@@ -12,7 +12,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Total Visitors to Science Museums',
+        text: 'Science Museums Visitors',
     },
     footnote: {
         text: 'Source: Department for Digital, Culture, Media & Sport',
@@ -68,6 +68,17 @@ const options: AgChartOptions = {
                 format: '%b',
             },
             nice: false,
+            crossLines: [
+                {
+                    type: 'range',
+                    range: [new Date(2019, 5, 1), new Date(2019, 8, 1)],
+                    strokeWidth: 0,
+                    label: {
+                        text: 'Peak Season\nJun - Sep',
+                        position: 'insideTop',
+                    },
+                },
+            ],
         },
         {
             type: 'number',

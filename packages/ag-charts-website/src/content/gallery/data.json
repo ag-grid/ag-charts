@@ -147,9 +147,19 @@
                     "name": "simple-area"
                 },
                 {
+                    "title": "Area With Labels",
+                    "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                    "name": "area-with-labels"
+                },
+                {
                     "title": "Stacked Area",
                     "description": "Stacked area charts plot multiple <a href='./simple-area/'>area</a> series stacked on top of each other, showing how part-to-whole relationships change over time.",
                     "name": "stacked-area"
+                },
+                {
+                    "title": "Area With Markers",
+                    "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                    "name": "area-with-markers"
                 },
                 {
                     "title": "100% Stacked Area",
@@ -173,6 +183,16 @@
                     "title": "Simple Scatter",
                     "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
                     "name": "simple-scatter"
+                },
+                {
+                    "title": "Multiple Scatter Series",
+                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                    "name": "multiple-scatter-series"
+                },
+                {
+                    "title": "Scatter With Multiple Axes",
+                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                    "name": "scatter-with-multiple-axes"
                 }
             ]
         },

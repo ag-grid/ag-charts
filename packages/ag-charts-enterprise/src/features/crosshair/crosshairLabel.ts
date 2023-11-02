@@ -19,7 +19,7 @@ export const defaultLabelCss = `
     overflow: hidden;
     white-space: nowrap;
     z-index: 99999;
-    background-color: rgb(140, 140, 140);
+    background-color: rgb(71,71,71);
     color: rgb(255, 255, 255);
 }
 
