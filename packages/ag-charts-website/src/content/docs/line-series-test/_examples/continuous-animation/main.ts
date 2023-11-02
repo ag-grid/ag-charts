@@ -6,9 +6,7 @@ const options: AgChartOptions = {
     animation: {
         enabled: true,
     },
-    legend: {
-        enabled: false,
-    },
+    legend: {},
     data: getData(),
     series: [
         {
