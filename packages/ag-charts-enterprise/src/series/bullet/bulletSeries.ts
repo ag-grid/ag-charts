@@ -1,4 +1,4 @@
-import type { AgBulletSeriesTooltipRendererParams } from 'ag-charts-community';
+import type { AgBulletSeriesTooltipRendererParams, Direction } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene } from 'ag-charts-community';
 
 const { partialAssign, keyProperty, valueProperty, Validate, STRING, OPT_STRING } = _ModuleSupport;
@@ -23,8 +23,8 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, Bu
     @Validate(OPT_STRING)
     targetName?: string = undefined;
 
-    @Validate(OPT_STRING)
-    direction?: string = 'vertical';
+    @Validate(DIRECTION)
+    direction: Direction = 'vertical';
 
     readonly xValue: string = 'xPlaceholderValue';
 

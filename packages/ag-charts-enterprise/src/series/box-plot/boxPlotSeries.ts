@@ -2,6 +2,7 @@ import {
     type AgBoxPlotSeriesFormatterParams,
     type AgBoxPlotSeriesStyles,
     type AgBoxPlotSeriesTooltipRendererParams,
+    type Direction,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -28,7 +29,7 @@ const {
     SeriesNodePickMode,
     SeriesTooltip,
     SMALLEST_KEY_INTERVAL,
-    STRING_UNION,
+    DIRECTION,
     Validate,
     valueProperty,
 } = _ModuleSupport;
@@ -138,8 +139,8 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
 
-    @Validate(STRING_UNION('vertical', 'horizontal'))
-    direction: 'vertical' | 'horizontal' = 'vertical';
+    @Validate(DIRECTION)
+    direction: Direction = 'vertical';
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles = undefined;

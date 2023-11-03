@@ -285,3 +285,13 @@ export const TEXT_WRAP = predicateWithMessage(
     (v: any) => TEXT_WRAPS.includes(v),
     `expecting a text wrap strategy keyword such as 'never', 'always', 'hyphenate', 'on-space'`
 );
+
+const DIRECTIONS = ['horizontal', 'vertical'];
+export const DIRECTION = predicateWithMessage(
+    (v: any) => DIRECTIONS.includes(v),
+    `expecting a direction keyword such as 'horizontal' or 'vertical'`
+);
+export const OPT_DIRECTION = predicateWithMessage(
+    (v: any, ctx) => OPTIONAL(v, ctx, DIRECTION),
+    `expecting an optional direction keyword such as 'horizontal' or 'vertical'`
+);
