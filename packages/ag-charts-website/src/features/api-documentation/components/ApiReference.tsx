@@ -81,7 +81,7 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
-                    <p>
+                    <p className={styles.propertyDescription}>
                         Properties available on the <code>{id}</code> interface.
                     </p>
                 ))}

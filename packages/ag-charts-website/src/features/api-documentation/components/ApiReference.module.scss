@@ -18,6 +18,17 @@
     > a[id] {
         scroll-margin-top: var(--anchor-offset, 0);
     }
+
+    :global(.tabs-content) & table {
+        margin-bottom: -$size-1;
+        border-bottom: none;
+    }
+}
+
+.propertyDescription {
+    margin-top: -$size-1;
+    margin-bottom: $size-3;
+    color: var(--secondary-text-color);
 }
 
 .apiReference {
