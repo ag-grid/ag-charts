@@ -102,14 +102,14 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
     const config = useContext(ApiReferenceConfigContext);
     const location = useLocation();
 
-    const shouldExpand = isExpanded && interfaceRef && 'members' in interfaceRef;
+    const hasMembers = interfaceRef && 'members' in interfaceRef;
     const hasNestedPages = config?.specialTypes?.[getMemberType(member)] === 'NestedPage';
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
         if (hash === anchorId) {
             scrollIntoViewById(anchorId);
-        } else if (hash?.startsWith(anchorId)) {
+        } else if (hasMembers && hash?.startsWith(`${anchorId}-`)) {
             setExpanded(true);
         }
     }, [location?.hash]);
@@ -124,7 +124,8 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
                 isExpanded={isExpanded}
                 onDetailsToggle={toggleExpanded}
             />
-            {shouldExpand &&
+            {hasMembers &&
+                isExpanded &&
                 interfaceRef.members.map((childMember) => (
                     <NodeFactory
                         key={childMember.name}
