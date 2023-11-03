@@ -128,28 +128,20 @@ function NavProperty({
 
     const navData = getNavigationDataFromPath(path, config?.specialTypes);
 
-    function calcShouldExpand() {
-        return isInterfaceArray
+    const [isExpanded, toggleExpanded] = useAutoExpand(() =>
+        isInterfaceArray
             ? typeof selection?.selection.pageInterface === 'string' &&
-                  getInterfaceArrayTypes(reference, interfaceRef).some(
-                      (item) => item.type === selection?.selection.pageInterface
-                  )
+              getInterfaceArrayTypes(reference, interfaceRef).some(
+                  (item) => item.type === selection?.selection.pageInterface
+              )
             : hasNestedPages
             ? interfaceRef?.kind === 'interface' &&
               interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
             : (selection?.selection.pageInterface === navData.pageInterface &&
                   selection?.selection.hash?.startsWith(navData.hash) &&
                   selection?.selection.hash !== navData.hash) ??
-              false;
-    }
-
-    const [isExpanded, toggleExpanded, setExpanded] = useToggle(calcShouldExpand);
-
-    useEffect(() => {
-        if (!isExpanded) {
-            setExpanded(calcShouldExpand());
-        }
-    }, [location?.pathname, location?.hash]);
+              false
+    );
 
     const isSelected =
         location?.pathname === navData.pathname &&
@@ -229,24 +221,21 @@ function NavTypedUnionProperty({
     const navData = getNavigationDataFromPath(path, config?.specialTypes);
     const interfaceRef = reference?.get(navData.pageInterface);
 
+    const [isExpanded, toggleExpanded] = useAutoExpand(
+        () =>
+            selection?.selection.pageInterface === navData.pageInterface &&
+            Boolean(selection?.selection.hash) &&
+            selection?.selection.hash !== navData.hash
+    );
+
     if (interfaceRef?.kind !== 'interface') {
         return null;
     }
 
-    const [isExpanded, toggleExpanded] = useToggle(
-        selection?.selection.pageInterface === navData.pageInterface &&
-            Boolean(selection?.selection.hash) &&
-            selection?.selection.hash !== navData.hash
-    );
-    const typeMember = interfaceRef.members.find((member) => member.name === 'type');
     const isSelected =
         !isExpanded &&
         selection?.selection.pageInterface === navData.pageInterface &&
         selection?.selection.hash === navData.hash;
-
-    if (typeof typeMember?.type !== 'string') {
-        return null;
-    }
 
     return (
         <>
@@ -268,7 +257,7 @@ function NavTypedUnionProperty({
                                     <span className={styles.punctuation}>{'{ '}</span>
                                     type
                                     <span className={styles.punctuation}> = '</span>
-                                    <span className={styles.unionDiscriminator}>{cleanupName(typeMember.type)}</span>
+                                    <span className={styles.unionDiscriminator}>{path[path.length - 1].name}</span>
                                     <span className={styles.punctuation}>'</span>
                                 </span>
                                 <span className={styles.punctuation} onClick={toggleExpanded}>
@@ -391,6 +380,19 @@ function PropertyExpander({ isExpanded, onClick }: { isExpanded?: boolean; onCli
             onClick={onClick}
         />
     );
+}
+
+function useAutoExpand(shouldExpand: () => boolean): [boolean, () => void] {
+    const [isExpanded, toggleExpanded, setExpanded] = useToggle(shouldExpand);
+    const location = useLocation();
+
+    useEffect(() => {
+        if (!isExpanded) {
+            setExpanded(shouldExpand());
+        }
+    }, [location?.pathname, location?.hash]);
+
+    return [isExpanded, toggleExpanded];
 }
 
 function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: ApiReferenceNode) {
