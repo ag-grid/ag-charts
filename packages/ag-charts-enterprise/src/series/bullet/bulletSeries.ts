@@ -81,7 +81,7 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, Bu
             scales: super.calculateScaling(),
             visible: this.visible,
         };
-        for (const { datum, values } of processedData?.data) {
+        for (const { datum, values } of processedData.data) {
             const xValue = this.xValue;
             const yValue = values[0][yIndex];
             const x = xScale.convert(xValue);
