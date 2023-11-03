@@ -1,8 +1,6 @@
 import { AgChart, AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
 import { getData } from './data';
 
-(window as any).agChartsDebug = 'animation';
-
 const data = getData();
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

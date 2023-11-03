@@ -13,6 +13,8 @@ interface AnimationEvent {
     deltaMs: number;
 }
 
+const DEBUG_SELECTORS = [true, 'animation'];
+
 /**
  * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
  * preventing duplicate animations and handling their lifecycle.
@@ -22,7 +24,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     private batch = new AnimationBatch();
 
-    private readonly debug = Debug.create(true, 'animation');
+    private readonly debug = Debug.create(...DEBUG_SELECTORS);
 
     private isPlaying = false;
     private requestId: number | null = null;
@@ -183,7 +185,9 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     }
 
     public skipCurrentBatch() {
-        this.debug(`AnimationManager - skipCurrentBatch()`);
+        if (Debug.check(...DEBUG_SELECTORS)) {
+            this.debug(`AnimationManager - skipCurrentBatch()`, { stack: new Error().stack });
+        }
         this.batch.skip();
     }
 

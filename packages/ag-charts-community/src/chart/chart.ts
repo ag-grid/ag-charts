@@ -187,6 +187,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     @Validate(BOOLEAN)
     public autoSize;
     private _lastAutoSize?: [number, number];
+    private _firstAutoSize = true;
 
     private autoSizeChanged(value: boolean) {
         const { style } = this.element;
@@ -896,7 +897,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (this.scene.resize(width, height)) {
             this.disablePointer();
             this.animationManager.reset();
-            this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations: true });
+
+            let skipAnimations = true;
+            if (this.autoSize && this._firstAutoSize) {
+                skipAnimations = false;
+                this._firstAutoSize = false;
+            }
+
+            this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
         }
     }
 
