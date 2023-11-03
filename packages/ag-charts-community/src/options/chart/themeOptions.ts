@@ -2,6 +2,7 @@ import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptio
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
+import type { AgBulletSeriesThemeableOptions } from '../series/cartesian/bulletOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
@@ -91,6 +92,9 @@ export interface AgRangeBarSeriesThemeOverrides extends AgBaseCartesianThemeOpti
 export interface AgRangeAreaSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgRangeAreaSeriesThemeableOptions;
 }
+export interface AgBulletSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgBulletSeriesThemeableOptions;
+}
 export interface AgPieSeriesThemeOverrides extends AgBasePolarThemeOptions {
     series?: AgPieSeriesThemeableOptions;
 }
@@ -145,6 +149,7 @@ export interface AgBaseChartThemeOverrides {
     'range-bar'?: AgRangeBarSeriesThemeOverrides;
     /** Range-area series theme overrides. */
     'range-area'?: AgRangeAreaSeriesThemeOverrides;
+    bullet?: AgBulletSeriesThemeOverrides;
 
     /** Pie series theme overrides. */
     pie?: AgPieSeriesThemeOverrides;

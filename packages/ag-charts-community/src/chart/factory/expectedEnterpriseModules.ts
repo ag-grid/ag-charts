@@ -34,6 +34,7 @@ const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'treemap' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'waterfall' },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian'] },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'bullet' },
 ];
 
 export function verifyIfModuleExpected(module: Module<any>) {
