@@ -248,9 +248,6 @@ function NavTypedUnionProperty({
         return null;
     }
 
-    const normalizedType = cleanupName(typeMember.type);
-    path[path.length - 1].name = normalizedType;
-
     return (
         <>
             <div className={classnames(styles.navItem, isSelected && 'highlight')} onDoubleClick={toggleExpanded}>
@@ -271,7 +268,7 @@ function NavTypedUnionProperty({
                                     <span className={styles.punctuation}>{'{ '}</span>
                                     type
                                     <span className={styles.punctuation}> = '</span>
-                                    <span className={styles.unionDiscriminator}>{normalizedType}</span>
+                                    <span className={styles.unionDiscriminator}>{cleanupName(typeMember.type)}</span>
                                     <span className={styles.punctuation}>'</span>
                                 </span>
                                 <span className={styles.punctuation} onClick={toggleExpanded}>
