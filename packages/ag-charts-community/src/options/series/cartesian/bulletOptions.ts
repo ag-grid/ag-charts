@@ -13,5 +13,8 @@ export interface AgBulletSeriesThemeableOptions extends AgBaseSeriesThemeableOpt
 export interface AgBulletSeriesOptions<TDatum = any> extends AgBaseSeriesOptions<TDatum> {
     /** Configuration for the Bullet series. */
     type: 'bullet';
+    /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
+    direction?: 'horizontal' | 'vertical';
+    /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBulletSeriesTooltipRendererParams>;
 }
