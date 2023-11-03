@@ -8,12 +8,13 @@ import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
+import type { SpecialTypesMap } from '../apiReferenceHelpers';
 import { cleanupName, formatTypeToCode, getMemberType, isInterfaceHidden, normalizeType } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
 import { PropertyTitle, PropertyType } from './Properies';
 
-export const ApiReferenceContext = createContext<ApiReferenceType | null>(null);
+export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 
 export interface ApiReferenceConfig {
@@ -22,7 +23,7 @@ export interface ApiReferenceConfig {
     exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
-    specialTypes?: Record<string, 'InterfaceArray' | 'NestedPage'>;
+    specialTypes?: SpecialTypesMap;
 }
 
 interface ApiReferenceOptions {
@@ -75,8 +76,6 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
         return null;
     }
 
-    const interfaceMembers = processMembers(interfaceRef.members, config);
-
     return (
         <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
             {anchorId && <a id={anchorId} />}
@@ -88,7 +87,7 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
                 ))}
             <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <tbody>
-                    {interfaceMembers.map((member) => (
+                    {processMembers(interfaceRef.members, config).map((member) => (
                         <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
                     ))}
                 </tbody>
@@ -177,15 +176,13 @@ function ApiReferenceRow({
                         onClick={(event) => {
                             event.preventDefault();
                             const selectionState = {
+                                pathname: nestedPath,
+                                hash: `reference-${memberType}`,
                                 pageInterface: memberType,
-                                pageTitle: { memberName },
-                                anchorId: `reference-${memberType}`,
+                                pageTitle: { name: memberName },
                             };
                             selection?.setSelection(selectionState);
-                            navigate(
-                                { pathname: nestedPath, hash: selectionState.anchorId },
-                                { state: selectionState }
-                            );
+                            navigate(selectionState, { state: selectionState });
                         }}
                     >
                         See property details

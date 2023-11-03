@@ -3,12 +3,13 @@ import classNames from 'classnames';
 import type { CSSProperties } from 'react';
 import { useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
+import { SITE_BASE_URL } from 'src/constants';
 
 import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
-import type { ApiReferenceConfig } from './ApiReference';
+import type { PageTitle } from '../apiReferenceHelpers';
+import type { NavigationData, SpecialTypesMap } from '../apiReferenceHelpers';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
-import type { NavPageTitle, Selection } from './OptionsNavigation';
 import { OptionsNavigation, SelectionContext } from './OptionsNavigation';
 import { PropertyType } from './Properies';
 
@@ -17,9 +18,9 @@ interface ApiReferencePageOptions {
     rootInterface: string;
     pageInterface?: string;
     breadcrumbs: string[];
-    pageTitle?: NavPageTitle;
+    pageTitle?: PageTitle;
     basePath: string;
-    specialTypes?: ApiReferenceConfig['specialTypes'];
+    specialTypes?: SpecialTypesMap;
 }
 
 export function ApiReferencePage({
@@ -32,10 +33,11 @@ export function ApiReferencePage({
     specialTypes,
 }: ApiReferencePageOptions) {
     const location = useLocation();
-    const [selection, setSelection] = useState<Selection>({
+    const [selection, setSelection] = useState<NavigationData>({
         pageInterface: pageInterface ?? rootInterface,
-        anchorId: location?.hash.substring(1),
-        pageTitle,
+        pathname: location?.pathname ?? basePath,
+        hash: location?.hash.substring(1) ?? '',
+        pageTitle: pageTitle ?? { name: rootInterface },
     });
     const pageRef = selection.pageInterface ? reference.get(selection.pageInterface) : null;
     const rootRef = reference.get(rootInterface);
@@ -46,7 +48,7 @@ export function ApiReferencePage({
 
     useHistory(({ location, action }) => {
         if (action === 'POP' && location.state) {
-            setSelection(location.state);
+            setSelection(location.state as NavigationData);
         }
     });
 
@@ -61,13 +63,13 @@ export function ApiReferencePage({
                     <div className={styles.container}>
                         <div className={styles.objectViewOuter}>
                             <OptionsNavigation
-                                basePath={basePath}
+                                basePath={`${SITE_BASE_URL}${basePath}/`}
                                 breadcrumbs={breadcrumbs}
                                 rootInterface={rootInterface}
                             />
                         </div>
                         <ApiReferencePageContent
-                            pageId={selection.pageInterface ?? rootInterface}
+                            pageId={selection.pageInterface}
                             pageRef={pageRef ?? rootRef}
                             pageTitle={selection?.pageTitle}
                         />
@@ -85,7 +87,7 @@ function ApiReferencePageContent({
 }: {
     pageId: string;
     pageRef: InterfaceNode;
-    pageTitle?: NavPageTitle;
+    pageTitle?: PageTitle;
 }) {
     const selection = useContext(SelectionContext);
     const [headerHeight, setHeaderHeight] = useState(0);
@@ -95,11 +97,11 @@ function ApiReferencePageContent({
                 <h1 className="font-size-gigantic">
                     {pageTitle?.type ? (
                         <>
-                            {pageTitle.memberName}[type = '
-                            <span className={styles.unionDiscriminator}>{pageTitle.type}</span>']
+                            {pageTitle.name}[type = '<span className={styles.unionDiscriminator}>{pageTitle.type}</span>
+                            ']
                         </>
                     ) : (
-                        pageTitle?.memberName ?? pageRef.name
+                        pageTitle?.name ?? pageRef.name
                     )}
                 </h1>
                 <Markdown>{pageRef.docs?.join('\n')}</Markdown>

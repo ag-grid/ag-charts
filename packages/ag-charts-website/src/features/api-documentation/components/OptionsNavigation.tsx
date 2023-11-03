@@ -1,33 +1,21 @@
 import { Icon } from '@components/icon/Icon';
-import { SITE_BASE_URL } from '@constants';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoView, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
-import type { To } from 'history';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
-import { createContext, useContext, useEffect, useRef } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 
-import type { ApiReferenceNode, MemberNode } from '../api-reference-types';
-import { cleanupName, extractSearchData, getMemberType } from '../apiReferenceHelpers';
+import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
+import type { NavigationData, NavigationPath } from '../apiReferenceHelpers';
+import { cleanupName, extractSearchData, getMemberType, getNavigationDataFromPath } from '../apiReferenceHelpers';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
 
 export const SelectionContext = createContext<{
-    selection: Selection;
-    setSelection: Dispatch<SetStateAction<Selection>>;
+    selection: NavigationData;
+    setSelection: Dispatch<SetStateAction<NavigationData>>;
 } | null>(null);
-
-export interface NavPageTitle {
-    memberName: string;
-    type?: string;
-}
-
-export interface Selection {
-    pageInterface?: string;
-    pageTitle?: NavPageTitle;
-    anchorId?: string;
-}
 
 export function OptionsNavigation({
     basePath,
@@ -41,11 +29,17 @@ export function OptionsNavigation({
     const elementRef = useRef<HTMLDivElement>(null);
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
+    const config = useContext(ApiReferenceConfigContext);
     const interfaceRef = reference?.get(rootInterface);
 
-    const handleClick = (navigateTo: To, selectionState: Selection) => {
-        selection?.setSelection(selectionState);
-        navigate(navigateTo, { state: selectionState });
+    const searchData = useMemo(
+        () => extractSearchData(reference, interfaceRef, [{ name: basePath, type: rootInterface }]),
+        []
+    );
+
+    const handleClick = (navData: NavigationData) => {
+        selection?.setSelection(navData);
+        navigate(navData, { state: navData });
     };
 
     useEffect(() => {
@@ -64,8 +58,12 @@ export function OptionsNavigation({
                     A comprehensive interactive explorer for the <strong>{rootInterface}</strong> structure.
                 </p>
                 <SearchBox
-                    searchData={extractSearchData(reference, interfaceRef)}
-                    onItemClick={(data) => console.log(data)}
+                    searchData={searchData}
+                    onItemClick={(data) => {
+                        const navData = getNavigationDataFromPath(data.navPath, config.specialTypes);
+                        selection?.setSelection(navData);
+                        navigate(navData, { state: navData });
+                    }}
                 />
             </header>
 
@@ -79,9 +77,10 @@ export function OptionsNavigation({
                                         key={member.name}
                                         member={member}
                                         depth={breadcrumbs?.length ?? 0}
-                                        pageInterface={rootInterface}
-                                        pathname={`${SITE_BASE_URL}${basePath}`}
-                                        anchorId={`reference-${rootInterface}-${member.name}`}
+                                        path={[
+                                            { name: basePath, type: rootInterface },
+                                            { name: member.name, type: getMemberType(member) },
+                                        ]}
                                         onClick={handleClick}
                                     />
                                 ))}
@@ -107,19 +106,13 @@ function NavGroup({ depth = 0, className, ...props }: { depth?: number } & AllHT
 function NavProperty({
     member,
     depth = 0,
-    pathname,
-    anchorId,
-    pageTitle,
-    pageInterface,
+    path,
     onClick,
 }: {
     member: MemberNode;
     depth?: number;
-    pathname: string;
-    anchorId: string;
-    pageTitle?: NavPageTitle;
-    pageInterface?: string;
-    onClick?: (uri: To, selection: Selection) => void;
+    path: { name: string; type: string }[];
+    onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
@@ -133,16 +126,20 @@ function NavProperty({
     const hasNestedPages = config?.specialTypes?.[memberType] === 'NestedPage';
     const expandable = isInterface || isInterfaceArray;
 
+    const navData = getNavigationDataFromPath(path, config?.specialTypes);
+
     function calcShouldExpand() {
         return isInterfaceArray
             ? typeof selection?.selection.pageInterface === 'string' &&
-                  getInterfaceArrayTypes(interfaceRef).includes(selection?.selection.pageInterface)
+                  getInterfaceArrayTypes(reference, interfaceRef).some(
+                      (item) => item.type === selection?.selection.pageInterface
+                  )
             : hasNestedPages
             ? interfaceRef?.kind === 'interface' &&
               interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
-            : (selection?.selection.pageInterface === pageInterface &&
-                  selection?.selection.anchorId?.startsWith(anchorId) &&
-                  selection?.selection.anchorId !== anchorId) ??
+            : (selection?.selection.pageInterface === navData.pageInterface &&
+                  selection?.selection.hash?.startsWith(navData.hash) &&
+                  selection?.selection.hash !== navData.hash) ??
               false;
     }
 
@@ -155,11 +152,9 @@ function NavProperty({
     }, [location?.pathname, location?.hash]);
 
     const isSelected =
-        pathname === location?.pathname &&
-        selection?.selection.pageInterface === pageInterface &&
-        selection?.selection.anchorId === anchorId;
-
-    const handleClick = () => onClick?.({ pathname, hash: anchorId }, { pageInterface, pageTitle, anchorId });
+        location?.pathname === navData.pathname &&
+        selection?.selection.pageInterface === navData.pageInterface &&
+        selection?.selection.hash === navData.hash;
 
     return (
         <>
@@ -172,7 +167,7 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <span onClick={handleClick}>
+                    <span onClick={() => onClick?.(navData)}>
                         {member.name === 'type' && memberType.match(/^'\S+'$/) ? (
                             <>
                                 type <span className={styles.punctuation}>= '</span>
@@ -196,30 +191,18 @@ function NavProperty({
                                       key={childMember.name}
                                       depth={depth + 1}
                                       member={childMember}
-                                      pathname={
-                                          hasNestedPages
-                                              ? `${pathname}/${member.name}/${cleanupName(childMember.name)}`
-                                              : pathname
-                                      }
-                                      anchorId={
-                                          hasNestedPages
-                                              ? `reference-${cleanupName(getMemberType(childMember))}`
-                                              : `${anchorId}-${childMember.name}`
-                                      }
-                                      pageInterface={hasNestedPages ? getMemberType(childMember) : pageInterface}
-                                      pageTitle={
-                                          hasNestedPages ? { memberName: cleanupName(childMember.name) } : pageTitle
-                                      }
+                                      path={path.concat({
+                                          name: cleanupName(childMember.name),
+                                          type: getMemberType(childMember),
+                                      })}
                                       onClick={onClick}
                                   />
                               ))
-                            : getInterfaceArrayTypes(interfaceRef).map((typeName) => (
+                            : getInterfaceArrayTypes(reference, interfaceRef).map(({ name, type }) => (
                                   <NavTypedUnionProperty
-                                      key={typeName}
+                                      key={type}
                                       depth={depth + 1}
-                                      pathname={`${pathname}/${member.name}`}
-                                      pageInterface={typeName}
-                                      memberName={member.name}
+                                      path={path.concat({ name, type })}
                                       onClick={onClick}
                                   />
                               ))}
@@ -232,49 +215,41 @@ function NavProperty({
 }
 
 function NavTypedUnionProperty({
-    pageInterface,
     depth = 0,
-    pathname,
-    memberName,
+    path,
     onClick,
 }: {
-    pageInterface: string;
     depth?: number;
-    pathname: string;
-    memberName: string;
-    onClick?: (uri: To, selection: Selection) => void;
+    path: NavigationPath[];
+    onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
-    const interfaceRef = reference?.get(pageInterface);
-    const defaultAnchorId = `reference-${pageInterface}-type`;
+    const config = useContext(ApiReferenceConfigContext);
+    const navData = getNavigationDataFromPath(path, config?.specialTypes);
+    const interfaceRef = reference?.get(navData.pageInterface);
 
     if (interfaceRef?.kind !== 'interface') {
         return null;
     }
 
     const [isExpanded, toggleExpanded] = useToggle(
-        selection?.selection.pageInterface === pageInterface &&
-            Boolean(selection?.selection.anchorId) &&
-            selection?.selection.anchorId !== defaultAnchorId
+        selection?.selection.pageInterface === navData.pageInterface &&
+            Boolean(selection?.selection.hash) &&
+            selection?.selection.hash !== navData.hash
     );
     const typeMember = interfaceRef.members.find((member) => member.name === 'type');
     const isSelected =
         !isExpanded &&
-        selection?.selection.pageInterface === pageInterface &&
-        selection?.selection.anchorId === defaultAnchorId;
+        selection?.selection.pageInterface === navData.pageInterface &&
+        selection?.selection.hash === navData.hash;
 
     if (typeof typeMember?.type !== 'string') {
         return null;
     }
 
     const normalizedType = cleanupName(typeMember.type);
-    const pageTitle = { memberName, type: normalizedType };
-    const handleClick = () =>
-        onClick?.(
-            { pathname: `${pathname}/${normalizedType}`, hash: defaultAnchorId },
-            { pageInterface, pageTitle, anchorId: defaultAnchorId }
-        );
+    path[path.length - 1].name = normalizedType;
 
     return (
         <>
@@ -292,7 +267,7 @@ function NavTypedUnionProperty({
                             <span className={styles.punctuation}>{'{'}</span>
                         ) : (
                             <>
-                                <span onClick={handleClick}>
+                                <span onClick={() => onClick?.(navData)}>
                                     <span className={styles.punctuation}>{'{ '}</span>
                                     type
                                     <span className={styles.punctuation}> = '</span>
@@ -315,10 +290,7 @@ function NavTypedUnionProperty({
                                 key={member.name}
                                 member={member}
                                 depth={depth + 1}
-                                pathname={`${pathname}/${normalizedType}`}
-                                anchorId={`reference-${pageInterface}-${member.name}`}
-                                pageInterface={pageInterface}
-                                pageTitle={pageTitle}
+                                path={path.concat({ name: member.name, type: getMemberType(member) })}
                                 onClick={onClick}
                             />
                         ))}
@@ -342,12 +314,17 @@ function NavBreadcrumb({
     children: ReactNode;
 }) {
     const selection = useContext(SelectionContext);
-    const isSelected = selection?.selection.pageInterface === rootInterface && !selection?.selection.anchorId;
+    const isSelected = selection?.selection.pageInterface === rootInterface && !selection?.selection.hash;
     const handleClick = () => {
-        const selectionState = { pageInterface: rootInterface };
-        selection?.setSelection(selectionState);
+        const navData = {
+            pathname: basePath,
+            hash: '',
+            pageInterface: rootInterface,
+            pageTitle: { name: rootInterface },
+        };
+        selection?.setSelection(navData);
         window.scrollTo({ behavior: 'smooth', top: 0 });
-        navigate(`${SITE_BASE_URL}${basePath}`, { state: selectionState });
+        navigate(navData, { state: navData });
     };
 
     return (
@@ -419,14 +396,24 @@ function PropertyExpander({ isExpanded, onClick }: { isExpanded?: boolean; onCli
     );
 }
 
-function getInterfaceArrayTypes(interfaceRef?: ApiReferenceNode): string[] {
+function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: ApiReferenceNode) {
     if (
         interfaceRef?.kind === 'typeAlias' &&
         typeof interfaceRef.type === 'object' &&
         interfaceRef.type.kind === 'union' &&
         interfaceRef.type.type.every((type): type is string => typeof type === 'string')
     ) {
-        return interfaceRef.type.type;
+        return interfaceRef.type.type
+            .map((type) => {
+                const interfaceRef = reference?.get(type);
+                if (interfaceRef?.kind === 'interface') {
+                    const typeMember = interfaceRef.members.find((member) => member.name === 'type');
+                    if (typeof typeMember?.type === 'string') {
+                        return { name: cleanupName(typeMember.type), type };
+                    }
+                }
+            })
+            .filter((item): item is NavigationPath => item != null);
     }
     return [];
 }
