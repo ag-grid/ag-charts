@@ -80,6 +80,66 @@ const options: AgChartOptions = {
     ],
 };
 
+const lineOptions: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    animation: {
+        enabled: true,
+    },
+    series: [
+        {
+            type: 'line',
+            xKey: 'station',
+            yKey: 'early',
+            yName: 'Early',
+            tooltip,
+        },
+        {
+            type: 'line',
+            xKey: 'station',
+            yKey: 'morningPeak',
+            yName: 'Morning peak',
+            tooltip,
+        },
+        {
+            type: 'line',
+            xKey: 'station',
+            yKey: 'interPeak',
+            yName: 'Between peak',
+            tooltip,
+        },
+        {
+            type: 'line',
+            xKey: 'station',
+            yKey: 'afternoonPeak',
+            yName: 'Afternoon peak',
+            tooltip,
+        },
+        {
+            type: 'line',
+            xKey: 'station',
+            yKey: 'evening',
+            yName: 'Evening',
+            tooltip,
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+            label: {
+                formatter: (params) => {
+                    return params.value / 1000 + 'k';
+                },
+            },
+        },
+    ],
+};
+
 const areaOptions: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -179,18 +239,18 @@ const pieOptions: AgChartOptions = {
 
 let chart = AgEnterpriseCharts.create(options);
 
-function reload(reloadOptions: AgChartOptions) {
-    AgEnterpriseCharts.update(chart, reloadOptions);
+function changeSeriesBar() {
+    AgEnterpriseCharts.update(chart, options);
 }
 
-function changeSeriesBar() {
-    reload(options);
+function changeSeriesLine() {
+    AgEnterpriseCharts.update(chart, lineOptions);
 }
 
 function changeSeriesArea() {
-    reload(areaOptions);
+    AgEnterpriseCharts.update(chart, areaOptions);
 }
 
 function changeSeriesPie() {
-    reload(pieOptions);
+    AgEnterpriseCharts.update(chart, pieOptions);
 }
