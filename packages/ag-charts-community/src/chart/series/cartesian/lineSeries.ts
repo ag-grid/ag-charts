@@ -123,6 +123,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         if (xKey == null || yKey == null || data == null) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const props: DataModelOptions<any, false>['props'] = [];
@@ -131,9 +132,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datums and
         // automatically garbage collect the marker selection.
-        if (!this.ctx.animationManager.isSkipped() && !isContinuousX) {
+        if (!isContinuousX) {
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
-            if (this.processedData) {
+            if (animationEnabled && this.processedData) {
                 props.push(diff(this.processedData));
             }
         }

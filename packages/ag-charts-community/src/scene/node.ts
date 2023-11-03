@@ -86,7 +86,7 @@ export abstract class Node extends ChangeDetectable {
     get datum() {
         return this._datum ?? this._parent?.datum;
     }
-    get previousDatum() {
+    get previousDatum(): any | undefined {
         return this._previousDatum;
     }
     set datum(datum: any) {

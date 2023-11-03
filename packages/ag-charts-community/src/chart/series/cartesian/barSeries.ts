@@ -205,7 +205,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             extraProps.push(diff(this.processedData));
         }
 
-        const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
+        const visibleProps = !this.visible && animationEnabled ? { forceValue: 0 } : {};
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
@@ -228,7 +228,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                 ...extraProps,
             ],
             groupByKeys: true,
-            dataVisible: this.visible || animationEnabled,
         });
 
         this.smallestDataInterval = {

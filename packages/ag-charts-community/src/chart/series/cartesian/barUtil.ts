@@ -158,7 +158,7 @@ export function midpointStartingBarPosition(isVertical: boolean): InitialPositio
 
 type AnimatableBarDatum = { x: number; y: number; height: number; width: number };
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
-    const isRemoved = (datum: T) => isNaN(datum.x) || isNaN(datum.y);
+    const isRemoved = (datum?: T) => datum == null || isNaN(datum.x) || isNaN(datum.y);
 
     const fromFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
         if (status === 'updated' && isRemoved(datum)) {

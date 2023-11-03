@@ -96,3 +96,22 @@ function remove() {
   ]
   AgChart.update(chart, options as any)
 }
+
+function switchDirection() {
+  options.series?.forEach((s: any) => s.direction = s.direction === 'horizontal' ? 'vertical' : 'horizontal');
+  AgChart.update(chart, options as any)
+}
+
+function switchToGrouped() {
+  options.series?.forEach((s: any) => delete s['stackGroup']);
+  AgChart.update(chart, options as any)
+}
+
+function switchToStacked() {
+  options.series?.forEach((s: any, i) => {
+    if (i < 3) {
+      s.stackGroup = 'Devices';
+    }
+  });
+  AgChart.update(chart, options as any)
+}

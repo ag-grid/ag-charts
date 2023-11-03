@@ -31,7 +31,7 @@ export function createAngleMotionCalculator() {
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
             let to = (status === 'removed' ? node : datum)[key];
             if (isNaN(to)) {
-                to = node.previousDatum[key];
+                to = node.previousDatum?.[key] ?? NaN;
             }
             const diff = from - to;
             if (Math.abs(diff) > Math.PI) {
