@@ -9,7 +9,7 @@
     transition: opacity 0.33s ease-in-out;
 
     &:hover {
-        opacity: 1;
+        opacity: 1 !important;
     }
 
     svg {
