@@ -1,6 +1,6 @@
 import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
-import { navigate, scrollIntoView, useLocation } from '@utils/navigation';
+import { navigate, scrollIntoView, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
@@ -26,6 +26,7 @@ export function OptionsNavigation({
     breadcrumbs: string[];
     rootInterface: string;
 }) {
+    const location = useLocation();
     const elementRef = useRef<HTMLDivElement>(null);
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
@@ -38,8 +39,12 @@ export function OptionsNavigation({
     );
 
     const handleClick = (navData: NavigationData) => {
-        selection?.setSelection(navData);
-        navigate(navData, { state: navData });
+        if (location?.pathname === navData.pathname && location.hash.substring(1) === navData.hash) {
+            scrollIntoViewById(navData.hash);
+        } else {
+            selection?.setSelection(navData);
+            navigate(navData, { state: navData });
+        }
     };
 
     useEffect(() => {
