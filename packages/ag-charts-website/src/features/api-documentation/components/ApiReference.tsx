@@ -218,8 +218,8 @@ function MemberActions({
             {additionalDetails && (
                 <ToggleDetails
                     isOpen={isExpanded}
-                    moreText={hasMembers ? 'Expand interface' : 'More details'}
-                    lessText={hasMembers ? 'Collapse interface' : 'Hide details'}
+                    moreText={hasMembers ? 'See child properties' : 'More details'}
+                    lessText={hasMembers ? 'Hide child properties' : 'Hide details'}
                     onToggle={onDetailsToggle}
                 />
             )}
