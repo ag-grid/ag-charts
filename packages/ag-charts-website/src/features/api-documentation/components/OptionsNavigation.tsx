@@ -8,7 +8,7 @@ import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, Rea
 import { createContext, useContext, useEffect, useRef } from 'react';
 
 import type { ApiReferenceNode, MemberNode } from '../api-reference-types';
-import { extractSearchData, getMemberType } from '../apiReferenceHelpers';
+import { cleanupName, extractSearchData, getMemberType } from '../apiReferenceHelpers';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
@@ -43,9 +43,9 @@ export function OptionsNavigation({
     const reference = useContext(ApiReferenceContext);
     const interfaceRef = reference?.get(rootInterface);
 
-    const handleClick = (navigateTo: To, newSelection: Selection) => {
-        selection?.setSelection(newSelection);
-        navigate(navigateTo);
+    const handleClick = (navigateTo: To, selectionState: Selection) => {
+        selection?.setSelection(selectionState);
+        navigate(navigateTo, { state: selectionState });
     };
 
     useEffect(() => {
@@ -61,9 +61,12 @@ export function OptionsNavigation({
             <header>
                 <h3>Options Reference</h3>
                 <p className="text-secondary font-size-small">
-                    A comprehensive interactive explorer for the <b>AgChartOptions</b> structure.
+                    A comprehensive interactive explorer for the <strong>{rootInterface}</strong> structure.
                 </p>
-                <SearchBox searchData={extractSearchData(reference, interfaceRef)} />
+                <SearchBox
+                    searchData={extractSearchData(reference, interfaceRef)}
+                    onItemClick={(data) => console.log(data)}
+                />
             </header>
 
             <pre className={classnames('code', styles.navContainer)}>
@@ -130,18 +133,26 @@ function NavProperty({
     const hasNestedPages = config?.specialTypes?.[memberType] === 'NestedPage';
     const expandable = isInterface || isInterfaceArray;
 
-    const [isExpanded, toggleExpanded] = useToggle(() =>
-        isInterfaceArray
+    function calcShouldExpand() {
+        return isInterfaceArray
             ? typeof selection?.selection.pageInterface === 'string' &&
-              getInterfaceArrayTypes(interfaceRef).includes(selection?.selection.pageInterface)
+                  getInterfaceArrayTypes(interfaceRef).includes(selection?.selection.pageInterface)
             : hasNestedPages
             ? interfaceRef?.kind === 'interface' &&
               interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
             : (selection?.selection.pageInterface === pageInterface &&
                   selection?.selection.anchorId?.startsWith(anchorId) &&
                   selection?.selection.anchorId !== anchorId) ??
-              false
-    );
+              false;
+    }
+
+    const [isExpanded, toggleExpanded, setExpanded] = useToggle(calcShouldExpand);
+
+    useEffect(() => {
+        if (!isExpanded) {
+            setExpanded(calcShouldExpand());
+        }
+    }, [location?.pathname, location?.hash]);
 
     const isSelected =
         pathname === location?.pathname &&
@@ -333,9 +344,10 @@ function NavBreadcrumb({
     const selection = useContext(SelectionContext);
     const isSelected = selection?.selection.pageInterface === rootInterface && !selection?.selection.anchorId;
     const handleClick = () => {
-        selection?.setSelection({ pageInterface: rootInterface });
+        const selectionState = { pageInterface: rootInterface };
+        selection?.setSelection(selectionState);
         window.scrollTo({ behavior: 'smooth', top: 0 });
-        navigate(`${SITE_BASE_URL}${basePath}`);
+        navigate(`${SITE_BASE_URL}${basePath}`, { state: selectionState });
     };
 
     return (
@@ -417,8 +429,4 @@ function getInterfaceArrayTypes(interfaceRef?: ApiReferenceNode): string[] {
         return interfaceRef.type.type;
     }
     return [];
-}
-
-function cleanupName(name: string) {
-    return name.replaceAll("'", '');
 }

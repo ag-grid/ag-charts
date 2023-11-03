@@ -120,27 +120,46 @@ export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptio
 }
 
 export interface AgBaseChartThemeOverrides {
+    /** Common theme overrides for series. */
     common?: AgCommonThemeableChartOptions;
 
+    /** Line series theme overrides. */
     line?: AgLineSeriesThemeOverrides;
+    /** Scatter series theme overrides. */
     scatter?: AgScatterSeriesThemeOverrides;
+    /** Bubble series theme overrides. */
     bubble?: AgBubbleSeriesThemeOverrides;
+    /** Area series theme overrides. */
     area?: AgAreaSeriesThemeOverrides;
+    /** Bar series theme overrides. */
     bar?: AgBarSeriesThemeOverrides;
+    /** Box-plot series theme overrides. */
     'box-plot'?: AgBoxPlotSeriesThemeOverrides;
+    /** Histogram series theme overrides. */
     histogram?: AgHistogramSeriesThemeOverrides;
+    /** Heatmap series theme overrides. */
     heatmap?: AgHeatmapSeriesThemeOverrides;
+    /** Waterfall series theme overrides. */
     waterfall?: AgWaterfallSeriesThemeOverrides;
+    /** Range-bar series theme overrides. */
     'range-bar'?: AgRangeBarSeriesThemeOverrides;
+    /** Range-area series theme overrides. */
     'range-area'?: AgRangeAreaSeriesThemeOverrides;
 
+    /** Pie series theme overrides. */
     pie?: AgPieSeriesThemeOverrides;
+    /** Radar-line series theme overrides. */
     'radar-line'?: AgRadarLineSeriesThemeOverrides;
+    /** Radar-area series theme overrides. */
     'radar-area'?: AgRadarAreaSeriesThemeOverrides;
+    /** Radial-bar series theme overrides. */
     'radial-bar'?: AgRadialBarSeriesThemeOverrides;
+    /** Radial-column series theme overrides. */
     'radial-column'?: AgRadialColumnSeriesThemeOverrides;
+    /** Nightingale series theme overrides. */
     nightingale?: AgNightingaleSeriesThemeOverrides;
 
+    /** Treemap series theme overrides. */
     treemap?: AgTreemapSeriesThemeOverrides;
 }
 

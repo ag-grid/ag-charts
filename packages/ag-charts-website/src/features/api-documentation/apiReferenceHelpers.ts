@@ -1,8 +1,10 @@
+import type { To } from 'history';
+
 import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, TypeNode } from './api-reference-types';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
-type SearchDatum = { id: string; selection: object };
+export type SearchDatum = { label: string; searchable: string; navigate: To };
 
 const hiddenInterfaces = [
     'CssColor',
@@ -14,6 +16,10 @@ const hiddenInterfaces = [
     'PixelSize',
     'Ratio',
 ];
+
+export function cleanupName(name: string) {
+    return name.replaceAll("'", '');
+}
 
 export function isInterfaceHidden(name: string) {
     return hiddenInterfaces.includes(name);
@@ -131,10 +137,20 @@ export function extractSearchData(
 ): SearchDatum[] {
     if (interfaceRef.kind === 'interface' || (interfaceRef.kind === 'typeLiteral' && interfaceRef.name)) {
         return interfaceRef.members.flatMap((member) => {
-            const results = [{ id: idPrefix + member.name, selection: {} }];
+            const results = [
+                {
+                    label: idPrefix + cleanupName(member.name),
+                    searchable: cleanupName(member.name).toLowerCase(),
+                    navigate: {},
+                },
+            ];
             if (typeof member.type === 'string' && reference.has(member.type)) {
                 results.push(
-                    ...extractSearchData(reference, reference.get(member.type)!, `${idPrefix}${member.name}.`)
+                    ...extractSearchData(
+                        reference,
+                        reference.get(member.type)!,
+                        `${idPrefix}${cleanupName(member.name)}.`
+                    )
                 );
             } else if (
                 typeof member.type === 'object' &&
@@ -143,7 +159,11 @@ export function extractSearchData(
                 reference.has(member.type.type)
             ) {
                 results.push(
-                    ...extractSearchData(reference, reference.get(member.type.type)!, `${idPrefix}${member.name}.`)
+                    ...extractSearchData(
+                        reference,
+                        reference.get(member.type.type)!,
+                        `${idPrefix}${cleanupName(member.name)}.`
+                    )
                 );
             }
             return results;
@@ -162,11 +182,15 @@ export function extractSearchData(
                     if (subtypeRef.kind === 'interface') {
                         const typeMember = subtypeRef.members.find((member) => member.name === 'type');
                         if (typeMember) {
-                            return extractSearchData(
-                                reference,
-                                subtypeRef,
-                                `${idPrefix.replace(/\.$/, '')}[type=${typeMember.type}].`
-                            );
+                            const label = `${idPrefix.replace(/\.$/, '')}[type=${typeMember.type}]`;
+                            return [
+                                {
+                                    label,
+                                    searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
+                                    navigate: {},
+                                },
+                                ...extractSearchData(reference, subtypeRef, `${label}.`),
+                            ];
                         }
                     }
                 }

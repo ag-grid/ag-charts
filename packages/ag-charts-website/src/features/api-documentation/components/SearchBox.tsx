@@ -3,11 +3,12 @@ import { Icon } from '@components/icon/Icon';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FormEventHandler, KeyboardEventHandler } from 'react';
 import { useState } from 'react';
+import Markdown from 'react-markdown';
 
+import type { SearchDatum } from '../apiReferenceHelpers';
 import styles from './OptionsNavigation.module.scss';
 
-type SearchDatum = { id: string; selection: object };
-type SelectionHandler = (selection: object) => void;
+type SelectionHandler = (data: SearchDatum) => void;
 
 export function SearchBox({
     className,
@@ -15,14 +16,23 @@ export function SearchBox({
     placeholder = 'Search properties...',
     iconName = 'search',
     onItemClick,
+    markResults = true,
     ...props
 }: AllHTMLAttributes<Element> & {
     iconName?: IconName;
     searchData: SearchDatum[];
+    markResults?: boolean;
     onItemClick?: SelectionHandler;
 }) {
-    const { data, selectedIndex, handleInput, handleKeyDown, setSelectedIndex } = useSearch(searchData, onItemClick);
     const [inFocus, setInFocus] = useState(false);
+    const { data, searchQuery, selectedIndex, handleInput, handleKeyDown, setSelectedIndex } = useSearch(
+        searchData,
+        onItemClick
+    );
+
+    const cleanQuery = searchQuery.replace(/[^-a-z0-9]/g, '');
+    const searchRegexp = new RegExp(`(${cleanQuery})+`, 'ig');
+
     return (
         <div className={classnames(styles.searchOuter, className)} {...props}>
             <input
@@ -36,12 +46,12 @@ export function SearchBox({
             />
             <Icon svgClasses={styles.searchIcon} name={iconName} />
 
-            {data.length > 0 && inFocus && (
+            {data.length > 0 && searchQuery.length > 0 && inFocus && (
                 <div className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
                     <div className={styles.searchOptions}>
                         {data.map((data, index) => (
                             <div
-                                key={data.id}
+                                key={data.label}
                                 ref={
                                     index === selectedIndex
                                         ? (ref) => ref?.scrollIntoView({ block: 'nearest', inline: 'start' })
@@ -50,12 +60,14 @@ export function SearchBox({
                                 className={classnames(styles.searchOption, {
                                     [styles.selected]: index === selectedIndex,
                                 })}
-                                onClick={() => {
-                                    onItemClick?.(data.selection);
-                                }}
+                                onClick={() => onItemClick?.(data)}
                                 onMouseEnter={() => setSelectedIndex(index)}
                             >
-                                {data.id.replace(/\s+/g, '')}
+                                {markResults && searchQuery ? (
+                                    <Markdown>{data.label.replace(searchRegexp, `**$1**`)}</Markdown>
+                                ) : (
+                                    data.label
+                                )}
                             </div>
                         ))}
                     </div>
@@ -71,8 +83,12 @@ function useSearch(searchData: SearchDatum[], onItemClick?: SelectionHandler, in
     const [searchQuery, setSearchQuery] = useState(initialValue);
 
     const handleInput: FormEventHandler<HTMLInputElement> = (event) => {
-        const searchQuery = event.currentTarget.value;
-        setFilteredData(searchData.filter((item) => item.id.includes(searchQuery)));
+        const searchQuery = event.currentTarget.value.trim().toLowerCase();
+        setFilteredData(
+            searchData
+                .filter((item) => item.searchable.includes(searchQuery))
+                .sort((a, b) => a.label.toLowerCase().indexOf(searchQuery) - b.label.toLowerCase().indexOf(searchQuery))
+        );
         setSearchQuery(searchQuery);
         setSelectedIndex(0);
     };
@@ -91,7 +107,7 @@ function useSearch(searchData: SearchDatum[], onItemClick?: SelectionHandler, in
                 break;
             case 'Enter':
                 if (data[selectedIndex]) {
-                    onItemClick?.(data[selectedIndex].selection);
+                    onItemClick?.(data[selectedIndex]);
                 }
                 break;
         }

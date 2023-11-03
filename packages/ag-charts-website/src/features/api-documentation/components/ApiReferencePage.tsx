@@ -1,7 +1,7 @@
-import { useLocation } from '@utils/navigation';
+import { navigate, useHistory, useLocation } from '@utils/navigation';
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
@@ -39,6 +39,16 @@ export function ApiReferencePage({
     });
     const pageRef = selection.pageInterface ? reference.get(selection.pageInterface) : null;
     const rootRef = reference.get(rootInterface);
+
+    useEffect(() => {
+        navigate({ pathname: location?.pathname, hash: location?.hash }, { state: selection, replace: true });
+    }, []);
+
+    useHistory(({ location, action }) => {
+        if (action === 'POP' && location.state) {
+            setSelection(location.state);
+        }
+    });
 
     if (rootRef?.kind !== 'interface' || (pageRef && pageRef.kind !== 'interface')) {
         return null;
