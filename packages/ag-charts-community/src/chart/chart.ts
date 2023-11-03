@@ -1294,12 +1294,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             pixelRange = nodeClickRange;
         }
 
-        const pickedNode = this.pickSeriesNode(
-            { x: event.offsetX, y: event.offsetY },
-            nodeClickRange === 'exact',
-            pixelRange
-        );
-
+        // Find the node if exactly matched and update the highlight picked node
+        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
         if (pickedNode) {
             this.highlightManager.updatePicked(this.id, pickedNode.datum);
         } else {
@@ -1310,6 +1306,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (datum && nodeClickRange === 'nearest') {
             callback(datum.series, datum);
             return true;
+        }
+
+        if (nodeClickRange !== 'exact') {
+            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false, pixelRange);
         }
 
         if (!pickedNode) return false;
