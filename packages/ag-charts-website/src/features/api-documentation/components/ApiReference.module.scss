@@ -193,3 +193,17 @@
         background-color: var(--background-400);
     }
 }
+
+.isChildProp {
+    border-top: 1px dashed var(--neutral-200);
+
+    .name,
+    .description,
+    .actions button {
+        font-size: calc(1em - 1.5px);
+    }
+
+    .metaValue {
+        font-size: calc(1em - 1px);
+    }
+}
