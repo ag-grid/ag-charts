@@ -152,6 +152,14 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         return this;
     }
 
+    *[Symbol.iterator](): IterableIterator<{ node: TChild; datum: TDatum; index: number }> {
+        for (let index = 0; index < this._nodes.length; index++) {
+            const node = this._nodes[index];
+            const datum = this._nodes[index].datum;
+            yield { node, datum, index };
+        }
+    }
+
     select<TChild extends Node = Node>(predicate: (node: Node) => node is TChild): TChild[] {
         return Selection.selectAll(this.parentNode, predicate);
     }
