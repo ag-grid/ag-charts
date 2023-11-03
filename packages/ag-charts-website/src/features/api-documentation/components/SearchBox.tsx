@@ -22,25 +22,19 @@ export function SearchBox({
     iconName?: IconName;
     searchData: SearchDatum[];
     markResults?: boolean;
-    onItemClick?: SelectionHandler;
+    onItemClick: SelectionHandler;
 }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [inFocus, setInFocus] = useState(false);
-    const {
-        data,
-        searchQuery,
-        selectedIndex,
-        handleInput,
-        handleClick,
-        handleKeyDown,
-        setSearchQuery,
-        setSelectedIndex,
-    } = useSearch(searchData, (data) => {
-        onItemClick?.(data);
-        if (inputRef.current) {
-            inputRef.current.value = '';
+    const { data, searchQuery, selectedIndex, handleInput, handleClick, handleKeyDown, setSelectedIndex } = useSearch(
+        searchData,
+        (data) => {
+            onItemClick(data);
+            if (inputRef.current) {
+                inputRef.current.value = '';
+            }
         }
-    });
+    );
 
     const cleanQuery = searchQuery.replace(/[^-a-z0-9]/g, '');
     const searchRegexp = new RegExp(`(${cleanQuery})+`, 'ig');
@@ -90,7 +84,7 @@ export function SearchBox({
     );
 }
 
-function useSearch(searchData: SearchDatum[], onItemClick?: SelectionHandler, initialValue = '') {
+function useSearch(searchData: SearchDatum[], onItemClick: SelectionHandler, initialValue = '') {
     const [data, setFilteredData] = useState(searchData);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [searchQuery, setSearchQuery] = useState(initialValue);
@@ -108,7 +102,7 @@ function useSearch(searchData: SearchDatum[], onItemClick?: SelectionHandler, in
 
     const handleClick = (data: SearchDatum) => {
         setSearchQuery('');
-        onItemClick?.(data);
+        onItemClick(data);
     };
 
     const handleKeyDown: KeyboardEventHandler = (event) => {
