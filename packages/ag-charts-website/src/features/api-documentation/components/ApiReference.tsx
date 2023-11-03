@@ -1,18 +1,20 @@
 import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
-import { scrollIntoViewById, useLocation } from '@utils/navigation';
+import { navigate, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
-import { formatTypeToCode, getMemberType, isInterfaceHidden } from '../apiReferenceHelpers';
+import type { SpecialTypesMap } from '../apiReferenceHelpers';
+import { cleanupName, formatTypeToCode, getMemberType, isInterfaceHidden, normalizeType } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
+import { SelectionContext } from './OptionsNavigation';
 import { PropertyTitle, PropertyType } from './Properies';
 
-export const ApiReferenceContext = createContext<ApiReferenceType | null>(null);
+export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 
 export interface ApiReferenceConfig {
@@ -21,7 +23,7 @@ export interface ApiReferenceConfig {
     exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
-    specialTypes?: Record<string, 'InterfaceArray' | 'NestedPage'>;
+    specialTypes?: SpecialTypesMap;
 }
 
 interface ApiReferenceOptions {
@@ -35,6 +37,7 @@ interface ApiReferenceRowOptions {
     anchorId: string;
     prefixPath?: string[];
     isExpanded?: boolean;
+    nestedPath?: string;
     onDetailsToggle?: () => void;
 }
 
@@ -73,8 +76,6 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
         return null;
     }
 
-    const interfaceMembers = processMembers(interfaceRef.members, config);
-
     return (
         <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
             {anchorId && <a id={anchorId} />}
@@ -86,7 +87,7 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
                 ))}
             <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <tbody>
-                    {interfaceMembers.map((member) => (
+                    {processMembers(interfaceRef.members, config).map((member) => (
                         <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
                     ))}
                 </tbody>
@@ -95,11 +96,14 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
     );
 }
 
-function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptions) {
+function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferenceRowOptions) {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
-    const shouldExpand = isExpanded && interfaceRef && 'members' in interfaceRef;
+    const config = useContext(ApiReferenceConfigContext);
     const location = useLocation();
+
+    const shouldExpand = isExpanded && interfaceRef && 'members' in interfaceRef;
+    const hasNestedPages = config?.specialTypes?.[getMemberType(member)] === 'NestedPage';
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
@@ -113,6 +117,7 @@ function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptio
     return (
         <>
             <ApiReferenceRow
+                {...props}
                 member={member}
                 anchorId={anchorId}
                 prefixPath={prefixPath}
@@ -124,33 +129,67 @@ function NodeFactory({ member, anchorId, prefixPath = [] }: ApiReferenceRowOptio
                     <NodeFactory
                         key={childMember.name}
                         member={childMember}
-                        anchorId={`${anchorId}-${childMember.name}`}
+                        anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
                         prefixPath={prefixPath.concat(member.name)}
+                        nestedPath={
+                            hasNestedPages
+                                ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
+                                : undefined
+                        }
                     />
                 ))}
         </>
     );
 }
 
-function ApiReferenceRow({ member, anchorId, prefixPath, isExpanded, onDetailsToggle }: ApiReferenceRowOptions) {
+function ApiReferenceRow({
+    member,
+    anchorId,
+    prefixPath,
+    isExpanded,
+    nestedPath,
+    onDetailsToggle,
+}: ApiReferenceRowOptions) {
     const config = useContext(ApiReferenceConfigContext);
+    const selection = useContext(SelectionContext);
+    const memberName = cleanupName(member.name);
+    const memberType = normalizeType(member.type);
 
     return (
         <tr id={anchorId}>
             <td className={styles.leftColumn}>
                 <PropertyTitle
-                    name={member.name}
+                    name={memberName}
                     anchorId={anchorId}
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
                 />
-                <PropertyType type={member.type} defaultValue={member.defaultValue} />
+                <PropertyType type={memberType} defaultValue={member.defaultValue} />
             </td>
             <td className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
                     <Markdown>{member.docs?.join('\n')}</Markdown>
                 </div>
-                <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
+                {nestedPath ? (
+                    <a
+                        href={nestedPath}
+                        onClick={(event) => {
+                            event.preventDefault();
+                            const selectionState = {
+                                pathname: nestedPath,
+                                hash: `reference-${memberType}`,
+                                pageInterface: memberType,
+                                pageTitle: { name: memberName },
+                            };
+                            selection?.setSelection(selectionState);
+                            navigate(selectionState, { state: selectionState });
+                        }}
+                    >
+                        See property details
+                    </a>
+                ) : (
+                    <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
+                )}
             </td>
         </tr>
     );

@@ -2,7 +2,25 @@ import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, Typ
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
-type SearchDatum = { id: string; selection: object };
+export type SearchDatum = { label: string; searchable: string; navPath: NavigationPath[] };
+export type SpecialTypesMap = Record<string, 'InterfaceArray' | 'NestedPage'>;
+
+export interface PageTitle {
+    name: string;
+    type?: string;
+}
+
+export interface NavigationData {
+    pathname: string;
+    hash: string;
+    pageInterface: string;
+    pageTitle: PageTitle;
+}
+
+export interface NavigationPath {
+    name: string;
+    type: string;
+}
 
 const hiddenInterfaces = [
     'CssColor',
@@ -14,6 +32,10 @@ const hiddenInterfaces = [
     'PixelSize',
     'Ratio',
 ];
+
+export function cleanupName(name: string) {
+    return name.replaceAll("'", '');
+}
 
 export function isInterfaceHidden(name: string) {
     return hiddenInterfaces.includes(name);
@@ -124,26 +146,80 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
     return '';
 }
 
+export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[], specialType?: SpecialTypesMap) {
+    const data: NavigationData = {
+        pathname: basePath.name,
+        hash: `reference-${basePath.type}`,
+        pageTitle: { name: basePath.type },
+        pageInterface: basePath.type,
+    };
+    for (let item = path.shift(); item; item = path.shift()) {
+        if (specialType?.[item.type] === 'InterfaceArray') {
+            const child = path.shift();
+            if (child) {
+                data.pathname += `${item.name}/${child.name}/`;
+                data.hash = `reference-${child.type}`;
+                data.pageTitle = { name: item.name, type: child.name };
+                data.pageInterface = child.type;
+                if (path.length === 0) {
+                    data.hash += '-type';
+                }
+                continue;
+            }
+        }
+        if (specialType?.[item.type] === 'NestedPage') {
+            const child = path.shift();
+            if (child) {
+                data.pathname += `${item.name}/${child.name}/`;
+                data.hash = `reference-${child.type}`;
+                data.pageTitle = { name: child.name };
+                data.pageInterface = child.type;
+                continue;
+            }
+        }
+        data.hash += `-${item.name}`;
+    }
+    return data;
+}
+
 export function extractSearchData(
-    reference: ApiReferenceType,
-    interfaceRef: ApiReferenceNode,
-    idPrefix = ''
+    reference?: ApiReferenceType,
+    interfaceRef?: ApiReferenceNode,
+    basePath: NavigationPath[] = [],
+    labelPrefix = ''
 ): SearchDatum[] {
-    if (interfaceRef.kind === 'interface' || (interfaceRef.kind === 'typeLiteral' && interfaceRef.name)) {
+    if (interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name)) {
         return interfaceRef.members.flatMap((member) => {
-            const results = [{ id: idPrefix + member.name, selection: {} }];
-            if (typeof member.type === 'string' && reference.has(member.type)) {
+            const navPath = basePath.concat({ name: cleanupName(member.name), type: getMemberType(member) });
+            const results = [
+                {
+                    label: labelPrefix + cleanupName(member.name),
+                    searchable: cleanupName(member.name).toLowerCase(),
+                    navPath,
+                },
+            ];
+            if (typeof member.type === 'string' && reference?.has(member.type)) {
                 results.push(
-                    ...extractSearchData(reference, reference.get(member.type)!, `${idPrefix}${member.name}.`)
+                    ...extractSearchData(
+                        reference,
+                        reference.get(member.type)!,
+                        navPath,
+                        `${labelPrefix}${cleanupName(member.name)}.`
+                    )
                 );
             } else if (
                 typeof member.type === 'object' &&
                 member.type.kind === 'array' &&
                 typeof member.type.type === 'string' &&
-                reference.has(member.type.type)
+                reference?.has(member.type.type)
             ) {
                 results.push(
-                    ...extractSearchData(reference, reference.get(member.type.type)!, `${idPrefix}${member.name}.`)
+                    ...extractSearchData(
+                        reference,
+                        reference.get(member.type.type)!,
+                        navPath,
+                        `${labelPrefix}${cleanupName(member.name)}.`
+                    )
                 );
             }
             return results;
@@ -151,22 +227,30 @@ export function extractSearchData(
     }
 
     if (
-        interfaceRef.kind === 'typeAlias' &&
+        interfaceRef?.kind === 'typeAlias' &&
         typeof interfaceRef.type === 'object' &&
         interfaceRef.type.kind === 'union'
     ) {
         return interfaceRef.type.type
             .flatMap((typeName) => {
-                if (typeof typeName === 'string' && !isInterfaceHidden(typeName) && reference.has(typeName)) {
-                    const subtypeRef = reference.get(typeName)!;
-                    if (subtypeRef.kind === 'interface') {
+                if (typeof typeName === 'string' && !isInterfaceHidden(typeName)) {
+                    const subtypeRef = reference?.get(typeName);
+                    if (subtypeRef?.kind === 'interface') {
                         const typeMember = subtypeRef.members.find((member) => member.name === 'type');
                         if (typeMember) {
-                            return extractSearchData(
-                                reference,
-                                subtypeRef,
-                                `${idPrefix.replace(/\.$/, '')}[type=${typeMember.type}].`
-                            );
+                            const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type}]`;
+                            const navPath = basePath.concat({
+                                name: cleanupName(getMemberType(typeMember)),
+                                type: typeName,
+                            });
+                            return [
+                                {
+                                    label,
+                                    searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
+                                    navPath,
+                                },
+                                ...extractSearchData(reference, subtypeRef, navPath, `${label}.`),
+                            ];
                         }
                     }
                 }
@@ -283,7 +367,7 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
             const type = extractTypeValue(pageInterface);
             return {
                 params: { memberName, type },
-                props: { pageInterface, pageTitle: { memberName, type } },
+                props: { pageInterface, pageTitle: { name: memberName, type } },
             };
         };
     };
@@ -306,6 +390,6 @@ export function getThemesApiStaticPaths(reference: ApiReferenceType) {
 
     return interfaceRef.members.map((member) => ({
         params: { memberName: member.name.replaceAll("'", '') },
-        props: { pageInterface: member.type, pageTitle: { memberName: member.name.replaceAll("'", '') } },
+        props: { pageInterface: member.type, pageTitle: { name: member.name.replaceAll("'", '') } },
     }));
 }

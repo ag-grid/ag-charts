@@ -3,8 +3,6 @@ import { navigate, scrollIntoViewById } from '@utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
 
-import type { TypeNode } from '../api-reference-types';
-import { normalizeType } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
@@ -43,12 +41,12 @@ export function PropertyNamePrefix({
     return <>{parentPrefix && <Component className={styles.parentProperties}>{`${parentPrefix}.`}</Component>}</>;
 }
 
-export function PropertyType({ type, defaultValue }: { type: TypeNode; defaultValue?: string }) {
+export function PropertyType({ type, defaultValue }: { type: string; defaultValue?: string }) {
     return (
         <div className={styles.metaList}>
             <div className={styles.metaItem}>
                 <span className={styles.metaLabel}>Type</span>
-                <PropertyName className={styles.metaValue}>{normalizeType(type)}</PropertyName>
+                <PropertyName className={styles.metaValue}>{type}</PropertyName>
             </div>
             {defaultValue && (
                 <div className={styles.metaItem}>
