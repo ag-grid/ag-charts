@@ -1,9 +1,6 @@
-import type {
-    AgBaseSeriesOptions,
-    AgBaseSeriesThemeableOptions,
-    AgCartesianSeriesTooltipRendererParams,
-    AgSeriesTooltip,
-} from '../../agChartOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
 export interface AgBulletSeriesTooltipRendererParams<TDatum = any>
     extends AgCartesianSeriesTooltipRendererParams<TDatum> {}
