@@ -27,6 +27,8 @@ export type ErrorBarDataOptions = Pick<
     'xLowerKey' | 'xLowerName' | 'xUpperKey' | 'xUpperName' | 'yLowerKey' | 'yLowerName' | 'yUpperKey' | 'yUpperName'
 >;
 
+type Formatters = { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & ErrorBarDataOptions;
+
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
 type CapLengthOptions = Pick<CapOptions, 'length' | 'lengthRatio'>;
@@ -95,9 +97,7 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getFormatterParams(
-        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & ErrorBarDataOptions
-    ): AgErrorBarFormatterParams | undefined {
+    private getFormatterParams(formatters: Formatters): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
         if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
             return undefined;
@@ -120,6 +120,27 @@ export class ErrorBarNode extends _Scene.Group {
         };
     }
 
+    private formatStyles(style: AgErrorBarThemeableOptions, formatters: Formatters) {
+        let { cap: capsStyle, ...whiskerStyle } = style;
+
+        const params = this.getFormatterParams(formatters);
+        if (params !== undefined) {
+            if (formatters.formatter !== undefined) {
+                const result = formatters.formatter(params);
+                whiskerStyle = mergeDefaults(result, whiskerStyle);
+                capsStyle = mergeDefaults(result, capsStyle);
+                capsStyle = mergeDefaults(result?.cap, capsStyle);
+            }
+
+            if (formatters.cap.formatter !== undefined) {
+                const result = formatters.cap.formatter(params);
+                capsStyle = mergeDefaults(result, capsStyle);
+            }
+        }
+
+        return { whiskerStyle, capsStyle };
+    }
+
     private applyStyling(target: ErrorBarStylingOptions, source?: ErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
@@ -130,45 +151,18 @@ export class ErrorBarNode extends _Scene.Group {
         );
     }
 
-    updateStyle(
-        style: AgErrorBarThemeableOptions,
-        formatters: { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } }
-    ) {
-        const { cap, ...whiskerStyleOptions } = style;
-        const { length, lengthRatio, ...capsStyleOptions } = cap ?? {};
-        let whiskerStyle = whiskerStyleOptions;
-        let capsStyle = capsStyleOptions;
-
-        const params = this.getFormatterParams(formatters);
-        if (params !== undefined) {
-            if (formatters.formatter !== undefined) {
-                const result = formatters.formatter(params);
-                whiskerStyle = mergeDefaults(result, whiskerStyle);
-                capsStyle = mergeDefaults(result, capsStyle);
-            }
-
-            if (formatters.cap.formatter !== undefined) {
-                const result = formatters.cap.formatter(params);
-                capsStyle = mergeDefaults(result, capsStyle);
-            }
-        }
-
-        const { whiskerPath, capsPath } = this;
-        this.applyStyling(whiskerPath, whiskerStyle);
-        this.applyStyling(capsPath, capsStyle);
-        whiskerPath.markDirty(whiskerPath, _Scene.RedrawType.MINOR);
-        capsPath.markDirty(capsPath, _Scene.RedrawType.MINOR);
-    }
-
-    updateTranslation(cap: CapLengthOptions) {
+    update(style: AgErrorBarThemeableOptions, formatters: Formatters) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
             return;
         }
+        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters);
+
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
+        this.applyStyling(whisker, whiskerStyle);
         whisker.path.clear();
         if (yBar !== undefined) {
             whisker.path.moveTo(yBar.lowerPoint.x, yBar.lowerPoint.y);
@@ -183,9 +177,10 @@ export class ErrorBarNode extends _Scene.Group {
 
         // Errorbar caps stretch out pendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
-        this.capLength = this.calculateCapLength(cap, capDefaults);
+        this.capLength = this.calculateCapLength(capsStyle ?? {}, capDefaults);
         const capOffset = this.capLength / 2;
         const caps = this.capsPath;
+        this.applyStyling(caps, capsStyle);
         caps.path.clear();
         if (yBar !== undefined) {
             caps.path.moveTo(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y);
