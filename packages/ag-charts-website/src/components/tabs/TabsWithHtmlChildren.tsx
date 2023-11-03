@@ -6,10 +6,39 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { TabNavItem } from './TabNavItem';
 import styles from './Tabs.module.scss';
-import { TAB_ID_PROP, TAB_LABEL_PROP } from './constants';
+import { TAB_ID_PROP, TAB_ITEM_ID_PREFIX, TAB_LABEL_PROP } from './constants';
 
 interface Props {
     children: ReactElement;
+}
+
+interface TabData {
+    id?: string;
+    label: string;
+}
+
+const getTabId = (id: string) => `${TAB_ITEM_ID_PREFIX}${id}`;
+
+function useSelectTabFromLocationHash({
+    tabsData,
+    setSelected,
+}: {
+    tabsData: TabData[];
+    setSelected: (tab: string) => void;
+}) {
+    const location = useLocation();
+
+    useEffect(() => {
+        const hash = location?.hash;
+        if (!hash) {
+            return;
+        }
+        const tab = tabsData.find((t) => getTabId(t.id!) === hash.slice(1));
+
+        if (tab) {
+            setSelected(tab.label);
+        }
+    }, [location, tabsData]);
 }
 
 /**
@@ -23,7 +52,9 @@ export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ children }) => 
     const location = useLocation();
     const [selected, setSelected] = useState<string>();
     const [tabContent, setTabContent] = useState<string>('');
-    const [tabsData, setTabsData] = useState<{ id?: string; label: string }[]>([]);
+    const [tabsData, setTabsData] = useState<TabData[]>([]);
+
+    useSelectTabFromLocationHash({ tabsData, setSelected });
 
     useEffect(() => {
         const childrenTabLabels = $(`[${TAB_LABEL_PROP}]`)
@@ -39,8 +70,9 @@ export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ children }) => 
 
         if (selected === undefined) {
             const initialTab =
-                childrenTabLabels.find((child) => child.id && location?.hash.startsWith(`#reference-${child.id}`)) ??
-                childrenTabLabels[0];
+                childrenTabLabels.find(
+                    (child) => child.id && location?.hash.startsWith(`#${TAB_ITEM_ID_PREFIX}${child.id}`)
+                ) ?? childrenTabLabels[0];
             setSelected(initialTab.label);
         }
     }, []);
@@ -54,10 +86,11 @@ export const TabsWithHtmlChildren: FunctionComponent<Props> = ({ children }) => 
         <div className={classnames('tabs-outer', styles.tabsOuter)}>
             <header className={'tabs-header'}>
                 <ul className="tabs-nav-list" role="tablist">
-                    {tabsData.map(({ label }) => {
+                    {tabsData.map(({ id, label }) => {
                         return (
                             <TabNavItem
                                 key={label}
+                                tabId={getTabId(id!)}
                                 label={label}
                                 selected={label === selected}
                                 onSelect={setSelected}

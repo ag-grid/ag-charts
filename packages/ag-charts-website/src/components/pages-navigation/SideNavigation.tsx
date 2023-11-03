@@ -1,4 +1,5 @@
 import { addNonBreakingSpaceBetweenLastWords } from '@utils/addNonBreakingSpaceBetweenLastWords';
+import { navigate } from '@utils/navigation';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import type { MarkdownHeading } from 'astro';
 import classnames from 'classnames';
@@ -23,7 +24,9 @@ export const SideNavigation: FunctionComponent<Props> = ({ title, headings }) =>
                                 className={classnames(styles.topLink, 'nav-link')}
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    smoothScrollIntoView({ id: 'top' });
+                                    const id = 'top';
+                                    smoothScrollIntoView({ id });
+                                    navigate(`#${id}`);
                                 }}
                             >
                                 {title}
@@ -41,6 +44,7 @@ export const SideNavigation: FunctionComponent<Props> = ({ title, headings }) =>
                                         onClick={(e) => {
                                             e.preventDefault();
                                             smoothScrollIntoView({ id });
+                                            navigate(`#${id}`);
                                         }}
                                     >
                                         {addNonBreakingSpaceBetweenLastWords(heading.text)}
