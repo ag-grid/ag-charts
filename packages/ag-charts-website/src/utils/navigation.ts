@@ -2,7 +2,7 @@ import type { Location, To, Update } from 'history';
 import { createBrowserHistory } from 'history';
 import { useEffect, useState } from 'react';
 
-const browserHistory = import.meta.env.SSR ? null : createBrowserHistory();
+export const browserHistory = import.meta.env.SSR ? null : createBrowserHistory();
 
 export function useHistory(callback: (data: Update) => void) {
     useEffect(() => browserHistory?.listen(callback), []);

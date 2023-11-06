@@ -5,15 +5,17 @@ interface Params {
     threshold?: number;
     onScrollTrigger: (params: {
         topVisibleId: string;
-        visibleHeadings: [string, HeadingData][];
+        visibleHeadings: HeadingDataEntry[];
         headingsData: Record<string, HeadingData>;
     }) => void;
 }
 
-interface HeadingData {
+export interface HeadingData {
     isVisible: boolean;
     index: number;
 }
+
+export type HeadingDataEntry = [string, HeadingData];
 
 export function initScrolledHeadingTriggers({ headings, threshold = 0.2, onScrollTrigger }: Params) {
     const headingsData: Record<string, HeadingData> = {};

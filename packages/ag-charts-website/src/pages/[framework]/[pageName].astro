@@ -56,7 +56,8 @@ const menuEntry = await getEntry('menu', 'data');
 </Layout>
 
 <script>
-    import { initScrolledHeadingTriggers } from '@utils/initScrolledHeadingTriggers';
+    import { initScrolledHeadingTriggers, HeadingDataEntry } from '@utils/initScrolledHeadingTriggers';
+    import { browserHistory } from '@utils/navigation';
 
     const sideMenuSelector = '#side-menu';
     const headingsData = JSON.parse(document.getElementById('doc-page-wrapper')?.dataset.headings!);
@@ -66,12 +67,41 @@ const menuEntry = await getEntry('menu', 'data');
         text: '',
     };
     const headings = [topHeading].concat(headingsData);
+    let currentVisibleHeadings: HeadingDataEntry[] = [];
+
+    function clearAllActiveClasses() {
+        document.querySelectorAll(`${sideMenuSelector} a`).forEach((elem) => elem.classList.remove('active'));
+    }
+
+    function setMenuIdSelectorActive(id: string) {
+        const sideMenuLinkSelector = `${sideMenuSelector} a[href="#${id}"]`;
+
+        // NOTE: There is a "Prop `className` did not match" console error
+        // because of this line, but it is only on the dev server, not on build
+        document.querySelector(sideMenuLinkSelector)?.classList.add('active');
+    }
+
+    browserHistory?.listen(({ location }) => {
+        const currentHash = location.hash;
+        const hashIndex = currentVisibleHeadings?.findIndex(([id]) => {
+            const hashPrefix = `#${id}`;
+            return currentHash.startsWith(hashPrefix);
+        });
+
+        if (hashIndex > 0) {
+            clearAllActiveClasses();
+
+            const [visibleTabId] = currentVisibleHeadings[hashIndex];
+            setMenuIdSelectorActive(visibleTabId);
+        }
+    });
 
     initScrolledHeadingTriggers({
         headings,
         onScrollTrigger({ topVisibleId, visibleHeadings }) {
-            // Clear all active classes
-            document.querySelectorAll(`${sideMenuSelector} a`).forEach((elem) => elem.classList.remove('active'));
+            currentVisibleHeadings = visibleHeadings;
+
+            clearAllActiveClasses();
 
             const currentHash = window.location.hash;
             const hashIndex = visibleHeadings.findIndex(([id]) => {
@@ -95,11 +125,8 @@ const menuEntry = await getEntry('menu', 'data');
             } else {
                 sideMenuLinkId = topVisibleId;
             }
-            const sideMenuLinkSelector = `${sideMenuSelector} a[href="#${sideMenuLinkId}"]`;
 
-            // NOTE: There is a "Prop `className` did not match" console error
-            // because of this line, but it is only on the dev server, not on build
-            document.querySelector(sideMenuLinkSelector)?.classList.add('active');
+            setMenuIdSelectorActive(sideMenuLinkId);
         },
     });
 </script>
