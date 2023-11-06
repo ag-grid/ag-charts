@@ -80,6 +80,16 @@ export function SearchBox({
                     </div>
                 </div>
             )}
+
+            {data.length === 0 && (
+                <div className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
+                    <div className={styles.searchOptions}>
+                        <div className={styles.searchOption}>
+                            We couldn't find any matches for "<b>{searchQuery}</b>"
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
