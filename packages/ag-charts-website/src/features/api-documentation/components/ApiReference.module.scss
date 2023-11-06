@@ -221,3 +221,15 @@
         font-size: calc(var(--font-size-small) * 0.92);
     }
 }
+
+.level-1 .leftColumn {
+    padding-left: $size-1;
+}
+
+.level-2 .leftColumn {
+    padding-left: $size-2;
+}
+
+.level-3 .leftColumn {
+    padding-left: $size-3;
+}

@@ -157,7 +157,10 @@ function ApiReferenceRow({
     const memberType = normalizeType(member.type);
 
     return (
-        <tr id={anchorId} className={prefixPath.length > 0 ? styles.isChildProp : ''}>
+        <tr
+            id={anchorId}
+            className={prefixPath.length > 0 ? `${styles.isChildProp} ${styles['level-' + prefixPath.length]}` : ''}
+        >
             <td className={styles.leftColumn}>
                 <PropertyTitle
                     name={memberName}
