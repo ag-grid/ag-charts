@@ -30,10 +30,16 @@ interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
 
 class BulletColorRange {
     @Validate(COLOR_STRING)
-    color: string = 'white';
+    color: string = 'grey';
 
     @Validate(OPT_NUMBER())
     stop?: number = undefined;
+}
+
+interface NormalizedColorRange {
+    color: string;
+    start: number;
+    stop: number;
 }
 
 class BulletNode extends _Scene.Group {
@@ -73,12 +79,27 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
     @Validate(DIRECTION)
     direction: Direction = 'vertical';
 
+    @Validate(OPT_ARRAY())
+    colorRanges?: BulletColorRange[] = undefined;
+
     readonly xValue: string = 'xPlaceholderValue';
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgBulletSeriesTooltipRendererParams>();
 
+    private normalizedColorRanges: NormalizedColorRange[] = [];
+    private colorRangesGroup: _Scene.Group;
+    private colorRangesSelection: _Scene.Selection<_Scene.Rect, NormalizedColorRange>;
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({ moduleCtx });
+        this.colorRangesGroup = new _Scene.Group({ name: `${this.id}-colorRanges` });
+        this.colorRangesSelection = _Scene.Selection.select(this.colorRangesGroup, _Scene.Rect);
+        this.contentGroup.append(this.colorRangesGroup);
+    }
+
+    override destroy() {
+        this.contentGroup.removeChild(this.colorRangesGroup);
+        super.destroy();
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
@@ -119,6 +140,8 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
         if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
+
+        this.colorRangesGroup.visible = this.colorRanges !== undefined;
 
         const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
         const targetIndex = dataModel.resolveProcessedDataIndexById(this, 'target').index;
@@ -174,6 +197,19 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
             };
             context.nodeData.push(nodeData);
         }
+
+        if (this.colorRanges) {
+            const maxValue = Math.max(...(this.getSeriesDomain(this.getBarDirection()) as number[]));
+            const sortedRanges = [...this.colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
+            let start = 0;
+            this.normalizedColorRanges = sortedRanges.map((item) => {
+                const stop = item.stop === undefined ? maxValue : item.stop;
+                const result = { color: item.color, start, stop };
+                start = stop;
+                return result;
+            });
+        }
+
         return [context];
     }
 
@@ -209,6 +245,41 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         for (const { node, datum } of opts.datumSelection) {
             node.update(datum);
         }
+    }
+
+    private async updateColorRanges() {
+        const valAxis = this.getValueAxis();
+        const catAxis = this.getCategoryAxis();
+        if (!valAxis || !catAxis) return;
+        const [min, max] = [0, Math.max(...catAxis.scale.range)];
+        const computeRect: (rect: _Scene.Rect, colorRange: NormalizedColorRange) => void =
+            this.getBarDirection() === _ModuleSupport.ChartAxisDirection.Y
+                ? (rect, colorRange) => {
+                      rect.x = min;
+                      rect.y = valAxis.scale.convert(colorRange.stop);
+                      rect.height = valAxis.scale.convert(colorRange.start) - rect.y;
+                      rect.width = max;
+                  }
+                : (rect, colorRange) => {
+                      rect.x = valAxis.scale.convert(colorRange.start);
+                      rect.y = min;
+                      rect.height = max;
+                      rect.width = valAxis.scale.convert(colorRange.stop) - rect.x;
+                  };
+        this.colorRangesSelection.update(this.normalizedColorRanges);
+        for (const { node, datum } of this.colorRangesSelection) {
+            computeRect(node, datum);
+            node.fill = datum.color;
+        }
+    }
+
+    protected override async updateNodes(
+        highlightedItems: BulletNodeDatum[] | undefined,
+        seriesHighlighted: boolean | undefined,
+        anySeriesItemEnabled: boolean
+    ) {
+        super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled);
+        await this.updateColorRanges();
     }
 
     protected override async updateLabelSelection(opts: {
