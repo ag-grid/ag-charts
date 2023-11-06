@@ -17,6 +17,7 @@
 
     @media screen and (min-width: $breakpoint-options-medium) {
         overflow-y: auto;
+        z-index: unset;
     }
 
     > header {
