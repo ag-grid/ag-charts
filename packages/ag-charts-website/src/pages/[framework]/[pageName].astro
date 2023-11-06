@@ -33,7 +33,7 @@ const menuEntry = await getEntry('menu', 'data');
 <Layout title={`${getFrameworkDisplayText(framework)} Charts: AG Charts`} showTopBar={true}>
     <PagesNavigation client:load slot="aside" menuData={menuEntry.data} framework={framework} pageName={pageName} />
 
-    <div id="doc-page-wrapper" class="docPageWrapper" data-headings={JSON.stringify(extendedHeadings)}>
+    <div id="doc-page-wrapper" class="docPageWrapper">
         <div
             id="doc-content"
             class:list={[
@@ -51,85 +51,9 @@ const menuEntry = await getEntry('menu', 'data');
             </div>
         </div>
 
-        {sideMenu && <SideNavigation client:load title={title} headings={extendedHeadings} />}
+        {sideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
     </div>
 </Layout>
-
-<script>
-    import { initScrolledHeadingTriggers, HeadingDataEntry } from '@utils/initScrolledHeadingTriggers';
-    import { browserHistory } from '@utils/navigation';
-
-    const sideMenuSelector = '#side-menu';
-    const headingsData = JSON.parse(document.getElementById('doc-page-wrapper')?.dataset.headings!);
-    const topHeading = {
-        slug: 'top',
-        depth: 0,
-        text: '',
-    };
-    const headings = [topHeading].concat(headingsData);
-    let currentVisibleHeadings: HeadingDataEntry[] = [];
-
-    function clearAllActiveClasses() {
-        document.querySelectorAll(`${sideMenuSelector} a`).forEach((elem) => elem.classList.remove('active'));
-    }
-
-    function setMenuIdSelectorActive(id: string) {
-        const sideMenuLinkSelector = `${sideMenuSelector} a[href="#${id}"]`;
-
-        // NOTE: There is a "Prop `className` did not match" console error
-        // because of this line, but it is only on the dev server, not on build
-        document.querySelector(sideMenuLinkSelector)?.classList.add('active');
-    }
-
-    browserHistory?.listen(({ location }) => {
-        const currentHash = location.hash;
-        const hashIndex = currentVisibleHeadings?.findIndex(([id]) => {
-            const hashPrefix = `#${id}`;
-            return currentHash.startsWith(hashPrefix);
-        });
-
-        if (hashIndex > 0) {
-            clearAllActiveClasses();
-
-            const [visibleTabId] = currentVisibleHeadings[hashIndex];
-            setMenuIdSelectorActive(visibleTabId);
-        }
-    });
-
-    initScrolledHeadingTriggers({
-        headings,
-        onScrollTrigger({ topVisibleId, visibleHeadings }) {
-            currentVisibleHeadings = visibleHeadings;
-
-            clearAllActiveClasses();
-
-            const currentHash = window.location.hash;
-            const hashIndex = visibleHeadings.findIndex(([id]) => {
-                const hashPrefix = `#${id}`;
-                return currentHash.startsWith(hashPrefix);
-            });
-            const visibleTabIndex = visibleHeadings.findIndex(([id]) => {
-                const tabButton = document.getElementById(id)?.querySelector('button');
-
-                return tabButton?.classList.contains('active');
-            });
-
-            let sideMenuLinkId;
-            // Prioritise hash selection over tab selection for initial load, where the tab needs time to catch up
-            if (hashIndex > 0) {
-                const [visibleTabId] = visibleHeadings[hashIndex];
-                sideMenuLinkId = visibleTabId;
-            } else if (visibleTabIndex > 0) {
-                const [visibleTabId] = visibleHeadings[visibleTabIndex];
-                sideMenuLinkId = visibleTabId;
-            } else {
-                sideMenuLinkId = topVisibleId;
-            }
-
-            setMenuIdSelectorActive(sideMenuLinkId);
-        },
-    });
-</script>
 
 <style lang="scss" is:global>
     @use '../../design-system' as *;

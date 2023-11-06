@@ -46,13 +46,19 @@ export function initScrolledHeadingTriggers({ headings, threshold = 0.2, onScrol
         }
     };
     const setupObservers = () => {
-        const headingEls: (null | HTMLElement)[] = headings.map(({ slug }) => {
-            return document.getElementById(slug);
-        });
-
-        headingEls.forEach((headingEl) => {
+        headings.forEach(({ slug }) => {
+            const headingEl = document.getElementById(slug);
             if (headingEl) {
                 observer.observe(headingEl);
+            }
+        });
+    };
+
+    const cleanupObservers = () => {
+        headings.forEach(({ slug }) => {
+            const headingEl = document.getElementById(slug);
+            if (headingEl) {
+                observer.unobserve(headingEl);
             }
         });
     };
@@ -70,4 +76,6 @@ export function initScrolledHeadingTriggers({ headings, threshold = 0.2, onScrol
     );
 
     setupObservers();
+
+    return cleanupObservers;
 }
