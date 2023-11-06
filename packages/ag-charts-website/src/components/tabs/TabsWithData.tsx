@@ -1,4 +1,4 @@
-import { useLocation } from '@utils/navigation';
+import { navigate, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
 import { useEffect, useState } from 'react';
@@ -53,10 +53,11 @@ export const TabsWithData: FunctionComponent<Props> = ({ tabsData, tabItemIdPref
             <header className={'tabs-header'}>
                 <ul className="tabs-nav-list" role="tablist">
                     {tabsData.map(({ id, label }) => {
+                        const tabId = getTabId({ id: id!, prefix: tabItemIdPrefix });
                         return (
                             <TabNavItem
                                 key={label}
-                                tabId={getTabId({ id: id!, prefix: tabItemIdPrefix })}
+                                tabId={tabId}
                                 label={label}
                                 selected={label === selected?.label}
                                 onSelect={(selectedLabel) => {
@@ -64,6 +65,7 @@ export const TabsWithData: FunctionComponent<Props> = ({ tabsData, tabItemIdPref
 
                                     if (tab) {
                                         setSelected(tab);
+                                        navigate(`#${tabId}`);
                                     }
                                 }}
                             />
