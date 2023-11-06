@@ -174,3 +174,18 @@
         transition: fill $default-transition-timing;
     }
 }
+
+.highlightAnimate {
+    animation: highlight-animation 3000ms ease-out;
+}
+
+@keyframes highlight-animation {
+    0%,
+    100% {
+        background-color: inherit;
+    }
+    10%,
+    50% {
+        background-color: var(--background-400);
+    }
+}

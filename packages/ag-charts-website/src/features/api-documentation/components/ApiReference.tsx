@@ -108,7 +108,7 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
     useEffect(() => {
         const hash = location?.hash.substring(1);
         if (hash === anchorId) {
-            scrollIntoViewById(anchorId);
+            scrollToAndHighlightById(anchorId);
         } else if (hasMembers && hash?.startsWith(`${anchorId}-`)) {
             setExpanded(true);
         }
@@ -298,4 +298,13 @@ function processMembers(members: MemberNode[], config: ApiReferenceConfig) {
         return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }
     return members;
+}
+
+function scrollToAndHighlightById(id: string) {
+    scrollIntoViewById(id);
+    const element = document.getElementById(id);
+    element?.classList.add(styles.highlightAnimate);
+    element?.addEventListener('animationend', () => {
+        element.classList.remove(styles.highlightAnimate);
+    });
 }
