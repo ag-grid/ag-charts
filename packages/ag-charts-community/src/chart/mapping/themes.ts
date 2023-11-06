@@ -1,5 +1,6 @@
 import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../../options/agChartOptions';
 import { jsonMerge } from '../../util/json';
+import { Logger } from '../../util/logger';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { MaterialDark } from '../themes/materialDark';
@@ -46,9 +47,13 @@ export function getChartTheme(value?: string | ChartTheme | AgChartTheme): Chart
         return value;
     }
 
-    const stockTheme = themes[value as AgChartThemeName];
-    if (stockTheme) {
-        return stockTheme();
+    if (typeof value === 'string') {
+        const stockTheme = themes[value as AgChartThemeName];
+        if (stockTheme) {
+            return stockTheme();
+        }
+        Logger.warnOnce(`the theme [${value}] is invalid, using [ag-default] instead.`);
+        return lightTheme();
     }
 
     value = value as AgChartTheme;
