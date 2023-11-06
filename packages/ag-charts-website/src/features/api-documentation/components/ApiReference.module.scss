@@ -32,38 +32,12 @@
 }
 
 .apiReference {
+    display: table; // remove after table > div refactor
     position: relative;
     table-layout: fixed;
 
-    tr {
-        scroll-margin-top: var(--anchor-offset, 0);
-
-        &:hover a:global(.docs-header-icon) {
-            opacity: 0.5;
-        }
-    }
-
     @container (max-width: #{$breakpoint-table-small}) {
         display: block;
-
-        thead,
-        tbody,
-        tr,
-        td {
-            display: block;
-            width: 100%;
-        }
-
-        tr {
-            padding-top: $size-1;
-            padding-bottom: $size-1;
-        }
-
-        td {
-            padding-right: 0;
-            padding-left: 0;
-            border: none;
-        }
     }
 
     @container (min-width: #{$breakpoint-table-small}) {
@@ -80,16 +54,52 @@
     }
 }
 
+.propertyRow {
+    display: flex;
+    flex-wrap: wrap;
+    scroll-margin-top: var(--anchor-offset, 0);
+
+    &:not(:first-child) {
+        border-top: 1px solid var(--border-color);
+    }
+
+    &:hover a:global(.docs-header-icon) {
+        opacity: 0.5;
+    }
+
+    @container (max-width: #{$breakpoint-table-small}) {
+        display: block;
+        width: 100%;
+        padding-top: $size-1;
+        padding-bottom: $size-1;
+    }
+
+    #{$darkmode-selector} & {
+        border-top-color: var(--neutral-500);
+    }
+}
+
 .leftColumn {
+    flex-shrink: 0;
     width: 40%;
-    padding-left: 0;
+    padding: $size-1 $size-2 $size-1 0;
+
+    @container (max-width: #{$breakpoint-table-small}) {
+        width: 100%;
+        padding-right: 0;
+    }
 }
 
 .rightColumn {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    padding-right: 0;
+    width: 60%;
+    padding: $size-1 0 $size-1 $size-2;
+
+    @container (max-width: #{$breakpoint-table-small}) {
+        width: 100%;
+        padding-left: 0;
+    }
 }
 
 .name {

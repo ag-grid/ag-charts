@@ -85,13 +85,13 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
                         Properties available on the <code>{id}</code> interface.
                     </p>
                 ))}
-            <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                <tbody>
+            <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
+                <div>
                     {processMembers(interfaceRef.members, config).map((member) => (
                         <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
                     ))}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     );
 }
@@ -157,11 +157,14 @@ function ApiReferenceRow({
     const memberType = normalizeType(member.type);
 
     return (
-        <tr
+        <div
             id={anchorId}
-            className={prefixPath.length > 0 ? `${styles.isChildProp} ${styles['level-' + prefixPath.length]}` : ''}
+            className={classnames(
+                styles.propertyRow,
+                prefixPath.length > 0 ? `${styles.isChildProp} ${styles['level-' + prefixPath.length]}` : ''
+            )}
         >
-            <td className={styles.leftColumn}>
+            <div className={styles.leftColumn}>
                 <PropertyTitle
                     name={memberName}
                     anchorId={anchorId}
@@ -169,8 +172,8 @@ function ApiReferenceRow({
                     required={!config.hideRequired && !member.optional}
                 />
                 <PropertyType type={memberType} defaultValue={member.defaultValue} />
-            </td>
-            <td className={styles.rightColumn}>
+            </div>
+            <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
                     <Markdown>{member.docs?.join('\n')}</Markdown>
                 </div>
@@ -196,8 +199,8 @@ function ApiReferenceRow({
                 ) : (
                     <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
                 )}
-            </td>
-        </tr>
+            </div>
+        </div>
     );
 }
 
