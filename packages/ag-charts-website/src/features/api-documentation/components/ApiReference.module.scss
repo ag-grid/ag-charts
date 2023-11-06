@@ -180,6 +180,12 @@
 }
 
 @keyframes highlight-animation {
-    0%,100% { background-color: inherit }
-    10%, 50% { background-color: var(--light-water-blue) }
+    0%,
+    100% {
+        background-color: inherit;
+    }
+    10%,
+    50% {
+        background-color: var(--light-water-blue);
+    }
 }
