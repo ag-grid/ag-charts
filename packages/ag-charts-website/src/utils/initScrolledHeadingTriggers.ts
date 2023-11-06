@@ -3,7 +3,11 @@ import type { Heading } from 'src/types/markdoc';
 interface Params {
     headings: Heading[];
     threshold?: number;
-    onScrollTrigger: (params: { topVisibleId: string; headingsData: Record<string, HeadingData> }) => void;
+    onScrollTrigger: (params: {
+        topVisibleId: string;
+        visibleHeadings: [string, HeadingData][];
+        headingsData: Record<string, HeadingData>;
+    }) => void;
 }
 
 interface HeadingData {
@@ -22,17 +26,19 @@ export function initScrolledHeadingTriggers({ headings, threshold = 0.2, onScrol
         }
         headingsData[headingId].isVisible = entry.isIntersecting;
 
-        const [topVisibleEntry] = Object.entries(headingsData)
+        const visibleHeadings = Object.entries(headingsData)
             .filter(([_key, { isVisible }]) => isVisible)
             // Sort top of the list first
             .sort(([_key1, { index: index1 }], [_key2, { index: index2 }]) => {
                 return index1 - index2;
             });
+        const [topVisibleEntry] = visibleHeadings;
 
         if (topVisibleEntry) {
             const topVisibleId = topVisibleEntry[0];
             onScrollTrigger({
                 topVisibleId,
+                visibleHeadings,
                 headingsData,
             });
         }

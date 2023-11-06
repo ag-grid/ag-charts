@@ -69,11 +69,33 @@ const menuEntry = await getEntry('menu', 'data');
 
     initScrolledHeadingTriggers({
         headings,
-        onScrollTrigger({ topVisibleId }) {
+        onScrollTrigger({ topVisibleId, visibleHeadings }) {
             // Clear all active classes
             document.querySelectorAll(`${sideMenuSelector} a`).forEach((elem) => elem.classList.remove('active'));
 
-            const sideMenuLinkSelector = `${sideMenuSelector} a[href="#${topVisibleId}"]`;
+            const currentHash = window.location.hash;
+            const hashIndex = visibleHeadings.findIndex(([id]) => {
+                const hashPrefix = `#${id}`;
+                return currentHash.startsWith(hashPrefix);
+            });
+            const visibleTabIndex = visibleHeadings.findIndex(([id]) => {
+                const tabButton = document.getElementById(id)?.querySelector('button');
+
+                return tabButton?.classList.contains('active');
+            });
+
+            let sideMenuLinkId;
+            // Prioritise hash selection over tab selection for initial load, where the tab needs time to catch up
+            if (hashIndex > 0) {
+                const [visibleTabId] = visibleHeadings[hashIndex];
+                sideMenuLinkId = visibleTabId;
+            } else if (visibleTabIndex > 0) {
+                const [visibleTabId] = visibleHeadings[visibleTabIndex];
+                sideMenuLinkId = visibleTabId;
+            } else {
+                sideMenuLinkId = topVisibleId;
+            }
+            const sideMenuLinkSelector = `${sideMenuSelector} a[href="#${sideMenuLinkId}"]`;
 
             // NOTE: There is a "Prop `className` did not match" console error
             // because of this line, but it is only on the dev server, not on build
