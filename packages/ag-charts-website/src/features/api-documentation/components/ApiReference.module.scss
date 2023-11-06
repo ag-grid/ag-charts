@@ -233,3 +233,17 @@
 .level-3 .leftColumn {
     padding-left: $size-3;
 }
+
+@container (max-width: #{$breakpoint-table-small}) {
+    .level-1 .rightColumn {
+        padding-left: $size-1;
+    }
+
+    .level-2 .rightColumn {
+        padding-left: $size-2;
+    }
+
+    .level-3 .rightColumn {
+        padding-left: $size-3;
+    }
+}

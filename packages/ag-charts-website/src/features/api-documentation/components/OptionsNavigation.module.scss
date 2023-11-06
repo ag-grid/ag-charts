@@ -13,7 +13,11 @@
     flex-direction: column;
     width: 100%;
     height: calc(100vh - var(--header-nav-height));
-    overflow-y: auto;
+    z-index: 3;
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        overflow-y: auto;
+    }
 
     > header {
         position: sticky;
@@ -21,9 +25,13 @@
         left: 0;
         z-index: 3;
         width: 100%;
-        padding: $size-2;
+        padding: $size-2 var(--horizontal-margin);
         background-color: var(--default-background-color);
         border-bottom: 1px solid var(--neutral-200);
+
+        @media screen and (min-width: $breakpoint-options-medium) {
+            padding: $size-2;
+        }
 
         h3 {
             margin-bottom: 0;
@@ -62,7 +70,13 @@
 
 .navContainer {
     --nav-options-indent: 24px;
+
+    display: none;
     user-select: none;
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        display: block;
+    }
 }
 
 .navGroup {
@@ -201,6 +215,7 @@
     border: 2px solid var(--input-border-color);
     border-top: none;
     overflow: auto;
+    z-index: 3;
 
     #{$darkmode-selector} & {
         inset: 100% 0 auto;
