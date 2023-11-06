@@ -172,22 +172,24 @@ function ApiReferenceRow({
                     <Markdown>{member.docs?.join('\n')}</Markdown>
                 </div>
                 {nestedPath ? (
-                    <a
-                        href={nestedPath}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            const selectionState = {
-                                pathname: nestedPath,
-                                hash: `reference-${memberType}`,
-                                pageInterface: memberType,
-                                pageTitle: { name: memberName },
-                            };
-                            selection?.setSelection(selectionState);
-                            navigate(selectionState, { state: selectionState });
-                        }}
-                    >
-                        See property details
-                    </a>
+                    <div className={styles.actions}>
+                        <a
+                            href={nestedPath}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                const selectionState = {
+                                    pathname: nestedPath,
+                                    hash: `reference-${memberType}`,
+                                    pageInterface: memberType,
+                                    pageTitle: { name: memberName },
+                                };
+                                selection?.setSelection(selectionState);
+                                navigate(selectionState, { state: selectionState });
+                            }}
+                        >
+                            See property details <Icon name="arrowRight" />
+                        </a>
+                    </div>
                 ) : (
                     <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
                 )}

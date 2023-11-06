@@ -170,6 +170,13 @@
     pre {
         min-width: 100%;
     }
+
+    svg {
+        --icon-size: 1em;
+
+        margin: -0.1em 0 0;
+        transition: fill $default-transition-timing;
+    }
 }
 
 .seeMore {
@@ -180,13 +187,6 @@
 
     &:hover {
         --text-color: var(--link-hover-color);
-    }
-
-    svg {
-        --icon-size: 1em;
-
-        margin: -0.1em 0 0;
-        transition: fill $default-transition-timing;
     }
 }
 
@@ -208,13 +208,16 @@
 .isChildProp {
     border-top: 1px dashed var(--neutral-200);
 
-    .name,
-    .description,
+    .name {
+        font-size: calc(var(--font-size-medium) * 0.92);
+    }
+
+    .description p,
     .actions button {
-        font-size: calc(1em - 1.5px);
+        font-size: calc(var(--font-size-medium) * 0.9);
     }
 
     .metaValue {
-        font-size: calc(1em - 1px);
+        font-size: calc(var(--font-size-small) * 0.92);
     }
 }
