@@ -85,7 +85,9 @@ export function SearchBox({
                 <div className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
                     <div className={styles.searchOptions}>
                         <div className={styles.searchOption}>
-                            We couldn't find any matches for "<b>{searchQuery}</b>"
+                            <span className="font-size-small">
+                                We couldn't find any matches for "<b>{searchQuery}</b>"
+                            </span>
                         </div>
                     </div>
                 </div>

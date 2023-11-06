@@ -177,6 +177,10 @@
     position: relative;
     display: flex;
     align-items: center;
+
+    input::-webkit-search-cancel-button {
+        display: none;
+    }
 }
 
 .searchIcon {
@@ -189,11 +193,13 @@
 
 .searchDropdown {
     position: absolute;
-    inset: calc(100% - 1px) 0 auto;
+    inset: 100% 0 auto;
     max-height: 168px;
-    border-radius: 4px;
-    border: 1px solid var(--input-border-color);
+    border-bottom-right-radius: var(--border-radius);
+    border-bottom-left-radius: var(--border-radius);
     background-color: var(--default-background-color);
+    border: 2px solid var(--input-border-color);
+    border-top: none;
     overflow: auto;
 }
 
@@ -205,10 +211,14 @@
 }
 
 .searchOption {
-    padding: 2px 4px;
+    padding: $size-1 $size-2;
     cursor: pointer;
 
+    strong {
+        color: var(--dark-blue-600);
+    }
+
     &.selected {
-        background-color: var(--bright-blue-gray);
+        background-color: var(--background-600);
     }
 }
