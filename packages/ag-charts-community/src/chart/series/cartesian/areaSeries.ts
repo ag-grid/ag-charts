@@ -32,7 +32,7 @@ import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -96,6 +96,7 @@ export class AreaSeries extends CartesianSeries<
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
+            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
