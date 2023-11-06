@@ -73,11 +73,10 @@ const defaultTooltipCss = `
     left: 50%;
     transform: translateX(-50%);
 
-    border: 6px solid #989898;
+    border: 5px solid #d9d9d9;
 
     border-left-color: transparent;
     border-right-color: transparent;
-    border-top-color: #989898;
     border-bottom-color: transparent;
 
     width: 0;
@@ -90,15 +89,14 @@ const defaultTooltipCss = `
     content: "";
 
     position: absolute;
-    top: 100%;
+    top: calc(100% - 1px);
     left: 50%;
     transform: translateX(-50%);
 
-    border: 5px solid black;
+    border: 5px solid white;
 
     border-left-color: transparent;
     border-right-color: transparent;
-    border-top-color: rgb(244, 244, 244);
     border-bottom-color: transparent;
 
     width: 0;
