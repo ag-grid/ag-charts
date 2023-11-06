@@ -201,6 +201,11 @@
     border: 2px solid var(--input-border-color);
     border-top: none;
     overflow: auto;
+
+    #{$darkmode-selector} & {
+        inset: 100% 0 auto;
+        border: 1px solid var(--input-border-color);
+    }
 }
 
 .searchOptions {
@@ -216,9 +221,17 @@
 
     strong {
         color: var(--dark-blue-600);
+
+        #{$darkmode-selector} & {
+            color: var(--primary-500);
+        }
     }
 
     &.selected {
         background-color: var(--background-600);
+
+        #{$darkmode-selector} & {
+            background-color: var(--background-400);
+        }
     }
 }
