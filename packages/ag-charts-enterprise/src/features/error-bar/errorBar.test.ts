@@ -5,6 +5,7 @@ import type {
     AgChartInstance,
     AgErrorBarCapFormatter,
     AgErrorBarFormatter,
+    AgErrorBarFormatterParams,
     AgScatterSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import {
@@ -687,6 +688,57 @@ describe('ErrorBars', () => {
             ],
         });
         await compare();
+    });
+
+    it('should set formatter highlighted param as expected', async () => {
+        const whiskerResult: boolean[] = [];
+        const capResult: boolean[] = [];
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        errorBar: {
+                            ...SERIES_CANADA.errorBar,
+                            formatter: (param: AgErrorBarFormatterParams) => {
+                                whiskerResult.push(param.highlighted);
+                                return {};
+                            },
+                            cap: {
+                                formatter: (param: AgErrorBarFormatterParams) => {
+                                    capResult.push(param.highlighted);
+                                    return {};
+                                },
+                            },
+                        },
+                    },
+                ],
+            })
+        );
+
+        // Check formatter initialisation
+        await waitForChartStability(chart);
+        const allfalse = [false, false, false, false, false, false, false, false, false, false, false, false];
+        expect(whiskerResult).toStrictEqual(allfalse);
+        expect(capResult).toStrictEqual(allfalse);
+        whiskerResult.length = 0;
+        capResult.length = 0;
+
+        // Hover over an error bar
+        const { x, y } = getItemCoords(4);
+        await hoverAction(x, y - 20)(chart);
+        await waitForChartStability(chart);
+        expect(whiskerResult).toStrictEqual([true]);
+        expect(capResult).toStrictEqual([true]);
+        whiskerResult.length = 0;
+        capResult.length = 0;
+
+        // Hover over nothing
+        await hoverAction(0, 0)(chart);
+        await waitForChartStability(chart);
+        expect(whiskerResult).toStrictEqual([false]);
+        expect(capResult).toStrictEqual([false]);
     });
 
     it('should use correct cursor', async () => {

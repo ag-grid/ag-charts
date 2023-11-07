@@ -94,7 +94,7 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getFormatterParams(formatters: Formatters): AgErrorBarFormatterParams | undefined {
+    private getFormatterParams(formatters: Formatters, highlighted: boolean): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
         if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
             return undefined;
@@ -114,13 +114,14 @@ export class ErrorBarNode extends _Scene.Group {
             yLowerName,
             yUpperKey,
             yUpperName,
+            highlighted,
         };
     }
 
-    private formatStyles(style: AgErrorBarThemeableOptions, formatters: Formatters) {
+    private formatStyles(style: AgErrorBarThemeableOptions, formatters: Formatters, highlighted: boolean) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getFormatterParams(formatters);
+        const params = this.getFormatterParams(formatters, highlighted);
         if (params !== undefined) {
             if (formatters.formatter !== undefined) {
                 const result = formatters.formatter(params);
@@ -148,13 +149,13 @@ export class ErrorBarNode extends _Scene.Group {
         );
     }
 
-    update(style: AgErrorBarThemeableOptions, formatters: Formatters) {
+    update(style: AgErrorBarThemeableOptions, formatters: Formatters, highlighted: boolean) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
             return;
         }
-        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters);
+        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, highlighted);
 
         const { xBar, yBar, capDefaults } = this.datum;
 

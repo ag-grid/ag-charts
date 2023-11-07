@@ -8,7 +8,9 @@ export interface AgErrorBarFormatterParams
         SeriesKeyOptions,
         SeriesNameOptions,
         ErrorBarKeyOptions,
-        ErrorBarNameOptions {}
+        ErrorBarNameOptions {
+    readonly highlighted: boolean;
+}
 
 export type AgErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
 export type AgErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
