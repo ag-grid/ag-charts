@@ -59,7 +59,7 @@
     flex-wrap: wrap;
     scroll-margin-top: var(--anchor-offset, 0);
 
-    &:not(:first-child) {
+    &:where(:not(:first-child)) {
         border-top: 1px solid var(--border-color);
     }
 
@@ -82,7 +82,7 @@
 .leftColumn {
     flex-shrink: 0;
     width: 40%;
-    padding: $size-1 $size-2 $size-1 0;
+    padding: $size-1 $size-2 $size-1 calc(var(--nested-path-depth, 0) * $size-1);
 
     @container (max-width: #{$breakpoint-table-small}) {
         width: 100%;
@@ -98,7 +98,7 @@
 
     @container (max-width: #{$breakpoint-table-small}) {
         width: 100%;
-        padding-left: 0;
+        padding-left: calc(var(--nested-path-depth, 0) * $size-1);
     }
 }
 
@@ -230,18 +230,6 @@
     .metaValue {
         font-size: calc(var(--font-size-small) * 0.92);
     }
-}
-
-.level-1 .leftColumn {
-    padding-left: $size-1;
-}
-
-.level-2 .leftColumn {
-    padding-left: $size-2;
-}
-
-.level-3 .leftColumn {
-    padding-left: $size-3;
 }
 
 @container (max-width: #{$breakpoint-table-small}) {

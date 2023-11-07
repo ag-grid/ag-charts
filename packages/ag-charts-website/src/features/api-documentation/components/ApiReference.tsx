@@ -3,7 +3,7 @@ import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
-import type { AllHTMLAttributes } from 'react';
+import type { AllHTMLAttributes, CSSProperties } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
@@ -166,12 +166,8 @@ function ApiReferenceRow({
     return (
         <div
             id={anchorId}
-            className={classnames(
-                styles.propertyRow,
-                prefixPath && prefixPath.length > 0
-                    ? `${styles.isChildProp} ${styles['level-' + prefixPath.length]}`
-                    : ''
-            )}
+            className={classnames(styles.propertyRow, prefixPath && prefixPath.length > 0 && styles.isChildProp)}
+            style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
         >
             <div className={styles.leftColumn}>
                 <PropertyTitle
