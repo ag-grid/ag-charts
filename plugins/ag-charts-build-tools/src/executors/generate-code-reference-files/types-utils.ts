@@ -93,9 +93,9 @@ export class TypeMapper {
         }
 
         if (node.kind === 'typeAlias') {
+            const { kind, type, ...rest } = node;
             switch (node.type.kind) {
                 case 'typeRef':
-                    const { kind, type, ...rest } = node;
                     return this.resolveNode(
                         { node: { ...rest, kind: 'interface', members: [] }, heritage: [type] },
                         typeArguments
@@ -103,16 +103,19 @@ export class TypeMapper {
                 case 'typeLiteral':
                     return this.resolveType({ name: node.name, ...node.type });
                 case 'intersection':
-                    heritage = node.type.type.filter((type) => {
-                        if (type.kind === 'typeLiteral') {
+                    heritage = type.type.filter((subType) => {
+                        if (subType.kind === 'typeLiteral') {
                             return true;
                         }
-                        if (type.kind === 'typeRef') {
-                            type = type.type;
+                        if (subType.kind === 'typeRef') {
+                            subType = subType.type;
                         }
-                        return !type.match(/^['{].*['}]$/);
+                        return !subType.match(/^['{].*['}]$/);
                     });
-                    break;
+                    return this.resolveNode(
+                        { node: { ...rest, kind: 'interface', members: [] }, heritage },
+                        typeArguments
+                    );
             }
         }
 
