@@ -6,7 +6,8 @@
     --menu-width: min(30vw, 320px);
     --font-size: var(--font-size-medium);
 
-    border-bottom: 1px solid var(--border-color);
+    // GRID/CHARTS MENU REFACTOR
+    // border-bottom: 1px solid var(--border-color);
 
     &[aria-hidden='true'] {
         border-bottom-color: transparent;
@@ -23,7 +24,8 @@
         width: var(--menu-width);
         height: auto !important;
         margin-right: var(--right-margin);
-        border-right: solid 1px var(--bright-blue-gray);
+        // GRID/CHARTS MENU REFACTOR
+        // border-right: solid 1px var(--bright-blue-gray);
         border-bottom: none;
         overflow: visible !important;
 
@@ -41,27 +43,35 @@
     }
 }
 
-.nav {
-    padding-top: $size-4;
-    padding-bottom: $size-4;
+// GRID/CHARTS MENU REFACTOR
+// .nav {
+//     padding-top: $size-4;
+//     padding-bottom: $size-4;
 
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        padding-bottom: $size-7;
-    }
-}
+//     @media screen and (min-width: $breakpoint-docs-nav-medium) {
+//         padding-bottom: $size-7;
+//     }
+// }
 
-.navInner {
+// GRID/CHARTS MENU REFACTOR
+// .navInner {
+//     margin-bottom: 0 !important;
+
+//     @media screen and (min-width: $breakpoint-docs-nav-medium) {
+//         margin-left: var(--horizontal-margin);
+//         margin-right: $size-3;
+//     }
+
+//     @media screen and (min-width: $breakpoint-docs-nav-large) {
+//         margin-left: $size-3;
+//         margin-right: $size-3;
+//     }
+// }
+
+// GRID/CHARTS MENU REFACTOR
+ul.menuInner {
+    padding-bottom: 0 !important;
     margin-bottom: 0 !important;
-
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        margin-left: var(--horizontal-margin);
-        margin-right: $size-3;
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-large) {
-        margin-left: $size-3;
-        margin-right: $size-3;
-    }
 }
 
 .navGroup a {

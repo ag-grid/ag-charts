@@ -7,6 +7,8 @@ import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 
 import styles from './PagesNavigation.module.scss';
+// ag-grid menu styles
+import gridStyles from './gridMenu.module.scss';
 
 const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
 
@@ -42,7 +44,7 @@ function Level2Nav({
 }) {
     return (
         <Collapsible id={id} isOpen={isOpen}>
-            <ul className={classnames(styles.navGroup, 'list-style-none')}>
+            <ul className={classnames(gridStyles.menuGroup, 'list-style-none')}>
                 {items.map(({ title, path, url, icon, isEnterprise }: any) => {
                     const linkUrl = getLinkUrl({ framework, path, url });
                     const isActive = activeMenuItem?.path === path;
@@ -84,21 +86,21 @@ function Level1Nav({
     const linkUrl = getLinkUrl({ framework, path, url });
 
     return (
-        <li key={url} className={styles.navGroup}>
+        <li key={url} className={gridStyles.menuGroup}>
             {items ? (
                 <button
                     onClick={toggleActive}
                     tabIndex={0}
-                    className={classnames(styles.sectionHeader, 'button-style-none', {
-                        [styles.active]: isActive,
+                    className={classnames(gridStyles.sectionHeader, 'button-style-none', {
+                        [gridStyles.active]: isActive,
                     })}
                     aria-expanded={isActive}
                     aria-controls={`#${toElementId(title)}`}
                 >
                     <Icon
                         name="chevronRight"
-                        svgClasses={classnames(styles.sectionIcon, {
-                            [styles.active]: isActive,
+                        svgClasses={classnames(gridStyles.sectionIcon, {
+                            [gridStyles.active]: isActive,
                         })}
                     />
 
@@ -109,8 +111,8 @@ function Level1Nav({
             ) : (
                 <a
                     href={linkUrl}
-                    className={classnames(styles.sectionHeader, {
-                        [styles.activeMenuItem]: activeMenuItem === menuItem,
+                    className={classnames(gridStyles.sectionHeader, {
+                        [gridStyles.activeMenuItem]: activeMenuItem === menuItem,
                     })}
                 >
                     {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
@@ -185,7 +187,7 @@ function MainPagesNavigation({
 }) {
     const mainMenuItems = menuData.main.items;
     return (
-        <ul className={classnames('list-style-none', styles.navInner)}>
+        <ul className={classnames(styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
             {mainMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
                 const isActive = menuItem === activeLevel1MenuItem;
@@ -230,7 +232,7 @@ function SeriesPagesNavigation({
     const chartsMenuItems = menuData.charts.items;
 
     return (
-        <ul className={classnames('list-style-none', styles.navInner, styles.seriesTypesNav)}>
+        <ul className={classnames(styles.seriesTypesNav, styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
                 const isActive = menuItem === activeLevel1MenuItem || (seriesIsActive && title === 'Series');
@@ -300,7 +302,7 @@ export function PagesNavigation({
 
     return (
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
-            <aside className={classnames(styles.nav, 'font-size-responsive')}>
+            <aside className={classnames(gridStyles.menu, 'font-size-responsive')}>
                 <MainPagesNavigation
                     menuData={menuData}
                     framework={framework}
