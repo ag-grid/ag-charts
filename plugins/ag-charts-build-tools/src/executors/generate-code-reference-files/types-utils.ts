@@ -3,129 +3,186 @@ import * as ts from 'typescript';
 
 import { inputGlob, parseFile } from './executors-utils';
 
-type HeritageType = { kind?: string; type: any; typeParams: any[]; members?: TypingMapItem[] } | string;
-type TypingMapItem = { node: any; heritage?: HeritageType[] };
+type NodeType = any;
+type HeritageType =
+    | { kind?: string; type: any; typeParams: any[]; typeArguments?: any[]; members?: TypingMapItem[] }
+    | string;
+type TypingMapItem = { node: NodeType; heritage?: HeritageType[] };
 
 const tsPrinter = ts.createPrinter({ removeComments: true, omitTrailingSemicolon: true });
 
 const prioritisedMembers = ['type'];
 
-export function mapTyping(inputs: string[]) {
-    const typesMap: Map<string, TypingMapItem> = new Map();
-    for (const file of inputs.flatMap(inputGlob)) {
-        parseFile(file).forEachChild((node) => {
-            if (ts.isEnumDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) {
-                const item: TypingMapItem = { node: formatNode(node) };
-                if (ts.isInterfaceDeclaration(node)) {
-                    item.heritage = node.heritageClauses?.flatMap((h) =>
-                        h.types.map(({ expression, typeArguments }) =>
-                            typeArguments
-                                ? {
-                                      kind: 'typeRef',
-                                      type: formatNode(expression),
-                                      typeParams: typeArguments.map(formatNode),
-                                  }
-                                : formatNode(expression)
-                        )
-                    );
-                }
-                typesMap.set(node.name.text, item);
-            }
-        });
-    }
-    return typesMap;
-}
+export class TypeMapper {
+    protected nodeMap: Map<string, TypingMapItem> = new Map();
+    protected genericsMap: Map<string, string>;
 
-export function resolveType(typesMap: Map<string, TypingMapItem>, typeName: string | TypingMapItem['node']) {
-    let node, heritage;
-    if (typeof typeName === 'object') {
-        node = typeName;
-    } else if (!typesMap.has(typeName)) {
-        console.log('Missing!', typeName);
-        return null;
-    } else {
-        ({ node, heritage } = typesMap.get(typeName));
-    }
-
-    if (node.kind === 'indexAccess') {
-        const memberName = node.index.replace(/^'(.*)'$/, '$1');
-        const typeMembers = resolveType(typesMap, node.type).members;
-        const indexType = typeMembers.find((item) => item.name === memberName).type;
-        return resolveType(typesMap, indexType);
-    }
-
-    if (node.kind === 'typeAlias') {
-        switch (node.type.kind) {
-            case 'typeRef':
-                if (node.type.type === 'NonNullable') {
-                    return resolveType(typesMap, node.type.typeParams[0]);
-                } else {
-                    return resolveType(typesMap, node.type.type);
-                }
-            case 'typeLiteral':
-                return resolveType(typesMap, { name: typeName, ...node.type });
-            case 'intersection':
-                heritage = node.type.type.filter((typeName) => {
-                    if (typeName.kind === 'typeLiteral') {
-                        return true;
+    constructor(inputFiles: string[]) {
+        for (const file of inputFiles.flatMap(inputGlob)) {
+            parseFile(file).forEachChild((node) => {
+                if (this.isTopLevelDeclaration(node)) {
+                    const typeNode: TypingMapItem = { node: formatNode(node) };
+                    if (ts.isInterfaceDeclaration(node)) {
+                        typeNode.heritage = this.extractInterfaceHeritage(node);
                     }
-                    if (typeName.kind === 'typeRef') {
-                        typeName = typeName.type;
-                    }
-                    return !typeName.match(/^['{].*['}]$/);
-                });
-                break;
+                    this.nodeMap.set(node.name.text, typeNode);
+                }
+            });
         }
     }
 
-    const heritageClone = heritage?.slice() ?? [];
-    for (const h of heritageClone) {
-        node.members ??= [];
-        if (typeof h === 'string' || typesMap.has(h.type)) {
-            const n = resolveType(typesMap, typeof h === 'string' ? h : h.type);
-            if (Array.isArray(n.members)) {
-                node.members.push(...n.members);
+    entries() {
+        return Array.from(this.nodeMap.entries()).sort();
+    }
+
+    resolvedEntries() {
+        return this.entries().map(([name]) => {
+            this.genericsMap = new Map();
+            return this.resolveType(name);
+        });
+    }
+
+    protected isTopLevelDeclaration(
+        node: ts.Node
+    ): node is ts.EnumDeclaration | ts.InterfaceDeclaration | ts.TypeAliasDeclaration {
+        return ts.isEnumDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node);
+    }
+
+    protected extractInterfaceHeritage(node: ts.InterfaceDeclaration) {
+        return node.heritageClauses?.flatMap((h) =>
+            h.types.map(({ expression, typeArguments }) =>
+                typeArguments
+                    ? {
+                          kind: 'typeRef',
+                          type: formatNode(expression),
+                          typeArguments: typeArguments.map(formatNode),
+                      }
+                    : formatNode(expression)
+            )
+        );
+    }
+
+    protected resolveType(nameOrNode: NodeType | string, typeArguments?: NodeType[]) {
+        if (typeof nameOrNode === 'string') {
+            const mapItem = this.nodeMap.get(nameOrNode);
+            if (mapItem) {
+                return this.resolveNode(mapItem, typeArguments);
             } else {
-                console.warn('Node without members found', h, n);
+                console.error('Missing!', nameOrNode);
             }
-        } else if (h.type === 'Omit' || h.type === 'Pick') {
-            const [typeRef, typeKeys] = h.typeParams;
+        } else {
+            return this.resolveNode({ node: nameOrNode }, typeArguments);
+        }
+    }
+
+    protected resolveNode({ node, heritage = [] }: TypingMapItem, typeArguments?: NodeType[]) {
+        if (node.typeParams) {
+            node.typeParams.map((param, index) => {
+                const value = typeArguments?.[index] ?? param.default;
+                if (value && param.name !== value) {
+                    this.genericsMap.set(param.name, value);
+                }
+            });
+        }
+
+        if (node.kind === 'indexAccess') {
+            const memberName = node.index.replace(/^'(.*)'$/, '$1');
+            const { members } = this.resolveType(node.type);
+            const { type } = members.find((member) => member.name === memberName);
+            return this.resolveType(type);
+        }
+
+        if (node.kind === 'typeAlias') {
+            switch (node.type.kind) {
+                case 'typeRef':
+                    const { kind, type, ...rest } = node;
+                    return this.resolveNode(
+                        { node: { ...rest, kind: 'interface', members: [] }, heritage: [type] },
+                        typeArguments
+                    );
+                case 'typeLiteral':
+                    return this.resolveType({ name: node.name, ...node.type });
+                case 'intersection':
+                    heritage = node.type.type.filter((type) => {
+                        if (type.kind === 'typeLiteral') {
+                            return true;
+                        }
+                        if (type.kind === 'typeRef') {
+                            type = type.type;
+                        }
+                        return !type.match(/^['{].*['}]$/);
+                    });
+                    break;
+            }
+        }
+
+        for (const h of heritage) {
+            node.members ??= [];
+            if (typeof h === 'string' || this.nodeMap.has(h.type)) {
+                const n = typeof h === 'string' ? this.resolveType(h) : this.resolveType(h.type, h.typeArguments);
+                if (Array.isArray(n.members)) {
+                    node.members.push(...n.members);
+                } else {
+                    console.warn('Node heritage without members found', h, n);
+                }
+            } else if (h.type === 'Omit' || h.type === 'Pick') {
+                const n = this.resolveTypeRef(h);
+                node.members.push(...n.members);
+            } else if (h.type === 'Readonly') {
+                const n = this.resolveType({ kind: 'typeAlias', type: h.typeArguments[0] });
+                node.members.push(...n.members);
+            } else if (h.kind === 'typeLiteral') {
+                node.members.push(...h.members);
+            } else {
+                console.warn(`Unhandled type "${h.type}" on ${node.name}`, h);
+            }
+        }
+
+        if (node.members) {
+            node.members = this.cleanupMembers(node.members);
+        }
+
+        if (this.genericsMap.size) {
+            node.genericsMap = Array.from(this.genericsMap).reduce((result, [key, value]) => {
+                result[key] = value;
+                return result;
+            }, {});
+        }
+
+        return node;
+    }
+
+    protected resolveTypeRef(node) {
+        if (node.type === 'NonNullable') {
+            return this.resolveType(node.typeArguments[0]);
+        } else if (node.type === 'Omit' || node.type === 'Pick') {
+            const [typeRef, typeKeys] = node.typeArguments;
             const matchType =
                 typeKeys.kind === 'union'
                     ? (m: any) => typeKeys.type.includes(`'${m.name}'`)
-                    : (m: any) => typeKeys.type === `'${m.name}'`;
-            const n = resolveType(typesMap, typeof typeRef === 'string' ? typeRef : typeRef.type);
-            node.members.push(...n.members.filter(h.type === 'Pick' ? matchType : (m: any) => !matchType(m)));
-        } else if (h.type === 'Readonly') {
-            const resolvedType = resolveType(typesMap, { kind: 'typeAlias', type: h.typeParams[0] });
-            node.members.push(...resolvedType.members);
-        } else if (h.kind === 'typeLiteral') {
-            node.members.push(...h.members);
+                    : (m: any) => (typeKeys.type ?? typeKeys) === `'${m.name}'`;
+            const n = this.resolveType(typeof typeRef === 'string' ? typeRef : typeRef.type);
+            return { ...n, members: n.members.filter(node.type === 'Pick' ? matchType : (m: any) => !matchType(m)) };
         } else {
-            console.warn(`Unhandled type "${h.type}" on ${typeName}`, h);
+            return this.resolveType(node.type, node.type.typeArguments);
         }
-        // remove to ensure we only run once
-        heritage.splice(heritage.indexOf(h), 1);
-        node.members = cleanupMembers(node.members);
     }
 
-    return node;
-}
-
-function cleanupMembers(members) {
-    // remove duplicates and push required members to the top of the list
-    return members
-        .filter(({ name, ...data }, index: number) => {
-            const firstMatchIndex = members.findIndex((item) => item.name === name);
-            const isFirstAppearance = firstMatchIndex === index;
-            if (!isFirstAppearance) {
-                const existingMember = members[firstMatchIndex];
-                existingMember.docs ??= data.docs;
-            }
-            return isFirstAppearance;
-        })
-        .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0))
-        .sort((a, b) => (prioritisedMembers.includes(a.name) ? -1 : prioritisedMembers.includes(b.name) ? 1 : 0));
+    cleanupMembers(members) {
+        // remove duplicates and push required members to the top of the list
+        return members
+            .filter(({ name, ...data }, index: number) => {
+                const firstMatchIndex = members.findIndex((item) => item.name === name);
+                const isFirstAppearance = firstMatchIndex === index;
+                if (!isFirstAppearance) {
+                    const existingMember = members[firstMatchIndex];
+                    existingMember.docs ??= data.docs;
+                }
+                return isFirstAppearance;
+            })
+            .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0))
+            .sort((a, b) => (prioritisedMembers.includes(a.name) ? -1 : prioritisedMembers.includes(b.name) ? 1 : 0));
+    }
 }
 
 export function formatNode(node: ts.Node) {
@@ -263,7 +320,7 @@ export function formatNode(node: ts.Node) {
             ? {
                   kind: 'typeRef',
                   type: nodeType,
-                  typeParams: node.typeArguments.map(formatNode),
+                  typeArguments: node.typeArguments.map(formatNode),
               }
             : nodeType;
     }
