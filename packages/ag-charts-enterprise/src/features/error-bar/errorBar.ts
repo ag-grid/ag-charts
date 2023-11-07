@@ -63,7 +63,7 @@ class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
     @Validate(OPT_COLOR_STRING)
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(1))
+    @Validate(OPT_NUMBER(0))
     strokeWidth?: number = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
