@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
-import type { AgChartInstance, AgScatterSeriesTooltipRendererParams } from 'ag-charts-community';
+import type {
+    AgChartInstance,
+    AgErrorBarCapFormatter,
+    AgErrorBarFormatter,
+    AgScatterSeriesTooltipRendererParams,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -14,7 +19,6 @@ import {
 
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-import type { ErrorBarCapFormatter, ErrorBarFormatter } from './errorBarNode';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -627,7 +631,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply formatter as expected', async () => {
-        const whisker_formatter: ErrorBarFormatter = (params) => {
+        const whisker_formatter: AgErrorBarFormatter = (params) => {
             let color = undefined;
             switch (params.datum[params.xKey]) {
                 case 'Jan':
@@ -652,7 +656,7 @@ describe('ErrorBars', () => {
             }
             return { stroke: color };
         };
-        const cap_formatter: ErrorBarCapFormatter = (params) => {
+        const cap_formatter: AgErrorBarCapFormatter = (params) => {
             switch (params.datum[params.xKey]) {
                 case 'Jan':
                 case 'Feb':

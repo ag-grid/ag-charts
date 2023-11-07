@@ -1,12 +1,13 @@
-import type { AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
+import type {
+    AgErrorBarCapFormatter,
+    AgErrorBarFormatter,
+    AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
+    _Scale,
+} from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type {
-    ErrorBarCapFormatter,
-    ErrorBarFormatter,
-    ErrorBarNodeDatum,
-    ErrorBarStylingOptions,
-} from './errorBarNode';
+import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 
 const {
@@ -81,7 +82,7 @@ class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
     lengthRatio?: number = undefined;
 
     @Validate(OPT_FUNCTION)
-    formatter?: ErrorBarCapFormatter = undefined;
+    formatter?: AgErrorBarCapFormatter = undefined;
 }
 
 export class ErrorBars
@@ -131,7 +132,7 @@ export class ErrorBars
     lineDashOffset?: number;
 
     @Validate(OPT_FUNCTION)
-    formatter?: ErrorBarFormatter = undefined;
+    formatter?: AgErrorBarFormatter = undefined;
 
     cap: ErrorBarCap = new ErrorBarCap();
 

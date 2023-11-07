@@ -1,4 +1,10 @@
-import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
+import type {
+    AgErrorBarCapFormatter,
+    AgErrorBarFormatter,
+    AgErrorBarFormatterParams,
+    AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
+} from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { partialAssign, mergeDefaults } = _ModuleSupport;
@@ -8,26 +14,17 @@ type Point = _Scene.Point;
 type NearestResult<T> = _Scene.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
-
-interface ErrorBarPoint {
-    readonly lowerPoint: _Scene.Point;
-    readonly upperPoint: _Scene.Point;
-}
-
-export interface ErrorBarPoints {
-    readonly xBar?: ErrorBarPoint;
-    readonly yBar?: ErrorBarPoint;
-}
-
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
-export type ErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
-export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
-export type ErrorBarDataOptions = Pick<
+
+type ErrorBarDataOptions = Pick<
     AgErrorBarOptions,
     'xLowerKey' | 'xLowerName' | 'xUpperKey' | 'xUpperName' | 'yLowerKey' | 'yLowerName' | 'yUpperKey' | 'yUpperName'
 >;
 
-type Formatters = { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & ErrorBarDataOptions;
+type Formatters = {
+    formatter?: AgErrorBarFormatter;
+    cap: { formatter?: AgErrorBarCapFormatter };
+} & ErrorBarDataOptions;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
