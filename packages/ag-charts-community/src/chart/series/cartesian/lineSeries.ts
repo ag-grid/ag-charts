@@ -513,13 +513,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         super.resetAllAnimation(animationData);
 
-        if (
-            contextData.length === 0 ||
-            !previousContextData ||
-            previousContextData.length === 0 ||
-            !contextData.every((d) => d.animationValid) ||
-            !previousContextData.every((d) => d.animationValid)
-        ) {
+        if (contextData.length === 0 || !previousContextData || previousContextData.length === 0) {
             this.updateLinePaths(paths, contextData);
             return;
         }
@@ -530,6 +524,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
+            animationManager.skipCurrentBatch();
             this.updateLinePaths(paths, contextData);
             return;
         }

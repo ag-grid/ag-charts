@@ -690,13 +690,7 @@ export class AreaSeries extends CartesianSeries<
 
         super.resetAllAnimation(animationData);
 
-        if (
-            contextData.length === 0 ||
-            !previousContextData ||
-            previousContextData.length === 0 ||
-            !contextData.every((d) => d.animationValid) ||
-            !previousContextData.every((d) => d.animationValid)
-        ) {
+        if (contextData.length === 0 || !previousContextData || previousContextData.length === 0) {
             this.updateAreaPaths(paths, contextData);
             return;
         }
@@ -707,6 +701,7 @@ export class AreaSeries extends CartesianSeries<
 
         const fns = prepareAreaPathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
+            animationManager.skipCurrentBatch();
             this.updateAreaPaths(paths, contextData);
             return;
         }
