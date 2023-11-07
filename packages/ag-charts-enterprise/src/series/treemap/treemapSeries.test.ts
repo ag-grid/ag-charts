@@ -53,12 +53,7 @@ describe('HierarchyChart', () => {
 
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options,
-            data: [
-                {
-                    ...GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data[0],
-                    children: GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data[0].children.slice(0, 1),
-                },
-            ],
+            data: GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data.slice(0, 1),
         };
 
         it('should render a complex chart', async () => {
@@ -152,7 +147,10 @@ describe('HierarchyChart', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: { item: { fill: 'lime' } },
+                        highlightStyle: {
+                            tile: { fill: 'lime' },
+                            group: { fill: 'lime' },
+                        },
                         listeners,
                         ...nodeClickRangeParams,
                         ...testParams.seriesOptions,
@@ -269,38 +267,21 @@ describe('HierarchyChart', () => {
 
     describe(`Treemap Series Pointer Events`, () => {
         const datasets = {
-            economy: {
-                data: [
-                    { year: '2018', gdp: 12000, gnp: 10000 },
-                    { year: '2019', gdp: 18000, gnp: 16000 },
-                    { year: '2020', gdp: 20000, gnp: 18000 },
-                ],
-                valueKey: 'gdp',
-                valueKey2: 'gnp',
-                categoryKey: 'year',
-            },
-            food: {
-                data: [
-                    {
-                        name: 'Food',
-                        children: [
-                            {
-                                name: 'Fruits',
-                                children: [
-                                    { name: 'Banana', count: 10 },
-                                    { name: 'Apple', count: 5 },
-                                ],
-                            },
-                            {
-                                name: 'Vegetables',
-                                children: [{ name: 'Cucumber', count: 2 }],
-                            },
-                        ],
-                    },
-                ],
-                valueKey: 'count',
-                labelKey: 'name',
-            },
+            data: [
+                {
+                    name: 'Fruits',
+                    children: [
+                        { name: 'Banana', count: 10 },
+                        { name: 'Apple', count: 5 },
+                    ],
+                },
+                {
+                    name: 'Vegetables',
+                    children: [{ name: 'Cucumber', count: 2 }],
+                },
+            ],
+            valueKey: 'count',
+            labelKey: 'name',
         };
 
         const cartesianTestParams = {
@@ -314,17 +295,16 @@ describe('HierarchyChart', () => {
             ...cartesianTestParams,
             seriesOptions: {
                 type: 'treemap',
-                labelKey: datasets.food.labelKey,
-                sizeKey: datasets.food.valueKey,
+                labelKey: datasets.labelKey,
+                sizeKey: datasets.valueKey,
                 colorKey: undefined,
-                gradient: false,
             },
             chartOptions: {
-                data: datasets.food.data,
+                data: datasets.data,
             },
             getNodeData: (series) => {
                 const nodes = series.contentGroup.children.map((group) => group.children[0]);
-                const maxDepth = Math.max(...nodes.map((n) => n.datum.depth));
+                const maxDepth = Math.max(...nodes.map((n) => n.datum.depth ?? -1));
                 return nodes.filter((node) => node.datum.depth === maxDepth);
             },
             getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],

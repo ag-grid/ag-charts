@@ -1,4 +1,4 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, TextWrap } from '../../options/agChartOptions';
+import type { FontFamily, FontSize, FontStyle, FontWeight, TextOverflow, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../bbox';
 import { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { RenderContext } from '../node';
@@ -37,6 +37,8 @@ export class Text extends Shape {
         fontFamily: 'sans-serif',
         textBaseline: 'alphabetic' as CanvasTextBaseline,
     });
+
+    static ellipsis = ellipsis;
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     x: number = 0;
@@ -200,8 +202,10 @@ export class Text extends Shape {
         maxWidth: number,
         maxHeight: number,
         textProps: TextSizeProperties,
-        wrapping: TextWrap
+        wrapping: TextWrap,
+        overflow: TextOverflow = 'ellipsis'
     ): string {
+        const canOverflow = overflow !== 'never';
         const font = getFont(textProps);
         const measurer = createTextMeasurer(font);
         const lines: string[] = text.split(/\r?\n/g);
@@ -210,7 +214,7 @@ export class Text extends Shape {
             return '';
         }
         if (wrapping === 'never') {
-            return Text.truncateLine(lines[0], maxWidth, measurer, false);
+            return Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never') ?? '';
         }
 
         const result: string[] = [];
@@ -223,8 +227,14 @@ export class Text extends Shape {
                 measurer,
                 textProps,
                 wrapping,
-                cumulativeHeight
+                cumulativeHeight,
+                canOverflow
             );
+
+            if (wrappedLine == null) {
+                return '';
+            }
+
             result.push(wrappedLine.result);
             cumulativeHeight = wrappedLine.cumulativeHeight;
             if (wrappedLine.truncated) {
@@ -241,8 +251,9 @@ export class Text extends Shape {
         measurer: TextMeasurer,
         textProps: TextSizeProperties,
         wrapping: TextWrap,
-        cumulativeHeight: number
-    ): { result: string; truncated: boolean; cumulativeHeight: number } {
+        cumulativeHeight: number,
+        canOverflow: boolean
+    ): { result: string; truncated: boolean; cumulativeHeight: number } | undefined {
         text = text.trim();
         if (!text) {
             return { result: '', truncated: false, cumulativeHeight };
@@ -259,7 +270,7 @@ export class Text extends Shape {
         }
         if (initialSize.height > maxHeight || measurer.width('W') > maxWidth) {
             // Not enough space for a single line or character
-            return { result: '', truncated: true, cumulativeHeight };
+            return canOverflow ? { result: '', truncated: true, cumulativeHeight } : undefined;
         }
 
         const words = text.split(/\s+/g);
@@ -270,8 +281,14 @@ export class Text extends Shape {
             measurer,
             textProps,
             wrapping,
-            cumulativeHeight
+            cumulativeHeight,
+            canOverflow
         );
+
+        if (wrapResult == null) {
+            return undefined;
+        }
+
         cumulativeHeight = wrapResult.cumulativeHeight;
 
         let { lines } = wrapResult;
@@ -328,23 +345,34 @@ export class Text extends Shape {
         return parts;
     }
 
-    private static truncateLine(text: string, maxWidth: number, measurer: TextMeasurer, forceEllipsis: boolean) {
+    private static truncateLine(
+        text: string,
+        maxWidth: number,
+        measurer: TextMeasurer,
+        ellipsisMode: 'force' | 'never' | 'auto'
+    ) {
+        text = text.trimEnd();
+
         const lineWidth = measurer.width(text);
-        if (lineWidth < maxWidth && !forceEllipsis) {
+        if (lineWidth > maxWidth && ellipsisMode === 'never') {
+            return undefined;
+        } else if (lineWidth <= maxWidth && ellipsisMode !== 'force') {
             return text;
         }
+
         const ellipsisWidth = measurer.width(ellipsis);
-        if (lineWidth + ellipsisWidth <= maxWidth) {
-            return `${text}${ellipsis}`;
-        }
-        let index = Math.floor((text.length * maxWidth) / lineWidth) + 1;
-        let trunc: string;
-        let truncWidth: number;
-        do {
-            trunc = text.substring(0, index);
+        let trunc = text;
+        let truncWidth = lineWidth;
+        while (trunc.length > 0 && truncWidth + ellipsisWidth > maxWidth) {
+            // Ensure there is no space between the ellipsis and last letter
+            trunc = trunc.slice(0, -1).trimEnd();
             truncWidth = measurer.width(trunc);
-        } while (--index >= 0 && truncWidth + ellipsisWidth > maxWidth);
-        return `${trunc}${ellipsis}`;
+        }
+        if (truncWidth + ellipsisWidth <= maxWidth) {
+            return `${trunc}${ellipsis}`;
+        } else {
+            return undefined;
+        }
     }
 
     private static wrapLineSequentially(
@@ -354,9 +382,10 @@ export class Text extends Shape {
         measurer: TextMeasurer,
         textProps: TextSizeProperties,
         wrapping: TextWrap,
-        cumulativeHeight: number
+        cumulativeHeight: number,
+        canOverflow: boolean
     ) {
-        const { fontSize, lineHeight = (fontSize ?? 0) * Text.defaultLineHeightRatio } = textProps;
+        const { fontSize = 0, lineHeight = fontSize * Text.defaultLineHeightRatio } = textProps;
         const breakWord = wrapping === 'always' || wrapping === 'hyphenate';
         const hyphenate = wrapping === 'hyphenate';
         const spaceWidth = measurer.width(' ');
@@ -368,14 +397,32 @@ export class Text extends Shape {
         let currentLine: string[] = [];
         let lineWidth = 0;
 
+        const getReturnValue = () => ({
+            lines,
+            linesTruncated,
+            wordsBrokenOrTruncated,
+            cumulativeHeight,
+        });
+
+        const truncateLastLine = () => {
+            if (!canOverflow) {
+                return undefined;
+            }
+
+            const lastLine = currentLine.join(' ');
+            const trunc = Text.truncateLine(lastLine, maxWidth, measurer, 'force');
+            if (trunc == null) {
+                return undefined;
+            }
+
+            currentLine.splice(0, currentLine.length, trunc);
+            linesTruncated = true;
+            return getReturnValue();
+        };
+
         const addNewLine = () => {
             const expectedHeight = cumulativeHeight + lineHeight;
             if (expectedHeight >= maxHeight) {
-                // Truncate the last line
-                const lastLine = currentLine.join(' ');
-                const trunc = Text.truncateLine(lastLine, maxWidth, measurer, true);
-                currentLine.splice(0, currentLine.length, trunc);
-                linesTruncated = true;
                 return false;
             }
             // Add new line
@@ -387,7 +434,7 @@ export class Text extends Shape {
         };
 
         if (!addNewLine()) {
-            return { lines, linesTruncated: true, wordsBrokenOrTruncated, cumulativeHeight };
+            return truncateLastLine();
         }
 
         for (let i = 0; i < words.length; i++) {
@@ -406,7 +453,7 @@ export class Text extends Shape {
             if (wordWidth <= maxWidth) {
                 // If the word is not too long, put it onto new line
                 if (!addNewLine()) {
-                    break;
+                    return truncateLastLine();
                 }
                 currentLine.push(word);
                 lineWidth = wordWidth;
@@ -419,33 +466,35 @@ export class Text extends Shape {
                 // Break the word into parts
                 const availWidth = maxWidth - lineWidth - expectedSpaceWidth;
                 const parts = Text.breakWord(word, availWidth, maxWidth, hyphenate, measurer);
-                let breakLoop = false;
                 for (let p = 0; p < parts.length; p++) {
                     const part = parts[p];
                     part && currentLine.push(part);
                     if (p === parts.length - 1) {
                         lineWidth = measurer.width(part);
                     } else if (!addNewLine()) {
-                        breakLoop = true;
-                        break;
+                        return truncateLastLine();
                     }
                 }
-                if (breakLoop) break;
-            } else {
+            } else if (canOverflow) {
                 // Truncate the word
                 if (!addNewLine()) {
-                    break;
+                    return truncateLastLine();
                 }
-                const trunc = Text.truncateLine(word, maxWidth, measurer, true);
+                const trunc = Text.truncateLine(word, maxWidth, measurer, 'force');
+                if (trunc == null) {
+                    return undefined;
+                }
                 currentLine.push(trunc);
                 if (i < words.length - 1) {
                     linesTruncated = true;
                 }
                 break;
+            } else {
+                return undefined;
             }
         }
 
-        return { lines, linesTruncated, wordsBrokenOrTruncated, cumulativeHeight };
+        return getReturnValue();
     }
 
     private static wrapLineBalanced(words: string[], maxWidth: number, measurer: TextMeasurer, linesCount: number) {

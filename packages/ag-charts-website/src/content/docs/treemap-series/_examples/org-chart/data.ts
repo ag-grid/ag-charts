@@ -18,13 +18,13 @@ let rowData: any[] = [
 export const data: any = convertGridTreeData(rowData);
 
 function convertGridTreeData(ds: any[]) {
-    const root = {};
+    const root: any = {};
 
     ds.forEach(row => {
         insert(root, row, 'orgHierarchy');
     });
 
-    return root;
+    return root.children;
 }
 
 function insert(root: any, row: any, pathFieldName: string) {

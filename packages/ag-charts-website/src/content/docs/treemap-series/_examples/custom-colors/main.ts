@@ -8,41 +8,40 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'name',
-            gradient: false,
-            nodePadding: 0,
-            nodeGap: 4,
             sizeKey: 'exports',
-            tileStroke: 'white',
-            tileStrokeWidth: 2,
-            groupFill: 'transparent',
-            title: {
-                color: 'black',
-                padding: 4,
-            },
-            subtitle: {
-                color: 'black',
-            },
-            labels: {
-                value: {
-                    name: 'Exports',
-                    formatter: (params) => `$${params.datum.exports}M`,
+            group: {
+                label: {
+                    fontSize: 18,
+                    color: 'black',
                 },
+                fill: 'transparent',
+                strokeWidth: 0,
+                padding: 5,
+                tileSpacing: 1,
+                interactive: false,
             },
-            groupStrokeWidth: 0,
-            highlightGroups: false,
+            tile: {
+                label: {
+                    color: 'white',
+                },
+                strokeWidth: 2,
+                spacing: 2
+            },
             highlightStyle: {
-                text: {
-                    color: undefined,
-                },
-            },
-            formatter: ({ depth, parent, highlighted }) => {
-                if (depth < 2) {
-                    return {};
+                tile: {
+                    label: {
+                        color: 'white'
+                    },
                 }
-
-                const fill = parent.name === 'Foodstuffs' ? 'rgb(64, 172, 64)' : 'rgb(32, 96, 224)';
-                const stroke = highlighted ? 'black' : fill;
-                return { fill, stroke };
+            },
+            formatter: ({ datum, depth, parent, highlighted }) => {
+                if (datum.children) {
+                    return { fill: 'white' };
+                } else {
+                    const fill = parent.name === 'Foodstuffs' ? 'rgb(64, 172, 64)' : 'rgb(32, 96, 224)';
+                    const stroke = highlighted ? 'black' : fill;
+                    return { fill, stroke };
+                }
             },
         } as AgTreemapSeriesOptions,
     ],

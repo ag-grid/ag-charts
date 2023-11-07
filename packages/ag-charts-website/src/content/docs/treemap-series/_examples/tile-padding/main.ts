@@ -14,29 +14,40 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'name',
-            gradient: false,
-            nodePadding: 20, // padding for tile content
-            nodeGap: 10, // spacing between neighbouring tiles
             sizeKey: 'size',
             colorKey: 'size',
-            labels: {
-                value: {
-                    key: 'size',
-                    formatter: ({datum}) => formatSize(datum.size),
-                },
-            },
-            groupFill: '#241248',
             colorDomain: [0, 1200000000],
             colorRange: ['#241248', '#2a9850'],
-            groupStroke: 'white',
-            tileStroke: 'white',
+            group: {
+                stroke: 'white',
+                fill: '#241248',
+                spacing: 1,
+            },
+            tile: {
+                label: {
+                    fontSize: 24,
+                    minimumFontSize: 9,
+                    color: 'white',
+                },
+                stroke: 'white',
+                padding: 10,
+            },
+            highlightStyle: {
+                tile: {
+                    label: {
+                        color:'white'
+                    },
+                    stroke: 'white',
+                    strokeWidth: 4,
+                },
+                group: {
+                    fill: 'white'
+                }
+            },
             tooltip: {
                 renderer: (params) => {
                     return params.depth === 2 ? { content: formatSize(params.datum.size) } : { content: '' };
                 },
-            },
-            formatter: (params) => {
-                return params.depth === 0 ? { fill: '#120024' } : {};
             },
         },
     ],

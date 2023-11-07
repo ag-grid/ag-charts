@@ -8,26 +8,24 @@ const options: AgChartOptions = {
     {
       type: 'treemap',
       labelKey: 'orgHierarchy',
-      gradient: false,
-      nodePadding: 10,
-      nodeGap: 10,
       sizeKey: undefined, // make all siblings within a parent the same size
       colorKey: undefined, // if undefined, depth will be used an the value, where root has 0 depth
       colorDomain: [0, 2, 4, 5],
       colorRange: ['#d73027', '#fee08b', '#1a9850', 'rgb(0, 116, 52)'],
-      groupFill: undefined,
-      formatter: ({ datum, labelKey, highlighted }) => {
-        if (datum[labelKey] === 'Joel Cooper') {
-          return { fill: highlighted ? 'white' : 'orchid' };
+      group: {
+        padding: 5,
+        spacing: 2,
+      },
+      tile: {
+        spacing: 1,
+      },
+      highlightStyle: {
+        group: {
+          label: {
+            color: 'white',
+          }
         }
-        return {};
-      },
-      title: {
-        padding: 10,
-      },
-      subtitle: {
-        padding: 10,
-      },
+      }
     },
   ],
   title: {
