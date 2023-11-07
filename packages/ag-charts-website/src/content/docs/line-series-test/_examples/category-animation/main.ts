@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60 },
@@ -50,7 +50,7 @@ function actionReset() {
 function actionAddEndWeek() {
     const nextWeek = options.data.slice(-1)[0].week + 1;
     options.data = [
-        ...options.data,
+        ...(options.data ?? []),
         {
             quarter: `week ${nextWeek}`,
             week: nextWeek,
@@ -75,7 +75,7 @@ function actionAddStartWeek() {
 
 function actionAddWeek12and13() {
     options.data = [
-        ...options.data,
+        ...(options.data ?? []),
         { quarter: 'week 12', week: 12, iphone: 78 },
         { quarter: 'week 13', week: 13, iphone: 138 },
     ];
@@ -85,7 +85,7 @@ function actionAddWeek12and13() {
 
 function actionAddWeek7and8() {
     options.data = [
-        ...options.data,
+        ...(options.data ?? []),
         { quarter: 'week 7', week: 7, iphone: 142 },
         { quarter: 'week 8', week: 8, iphone: 87 },
     ];
@@ -95,7 +95,7 @@ function actionAddWeek7and8() {
 
 function reorder() {
     options.data = [...options.data];
-    options.data?.forEach((d) => d.random = Math.random());
+    options.data?.forEach((d) => (d.random = Math.random()));
     options.data?.sort((a, b) => a.random - b.random);
 
     AgEnterpriseCharts.update(chart, options);
