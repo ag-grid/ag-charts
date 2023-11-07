@@ -82,8 +82,6 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
     @Validate(OPT_ARRAY())
     colorRanges?: BulletColorRange[] = undefined;
 
-    readonly xValue: string = 'xPlaceholderValue';
-
     tooltip = new _ModuleSupport.SeriesTooltip<AgBulletSeriesTooltipRendererParams>();
 
     private normalizedColorRanges: NormalizedColorRange[] = [];
@@ -129,7 +127,7 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         if (!dataModel || !processedData) return [];
 
         if (direction === this.getCategoryDirection()) {
-            return [this.xValue];
+            return [this.valueName ?? this.valueKey];
         } else if (direction == this.getValueAxis()?.direction) {
             const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
             const targetDomain =
@@ -159,7 +157,7 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
             visible: this.visible,
         };
         for (const { datum, values } of processedData.data) {
-            const xValue = this.xValue;
+            const xValue = this.valueName ?? this.valueKey;
             const yValue = values[0][valueIndex];
             const x = xScale.convert(xValue);
             const y = yScale.convert(yValue);
