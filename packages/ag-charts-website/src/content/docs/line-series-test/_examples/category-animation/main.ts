@@ -47,7 +47,7 @@ function actionReset() {
     AgEnterpriseCharts.update(chart, options);
 }
 
-function actionAddWeek() {
+function actionAddEndWeek() {
     const nextWeek = options.data.slice(-1)[0].week + 1;
     options.data = [
         ...options.data,
@@ -56,6 +56,19 @@ function actionAddWeek() {
             week: nextWeek,
             iphone: 78 * (Math.random() - 0.5),
         },
+    ];
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function actionAddStartWeek() {
+    const prevWeek = options.data[0].week - 1;
+    options.data = [
+        {
+            quarter: `week ${prevWeek}`,
+            week: prevWeek,
+            iphone: 78 * (Math.random() - 0.5),
+        },
+        ...options.data,
     ];
     AgEnterpriseCharts.update(chart, options);
 }
@@ -77,6 +90,14 @@ function actionAddWeek7and8() {
         { quarter: 'week 8', week: 8, iphone: 87 },
     ];
     options.data.sort((a: any, b: any) => a.week - b.week);
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function reorder() {
+    options.data = [...options.data];
+    options.data?.forEach((d) => d.random = Math.random());
+    options.data?.sort((a, b) => a.random - b.random);
+
     AgEnterpriseCharts.update(chart, options);
 }
 
