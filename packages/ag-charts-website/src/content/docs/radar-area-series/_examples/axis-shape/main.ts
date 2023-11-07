@@ -1,4 +1,5 @@
 import { AgEnterpriseCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgPolarChartOptions = {
@@ -30,7 +31,7 @@ const options: AgPolarChartOptions = {
             type: 'radius-number',
             shape: 'circle',
         },
-    ]
+    ],
 };
 
 AgEnterpriseCharts.create(options);

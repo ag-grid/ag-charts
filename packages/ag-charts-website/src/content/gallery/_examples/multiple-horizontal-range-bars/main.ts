@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -9,11 +10,11 @@ const options: AgChartOptions = {
     },
     subtitle: {
         text: 'Production cost range vs retail price range of top-selling phone brands on the market in 2023',
-        spacing: 30
+        spacing: 30,
     },
-        footnote: {
+    footnote: {
         text: 'Costs include essential components like core processors, display, memory, and camera module but exclude marketing, research, distribution, staff, accessories, packaging, and software.',
-        spacing: 30
+        spacing: 30,
     },
     series: [
         {
@@ -47,7 +48,7 @@ const options: AgChartOptions = {
             sizeKey: 'profitMargin',
             labelKey: 'profitMargin',
             label: {
-                formatter: ({value}) => `${(+value).toFixed(0)}%`
+                formatter: ({ value }) => `${(+value).toFixed(0)}%`,
             },
         },
     ],
@@ -66,7 +67,7 @@ const options: AgChartOptions = {
             keys: ['profitMargin'],
             label: {
                 formatter: ({ value }) => `${value}%`,
-            }
+            },
         },
         {
             type: 'number',
@@ -79,7 +80,7 @@ const options: AgChartOptions = {
                         currency: 'USD',
                         maximumFractionDigits: 0,
                     })}`,
-            }
+            },
         },
     ],
 };

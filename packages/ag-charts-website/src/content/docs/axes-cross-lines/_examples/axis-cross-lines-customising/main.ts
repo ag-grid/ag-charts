@@ -11,12 +11,12 @@ const options: AgChartOptions = {
                 axes: {
                     number: {
                         gridLine: {
-                            style: []
+                            style: [],
                         },
                     },
                     time: {
                         gridLine: {
-                            style: []
+                            style: [],
                         },
                     },
                 },

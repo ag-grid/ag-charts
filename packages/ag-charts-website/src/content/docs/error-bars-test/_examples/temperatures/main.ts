@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -12,7 +13,7 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'temperature',
             yName: 'Canada',
-            errorBar:  {
+            errorBar: {
                 yLowerKey: 'temperatureLower',
                 yUpperKey: 'temperatureUpper',
             },
@@ -22,7 +23,7 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'temperature',
             yName: 'Australia',
-            errorBar:  {
+            errorBar: {
                 yLowerKey: 'temperatureLower',
                 yUpperKey: 'temperatureUpper',
             },

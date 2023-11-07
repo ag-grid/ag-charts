@@ -2,7 +2,7 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgEnterpriseCha
 
 import { getData } from './data';
 
-const formatDate = (value:  number | Date | undefined) => {
+const formatDate = (value: number | Date | undefined) => {
     return Intl.DateTimeFormat('en-GB').format(value);
 };
 const tooltip = {
@@ -14,7 +14,7 @@ const tooltip = {
     },
 };
 
-const options: AgChartOptions =  {
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -51,12 +51,7 @@ const options: AgChartOptions =  {
             position: 'bottom',
             nice: false,
             tick: {
-                values: [
-                    new Date(2009, 0, 1),
-                    new Date(2013, 0, 1),
-                    new Date(2017, 0, 1),
-                    new Date(2021, 0, 1),
-                ],
+                values: [new Date(2009, 0, 1), new Date(2013, 0, 1), new Date(2017, 0, 1), new Date(2021, 0, 1)],
             },
         },
         {

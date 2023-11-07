@@ -1,5 +1,6 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
-import {getData} from './data';
+
+import { getData } from './data';
 
 function formatSize(value: number) {
     const e = Math.min(3, Math.floor(Math.log(value) / Math.log(1024)));
@@ -35,14 +36,14 @@ const options: AgChartOptions = {
             highlightStyle: {
                 tile: {
                     label: {
-                        color:'white'
+                        color: 'white',
                     },
                     stroke: 'white',
                     strokeWidth: 4,
                 },
                 group: {
-                    fill: 'white'
-                }
+                    fill: 'white',
+                },
             },
             tooltip: {
                 renderer: (params) => {

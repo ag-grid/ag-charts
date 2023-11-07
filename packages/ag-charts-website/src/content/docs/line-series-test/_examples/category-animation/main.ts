@@ -108,11 +108,7 @@ function rapidUpdate() {
 
     (chart as any).chart.waitForUpdate().then(() => {
         AgEnterpriseCharts.updateDelta(chart, {
-            data: [
-                ...data,
-                { quarter: 'week 12', iphone: 78 },
-                { quarter: 'week 13', iphone: 138 },
-            ],
+            data: [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
         });
     });
 }

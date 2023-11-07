@@ -1,4 +1,5 @@
 import { AgEnterpriseCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgPolarChartOptions = {

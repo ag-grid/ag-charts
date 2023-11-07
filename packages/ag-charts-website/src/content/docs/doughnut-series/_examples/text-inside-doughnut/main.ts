@@ -1,11 +1,12 @@
-import { AgChartOptions, AgChart } from 'ag-charts-community';
-import {getData} from './data';
+import { AgChart, AgChartOptions } from 'ag-charts-community';
+
+import { getData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-      text: 'Portfolio Composition',
+        text: 'Portfolio Composition',
     },
     series: [
         {
@@ -14,22 +15,22 @@ const options: AgChartOptions = {
             angleKey: 'amount',
             innerRadiusRatio: 0.9,
             innerLabels: [
-              {
-                text: 'Total Investment',
-                fontWeight: 'bold',
-              },
-              {
-                text: '$100,000',
-                margin: 4,
-                 fontSize: 48,
-                color: 'green',
-              },
+                {
+                    text: 'Total Investment',
+                    fontWeight: 'bold',
+                },
+                {
+                    text: '$100,000',
+                    margin: 4,
+                    fontSize: 48,
+                    color: 'green',
+                },
             ],
             innerCircle: {
-              fill: '#c9fdc9',
+                fill: '#c9fdc9',
             },
-          },
+        },
     ],
-}
+};
 
-AgChart.create(options)
+AgChart.create(options);

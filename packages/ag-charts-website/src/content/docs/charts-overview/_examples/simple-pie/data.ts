@@ -8,6 +8,6 @@ export function getData(): any[] {
         { religion: 'Muslim', population: 1215000 },
         { religion: 'Sikh', population: 123000 },
         { religion: 'Other', population: 174000 },
-        { religion: 'None', population: 2274000 }
+        { religion: 'None', population: 2274000 },
     ];
 }

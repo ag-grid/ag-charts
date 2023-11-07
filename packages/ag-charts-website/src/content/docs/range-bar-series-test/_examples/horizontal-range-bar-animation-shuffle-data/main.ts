@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const data = getData();
@@ -32,10 +33,7 @@ function shuffleValues() {
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex--;
 
-        [data[currentIndex], data[randomIndex]] = [
-            data[randomIndex],
-            data[currentIndex],
-        ];
+        [data[currentIndex], data[randomIndex]] = [data[randomIndex], data[currentIndex]];
     }
 
     options.data = data;

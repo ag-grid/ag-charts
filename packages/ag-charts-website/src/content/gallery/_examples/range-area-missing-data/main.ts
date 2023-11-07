@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -14,7 +15,7 @@ const options: AgChartOptions = {
             xName: 'Date',
             yLowKey: 'low',
             yHighKey: 'high',
-        }
+        },
     ],
     axes: [
         {
@@ -26,10 +27,10 @@ const options: AgChartOptions = {
             position: 'bottom',
             nice: false,
             crosshair: {
-                enabled: false
-            }
+                enabled: false,
+            },
         },
-    ]
+    ],
 };
 
 AgEnterpriseCharts.create(options);

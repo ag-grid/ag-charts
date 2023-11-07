@@ -1,16 +1,15 @@
 'use strict';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AgChartsReact } from 'ag-charts-react';
+
 import { time } from 'ag-charts-community';
+import { AgChartsReact } from 'ag-charts-react';
 
 const ChartExample = () => {
-
     const chartRef = useRef(null);
     const [updating, setUpdating] = useState(false);
     const [options, setOptions] = useState({
-
         data: getData(),
         series: [
             {
@@ -43,14 +42,13 @@ const ChartExample = () => {
         },
     });
 
-
     const update = useCallback(() => {
         const clone = { ...options };
 
         clone.data = getData();
 
         setOptions(clone);
-    }, [getData, options])
+    }, [getData, options]);
 
     const startUpdates = useCallback(() => {
         if (updating) {
@@ -59,22 +57,20 @@ const ChartExample = () => {
         setUpdating(true);
         update();
         setInterval(update, 500);
-    }, [updating])
+    }, [updating]);
 
-    return <div className="wrapper">
-        <div id="toolPanel">
-            <button onClick={startUpdates}>Start Updates</button>
+    return (
+        <div className="wrapper">
+            <div id="toolPanel">
+                <button onClick={startUpdates}>Start Updates</button>
+            </div>
+            <AgChartsReact ref={chartRef} options={options} />
         </div>
-        <AgChartsReact
-            ref={chartRef}
-            options={options}
-        />
-    </div>;
+    );
+};
 
-}
-
-var lastTime = new Date('07 Jan 2020 13:25:00 GMT').getTime()
-var data = []
+var lastTime = new Date('07 Jan 2020 13:25:00 GMT').getTime();
+var data = [];
 function getData() {
     data.shift();
     while (data.length < 20) {

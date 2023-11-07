@@ -1,4 +1,5 @@
-import {AgChartOptions, AgEnterpriseCharts, AgLineSeriesTooltipRendererParams} from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -12,7 +13,7 @@ const options: AgChartOptions = {
             type: 'line',
             xKey: 'expiry',
             yKey: 'price',
-            errorBar:  {
+            errorBar: {
                 xLowerKey: 'expiryLo',
                 xUpperKey: 'expiryHi',
                 yLowerKey: 'priceLo',
@@ -26,17 +27,17 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'bottom',
             title: {
-                text: 'Expiry Date (Months)'
-            }
+                text: 'Expiry Date (Months)',
+            },
         },
         {
             type: 'number',
             position: 'left',
             title: {
-                text: 'Option Price (£)'
-            }
-        }
-    ]
+                text: 'Option Price (£)',
+            },
+        },
+    ],
 };
 
 function customTooltipRenderer(params: AgLineSeriesTooltipRendererParams) {
@@ -55,6 +56,5 @@ function customTooltipRenderer(params: AgLineSeriesTooltipRendererParams) {
 
     return { content };
 }
-
 
 AgEnterpriseCharts.create(options);

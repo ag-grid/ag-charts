@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');
@@ -35,7 +36,7 @@ const options: AgChartOptions = {
                         `<div style="padding: 4px 8px">${numFormatter.format(datum[sectorLabelKey!])}</div>`,
                     ].join('\n');
                 },
-            }
+            },
         },
     ],
     legend: {

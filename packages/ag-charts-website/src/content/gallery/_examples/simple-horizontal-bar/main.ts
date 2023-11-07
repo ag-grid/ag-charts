@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -18,7 +19,7 @@ const options: AgChartOptions = {
             yKey: 'earnings',
             errorBar: {
                 yLowerKey: 'earningsLower',
-                yUpperKey: 'earningsUpper'
+                yUpperKey: 'earningsUpper',
             },
             label: {
                 formatter: ({ value }) => `£${value.toFixed(0)}`,

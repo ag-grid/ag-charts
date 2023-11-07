@@ -196,15 +196,7 @@ const hours = [
     '11p',
 ];
 
-export const days = [
-    'Saturday',
-    'Friday',
-    'Thursday',
-    'Wednesday',
-    'Tuesday',
-    'Monday',
-    'Sunday',
-];
+export const days = ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday'];
 
 export function getData() {
     return rawData.map((item) => ({

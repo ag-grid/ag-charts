@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts, AgRangeBarSeriesLabelFormatterParams } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -17,8 +18,8 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ itemId, value }: AgRangeBarSeriesLabelFormatterParams) => {
                     return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
-                }
-            }
+                },
+            },
         },
     ],
 };

@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions, Marker } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts, Marker } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {

@@ -1,4 +1,10 @@
-import { AgEnterpriseCharts, AgPieSeriesTooltipRendererParams, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgEnterpriseCharts,
+    AgPieSeriesTooltipRendererParams,
+    AgPolarChartOptions,
+    AgPolarSeriesOptions,
+} from 'ag-charts-enterprise';
+
 import { getData2020, getData2022 } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US', {

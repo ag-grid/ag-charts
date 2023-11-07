@@ -1,42 +1,43 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
-import { getData } from "./data";
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
+import { getData } from './data';
 
 const options: AgChartOptions = {
-  container: document.getElementById('myChart'),
-  title: {
-    text: 'Race demographics',
-  },
-  subtitle: {
-    text: 'Number of participants by age category',
-  },
-  data: getData(),
-  series: [
-    {
-      type: 'histogram',
-      xKey: 'age',
-      xName: 'Participant Age',
-      areaPlot: true,
-      bins: [
-        [16, 18],
-        [18, 21],
-        [21, 25],
-        [25, 40],
-      ],
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Race demographics',
     },
-  ],
-  axes: [
-    {
-      type: 'number',
-      position: 'bottom',
-      title: { text: 'Age category (years)' },
-      tick: { interval: 2 },
+    subtitle: {
+        text: 'Number of participants by age category',
     },
-    {
-      type: 'number',
-      position: 'left',
-      title: { text: 'Number of participants' },
-    },
-  ],
-}
+    data: getData(),
+    series: [
+        {
+            type: 'histogram',
+            xKey: 'age',
+            xName: 'Participant Age',
+            areaPlot: true,
+            bins: [
+                [16, 18],
+                [18, 21],
+                [21, 25],
+                [25, 40],
+            ],
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            title: { text: 'Age category (years)' },
+            tick: { interval: 2 },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            title: { text: 'Number of participants' },
+        },
+    ],
+};
 
-AgEnterpriseCharts.create(options)
+AgEnterpriseCharts.create(options);

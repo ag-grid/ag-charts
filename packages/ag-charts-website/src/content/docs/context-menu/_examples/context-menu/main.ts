@@ -1,38 +1,35 @@
-import {
-  AgCartesianChartOptions,
-  AgEnterpriseCharts,
-} from "ag-charts-enterprise"
+import { AgCartesianChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 const options: AgCartesianChartOptions = {
-  container: document.getElementById("myChart"),
-  title: {
-    text: "Sweaters made",
-  },
-  contextMenu: {
-    enabled: true,
-  },
-  data: [
-    {
-      month: "Jun",
-      sweaters: 50,
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Sweaters made',
     },
-    {
-      month: "Jul",
-      sweaters: 70,
+    contextMenu: {
+        enabled: true,
     },
-    {
-      month: "Aug",
-      sweaters: 60,
-    },
-  ],
-  series: [
-    {
-      type: "bar",
-      xKey: "month",
-      yKey: "sweaters",
-      yName: "Sweaters Made",
-    },
-  ],
-}
+    data: [
+        {
+            month: 'Jun',
+            sweaters: 50,
+        },
+        {
+            month: 'Jul',
+            sweaters: 70,
+        },
+        {
+            month: 'Aug',
+            sweaters: 60,
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'sweaters',
+            yName: 'Sweaters Made',
+        },
+    ],
+};
 
-AgEnterpriseCharts.create(options)
+AgEnterpriseCharts.create(options);

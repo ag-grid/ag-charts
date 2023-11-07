@@ -4,7 +4,7 @@ import { chromosomes, getData } from './data';
 
 const tooltip = {
     renderer: ({ datum, xKey, yKey, xName }: AgCartesianSeriesTooltipRendererParams) => {
-        const region = `${datum[yKey] < 0 ? 'p' : 'q'}${Math.abs(datum[yKey])}`
+        const region = `${datum[yKey] < 0 ? 'p' : 'q'}${Math.abs(datum[yKey])}`;
         return {
             title: `${xName} ${datum[xKey]}`,
             content: `Region: ${region}`,
@@ -27,7 +27,7 @@ const options: AgChartOptions = {
         xName: 'Chromosome',
         yKey: 'region',
         yName: `C${chromosome}`,
-        tooltip
+        tooltip,
     })),
     seriesArea: {
         padding: {

@@ -1,73 +1,74 @@
-import { AgChartOptions, AgChart } from 'ag-charts-community'
-import { maleHeightWeight, femaleHeightWeight } from './height-weight-data'
+import { AgChart, AgChartOptions } from 'ag-charts-community';
+
+import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
 const options: AgChartOptions = {
-  container: document.getElementById('myChart'),
-  title: {
-    text: 'Weight vs Height',
-  },
-  subtitle: {
-    text: 'by Gender',
-  },
-  series: [
-    {
-      type: 'bubble',
-      title: 'Male',
-      data: maleHeightWeight,
-      xKey: 'height',
-      xName: 'Height',
-      yKey: 'weight',
-      yName: 'Weight',
-      sizeKey: 'age',
-      sizeName: 'Age',
-      marker: {
-        shape: 'square',
-        fill: '#e36f6ab5',
-        stroke: '#9f4e4a',
-      },
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Weight vs Height',
     },
-    {
-      type: 'bubble',
-      title: 'Female',
-      data: femaleHeightWeight,
-      xKey: 'height',
-      xName: 'Height',
-      yKey: 'weight',
-      yName: 'Weight',
-      sizeKey: 'age',
-      sizeName: 'Age',
-      marker: {
-        fill: '#7b91deb5',
-        stroke: '#56659b',
-      },
+    subtitle: {
+        text: 'by Gender',
     },
-  ],
-  axes: [
-    {
-      type: 'number',
-      position: 'bottom',
-      title: {
-        text: 'Height',
-      },
-      label: {
-        formatter: (params) => {
-          return params.value + 'cm'
+    series: [
+        {
+            type: 'bubble',
+            title: 'Male',
+            data: maleHeightWeight,
+            xKey: 'height',
+            xName: 'Height',
+            yKey: 'weight',
+            yName: 'Weight',
+            sizeKey: 'age',
+            sizeName: 'Age',
+            marker: {
+                shape: 'square',
+                fill: '#e36f6ab5',
+                stroke: '#9f4e4a',
+            },
         },
-      },
-    },
-    {
-      type: 'number',
-      position: 'left',
-      title: {
-        text: 'Weight',
-      },
-      label: {
-        formatter: (params) => {
-          return params.value + 'kg'
+        {
+            type: 'bubble',
+            title: 'Female',
+            data: femaleHeightWeight,
+            xKey: 'height',
+            xName: 'Height',
+            yKey: 'weight',
+            yName: 'Weight',
+            sizeKey: 'age',
+            sizeName: 'Age',
+            marker: {
+                fill: '#7b91deb5',
+                stroke: '#56659b',
+            },
         },
-      },
-    },
-  ],
-}
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            title: {
+                text: 'Height',
+            },
+            label: {
+                formatter: (params) => {
+                    return params.value + 'cm';
+                },
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            title: {
+                text: 'Weight',
+            },
+            label: {
+                formatter: (params) => {
+                    return params.value + 'kg';
+                },
+            },
+        },
+    ],
+};
 
-AgChart.create(options)
+AgChart.create(options);

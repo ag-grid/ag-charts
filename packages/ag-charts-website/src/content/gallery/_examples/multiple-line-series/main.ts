@@ -1,12 +1,13 @@
 import { AgChartOptions, AgEnterpriseCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const tooltip = {
     renderer: ({ title, datum, xKey, yKey, xName, yName }: AgLineSeriesTooltipRendererParams) => ({
         title,
-        content: `${xName} ${datum[xKey].toFixed(0)}: ${Math.floor(
-            datum[yKey] / 60
-        )}h ${Math.round(datum[yKey] % 60)}m`,
+        content: `${xName} ${datum[xKey].toFixed(0)}: ${Math.floor(datum[yKey] / 60)}h ${Math.round(
+            datum[yKey] % 60
+        )}m`,
     }),
 };
 

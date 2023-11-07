@@ -1,4 +1,5 @@
-import { AgChartOptions, AgTreemapSeriesTooltipRendererParams, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts, AgTreemapSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+
 import { data } from './data';
 
 const options: AgChartOptions = {
@@ -13,9 +14,9 @@ const options: AgChartOptions = {
             colorKey: 'color', // default (can be omitted for current dataset)
             group: {
                 label: {
-                    formatter({value}) {
-                        return value.toUpperCase()
-                    }
+                    formatter({ value }) {
+                        return value.toUpperCase();
+                    },
                 },
                 textAlign: 'left',
             },
@@ -23,29 +24,29 @@ const options: AgChartOptions = {
                 secondaryLabel: {
                     formatter(params) {
                         return params.value.toFixed(2) + '%';
-                    }
+                    },
                 },
             },
             highlightStyle: {
                 tile: {
                     label: {
-                        color: 'black'
+                        color: 'black',
                     },
                     secondaryLabel: {
-                        color: 'black'
-                    }
-                }
-            },
-            tooltip: {
-                renderer: params => {
-                    return {
-                        content: `<b>Change</b>: ${(params.datum[params.colorKey!]).toFixed(2)}%`,
-                    }
+                        color: 'black',
+                    },
                 },
             },
-            formatter: params => ({
+            tooltip: {
+                renderer: (params) => {
+                    return {
+                        content: `<b>Change</b>: ${params.datum[params.colorKey!].toFixed(2)}%`,
+                    };
+                },
+            },
+            formatter: (params) => ({
                 fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
-                stroke: params.depth < 1 ? 'white' : 'black'
+                stroke: params.depth < 1 ? 'white' : 'black',
             }),
         },
     ],

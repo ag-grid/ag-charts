@@ -1,56 +1,50 @@
-import { AgChart, AgChartOptions } from "ag-charts-community"
+import { AgChart, AgChartOptions } from 'ag-charts-community';
 
 const options: AgChartOptions = {
-  container: document.getElementById("myChart"),
-  title: {
-    text: "Average low/high temperatures in London",
-  },
-  subtitle: {
-    text: "(click a data point for details)",
-  },
-  data: [
-    { month: "March", low: 3.9, high: 11.3 },
-    { month: "April", low: 5.5, high: 14.2 },
-    { month: "May", low: 8.7, high: 17.9 },
-  ],
-  series: [
-    {
-      type: "line",
-      xKey: "month",
-      yKey: "high",
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Average low/high temperatures in London',
     },
-    {
-      type: "bar",
-      xKey: "month",
-      yKey: "low",
+    subtitle: {
+        text: '(click a data point for details)',
     },
-  ],
-  axes: [
-    {
-      type: "category",
-      position: "bottom",
+    data: [
+        { month: 'March', low: 3.9, high: 11.3 },
+        { month: 'April', low: 5.5, high: 14.2 },
+        { month: 'May', low: 8.7, high: 17.9 },
+    ],
+    series: [
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'high',
+        },
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'low',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+    legend: {
+        enabled: false,
     },
-    {
-      type: "number",
-      position: "left",
+    listeners: {
+        seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
+            window.alert(
+                'Temperature in ' + datum[xKey!] + ': ' + String(datum[yKey!]) + '°C' + '\nSeries: ' + seriesId
+            );
+        },
     },
-  ],
-  legend: {
-    enabled: false,
-  },
-  listeners: {
-    seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
-      window.alert(
-        "Temperature in " +
-          datum[xKey!] +
-          ": " +
-          String(datum[yKey!]) +
-          "°C" +
-          "\nSeries: " +
-          seriesId
-      )
-    },
-  },
-}
+};
 
-AgChart.create(options)
+AgChart.create(options);
