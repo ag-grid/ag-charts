@@ -3,7 +3,10 @@
         "items": [
             {
                 "title": "Getting Started",
-                "path": "getting-started"
+                "items": [
+                    { "title": "Quick Start", "path": "quick-start" },
+                    { "title": "Creating a Basic Chart", "path": "create-a-basic-chart" }
+                ]
             },
             {
                 "title": "Building & Tooling",
