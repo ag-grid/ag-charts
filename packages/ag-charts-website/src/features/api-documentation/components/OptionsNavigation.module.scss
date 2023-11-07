@@ -13,7 +13,12 @@
     flex-direction: column;
     width: 100%;
     height: calc(100vh - var(--header-nav-height));
-    overflow-y: auto;
+    z-index: 3;
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        overflow-y: auto;
+        z-index: unset;
+    }
 
     > header {
         position: sticky;
@@ -21,9 +26,13 @@
         left: 0;
         z-index: 3;
         width: 100%;
-        padding: $size-2;
+        padding: $size-2 var(--horizontal-margin);
         background-color: var(--default-background-color);
         border-bottom: 1px solid var(--neutral-200);
+
+        @media screen and (min-width: $breakpoint-options-medium) {
+            padding: $size-2;
+        }
 
         h3 {
             margin-bottom: 0;
@@ -62,7 +71,13 @@
 
 .navContainer {
     --nav-options-indent: 24px;
+
+    display: none;
     user-select: none;
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        display: block;
+    }
 }
 
 .navGroup {
@@ -177,6 +192,10 @@
     position: relative;
     display: flex;
     align-items: center;
+
+    input::-webkit-search-cancel-button {
+        display: none;
+    }
 }
 
 .searchIcon {
@@ -189,12 +208,20 @@
 
 .searchDropdown {
     position: absolute;
-    inset: calc(100% - 1px) 0 auto;
+    inset: 100% 0 auto;
     max-height: 168px;
-    border-radius: 4px;
-    border: 1px solid var(--input-border-color);
+    border-bottom-right-radius: var(--border-radius);
+    border-bottom-left-radius: var(--border-radius);
     background-color: var(--default-background-color);
+    border: 2px solid var(--input-border-color);
+    border-top: none;
     overflow: auto;
+    z-index: 3;
+
+    #{$darkmode-selector} & {
+        inset: 100% 0 auto;
+        border: 1px solid var(--input-border-color);
+    }
 }
 
 .searchOptions {
@@ -205,10 +232,22 @@
 }
 
 .searchOption {
-    padding: 2px 4px;
+    padding: $size-1 $size-2;
     cursor: pointer;
 
+    strong {
+        color: var(--dark-blue-600);
+
+        #{$darkmode-selector} & {
+            color: var(--primary-500);
+        }
+    }
+
     &.selected {
-        background-color: var(--bright-blue-gray);
+        background-color: var(--background-600);
+
+        #{$darkmode-selector} & {
+            background-color: var(--background-400);
+        }
     }
 }

@@ -81,17 +81,17 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
-                    <p>
+                    <p className={styles.propertyDescription}>
                         Properties available on the <code>{id}</code> interface.
                     </p>
                 ))}
-            <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                <tbody>
+            <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
+                <div>
                     {processMembers(interfaceRef.members, config).map((member) => (
                         <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
                     ))}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     );
 }
@@ -157,8 +157,14 @@ function ApiReferenceRow({
     const memberType = normalizeType(member.type);
 
     return (
-        <tr id={anchorId}>
-            <td className={styles.leftColumn}>
+        <div
+            id={anchorId}
+            className={classnames(
+                styles.propertyRow,
+                prefixPath.length > 0 ? `${styles.isChildProp} ${styles['level-' + prefixPath.length]}` : ''
+            )}
+        >
+            <div className={styles.leftColumn}>
                 <PropertyTitle
                     name={memberName}
                     anchorId={anchorId}
@@ -166,33 +172,35 @@ function ApiReferenceRow({
                     required={!config.hideRequired && !member.optional}
                 />
                 <PropertyType type={memberType} defaultValue={member.defaultValue} />
-            </td>
-            <td className={styles.rightColumn}>
+            </div>
+            <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
                     <Markdown>{member.docs?.join('\n')}</Markdown>
                 </div>
                 {nestedPath ? (
-                    <a
-                        href={nestedPath}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            const selectionState = {
-                                pathname: nestedPath,
-                                hash: `reference-${memberType}`,
-                                pageInterface: memberType,
-                                pageTitle: { name: memberName },
-                            };
-                            selection?.setSelection(selectionState);
-                            navigate(selectionState, { state: selectionState });
-                        }}
-                    >
-                        See property details
-                    </a>
+                    <div className={styles.actions}>
+                        <a
+                            href={nestedPath}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                const selectionState = {
+                                    pathname: nestedPath,
+                                    hash: `reference-${memberType}`,
+                                    pageInterface: memberType,
+                                    pageTitle: { name: memberName },
+                                };
+                                selection?.setSelection(selectionState);
+                                navigate(selectionState, { state: selectionState });
+                            }}
+                        >
+                            See property details <Icon name="arrowRight" />
+                        </a>
+                    </div>
                 ) : (
                     <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
                 )}
-            </td>
-        </tr>
+            </div>
+        </div>
     );
 }
 
@@ -218,8 +226,8 @@ function MemberActions({
             {additionalDetails && (
                 <ToggleDetails
                     isOpen={isExpanded}
-                    moreText={hasMembers ? 'Expand interface' : 'More details'}
-                    lessText={hasMembers ? 'Collapse interface' : 'Hide details'}
+                    moreText={hasMembers ? 'See child properties' : 'More details'}
+                    lessText={hasMembers ? 'Hide child properties' : 'Hide details'}
                     onToggle={onDetailsToggle}
                 />
             )}

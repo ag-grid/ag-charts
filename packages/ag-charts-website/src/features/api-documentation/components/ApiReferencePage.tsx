@@ -110,7 +110,7 @@ function ApiReferencePageContent({
             <ApiReference
                 id={pageId}
                 anchorId={`reference-${selection?.selection.pageInterface ?? pageRef.name}`}
-                style={{ '--anchor-offset': `${headerHeight}px` } as CSSProperties}
+                style={{ '--anchor-offset': `${headerHeight - 1}px` } as CSSProperties}
             />
         </div>
     );
