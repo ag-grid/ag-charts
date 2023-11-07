@@ -1,7 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
 
-window.agChartsDebug = 'animation';
-
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60 },
     { quarter: 'week 4', week: 4, iphone: 185 },
