@@ -1,11 +1,8 @@
 ---
-import { TabsWithData } from './TabsWithData';
-import { extractTabsData } from './utils';
+import { TabsWithHtmlChildren } from "./TabsWithHtmlChildren";
 
-const html = await Astro.slots.render('default');
-const tabsData = extractTabsData(html);
-
-const { tabItemIdPrefix } = Astro.props;
 ---
 
-<TabsWithData client:load tabsData={tabsData} tabItemIdPrefix={tabItemIdPrefix} />
+<TabsWithHtmlChildren client:load>
+    <slot />
+</TabsWithHtmlChildren>
