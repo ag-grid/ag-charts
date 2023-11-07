@@ -301,9 +301,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     surroundingRadius?: number = undefined;
 
-    private sectorOrderById: Record<string, number> = {};
-    private sectorOrderCounter = 0;
-
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -399,24 +396,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             extraProps.push(diff(this.processedData));
         }
 
-        const orderKey = '__sectorIndex';
-        data = data.map((d) => {
-            const id = this.getDatumIdFromData(d);
-
-            let result = d;
-            if (id != null) {
-                this.sectorOrderById[id] ??= this.sectorOrderCounter++;
-                result = { ...result, [orderKey]: this.sectorOrderById[id] };
-            }
-
-            return result;
-        });
-
-        // Pre-sort data so presentation and animation can happen consistently.
-        if (this.sectorOrderCounter > 0) {
-            data.sort((a, b) => a[orderKey] - b[orderKey]);
-        }
-
         data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
         await this.requestDataModel<any, any, true>(dataController, data, {
@@ -491,7 +470,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             const sectorFormat = this.getSectorFormat(datum, index, false);
 
             return {
-                itemId: this.getSectorIndex(datum) ?? index,
+                itemId: index,
                 series: this,
                 datum,
                 index,
@@ -599,12 +578,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getSectorIndex(datum: any) {
-        const datumId = this.getDatumIdFromData(datum);
-        return this.sectorOrderById[datumId];
-    }
-
-    private getSectorFormat(datum: any, itemId: any, highlight: boolean) {
+    private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const {
             angleKey,
             radiusKey,
@@ -615,9 +589,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             ctx: { callbackCache, highlightManager },
         } = this;
 
-        const formatIndex = this.getSectorIndex(datum) ?? itemId;
         const highlightedDatum = highlightManager.getActiveHighlight();
-        const isDatumHighlighted = highlight && highlightedDatum?.series === this && itemId === highlightedDatum.itemId;
+        const isDatumHighlighted =
+            highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
             isDatumHighlighted && this.highlightStyle.item,
