@@ -7,6 +7,13 @@ export interface AgBulletSeriesTooltipRendererParams<TDatum = any>
 
 export interface AgBulletSeriesThemeableOptions extends AgBaseSeriesThemeableOptions {}
 
+export interface AgBulletColorRange {
+    /** Color of this category. */
+    color: string;
+    /** Stop value of this category. Defaults the maximum value if unset. */
+    stop?: number;
+}
+
 export interface AgBulletSeriesOptions<TDatum = any> extends AgBaseSeriesOptions<TDatum> {
     /** Configuration for the Bullet series. */
     type: 'bullet';
@@ -14,4 +21,6 @@ export interface AgBulletSeriesOptions<TDatum = any> extends AgBaseSeriesOptions
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBulletSeriesTooltipRendererParams>;
+    /** Categoric ranges of the chart */
+    colorRanges?: AgBulletColorRange[];
 }

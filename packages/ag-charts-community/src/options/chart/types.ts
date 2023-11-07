@@ -41,3 +41,5 @@ export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
  * - `'nearest'` always tracks the nearest point anywhere on the chart.
  */
 export type InteractionRange = PixelSize | 'exact' | 'nearest';
+
+export type Direction = 'vertical' | 'horizontal';
