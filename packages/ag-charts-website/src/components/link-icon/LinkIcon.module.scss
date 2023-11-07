@@ -8,10 +8,6 @@
     opacity: 0;
     transition: opacity 0.33s ease-in-out;
 
-    &:hover {
-        opacity: 1 !important;
-    }
-
     svg {
         position: relative;
         top: -0.1em;
@@ -20,4 +16,9 @@
         visibility: visible;
         fill: var(--azure-blue);
     }
+}
+
+// Increase specificity for hover state
+:global(.mainContainer) a:global(.docs-header-icon):hover {
+    opacity: 1;
 }
