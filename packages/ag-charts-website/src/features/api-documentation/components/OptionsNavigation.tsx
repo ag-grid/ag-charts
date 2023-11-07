@@ -7,7 +7,13 @@ import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
 import type { NavigationData, NavigationPath } from '../apiReferenceHelpers';
-import { cleanupName, extractSearchData, getMemberType, getNavigationDataFromPath } from '../apiReferenceHelpers';
+import {
+    cleanupName,
+    extractSearchData,
+    getMemberType,
+    getNavigationDataFromPath,
+    processMembers,
+} from '../apiReferenceHelpers';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
@@ -41,6 +47,7 @@ export function OptionsNavigation({
     const handleClick = (navData: NavigationData) => {
         if (location?.pathname === navData.pathname && location.hash.substring(1) === navData.hash) {
             scrollIntoViewById(navData.hash);
+            selection?.setSelection(navData); // trigger change for highlighting selection
         } else {
             selection?.setSelection(navData);
             navigate(navData, { state: navData });
@@ -77,7 +84,7 @@ export function OptionsNavigation({
                     <NavBreadcrumb breadcrumbs={breadcrumbs} rootInterface={rootInterface} basePath={basePath}>
                         {interfaceRef.kind === 'interface' && (
                             <NavGroup depth={breadcrumbs?.length ?? 0}>
-                                {interfaceRef.members.map((member) => (
+                                {processMembers(interfaceRef, config).map((member) => (
                                     <NavProperty
                                         key={member.name}
                                         member={member}
@@ -183,7 +190,7 @@ function NavProperty({
                 <>
                     <NavGroup depth={depth + 1}>
                         {isInterface
-                            ? interfaceRef.members.map((childMember) => (
+                            ? processMembers(interfaceRef, config).map((childMember) => (
                                   <NavProperty
                                       key={childMember.name}
                                       depth={depth + 1}
@@ -276,7 +283,7 @@ function NavTypedUnionProperty({
             {isExpanded && (
                 <>
                     <NavGroup depth={depth + 1}>
-                        {interfaceRef.members.map((member) => (
+                        {processMembers(interfaceRef, config).map((member) => (
                             <NavProperty
                                 key={member.name}
                                 member={member}

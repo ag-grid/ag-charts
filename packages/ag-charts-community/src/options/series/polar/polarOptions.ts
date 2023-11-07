@@ -15,6 +15,7 @@ export type AgPolarSeriesOptions =
     | AgRadialBarSeriesOptions
     | AgRadialColumnSeriesOptions
     | AgNightingaleSeriesOptions;
+
 export type AgPolarAxisOptions =
     | AgAngleCategoryAxisOptions
     | AgAngleNumberAxisOptions

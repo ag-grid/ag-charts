@@ -3,13 +3,20 @@ import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
-import type { AllHTMLAttributes } from 'react';
+import type { AllHTMLAttributes, CSSProperties } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
 import type { SpecialTypesMap } from '../apiReferenceHelpers';
-import { cleanupName, formatTypeToCode, getMemberType, isInterfaceHidden, normalizeType } from '../apiReferenceHelpers';
+import {
+    cleanupName,
+    formatTypeToCode,
+    getMemberType,
+    isInterfaceHidden,
+    normalizeType,
+    processMembers,
+} from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
 import { PropertyTitle, PropertyType } from './Properies';
@@ -87,7 +94,7 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
                 ))}
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <div>
-                    {processMembers(interfaceRef.members, config).map((member) => (
+                    {processMembers(interfaceRef, config).map((member) => (
                         <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
                     ))}
                 </div>
@@ -159,10 +166,8 @@ function ApiReferenceRow({
     return (
         <div
             id={anchorId}
-            className={classnames(
-                styles.propertyRow,
-                prefixPath.length > 0 ? `${styles.isChildProp} ${styles['level-' + prefixPath.length]}` : ''
-            )}
+            className={classnames(styles.propertyRow, prefixPath && prefixPath.length > 0 && styles.isChildProp)}
+            style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
         >
             <div className={styles.leftColumn}>
                 <PropertyTitle
@@ -293,19 +298,6 @@ function useMemberAdditionalDetails(member: MemberNode) {
             return unionTypes;
         }
     }
-}
-
-function processMembers(members: MemberNode[], config: ApiReferenceConfig) {
-    const { prioritise, include, exclude } = config;
-    if (include?.length || exclude?.length) {
-        members = members.filter(
-            (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
-        );
-    }
-    if (prioritise) {
-        return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
-    }
-    return members;
 }
 
 function scrollToAndHighlightById(id: string) {
