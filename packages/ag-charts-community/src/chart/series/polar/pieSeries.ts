@@ -732,15 +732,21 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { itemSelection, highlightSelection, calloutLabelSelection, sectorLabelSelection, innerLabelsSelection } =
             this;
 
-        const update = (selection: typeof this.itemSelection) => {
-            selection.update(this.nodeData, undefined, (datum) => this.getDatumId(datum));
+        const update = (selection: typeof this.itemSelection, clone: boolean) => {
+            let nodeData = this.nodeData;
+            if (clone) {
+                // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
+                // between normal and highlighted cases.
+                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
+            }
+            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();
             }
         };
 
-        update(itemSelection);
-        update(highlightSelection);
+        update(itemSelection, false);
+        update(highlightSelection, true);
 
         calloutLabelSelection.update(this.nodeData, (group) => {
             const line = new Line();
@@ -800,16 +806,23 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         });
 
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
-            if (this.ctx.animationManager.isSkipped()) {
+            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
+
+            datum.sectorFormat.fill = format.fill;
+            datum.sectorFormat.stroke = format.stroke;
+
+            const animationDisabled = this.ctx.animationManager.isSkipped();
+            if (animationDisabled) {
                 sector.startAngle = datum.startAngle;
                 sector.endAngle = datum.endAngle;
                 sector.innerRadius = datum.innerRadius;
                 sector.outerRadius = datum.outerRadius;
             }
+            if (isDatumHighlighted || animationDisabled) {
+                sector.fill = format.fill;
+                sector.stroke = format.stroke;
+            }
 
-            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
-            sector.fill = format.fill;
-            sector.stroke = format.stroke;
             sector.strokeWidth = format.strokeWidth!;
             sector.fillOpacity = format.fillOpacity!;
             sector.strokeOpacity = this.strokeOpacity;
