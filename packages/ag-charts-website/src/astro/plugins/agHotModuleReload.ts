@@ -8,6 +8,7 @@ import { getDevFileList } from '../../utils/pages';
 export default function createAgHotModuleReload(): Plugin {
     return {
         name: 'ag-hmr',
+        apply: 'serve',
         async configureServer(server: ViteDevServer) {
             if (!getIsDev()) return;
 
