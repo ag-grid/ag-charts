@@ -219,8 +219,8 @@
             "examples": [
                 {
                     "title": "Simple Bubble",
-                    "description": "Bubble charts are a specialised type of <a href='./simple-scatter/'>scatter charts</a> that can represent a third variable through the size of each marker (or bubble).",
-                    "name": "simple-bubble"
+                    "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
+                    "name": "bubble-with-negative-values"
                 },
                 {
                     "title": "Multiple Bubble Series",
@@ -228,9 +228,9 @@
                     "name": "multiple-bubble-series"
                 },
                 {
-                    "title": "Bubble With Negative Values",
+                    "title": "Bubble With Large Data",
                     "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
-                    "name": "bubble-with-negative-values"
+                    "name": "bubble-with-large-data"
                 },
                 {
                     "title": "Bubble With Categories",
