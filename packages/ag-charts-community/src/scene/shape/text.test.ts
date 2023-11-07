@@ -293,4 +293,25 @@ describe('Text', () => {
             expect(imageData).toMatchImageSnapshot();
         });
     });
+
+    describe('should return an empty string if text overflows when it is not permitted', () => {
+        const exampleString = 'Testing wrapping multi-line string \n with two lines';
+        const font = BASE_OPTIONS;
+
+        it('should handle all text wrapping options for a small box', () => {
+            expect(Text.wrap(exampleString, 50, 50, font, 'on-space', 'never')).toBe('');
+            expect(Text.wrap(exampleString, 50, 50, font, 'never', 'never')).toBe('');
+            expect(Text.wrap(exampleString, 50, 50, font, 'hyphenate', 'never')).toBe('');
+            expect(Text.wrap(exampleString, 50, 50, font, 'always', 'never')).toBe('');
+        });
+
+        it('should handle all text wrapping options for a tall box', () => {
+            expect(Text.wrap(exampleString, 50, 1000, font, 'on-space', 'never')).toBe('');
+            expect(Text.wrap(exampleString, 50, 1000, font, 'never', 'never')).toBe('');
+
+            // The word is broken here, so does not overflow
+            expect(Text.wrap(exampleString, 50, 1000, font, 'hyphenate', 'never')).not.toBe('');
+            expect(Text.wrap(exampleString, 50, 1000, font, 'always', 'never')).not.toBe('');
+        });
+    });
 });

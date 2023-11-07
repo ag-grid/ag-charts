@@ -33,7 +33,11 @@ export type Ratio = number;
 /** Alias to denote that a value is a data value. */
 export type DataValue = any;
 
+export type TextAlign = 'left' | 'center' | 'right';
+
 export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
+
+export type TextOverflow = 'ellipsis' | 'never';
 
 /** Define a range within which an interaction can trigger on a point with one of:
  * - A distance in pixels from a point within which the event can be triggered.
@@ -41,5 +45,7 @@ export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
  * - `'nearest'` always tracks the nearest point anywhere on the chart.
  */
 export type InteractionRange = PixelSize | 'exact' | 'nearest';
+
+export type VerticalAlign = 'top' | 'middle' | 'bottom';
 
 export type Direction = 'vertical' | 'horizontal';
