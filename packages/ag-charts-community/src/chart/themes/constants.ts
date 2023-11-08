@@ -18,9 +18,11 @@ export const NORMAL: FontWeight = 'normal';
 
 export const BOTTOM: AgChartLegendPosition = 'bottom';
 const LEFT: AgCartesianAxisPosition = 'left';
+const TOP: AgCartesianAxisPosition = 'top';
 export const CARTESIAN_AXIS_POSITIONS = {
     BOTTOM,
     LEFT,
+    TOP,
 };
 
 const CATEGORY: AgCartesianAxisType = 'category';
