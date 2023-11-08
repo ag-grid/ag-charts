@@ -34,8 +34,6 @@ export const agChartsReactVersion = '8.0.0';
 export const agChartsAngularVersion = '8.0.0';
 export const agChartsVueVersion = '8.0.0';
 
-export const DOCS_TAB_ITEM_ID_PREFIX = 'reference-';
-
 /**
  * Site base URL
  *
@@ -44,17 +42,15 @@ export const DOCS_TAB_ITEM_ID_PREFIX = 'reference-';
  * NOTE: Includes trailing slash (`/`)
  */
 export const SITE_BASE_URL =
-    // Astro default env var (for build time)
-    import.meta.env?.BASE_URL ||
-    // `.env.*` override (for client side)
-    import.meta.env?.PUBLIC_BASE_URL.replace(/\/?$/, '/');
+    import.meta.env.BASE_URL || // Astro default env var (for build time)
+    import.meta.env.PUBLIC_BASE_URL.replace(/\/?$/, '/'); // `.env.*` override (for client side)
 
 /*
  * Site URL
  *
  * ie http://localhost:4600 for dev, https://testing.ag-grid.com for staging
  */
-export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SITE_URL;
+export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env.PUBLIC_SITE_URL;
 
 /**
  * Number of URL segments in `SITE_BASE_URL`

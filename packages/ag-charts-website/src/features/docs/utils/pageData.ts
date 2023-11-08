@@ -5,7 +5,7 @@ import { getGeneratedDocsContentsFileList } from './examplesGenerator';
 import { getInternalFrameworkExamples, getPagesList } from './filesData';
 
 export function getDocsPages(pages: DocsPage[]) {
-    const frameworkPages = FRAMEWORKS.flatMap((framework) => {
+    const frameworkPages = FRAMEWORKS.map((framework) => {
         return getPagesList(pages).map((page) => {
             return {
                 framework,
@@ -13,7 +13,7 @@ export function getDocsPages(pages: DocsPage[]) {
                 page,
             };
         });
-    });
+    }).flat();
 
     return frameworkPages.map(({ framework, pageName, page }) => {
         return {
