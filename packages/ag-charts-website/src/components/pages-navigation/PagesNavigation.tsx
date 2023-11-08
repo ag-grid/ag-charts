@@ -10,8 +10,6 @@ import styles from './PagesNavigation.module.scss';
 // ag-grid menu styles
 import gridStyles from './gridMenu.module.scss';
 
-const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'getting-started';
-
 function toElementId(str: string) {
     return 'menu-' + str.toLowerCase().replace('&', '').replace('/', '').replaceAll(' ', '-');
 }
@@ -194,14 +192,12 @@ function MainPagesNavigation({
     activeMenuItem,
     activeTopLevelMenuItem,
     setActiveTopLevelMenuItem,
-    onMenuToggle,
 }: {
     menuData: MenuData;
     framework: Framework;
     activeMenuItem?: MenuItem;
     activeTopLevelMenuItem?: MenuItem;
     setActiveTopLevelMenuItem: (menuItem?: MenuItem) => void;
-    onMenuToggle: () => void;
 }) {
     const mainMenuItems = menuData.main.items;
     return (
@@ -212,7 +208,6 @@ function MainPagesNavigation({
 
                 const toggleActive = () => {
                     setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
-                    onMenuToggle();
                 };
 
                 return (
@@ -235,30 +230,30 @@ function SeriesPagesNavigation({
     framework,
     activeMenuItem,
     activeTopLevelMenuItem,
-    setActiveTopLevelMenuItem,
-    seriesIsActive,
-    onMenuToggle,
 }: {
     menuData: MenuData;
     framework: Framework;
     activeMenuItem?: MenuItem;
     activeTopLevelMenuItem?: MenuItem;
-    setActiveTopLevelMenuItem: (menuItem?: MenuItem) => void;
-    seriesIsActive: boolean;
-    onMenuToggle: () => void;
 }) {
-    const chartsMenuItems = menuData.charts.items;
+    const [topLevelSeriesItem] = menuData.charts.items;
+    const chartsMenuItems = topLevelSeriesItem.items;
 
     return (
-        <ul className={classnames(styles.seriesTypesNav, styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
+        <ul
+            className={classnames(
+                styles.seriesTypesNav,
+                styles.menuInner,
+                gridStyles.menuInner,
+                gridStyles.menuGroup,
+                'list-style-none'
+            )}
+        >
+            <hr />
+            <h5>Series</h5>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
-                const isActive = menuItem === activeTopLevelMenuItem || (seriesIsActive && title === 'Series');
-
-                const toggleActive = () => {
-                    onMenuToggle();
-                    setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
-                };
+                const isActive = menuItem === activeTopLevelMenuItem;
 
                 return (
                     <NavItemContainer
@@ -266,7 +261,6 @@ function SeriesPagesNavigation({
                         framework={framework}
                         menuItem={menuItem}
                         isActive={isActive}
-                        toggleActive={toggleActive}
                         activeMenuItem={activeMenuItem}
                     />
                 );
@@ -284,7 +278,6 @@ export function PagesNavigation({
     framework: Framework;
     pageName: string;
 }) {
-    const [seriesIsActive, setSeriesIsActive] = useState(pageName === PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT);
     const [activeTopLevelMenuItem, setActiveTopLevelMenuItem] = useState<MenuItem | undefined>(
         findActiveTopLevelMenuItem({
             menuData,
@@ -297,10 +290,6 @@ export function PagesNavigation({
             activeMenuItemPath: pageName,
         })
     );
-
-    const onMenuToggle = () => {
-        setSeriesIsActive(true);
-    };
 
     const [navOpen, setNavOpen] = useState(false);
 
@@ -327,16 +316,12 @@ export function PagesNavigation({
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
                     setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
-                    onMenuToggle={onMenuToggle}
                 />
                 <SeriesPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
-                    setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
-                    seriesIsActive={seriesIsActive}
-                    onMenuToggle={onMenuToggle}
                 />
             </aside>
         </Collapsible>
