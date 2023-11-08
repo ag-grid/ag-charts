@@ -139,7 +139,7 @@ export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<
             linePath.lineTo(midPointX, midPointY);
             linePath.moveTo(x, y);
         }
-        previousTo = to;
+        previousTo = { x, y };
     }
 }
 
