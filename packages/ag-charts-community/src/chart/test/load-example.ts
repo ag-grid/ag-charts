@@ -2,7 +2,7 @@ import * as fs from 'fs';
 
 import { Logger } from '../../util/logger';
 
-const filters = [
+export const filters = [
     /.*AgChart\.(update|create)/,
     /.*AgEnterpriseCharts\.(update|create)/,
     /.* container: .*/,
@@ -15,7 +15,7 @@ const filters = [
     /^const data_1 =/,
 ];
 
-const cleanJs = (content: Buffer | string) => {
+export const cleanJs = (content: Buffer | string) => {
     const inputLines = (typeof content === 'string' ? content : content.toString()).split('\n');
     const lines: string[] = [];
 
