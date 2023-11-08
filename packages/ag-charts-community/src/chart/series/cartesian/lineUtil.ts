@@ -278,12 +278,22 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
 }
 
 function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+    const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
+
     const result = {
         fromFn: (_path: Path) => {
-            return { ...FROM_TO_MIXINS[status] };
+            let mixin;
+            if (status === 'removed') {
+                mixin = { finish: { visible: false } };
+            } else if (status === 'added') {
+                mixin = { start: { visible: true } };
+            } else {
+                mixin = {};
+            }
+            return { ...FROM_TO_MIXINS[phase], ...mixin };
         },
         toFn: (_path: Path) => {
-            return { ...FROM_TO_MIXINS[status] };
+            return { ...FROM_TO_MIXINS[phase] };
         },
     };
 
