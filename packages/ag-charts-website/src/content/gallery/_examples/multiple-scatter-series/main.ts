@@ -1,98 +1,81 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts, Marker } from 'ag-charts-enterprise';
 
-import { chromosomes, getData } from './data';
+import { getData } from './data';
 
-const tooltip = {
-    renderer: ({ datum, xKey, yKey, xName }: AgCartesianSeriesTooltipRendererParams) => {
-        const region = `${datum[yKey] < 0 ? 'p' : 'q'}${Math.abs(datum[yKey])}`
-        return {
-            title: `${xName} ${datum[xKey]}`,
-            content: `Region: ${region}`,
-        };
-    },
-};
-const data = getData();
 const options: AgChartOptions = {
-    title: {
-        text: 'Cytogenetic Map',
-    },
-    subtitle: {
-        text: `Bird's eye view of the 23 pairs of chromosomes in Homo Sapien (human) DNA.`,
-    },
     container: document.getElementById('myChart'),
-    series: chromosomes.map((chromosome) => ({
-        data: data.filter((d) => d.chromosome === chromosome),
-        type: 'scatter',
-        xKey: 'chromosome',
-        xName: 'Chromosome',
-        yKey: 'region',
-        yName: `C${chromosome}`,
-        tooltip
-    })),
-    seriesArea: {
-        padding: {
-            left: 20,
-        },
+    title: {
+        text: 'Wealth And Happiness',
     },
+    footnote: {
+        text: 'Source: The World Happiness Report 2018',
+    },
+    series: Object.entries(getData()).map(([continent, data]) => ({
+        data,
+        type: 'scatter',
+        xKey: 'gdpPerCapita',
+        xName: 'GDP Per Capita',
+        yKey: 'lifeSatisfaction',
+        yName: continent,
+        labelKey: 'country',
+        labelName: 'Country',
+        label: {},
+        marker: {
+            shape: starFactory(),
+            size: 5,
+        },
+    })),
     axes: [
+        {
+            position: 'bottom',
+            type: 'number',
+            nice: false,
+            label: {
+                formatter: ({ value }) => `${value / 1000}K`,
+            },
+            title: {
+                text: 'National Income',
+            },
+        },
         {
             position: 'left',
             type: 'number',
             nice: false,
-            max: 50,
-            tick: {
-                size: 0,
-                values: [-40, -30, -20, -10, 10, 20, 30, 40, 50],
-            },
-            gridLine: {
-                enabled: false,
-            },
-            label: {
-                formatter: ({ value }) => `${value < 0 ? 'p' : 'q'}${Math.abs(value)}`,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 0,
-                    lineDash: [5, 6],
-                    label: {
-                        text: 'Centromere',
-                        position: 'left',
-                    },
-                },
-                {
-                    type: 'range',
-                    range: [0, 50],
-                    strokeWidth: 0,
-                    fillOpacity: 0,
-                    label: {
-                        text: 'Long Arm',
-                        position: 'left',
-                        rotation: -90,
-                        padding: 65,
-                    },
-                },
-                {
-                    type: 'range',
-                    range: [0, -40],
-                    strokeWidth: 0,
-                    fillOpacity: 0,
-                    label: {
-                        text: 'Short Arm',
-                        position: 'left',
-                        rotation: -90,
-                        padding: 65,
-                    },
-                },
-            ],
-        },
-        {
-            position: 'bottom',
-            type: 'category',
             title: {
-                text: 'Chromosome',
+                text: 'Happiness',
             },
         },
     ],
+    legend: {
+        position: 'right',
+        item: {
+            marker: {
+                size: 5,
+            },
+        },
+    },
 };
+
+function starFactory() {
+    class Star extends Marker {
+        updatePath() {
+            const { x, y, path, size } = this;
+            const spikes = 5;
+            const innerRadius = size / 2;
+            const rotation = Math.PI / 2;
+
+            path.clear();
+            for (let i = 0; i < spikes * 2; i++) {
+                const radius = i % 2 === 0 ? size : innerRadius;
+                const angle = (i * Math.PI) / spikes - rotation;
+                const xCoordinate = x + Math.cos(angle) * radius;
+                const yCoordinate = y + Math.sin(angle) * radius;
+                path.lineTo(xCoordinate, yCoordinate);
+            }
+            path.closePath();
+        }
+    }
+    return Star;
+}
+
 AgEnterpriseCharts.create(options);

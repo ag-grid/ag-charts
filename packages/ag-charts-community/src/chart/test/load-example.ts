@@ -2,7 +2,7 @@ import * as fs from 'fs';
 
 import { Logger } from '../../util/logger';
 
-const filters = [
+export const filters = [
     /.*AgChart\.(update|create)/,
     /.*AgEnterpriseCharts\.(update|create)/,
     /.* container: .*/,
@@ -15,7 +15,7 @@ const filters = [
     /^const data_1 =/,
 ];
 
-const cleanJs = (content: Buffer | string) => {
+export const cleanJs = (content: Buffer | string) => {
     const inputLines = (typeof content === 'string' ? content : content.toString()).split('\n');
     const lines: string[] = [];
 
@@ -62,13 +62,26 @@ export function loadExampleOptions(
     }
 }
 
-export function parseExampleOptions(evalFn: string, exampleJs: string, dataJs?: string) {
+export function parseExampleOptions(
+    evalFn: string,
+    exampleJs: string,
+    dataJs?: string,
+    extraGlobals?: Record<string, any>
+) {
     const evalExpr = [dataJs ? dataJs : '', ...cleanJs(exampleJs), `return ${evalFn};`].join('\n');
     // @ts-ignore - used in the eval() call.
     const agCharts = import('../../main');
     // @ts-ignore - used in the eval() call.
     const { AgChart, time, Marker } = agCharts;
 
-    const exampleRunFn = new Function('ag_charts_community_1', 'AgChart', 'time', 'Marker', evalExpr);
-    return exampleRunFn(agCharts, AgChart, time, Marker);
+    const argNames = ['ag_charts_community_1', 'AgChart', 'time', 'Marker'];
+    const args = [agCharts, AgChart, time, Marker];
+
+    for (const [name, value] of Object.entries(extraGlobals ?? {})) {
+        argNames.push(name);
+        args.push(value);
+    }
+
+    const exampleRunFn = new Function(...argNames, evalExpr);
+    return exampleRunFn(...args);
 }

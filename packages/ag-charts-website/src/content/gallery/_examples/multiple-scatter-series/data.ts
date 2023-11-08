@@ -1,3299 +1,655 @@
-export const chromosomes = [
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '10',
-    '11',
-    '12',
-    '13',
-    '14',
-    '15',
-    '16',
-    '17',
-    '18',
-    '19',
-    '20',
-    '21',
-    '22',
-    'X',
-    'Y',
-];
-
-export function getData() {
-    return [
-        {
-            chromosome: '1',
-            region: -36.33,
-        },
-        {
-            chromosome: '1',
-            region: -36.23,
-        },
-        {
-            chromosome: '1',
-            region: -36.21,
-        },
-        {
-            chromosome: '1',
-            region: -36.13,
-        },
-        {
-            chromosome: '1',
-            region: -36.11,
-        },
-        {
-            chromosome: '1',
-            region: -35.3,
-        },
-        {
-            chromosome: '1',
-            region: -35.1,
-        },
-        {
-            chromosome: '1',
-            region: -34.3,
-        },
-        {
-            chromosome: '1',
-            region: -34.1,
-        },
-        {
-            chromosome: '1',
-            region: -33,
-        },
-        {
-            chromosome: '1',
-            region: -32.3,
-        },
-        {
-            chromosome: '1',
-            region: -32.2,
-        },
-        {
-            chromosome: '1',
-            region: -32.1,
-        },
-        {
-            chromosome: '1',
-            region: -31.3,
-        },
-        {
-            chromosome: '1',
-            region: -31.2,
-        },
-        {
-            chromosome: '1',
-            region: -31.1,
-        },
-        {
-            chromosome: '1',
-            region: -22.3,
-        },
-        {
-            chromosome: '1',
-            region: -22.2,
-        },
-        {
-            chromosome: '1',
-            region: -22.1,
-        },
-        {
-            chromosome: '1',
-            region: -21.3,
-        },
-        {
-            chromosome: '1',
-            region: -21.2,
-        },
-        {
-            chromosome: '1',
-            region: -13.3,
-        },
-        {
-            chromosome: '1',
-            region: -13.2,
-        },
-        {
-            chromosome: '1',
-            region: -13.1,
-        },
-        {
-            chromosome: '1',
-            region: -12,
-        },
-        {
-            chromosome: '1',
-            region: -11.1,
-        },
-        {
-            chromosome: '1',
-            region: -11,
-        },
-        {
-            chromosome: '1',
-            region: 12,
-        },
-        {
-            chromosome: '1',
-            region: 21.1,
-        },
-        {
-            chromosome: '1',
-            region: 21.2,
-        },
-        {
-            chromosome: '1',
-            region: 21.3,
-        },
-        {
-            chromosome: '1',
-            region: 22,
-        },
-        {
-            chromosome: '1',
-            region: 23.1,
-        },
-        {
-            chromosome: '1',
-            region: 23.2,
-        },
-        {
-            chromosome: '1',
-            region: 23.3,
-        },
-        {
-            chromosome: '1',
-            region: 24.1,
-        },
-        {
-            chromosome: '1',
-            region: 24.2,
-        },
-        {
-            chromosome: '1',
-            region: 24.3,
-        },
-        {
-            chromosome: '1',
-            region: 25.2,
-        },
-        {
-            chromosome: '1',
-            region: 25.3,
-        },
-        {
-            chromosome: '1',
-            region: 31.1,
-        },
-        {
-            chromosome: '1',
-            region: 31.2,
-        },
-        {
-            chromosome: '1',
-            region: 32.1,
-        },
-        {
-            chromosome: '1',
-            region: 32.2,
-        },
-        {
-            chromosome: '1',
-            region: 32.3,
-        },
-        {
-            chromosome: '1',
-            region: 41,
-        },
-        {
-            chromosome: '1',
-            region: 42.11,
-        },
-        {
-            chromosome: '1',
-            region: 42.13,
-        },
-        {
-            chromosome: '1',
-            region: 42.2,
-        },
-        {
-            chromosome: '1',
-            region: 42.3,
-        },
-        {
-            chromosome: '1',
-            region: 43,
-        },
-        {
-            chromosome: '1',
-            region: 44,
-        },
-        {
-            chromosome: '2',
-            region: -25.3,
-        },
-        {
-            chromosome: '2',
-            region: -25.2,
-        },
-        {
-            chromosome: '2',
-            region: -25.1,
-        },
-        {
-            chromosome: '2',
-            region: -24.3,
-        },
-        {
-            chromosome: '2',
-            region: -24.2,
-        },
-        {
-            chromosome: '2',
-            region: -24.1,
-        },
-        {
-            chromosome: '2',
-            region: -23.3,
-        },
-        {
-            chromosome: '2',
-            region: -23.1,
-        },
-        {
-            chromosome: '2',
-            region: -22.3,
-        },
-        {
-            chromosome: '2',
-            region: -22.1,
-        },
-        {
-            chromosome: '2',
-            region: -21,
-        },
-        {
-            chromosome: '2',
-            region: -16.3,
-        },
-        {
-            chromosome: '2',
-            region: -16.2,
-        },
-        {
-            chromosome: '2',
-            region: -16.1,
-        },
-        {
-            chromosome: '2',
-            region: -15,
-        },
-        {
-            chromosome: '2',
-            region: -14,
-        },
-        {
-            chromosome: '2',
-            region: -13.1,
-        },
-        {
-            chromosome: '2',
-            region: -12,
-        },
-        {
-            chromosome: '2',
-            region: -11.2,
-        },
-        {
-            chromosome: '2',
-            region: -11.1,
-        },
-        {
-            chromosome: '2',
-            region: 11.1,
-        },
-        {
-            chromosome: '2',
-            region: 11.2,
-        },
-        {
-            chromosome: '2',
-            region: 12.1,
-        },
-        {
-            chromosome: '2',
-            region: 12.2,
-        },
-        {
-            chromosome: '2',
-            region: 12.3,
-        },
-        {
-            chromosome: '2',
-            region: 13,
-        },
-        {
-            chromosome: '2',
-            region: 14.1,
-        },
-        {
-            chromosome: '2',
-            region: 14.2,
-        },
-        {
-            chromosome: '2',
-            region: 21.1,
-        },
-        {
-            chromosome: '2',
-            region: 21.2,
-        },
-        {
-            chromosome: '2',
-            region: 22.1,
-        },
-        {
-            chromosome: '2',
-            region: 22.2,
-        },
-        {
-            chromosome: '2',
-            region: 23.1,
-        },
-        {
-            chromosome: '2',
-            region: 23.3,
-        },
-        {
-            chromosome: '2',
-            region: 24.1,
-        },
-        {
-            chromosome: '2',
-            region: 24.2,
-        },
-        {
-            chromosome: '2',
-            region: 24.3,
-        },
-        {
-            chromosome: '2',
-            region: 31.1,
-        },
-        {
-            chromosome: '2',
-            region: 31.2,
-        },
-        {
-            chromosome: '2',
-            region: 31.3,
-        },
-        {
-            chromosome: '2',
-            region: 32.1,
-        },
-        {
-            chromosome: '2',
-            region: 32.2,
-        },
-        {
-            chromosome: '2',
-            region: 32.3,
-        },
-        {
-            chromosome: '2',
-            region: 33.1,
-        },
-        {
-            chromosome: '2',
-            region: 33.2,
-        },
-        {
-            chromosome: '2',
-            region: 33.3,
-        },
-        {
-            chromosome: '2',
-            region: 34,
-        },
-        {
-            chromosome: '2',
-            region: 35,
-        },
-        {
-            chromosome: '2',
-            region: 36.1,
-        },
-        {
-            chromosome: '2',
-            region: 36.2,
-        },
-        {
-            chromosome: '2',
-            region: 36.3,
-        },
-        {
-            chromosome: '2',
-            region: 37.1,
-        },
-        {
-            chromosome: '2',
-            region: 37.2,
-        },
-        {
-            chromosome: '2',
-            region: 37.3,
-        },
-        {
-            chromosome: '3',
-            region: -26.3,
-        },
-        {
-            chromosome: '3',
-            region: -26.1,
-        },
-        {
-            chromosome: '3',
-            region: -25.3,
-        },
-        {
-            chromosome: '3',
-            region: -25.2,
-        },
-        {
-            chromosome: '3',
-            region: -25.1,
-        },
-        {
-            chromosome: '3',
-            region: -24.3,
-        },
-        {
-            chromosome: '3',
-            region: -24.2,
-        },
-        {
-            chromosome: '3',
-            region: -24.1,
-        },
-        {
-            chromosome: '3',
-            region: -23,
-        },
-        {
-            chromosome: '3',
-            region: -22.3,
-        },
-        {
-            chromosome: '3',
-            region: -22.1,
-        },
-        {
-            chromosome: '3',
-            region: -21.33,
-        },
-        {
-            chromosome: '3',
-            region: -21.32,
-        },
-        {
-            chromosome: '3',
-            region: -21.31,
-        },
-        {
-            chromosome: '3',
-            region: -21.2,
-        },
-        {
-            chromosome: '3',
-            region: -21.1,
-        },
-        {
-            chromosome: '3',
-            region: -14.3,
-        },
-        {
-            chromosome: '3',
-            region: -14.1,
-        },
-        {
-            chromosome: '3',
-            region: -13,
-        },
-        {
-            chromosome: '3',
-            region: -12.3,
-        },
-        {
-            chromosome: '3',
-            region: -12.2,
-        },
-        {
-            chromosome: '3',
-            region: -12.1,
-        },
-        {
-            chromosome: '3',
-            region: -11.1,
-        },
-        {
-            chromosome: '3',
-            region: 11.1,
-        },
-        {
-            chromosome: '3',
-            region: 12.1,
-        },
-        {
-            chromosome: '3',
-            region: 12.2,
-        },
-        {
-            chromosome: '3',
-            region: 13.11,
-        },
-        {
-            chromosome: '3',
-            region: 13.12,
-        },
-        {
-            chromosome: '3',
-            region: 13.13,
-        },
-        {
-            chromosome: '3',
-            region: 13.33,
-        },
-        {
-            chromosome: '3',
-            region: 21.1,
-        },
-        {
-            chromosome: '3',
-            region: 21.2,
-        },
-        {
-            chromosome: '3',
-            region: 21.3,
-        },
-        {
-            chromosome: '3',
-            region: 22.1,
-        },
-        {
-            chromosome: '3',
-            region: 22.2,
-        },
-        {
-            chromosome: '3',
-            region: 23,
-        },
-        {
-            chromosome: '3',
-            region: 24,
-        },
-        {
-            chromosome: '3',
-            region: 25.1,
-        },
-        {
-            chromosome: '3',
-            region: 23.2,
-        },
-        {
-            chromosome: '3',
-            region: 25.31,
-        },
-        {
-            chromosome: '3',
-            region: 25.33,
-        },
-        {
-            chromosome: '3',
-            region: 26.1,
-        },
-        {
-            chromosome: '3',
-            region: 26.2,
-        },
-        {
-            chromosome: '3',
-            region: 26.31,
-        },
-        {
-            chromosome: '3',
-            region: 26.33,
-        },
-        {
-            chromosome: '3',
-            region: 27.1,
-        },
-        {
-            chromosome: '3',
-            region: 27.3,
-        },
-        {
-            chromosome: '3',
-            region: 28,
-        },
-        {
-            chromosome: '3',
-            region: 29,
-        },
-        {
-            chromosome: '4',
-            region: -16.3,
-        },
-        {
-            chromosome: '4',
-            region: -16.2,
-        },
-        {
-            chromosome: '4',
-            region: -16.3,
-        },
-        {
-            chromosome: '4',
-            region: -15.33,
-        },
-        {
-            chromosome: '4',
-            region: -15.32,
-        },
-        {
-            chromosome: '4',
-            region: -15.31,
-        },
-        {
-            chromosome: '4',
-            region: -15.2,
-        },
-        {
-            chromosome: '4',
-            region: -15.1,
-        },
-        {
-            chromosome: '4',
-            region: -14,
-        },
-        {
-            chromosome: '4',
-            region: -13,
-        },
-        {
-            chromosome: '4',
-            region: -12,
-        },
-        {
-            chromosome: '4',
-            region: -11,
-        },
-        {
-            chromosome: '4',
-            region: 11,
-        },
-        {
-            chromosome: '4',
-            region: 12,
-        },
-        {
-            chromosome: '4',
-            region: 13.1,
-        },
-        {
-            chromosome: '4',
-            region: 13.2,
-        },
-        {
-            chromosome: '4',
-            region: 13.3,
-        },
-        {
-            chromosome: '4',
-            region: 21.1,
-        },
-        {
-            chromosome: '4',
-            region: 21.21,
-        },
-        {
-            chromosome: '4',
-            region: 21.23,
-        },
-        {
-            chromosome: '4',
-            region: 21.3,
-        },
-        {
-            chromosome: '4',
-            region: 22.1,
-        },
-        {
-            chromosome: '4',
-            region: 22.2,
-        },
-        {
-            chromosome: '4',
-            region: 22.3,
-        },
-        {
-            chromosome: '4',
-            region: 23,
-        },
-        {
-            chromosome: '4',
-            region: 24,
-        },
-        {
-            chromosome: '4',
-            region: 25,
-        },
-        {
-            chromosome: '4',
-            region: 26,
-        },
-        {
-            chromosome: '4',
-            region: 27,
-        },
-        {
-            chromosome: '4',
-            region: 28.1,
-        },
-        {
-            chromosome: '4',
-            region: 28.2,
-        },
-        {
-            chromosome: '4',
-            region: 28.3,
-        },
-        {
-            chromosome: '4',
-            region: 31.1,
-        },
-        {
-            chromosome: '4',
-            region: 31.21,
-        },
-        {
-            chromosome: '4',
-            region: 31.22,
-        },
-        {
-            chromosome: '4',
-            region: 31.3,
-        },
-        {
-            chromosome: '4',
-            region: 32.1,
-        },
-        {
-            chromosome: '4',
-            region: 32.2,
-        },
-        {
-            chromosome: '4',
-            region: 32.3,
-        },
-        {
-            chromosome: '4',
-            region: 33,
-        },
-        {
-            chromosome: '4',
-            region: 34.1,
-        },
-        {
-            chromosome: '4',
-            region: 34.2,
-        },
-        {
-            chromosome: '4',
-            region: 34.3,
-        },
-        {
-            chromosome: '4',
-            region: 35.1,
-        },
-        {
-            chromosome: '4',
-            region: 35.2,
-        },
-        {
-            chromosome: '5',
-            region: -15.33,
-        },
-        {
-            chromosome: '5',
-            region: -15.32,
-        },
-        {
-            chromosome: '5',
-            region: -15.31,
-        },
-        {
-            chromosome: '5',
-            region: -15.2,
-        },
-        {
-            chromosome: '5',
-            region: -15.1,
-        },
-        {
-            chromosome: '5',
-            region: -14.3,
-        },
-        {
-            chromosome: '5',
-            region: -14.2,
-        },
-        {
-            chromosome: '5',
-            region: -14.1,
-        },
-        {
-            chromosome: '5',
-            region: -13.3,
-        },
-        {
-            chromosome: '5',
-            region: -13.2,
-        },
-        {
-            chromosome: '5',
-            region: -13.1,
-        },
-        {
-            chromosome: '5',
-            region: -12,
-        },
-        {
-            chromosome: '5',
-            region: -11,
-        },
-        {
-            chromosome: '5',
-            region: 11.1,
-        },
-        {
-            chromosome: '5',
-            region: 11.2,
-        },
-        {
-            chromosome: '5',
-            region: 12.1,
-        },
-        {
-            chromosome: '5',
-            region: 12.2,
-        },
-        {
-            chromosome: '5',
-            region: 12.3,
-        },
-        {
-            chromosome: '5',
-            region: 13.1,
-        },
-        {
-            chromosome: '5',
-            region: 13.2,
-        },
-        {
-            chromosome: '5',
-            region: 13.3,
-        },
-        {
-            chromosome: '5',
-            region: 14.1,
-        },
-        {
-            chromosome: '5',
-            region: 14.2,
-        },
-        {
-            chromosome: '5',
-            region: 14.3,
-        },
-        {
-            chromosome: '5',
-            region: 15,
-        },
-        {
-            chromosome: '5',
-            region: 21.1,
-        },
-        {
-            chromosome: '5',
-            region: 22.2,
-        },
-        {
-            chromosome: '5',
-            region: 22.3,
-        },
-        {
-            chromosome: '5',
-            region: 23.2,
-        },
-        {
-            chromosome: '5',
-            region: 23.3,
-        },
-        {
-            chromosome: '5',
-            region: 31.1,
-        },
-        {
-            chromosome: '5',
-            region: 31.2,
-        },
-        {
-            chromosome: '5',
-            region: 31.3,
-        },
-        {
-            chromosome: '5',
-            region: 32,
-        },
-        {
-            chromosome: '5',
-            region: 33.1,
-        },
-        {
-            chromosome: '5',
-            region: 33.2,
-        },
-        {
-            chromosome: '5',
-            region: 33.3,
-        },
-        {
-            chromosome: '5',
-            region: 34,
-        },
-        {
-            chromosome: '5',
-            region: 25.1,
-        },
-        {
-            chromosome: '5',
-            region: 35.1,
-        },
-        {
-            chromosome: '5',
-            region: 35.3,
-        },
-        {
-            chromosome: '6',
-            region: -25.3,
-        },
-        {
-            chromosome: '6',
-            region: -25.1,
-        },
-        {
-            chromosome: '6',
-            region: -24.3,
-        },
-        {
-            chromosome: '6',
-            region: -24.2,
-        },
-        {
-            chromosome: '6',
-            region: -23,
-        },
-        {
-            chromosome: '6',
-            region: -22.3,
-        },
-        {
-            chromosome: '6',
-            region: -22.2,
-        },
-        {
-            chromosome: '6',
-            region: -22.1,
-        },
-        {
-            chromosome: '6',
-            region: -21.33,
-        },
-        {
-            chromosome: '6',
-            region: -21.32,
-        },
-        {
-            chromosome: '6',
-            region: -21.31,
-        },
-        {
-            chromosome: '6',
-            region: -21.2,
-        },
-        {
-            chromosome: '6',
-            region: -21.1,
-        },
-        {
-            chromosome: '6',
-            region: -12.3,
-        },
-        {
-            chromosome: '6',
-            region: -12.2,
-        },
-        {
-            chromosome: '6',
-            region: -12.1,
-        },
-        {
-            chromosome: '6',
-            region: -11.2,
-        },
-        {
-            chromosome: '6',
-            region: 11.1,
-        },
-        {
-            chromosome: '6',
-            region: 12,
-        },
-        {
-            chromosome: '6',
-            region: 13,
-        },
-        {
-            chromosome: '6',
-            region: 14.1,
-        },
-        {
-            chromosome: '6',
-            region: 14.2,
-        },
-        {
-            chromosome: '6',
-            region: 14.3,
-        },
-        {
-            chromosome: '6',
-            region: 15,
-        },
-        {
-            chromosome: '6',
-            region: 16.1,
-        },
-        {
-            chromosome: '6',
-            region: 16.2,
-        },
-        {
-            chromosome: '6',
-            region: 16.3,
-        },
-        {
-            chromosome: '6',
-            region: 21,
-        },
-        {
-            chromosome: '6',
-            region: 22.1,
-        },
-        {
-            chromosome: '6',
-            region: 22.2,
-        },
-        {
-            chromosome: '6',
-            region: 22.31,
-        },
-        {
-            chromosome: '6',
-            region: 22.32,
-        },
-        {
-            chromosome: '6',
-            region: 22.33,
-        },
-        {
-            chromosome: '6',
-            region: 23.1,
-        },
-        {
-            chromosome: '6',
-            region: 23.2,
-        },
-        {
-            chromosome: '6',
-            region: 23.3,
-        },
-        {
-            chromosome: '6',
-            region: 24.1,
-        },
-        {
-            chromosome: '6',
-            region: 24.2,
-        },
-        {
-            chromosome: '6',
-            region: 24.3,
-        },
-        {
-            chromosome: '6',
-            region: 25.1,
-        },
-        {
-            chromosome: '6',
-            region: 25.2,
-        },
-        {
-            chromosome: '6',
-            region: 25.3,
-        },
-        {
-            chromosome: '6',
-            region: 26,
-        },
-        {
-            chromosome: '6',
-            region: 27,
-        },
-        {
-            chromosome: '7',
-            region: -22.3,
-        },
-        {
-            chromosome: '7',
-            region: -22.2,
-        },
-        {
-            chromosome: '7',
-            region: -22.1,
-        },
-        {
-            chromosome: '7',
-            region: -21.3,
-        },
-        {
-            chromosome: '7',
-            region: -21.2,
-        },
-        {
-            chromosome: '7',
-            region: -21.1,
-        },
-        {
-            chromosome: '7',
-            region: -15.3,
-        },
-        {
-            chromosome: '7',
-            region: -15.2,
-        },
-        {
-            chromosome: '7',
-            region: -15.1,
-        },
-        {
-            chromosome: '7',
-            region: -14.3,
-        },
-        {
-            chromosome: '7',
-            region: -14.2,
-        },
-        {
-            chromosome: '7',
-            region: -14.1,
-        },
-        {
-            chromosome: '7',
-            region: -13,
-        },
-        {
-            chromosome: '7',
-            region: -12.3,
-        },
-        {
-            chromosome: '7',
-            region: -12.2,
-        },
-        {
-            chromosome: '7',
-            region: -12.1,
-        },
-        {
-            chromosome: '7',
-            region: -11.2,
-        },
-        {
-            chromosome: '7',
-            region: -11.1,
-        },
-        {
-            chromosome: '7',
-            region: 11.1,
-        },
-        {
-            chromosome: '7',
-            region: 11.21,
-        },
-        {
-            chromosome: '7',
-            region: 11.23,
-        },
-        {
-            chromosome: '7',
-            region: 21.11,
-        },
-        {
-            chromosome: '7',
-            region: 21.12,
-        },
-        {
-            chromosome: '7',
-            region: 21.13,
-        },
-        {
-            chromosome: '7',
-            region: 21.2,
-        },
-        {
-            chromosome: '7',
-            region: 21.3,
-        },
-        {
-            chromosome: '7',
-            region: 22.1,
-        },
-        {
-            chromosome: '7',
-            region: 22.2,
-        },
-        {
-            chromosome: '7',
-            region: 22.3,
-        },
-        {
-            chromosome: '7',
-            region: 31.1,
-        },
-        {
-            chromosome: '7',
-            region: 31.2,
-        },
-        {
-            chromosome: '7',
-            region: 31.32,
-        },
-        {
-            chromosome: '7',
-            region: 31.33,
-        },
-        {
-            chromosome: '7',
-            region: 32.1,
-        },
-        {
-            chromosome: '7',
-            region: 32.3,
-        },
-        {
-            chromosome: '7',
-            region: 33,
-        },
-        {
-            chromosome: '7',
-            region: 34,
-        },
-        {
-            chromosome: '7',
-            region: 35,
-        },
-        {
-            chromosome: '7',
-            region: 36.1,
-        },
-        {
-            chromosome: '7',
-            region: 36.2,
-        },
-        {
-            chromosome: '7',
-            region: 36.3,
-        },
-        {
-            chromosome: '8',
-            region: -23.3,
-        },
-        {
-            chromosome: '8',
-            region: -23.2,
-        },
-        {
-            chromosome: '8',
-            region: -23.1,
-        },
-        {
-            chromosome: '8',
-            region: -22,
-        },
-        {
-            chromosome: '8',
-            region: -21.3,
-        },
-        {
-            chromosome: '8',
-            region: -21.2,
-        },
-        {
-            chromosome: '8',
-            region: -21.1,
-        },
-        {
-            chromosome: '8',
-            region: -12,
-        },
-        {
-            chromosome: '8',
-            region: -11.23,
-        },
-        {
-            chromosome: '8',
-            region: -11.22,
-        },
-        {
-            chromosome: '8',
-            region: -11.21,
-        },
-        {
-            chromosome: '8',
-            region: -11.1,
-        },
-        {
-            chromosome: '8',
-            region: 11.1,
-        },
-        {
-            chromosome: '8',
-            region: 11.21,
-        },
-        {
-            chromosome: '8',
-            region: 11.22,
-        },
-        {
-            chromosome: '8',
-            region: 11.23,
-        },
-        {
-            chromosome: '8',
-            region: 12.1,
-        },
-        {
-            chromosome: '8',
-            region: 12.2,
-        },
-        {
-            chromosome: '8',
-            region: 12.3,
-        },
-        {
-            chromosome: '8',
-            region: 13.1,
-        },
-        {
-            chromosome: '8',
-            region: 13.2,
-        },
-        {
-            chromosome: '8',
-            region: 13.3,
-        },
-        {
-            chromosome: '8',
-            region: 21.11,
-        },
-        {
-            chromosome: '8',
-            region: 21.12,
-        },
-        {
-            chromosome: '8',
-            region: 21.13,
-        },
-        {
-            chromosome: '8',
-            region: 21.2,
-        },
-        {
-            chromosome: '8',
-            region: 21.3,
-        },
-        {
-            chromosome: '8',
-            region: 22.1,
-        },
-        {
-            chromosome: '8',
-            region: 22.2,
-        },
-        {
-            chromosome: '8',
-            region: 22.3,
-        },
-        {
-            chromosome: '8',
-            region: 23.1,
-        },
-        {
-            chromosome: '8',
-            region: 23.2,
-        },
-        {
-            chromosome: '8',
-            region: 23.3,
-        },
-        {
-            chromosome: '8',
-            region: 24.11,
-        },
-        {
-            chromosome: '8',
-            region: 24.12,
-        },
-        {
-            chromosome: '8',
-            region: 24.12,
-        },
-        {
-            chromosome: '8',
-            region: 24.13,
-        },
-        {
-            chromosome: '8',
-            region: 24.21,
-        },
-        {
-            chromosome: '8',
-            region: 24.22,
-        },
-        {
-            chromosome: '8',
-            region: 24.23,
-        },
-        {
-            chromosome: '8',
-            region: 24.3,
-        },
-        {
-            chromosome: '9',
-            region: -24.3,
-        },
-        {
-            chromosome: '9',
-            region: -24.2,
-        },
-        {
-            chromosome: '9',
-            region: -24.1,
-        },
-        {
-            chromosome: '9',
-            region: -23,
-        },
-        {
-            chromosome: '9',
-            region: -22.3,
-        },
-        {
-            chromosome: '9',
-            region: -22.2,
-        },
-        {
-            chromosome: '9',
-            region: -22.1,
-        },
-        {
-            chromosome: '9',
-            region: -21.3,
-        },
-        {
-            chromosome: '9',
-            region: -21.2,
-        },
-        {
-            chromosome: '9',
-            region: -21.1,
-        },
-        {
-            chromosome: '9',
-            region: -13.3,
-        },
-        {
-            chromosome: '9',
-            region: -13.2,
-        },
-        {
-            chromosome: '9',
-            region: -13.1,
-        },
-        {
-            chromosome: '9',
-            region: -12,
-        },
-        {
-            chromosome: '9',
-            region: -11.2,
-        },
-        {
-            chromosome: '9',
-            region: -11.1,
-        },
-        {
-            chromosome: '9',
-            region: 11,
-        },
-        {
-            chromosome: '9',
-            region: 12,
-        },
-        {
-            chromosome: '9',
-            region: 13,
-        },
-        {
-            chromosome: '9',
-            region: 21.11,
-        },
-        {
-            chromosome: '9',
-            region: 21.12,
-        },
-        {
-            chromosome: '9',
-            region: 21.13,
-        },
-        {
-            chromosome: '9',
-            region: 21.2,
-        },
-        {
-            chromosome: '9',
-            region: 21.31,
-        },
-        {
-            chromosome: '9',
-            region: 21.32,
-        },
-        {
-            chromosome: '9',
-            region: 21.33,
-        },
-        {
-            chromosome: '9',
-            region: 22.1,
-        },
-        {
-            chromosome: '9',
-            region: 22.2,
-        },
-        {
-            chromosome: '9',
-            region: 22.31,
-        },
-        {
-            chromosome: '9',
-            region: 22.32,
-        },
-        {
-            chromosome: '9',
-            region: 22.33,
-        },
-        {
-            chromosome: '9',
-            region: 31.1,
-        },
-        {
-            chromosome: '9',
-            region: 31.2,
-        },
-        {
-            chromosome: '9',
-            region: 31.3,
-        },
-        {
-            chromosome: '9',
-            region: 32,
-        },
-        {
-            chromosome: '9',
-            region: 33.1,
-        },
-        {
-            chromosome: '9',
-            region: 33.2,
-        },
-        {
-            chromosome: '9',
-            region: 33.3,
-        },
-        {
-            chromosome: '9',
-            region: 34.11,
-        },
-        {
-            chromosome: '9',
-            region: 34.12,
-        },
-        {
-            chromosome: '9',
-            region: 34.13,
-        },
-        {
-            chromosome: '9',
-            region: 34.2,
-        },
-        {
-            chromosome: '9',
-            region: 34.3,
-        },
-        {
-            chromosome: '10',
-            region: -15.3,
-        },
-        {
-            chromosome: '10',
-            region: -15.2,
-        },
-        {
-            chromosome: '10',
-            region: -15.1,
-        },
-        {
-            chromosome: '10',
-            region: -14,
-        },
-        {
-            chromosome: '10',
-            region: -13,
-        },
-        {
-            chromosome: '10',
-            region: -12.33,
-        },
-        {
-            chromosome: '10',
-            region: -12.32,
-        },
-        {
-            chromosome: '10',
-            region: -12.31,
-        },
-        {
-            chromosome: '10',
-            region: -12.2,
-        },
-        {
-            chromosome: '10',
-            region: -12.1,
-        },
-        {
-            chromosome: '10',
-            region: -11.23,
-        },
-        {
-            chromosome: '10',
-            region: -11.22,
-        },
-        {
-            chromosome: '10',
-            region: -11.21,
-        },
-        {
-            chromosome: '10',
-            region: -11.1,
-        },
-        {
-            chromosome: '10',
-            region: 11.1,
-        },
-        {
-            chromosome: '10',
-            region: 11.21,
-        },
-        {
-            chromosome: '10',
-            region: 11.22,
-        },
-        {
-            chromosome: '10',
-            region: 22.23,
-        },
-        {
-            chromosome: '10',
-            region: 21.1,
-        },
-        {
-            chromosome: '10',
-            region: 21.2,
-        },
-        {
-            chromosome: '10',
-            region: 21.3,
-        },
-        {
-            chromosome: '10',
-            region: 22.1,
-        },
-        {
-            chromosome: '10',
-            region: 22.2,
-        },
-        {
-            chromosome: '10',
-            region: 22.3,
-        },
-        {
-            chromosome: '10',
-            region: 23.1,
-        },
-        {
-            chromosome: '10',
-            region: 23.2,
-        },
-        {
-            chromosome: '10',
-            region: 23.31,
-        },
-        {
-            chromosome: '10',
-            region: 23.32,
-        },
-        {
-            chromosome: '10',
-            region: 23.33,
-        },
-        {
-            chromosome: '10',
-            region: 24.1,
-        },
-        {
-            chromosome: '10',
-            region: 24.2,
-        },
-        {
-            chromosome: '10',
-            region: 24.31,
-        },
-        {
-            chromosome: '10',
-            region: 24.33,
-        },
-        {
-            chromosome: '10',
-            region: 25.1,
-        },
-        {
-            chromosome: '10',
-            region: 25.2,
-        },
-        {
-            chromosome: '10',
-            region: 25.3,
-        },
-        {
-            chromosome: '10',
-            region: 26.11,
-        },
-        {
-            chromosome: '10',
-            region: 26.12,
-        },
-        {
-            chromosome: '10',
-            region: 26.13,
-        },
-        {
-            chromosome: '10',
-            region: 26.2,
-        },
-        {
-            chromosome: '10',
-            region: 26.3,
-        },
-        {
-            chromosome: '11',
-            region: -15.5,
-        },
-        {
-            chromosome: '11',
-            region: -15.4,
-        },
-        {
-            chromosome: '11',
-            region: -15.3,
-        },
-        {
-            chromosome: '11',
-            region: -15.2,
-        },
-        {
-            chromosome: '11',
-            region: -15.1,
-        },
-        {
-            chromosome: '11',
-            region: -14.3,
-        },
-        {
-            chromosome: '11',
-            region: -14.2,
-        },
-        {
-            chromosome: '11',
-            region: -14.1,
-        },
-        {
-            chromosome: '11',
-            region: -13,
-        },
-        {
-            chromosome: '11',
-            region: -12,
-        },
-        {
-            chromosome: '11',
-            region: -11.2,
-        },
-        {
-            chromosome: '11',
-            region: -11.12,
-        },
-        {
-            chromosome: '11',
-            region: -11.11,
-        },
-        {
-            chromosome: '11',
-            region: 11,
-        },
-        {
-            chromosome: '11',
-            region: 12.1,
-        },
-        {
-            chromosome: '11',
-            region: 12.2,
-        },
-        {
-            chromosome: '11',
-            region: 12.3,
-        },
-        {
-            chromosome: '11',
-            region: 13.1,
-        },
-        {
-            chromosome: '11',
-            region: 13.2,
-        },
-        {
-            chromosome: '11',
-            region: 13.3,
-        },
-        {
-            chromosome: '11',
-            region: 13.4,
-        },
-        {
-            chromosome: '11',
-            region: 13.5,
-        },
-        {
-            chromosome: '11',
-            region: 14.1,
-        },
-        {
-            chromosome: '11',
-            region: 14.2,
-        },
-        {
-            chromosome: '11',
-            region: 14.3,
-        },
-        {
-            chromosome: '11',
-            region: 21,
-        },
-        {
-            chromosome: '11',
-            region: 22.1,
-        },
-        {
-            chromosome: '11',
-            region: 22.2,
-        },
-        {
-            chromosome: '11',
-            region: 22.3,
-        },
-        {
-            chromosome: '11',
-            region: 23.1,
-        },
-        {
-            chromosome: '11',
-            region: 23.2,
-        },
-        {
-            chromosome: '11',
-            region: 23.3,
-        },
-        {
-            chromosome: '11',
-            region: 24.1,
-        },
-        {
-            chromosome: '11',
-            region: 24.2,
-        },
-        {
-            chromosome: '11',
-            region: 24.3,
-        },
-        {
-            chromosome: '11',
-            region: 25,
-        },
-        {
-            chromosome: '12',
-            region: -13.33,
-        },
-        {
-            chromosome: '12',
-            region: -13.32,
-        },
-        {
-            chromosome: '12',
-            region: -13.31,
-        },
-        {
-            chromosome: '12',
-            region: -13.2,
-        },
-        {
-            chromosome: '12',
-            region: -13.1,
-        },
-        {
-            chromosome: '12',
-            region: -12.2,
-        },
-        {
-            chromosome: '12',
-            region: -12.1,
-        },
-        {
-            chromosome: '12',
-            region: -11.23,
-        },
-        {
-            chromosome: '12',
-            region: -11.22,
-        },
-        {
-            chromosome: '12',
-            region: -11.21,
-        },
-        {
-            chromosome: '12',
-            region: -11.1,
-        },
-        {
-            chromosome: '12',
-            region: 11,
-        },
-        {
-            chromosome: '12',
-            region: 12,
-        },
-        {
-            chromosome: '12',
-            region: 13.11,
-        },
-        {
-            chromosome: '12',
-            region: 13.12,
-        },
-        {
-            chromosome: '12',
-            region: 13.13,
-        },
-        {
-            chromosome: '12',
-            region: 13.2,
-        },
-        {
-            chromosome: '12',
-            region: 13.3,
-        },
-        {
-            chromosome: '12',
-            region: 14.1,
-        },
-        {
-            chromosome: '12',
-            region: 14.2,
-        },
-        {
-            chromosome: '12',
-            region: 14.3,
-        },
-        {
-            chromosome: '12',
-            region: 15,
-        },
-        {
-            chromosome: '12',
-            region: 21.1,
-        },
-        {
-            chromosome: '12',
-            region: 21.2,
-        },
-        {
-            chromosome: '12',
-            region: 21.31,
-        },
-        {
-            chromosome: '12',
-            region: 21.32,
-        },
-        {
-            chromosome: '12',
-            region: 21.33,
-        },
-        {
-            chromosome: '12',
-            region: 22,
-        },
-        {
-            chromosome: '12',
-            region: 23.1,
-        },
-        {
-            chromosome: '12',
-            region: 23.2,
-        },
-        {
-            chromosome: '12',
-            region: 23.3,
-        },
-        {
-            chromosome: '12',
-            region: 24.11,
-        },
-        {
-            chromosome: '12',
-            region: 24.112,
-        },
-        {
-            chromosome: '12',
-            region: 24.13,
-        },
-        {
-            chromosome: '12',
-            region: 24.21,
-        },
-        {
-            chromosome: '12',
-            region: 24.22,
-        },
-        {
-            chromosome: '12',
-            region: 24.23,
-        },
-        {
-            chromosome: '12',
-            region: 24.31,
-        },
-        {
-            chromosome: '12',
-            region: 24.32,
-        },
-        {
-            chromosome: '12',
-            region: 24.33,
-        },
-        {
-            chromosome: '13',
-            region: -13,
-        },
-        {
-            chromosome: '13',
-            region: -12,
-        },
-        {
-            chromosome: '13',
-            region: -11.2,
-        },
-        {
-            chromosome: '13',
-            region: -11.1,
-        },
-        {
-            chromosome: '13',
-            region: 11,
-        },
-        {
-            chromosome: '13',
-            region: 12.11,
-        },
-        {
-            chromosome: '13',
-            region: 12.12,
-        },
-        {
-            chromosome: '13',
-            region: 12.13,
-        },
-        {
-            chromosome: '13',
-            region: 12.2,
-        },
-        {
-            chromosome: '13',
-            region: 12.3,
-        },
-        {
-            chromosome: '13',
-            region: 13.1,
-        },
-        {
-            chromosome: '13',
-            region: 13.2,
-        },
-        {
-            chromosome: '13',
-            region: 13.3,
-        },
-        {
-            chromosome: '13',
-            region: 14.11,
-        },
-        {
-            chromosome: '13',
-            region: 14.12,
-        },
-        {
-            chromosome: '13',
-            region: 14.13,
-        },
-        {
-            chromosome: '13',
-            region: 14.2,
-        },
-        {
-            chromosome: '13',
-            region: 14.3,
-        },
-        {
-            chromosome: '13',
-            region: 21.1,
-        },
-        {
-            chromosome: '13',
-            region: 21.2,
-        },
-        {
-            chromosome: '13',
-            region: 21.31,
-        },
-        {
-            chromosome: '13',
-            region: 21.32,
-        },
-        {
-            chromosome: '13',
-            region: 21.33,
-        },
-        {
-            chromosome: '13',
-            region: 22.1,
-        },
-        {
-            chromosome: '13',
-            region: 22.2,
-        },
-        {
-            chromosome: '13',
-            region: 22.3,
-        },
-        {
-            chromosome: '13',
-            region: 31.1,
-        },
-        {
-            chromosome: '13',
-            region: 31.2,
-        },
-        {
-            chromosome: '13',
-            region: 31.3,
-        },
-        {
-            chromosome: '13',
-            region: 32.1,
-        },
-        {
-            chromosome: '13',
-            region: 32.2,
-        },
-        {
-            chromosome: '13',
-            region: 32.3,
-        },
-        {
-            chromosome: '13',
-            region: 33.1,
-        },
-        {
-            chromosome: '13',
-            region: 33.2,
-        },
-        {
-            chromosome: '13',
-            region: 33.3,
-        },
-        {
-            chromosome: '13',
-            region: 34,
-        },
-        {
-            chromosome: '14',
-            region: -13,
-        },
-        {
-            chromosome: '14',
-            region: -12,
-        },
-        {
-            chromosome: '14',
-            region: -11.2,
-        },
-        {
-            chromosome: '14',
-            region: -11.1,
-        },
-        {
-            chromosome: '14',
-            region: 11.1,
-        },
-        {
-            chromosome: '14',
-            region: 11.2,
-        },
-        {
-            chromosome: '14',
-            region: 12,
-        },
-        {
-            chromosome: '14',
-            region: 13.1,
-        },
-        {
-            chromosome: '14',
-            region: 13.2,
-        },
-        {
-            chromosome: '14',
-            region: 13.2,
-        },
-        {
-            chromosome: '14',
-            region: 21.1,
-        },
-        {
-            chromosome: '14',
-            region: 21.2,
-        },
-        {
-            chromosome: '14',
-            region: 21.3,
-        },
-        {
-            chromosome: '14',
-            region: 22.1,
-        },
-        {
-            chromosome: '14',
-            region: 22.2,
-        },
-        {
-            chromosome: '14',
-            region: 22.3,
-        },
-        {
-            chromosome: '14',
-            region: 23.1,
-        },
-        {
-            chromosome: '14',
-            region: 23.2,
-        },
-        {
-            chromosome: '14',
-            region: 23.3,
-        },
-        {
-            chromosome: '14',
-            region: 24.1,
-        },
-        {
-            chromosome: '14',
-            region: 24.2,
-        },
-        {
-            chromosome: '14',
-            region: 24.3,
-        },
-        {
-            chromosome: '14',
-            region: 31.1,
-        },
-        {
-            chromosome: '14',
-            region: 31.2,
-        },
-        {
-            chromosome: '14',
-            region: 31.2,
-        },
-        {
-            chromosome: '14',
-            region: 32.11,
-        },
-        {
-            chromosome: '14',
-            region: 32.12,
-        },
-        {
-            chromosome: '14',
-            region: 32.13,
-        },
-        {
-            chromosome: '14',
-            region: 32.2,
-        },
-        {
-            chromosome: '14',
-            region: 32.31,
-        },
-        {
-            chromosome: '14',
-            region: 32.32,
-        },
-        {
-            chromosome: '14',
-            region: 32.33,
-        },
-        {
-            chromosome: '15',
-            region: -13,
-        },
-        {
-            chromosome: '15',
-            region: -12,
-        },
-        {
-            chromosome: '15',
-            region: -11.2,
-        },
-        {
-            chromosome: '15',
-            region: -11.2,
-        },
-        {
-            chromosome: '15',
-            region: -11.1,
-        },
-        {
-            chromosome: '15',
-            region: 11.1,
-        },
-        {
-            chromosome: '15',
-            region: 11.2,
-        },
-        {
-            chromosome: '15',
-            region: 12,
-        },
-        {
-            chromosome: '15',
-            region: 13.1,
-        },
-        {
-            chromosome: '15',
-            region: 13.2,
-        },
-        {
-            chromosome: '15',
-            region: 13.3,
-        },
-        {
-            chromosome: '15',
-            region: 14,
-        },
-        {
-            chromosome: '15',
-            region: 15.1,
-        },
-        {
-            chromosome: '15',
-            region: 15.2,
-        },
-        {
-            chromosome: '15',
-            region: 15.3,
-        },
-        {
-            chromosome: '15',
-            region: 21.1,
-        },
-        {
-            chromosome: '15',
-            region: 21.2,
-        },
-        {
-            chromosome: '15',
-            region: 21.3,
-        },
-        {
-            chromosome: '15',
-            region: 22.1,
-        },
-        {
-            chromosome: '15',
-            region: 22.2,
-        },
-        {
-            chromosome: '15',
-            region: 22.31,
-        },
-        {
-            chromosome: '15',
-            region: 22.32,
-        },
-        {
-            chromosome: '15',
-            region: 22.33,
-        },
-        {
-            chromosome: '15',
-            region: 23,
-        },
-        {
-            chromosome: '15',
-            region: 24.1,
-        },
-        {
-            chromosome: '15',
-            region: 24.2,
-        },
-        {
-            chromosome: '15',
-            region: 24.3,
-        },
-        {
-            chromosome: '15',
-            region: 25.1,
-        },
-        {
-            chromosome: '15',
-            region: 25.2,
-        },
-        {
-            chromosome: '15',
-            region: 25.3,
-        },
-        {
-            chromosome: '15',
-            region: 26.1,
-        },
-        {
-            chromosome: '15',
-            region: 26.2,
-        },
-        {
-            chromosome: '15',
-            region: 26.3,
-        },
-        {
-            chromosome: '16',
-            region: -13.3,
-        },
-        {
-            chromosome: '16',
-            region: -13.2,
-        },
-        {
-            chromosome: '16',
-            region: -13.13,
-        },
-        {
-            chromosome: '16',
-            region: -13.12,
-        },
-        {
-            chromosome: '16',
-            region: -13.11,
-        },
-        {
-            chromosome: '16',
-            region: -12.3,
-        },
-        {
-            chromosome: '16',
-            region: -12.2,
-        },
-        {
-            chromosome: '16',
-            region: -12.1,
-        },
-        {
-            chromosome: '16',
-            region: -11.2,
-        },
-        {
-            chromosome: '16',
-            region: -11.1,
-        },
-        {
-            chromosome: '16',
-            region: 11.1,
-        },
-        {
-            chromosome: '16',
-            region: 11.2,
-        },
-        {
-            chromosome: '16',
-            region: 12.1,
-        },
-        {
-            chromosome: '16',
-            region: 12.2,
-        },
-        {
-            chromosome: '16',
-            region: 13,
-        },
-        {
-            chromosome: '16',
-            region: 21,
-        },
-        {
-            chromosome: '16',
-            region: 22.1,
-        },
-        {
-            chromosome: '16',
-            region: 22.2,
-        },
-        {
-            chromosome: '16',
-            region: 22.3,
-        },
-        {
-            chromosome: '16',
-            region: 23.1,
-        },
-        {
-            chromosome: '16',
-            region: 23.2,
-        },
-        {
-            chromosome: '16',
-            region: 23.3,
-        },
-        {
-            chromosome: '16',
-            region: 24.1,
-        },
-        {
-            chromosome: '16',
-            region: 24.2,
-        },
-        {
-            chromosome: '16',
-            region: 24.3,
-        },
-        {
-            chromosome: '17',
-            region: -13.3,
-        },
-        {
-            chromosome: '17',
-            region: -13.2,
-        },
-        {
-            chromosome: '17',
-            region: -13.1,
-        },
-        {
-            chromosome: '17',
-            region: -12,
-        },
-        {
-            chromosome: '17',
-            region: -11.2,
-        },
-        {
-            chromosome: '17',
-            region: -11.1,
-        },
-        {
-            chromosome: '17',
-            region: 11.1,
-        },
-        {
-            chromosome: '17',
-            region: 11.2,
-        },
-        {
-            chromosome: '17',
-            region: 12,
-        },
-        {
-            chromosome: '17',
-            region: 21.1,
-        },
-        {
-            chromosome: '17',
-            region: 21.2,
-        },
-        {
-            chromosome: '17',
-            region: 21.31,
-        },
-        {
-            chromosome: '17',
-            region: 21.32,
-        },
-        {
-            chromosome: '17',
-            region: 21.33,
-        },
-        {
-            chromosome: '17',
-            region: 22,
-        },
-        {
-            chromosome: '17',
-            region: 23.1,
-        },
-        {
-            chromosome: '17',
-            region: 23.2,
-        },
-        {
-            chromosome: '17',
-            region: 23.3,
-        },
-        {
-            chromosome: '17',
-            region: 24.1,
-        },
-        {
-            chromosome: '17',
-            region: 24.2,
-        },
-        {
-            chromosome: '17',
-            region: 24.3,
-        },
-        {
-            chromosome: '17',
-            region: 25.1,
-        },
-        {
-            chromosome: '17',
-            region: 25.2,
-        },
-        {
-            chromosome: '17',
-            region: 25.3,
-        },
-        {
-            chromosome: '18',
-            region: -11.32,
-        },
-        {
-            chromosome: '18',
-            region: -11.31,
-        },
-        {
-            chromosome: '18',
-            region: -11.23,
-        },
-        {
-            chromosome: '18',
-            region: -11.22,
-        },
-        {
-            chromosome: '18',
-            region: -11.21,
-        },
-        {
-            chromosome: '18',
-            region: -11.1,
-        },
-        {
-            chromosome: '18',
-            region: 11.1,
-        },
-        {
-            chromosome: '18',
-            region: 11.2,
-        },
-        {
-            chromosome: '18',
-            region: 12.1,
-        },
-        {
-            chromosome: '18',
-            region: 12.2,
-        },
-        {
-            chromosome: '18',
-            region: 12.3,
-        },
-        {
-            chromosome: '18',
-            region: 21.1,
-        },
-        {
-            chromosome: '18',
-            region: 21.2,
-        },
-        {
-            chromosome: '18',
-            region: 21.31,
-        },
-        {
-            chromosome: '18',
-            region: 21.32,
-        },
-        {
-            chromosome: '18',
-            region: 21.33,
-        },
-        {
-            chromosome: '18',
-            region: 22.1,
-        },
-        {
-            chromosome: '18',
-            region: 22.2,
-        },
-        {
-            chromosome: '18',
-            region: 22.3,
-        },
-        {
-            chromosome: '18',
-            region: 23,
-        },
-        {
-            chromosome: '19',
-            region: -13.3,
-        },
-        {
-            chromosome: '19',
-            region: -13.2,
-        },
-        {
-            chromosome: '19',
-            region: -13.13,
-        },
-        {
-            chromosome: '19',
-            region: -13.12,
-        },
-        {
-            chromosome: '19',
-            region: -13.11,
-        },
-        {
-            chromosome: '19',
-            region: -12,
-        },
-        {
-            chromosome: '19',
-            region: -11,
-        },
-        {
-            chromosome: '19',
-            region: 11,
-        },
-        {
-            chromosome: '19',
-            region: 12,
-        },
-        {
-            chromosome: '19',
-            region: 13.11,
-        },
-        {
-            chromosome: '19',
-            region: 13.12,
-        },
-        {
-            chromosome: '19',
-            region: 13.13,
-        },
-        {
-            chromosome: '19',
-            region: 13.2,
-        },
-        {
-            chromosome: '19',
-            region: 13.31,
-        },
-        {
-            chromosome: '19',
-            region: 13.32,
-        },
-        {
-            chromosome: '19',
-            region: 13.33,
-        },
-        {
-            chromosome: '19',
-            region: 13.41,
-        },
-        {
-            chromosome: '19',
-            region: 13.42,
-        },
-        {
-            chromosome: '19',
-            region: 13.43,
-        },
-        {
-            chromosome: '20',
-            region: -13,
-        },
-        {
-            chromosome: '20',
-            region: -12.3,
-        },
-        {
-            chromosome: '20',
-            region: -12.2,
-        },
-        {
-            chromosome: '20',
-            region: -12.1,
-        },
-        {
-            chromosome: '20',
-            region: -11.23,
-        },
-        {
-            chromosome: '20',
-            region: -11.22,
-        },
-        {
-            chromosome: '20',
-            region: -11.21,
-        },
-        {
-            chromosome: '20',
-            region: -11.1,
-        },
-        {
-            chromosome: '20',
-            region: 11.1,
-        },
-        {
-            chromosome: '20',
-            region: 11.21,
-        },
-        {
-            chromosome: '20',
-            region: 11.22,
-        },
-        {
-            chromosome: '20',
-            region: 11.23,
-        },
-        {
-            chromosome: '20',
-            region: 12,
-        },
-        {
-            chromosome: '20',
-            region: 13.11,
-        },
-        {
-            chromosome: '20',
-            region: 13.12,
-        },
-        {
-            chromosome: '20',
-            region: 13.13,
-        },
-        {
-            chromosome: '20',
-            region: 13.2,
-        },
-        {
-            chromosome: '20',
-            region: 13.31,
-        },
-        {
-            chromosome: '20',
-            region: 13.32,
-        },
-        {
-            chromosome: '20',
-            region: 13.33,
-        },
-        {
-            chromosome: '21',
-            region: -13,
-        },
-        {
-            chromosome: '21',
-            region: -12,
-        },
-        {
-            chromosome: '21',
-            region: -11.2,
-        },
-        {
-            chromosome: '21',
-            region: -11.1,
-        },
-        {
-            chromosome: '21',
-            region: 11.1,
-        },
-        {
-            chromosome: '21',
-            region: 11.2,
-        },
-        {
-            chromosome: '21',
-            region: 21.1,
-        },
-        {
-            chromosome: '21',
-            region: 21.2,
-        },
-        {
-            chromosome: '21',
-            region: 21.3,
-        },
-        {
-            chromosome: '21',
-            region: 22.11,
-        },
-        {
-            chromosome: '21',
-            region: 22.12,
-        },
-        {
-            chromosome: '21',
-            region: 22.13,
-        },
-        {
-            chromosome: '21',
-            region: 22.2,
-        },
-        {
-            chromosome: '21',
-            region: 22.3,
-        },
-        {
-            chromosome: '22',
-            region: -13,
-        },
-        {
-            chromosome: '22',
-            region: -12,
-        },
-        {
-            chromosome: '22',
-            region: -11.2,
-        },
-        {
-            chromosome: '22',
-            region: -11.1,
-        },
-        {
-            chromosome: '22',
-            region: 11.1,
-        },
-        {
-            chromosome: '22',
-            region: 11.21,
-        },
-        {
-            chromosome: '22',
-            region: 22.22,
-        },
-        {
-            chromosome: '22',
-            region: 11.23,
-        },
-        {
-            chromosome: '22',
-            region: 12.1,
-        },
-        {
-            chromosome: '22',
-            region: 12.2,
-        },
-        {
-            chromosome: '22',
-            region: 12.3,
-        },
-        {
-            chromosome: '22',
-            region: 13.1,
-        },
-        {
-            chromosome: '22',
-            region: 13.2,
-        },
-        {
-            chromosome: '22',
-            region: 13.31,
-        },
-        {
-            chromosome: '22',
-            region: 13.32,
-        },
-        {
-            chromosome: '22',
-            region: 13.33,
-        },
-        {
-            chromosome: 'X',
-            region: -22.33,
-        },
-        {
-            chromosome: 'X',
-            region: -22.32,
-        },
-        {
-            chromosome: 'X',
-            region: -22.31,
-        },
-        {
-            chromosome: 'X',
-            region: -22.2,
-        },
-        {
-            chromosome: 'X',
-            region: -22.13,
-        },
-        {
-            chromosome: 'X',
-            region: -22.12,
-        },
-        {
-            chromosome: 'X',
-            region: -22.11,
-        },
-        {
-            chromosome: 'X',
-            region: -21.3,
-        },
-        {
-            chromosome: 'X',
-            region: -21.2,
-        },
-        {
-            chromosome: 'X',
-            region: -21.1,
-        },
-        {
-            chromosome: 'X',
-            region: -11.4,
-        },
-        {
-            chromosome: 'X',
-            region: -11.3,
-        },
-        {
-            chromosome: 'X',
-            region: -11.23,
-        },
-        {
-            chromosome: 'X',
-            region: -11.22,
-        },
-        {
-            chromosome: 'X',
-            region: -11.21,
-        },
-        {
-            chromosome: 'X',
-            region: -11.1,
-        },
-        {
-            chromosome: 'X',
-            region: 11.1,
-        },
-        {
-            chromosome: 'X',
-            region: 11.2,
-        },
-        {
-            chromosome: 'X',
-            region: 12,
-        },
-        {
-            chromosome: 'X',
-            region: 13.1,
-        },
-        {
-            chromosome: 'X',
-            region: 13.2,
-        },
-        {
-            chromosome: 'X',
-            region: 13.3,
-        },
-        {
-            chromosome: 'X',
-            region: 21.1,
-        },
-        {
-            chromosome: 'X',
-            region: 21.2,
-        },
-        {
-            chromosome: 'X',
-            region: 21.31,
-        },
-        {
-            chromosome: 'X',
-            region: 21.32,
-        },
-        {
-            chromosome: 'X',
-            region: 21.33,
-        },
-        {
-            chromosome: 'X',
-            region: 22.1,
-        },
-        {
-            chromosome: 'X',
-            region: 22.2,
-        },
-        {
-            chromosome: 'X',
-            region: 22.3,
-        },
-        {
-            chromosome: 'X',
-            region: 23,
-        },
-        {
-            chromosome: 'X',
-            region: 24,
-        },
-        {
-            chromosome: 'X',
-            region: 25,
-        },
-        {
-            chromosome: 'X',
-            region: 26.1,
-        },
-        {
-            chromosome: 'X',
-            region: 26.2,
-        },
-        {
-            chromosome: 'X',
-            region: 26.3,
-        },
-        {
-            chromosome: 'X',
-            region: 27.1,
-        },
-        {
-            chromosome: 'X',
-            region: 27.2,
-        },
-        {
-            chromosome: 'X',
-            region: 27.3,
-        },
-        {
-            chromosome: 'X',
-            region: 28,
-        },
-        {
-            chromosome: 'Y',
-            region: -11.32,
-        },
-        {
-            chromosome: 'Y',
-            region: -11.31,
-        },
-        {
-            chromosome: 'Y',
-            region: -11.2,
-        },
-        {
-            chromosome: 'Y',
-            region: -11.1,
-        },
-        {
-            chromosome: 'Y',
-            region: 11.1,
-        },
-        {
-            chromosome: 'Y',
-            region: 11.21,
-        },
-        {
-            chromosome: 'Y',
-            region: 11.221,
-        },
-        {
-            chromosome: 'Y',
-            region: 11.222,
-        },
-        {
-            chromosome: 'Y',
-            region: 11.223,
-        },
-        {
-            chromosome: 'Y',
-            region: 11.23,
-        },
-        {
-            chromosome: 'Y',
-            region: 12,
-        },
-    ];
+function getData() {
+    return {
+        Asia: [
+            {
+                gdpPerCapita: 1740,
+                lifeSatisfaction: 4.22,
+                country: 'Afghanistan',
+            },
+            {
+                gdpPerCapita: 8174,
+                lifeSatisfaction: 4.33,
+                country: 'Armenia',
+            },
+            {
+                gdpPerCapita: 15994,
+                lifeSatisfaction: 5.3,
+                country: 'Azerbaijan',
+            },
+            {
+                gdpPerCapita: 3319,
+                lifeSatisfaction: 4.56,
+                country: 'Bangladesh',
+            },
+            {
+                gdpPerCapita: 3463,
+                lifeSatisfaction: 4.46,
+                country: 'Cambodia',
+            },
+            {
+                gdpPerCapita: 14401,
+                lifeSatisfaction: 5.32,
+                country: 'China',
+            },
+            {
+                gdpPerCapita: 54279,
+                lifeSatisfaction: 5.5,
+                country: 'Hong Kong',
+            },
+            {
+                gdpPerCapita: 6093,
+                lifeSatisfaction: 4.18,
+                country: 'India',
+            },
+            {
+                gdpPerCapita: 10765,
+                lifeSatisfaction: 5.14,
+                country: 'Indonesia',
+            },
+            {
+                gdpPerCapita: 16087,
+                lifeSatisfaction: 4.41,
+                country: 'Iraq',
+            },
+            {
+                gdpPerCapita: 32613,
+                lifeSatisfaction: 7.16,
+                country: 'Israel',
+            },
+            {
+                gdpPerCapita: 38240,
+                lifeSatisfaction: 5.95,
+                country: 'Japan',
+            },
+            {
+                gdpPerCapita: 8390,
+                lifeSatisfaction: 5.27,
+                country: 'Jordan',
+            },
+            {
+                gdpPerCapita: 23420,
+                lifeSatisfaction: 5.53,
+                country: 'Kazakhstan',
+            },
+            {
+                gdpPerCapita: 3292,
+                lifeSatisfaction: 4.86,
+                country: 'Kyrgyzstan',
+            },
+            {
+                gdpPerCapita: 12974,
+                lifeSatisfaction: 5.27,
+                country: 'Lebanon',
+            },
+            {
+                gdpPerCapita: 11328,
+                lifeSatisfaction: 5.06,
+                country: 'Mongolia',
+            },
+            {
+                gdpPerCapita: 5352,
+                lifeSatisfaction: 4.62,
+                country: 'Myanmar',
+            },
+            {
+                gdpPerCapita: 2288,
+                lifeSatisfaction: 5.1,
+                country: 'Nepal',
+            },
+            {
+                gdpPerCapita: 4866,
+                lifeSatisfaction: 5.55,
+                country: 'Pakistan',
+            },
+            {
+                gdpPerCapita: 2685,
+                lifeSatisfaction: 4.91,
+                country: 'Palestine',
+            },
+            {
+                gdpPerCapita: 7236,
+                lifeSatisfaction: 5.43,
+                country: 'Philippines',
+            },
+            {
+                gdpPerCapita: 50458,
+                lifeSatisfaction: 6.47,
+                country: 'Saudi Arabia',
+            },
+            {
+                gdpPerCapita: 81443,
+                lifeSatisfaction: 6.03,
+                country: 'Singapore',
+            },
+            {
+                gdpPerCapita: 34986,
+                lifeSatisfaction: 5.97,
+                country: 'South Korea',
+            },
+            {
+                gdpPerCapita: 2763,
+                lifeSatisfaction: 5.1,
+                country: 'Tajikistan',
+            },
+            {
+                gdpPerCapita: 15682,
+                lifeSatisfaction: 6.07,
+                country: 'Thailand',
+            },
+            {
+                gdpPerCapita: 23679,
+                lifeSatisfaction: 5.33,
+                country: 'Turkey',
+            },
+            {
+                gdpPerCapita: 15648,
+                lifeSatisfaction: 5.89,
+                country: 'Turkmenistan',
+            },
+            {
+                gdpPerCapita: 67133,
+                lifeSatisfaction: 6.83,
+                country: 'United Arab Emirates',
+            },
+            {
+                gdpPerCapita: 6039,
+                lifeSatisfaction: 5.89,
+                country: 'Uzbekistan',
+            },
+            {
+                gdpPerCapita: 5955,
+                lifeSatisfaction: 5.06,
+                country: 'Vietnam',
+            },            {
+                gdpPerCapita: 2325,
+                lifeSatisfaction: 3.83,
+                country: 'Yemen',
+            },
+        ],
+        Europe: [
+            {
+                gdpPerCapita: 11425,
+                lifeSatisfaction: 4.51,
+                country: 'Albania',
+            },
+            {
+                gdpPerCapita: 44144,
+                lifeSatisfaction: 7.05,
+                country: 'Austria',
+            },
+            {
+                gdpPerCapita: 16742,
+                lifeSatisfaction: 5.18,
+                country: 'Belarus',
+            },
+            {
+                gdpPerCapita: 41946,
+                lifeSatisfaction: 6.95,
+                country: 'Belgium',
+            },
+            {
+                gdpPerCapita: 11179,
+                lifeSatisfaction: 5.18,
+                country: 'Bosnia and Herzegovina',
+            },
+            {
+                gdpPerCapita: 17709,
+                lifeSatisfaction: 4.84,
+                country: 'Bulgaria',
+            },
+            {
+                gdpPerCapita: 31196,
+                lifeSatisfaction: 5.79,
+                country: 'Cyprus',
+            },
+            {
+                gdpPerCapita: 31072,
+                lifeSatisfaction: 6.74,
+                country: 'Czech Republic',
+            },
+            {
+                gdpPerCapita: 45686,
+                lifeSatisfaction: 7.56,
+                country: 'Denmark',
+            },
+            {
+                gdpPerCapita: 27735,
+                lifeSatisfaction: 5.65,
+                country: 'Estonia',
+            },
+            {
+                gdpPerCapita: 39423,
+                lifeSatisfaction: 7.66,
+                country: 'Finland',
+            },
+            {
+                gdpPerCapita: 38059,
+                lifeSatisfaction: 6.48,
+                country: 'France',
+            },
+            {
+                gdpPerCapita: 9267,
+                lifeSatisfaction: 4.45,
+                country: 'Georgia',
+            },
+            {
+                gdpPerCapita: 44072,
+                lifeSatisfaction: 6.87,
+                country: 'Germany',
+            },
+            {
+                gdpPerCapita: 24264,
+                lifeSatisfaction: 5.3,
+                country: 'Greece',
+            },
+            {
+                gdpPerCapita: 25381,
+                lifeSatisfaction: 5.45,
+                country: 'Hungary',
+            },
+            {
+                gdpPerCapita: 45276,
+                lifeSatisfaction: 7.51,
+                country: 'Iceland',
+            },
+            {
+                gdpPerCapita: 62828,
+                lifeSatisfaction: 7.04,
+                country: 'Ireland',
+            },
+            {
+                gdpPerCapita: 34620,
+                lifeSatisfaction: 5.95,
+                country: 'Italy',
+            },
+            {
+                gdpPerCapita: 9332,
+                lifeSatisfaction: 5.76,
+                country: 'Kosovo',
+            },
+            {
+                gdpPerCapita: 23712,
+                lifeSatisfaction: 5.94,
+                country: 'Latvia',
+            },
+            {
+                gdpPerCapita: 27904,
+                lifeSatisfaction: 5.87,
+                country: 'Lithuania',
+            },
+            {
+                gdpPerCapita: 97019,
+                lifeSatisfaction: 6.97,
+                country: 'Luxembourg',
+            },
+            {
+                gdpPerCapita: 13055,
+                lifeSatisfaction: 5.35,
+                country: 'Macedonia',
+            },
+            {
+                gdpPerCapita: 35694,
+                lifeSatisfaction: 6.59,
+                country: 'Malta',
+            },
+            {
+                gdpPerCapita: 4944,
+                lifeSatisfaction: 5.58,
+                country: 'Moldova',
+            },
+            {
+                gdpPerCapita: 15658,
+                lifeSatisfaction: 5.3,
+                country: 'Montenegro',
+            },
+            {
+                gdpPerCapita: 47128,
+                lifeSatisfaction: 7.54,
+                country: 'Netherlands',
+            },
+            {
+                gdpPerCapita: 63811,
+                lifeSatisfaction: 7.6,
+                country: 'Norway',
+            },
+            {
+                gdpPerCapita: 26003,
+                lifeSatisfaction: 6.16,
+                country: 'Poland',
+            },
+            {
+                gdpPerCapita: 13720,
+                lifeSatisfaction: 5.75,
+                country: 'Serbia',
+            },
+            {
+                gdpPerCapita: 29156,
+                lifeSatisfaction: 5.99,
+                country: 'Slovakia',
+            },
+            {
+                gdpPerCapita: 29803,
+                lifeSatisfaction: 5.94,
+                country: 'Slovenia',
+            },
+            {
+                gdpPerCapita: 33261,
+                lifeSatisfaction: 6.32,
+                country: 'Spain',
+            },
+            {
+                gdpPerCapita: 46441,
+                lifeSatisfaction: 7.37,
+                country: 'Sweden',
+            },
+            {
+                gdpPerCapita: 56625,
+                lifeSatisfaction: 7.46,
+                country: 'Switzerland',
+            },
+            {
+                gdpPerCapita: 7668,
+                lifeSatisfaction: 4.03,
+                country: 'Ukraine',
+            },
+            {
+                gdpPerCapita: 38901,
+                lifeSatisfaction: 6.82,
+                country: 'United Kingdom',
+            },
+        ],
+        Africa: [
+            {
+                gdpPerCapita: 13975,
+                lifeSatisfaction: 5.39,
+                country: 'Algeria',
+            },
+            {
+                gdpPerCapita: 2010,
+                lifeSatisfaction: 4.01,
+                country: 'Benin',
+            },
+            {
+                gdpPerCapita: 15513,
+                lifeSatisfaction: 3.5,
+                country: 'Botswana',
+            },
+            {
+                gdpPerCapita: 1595,
+                lifeSatisfaction: 4.21,
+                country: 'Burkina Faso',
+            },
+            {
+                gdpPerCapita: 3046,
+                lifeSatisfaction: 4.82,
+                country: 'Cameroon',
+            },
+            {
+                gdpPerCapita: 648,
+                lifeSatisfaction: 2.69,
+                country: 'Central African Republic',
+            },
+            {
+                gdpPerCapita: 1846,
+                lifeSatisfaction: 4.03,
+                country: 'Chad',
+            },
+            {
+                gdpPerCapita: 5301,
+                lifeSatisfaction: 4.12,
+                country: 'Congo',
+            },
+            {
+                gdpPerCapita: 3448,
+                lifeSatisfaction: 4.54,
+                country: "Cote d'Ivoire",
+            },
+            {
+                gdpPerCapita: 742,
+                lifeSatisfaction: 4.52,
+                country: 'Democratic Republic of Congo',
+            },
+            {
+                gdpPerCapita: 10319,
+                lifeSatisfaction: 4.56,
+                country: 'Egypt',
+            },
+            {
+                gdpPerCapita: 1608,
+                lifeSatisfaction: 4.3,
+                country: 'Ethiopia',
+            },
+            {
+                gdpPerCapita: 16786,
+                lifeSatisfaction: 4.83,
+                country: 'Gabon',
+            },
+            {
+                gdpPerCapita: 3980,
+                lifeSatisfaction: 4.51,
+                country: 'Ghana',
+            },
+            {
+                gdpPerCapita: 1215,
+                lifeSatisfaction: 3.6,
+                country: 'Guinea',
+            },
+            {
+                gdpPerCapita: 2926,
+                lifeSatisfaction: 4.4,
+                country: 'Kenya',
+            },
+            {
+                gdpPerCapita: 2808,
+                lifeSatisfaction: 3.81,
+                country: 'Lesotho',
+            },
+            {
+                gdpPerCapita: 754,
+                lifeSatisfaction: 3.35,
+                country: 'Liberia',
+            },
+            {
+                gdpPerCapita: 1396,
+                lifeSatisfaction: 3.66,
+                country: 'Madagascar',
+            },
+            {
+                gdpPerCapita: 1084,
+                lifeSatisfaction: 3.48,
+                country: 'Malawi',
+            },
+            {
+                gdpPerCapita: 1963,
+                lifeSatisfaction: 4.02,
+                country: 'Mali',
+            },
+            {
+                gdpPerCapita: 3572,
+                lifeSatisfaction: 4.47,
+                country: 'Mauritania',
+            },
+            {
+                gdpPerCapita: 19549,
+                lifeSatisfaction: 5.61,
+                country: 'Mauritius',
+            },
+            {
+                gdpPerCapita: 7266,
+                lifeSatisfaction: 5.39,
+                country: 'Morocco',
+            },
+            {
+                gdpPerCapita: 907,
+                lifeSatisfaction: 4.23,
+                country: 'Niger',
+            },
+            {
+                gdpPerCapita: 5439,
+                lifeSatisfaction: 5.22,
+                country: 'Nigeria',
+            },
+            {
+                gdpPerCapita: 2380,
+                lifeSatisfaction: 4.59,
+                country: 'Senegal',
+            },
+            {
+                gdpPerCapita: 1366,
+                lifeSatisfaction: 4.73,
+                country: 'Sierra Leone',
+            },
+            {
+                gdpPerCapita: 12260,
+                lifeSatisfaction: 4.77,
+                country: 'South Africa',
+            },
+            {
+                gdpPerCapita: 2583,
+                lifeSatisfaction: 2.9,
+                country: 'Tanzania',
+            },
+            {
+                gdpPerCapita: 1382,
+                lifeSatisfaction: 3.88,
+                country: 'Togo',
+            },
+            {
+                gdpPerCapita: 10752,
+                lifeSatisfaction: 4.52,
+                country: 'Tunisia',
+            },
+            {
+                gdpPerCapita: 1714,
+                lifeSatisfaction: 4.23,
+                country: 'Uganda',
+            },
+            {
+                gdpPerCapita: 3636,
+                lifeSatisfaction: 4.35,
+                country: 'Zambia',
+            },
+            {
+                gdpPerCapita: 1860,
+                lifeSatisfaction: 3.74,
+                country: 'Zimbabwe',
+            },
+        ],
+        'South America': [
+            {
+                gdpPerCapita: 18479,
+                lifeSatisfaction: 6.43,
+                country: 'Argentina',
+            },
+            {
+                gdpPerCapita: 14024,
+                lifeSatisfaction: 6.37,
+                country: 'Brazil',
+            },
+            {
+                gdpPerCapita: 6708,
+                lifeSatisfaction: 5.77,
+                country: 'Bolivia',
+            },
+            {
+                gdpPerCapita: 22707,
+                lifeSatisfaction: 6.58,
+                country: 'Chile',
+            },
+            {
+                gdpPerCapita: 13124,
+                lifeSatisfaction: 6.23,
+                country: 'Colombia',
+            },
+            {
+                gdpPerCapita: 10462,
+                lifeSatisfaction: 6.12,
+                country: 'Ecuador',
+            },
+            {
+                gdpPerCapita: 8878,
+                lifeSatisfaction: 5.8,
+                country: 'Paraguay',
+            },
+            {
+                gdpPerCapita: 12072,
+                lifeSatisfaction: 5.7,
+                country: 'Peru',
+            },
+            {
+                gdpPerCapita: 20047,
+                lifeSatisfaction: 6.17,
+                country: 'Uruguay',
+            },
+        ],
+        Oceania: [
+            {
+                gdpPerCapita: 44414,
+                lifeSatisfaction: 7.25,
+                country: 'Australia',
+            },
+            {
+                gdpPerCapita: 35269,
+                lifeSatisfaction: 7.23,
+                country: 'New Zealand',
+            },
+        ],
+        'North America': [
+            {
+                gdpPerCapita: 43088,
+                lifeSatisfaction: 7.24,
+                country: 'Canada',
+            },
+            {
+                gdpPerCapita: 15401,
+                lifeSatisfaction: 7.14,
+                country: 'Costa Rica',
+            },
+            {
+                gdpPerCapita: 14099,
+                lifeSatisfaction: 5.24,
+                country: 'Dominican Republic',
+            },
+            {
+                gdpPerCapita: 7990,
+                lifeSatisfaction: 6.14,
+                country: 'El Salvador',
+            },
+            {
+                gdpPerCapita: 7367,
+                lifeSatisfaction: 6.36,
+                country: 'Guatemala',
+            },
+            {
+                gdpPerCapita: 1654,
+                lifeSatisfaction: 3.35,
+                country: 'Haiti',
+            },
+            {
+                gdpPerCapita: 4392,
+                lifeSatisfaction: 5.65,
+                country: 'Honduras',
+            },
+            {
+                gdpPerCapita: 16831,
+                lifeSatisfaction: 6.82,
+                country: 'Mexico',
+            },
+            {
+                gdpPerCapita: 5137,
+                lifeSatisfaction: 6.01,
+                country: 'Nicaragua',
+            },
+            {
+                gdpPerCapita: 21335,
+                lifeSatisfaction: 6.12,
+                country: 'Panama',
+            },
+            {
+                gdpPerCapita: 53273,
+                lifeSatisfaction: 6.8,
+                country: 'United States',
+            },
+        ],
+    };
 }

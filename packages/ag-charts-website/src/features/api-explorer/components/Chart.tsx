@@ -3,6 +3,8 @@ import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import React from 'react';
 
+import * as agChartsEnterprise from 'ag-charts-enterprise';
+
 import { data, series } from '../utils/templates';
 import { deepClone } from '../utils/utils';
 import styles from './Chart.module.scss';
@@ -13,7 +15,7 @@ import styles from './Chart.module.scss';
 export class Chart extends React.Component<{ options: {}; fullScreen: boolean; setFullScreen(o: boolean) }> {
     chart: React.RefObject<HTMLDivElement>;
     chartInstance = undefined;
-    AgChart = undefined;
+    AgChart?: agChartsEnterprise.AgChart;
 
     constructor(props) {
         super(props);
@@ -21,10 +23,8 @@ export class Chart extends React.Component<{ options: {}; fullScreen: boolean; s
     }
 
     componentDidMount() {
-        import('ag-charts-enterprise').then(({ AgChart }) => {
-            this.AgChart = AgChart;
-            this.createChart();
-        });
+        this.AgChart = agChartsEnterprise.AgChart;
+        this.createChart();
     }
 
     componentWillUnmount() {
@@ -38,7 +38,7 @@ export class Chart extends React.Component<{ options: {}; fullScreen: boolean; s
         const hasChangedType = newSeriesType !== oldSeriesType;
 
         if (this.chartInstance && !hasChangedType) {
-            this.AgChart.update(this.chartInstance, this.createOptionsJson());
+            this.AgChart?.update(this.chartInstance, this.createOptionsJson());
         } else {
             this.chartInstance?.destroy();
             this.createChart();
